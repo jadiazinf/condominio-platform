@@ -1,0 +1,707 @@
+import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
+import { sql } from 'drizzle-orm'
+import * as schema from '@database/drizzle/schema'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
+import { readFileSync, existsSync } from 'fs'
+
+// Load .env.test file before anything else
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const envPath = join(__dirname, '../../.env.test')
+
+if (existsSync(envPath)) {
+  const content = readFileSync(envPath, 'utf-8')
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim()
+    if (trimmed && !trimmed.startsWith('#')) {
+      const [key, ...valueParts] = trimmed.split('=')
+      if (key && valueParts.length > 0) {
+        process.env[key.trim()] = valueParts.join('=').trim()
+      }
+    }
+  }
+}
+
+export type TTestDrizzleClient = PostgresJsDatabase<typeof schema>
+
+let client: ReturnType<typeof postgres> | null = null
+let db: TTestDrizzleClient | null = null
+let startPromise: Promise<TTestDrizzleClient> | null = null
+
+// Test database URL - uses local PostgreSQL
+function getTestDatabaseUrl(): string {
+  const url = process.env.TEST_DATABASE_URL
+  if (!url) {
+    throw new Error(
+      'TEST_DATABASE_URL environment variable is required. Create a .env.test file with TEST_DATABASE_URL=postgresql://...'
+    )
+  }
+  return url
+}
+
+const TEST_DATABASE_URL = getTestDatabaseUrl()
+
+/**
+ * Starts a connection to the test database.
+ * Uses a local PostgreSQL database for faster test execution.
+ * Thread-safe: multiple calls will wait for the same connection.
+ */
+export async function startTestContainer(): Promise<TTestDrizzleClient> {
+  // Return existing db if already initialized
+  if (db) {
+    return db
+  }
+
+  // If already starting, wait for that promise
+  if (startPromise) {
+    return startPromise
+  }
+
+  // Start the connection (only once)
+  startPromise = (async () => {
+    client = postgres(TEST_DATABASE_URL, {
+      max: 10,
+      idle_timeout: 20,
+      connect_timeout: 10,
+      prepare: false,
+      onnotice: () => {},
+    })
+
+    db = drizzle(client, { schema })
+
+    // Create schema if it doesn't exist
+    await createSchema(db)
+
+    return db
+  })()
+
+  return startPromise
+}
+
+/**
+ * Creates the database schema for testing.
+ * Uses IF NOT EXISTS to be idempotent.
+ */
+async function createSchema(db: TTestDrizzleClient): Promise<void> {
+  // Create enums
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE location_type AS ENUM ('country', 'province', 'city');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE ownership_type AS ENUM ('owner', 'co-owner', 'tenant');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE concept_type AS ENUM ('maintenance', 'condominium_fee', 'extraordinary', 'fine');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE interest_type AS ENUM ('simple', 'compound', 'fixed_amount');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE quota_status AS ENUM ('pending', 'paid', 'overdue', 'cancelled');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE gateway_type AS ENUM ('stripe', 'banco_plaza', 'paypal', 'zelle', 'other');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE payment_method AS ENUM ('transfer', 'cash', 'card', 'gateway');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE expense_status AS ENUM ('pending', 'approved', 'rejected', 'paid');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE document_type AS ENUM ('invoice', 'receipt', 'statement', 'contract', 'regulation', 'minutes', 'other');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE recipient_type AS ENUM ('user', 'condominium', 'building', 'unit');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE message_type AS ENUM ('message', 'notification', 'announcement');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE priority AS ENUM ('low', 'normal', 'high', 'urgent');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+  `)
+
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE audit_action AS ENUM ('INSERT', 'UPDATE', 'DELETE');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+  `)
+
+  // Create tables
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS locations (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(200) NOT NULL,
+      location_type location_type NOT NULL,
+      parent_id UUID REFERENCES locations(id) ON DELETE CASCADE,
+      code VARCHAR(50),
+      is_active BOOLEAN DEFAULT true,
+      metadata JSONB,
+      registered_by UUID,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS currencies (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      code VARCHAR(10) NOT NULL UNIQUE,
+      name VARCHAR(100) NOT NULL,
+      symbol VARCHAR(10),
+      is_base_currency BOOLEAN DEFAULT false,
+      is_active BOOLEAN DEFAULT true,
+      decimals INTEGER DEFAULT 2,
+      registered_by UUID,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS users (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      firebase_uid VARCHAR(128) NOT NULL UNIQUE,
+      email VARCHAR(255) NOT NULL UNIQUE,
+      display_name VARCHAR(255),
+      phone_number VARCHAR(50),
+      photo_url TEXT,
+      first_name VARCHAR(100),
+      last_name VARCHAR(100),
+      id_document_type VARCHAR(50),
+      id_document_number VARCHAR(50),
+      address VARCHAR(500),
+      location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
+      preferred_language VARCHAR(10) DEFAULT 'es',
+      preferred_currency_id UUID REFERENCES currencies(id) ON DELETE SET NULL,
+      is_active BOOLEAN DEFAULT true,
+      is_email_verified BOOLEAN DEFAULT false,
+      last_login TIMESTAMP,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS exchange_rates (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      from_currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE CASCADE,
+      to_currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE CASCADE,
+      rate DECIMAL(20, 8) NOT NULL,
+      effective_date DATE NOT NULL,
+      source VARCHAR(100),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      CONSTRAINT check_different_currencies CHECK (from_currency_id != to_currency_id)
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS permissions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(100) NOT NULL UNIQUE,
+      description TEXT,
+      module VARCHAR(50) NOT NULL,
+      action VARCHAR(50) NOT NULL,
+      registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS roles (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(100) NOT NULL UNIQUE,
+      description TEXT,
+      is_system_role BOOLEAN DEFAULT false,
+      registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS role_permissions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+      permission_id UUID NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+      registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS management_companies (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(255) NOT NULL,
+      legal_name VARCHAR(255),
+      tax_id VARCHAR(100) UNIQUE,
+      email VARCHAR(255),
+      phone VARCHAR(50),
+      website VARCHAR(255),
+      address VARCHAR(500),
+      location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
+      is_active BOOLEAN DEFAULT true,
+      logo_url TEXT,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS condominiums (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(255) NOT NULL,
+      code VARCHAR(50) UNIQUE,
+      management_company_id UUID REFERENCES management_companies(id) ON DELETE SET NULL,
+      address VARCHAR(500),
+      location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
+      email VARCHAR(255),
+      phone VARCHAR(50),
+      default_currency_id UUID REFERENCES currencies(id) ON DELETE SET NULL,
+      is_active BOOLEAN DEFAULT true,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS buildings (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      name VARCHAR(255) NOT NULL,
+      code VARCHAR(50),
+      address VARCHAR(500),
+      floors_count INTEGER,
+      units_count INTEGER,
+      bank_account_holder VARCHAR(255),
+      bank_name VARCHAR(100),
+      bank_account_number VARCHAR(100),
+      bank_account_type VARCHAR(50),
+      is_active BOOLEAN DEFAULT true,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS user_roles (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+      condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
+      building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
+      assigned_at TIMESTAMP DEFAULT NOW(),
+      assigned_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      expires_at TIMESTAMP
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS units (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      building_id UUID NOT NULL REFERENCES buildings(id) ON DELETE CASCADE,
+      unit_number VARCHAR(50) NOT NULL,
+      floor INTEGER,
+      area_m2 DECIMAL(10, 2),
+      bedrooms INTEGER,
+      bathrooms INTEGER,
+      parking_spaces INTEGER DEFAULT 0,
+      parking_identifiers TEXT[],
+      storage_identifier VARCHAR(50),
+      aliquot_percentage DECIMAL(10, 6),
+      is_active BOOLEAN DEFAULT true,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS unit_ownerships (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      ownership_type ownership_type NOT NULL,
+      ownership_percentage DECIMAL(5, 2),
+      title_deed_number VARCHAR(100),
+      title_deed_date DATE,
+      start_date DATE NOT NULL,
+      end_date DATE,
+      is_active BOOLEAN DEFAULT true,
+      is_primary_residence BOOLEAN DEFAULT false,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS payment_concepts (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
+      building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
+      name VARCHAR(255) NOT NULL,
+      description TEXT,
+      concept_type concept_type NOT NULL,
+      is_recurring BOOLEAN DEFAULT true,
+      recurrence_period VARCHAR(50),
+      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
+      is_active BOOLEAN DEFAULT true,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS interest_configurations (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
+      building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
+      payment_concept_id UUID REFERENCES payment_concepts(id) ON DELETE CASCADE,
+      name VARCHAR(255) NOT NULL,
+      description TEXT,
+      interest_type interest_type NOT NULL,
+      interest_rate DECIMAL(10, 6),
+      fixed_amount DECIMAL(15, 2),
+      calculation_period VARCHAR(50),
+      grace_period_days INTEGER DEFAULT 0,
+      currency_id UUID REFERENCES currencies(id) ON DELETE RESTRICT,
+      is_active BOOLEAN DEFAULT true,
+      effective_from DATE NOT NULL,
+      effective_to DATE,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS quotas (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+      payment_concept_id UUID NOT NULL REFERENCES payment_concepts(id) ON DELETE RESTRICT,
+      period_year INTEGER NOT NULL,
+      period_month INTEGER,
+      period_description VARCHAR(100),
+      base_amount DECIMAL(15, 2) NOT NULL,
+      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
+      interest_amount DECIMAL(15, 2) DEFAULT 0,
+      amount_in_base_currency DECIMAL(15, 2),
+      exchange_rate_used DECIMAL(20, 8),
+      issue_date DATE NOT NULL,
+      due_date DATE NOT NULL,
+      status quota_status DEFAULT 'pending',
+      paid_amount DECIMAL(15, 2) DEFAULT 0,
+      balance DECIMAL(15, 2) NOT NULL,
+      notes TEXT,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS payment_gateways (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(100) NOT NULL UNIQUE,
+      gateway_type gateway_type NOT NULL,
+      configuration JSONB,
+      supported_currencies UUID[],
+      is_active BOOLEAN DEFAULT true,
+      is_sandbox BOOLEAN DEFAULT false,
+      metadata JSONB,
+      registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS entity_payment_gateways (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      payment_gateway_id UUID NOT NULL REFERENCES payment_gateways(id) ON DELETE CASCADE,
+      condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
+      building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
+      entity_configuration JSONB,
+      is_active BOOLEAN DEFAULT true,
+      registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS payments (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      payment_number VARCHAR(100) UNIQUE,
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+      unit_id UUID NOT NULL REFERENCES units(id) ON DELETE RESTRICT,
+      amount DECIMAL(15, 2) NOT NULL,
+      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
+      paid_amount DECIMAL(15, 2),
+      paid_currency_id UUID REFERENCES currencies(id) ON DELETE RESTRICT,
+      exchange_rate DECIMAL(20, 8),
+      payment_method payment_method NOT NULL,
+      payment_gateway_id UUID REFERENCES payment_gateways(id) ON DELETE SET NULL,
+      payment_details JSONB,
+      payment_date DATE NOT NULL,
+      registered_at TIMESTAMP DEFAULT NOW(),
+      status payment_status DEFAULT 'completed',
+      receipt_url TEXT,
+      receipt_number VARCHAR(100),
+      notes TEXT,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      registered_by UUID REFERENCES users(id) ON DELETE SET NULL
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS payment_applications (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      payment_id UUID NOT NULL REFERENCES payments(id) ON DELETE CASCADE,
+      quota_id UUID NOT NULL REFERENCES quotas(id) ON DELETE CASCADE,
+      applied_amount DECIMAL(15, 2) NOT NULL,
+      applied_to_principal DECIMAL(15, 2) DEFAULT 0,
+      applied_to_interest DECIMAL(15, 2) DEFAULT 0,
+      registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      applied_at TIMESTAMP DEFAULT NOW()
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS expense_categories (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(100) NOT NULL,
+      description TEXT,
+      parent_category_id UUID REFERENCES expense_categories(id) ON DELETE CASCADE,
+      is_active BOOLEAN DEFAULT true,
+      registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS expenses (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
+      building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
+      expense_category_id UUID REFERENCES expense_categories(id) ON DELETE SET NULL,
+      description TEXT NOT NULL,
+      expense_date DATE NOT NULL,
+      amount DECIMAL(15, 2) NOT NULL,
+      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
+      vendor_name VARCHAR(255),
+      vendor_tax_id VARCHAR(100),
+      invoice_number VARCHAR(100),
+      invoice_url TEXT,
+      status expense_status DEFAULT 'pending',
+      approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      approved_at TIMESTAMP,
+      notes TEXT,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS documents (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      document_type document_type NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      description TEXT,
+      condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
+      building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
+      unit_id UUID REFERENCES units(id) ON DELETE CASCADE,
+      user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+      payment_id UUID REFERENCES payments(id) ON DELETE CASCADE,
+      quota_id UUID REFERENCES quotas(id) ON DELETE CASCADE,
+      expense_id UUID REFERENCES expenses(id) ON DELETE CASCADE,
+      file_url TEXT NOT NULL,
+      file_name VARCHAR(255),
+      file_size INTEGER,
+      file_type VARCHAR(50),
+      document_date DATE,
+      document_number VARCHAR(100),
+      is_public BOOLEAN DEFAULT false,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS messages (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      recipient_type recipient_type NOT NULL,
+      recipient_user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+      recipient_condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
+      recipient_building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
+      recipient_unit_id UUID REFERENCES units(id) ON DELETE CASCADE,
+      subject VARCHAR(255),
+      body TEXT NOT NULL,
+      message_type message_type DEFAULT 'message',
+      priority priority DEFAULT 'normal',
+      attachments JSONB,
+      is_read BOOLEAN DEFAULT false,
+      read_at TIMESTAMP,
+      metadata JSONB,
+      registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      sent_at TIMESTAMP DEFAULT NOW()
+    )
+  `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      table_name VARCHAR(100) NOT NULL,
+      record_id UUID NOT NULL,
+      action audit_action NOT NULL,
+      old_values JSONB,
+      new_values JSONB,
+      changed_fields TEXT[],
+      user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+      ip_address INET,
+      user_agent TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `)
+}
+
+/**
+ * Stops the database connection and cleans up resources.
+ */
+export async function stopTestContainer(): Promise<void> {
+  startPromise = null
+
+  if (client) {
+    try {
+      await client.end({ timeout: 5 })
+    } catch {
+      // Ignore errors on close
+    }
+    client = null
+  }
+
+  db = null
+}
+
+/**
+ * Cleans all data from tables (for test isolation).
+ * Uses a single TRUNCATE command for better performance.
+ */
+export async function cleanDatabase(testDb: TTestDrizzleClient): Promise<void> {
+  // Truncate all tables in one command for better performance
+  await testDb.execute(sql`
+    TRUNCATE TABLE
+      audit_logs,
+      messages,
+      documents,
+      expenses,
+      expense_categories,
+      payment_applications,
+      payments,
+      entity_payment_gateways,
+      payment_gateways,
+      quotas,
+      interest_configurations,
+      payment_concepts,
+      unit_ownerships,
+      units,
+      user_roles,
+      buildings,
+      condominiums,
+      management_companies,
+      role_permissions,
+      roles,
+      permissions,
+      exchange_rates,
+      users,
+      currencies,
+      locations
+    CASCADE
+  `)
+}
+
+/**
+ * Gets the current test database client.
+ */
+export function getTestDb(): TTestDrizzleClient | null {
+  return db
+}

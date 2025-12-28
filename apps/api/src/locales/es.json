@@ -1,0 +1,19 @@
+{
+  "http": {
+    "middlewares": {
+      "utils": {
+        "auth": {
+          "malformedHeader": "Encabezado de la petición no es válido, por favor contacte soporte.",
+          "unauthorized": "Por favor inicie sesión.",
+          "userNotFound": "Usuario no encontrado, por favor inicie sesión nuevamente o regístrese."
+        }
+      }
+    },
+    "locales": {
+      "unknownError": "Error desconocido, intente nuevamente"
+    },
+    "unhandledResponses": {
+      "internalError": "Error interno del servidor, por favor intente nuevamente más tarde."
+    }
+  }
+}

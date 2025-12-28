@@ -1,0 +1,36 @@
+import { z, treeifyError } from 'zod'
+import logger from '@utils/logger'
+
+const envSchema = z.object({
+  NODE_ENV: z
+    .enum(['development', 'production', 'staging', 'test'], {
+      error: "NODE_ENV must be one of 'development', 'production', or 'staging'.",
+    })
+    .default('development'),
+  PORT: z.coerce.number().min(1).max(65535).default(3000),
+  DATABASE_URL: z.url(
+    'Database URL must be a valid URL. Maybe is not defined as an environment variable?'
+  ),
+  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+  CORS_ORIGIN: z.string().optional(),
+  FIREBASE_SERVICE_ACCOUNT: z.string(),
+})
+
+const parsed = envSchema.safeParse(Bun.env)
+
+if (!parsed.success) {
+  logger.error('❌ Failed to validate environment variables')
+
+  const errorTree = treeifyError(parsed.error)
+  if (errorTree.properties) {
+    for (const [key, value] of Object.entries(errorTree.properties)) {
+      value.errors.forEach(msg => {
+        logger.error(`${key}: ${msg}`)
+      })
+    }
+  }
+
+  process.exit(1)
+}
+
+export const env = parsed.data

@@ -1,0 +1,19 @@
+{
+  "http": {
+    "middlewares": {
+      "utils": {
+        "auth": {
+          "malformedHeader": "Malformed authorization header, please contact support",
+          "unauthorized": "Please sign in.",
+          "userNotFound": "User not found, please sign in again or sign up."
+        }
+      }
+    },
+    "locales": {
+      "unknownError": "Unknown error, contact support"
+    },
+    "unhandledResponses": {
+      "internalError": "Internal server error, please try again later."
+    }
+  }
+}
