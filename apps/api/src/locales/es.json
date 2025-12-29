@@ -3,9 +3,13 @@
     "middlewares": {
       "utils": {
         "auth": {
-          "malformedHeader": "Encabezado de la petición no es válido, por favor contacte soporte.",
-          "unauthorized": "Por favor inicie sesión.",
-          "userNotFound": "Usuario no encontrado, por favor inicie sesión nuevamente o regístrese."
+          "malformedHeader": "Encabezado de autorización inválido o faltante.",
+          "invalidToken": "Token inválido o expirado.",
+          "userNotFound": "Usuario no encontrado.",
+          "userDisabled": "La cuenta de usuario está deshabilitada.",
+          "notAuthenticated": "Usuario no autenticado.",
+          "insufficientRoles": "No tiene los roles necesarios para acceder a este recurso.",
+          "insufficientPermissions": "No tiene los permisos necesarios para acceder a este recurso."
         }
       }
     },

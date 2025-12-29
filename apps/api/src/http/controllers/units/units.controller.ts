@@ -9,6 +9,7 @@ import {
 import type { UnitsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -56,48 +57,52 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
       {
         method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
-        middlewares: [paramsValidator(BuildingIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(BuildingIdParamSchema)],
       },
       {
         method: 'get',
         path: '/building/:buildingId/number/:unitNumber',
         handler: this.getByBuildingAndNumber,
-        middlewares: [paramsValidator(BuildingAndNumberParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(BuildingAndNumberParamSchema)],
       },
       {
         method: 'get',
         path: '/building/:buildingId/floor/:floor',
         handler: this.getByFloor,
-        middlewares: [paramsValidator(BuildingAndFloorParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(BuildingAndFloorParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(unitCreateSchema)],
+        middlewares: [authMiddleware, bodyValidator(unitCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(unitUpdateSchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(IdParamSchema),
+          bodyValidator(unitUpdateSchema),
+        ],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
     ]
   }

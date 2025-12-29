@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -22,8 +23,9 @@ describe('PermissionsController', function () {
   let app: Hono
   let mockRepository: TMockPermissionsRepository
   let testPermissions: TPermission[]
+  let request: (path: string, options?: RequestInit) => Promise<Response>
 
-  beforeEach(function () {
+  beforeEach(async function () {
     // Create test data
     const readUsers = PermissionFactory.create({
       name: 'users.read',
@@ -94,11 +96,15 @@ describe('PermissionsController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/permissions', controller.createRouter())
+
+    // Get auth token
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all permissions', async function () {
-      const res = await app.request('/permissions')
+      const res = await request('/permissions')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -110,7 +116,7 @@ describe('PermissionsController', function () {
         return []
       }
 
-      const res = await app.request('/permissions')
+      const res = await request('/permissions')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -120,7 +126,7 @@ describe('PermissionsController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return permission by ID', async function () {
-      const res = await app.request('/permissions/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/permissions/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -128,7 +134,7 @@ describe('PermissionsController', function () {
     })
 
     it('should return 404 when permission not found', async function () {
-      const res = await app.request('/permissions/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/permissions/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -136,14 +142,14 @@ describe('PermissionsController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/permissions/invalid-id')
+      const res = await request('/permissions/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /module/:module (getByModule)', function () {
     it('should return permissions by module', async function () {
-      const res = await app.request('/permissions/module/users')
+      const res = await request('/permissions/module/users')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -156,7 +162,7 @@ describe('PermissionsController', function () {
     })
 
     it('should return empty array when no permissions for module', async function () {
-      const res = await app.request('/permissions/module/unknown')
+      const res = await request('/permissions/module/unknown')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -166,7 +172,7 @@ describe('PermissionsController', function () {
 
   describe('GET /module/:module/action/:action (getByModuleAndAction)', function () {
     it('should return permission by module and action', async function () {
-      const res = await app.request('/permissions/module/users/action/read')
+      const res = await request('/permissions/module/users/action/read')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -175,7 +181,7 @@ describe('PermissionsController', function () {
     })
 
     it('should return 404 when permission not found', async function () {
-      const res = await app.request('/permissions/module/users/action/delete')
+      const res = await request('/permissions/module/users/action/delete')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -191,7 +197,7 @@ describe('PermissionsController', function () {
         action: 'delete',
       })
 
-      const res = await app.request('/permissions', {
+      const res = await request('/permissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newPermission),
@@ -205,7 +211,7 @@ describe('PermissionsController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/permissions', {
+      const res = await request('/permissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: '' }),
@@ -221,7 +227,7 @@ describe('PermissionsController', function () {
 
       const newPermission = PermissionFactory.create({ name: 'users.read' })
 
-      const res = await app.request('/permissions', {
+      const res = await request('/permissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newPermission),
@@ -236,7 +242,7 @@ describe('PermissionsController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing permission', async function () {
-      const res = await app.request('/permissions/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/permissions/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: 'Updated description' }),
@@ -249,7 +255,7 @@ describe('PermissionsController', function () {
     })
 
     it('should return 404 when updating non-existent permission', async function () {
-      const res = await app.request('/permissions/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/permissions/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: 'Updated' }),
@@ -264,7 +270,7 @@ describe('PermissionsController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing permission', async function () {
-      const res = await app.request('/permissions/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/permissions/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -276,7 +282,7 @@ describe('PermissionsController', function () {
         return false
       }
 
-      const res = await app.request('/permissions/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/permissions/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -293,7 +299,7 @@ describe('PermissionsController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/permissions')
+      const res = await request('/permissions')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

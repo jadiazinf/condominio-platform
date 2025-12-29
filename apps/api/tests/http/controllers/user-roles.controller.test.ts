@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -46,6 +47,7 @@ describe('UserRolesController', function () {
   let app: Hono
   let mockRepository: TMockUserRolesRepository
   let testUserRoles: TUserRole[]
+  let request: (path: string, options?: RequestInit) => Promise<Response>
 
   const userId1 = '550e8400-e29b-41d4-a716-446655440010'
   const userId2 = '550e8400-e29b-41d4-a716-446655440011'
@@ -54,7 +56,7 @@ describe('UserRolesController', function () {
   const condominiumId = '550e8400-e29b-41d4-a716-446655440030'
   const buildingId = '550e8400-e29b-41d4-a716-446655440040'
 
-  beforeEach(function () {
+  beforeEach(async function () {
     // Create test data
     const ur1 = createUserRole(userId1, roleId1) // Global role
     const ur2 = createUserRole(userId1, roleId2, { condominiumId }) // Condominium role
@@ -134,11 +136,15 @@ describe('UserRolesController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/user-roles', controller.createRouter())
+
+    // Get auth token
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all user-roles', async function () {
-      const res = await app.request('/user-roles')
+      const res = await request('/user-roles')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -150,7 +156,7 @@ describe('UserRolesController', function () {
         return []
       }
 
-      const res = await app.request('/user-roles')
+      const res = await request('/user-roles')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -160,7 +166,7 @@ describe('UserRolesController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return user-role by ID', async function () {
-      const res = await app.request('/user-roles/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/user-roles/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -169,7 +175,7 @@ describe('UserRolesController', function () {
     })
 
     it('should return 404 when user-role not found', async function () {
-      const res = await app.request('/user-roles/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/user-roles/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -177,14 +183,14 @@ describe('UserRolesController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/user-roles/invalid-id')
+      const res = await request('/user-roles/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /user/:userId (getByUserId)', function () {
     it('should return user-roles by user ID', async function () {
-      const res = await app.request(`/user-roles/user/${userId1}`)
+      const res = await request(`/user-roles/user/${userId1}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -201,7 +207,7 @@ describe('UserRolesController', function () {
         return []
       }
 
-      const res = await app.request('/user-roles/user/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/user-roles/user/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -211,7 +217,7 @@ describe('UserRolesController', function () {
 
   describe('GET /user/:userId/global (getGlobalRolesByUser)', function () {
     it('should return global roles for user', async function () {
-      const res = await app.request(`/user-roles/user/${userId1}/global`)
+      const res = await request(`/user-roles/user/${userId1}/global`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -225,7 +231,7 @@ describe('UserRolesController', function () {
         return []
       }
 
-      const res = await app.request(`/user-roles/user/${userId2}/global`)
+      const res = await request(`/user-roles/user/${userId2}/global`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -235,7 +241,7 @@ describe('UserRolesController', function () {
 
   describe('GET /user/:userId/condominium/:condominiumId (getByUserAndCondominium)', function () {
     it('should return roles for user in condominium', async function () {
-      const res = await app.request(`/user-roles/user/${userId1}/condominium/${condominiumId}`)
+      const res = await request(`/user-roles/user/${userId1}/condominium/${condominiumId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -248,7 +254,7 @@ describe('UserRolesController', function () {
         return []
       }
 
-      const res = await app.request(`/user-roles/user/${userId2}/condominium/${condominiumId}`)
+      const res = await request(`/user-roles/user/${userId2}/condominium/${condominiumId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -258,7 +264,7 @@ describe('UserRolesController', function () {
 
   describe('GET /user/:userId/building/:buildingId (getByUserAndBuilding)', function () {
     it('should return roles for user in building', async function () {
-      const res = await app.request(`/user-roles/user/${userId2}/building/${buildingId}`)
+      const res = await request(`/user-roles/user/${userId2}/building/${buildingId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -271,7 +277,7 @@ describe('UserRolesController', function () {
         return []
       }
 
-      const res = await app.request(`/user-roles/user/${userId1}/building/${buildingId}`)
+      const res = await request(`/user-roles/user/${userId1}/building/${buildingId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -281,7 +287,7 @@ describe('UserRolesController', function () {
 
   describe('GET /user/:userId/has-role (checkUserHasRole)', function () {
     it('should return hasRole: true when user has role', async function () {
-      const res = await app.request(`/user-roles/user/${userId1}/has-role?roleId=${roleId1}`)
+      const res = await request(`/user-roles/user/${userId1}/has-role?roleId=${roleId1}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -293,7 +299,7 @@ describe('UserRolesController', function () {
         return false
       }
 
-      const res = await app.request(`/user-roles/user/${userId1}/has-role?roleId=${roleId2}`)
+      const res = await request(`/user-roles/user/${userId1}/has-role?roleId=${roleId2}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -301,7 +307,7 @@ describe('UserRolesController', function () {
     })
 
     it('should check role with condominium context', async function () {
-      const res = await app.request(
+      const res = await request(
         `/user-roles/user/${userId1}/has-role?roleId=${roleId2}&condominiumId=${condominiumId}`
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -315,7 +321,7 @@ describe('UserRolesController', function () {
     it('should create a new user-role', async function () {
       const newUserRole = createUserRole(userId2, roleId2)
 
-      const res = await app.request('/user-roles', {
+      const res = await request('/user-roles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUserRole),
@@ -330,7 +336,7 @@ describe('UserRolesController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/user-roles', {
+      const res = await request('/user-roles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: 'invalid' }),
@@ -346,7 +352,7 @@ describe('UserRolesController', function () {
 
       const newUserRole = createUserRole(userId1, roleId1)
 
-      const res = await app.request('/user-roles', {
+      const res = await request('/user-roles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUserRole),
@@ -363,7 +369,7 @@ describe('UserRolesController', function () {
     it('should update an existing user-role', async function () {
       const newAssignedBy = '550e8400-e29b-41d4-a716-446655440050'
 
-      const res = await app.request('/user-roles/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/user-roles/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ assignedBy: newAssignedBy }),
@@ -376,7 +382,7 @@ describe('UserRolesController', function () {
     })
 
     it('should return 404 when updating non-existent user-role', async function () {
-      const res = await app.request('/user-roles/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/user-roles/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ assignedBy: null }),
@@ -391,7 +397,7 @@ describe('UserRolesController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing user-role', async function () {
-      const res = await app.request('/user-roles/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/user-roles/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -403,7 +409,7 @@ describe('UserRolesController', function () {
         return false
       }
 
-      const res = await app.request('/user-roles/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/user-roles/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -420,7 +426,7 @@ describe('UserRolesController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/user-roles')
+      const res = await request('/user-roles')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

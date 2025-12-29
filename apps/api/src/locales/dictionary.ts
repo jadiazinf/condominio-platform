@@ -4,8 +4,12 @@ export const LocaleDictionary = {
       utils: {
         auth: {
           malformedHeader: 'http.middlewares.utils.auth.malformedHeader',
-          unauthorized: 'http.middlewares.utils.auth.unauthorized',
+          invalidToken: 'http.middlewares.utils.auth.invalidToken',
           userNotFound: 'http.middlewares.utils.auth.userNotFound',
+          userDisabled: 'http.middlewares.utils.auth.userDisabled',
+          notAuthenticated: 'http.middlewares.utils.auth.notAuthenticated',
+          insufficientRoles: 'http.middlewares.utils.auth.insufficientRoles',
+          insufficientPermissions: 'http.middlewares.utils.auth.insufficientPermissions',
         },
       },
     },

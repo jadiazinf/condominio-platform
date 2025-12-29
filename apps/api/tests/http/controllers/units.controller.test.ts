@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -23,8 +24,9 @@ describe('UnitsController', function () {
   let app: Hono
   let mockRepository: TMockUnitsRepository
   let testUnits: TUnit[]
+  let request: (path: string, options?: RequestInit) => Promise<Response>
 
-  beforeEach(function () {
+  beforeEach(async function () {
     // Create test data
     const buildingId = '550e8400-e29b-41d4-a716-446655440010'
     const unit1 = UnitFactory.create(buildingId, {
@@ -98,11 +100,15 @@ describe('UnitsController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/units', controller.createRouter())
+
+    // Get auth token
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all units', async function () {
-      const res = await app.request('/units')
+      const res = await request('/units')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -114,7 +120,7 @@ describe('UnitsController', function () {
         return []
       }
 
-      const res = await app.request('/units')
+      const res = await request('/units')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -124,7 +130,7 @@ describe('UnitsController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return unit by ID', async function () {
-      const res = await app.request('/units/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/units/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -132,7 +138,7 @@ describe('UnitsController', function () {
     })
 
     it('should return 404 when unit not found', async function () {
-      const res = await app.request('/units/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/units/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -140,14 +146,14 @@ describe('UnitsController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/units/invalid-id')
+      const res = await request('/units/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /building/:buildingId (getByBuildingId)', function () {
     it('should return units by building ID', async function () {
-      const res = await app.request('/units/building/550e8400-e29b-41d4-a716-446655440010')
+      const res = await request('/units/building/550e8400-e29b-41d4-a716-446655440010')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -159,7 +165,7 @@ describe('UnitsController', function () {
         return []
       }
 
-      const res = await app.request('/units/building/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/units/building/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -167,16 +173,14 @@ describe('UnitsController', function () {
     })
 
     it('should return 400 for invalid building UUID format', async function () {
-      const res = await app.request('/units/building/invalid-id')
+      const res = await request('/units/building/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /building/:buildingId/number/:unitNumber (getByBuildingAndNumber)', function () {
     it('should return unit by building ID and unit number', async function () {
-      const res = await app.request(
-        '/units/building/550e8400-e29b-41d4-a716-446655440010/number/101'
-      )
+      const res = await request('/units/building/550e8400-e29b-41d4-a716-446655440010/number/101')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -185,9 +189,7 @@ describe('UnitsController', function () {
     })
 
     it('should return 404 when unit with number not found', async function () {
-      const res = await app.request(
-        '/units/building/550e8400-e29b-41d4-a716-446655440010/number/999'
-      )
+      const res = await request('/units/building/550e8400-e29b-41d4-a716-446655440010/number/999')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -195,14 +197,14 @@ describe('UnitsController', function () {
     })
 
     it('should return 400 for invalid building UUID format', async function () {
-      const res = await app.request('/units/building/invalid-id/number/101')
+      const res = await request('/units/building/invalid-id/number/101')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /building/:buildingId/floor/:floor (getByFloor)', function () {
     it('should return units by building ID and floor', async function () {
-      const res = await app.request('/units/building/550e8400-e29b-41d4-a716-446655440010/floor/1')
+      const res = await request('/units/building/550e8400-e29b-41d4-a716-446655440010/floor/1')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -215,7 +217,7 @@ describe('UnitsController', function () {
     })
 
     it('should return units on floor 2', async function () {
-      const res = await app.request('/units/building/550e8400-e29b-41d4-a716-446655440010/floor/2')
+      const res = await request('/units/building/550e8400-e29b-41d4-a716-446655440010/floor/2')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -228,7 +230,7 @@ describe('UnitsController', function () {
         return []
       }
 
-      const res = await app.request('/units/building/550e8400-e29b-41d4-a716-446655440010/floor/99')
+      const res = await request('/units/building/550e8400-e29b-41d4-a716-446655440010/floor/99')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -236,7 +238,7 @@ describe('UnitsController', function () {
     })
 
     it('should return 400 for invalid building UUID format', async function () {
-      const res = await app.request('/units/building/invalid-id/floor/1')
+      const res = await request('/units/building/invalid-id/floor/1')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
@@ -248,7 +250,7 @@ describe('UnitsController', function () {
         floor: 3,
       })
 
-      const res = await app.request('/units', {
+      const res = await request('/units', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUnit),
@@ -262,7 +264,7 @@ describe('UnitsController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/units', {
+      const res = await request('/units', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ unitNumber: '' }),
@@ -280,7 +282,7 @@ describe('UnitsController', function () {
         unitNumber: '101',
       })
 
-      const res = await app.request('/units', {
+      const res = await request('/units', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUnit),
@@ -299,7 +301,7 @@ describe('UnitsController', function () {
 
       const newUnit = UnitFactory.create('550e8400-e29b-41d4-a716-446655440099')
 
-      const res = await app.request('/units', {
+      const res = await request('/units', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUnit),
@@ -314,7 +316,7 @@ describe('UnitsController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing unit', async function () {
-      const res = await app.request('/units/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/units/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bedrooms: 3 }),
@@ -327,7 +329,7 @@ describe('UnitsController', function () {
     })
 
     it('should return 404 when updating non-existent unit', async function () {
-      const res = await app.request('/units/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/units/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bedrooms: 2 }),
@@ -342,7 +344,7 @@ describe('UnitsController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing unit', async function () {
-      const res = await app.request('/units/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/units/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -354,7 +356,7 @@ describe('UnitsController', function () {
         return false
       }
 
-      const res = await app.request('/units/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/units/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -371,7 +373,7 @@ describe('UnitsController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/units')
+      const res = await request('/units')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

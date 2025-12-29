@@ -9,6 +9,7 @@ import {
 import type { PermissionsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -51,42 +52,46 @@ export class PermissionsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
       {
         method: 'get',
         path: '/module/:module',
         handler: this.getByModule,
-        middlewares: [paramsValidator(ModuleParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(ModuleParamSchema)],
       },
       {
         method: 'get',
         path: '/module/:module/action/:action',
         handler: this.getByModuleAndAction,
-        middlewares: [paramsValidator(ModuleAndActionParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(ModuleAndActionParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(permissionCreateSchema)],
+        middlewares: [authMiddleware, bodyValidator(permissionCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(permissionUpdateSchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(IdParamSchema),
+          bodyValidator(permissionUpdateSchema),
+        ],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
     ]
   }

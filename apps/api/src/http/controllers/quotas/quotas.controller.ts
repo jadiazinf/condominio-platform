@@ -13,6 +13,7 @@ import {
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
+import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -69,60 +70,64 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
       {
         method: 'get',
         path: '/unit/:unitId',
         handler: this.getByUnitId,
-        middlewares: [paramsValidator(UnitIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(UnitIdParamSchema)],
       },
       {
         method: 'get',
         path: '/unit/:unitId/pending',
         handler: this.getPendingByUnit,
-        middlewares: [paramsValidator(UnitIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(UnitIdParamSchema)],
       },
       {
         method: 'get',
         path: '/status/:status',
         handler: this.getByStatus,
-        middlewares: [paramsValidator(StatusParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(StatusParamSchema)],
       },
       {
         method: 'get',
         path: '/overdue/:date',
         handler: this.getOverdue,
-        middlewares: [paramsValidator(DateParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(DateParamSchema)],
       },
       {
         method: 'get',
         path: '/period',
         handler: this.getByPeriod,
-        middlewares: [queryValidator(PeriodQuerySchema)],
+        middlewares: [authMiddleware, queryValidator(PeriodQuerySchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(quotaCreateSchema)],
+        middlewares: [authMiddleware, bodyValidator(quotaCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(quotaUpdateSchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(IdParamSchema),
+          bodyValidator(quotaUpdateSchema),
+        ],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
     ]
   }

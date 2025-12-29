@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -23,8 +24,9 @@ describe('CondominiumsController', function () {
   let app: Hono
   let mockRepository: TMockCondominiumsRepository
   let testCondominiums: TCondominium[]
+  let request: (path: string, options?: RequestInit) => Promise<Response>
 
-  beforeEach(function () {
+  beforeEach(async function () {
     // Create test data
     const condo1 = CondominiumFactory.create({
       name: 'Residencias El Sol',
@@ -98,11 +100,15 @@ describe('CondominiumsController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/condominiums', controller.createRouter())
+
+    // Get auth token
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all condominiums', async function () {
-      const res = await app.request('/condominiums')
+      const res = await request('/condominiums')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -114,7 +120,7 @@ describe('CondominiumsController', function () {
         return []
       }
 
-      const res = await app.request('/condominiums')
+      const res = await request('/condominiums')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -124,7 +130,7 @@ describe('CondominiumsController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return condominium by ID', async function () {
-      const res = await app.request('/condominiums/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/condominiums/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -132,7 +138,7 @@ describe('CondominiumsController', function () {
     })
 
     it('should return 404 when condominium not found', async function () {
-      const res = await app.request('/condominiums/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/condominiums/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -140,14 +146,14 @@ describe('CondominiumsController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/condominiums/invalid-id')
+      const res = await request('/condominiums/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /code/:code (getByCode)', function () {
     it('should return condominium by code', async function () {
-      const res = await app.request('/condominiums/code/RES-001')
+      const res = await request('/condominiums/code/RES-001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -156,7 +162,7 @@ describe('CondominiumsController', function () {
     })
 
     it('should return 404 when condominium with code not found', async function () {
-      const res = await app.request('/condominiums/code/XXX-999')
+      const res = await request('/condominiums/code/XXX-999')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -166,7 +172,7 @@ describe('CondominiumsController', function () {
 
   describe('GET /management-company/:managementCompanyId (getByManagementCompanyId)', function () {
     it('should return condominiums by management company ID', async function () {
-      const res = await app.request(
+      const res = await request(
         '/condominiums/management-company/550e8400-e29b-41d4-a716-446655440010'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -180,7 +186,7 @@ describe('CondominiumsController', function () {
         return []
       }
 
-      const res = await app.request(
+      const res = await request(
         '/condominiums/management-company/550e8400-e29b-41d4-a716-446655440099'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -190,14 +196,14 @@ describe('CondominiumsController', function () {
     })
 
     it('should return 400 for invalid management company UUID format', async function () {
-      const res = await app.request('/condominiums/management-company/invalid-id')
+      const res = await request('/condominiums/management-company/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /location/:locationId (getByLocationId)', function () {
     it('should return condominiums by location ID', async function () {
-      const res = await app.request('/condominiums/location/550e8400-e29b-41d4-a716-446655440020')
+      const res = await request('/condominiums/location/550e8400-e29b-41d4-a716-446655440020')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -209,7 +215,7 @@ describe('CondominiumsController', function () {
         return []
       }
 
-      const res = await app.request('/condominiums/location/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/condominiums/location/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -217,7 +223,7 @@ describe('CondominiumsController', function () {
     })
 
     it('should return 400 for invalid location UUID format', async function () {
-      const res = await app.request('/condominiums/location/invalid-id')
+      const res = await request('/condominiums/location/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
@@ -226,7 +232,7 @@ describe('CondominiumsController', function () {
     it('should create a new condominium', async function () {
       const newCondo = CondominiumFactory.create({ name: 'Nuevo Condominio', code: 'NEW-001' })
 
-      const res = await app.request('/condominiums', {
+      const res = await request('/condominiums', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCondo),
@@ -240,7 +246,7 @@ describe('CondominiumsController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/condominiums', {
+      const res = await request('/condominiums', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: '' }),
@@ -256,7 +262,7 @@ describe('CondominiumsController', function () {
 
       const newCondo = CondominiumFactory.create({ code: 'RES-001' })
 
-      const res = await app.request('/condominiums', {
+      const res = await request('/condominiums', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCondo),
@@ -271,7 +277,7 @@ describe('CondominiumsController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing condominium', async function () {
-      const res = await app.request('/condominiums/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/condominiums/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'Residencias El Sol Actualizado' }),
@@ -284,7 +290,7 @@ describe('CondominiumsController', function () {
     })
 
     it('should return 404 when updating non-existent condominium', async function () {
-      const res = await app.request('/condominiums/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/condominiums/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'Updated' }),
@@ -299,7 +305,7 @@ describe('CondominiumsController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing condominium', async function () {
-      const res = await app.request('/condominiums/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/condominiums/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -311,7 +317,7 @@ describe('CondominiumsController', function () {
         return false
       }
 
-      const res = await app.request('/condominiums/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/condominiums/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -328,7 +334,7 @@ describe('CondominiumsController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/condominiums')
+      const res = await request('/condominiums')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

@@ -13,6 +13,7 @@ import {
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
+import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -75,60 +76,64 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
       {
         method: 'get',
         path: '/number/:paymentNumber',
         handler: this.getByPaymentNumber,
-        middlewares: [paramsValidator(PaymentNumberParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(PaymentNumberParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/unit/:unitId',
         handler: this.getByUnitId,
-        middlewares: [paramsValidator(UnitIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(UnitIdParamSchema)],
       },
       {
         method: 'get',
         path: '/status/:status',
         handler: this.getByStatus,
-        middlewares: [paramsValidator(StatusParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(StatusParamSchema)],
       },
       {
         method: 'get',
         path: '/date-range',
         handler: this.getByDateRange,
-        middlewares: [queryValidator(DateRangeQuerySchema)],
+        middlewares: [authMiddleware, queryValidator(DateRangeQuerySchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(paymentCreateSchema)],
+        middlewares: [authMiddleware, bodyValidator(paymentCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(paymentUpdateSchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(IdParamSchema),
+          bodyValidator(paymentUpdateSchema),
+        ],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
     ]
   }

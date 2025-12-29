@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -44,6 +45,7 @@ function createPaymentConcept(
 
 describe('PaymentConceptsController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockPaymentConceptsRepository
   let testPaymentConcepts: TPaymentConcept[]
 
@@ -132,11 +134,13 @@ describe('PaymentConceptsController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/payment-concepts', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all payment concepts', async function () {
-      const res = await app.request('/payment-concepts')
+      const res = await request('/payment-concepts')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -148,7 +152,7 @@ describe('PaymentConceptsController', function () {
         return []
       }
 
-      const res = await app.request('/payment-concepts')
+      const res = await request('/payment-concepts')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -158,7 +162,7 @@ describe('PaymentConceptsController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return payment concept by ID', async function () {
-      const res = await app.request('/payment-concepts/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/payment-concepts/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -166,7 +170,7 @@ describe('PaymentConceptsController', function () {
     })
 
     it('should return 404 when payment concept not found', async function () {
-      const res = await app.request('/payment-concepts/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/payment-concepts/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -174,14 +178,14 @@ describe('PaymentConceptsController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/payment-concepts/invalid-id')
+      const res = await request('/payment-concepts/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /condominium/:condominiumId (getByCondominiumId)', function () {
     it('should return payment concepts by condominium ID', async function () {
-      const res = await app.request(`/payment-concepts/condominium/${condominiumId}`)
+      const res = await request(`/payment-concepts/condominium/${condominiumId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -194,7 +198,7 @@ describe('PaymentConceptsController', function () {
         return []
       }
 
-      const res = await app.request(
+      const res = await request(
         '/payment-concepts/condominium/550e8400-e29b-41d4-a716-446655440099'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -206,7 +210,7 @@ describe('PaymentConceptsController', function () {
 
   describe('GET /building/:buildingId (getByBuildingId)', function () {
     it('should return payment concepts by building ID', async function () {
-      const res = await app.request(`/payment-concepts/building/${buildingId}`)
+      const res = await request(`/payment-concepts/building/${buildingId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -219,7 +223,7 @@ describe('PaymentConceptsController', function () {
         return []
       }
 
-      const res = await app.request(
+      const res = await request(
         '/payment-concepts/building/550e8400-e29b-41d4-a716-446655440099'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -231,7 +235,7 @@ describe('PaymentConceptsController', function () {
 
   describe('GET /recurring (getRecurringConcepts)', function () {
     it('should return recurring payment concepts', async function () {
-      const res = await app.request('/payment-concepts/recurring')
+      const res = await request('/payment-concepts/recurring')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -248,7 +252,7 @@ describe('PaymentConceptsController', function () {
         return []
       }
 
-      const res = await app.request('/payment-concepts/recurring')
+      const res = await request('/payment-concepts/recurring')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -258,7 +262,7 @@ describe('PaymentConceptsController', function () {
 
   describe('GET /type/:conceptType (getByConceptType)', function () {
     it('should return payment concepts by type', async function () {
-      const res = await app.request('/payment-concepts/type/maintenance')
+      const res = await request('/payment-concepts/type/maintenance')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -271,7 +275,7 @@ describe('PaymentConceptsController', function () {
         return []
       }
 
-      const res = await app.request('/payment-concepts/type/unknown')
+      const res = await request('/payment-concepts/type/unknown')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -283,7 +287,7 @@ describe('PaymentConceptsController', function () {
     it('should create a new payment concept', async function () {
       const newConcept = createPaymentConcept({ name: 'Water Bill' })
 
-      const res = await app.request('/payment-concepts', {
+      const res = await request('/payment-concepts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newConcept),
@@ -297,7 +301,7 @@ describe('PaymentConceptsController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/payment-concepts', {
+      const res = await request('/payment-concepts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: '' }),
@@ -313,7 +317,7 @@ describe('PaymentConceptsController', function () {
 
       const newConcept = createPaymentConcept({ name: 'Monthly Maintenance' })
 
-      const res = await app.request('/payment-concepts', {
+      const res = await request('/payment-concepts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newConcept),
@@ -328,7 +332,7 @@ describe('PaymentConceptsController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing payment concept', async function () {
-      const res = await app.request('/payment-concepts/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/payment-concepts/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'Updated Name' }),
@@ -341,7 +345,7 @@ describe('PaymentConceptsController', function () {
     })
 
     it('should return 404 when updating non-existent concept', async function () {
-      const res = await app.request('/payment-concepts/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/payment-concepts/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'Updated Name' }),
@@ -356,7 +360,7 @@ describe('PaymentConceptsController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing payment concept', async function () {
-      const res = await app.request('/payment-concepts/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/payment-concepts/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -368,7 +372,7 @@ describe('PaymentConceptsController', function () {
         return false
       }
 
-      const res = await app.request('/payment-concepts/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/payment-concepts/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -385,7 +389,7 @@ describe('PaymentConceptsController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/payment-concepts')
+      const res = await request('/payment-concepts')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

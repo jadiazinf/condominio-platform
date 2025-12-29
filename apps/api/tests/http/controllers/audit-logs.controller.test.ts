@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -22,6 +23,7 @@ type TMockAuditLogsRepository = {
 
 describe('AuditLogsController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockAuditLogsRepository
   let testLogs: TAuditLog[]
 
@@ -114,11 +116,13 @@ describe('AuditLogsController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/audit-logs', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all audit logs', async function () {
-      const res = await app.request('/audit-logs')
+      const res = await request('/audit-logs')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -130,7 +134,7 @@ describe('AuditLogsController', function () {
         return []
       }
 
-      const res = await app.request('/audit-logs')
+      const res = await request('/audit-logs')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -140,7 +144,7 @@ describe('AuditLogsController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return audit log by ID', async function () {
-      const res = await app.request('/audit-logs/550e8400-e29b-41d4-a716-446655440101')
+      const res = await request('/audit-logs/550e8400-e29b-41d4-a716-446655440101')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -149,7 +153,7 @@ describe('AuditLogsController', function () {
     })
 
     it('should return 404 when audit log not found', async function () {
-      const res = await app.request('/audit-logs/550e8400-e29b-41d4-a716-446655440999')
+      const res = await request('/audit-logs/550e8400-e29b-41d4-a716-446655440999')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -157,14 +161,14 @@ describe('AuditLogsController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/audit-logs/invalid-id')
+      const res = await request('/audit-logs/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /table/:tableName (getByTableName)', function () {
     it('should return logs by table name', async function () {
-      const res = await app.request('/audit-logs/table/users')
+      const res = await request('/audit-logs/table/users')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -177,7 +181,7 @@ describe('AuditLogsController', function () {
     })
 
     it('should return empty array when no logs for table', async function () {
-      const res = await app.request('/audit-logs/table/unknown')
+      const res = await request('/audit-logs/table/unknown')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -187,7 +191,7 @@ describe('AuditLogsController', function () {
 
   describe('GET /record/:recordId (getByRecordId)', function () {
     it('should return logs by record ID', async function () {
-      const res = await app.request('/audit-logs/record/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/audit-logs/record/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -199,7 +203,7 @@ describe('AuditLogsController', function () {
         return []
       }
 
-      const res = await app.request('/audit-logs/record/550e8400-e29b-41d4-a716-446655440999')
+      const res = await request('/audit-logs/record/550e8400-e29b-41d4-a716-446655440999')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -209,7 +213,7 @@ describe('AuditLogsController', function () {
 
   describe('GET /table/:tableName/record/:recordId (getByTableAndRecord)', function () {
     it('should return logs by table and record', async function () {
-      const res = await app.request(
+      const res = await request(
         '/audit-logs/table/users/record/550e8400-e29b-41d4-a716-446655440001'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -223,7 +227,7 @@ describe('AuditLogsController', function () {
         return []
       }
 
-      const res = await app.request(
+      const res = await request(
         '/audit-logs/table/unknown/record/550e8400-e29b-41d4-a716-446655440001'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -235,7 +239,7 @@ describe('AuditLogsController', function () {
 
   describe('GET /user/:userId (getByUserId)', function () {
     it('should return logs by user ID', async function () {
-      const res = await app.request('/audit-logs/user/550e8400-e29b-41d4-a716-446655440010')
+      const res = await request('/audit-logs/user/550e8400-e29b-41d4-a716-446655440010')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -247,7 +251,7 @@ describe('AuditLogsController', function () {
         return []
       }
 
-      const res = await app.request('/audit-logs/user/550e8400-e29b-41d4-a716-446655440999')
+      const res = await request('/audit-logs/user/550e8400-e29b-41d4-a716-446655440999')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -255,14 +259,14 @@ describe('AuditLogsController', function () {
     })
 
     it('should return 400 for invalid user UUID format', async function () {
-      const res = await app.request('/audit-logs/user/invalid-id')
+      const res = await request('/audit-logs/user/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /action/:action (getByAction)', function () {
     it('should return logs by action INSERT', async function () {
-      const res = await app.request('/audit-logs/action/INSERT')
+      const res = await request('/audit-logs/action/INSERT')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -271,7 +275,7 @@ describe('AuditLogsController', function () {
     })
 
     it('should return logs by action UPDATE', async function () {
-      const res = await app.request('/audit-logs/action/UPDATE')
+      const res = await request('/audit-logs/action/UPDATE')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -280,7 +284,7 @@ describe('AuditLogsController', function () {
     })
 
     it('should return logs by action DELETE', async function () {
-      const res = await app.request('/audit-logs/action/DELETE')
+      const res = await request('/audit-logs/action/DELETE')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -289,14 +293,14 @@ describe('AuditLogsController', function () {
     })
 
     it('should return 400 for invalid action', async function () {
-      const res = await app.request('/audit-logs/action/INVALID')
+      const res = await request('/audit-logs/action/INVALID')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /date-range (getByDateRange)', function () {
     it('should return logs by date range', async function () {
-      const res = await app.request(
+      const res = await request(
         '/audit-logs/date-range?startDate=2024-01-15&endDate=2024-01-16'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -306,7 +310,7 @@ describe('AuditLogsController', function () {
     })
 
     it('should return logs within a single day', async function () {
-      const res = await app.request(
+      const res = await request(
         '/audit-logs/date-range?startDate=2024-01-17&endDate=2024-01-17'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -316,12 +320,12 @@ describe('AuditLogsController', function () {
     })
 
     it('should return 400 for invalid date format', async function () {
-      const res = await app.request('/audit-logs/date-range?startDate=invalid&endDate=2024-01-16')
+      const res = await request('/audit-logs/date-range?startDate=invalid&endDate=2024-01-16')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
 
     it('should return 400 for missing date parameters', async function () {
-      const res = await app.request('/audit-logs/date-range?startDate=2024-01-15')
+      const res = await request('/audit-logs/date-range?startDate=2024-01-15')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
@@ -334,7 +338,7 @@ describe('AuditLogsController', function () {
         action: 'INSERT',
       })
 
-      const res = await app.request('/audit-logs', {
+      const res = await request('/audit-logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newLog),
@@ -349,7 +353,7 @@ describe('AuditLogsController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/audit-logs', {
+      const res = await request('/audit-logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tableName: '' }),
@@ -365,7 +369,7 @@ describe('AuditLogsController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/audit-logs')
+      const res = await request('/audit-logs')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

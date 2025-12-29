@@ -13,6 +13,7 @@ import {
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
+import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -77,61 +78,70 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
-      { method: 'get', path: '/pending-approval', handler: this.getPendingApproval },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      {
+        method: 'get',
+        path: '/pending-approval',
+        handler: this.getPendingApproval,
+        middlewares: [authMiddleware],
+      },
       {
         method: 'get',
         path: '/condominium/:condominiumId',
         handler: this.getByCondominiumId,
-        middlewares: [paramsValidator(CondominiumIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(CondominiumIdParamSchema)],
       },
       {
         method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
-        middlewares: [paramsValidator(BuildingIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(BuildingIdParamSchema)],
       },
       {
         method: 'get',
         path: '/category/:categoryId',
         handler: this.getByCategoryId,
-        middlewares: [paramsValidator(CategoryIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(CategoryIdParamSchema)],
       },
       {
         method: 'get',
         path: '/status/:status',
         handler: this.getByStatus,
-        middlewares: [paramsValidator(StatusParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(StatusParamSchema)],
       },
       {
         method: 'get',
         path: '/date-range',
         handler: this.getByDateRange,
-        middlewares: [queryValidator(DateRangeQuerySchema)],
+        middlewares: [authMiddleware, queryValidator(DateRangeQuerySchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(expenseCreateSchema)],
+        middlewares: [authMiddleware, bodyValidator(expenseCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(expenseUpdateSchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(IdParamSchema),
+          bodyValidator(expenseUpdateSchema),
+        ],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
     ]
   }

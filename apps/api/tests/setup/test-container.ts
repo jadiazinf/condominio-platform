@@ -28,13 +28,14 @@ export type TTestDrizzleClient = PostgresJsDatabase<typeof schema>
 let client: ReturnType<typeof postgres> | null = null
 let db: TTestDrizzleClient | null = null
 let startPromise: Promise<TTestDrizzleClient> | null = null
+let schemaName: string | null = null
 
 // Test database URL - uses local PostgreSQL
 function getTestDatabaseUrl(): string {
-  const url = process.env.TEST_DATABASE_URL
+  const url = process.env.DATABASE_URL
   if (!url) {
     throw new Error(
-      'TEST_DATABASE_URL environment variable is required. Create a .env.test file with TEST_DATABASE_URL=postgresql://...'
+      'DATABASE_URL environment variable is required. Create a .env.test file with DATABASE_URL=postgresql://...'
     )
   }
   return url
@@ -60,8 +61,20 @@ export async function startTestContainer(): Promise<TTestDrizzleClient> {
 
   // Start the connection (only once)
   startPromise = (async () => {
-    client = postgres(TEST_DATABASE_URL, {
-      max: 10,
+    // 1. Generate unique schema name
+    schemaName = `test_${crypto.randomUUID().replace(/-/g, '')}`
+
+    // 2. Connect to main DB to create schema
+    const adminClient = postgres(TEST_DATABASE_URL, { max: 1, onnotice: () => {} })
+    await adminClient`CREATE SCHEMA IF NOT EXISTS ${adminClient.unsafe(schemaName)}`
+    await adminClient.end()
+
+    // 3. Connect with search_path
+    const url = new URL(TEST_DATABASE_URL)
+    url.searchParams.set('search_path', schemaName)
+
+    client = postgres(url.toString(), {
+      max: 1,
       idle_timeout: 20,
       connect_timeout: 10,
       prepare: false,
@@ -84,107 +97,78 @@ export async function startTestContainer(): Promise<TTestDrizzleClient> {
  * Uses IF NOT EXISTS to be idempotent.
  */
 async function createSchema(db: TTestDrizzleClient): Promise<void> {
-  // Create enums
+  // Create enums and tables in a single transaction block for performance
   await db.execute(sql`
     DO $$ BEGIN
       CREATE TYPE location_type AS ENUM ('country', 'province', 'city');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
-  `)
 
-  await db.execute(sql`
     DO $$ BEGIN
       CREATE TYPE ownership_type AS ENUM ('owner', 'co-owner', 'tenant');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
-  `)
 
-  await db.execute(sql`
     DO $$ BEGIN
       CREATE TYPE concept_type AS ENUM ('maintenance', 'condominium_fee', 'extraordinary', 'fine');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
-  `)
 
-  await db.execute(sql`
     DO $$ BEGIN
       CREATE TYPE interest_type AS ENUM ('simple', 'compound', 'fixed_amount');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
-  `)
 
-  await db.execute(sql`
     DO $$ BEGIN
       CREATE TYPE quota_status AS ENUM ('pending', 'paid', 'overdue', 'cancelled');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
-  `)
 
-  await db.execute(sql`
     DO $$ BEGIN
       CREATE TYPE gateway_type AS ENUM ('stripe', 'banco_plaza', 'paypal', 'zelle', 'other');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
-  `)
 
-  await db.execute(sql`
     DO $$ BEGIN
       CREATE TYPE payment_method AS ENUM ('transfer', 'cash', 'card', 'gateway');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
-  `)
 
-  await db.execute(sql`
     DO $$ BEGIN
       CREATE TYPE payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
-  `)
 
-  await db.execute(sql`
     DO $$ BEGIN
       CREATE TYPE expense_status AS ENUM ('pending', 'approved', 'rejected', 'paid');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
-  `)
 
-  await db.execute(sql`
     DO $$ BEGIN
       CREATE TYPE document_type AS ENUM ('invoice', 'receipt', 'statement', 'contract', 'regulation', 'minutes', 'other');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
-  `)
 
-  await db.execute(sql`
     DO $$ BEGIN
       CREATE TYPE recipient_type AS ENUM ('user', 'condominium', 'building', 'unit');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
-  `)
 
-  await db.execute(sql`
     DO $$ BEGIN
       CREATE TYPE message_type AS ENUM ('message', 'notification', 'announcement');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
-  `)
 
-  await db.execute(sql`
     DO $$ BEGIN
       CREATE TYPE priority AS ENUM ('low', 'normal', 'high', 'urgent');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
-  `)
 
-  await db.execute(sql`
     DO $$ BEGIN
       CREATE TYPE audit_action AS ENUM ('INSERT', 'UPDATE', 'DELETE');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
-  `)
 
-  // Create tables
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS locations (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(200) NOT NULL,
@@ -196,10 +180,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       registered_by UUID,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS currencies (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       code VARCHAR(10) NOT NULL UNIQUE,
@@ -211,10 +193,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       registered_by UUID,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS users (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       firebase_uid VARCHAR(128) NOT NULL UNIQUE,
@@ -236,10 +216,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       metadata JSONB,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS exchange_rates (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       from_currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE CASCADE,
@@ -251,10 +229,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
       created_at TIMESTAMP DEFAULT NOW(),
       CONSTRAINT check_different_currencies CHECK (from_currency_id != to_currency_id)
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS permissions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(100) NOT NULL UNIQUE,
@@ -264,10 +240,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS roles (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(100) NOT NULL UNIQUE,
@@ -276,20 +250,16 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS role_permissions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
       permission_id UUID NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
       created_at TIMESTAMP DEFAULT NOW()
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS management_companies (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(255) NOT NULL,
@@ -306,10 +276,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS condominiums (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(255) NOT NULL,
@@ -325,10 +293,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS buildings (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
@@ -346,10 +312,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS user_roles (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -360,10 +324,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       assigned_by UUID REFERENCES users(id) ON DELETE SET NULL,
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
       expires_at TIMESTAMP
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS units (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       building_id UUID NOT NULL REFERENCES buildings(id) ON DELETE CASCADE,
@@ -381,10 +343,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS unit_ownerships (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
@@ -400,10 +360,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       metadata JSONB,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS payment_concepts (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
@@ -419,10 +377,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS interest_configurations (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
@@ -443,10 +399,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS quotas (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
@@ -469,10 +423,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS payment_gateways (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(100) NOT NULL UNIQUE,
@@ -485,10 +437,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS entity_payment_gateways (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       payment_gateway_id UUID NOT NULL REFERENCES payment_gateways(id) ON DELETE CASCADE,
@@ -498,10 +448,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       is_active BOOLEAN DEFAULT true,
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
       created_at TIMESTAMP DEFAULT NOW()
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS payments (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       payment_number VARCHAR(100) UNIQUE,
@@ -525,10 +473,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS payment_applications (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       payment_id UUID NOT NULL REFERENCES payments(id) ON DELETE CASCADE,
@@ -538,10 +484,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       applied_to_interest DECIMAL(15, 2) DEFAULT 0,
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
       applied_at TIMESTAMP DEFAULT NOW()
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS expense_categories (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(100) NOT NULL,
@@ -550,10 +494,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       is_active BOOLEAN DEFAULT true,
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
       created_at TIMESTAMP DEFAULT NOW()
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS expenses (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
@@ -575,10 +517,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS documents (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       document_type document_type NOT NULL,
@@ -602,10 +542,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS messages (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -624,10 +562,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       metadata JSONB,
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
       sent_at TIMESTAMP DEFAULT NOW()
-    )
-  `)
+    );
 
-  await db.execute(sql`
     CREATE TABLE IF NOT EXISTS audit_logs (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       table_name VARCHAR(100) NOT NULL,
@@ -640,7 +576,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       ip_address INET,
       user_agent TEXT,
       created_at TIMESTAMP DEFAULT NOW()
-    )
+    );
   `)
 }
 
@@ -660,6 +596,14 @@ export async function stopTestContainer(): Promise<void> {
   }
 
   db = null
+
+  // Drop schema
+  if (schemaName) {
+    const adminClient = postgres(TEST_DATABASE_URL, { max: 1, onnotice: () => {} })
+    await adminClient`DROP SCHEMA IF EXISTS ${adminClient.unsafe(schemaName)} CASCADE`
+    await adminClient.end()
+    schemaName = null
+  }
 }
 
 /**

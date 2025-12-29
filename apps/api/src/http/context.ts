@@ -2,6 +2,7 @@ import type { Context } from 'hono'
 import { StatusCodes } from 'http-status-codes'
 import { getBody, getQuery, getParams } from './middlewares/utils/payload-validator'
 import { AUTHENTICATED_USER_PROP } from './middlewares/utils/auth/is-user-authenticated'
+import type { TUser } from '@packages/domain'
 
 export class HttpContext<TBody = unknown, TQuery = unknown, TParams = unknown> {
   constructor(private readonly c: Context) {}
@@ -107,8 +108,8 @@ export class HttpContext<TBody = unknown, TQuery = unknown, TParams = unknown> {
   }
 
   // auth
-  async getAuthenticatedUser(): Promise<unknown> {
-    return await this.c.get(AUTHENTICATED_USER_PROP)
+  getAuthenticatedUser(): TUser {
+    return this.c.get(AUTHENTICATED_USER_PROP)
   }
 
   get context() {

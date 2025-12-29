@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -24,6 +25,7 @@ type TMockManagementCompaniesRepository = {
 
 describe('ManagementCompaniesController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockManagementCompaniesRepository
   let testCompanies: TManagementCompany[]
 
@@ -94,11 +96,13 @@ describe('ManagementCompaniesController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/management-companies', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all management companies', async function () {
-      const res = await app.request('/management-companies')
+      const res = await request('/management-companies')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -110,7 +114,7 @@ describe('ManagementCompaniesController', function () {
         return []
       }
 
-      const res = await app.request('/management-companies')
+      const res = await request('/management-companies')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -120,7 +124,7 @@ describe('ManagementCompaniesController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return company by ID', async function () {
-      const res = await app.request('/management-companies/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/management-companies/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -128,7 +132,7 @@ describe('ManagementCompaniesController', function () {
     })
 
     it('should return 404 when company not found', async function () {
-      const res = await app.request('/management-companies/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/management-companies/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -136,14 +140,14 @@ describe('ManagementCompaniesController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/management-companies/invalid-id')
+      const res = await request('/management-companies/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /tax-id/:taxId (getByTaxId)', function () {
     it('should return company by tax ID', async function () {
-      const res = await app.request('/management-companies/tax-id/J-12345678-9')
+      const res = await request('/management-companies/tax-id/J-12345678-9')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -152,7 +156,7 @@ describe('ManagementCompaniesController', function () {
     })
 
     it('should return 404 when company with tax ID not found', async function () {
-      const res = await app.request('/management-companies/tax-id/J-00000000-0')
+      const res = await request('/management-companies/tax-id/J-00000000-0')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -162,7 +166,7 @@ describe('ManagementCompaniesController', function () {
 
   describe('GET /location/:locationId (getByLocationId)', function () {
     it('should return companies by location ID', async function () {
-      const res = await app.request(
+      const res = await request(
         '/management-companies/location/550e8400-e29b-41d4-a716-446655440010'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -176,7 +180,7 @@ describe('ManagementCompaniesController', function () {
         return []
       }
 
-      const res = await app.request(
+      const res = await request(
         '/management-companies/location/550e8400-e29b-41d4-a716-446655440099'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -186,7 +190,7 @@ describe('ManagementCompaniesController', function () {
     })
 
     it('should return 400 for invalid location UUID format', async function () {
-      const res = await app.request('/management-companies/location/invalid-id')
+      const res = await request('/management-companies/location/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
@@ -198,7 +202,7 @@ describe('ManagementCompaniesController', function () {
         taxId: 'J-11111111-1',
       })
 
-      const res = await app.request('/management-companies', {
+      const res = await request('/management-companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCompany),
@@ -212,7 +216,7 @@ describe('ManagementCompaniesController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/management-companies', {
+      const res = await request('/management-companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: '' }),
@@ -228,7 +232,7 @@ describe('ManagementCompaniesController', function () {
 
       const newCompany = ManagementCompanyFactory.create({ taxId: 'J-12345678-9' })
 
-      const res = await app.request('/management-companies', {
+      const res = await request('/management-companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCompany),
@@ -243,7 +247,7 @@ describe('ManagementCompaniesController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing company', async function () {
-      const res = await app.request('/management-companies/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/management-companies/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'Administradora ABC Actualizada' }),
@@ -256,7 +260,7 @@ describe('ManagementCompaniesController', function () {
     })
 
     it('should return 404 when updating non-existent company', async function () {
-      const res = await app.request('/management-companies/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/management-companies/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'Updated' }),
@@ -271,7 +275,7 @@ describe('ManagementCompaniesController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing company', async function () {
-      const res = await app.request('/management-companies/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/management-companies/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -283,7 +287,7 @@ describe('ManagementCompaniesController', function () {
         return false
       }
 
-      const res = await app.request('/management-companies/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/management-companies/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -300,7 +304,7 @@ describe('ManagementCompaniesController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/management-companies')
+      const res = await request('/management-companies')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

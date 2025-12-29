@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -24,6 +25,7 @@ type TMockExpenseCategoriesRepository = {
 
 describe('ExpenseCategoriesController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockExpenseCategoriesRepository
   let testCategories: TExpenseCategory[]
 
@@ -88,11 +90,13 @@ describe('ExpenseCategoriesController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/expense-categories', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all expense categories', async function () {
-      const res = await app.request('/expense-categories')
+      const res = await request('/expense-categories')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -104,7 +108,7 @@ describe('ExpenseCategoriesController', function () {
         return []
       }
 
-      const res = await app.request('/expense-categories')
+      const res = await request('/expense-categories')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -114,7 +118,7 @@ describe('ExpenseCategoriesController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return category by ID', async function () {
-      const res = await app.request(`/expense-categories/${parentCategoryId}`)
+      const res = await request(`/expense-categories/${parentCategoryId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -122,7 +126,7 @@ describe('ExpenseCategoriesController', function () {
     })
 
     it('should return 404 when category not found', async function () {
-      const res = await app.request('/expense-categories/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/expense-categories/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -130,14 +134,14 @@ describe('ExpenseCategoriesController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/expense-categories/invalid-id')
+      const res = await request('/expense-categories/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /root (getRootCategories)', function () {
     it('should return root categories only', async function () {
-      const res = await app.request('/expense-categories/root')
+      const res = await request('/expense-categories/root')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -154,7 +158,7 @@ describe('ExpenseCategoriesController', function () {
         return []
       }
 
-      const res = await app.request('/expense-categories/root')
+      const res = await request('/expense-categories/root')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -164,7 +168,7 @@ describe('ExpenseCategoriesController', function () {
 
   describe('GET /parent/:parentCategoryId (getByParentId)', function () {
     it('should return child categories', async function () {
-      const res = await app.request(`/expense-categories/parent/${parentCategoryId}`)
+      const res = await request(`/expense-categories/parent/${parentCategoryId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -177,7 +181,7 @@ describe('ExpenseCategoriesController', function () {
         return []
       }
 
-      const res = await app.request(
+      const res = await request(
         '/expense-categories/parent/550e8400-e29b-41d4-a716-446655440099'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -191,7 +195,7 @@ describe('ExpenseCategoriesController', function () {
     it('should create a new expense category', async function () {
       const newCategory = ExpenseCategoryFactory.administrative()
 
-      const res = await app.request('/expense-categories', {
+      const res = await request('/expense-categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCategory),
@@ -207,7 +211,7 @@ describe('ExpenseCategoriesController', function () {
     it('should create a child category', async function () {
       const newCategory = ExpenseCategoryFactory.child(parentCategoryId, { name: 'Electrical' })
 
-      const res = await app.request('/expense-categories', {
+      const res = await request('/expense-categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCategory),
@@ -221,7 +225,7 @@ describe('ExpenseCategoriesController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/expense-categories', {
+      const res = await request('/expense-categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: '' }),
@@ -237,7 +241,7 @@ describe('ExpenseCategoriesController', function () {
 
       const newCategory = ExpenseCategoryFactory.maintenance()
 
-      const res = await app.request('/expense-categories', {
+      const res = await request('/expense-categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCategory),
@@ -252,7 +256,7 @@ describe('ExpenseCategoriesController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing category', async function () {
-      const res = await app.request(`/expense-categories/${parentCategoryId}`, {
+      const res = await request(`/expense-categories/${parentCategoryId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: 'Updated description' }),
@@ -265,7 +269,7 @@ describe('ExpenseCategoriesController', function () {
     })
 
     it('should return 404 when updating non-existent category', async function () {
-      const res = await app.request('/expense-categories/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/expense-categories/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: 'Updated' }),
@@ -280,7 +284,7 @@ describe('ExpenseCategoriesController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing category', async function () {
-      const res = await app.request(`/expense-categories/${parentCategoryId}`, {
+      const res = await request(`/expense-categories/${parentCategoryId}`, {
         method: 'DELETE',
       })
 
@@ -292,7 +296,7 @@ describe('ExpenseCategoriesController', function () {
         return false
       }
 
-      const res = await app.request('/expense-categories/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/expense-categories/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -309,7 +313,7 @@ describe('ExpenseCategoriesController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/expense-categories')
+      const res = await request('/expense-categories')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

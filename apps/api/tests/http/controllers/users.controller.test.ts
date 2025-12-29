@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -9,6 +10,7 @@ import { withId, createTestApp, type IApiResponse } from './test-utils'
 
 // Mock repository type with custom methods
 type TMockUsersRepository = {
+  _id?: number
   listAll: () => Promise<TUser[]>
   getById: (id: string) => Promise<TUser | null>
   create: (data: TUserCreate) => Promise<TUser>
@@ -23,11 +25,12 @@ describe('UsersController', function () {
   let app: Hono
   let mockRepository: TMockUsersRepository
   let testUsers: TUser[]
+  let request: (path: string, options?: RequestInit) => Promise<Response>
 
-  beforeEach(function () {
-    // Create test data
-    const userData1 = UserFactory.create({ email: 'user1@test.com', firebaseUid: 'firebase-uid-1' })
-    const userData2 = UserFactory.create({ email: 'user2@test.com', firebaseUid: 'firebase-uid-2' })
+  beforeEach(async function () {
+    // Create test data for controller mock
+    const userData1 = UserFactory.create({ email: 'user1@test.com', firebaseUid: 'firebase-uid-2' })
+    const userData2 = UserFactory.create({ email: 'user2@test.com', firebaseUid: 'firebase-uid-3' })
 
     testUsers = [
       withId(userData1, '550e8400-e29b-41d4-a716-446655440001') as TUser,
@@ -36,6 +39,7 @@ describe('UsersController', function () {
 
     // Create mock repository
     mockRepository = {
+      _id: Math.random(),
       listAll: async function () {
         return testUsers
       },
@@ -90,11 +94,13 @@ describe('UsersController', function () {
     // Create Hono app with i18n middleware and controller routes
     app = createTestApp()
     app.route('/users', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all users', async function () {
-      const res = await app.request('/users')
+      const res = await request('/users')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -106,7 +112,7 @@ describe('UsersController', function () {
         return []
       }
 
-      const res = await app.request('/users')
+      const res = await request('/users')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -116,7 +122,7 @@ describe('UsersController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return user by ID', async function () {
-      const res = await app.request('/users/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/users/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -124,7 +130,7 @@ describe('UsersController', function () {
     })
 
     it('should return 404 when user not found', async function () {
-      const res = await app.request('/users/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/users/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -132,14 +138,14 @@ describe('UsersController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/users/invalid-id')
+      const res = await request('/users/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /email/:email (getByEmail)', function () {
     it('should return user by email', async function () {
-      const res = await app.request('/users/email/user1@test.com')
+      const res = await request('/users/email/user1@test.com')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -147,7 +153,7 @@ describe('UsersController', function () {
     })
 
     it('should return 404 when user with email not found', async function () {
-      const res = await app.request('/users/email/nonexistent@test.com')
+      const res = await request('/users/email/nonexistent@test.com')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -155,22 +161,22 @@ describe('UsersController', function () {
     })
 
     it('should return 400 for invalid email format', async function () {
-      const res = await app.request('/users/email/invalid-email')
+      const res = await request('/users/email/invalid-email')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /firebase/:firebaseUid (getByFirebaseUid)', function () {
     it('should return user by Firebase UID', async function () {
-      const res = await app.request('/users/firebase/firebase-uid-1')
+      const res = await request('/users/firebase/firebase-uid-2')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.data.firebaseUid).toBe('firebase-uid-1')
+      expect(json.data.firebaseUid).toBe('firebase-uid-2')
     })
 
     it('should return 404 when user with Firebase UID not found', async function () {
-      const res = await app.request('/users/firebase/nonexistent-uid')
+      const res = await request('/users/firebase/nonexistent-uid')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -182,7 +188,7 @@ describe('UsersController', function () {
     it('should create a new user', async function () {
       const newUser = UserFactory.create({ email: 'newuser@test.com' })
 
-      const res = await app.request('/users', {
+      const res = await request('/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUser),
@@ -196,7 +202,7 @@ describe('UsersController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/users', {
+      const res = await request('/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'not-an-email' }),
@@ -212,7 +218,7 @@ describe('UsersController', function () {
 
       const newUser = UserFactory.create({ email: 'user1@test.com' })
 
-      const res = await app.request('/users', {
+      const res = await request('/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUser),
@@ -227,7 +233,7 @@ describe('UsersController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing user', async function () {
-      const res = await app.request('/users/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/users/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ displayName: 'Updated Name' }),
@@ -240,7 +246,7 @@ describe('UsersController', function () {
     })
 
     it('should return 404 when updating non-existent user', async function () {
-      const res = await app.request('/users/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/users/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ displayName: 'Updated Name' }),
@@ -255,7 +261,7 @@ describe('UsersController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing user', async function () {
-      const res = await app.request('/users/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/users/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -267,7 +273,7 @@ describe('UsersController', function () {
         return false
       }
 
-      const res = await app.request('/users/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/users/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -280,7 +286,7 @@ describe('UsersController', function () {
 
   describe('POST /:id/last-login (updateLastLogin)', function () {
     it('should update last login timestamp', async function () {
-      const res = await app.request('/users/550e8400-e29b-41d4-a716-446655440001/last-login', {
+      const res = await request('/users/550e8400-e29b-41d4-a716-446655440001/last-login', {
         method: 'POST',
       })
 
@@ -291,7 +297,7 @@ describe('UsersController', function () {
     })
 
     it('should return 404 when user not found', async function () {
-      const res = await app.request('/users/550e8400-e29b-41d4-a716-446655440099/last-login', {
+      const res = await request('/users/550e8400-e29b-41d4-a716-446655440099/last-login', {
         method: 'POST',
       })
 
@@ -308,7 +314,7 @@ describe('UsersController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/users')
+      const res = await request('/users')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse
@@ -322,7 +328,7 @@ describe('UsersController', function () {
 
       const newUser = UserFactory.create()
 
-      const res = await app.request('/users', {
+      const res = await request('/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUser),

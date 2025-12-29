@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -39,6 +40,7 @@ function createEntityPaymentGateway(
 
 describe('EntityPaymentGatewaysController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockEntityPaymentGatewaysRepository
   let testEntityGateways: TEntityPaymentGateway[]
 
@@ -111,11 +113,13 @@ describe('EntityPaymentGatewaysController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/entity-payment-gateways', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all entity payment gateways', async function () {
-      const res = await app.request('/entity-payment-gateways')
+      const res = await request('/entity-payment-gateways')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -127,7 +131,7 @@ describe('EntityPaymentGatewaysController', function () {
         return []
       }
 
-      const res = await app.request('/entity-payment-gateways')
+      const res = await request('/entity-payment-gateways')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -137,7 +141,7 @@ describe('EntityPaymentGatewaysController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return entity payment gateway by ID', async function () {
-      const res = await app.request('/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -146,7 +150,7 @@ describe('EntityPaymentGatewaysController', function () {
     })
 
     it('should return 404 when gateway not found', async function () {
-      const res = await app.request('/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -154,14 +158,14 @@ describe('EntityPaymentGatewaysController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/entity-payment-gateways/invalid-id')
+      const res = await request('/entity-payment-gateways/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /condominium/:condominiumId (getByCondominiumId)', function () {
     it('should return gateways by condominium ID', async function () {
-      const res = await app.request(`/entity-payment-gateways/condominium/${condominiumId}`)
+      const res = await request(`/entity-payment-gateways/condominium/${condominiumId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -178,7 +182,7 @@ describe('EntityPaymentGatewaysController', function () {
         return []
       }
 
-      const res = await app.request(
+      const res = await request(
         '/entity-payment-gateways/condominium/550e8400-e29b-41d4-a716-446655440099'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -190,7 +194,7 @@ describe('EntityPaymentGatewaysController', function () {
 
   describe('GET /building/:buildingId (getByBuildingId)', function () {
     it('should return gateways by building ID', async function () {
-      const res = await app.request(`/entity-payment-gateways/building/${buildingId}`)
+      const res = await request(`/entity-payment-gateways/building/${buildingId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -203,7 +207,7 @@ describe('EntityPaymentGatewaysController', function () {
         return []
       }
 
-      const res = await app.request(
+      const res = await request(
         '/entity-payment-gateways/building/550e8400-e29b-41d4-a716-446655440099'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -215,7 +219,7 @@ describe('EntityPaymentGatewaysController', function () {
 
   describe('GET /gateway/:paymentGatewayId (getByPaymentGatewayId)', function () {
     it('should return entities by payment gateway ID', async function () {
-      const res = await app.request(`/entity-payment-gateways/gateway/${paymentGatewayId1}`)
+      const res = await request(`/entity-payment-gateways/gateway/${paymentGatewayId1}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -232,7 +236,7 @@ describe('EntityPaymentGatewaysController', function () {
         return []
       }
 
-      const res = await app.request(
+      const res = await request(
         '/entity-payment-gateways/gateway/550e8400-e29b-41d4-a716-446655440099'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -246,7 +250,7 @@ describe('EntityPaymentGatewaysController', function () {
     it('should create a new entity payment gateway', async function () {
       const newGateway = createEntityPaymentGateway(paymentGatewayId2, { condominiumId })
 
-      const res = await app.request('/entity-payment-gateways', {
+      const res = await request('/entity-payment-gateways', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newGateway),
@@ -261,7 +265,7 @@ describe('EntityPaymentGatewaysController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/entity-payment-gateways', {
+      const res = await request('/entity-payment-gateways', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentGatewayId: 'invalid' }),
@@ -277,7 +281,7 @@ describe('EntityPaymentGatewaysController', function () {
 
       const newGateway = createEntityPaymentGateway(paymentGatewayId1, { condominiumId })
 
-      const res = await app.request('/entity-payment-gateways', {
+      const res = await request('/entity-payment-gateways', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newGateway),
@@ -296,7 +300,7 @@ describe('EntityPaymentGatewaysController', function () {
 
       const newGateway = createEntityPaymentGateway('550e8400-e29b-41d4-a716-446655440099')
 
-      const res = await app.request('/entity-payment-gateways', {
+      const res = await request('/entity-payment-gateways', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newGateway),
@@ -311,7 +315,7 @@ describe('EntityPaymentGatewaysController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing entity payment gateway', async function () {
-      const res = await app.request(
+      const res = await request(
         '/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440001',
         {
           method: 'PATCH',
@@ -327,7 +331,7 @@ describe('EntityPaymentGatewaysController', function () {
     })
 
     it('should return 404 when updating non-existent gateway', async function () {
-      const res = await app.request(
+      const res = await request(
         '/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440099',
         {
           method: 'PATCH',
@@ -345,7 +349,7 @@ describe('EntityPaymentGatewaysController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing entity payment gateway', async function () {
-      const res = await app.request(
+      const res = await request(
         '/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440001',
         {
           method: 'DELETE',
@@ -360,7 +364,7 @@ describe('EntityPaymentGatewaysController', function () {
         return false
       }
 
-      const res = await app.request(
+      const res = await request(
         '/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440099',
         {
           method: 'DELETE',
@@ -380,7 +384,7 @@ describe('EntityPaymentGatewaysController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/entity-payment-gateways')
+      const res = await request('/entity-payment-gateways')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

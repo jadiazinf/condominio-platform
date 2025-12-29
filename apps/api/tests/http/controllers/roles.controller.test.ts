@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -22,8 +23,9 @@ describe('RolesController', function () {
   let app: Hono
   let mockRepository: TMockRolesRepository
   let testRoles: TRole[]
+  let request: (path: string, options?: RequestInit) => Promise<Response>
 
-  beforeEach(function () {
+  beforeEach(async function () {
     // Create test data
     const adminRole = RoleFactory.systemRole({ name: 'admin', description: 'Administrator role' })
     const userRole = RoleFactory.create({ name: 'user', description: 'Standard user role' })
@@ -80,11 +82,15 @@ describe('RolesController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/roles', controller.createRouter())
+
+    // Get auth token
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all roles', async function () {
-      const res = await app.request('/roles')
+      const res = await request('/roles')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -96,7 +102,7 @@ describe('RolesController', function () {
         return []
       }
 
-      const res = await app.request('/roles')
+      const res = await request('/roles')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -106,7 +112,7 @@ describe('RolesController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return role by ID', async function () {
-      const res = await app.request('/roles/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/roles/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -114,7 +120,7 @@ describe('RolesController', function () {
     })
 
     it('should return 404 when role not found', async function () {
-      const res = await app.request('/roles/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/roles/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -122,14 +128,14 @@ describe('RolesController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/roles/invalid-id')
+      const res = await request('/roles/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /name/:name (getByName)', function () {
     it('should return role by name', async function () {
-      const res = await app.request('/roles/name/admin')
+      const res = await request('/roles/name/admin')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -138,7 +144,7 @@ describe('RolesController', function () {
     })
 
     it('should return 404 when role with name not found', async function () {
-      const res = await app.request('/roles/name/superadmin')
+      const res = await request('/roles/name/superadmin')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -148,7 +154,7 @@ describe('RolesController', function () {
 
   describe('GET /system (getSystemRoles)', function () {
     it('should return system roles only', async function () {
-      const res = await app.request('/roles/system')
+      const res = await request('/roles/system')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -162,7 +168,7 @@ describe('RolesController', function () {
         return []
       }
 
-      const res = await app.request('/roles/system')
+      const res = await request('/roles/system')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -174,7 +180,7 @@ describe('RolesController', function () {
     it('should create a new role', async function () {
       const newRole = RoleFactory.create({ name: 'moderator', description: 'Moderator role' })
 
-      const res = await app.request('/roles', {
+      const res = await request('/roles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newRole),
@@ -188,7 +194,7 @@ describe('RolesController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/roles', {
+      const res = await request('/roles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: '' }),
@@ -204,7 +210,7 @@ describe('RolesController', function () {
 
       const newRole = RoleFactory.create({ name: 'admin' })
 
-      const res = await app.request('/roles', {
+      const res = await request('/roles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newRole),
@@ -219,7 +225,7 @@ describe('RolesController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing role', async function () {
-      const res = await app.request('/roles/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/roles/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: 'Updated administrator role' }),
@@ -232,7 +238,7 @@ describe('RolesController', function () {
     })
 
     it('should return 404 when updating non-existent role', async function () {
-      const res = await app.request('/roles/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/roles/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: 'Updated' }),
@@ -247,7 +253,7 @@ describe('RolesController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing role', async function () {
-      const res = await app.request('/roles/550e8400-e29b-41d4-a716-446655440002', {
+      const res = await request('/roles/550e8400-e29b-41d4-a716-446655440002', {
         method: 'DELETE',
       })
 
@@ -259,7 +265,7 @@ describe('RolesController', function () {
         return false
       }
 
-      const res = await app.request('/roles/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/roles/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -276,7 +282,7 @@ describe('RolesController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/roles')
+      const res = await request('/roles')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

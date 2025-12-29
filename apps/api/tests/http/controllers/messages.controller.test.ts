@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -44,6 +45,7 @@ function createMessage(senderId: string, overrides: Partial<TMessageCreate> = {}
 
 describe('MessagesController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockMessagesRepository
   let testMessages: TMessage[]
 
@@ -143,11 +145,13 @@ describe('MessagesController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/messages', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all messages', async function () {
-      const res = await app.request('/messages')
+      const res = await request('/messages')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -159,7 +163,7 @@ describe('MessagesController', function () {
         return []
       }
 
-      const res = await app.request('/messages')
+      const res = await request('/messages')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -169,7 +173,7 @@ describe('MessagesController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return message by ID', async function () {
-      const res = await app.request('/messages/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/messages/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -177,7 +181,7 @@ describe('MessagesController', function () {
     })
 
     it('should return 404 when message not found', async function () {
-      const res = await app.request('/messages/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/messages/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -185,14 +189,14 @@ describe('MessagesController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/messages/invalid-id')
+      const res = await request('/messages/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /sender/:senderId (getBySenderId)', function () {
     it('should return messages by sender ID', async function () {
-      const res = await app.request(`/messages/sender/${senderId}`)
+      const res = await request(`/messages/sender/${senderId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -209,7 +213,7 @@ describe('MessagesController', function () {
         return []
       }
 
-      const res = await app.request('/messages/sender/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/messages/sender/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -219,7 +223,7 @@ describe('MessagesController', function () {
 
   describe('GET /recipient/:recipientUserId (getByRecipientUserId)', function () {
     it('should return messages by recipient user ID', async function () {
-      const res = await app.request(`/messages/recipient/${recipientId1}`)
+      const res = await request(`/messages/recipient/${recipientId1}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -236,7 +240,7 @@ describe('MessagesController', function () {
         return []
       }
 
-      const res = await app.request(`/messages/recipient/${recipientId2}`)
+      const res = await request(`/messages/recipient/${recipientId2}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -246,7 +250,7 @@ describe('MessagesController', function () {
 
   describe('GET /recipient/:recipientUserId/unread (getUnreadByUserId)', function () {
     it('should return unread messages for user', async function () {
-      const res = await app.request(`/messages/recipient/${recipientId1}/unread`)
+      const res = await request(`/messages/recipient/${recipientId1}/unread`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -259,7 +263,7 @@ describe('MessagesController', function () {
         return []
       }
 
-      const res = await app.request(`/messages/recipient/${recipientId2}/unread`)
+      const res = await request(`/messages/recipient/${recipientId2}/unread`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -269,7 +273,7 @@ describe('MessagesController', function () {
 
   describe('GET /type/:messageType (getByType)', function () {
     it('should return messages by type', async function () {
-      const res = await app.request('/messages/type/announcement')
+      const res = await request('/messages/type/announcement')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -286,7 +290,7 @@ describe('MessagesController', function () {
         return []
       }
 
-      const res = await app.request('/messages/type/unknown')
+      const res = await request('/messages/type/unknown')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -296,7 +300,7 @@ describe('MessagesController', function () {
 
   describe('GET /condominium/:condominiumId (getByCondominiumId)', function () {
     it('should return messages by condominium ID', async function () {
-      const res = await app.request(`/messages/condominium/${condominiumId}`)
+      const res = await request(`/messages/condominium/${condominiumId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -309,7 +313,7 @@ describe('MessagesController', function () {
         return []
       }
 
-      const res = await app.request('/messages/condominium/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/messages/condominium/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -319,7 +323,7 @@ describe('MessagesController', function () {
 
   describe('POST /:id/read (markAsRead)', function () {
     it('should mark message as read', async function () {
-      const res = await app.request('/messages/550e8400-e29b-41d4-a716-446655440001/read', {
+      const res = await request('/messages/550e8400-e29b-41d4-a716-446655440001/read', {
         method: 'POST',
       })
 
@@ -335,7 +339,7 @@ describe('MessagesController', function () {
         return null
       }
 
-      const res = await app.request('/messages/550e8400-e29b-41d4-a716-446655440099/read', {
+      const res = await request('/messages/550e8400-e29b-41d4-a716-446655440099/read', {
         method: 'POST',
       })
 
@@ -353,7 +357,7 @@ describe('MessagesController', function () {
         subject: 'New Message',
       })
 
-      const res = await app.request('/messages', {
+      const res = await request('/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newMessage),
@@ -367,7 +371,7 @@ describe('MessagesController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/messages', {
+      const res = await request('/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ senderId: 'invalid' }),
@@ -383,7 +387,7 @@ describe('MessagesController', function () {
 
       const newMessage = createMessage('550e8400-e29b-41d4-a716-446655440099')
 
-      const res = await app.request('/messages', {
+      const res = await request('/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newMessage),
@@ -398,7 +402,7 @@ describe('MessagesController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing message', async function () {
-      const res = await app.request('/messages/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/messages/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subject: 'Updated Subject' }),
@@ -411,7 +415,7 @@ describe('MessagesController', function () {
     })
 
     it('should return 404 when updating non-existent message', async function () {
-      const res = await app.request('/messages/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/messages/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subject: 'Updated' }),
@@ -426,7 +430,7 @@ describe('MessagesController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing message', async function () {
-      const res = await app.request('/messages/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/messages/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -438,7 +442,7 @@ describe('MessagesController', function () {
         return false
       }
 
-      const res = await app.request('/messages/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/messages/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -455,7 +459,7 @@ describe('MessagesController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/messages')
+      const res = await request('/messages')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

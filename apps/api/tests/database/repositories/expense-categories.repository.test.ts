@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeAll, beforeEach } from 'bun:test'
+import { describe, it, expect, beforeAll, beforeEach , afterAll} from 'bun:test'
 import { ExpenseCategoriesRepository } from '@database/repositories'
 import {
   startTestContainer,
   cleanDatabase,
   ExpenseCategoryFactory,
   type TTestDrizzleClient,
-} from '@tests/setup'
+ stopTestContainer} from '@tests/setup'
 
 describe('ExpenseCategoriesRepository', () => {
   let db: TTestDrizzleClient
@@ -15,6 +15,10 @@ describe('ExpenseCategoriesRepository', () => {
     db = await startTestContainer()
     repository = new ExpenseCategoriesRepository(db)
   }, 120000)
+
+  afterAll(async () => {
+    await stopTestContainer()
+  })
 
   beforeEach(async () => {
     await cleanDatabase(db)

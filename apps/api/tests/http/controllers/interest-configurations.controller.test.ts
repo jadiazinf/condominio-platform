@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -52,6 +53,7 @@ function createInterestConfiguration(
 
 describe('InterestConfigurationsController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockInterestConfigurationsRepository
   let testConfigs: TInterestConfiguration[]
 
@@ -136,11 +138,13 @@ describe('InterestConfigurationsController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/interest-configurations', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all interest configurations', async function () {
-      const res = await app.request('/interest-configurations')
+      const res = await request('/interest-configurations')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -152,7 +156,7 @@ describe('InterestConfigurationsController', function () {
         return []
       }
 
-      const res = await app.request('/interest-configurations')
+      const res = await request('/interest-configurations')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -162,7 +166,7 @@ describe('InterestConfigurationsController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return configuration by ID', async function () {
-      const res = await app.request('/interest-configurations/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/interest-configurations/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -171,7 +175,7 @@ describe('InterestConfigurationsController', function () {
     })
 
     it('should return 404 when configuration not found', async function () {
-      const res = await app.request('/interest-configurations/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/interest-configurations/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -179,14 +183,14 @@ describe('InterestConfigurationsController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/interest-configurations/invalid-id')
+      const res = await request('/interest-configurations/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /condominium/:condominiumId (getByCondominiumId)', function () {
     it('should return configurations by condominium ID', async function () {
-      const res = await app.request(`/interest-configurations/condominium/${condominiumId}`)
+      const res = await request(`/interest-configurations/condominium/${condominiumId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -199,7 +203,7 @@ describe('InterestConfigurationsController', function () {
         return []
       }
 
-      const res = await app.request(
+      const res = await request(
         '/interest-configurations/condominium/550e8400-e29b-41d4-a716-446655440099'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -211,7 +215,7 @@ describe('InterestConfigurationsController', function () {
 
   describe('GET /payment-concept/:paymentConceptId (getByPaymentConceptId)', function () {
     it('should return configurations by payment concept ID', async function () {
-      const res = await app.request(`/interest-configurations/payment-concept/${paymentConceptId1}`)
+      const res = await request(`/interest-configurations/payment-concept/${paymentConceptId1}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -228,7 +232,7 @@ describe('InterestConfigurationsController', function () {
         return []
       }
 
-      const res = await app.request(
+      const res = await request(
         '/interest-configurations/payment-concept/550e8400-e29b-41d4-a716-446655440099'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -240,7 +244,7 @@ describe('InterestConfigurationsController', function () {
 
   describe('GET /payment-concept/:paymentConceptId/active/:date (getActiveForDate)', function () {
     it('should return active configuration for date', async function () {
-      const res = await app.request(
+      const res = await request(
         `/interest-configurations/payment-concept/${paymentConceptId1}/active/2024-06-15`
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -255,7 +259,7 @@ describe('InterestConfigurationsController', function () {
         return null
       }
 
-      const res = await app.request(
+      const res = await request(
         `/interest-configurations/payment-concept/${paymentConceptId1}/active/2022-01-01`
       )
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
@@ -265,7 +269,7 @@ describe('InterestConfigurationsController', function () {
     })
 
     it('should return 400 for invalid date format', async function () {
-      const res = await app.request(
+      const res = await request(
         `/interest-configurations/payment-concept/${paymentConceptId1}/active/invalid-date`
       )
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
@@ -276,7 +280,7 @@ describe('InterestConfigurationsController', function () {
     it('should create a new interest configuration', async function () {
       const newConfig = createInterestConfiguration(paymentConceptId2, { interestRate: '0.080000' })
 
-      const res = await app.request('/interest-configurations', {
+      const res = await request('/interest-configurations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newConfig),
@@ -291,7 +295,7 @@ describe('InterestConfigurationsController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/interest-configurations', {
+      const res = await request('/interest-configurations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentConceptId: 'invalid' }),
@@ -307,7 +311,7 @@ describe('InterestConfigurationsController', function () {
 
       const newConfig = createInterestConfiguration(paymentConceptId1)
 
-      const res = await app.request('/interest-configurations', {
+      const res = await request('/interest-configurations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newConfig),
@@ -322,7 +326,7 @@ describe('InterestConfigurationsController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing configuration', async function () {
-      const res = await app.request(
+      const res = await request(
         '/interest-configurations/550e8400-e29b-41d4-a716-446655440001',
         {
           method: 'PATCH',
@@ -338,7 +342,7 @@ describe('InterestConfigurationsController', function () {
     })
 
     it('should return 404 when updating non-existent configuration', async function () {
-      const res = await app.request(
+      const res = await request(
         '/interest-configurations/550e8400-e29b-41d4-a716-446655440099',
         {
           method: 'PATCH',
@@ -356,7 +360,7 @@ describe('InterestConfigurationsController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing configuration', async function () {
-      const res = await app.request(
+      const res = await request(
         '/interest-configurations/550e8400-e29b-41d4-a716-446655440001',
         {
           method: 'DELETE',
@@ -371,7 +375,7 @@ describe('InterestConfigurationsController', function () {
         return false
       }
 
-      const res = await app.request(
+      const res = await request(
         '/interest-configurations/550e8400-e29b-41d4-a716-446655440099',
         {
           method: 'DELETE',
@@ -391,7 +395,7 @@ describe('InterestConfigurationsController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/interest-configurations')
+      const res = await request('/interest-configurations')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

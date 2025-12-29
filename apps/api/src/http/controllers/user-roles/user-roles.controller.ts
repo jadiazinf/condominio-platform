@@ -13,6 +13,7 @@ import {
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
+import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -76,60 +77,68 @@ export class UserRolesController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId/global',
         handler: this.getGlobalRolesByUser,
-        middlewares: [paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId/condominium/:condominiumId',
         handler: this.getByUserAndCondominium,
-        middlewares: [paramsValidator(UserAndCondominiumParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(UserAndCondominiumParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId/building/:buildingId',
         handler: this.getByUserAndBuilding,
-        middlewares: [paramsValidator(UserAndBuildingParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(UserAndBuildingParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId/has-role',
         handler: this.checkUserHasRole,
-        middlewares: [paramsValidator(UserIdParamSchema), queryValidator(CheckRoleQuerySchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(UserIdParamSchema),
+          queryValidator(CheckRoleQuerySchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(userRoleCreateSchema)],
+        middlewares: [authMiddleware, bodyValidator(userRoleCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(userRoleUpdateSchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(IdParamSchema),
+          bodyValidator(userRoleUpdateSchema),
+        ],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
     ]
   }

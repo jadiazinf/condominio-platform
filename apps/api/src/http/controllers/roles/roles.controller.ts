@@ -9,6 +9,7 @@ import {
 import type { RolesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -40,37 +41,46 @@ export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpd
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
-      { method: 'get', path: '/system', handler: this.getSystemRoles },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      {
+        method: 'get',
+        path: '/system',
+        handler: this.getSystemRoles,
+        middlewares: [authMiddleware],
+      },
       {
         method: 'get',
         path: '/name/:name',
         handler: this.getByName,
-        middlewares: [paramsValidator(NameParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(NameParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(roleCreateSchema)],
+        middlewares: [authMiddleware, bodyValidator(roleCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(roleUpdateSchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(IdParamSchema),
+          bodyValidator(roleUpdateSchema),
+        ],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
     ]
   }

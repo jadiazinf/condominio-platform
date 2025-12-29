@@ -9,6 +9,7 @@ import {
 import type { CondominiumsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema, CodeParamSchema, type TCodeParam } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -52,48 +53,52 @@ export class CondominiumsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
       {
         method: 'get',
         path: '/code/:code',
         handler: this.getByCode,
-        middlewares: [paramsValidator(CodeParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(CodeParamSchema)],
       },
       {
         method: 'get',
         path: '/management-company/:managementCompanyId',
         handler: this.getByManagementCompanyId,
-        middlewares: [paramsValidator(ManagementCompanyIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema)],
       },
       {
         method: 'get',
         path: '/location/:locationId',
         handler: this.getByLocationId,
-        middlewares: [paramsValidator(LocationIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(LocationIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(condominiumCreateSchema)],
+        middlewares: [authMiddleware, bodyValidator(condominiumCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(condominiumUpdateSchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(IdParamSchema),
+          bodyValidator(condominiumUpdateSchema),
+        ],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
     ]
   }

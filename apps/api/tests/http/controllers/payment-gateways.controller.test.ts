@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -25,6 +26,7 @@ type TMockPaymentGatewaysRepository = {
 
 describe('PaymentGatewaysController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockPaymentGatewaysRepository
   let testGateways: TPaymentGateway[]
 
@@ -97,11 +99,13 @@ describe('PaymentGatewaysController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/payment-gateways', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all payment gateways', async function () {
-      const res = await app.request('/payment-gateways')
+      const res = await request('/payment-gateways')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -113,7 +117,7 @@ describe('PaymentGatewaysController', function () {
         return []
       }
 
-      const res = await app.request('/payment-gateways')
+      const res = await request('/payment-gateways')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -123,7 +127,7 @@ describe('PaymentGatewaysController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return gateway by ID', async function () {
-      const res = await app.request('/payment-gateways/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/payment-gateways/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -132,7 +136,7 @@ describe('PaymentGatewaysController', function () {
     })
 
     it('should return 404 when gateway not found', async function () {
-      const res = await app.request('/payment-gateways/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/payment-gateways/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -140,14 +144,14 @@ describe('PaymentGatewaysController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/payment-gateways/invalid-id')
+      const res = await request('/payment-gateways/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /name/:name (getByName)', function () {
     it('should return gateway by name', async function () {
-      const res = await app.request('/payment-gateways/name/Stripe')
+      const res = await request('/payment-gateways/name/Stripe')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -159,7 +163,7 @@ describe('PaymentGatewaysController', function () {
         return null
       }
 
-      const res = await app.request('/payment-gateways/name/Unknown')
+      const res = await request('/payment-gateways/name/Unknown')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -169,7 +173,7 @@ describe('PaymentGatewaysController', function () {
 
   describe('GET /type/:gatewayType (getByType)', function () {
     it('should return gateways by type', async function () {
-      const res = await app.request('/payment-gateways/type/stripe')
+      const res = await request('/payment-gateways/type/stripe')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -182,7 +186,7 @@ describe('PaymentGatewaysController', function () {
         return []
       }
 
-      const res = await app.request('/payment-gateways/type/unknown')
+      const res = await request('/payment-gateways/type/unknown')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -192,7 +196,7 @@ describe('PaymentGatewaysController', function () {
 
   describe('GET /production (getProductionGateways)', function () {
     it('should return production gateways only', async function () {
-      const res = await app.request('/payment-gateways/production')
+      const res = await request('/payment-gateways/production')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -205,7 +209,7 @@ describe('PaymentGatewaysController', function () {
         return []
       }
 
-      const res = await app.request('/payment-gateways/production')
+      const res = await request('/payment-gateways/production')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -217,7 +221,7 @@ describe('PaymentGatewaysController', function () {
     it('should create a new payment gateway', async function () {
       const newGateway = PaymentGatewayFactory.zelle()
 
-      const res = await app.request('/payment-gateways', {
+      const res = await request('/payment-gateways', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newGateway),
@@ -231,7 +235,7 @@ describe('PaymentGatewaysController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/payment-gateways', {
+      const res = await request('/payment-gateways', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: '' }),
@@ -247,7 +251,7 @@ describe('PaymentGatewaysController', function () {
 
       const newGateway = PaymentGatewayFactory.stripe()
 
-      const res = await app.request('/payment-gateways', {
+      const res = await request('/payment-gateways', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newGateway),
@@ -262,7 +266,7 @@ describe('PaymentGatewaysController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing gateway', async function () {
-      const res = await app.request('/payment-gateways/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/payment-gateways/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: false }),
@@ -275,7 +279,7 @@ describe('PaymentGatewaysController', function () {
     })
 
     it('should return 404 when updating non-existent gateway', async function () {
-      const res = await app.request('/payment-gateways/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/payment-gateways/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: false }),
@@ -290,7 +294,7 @@ describe('PaymentGatewaysController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing gateway', async function () {
-      const res = await app.request('/payment-gateways/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/payment-gateways/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -302,7 +306,7 @@ describe('PaymentGatewaysController', function () {
         return false
       }
 
-      const res = await app.request('/payment-gateways/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/payment-gateways/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -319,7 +323,7 @@ describe('PaymentGatewaysController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/payment-gateways')
+      const res = await request('/payment-gateways')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

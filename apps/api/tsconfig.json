@@ -41,6 +41,6 @@
       "@shared/*": ["./src/shared/*"]
     }
   },
-  "include": ["src", "tests", "drizzle.config.ts"],
+  "include": ["src", "tests", "drizzle.config.ts", "eslint.config.mjs"],
   "exclude": ["node_modules"]
 }

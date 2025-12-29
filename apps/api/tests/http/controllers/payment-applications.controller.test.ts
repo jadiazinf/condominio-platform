@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -39,6 +40,7 @@ function createPaymentApplication(
 
 describe('PaymentApplicationsController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockPaymentApplicationsRepository
   let testApplications: TPaymentApplication[]
 
@@ -106,11 +108,13 @@ describe('PaymentApplicationsController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/payment-applications', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all payment applications', async function () {
-      const res = await app.request('/payment-applications')
+      const res = await request('/payment-applications')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -122,7 +126,7 @@ describe('PaymentApplicationsController', function () {
         return []
       }
 
-      const res = await app.request('/payment-applications')
+      const res = await request('/payment-applications')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -132,7 +136,7 @@ describe('PaymentApplicationsController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return payment application by ID', async function () {
-      const res = await app.request('/payment-applications/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/payment-applications/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -141,7 +145,7 @@ describe('PaymentApplicationsController', function () {
     })
 
     it('should return 404 when application not found', async function () {
-      const res = await app.request('/payment-applications/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/payment-applications/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -149,14 +153,14 @@ describe('PaymentApplicationsController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/payment-applications/invalid-id')
+      const res = await request('/payment-applications/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /payment/:paymentId (getByPaymentId)', function () {
     it('should return applications by payment ID', async function () {
-      const res = await app.request(`/payment-applications/payment/${paymentId1}`)
+      const res = await request(`/payment-applications/payment/${paymentId1}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -173,7 +177,7 @@ describe('PaymentApplicationsController', function () {
         return []
       }
 
-      const res = await app.request(
+      const res = await request(
         '/payment-applications/payment/550e8400-e29b-41d4-a716-446655440099'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -185,7 +189,7 @@ describe('PaymentApplicationsController', function () {
 
   describe('GET /quota/:quotaId (getByQuotaId)', function () {
     it('should return applications by quota ID', async function () {
-      const res = await app.request(`/payment-applications/quota/${quotaId1}`)
+      const res = await request(`/payment-applications/quota/${quotaId1}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -202,7 +206,7 @@ describe('PaymentApplicationsController', function () {
         return []
       }
 
-      const res = await app.request(
+      const res = await request(
         '/payment-applications/quota/550e8400-e29b-41d4-a716-446655440099'
       )
       expect(res.status).toBe(StatusCodes.OK)
@@ -216,7 +220,7 @@ describe('PaymentApplicationsController', function () {
     it('should create a new payment application', async function () {
       const newApplication = createPaymentApplication(paymentId2, quotaId2)
 
-      const res = await app.request('/payment-applications', {
+      const res = await request('/payment-applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newApplication),
@@ -231,7 +235,7 @@ describe('PaymentApplicationsController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/payment-applications', {
+      const res = await request('/payment-applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentId: 'invalid' }),
@@ -247,7 +251,7 @@ describe('PaymentApplicationsController', function () {
 
       const newApplication = createPaymentApplication(paymentId1, quotaId1)
 
-      const res = await app.request('/payment-applications', {
+      const res = await request('/payment-applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newApplication),
@@ -269,7 +273,7 @@ describe('PaymentApplicationsController', function () {
         quotaId1
       )
 
-      const res = await app.request('/payment-applications', {
+      const res = await request('/payment-applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newApplication),
@@ -284,7 +288,7 @@ describe('PaymentApplicationsController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing application', async function () {
-      const res = await app.request('/payment-applications/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/payment-applications/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appliedAmount: '75.00' }),
@@ -297,7 +301,7 @@ describe('PaymentApplicationsController', function () {
     })
 
     it('should return 404 when updating non-existent application', async function () {
-      const res = await app.request('/payment-applications/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/payment-applications/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appliedAmount: '75.00' }),
@@ -312,7 +316,7 @@ describe('PaymentApplicationsController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing application', async function () {
-      const res = await app.request('/payment-applications/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/payment-applications/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -324,7 +328,7 @@ describe('PaymentApplicationsController', function () {
         return false
       }
 
-      const res = await app.request('/payment-applications/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/payment-applications/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -341,7 +345,7 @@ describe('PaymentApplicationsController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/payment-applications')
+      const res = await request('/payment-applications')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -50,6 +51,7 @@ function createExpense(
 
 describe('ExpensesController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockExpensesRepository
   let testExpenses: TExpense[]
 
@@ -145,11 +147,13 @@ describe('ExpensesController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/expenses', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all expenses', async function () {
-      const res = await app.request('/expenses')
+      const res = await request('/expenses')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -161,7 +165,7 @@ describe('ExpensesController', function () {
         return []
       }
 
-      const res = await app.request('/expenses')
+      const res = await request('/expenses')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -171,7 +175,7 @@ describe('ExpensesController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return expense by ID', async function () {
-      const res = await app.request('/expenses/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/expenses/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -180,7 +184,7 @@ describe('ExpensesController', function () {
     })
 
     it('should return 404 when expense not found', async function () {
-      const res = await app.request('/expenses/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/expenses/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -188,14 +192,14 @@ describe('ExpensesController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/expenses/invalid-id')
+      const res = await request('/expenses/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /pending-approval (getPendingApproval)', function () {
     it('should return expenses pending approval', async function () {
-      const res = await app.request('/expenses/pending-approval')
+      const res = await request('/expenses/pending-approval')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -208,7 +212,7 @@ describe('ExpensesController', function () {
         return []
       }
 
-      const res = await app.request('/expenses/pending-approval')
+      const res = await request('/expenses/pending-approval')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -218,7 +222,7 @@ describe('ExpensesController', function () {
 
   describe('GET /condominium/:condominiumId (getByCondominiumId)', function () {
     it('should return expenses by condominium ID', async function () {
-      const res = await app.request(`/expenses/condominium/${condominiumId}`)
+      const res = await request(`/expenses/condominium/${condominiumId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -230,7 +234,7 @@ describe('ExpensesController', function () {
         return []
       }
 
-      const res = await app.request('/expenses/condominium/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/expenses/condominium/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -240,7 +244,7 @@ describe('ExpensesController', function () {
 
   describe('GET /building/:buildingId (getByBuildingId)', function () {
     it('should return expenses by building ID', async function () {
-      const res = await app.request(`/expenses/building/${buildingId}`)
+      const res = await request(`/expenses/building/${buildingId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -253,7 +257,7 @@ describe('ExpensesController', function () {
         return []
       }
 
-      const res = await app.request('/expenses/building/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/expenses/building/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -263,7 +267,7 @@ describe('ExpensesController', function () {
 
   describe('GET /category/:categoryId (getByCategoryId)', function () {
     it('should return expenses by category ID', async function () {
-      const res = await app.request(`/expenses/category/${categoryId1}`)
+      const res = await request(`/expenses/category/${categoryId1}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -275,7 +279,7 @@ describe('ExpensesController', function () {
         return []
       }
 
-      const res = await app.request('/expenses/category/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/expenses/category/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -285,7 +289,7 @@ describe('ExpensesController', function () {
 
   describe('GET /status/:status (getByStatus)', function () {
     it('should return expenses by status', async function () {
-      const res = await app.request('/expenses/status/pending')
+      const res = await request('/expenses/status/pending')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -294,14 +298,14 @@ describe('ExpensesController', function () {
     })
 
     it('should return 400 for invalid status', async function () {
-      const res = await app.request('/expenses/status/invalid')
+      const res = await request('/expenses/status/invalid')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /date-range (getByDateRange)', function () {
     it('should return expenses by date range', async function () {
-      const res = await app.request('/expenses/date-range?startDate=2024-01-01&endDate=2024-01-31')
+      const res = await request('/expenses/date-range?startDate=2024-01-01&endDate=2024-01-31')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -309,7 +313,7 @@ describe('ExpensesController', function () {
     })
 
     it('should return 400 when dates are missing', async function () {
-      const res = await app.request('/expenses/date-range')
+      const res = await request('/expenses/date-range')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
@@ -318,7 +322,7 @@ describe('ExpensesController', function () {
     it('should create a new expense', async function () {
       const newExpense = createExpense(condominiumId, categoryId2, { description: 'New expense' })
 
-      const res = await app.request('/expenses', {
+      const res = await request('/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newExpense),
@@ -332,7 +336,7 @@ describe('ExpensesController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/expenses', {
+      const res = await request('/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ condominiumId: 'invalid' }),
@@ -348,7 +352,7 @@ describe('ExpensesController', function () {
 
       const newExpense = createExpense('550e8400-e29b-41d4-a716-446655440099', categoryId1)
 
-      const res = await app.request('/expenses', {
+      const res = await request('/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newExpense),
@@ -363,7 +367,7 @@ describe('ExpensesController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing expense', async function () {
-      const res = await app.request('/expenses/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/expenses/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'approved' }),
@@ -376,7 +380,7 @@ describe('ExpensesController', function () {
     })
 
     it('should return 404 when updating non-existent expense', async function () {
-      const res = await app.request('/expenses/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/expenses/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'approved' }),
@@ -391,7 +395,7 @@ describe('ExpensesController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing expense', async function () {
-      const res = await app.request('/expenses/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/expenses/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -403,7 +407,7 @@ describe('ExpensesController', function () {
         return false
       }
 
-      const res = await app.request('/expenses/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/expenses/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -420,7 +424,7 @@ describe('ExpensesController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/expenses')
+      const res = await request('/expenses')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

@@ -35,6 +35,10 @@ export class DatabaseService {
     return this.db
   }
 
+  public setDb(db: TDrizzleClient) {
+    this.db = db
+  }
+
   public async disconnect() {
     if (this.pool) {
       await this.pool.end()

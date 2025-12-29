@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -52,13 +53,14 @@ describe('PaymentsController', function () {
   let app: Hono
   let mockRepository: TMockPaymentsRepository
   let testPayments: TPayment[]
+  let request: (path: string, options?: RequestInit) => Promise<Response>
 
   const userId1 = '550e8400-e29b-41d4-a716-446655440010'
   const userId2 = '550e8400-e29b-41d4-a716-446655440011'
   const unitId1 = '550e8400-e29b-41d4-a716-446655440020'
   const unitId2 = '550e8400-e29b-41d4-a716-446655440021'
 
-  beforeEach(function () {
+  beforeEach(async function () {
     // Create test data
     const payment1 = createPayment(userId1, unitId1, {
       paymentNumber: 'PAY-001',
@@ -144,11 +146,15 @@ describe('PaymentsController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/payments', controller.createRouter())
+
+    // Get auth token
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all payments', async function () {
-      const res = await app.request('/payments')
+      const res = await request('/payments')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -160,7 +166,7 @@ describe('PaymentsController', function () {
         return []
       }
 
-      const res = await app.request('/payments')
+      const res = await request('/payments')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -170,7 +176,7 @@ describe('PaymentsController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return payment by ID', async function () {
-      const res = await app.request('/payments/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/payments/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -178,7 +184,7 @@ describe('PaymentsController', function () {
     })
 
     it('should return 404 when payment not found', async function () {
-      const res = await app.request('/payments/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/payments/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -186,14 +192,14 @@ describe('PaymentsController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/payments/invalid-id')
+      const res = await request('/payments/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /number/:paymentNumber (getByPaymentNumber)', function () {
     it('should return payment by payment number', async function () {
-      const res = await app.request('/payments/number/PAY-001')
+      const res = await request('/payments/number/PAY-001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -205,7 +211,7 @@ describe('PaymentsController', function () {
         return null
       }
 
-      const res = await app.request('/payments/number/PAY-999')
+      const res = await request('/payments/number/PAY-999')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -215,7 +221,7 @@ describe('PaymentsController', function () {
 
   describe('GET /user/:userId (getByUserId)', function () {
     it('should return payments by user ID', async function () {
-      const res = await app.request(`/payments/user/${userId1}`)
+      const res = await request(`/payments/user/${userId1}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -232,7 +238,7 @@ describe('PaymentsController', function () {
         return []
       }
 
-      const res = await app.request('/payments/user/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/payments/user/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -242,7 +248,7 @@ describe('PaymentsController', function () {
 
   describe('GET /unit/:unitId (getByUnitId)', function () {
     it('should return payments by unit ID', async function () {
-      const res = await app.request(`/payments/unit/${unitId1}`)
+      const res = await request(`/payments/unit/${unitId1}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -259,7 +265,7 @@ describe('PaymentsController', function () {
         return []
       }
 
-      const res = await app.request('/payments/unit/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/payments/unit/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -269,7 +275,7 @@ describe('PaymentsController', function () {
 
   describe('GET /status/:status (getByStatus)', function () {
     it('should return payments by status', async function () {
-      const res = await app.request('/payments/status/pending')
+      const res = await request('/payments/status/pending')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -278,7 +284,7 @@ describe('PaymentsController', function () {
     })
 
     it('should return completed payments', async function () {
-      const res = await app.request('/payments/status/completed')
+      const res = await request('/payments/status/completed')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -287,14 +293,14 @@ describe('PaymentsController', function () {
     })
 
     it('should return 400 for invalid status', async function () {
-      const res = await app.request('/payments/status/invalid')
+      const res = await request('/payments/status/invalid')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /date-range (getByDateRange)', function () {
     it('should return payments by date range', async function () {
-      const res = await app.request('/payments/date-range?startDate=2024-01-01&endDate=2024-01-31')
+      const res = await request('/payments/date-range?startDate=2024-01-01&endDate=2024-01-31')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -306,7 +312,7 @@ describe('PaymentsController', function () {
         return []
       }
 
-      const res = await app.request('/payments/date-range?startDate=2020-01-01&endDate=2020-12-31')
+      const res = await request('/payments/date-range?startDate=2020-01-01&endDate=2020-12-31')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -314,12 +320,12 @@ describe('PaymentsController', function () {
     })
 
     it('should return 400 when dates are missing', async function () {
-      const res = await app.request('/payments/date-range')
+      const res = await request('/payments/date-range')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
 
     it('should return 400 for invalid date format', async function () {
-      const res = await app.request('/payments/date-range?startDate=invalid&endDate=2024-01-31')
+      const res = await request('/payments/date-range?startDate=invalid&endDate=2024-01-31')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
@@ -328,7 +334,7 @@ describe('PaymentsController', function () {
     it('should create a new payment', async function () {
       const newPayment = createPayment(userId2, unitId1, { paymentNumber: 'PAY-004' })
 
-      const res = await app.request('/payments', {
+      const res = await request('/payments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newPayment),
@@ -342,7 +348,7 @@ describe('PaymentsController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/payments', {
+      const res = await request('/payments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: 'invalid' }),
@@ -358,7 +364,7 @@ describe('PaymentsController', function () {
 
       const newPayment = createPayment(userId1, unitId1, { paymentNumber: 'PAY-001' })
 
-      const res = await app.request('/payments', {
+      const res = await request('/payments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newPayment),
@@ -373,7 +379,7 @@ describe('PaymentsController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing payment', async function () {
-      const res = await app.request('/payments/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/payments/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'completed' }),
@@ -386,7 +392,7 @@ describe('PaymentsController', function () {
     })
 
     it('should return 404 when updating non-existent payment', async function () {
-      const res = await app.request('/payments/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/payments/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'completed' }),
@@ -401,7 +407,7 @@ describe('PaymentsController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing payment', async function () {
-      const res = await app.request('/payments/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/payments/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -413,7 +419,7 @@ describe('PaymentsController', function () {
         return false
       }
 
-      const res = await app.request('/payments/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/payments/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -430,7 +436,7 @@ describe('PaymentsController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/payments')
+      const res = await request('/payments')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

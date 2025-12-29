@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import type { TLocationCreate, TLocation } from '@packages/domain'
+import type { TLocationCreate } from '@packages/domain'
 
 /**
  * Factory for creating location test data.

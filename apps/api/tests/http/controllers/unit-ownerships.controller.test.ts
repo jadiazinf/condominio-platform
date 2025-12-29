@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -42,6 +43,7 @@ function createUnitOwnership(
 
 describe('UnitOwnershipsController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockUnitOwnershipsRepository
   let testUnitOwnerships: TUnitOwnership[]
 
@@ -126,11 +128,13 @@ describe('UnitOwnershipsController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/unit-ownerships', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all unit-ownerships', async function () {
-      const res = await app.request('/unit-ownerships')
+      const res = await request('/unit-ownerships')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -142,7 +146,7 @@ describe('UnitOwnershipsController', function () {
         return []
       }
 
-      const res = await app.request('/unit-ownerships')
+      const res = await request('/unit-ownerships')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -152,7 +156,7 @@ describe('UnitOwnershipsController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return unit-ownership by ID', async function () {
-      const res = await app.request('/unit-ownerships/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/unit-ownerships/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -161,7 +165,7 @@ describe('UnitOwnershipsController', function () {
     })
 
     it('should return 404 when unit-ownership not found', async function () {
-      const res = await app.request('/unit-ownerships/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/unit-ownerships/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -169,14 +173,14 @@ describe('UnitOwnershipsController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/unit-ownerships/invalid-id')
+      const res = await request('/unit-ownerships/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /unit/:unitId (getByUnitId)', function () {
     it('should return ownerships by unit ID', async function () {
-      const res = await app.request(`/unit-ownerships/unit/${unitId1}`)
+      const res = await request(`/unit-ownerships/unit/${unitId1}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -193,7 +197,7 @@ describe('UnitOwnershipsController', function () {
         return []
       }
 
-      const res = await app.request('/unit-ownerships/unit/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/unit-ownerships/unit/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -203,7 +207,7 @@ describe('UnitOwnershipsController', function () {
 
   describe('GET /user/:userId (getByUserId)', function () {
     it('should return ownerships by user ID', async function () {
-      const res = await app.request(`/unit-ownerships/user/${userId1}`)
+      const res = await request(`/unit-ownerships/user/${userId1}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -220,7 +224,7 @@ describe('UnitOwnershipsController', function () {
         return []
       }
 
-      const res = await app.request('/unit-ownerships/user/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/unit-ownerships/user/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -230,7 +234,7 @@ describe('UnitOwnershipsController', function () {
 
   describe('GET /user/:userId/primary (getPrimaryResidenceByUser)', function () {
     it('should return primary residence for user', async function () {
-      const res = await app.request(`/unit-ownerships/user/${userId1}/primary`)
+      const res = await request(`/unit-ownerships/user/${userId1}/primary`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -243,7 +247,7 @@ describe('UnitOwnershipsController', function () {
         return null
       }
 
-      const res = await app.request(`/unit-ownerships/user/${userId2}/primary`)
+      const res = await request(`/unit-ownerships/user/${userId2}/primary`)
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -253,7 +257,7 @@ describe('UnitOwnershipsController', function () {
 
   describe('GET /unit/:unitId/user/:userId (getByUnitAndUser)', function () {
     it('should return ownership by unit and user', async function () {
-      const res = await app.request(`/unit-ownerships/unit/${unitId1}/user/${userId1}`)
+      const res = await request(`/unit-ownerships/unit/${unitId1}/user/${userId1}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -266,7 +270,7 @@ describe('UnitOwnershipsController', function () {
         return null
       }
 
-      const res = await app.request(`/unit-ownerships/unit/${unitId2}/user/${userId2}`)
+      const res = await request(`/unit-ownerships/unit/${unitId2}/user/${userId2}`)
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -278,7 +282,7 @@ describe('UnitOwnershipsController', function () {
     it('should create a new unit-ownership', async function () {
       const newOwnership = createUnitOwnership(unitId2, userId2)
 
-      const res = await app.request('/unit-ownerships', {
+      const res = await request('/unit-ownerships', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOwnership),
@@ -293,7 +297,7 @@ describe('UnitOwnershipsController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/unit-ownerships', {
+      const res = await request('/unit-ownerships', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ unitId: 'invalid' }),
@@ -309,7 +313,7 @@ describe('UnitOwnershipsController', function () {
 
       const newOwnership = createUnitOwnership(unitId1, userId1)
 
-      const res = await app.request('/unit-ownerships', {
+      const res = await request('/unit-ownerships', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOwnership),
@@ -328,7 +332,7 @@ describe('UnitOwnershipsController', function () {
 
       const newOwnership = createUnitOwnership('550e8400-e29b-41d4-a716-446655440099', userId1)
 
-      const res = await app.request('/unit-ownerships', {
+      const res = await request('/unit-ownerships', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOwnership),
@@ -343,7 +347,7 @@ describe('UnitOwnershipsController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing unit-ownership', async function () {
-      const res = await app.request('/unit-ownerships/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/unit-ownerships/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ownershipPercentage: '50.000000' }),
@@ -356,7 +360,7 @@ describe('UnitOwnershipsController', function () {
     })
 
     it('should return 404 when updating non-existent ownership', async function () {
-      const res = await app.request('/unit-ownerships/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/unit-ownerships/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ownershipPercentage: '50.000000' }),
@@ -371,7 +375,7 @@ describe('UnitOwnershipsController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing unit-ownership', async function () {
-      const res = await app.request('/unit-ownerships/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/unit-ownerships/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -383,7 +387,7 @@ describe('UnitOwnershipsController', function () {
         return false
       }
 
-      const res = await app.request('/unit-ownerships/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/unit-ownerships/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -400,7 +404,7 @@ describe('UnitOwnershipsController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/unit-ownerships')
+      const res = await request('/unit-ownerships')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

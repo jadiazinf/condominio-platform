@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -49,6 +50,7 @@ function createDocument(overrides: Partial<TDocumentCreate> = {}): TDocumentCrea
 
 describe('DocumentsController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockDocumentsRepository
   let testDocuments: TDocument[]
 
@@ -150,11 +152,13 @@ describe('DocumentsController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/documents', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all documents', async function () {
-      const res = await app.request('/documents')
+      const res = await request('/documents')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -166,7 +170,7 @@ describe('DocumentsController', function () {
         return []
       }
 
-      const res = await app.request('/documents')
+      const res = await request('/documents')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -176,7 +180,7 @@ describe('DocumentsController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return document by ID', async function () {
-      const res = await app.request('/documents/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/documents/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -184,7 +188,7 @@ describe('DocumentsController', function () {
     })
 
     it('should return 404 when document not found', async function () {
-      const res = await app.request('/documents/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/documents/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -192,14 +196,14 @@ describe('DocumentsController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/documents/invalid-id')
+      const res = await request('/documents/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /public (getPublicDocuments)', function () {
     it('should return public documents only', async function () {
-      const res = await app.request('/documents/public')
+      const res = await request('/documents/public')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -212,7 +216,7 @@ describe('DocumentsController', function () {
         return []
       }
 
-      const res = await app.request('/documents/public')
+      const res = await request('/documents/public')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -222,7 +226,7 @@ describe('DocumentsController', function () {
 
   describe('GET /type/:documentType (getByType)', function () {
     it('should return documents by type', async function () {
-      const res = await app.request('/documents/type/regulation')
+      const res = await request('/documents/type/regulation')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -235,7 +239,7 @@ describe('DocumentsController', function () {
         return []
       }
 
-      const res = await app.request('/documents/type/unknown')
+      const res = await request('/documents/type/unknown')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -245,7 +249,7 @@ describe('DocumentsController', function () {
 
   describe('GET /condominium/:condominiumId (getByCondominiumId)', function () {
     it('should return documents by condominium ID', async function () {
-      const res = await app.request(`/documents/condominium/${condominiumId}`)
+      const res = await request(`/documents/condominium/${condominiumId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -256,7 +260,7 @@ describe('DocumentsController', function () {
 
   describe('GET /building/:buildingId (getByBuildingId)', function () {
     it('should return documents by building ID', async function () {
-      const res = await app.request(`/documents/building/${buildingId}`)
+      const res = await request(`/documents/building/${buildingId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -273,7 +277,7 @@ describe('DocumentsController', function () {
         })
       }
 
-      const res = await app.request(`/documents/unit/${unitId}`)
+      const res = await request(`/documents/unit/${unitId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -283,7 +287,7 @@ describe('DocumentsController', function () {
 
   describe('GET /user/:userId (getByUserId)', function () {
     it('should return documents by user ID', async function () {
-      const res = await app.request(`/documents/user/${userId}`)
+      const res = await request(`/documents/user/${userId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -294,7 +298,7 @@ describe('DocumentsController', function () {
 
   describe('GET /payment/:paymentId (getByPaymentId)', function () {
     it('should return documents by payment ID', async function () {
-      const res = await app.request(`/documents/payment/${paymentId}`)
+      const res = await request(`/documents/payment/${paymentId}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -307,7 +311,7 @@ describe('DocumentsController', function () {
     it('should create a new document', async function () {
       const newDocument = createDocument({ title: 'New Document' })
 
-      const res = await app.request('/documents', {
+      const res = await request('/documents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newDocument),
@@ -321,7 +325,7 @@ describe('DocumentsController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/documents', {
+      const res = await request('/documents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: '' }),
@@ -337,7 +341,7 @@ describe('DocumentsController', function () {
 
       const newDocument = createDocument({ condominiumId: '550e8400-e29b-41d4-a716-446655440099' })
 
-      const res = await app.request('/documents', {
+      const res = await request('/documents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newDocument),
@@ -352,7 +356,7 @@ describe('DocumentsController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing document', async function () {
-      const res = await app.request('/documents/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/documents/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: 'Updated Title' }),
@@ -365,7 +369,7 @@ describe('DocumentsController', function () {
     })
 
     it('should return 404 when updating non-existent document', async function () {
-      const res = await app.request('/documents/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/documents/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: 'Updated' }),
@@ -380,7 +384,7 @@ describe('DocumentsController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing document', async function () {
-      const res = await app.request('/documents/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/documents/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -392,7 +396,7 @@ describe('DocumentsController', function () {
         return false
       }
 
-      const res = await app.request('/documents/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/documents/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -409,7 +413,7 @@ describe('DocumentsController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/documents')
+      const res = await request('/documents')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

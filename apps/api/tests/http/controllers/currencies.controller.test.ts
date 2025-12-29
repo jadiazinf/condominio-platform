@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -20,6 +21,7 @@ type TMockCurrenciesRepository = {
 
 describe('CurrenciesController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockCurrenciesRepository
   let testCurrencies: TCurrency[]
 
@@ -82,11 +84,13 @@ describe('CurrenciesController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/currencies', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all currencies', async function () {
-      const res = await app.request('/currencies')
+      const res = await request('/currencies')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -98,7 +102,7 @@ describe('CurrenciesController', function () {
         return []
       }
 
-      const res = await app.request('/currencies')
+      const res = await request('/currencies')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -108,7 +112,7 @@ describe('CurrenciesController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return currency by ID', async function () {
-      const res = await app.request('/currencies/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/currencies/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -116,7 +120,7 @@ describe('CurrenciesController', function () {
     })
 
     it('should return 404 when currency not found', async function () {
-      const res = await app.request('/currencies/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/currencies/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -124,14 +128,14 @@ describe('CurrenciesController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/currencies/invalid-id')
+      const res = await request('/currencies/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /code/:code (getByCode)', function () {
     it('should return currency by code', async function () {
-      const res = await app.request('/currencies/code/USD')
+      const res = await request('/currencies/code/USD')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -140,7 +144,7 @@ describe('CurrenciesController', function () {
     })
 
     it('should return 404 when currency with code not found', async function () {
-      const res = await app.request('/currencies/code/GBP')
+      const res = await request('/currencies/code/GBP')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -150,7 +154,7 @@ describe('CurrenciesController', function () {
 
   describe('GET /base (getBaseCurrency)', function () {
     it('should return the base currency', async function () {
-      const res = await app.request('/currencies/base')
+      const res = await request('/currencies/base')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -163,7 +167,7 @@ describe('CurrenciesController', function () {
         return null
       }
 
-      const res = await app.request('/currencies/base')
+      const res = await request('/currencies/base')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -175,7 +179,7 @@ describe('CurrenciesController', function () {
     it('should create a new currency', async function () {
       const newCurrency = CurrencyFactory.create({ code: 'GBP', name: 'British Pound' })
 
-      const res = await app.request('/currencies', {
+      const res = await request('/currencies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCurrency),
@@ -189,7 +193,7 @@ describe('CurrenciesController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/currencies', {
+      const res = await request('/currencies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: '' }),
@@ -205,7 +209,7 @@ describe('CurrenciesController', function () {
 
       const newCurrency = CurrencyFactory.create({ code: 'USD' })
 
-      const res = await app.request('/currencies', {
+      const res = await request('/currencies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCurrency),
@@ -220,7 +224,7 @@ describe('CurrenciesController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing currency', async function () {
-      const res = await app.request('/currencies/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/currencies/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'United States Dollar' }),
@@ -233,7 +237,7 @@ describe('CurrenciesController', function () {
     })
 
     it('should return 404 when updating non-existent currency', async function () {
-      const res = await app.request('/currencies/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/currencies/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'Updated Name' }),
@@ -248,7 +252,7 @@ describe('CurrenciesController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing currency', async function () {
-      const res = await app.request('/currencies/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/currencies/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -260,7 +264,7 @@ describe('CurrenciesController', function () {
         return false
       }
 
-      const res = await app.request('/currencies/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/currencies/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -277,7 +281,7 @@ describe('CurrenciesController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/currencies')
+      const res = await request('/currencies')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

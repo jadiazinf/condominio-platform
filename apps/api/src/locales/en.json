@@ -3,9 +3,13 @@
     "middlewares": {
       "utils": {
         "auth": {
-          "malformedHeader": "Malformed authorization header, please contact support",
-          "unauthorized": "Please sign in.",
-          "userNotFound": "User not found, please sign in again or sign up."
+          "malformedHeader": "Missing or invalid authorization header.",
+          "invalidToken": "Invalid or expired token.",
+          "userNotFound": "User not found.",
+          "userDisabled": "User account is disabled.",
+          "notAuthenticated": "User not authenticated.",
+          "insufficientRoles": "You do not have the required roles to access this resource.",
+          "insufficientPermissions": "You do not have the required permissions to access this resource."
         }
       }
     },

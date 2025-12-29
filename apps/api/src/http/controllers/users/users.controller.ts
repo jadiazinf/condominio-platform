@@ -9,12 +9,13 @@ import {
 import type { UsersRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
 
 const EmailParamSchema = z.object({
-  email: z.string().email('Invalid email format'),
+  email: z.email('Invalid email format'),
 })
 
 type TEmailParam = z.infer<typeof EmailParamSchema>
@@ -49,48 +50,52 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
       {
         method: 'get',
         path: '/email/:email',
         handler: this.getByEmail,
-        middlewares: [paramsValidator(EmailParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(EmailParamSchema)],
       },
       {
         method: 'get',
         path: '/firebase/:firebaseUid',
         handler: this.getByFirebaseUid,
-        middlewares: [paramsValidator(FirebaseUidParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(FirebaseUidParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/:id/last-login',
         handler: this.updateLastLogin,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(userCreateSchema)],
+        middlewares: [authMiddleware, bodyValidator(userCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(userUpdateSchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(IdParamSchema),
+          bodyValidator(userUpdateSchema),
+        ],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
     ]
   }

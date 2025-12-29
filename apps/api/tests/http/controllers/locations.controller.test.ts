@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -20,6 +21,7 @@ type TMockLocationsRepository = {
 
 describe('LocationsController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockLocationsRepository
   let testLocations: TLocation[]
 
@@ -84,11 +86,13 @@ describe('LocationsController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/locations', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all locations', async function () {
-      const res = await app.request('/locations')
+      const res = await request('/locations')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -100,7 +104,7 @@ describe('LocationsController', function () {
         return []
       }
 
-      const res = await app.request('/locations')
+      const res = await request('/locations')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -110,7 +114,7 @@ describe('LocationsController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return location by ID', async function () {
-      const res = await app.request('/locations/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/locations/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -118,7 +122,7 @@ describe('LocationsController', function () {
     })
 
     it('should return 404 when location not found', async function () {
-      const res = await app.request('/locations/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/locations/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -126,14 +130,14 @@ describe('LocationsController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/locations/invalid-id')
+      const res = await request('/locations/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /type/:type (getByType)', function () {
     it('should return locations by type - country', async function () {
-      const res = await app.request('/locations/type/country')
+      const res = await request('/locations/type/country')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -142,7 +146,7 @@ describe('LocationsController', function () {
     })
 
     it('should return locations by type - province', async function () {
-      const res = await app.request('/locations/type/province')
+      const res = await request('/locations/type/province')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -151,7 +155,7 @@ describe('LocationsController', function () {
     })
 
     it('should return locations by type - city', async function () {
-      const res = await app.request('/locations/type/city')
+      const res = await request('/locations/type/city')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -164,7 +168,7 @@ describe('LocationsController', function () {
         return []
       }
 
-      const res = await app.request('/locations/type/country')
+      const res = await request('/locations/type/country')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -172,14 +176,14 @@ describe('LocationsController', function () {
     })
 
     it('should return 400 for invalid location type', async function () {
-      const res = await app.request('/locations/type/invalid-type')
+      const res = await request('/locations/type/invalid-type')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /parent/:parentId (getByParentId)', function () {
     it('should return locations by parent ID', async function () {
-      const res = await app.request('/locations/parent/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/locations/parent/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -192,7 +196,7 @@ describe('LocationsController', function () {
         return []
       }
 
-      const res = await app.request('/locations/parent/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/locations/parent/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -200,7 +204,7 @@ describe('LocationsController', function () {
     })
 
     it('should return 400 for invalid parent UUID format', async function () {
-      const res = await app.request('/locations/parent/invalid-id')
+      const res = await request('/locations/parent/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
@@ -209,7 +213,7 @@ describe('LocationsController', function () {
     it('should create a new location', async function () {
       const newLocation = LocationFactory.country({ name: 'Colombia' })
 
-      const res = await app.request('/locations', {
+      const res = await request('/locations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newLocation),
@@ -223,7 +227,7 @@ describe('LocationsController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/locations', {
+      const res = await request('/locations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: '' }),
@@ -239,7 +243,7 @@ describe('LocationsController', function () {
 
       const newLocation = LocationFactory.country({ name: 'Venezuela' })
 
-      const res = await app.request('/locations', {
+      const res = await request('/locations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newLocation),
@@ -254,7 +258,7 @@ describe('LocationsController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing location', async function () {
-      const res = await app.request('/locations/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/locations/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'República Bolivariana de Venezuela' }),
@@ -267,7 +271,7 @@ describe('LocationsController', function () {
     })
 
     it('should return 404 when updating non-existent location', async function () {
-      const res = await app.request('/locations/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/locations/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'Updated Name' }),
@@ -282,7 +286,7 @@ describe('LocationsController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing location', async function () {
-      const res = await app.request('/locations/550e8400-e29b-41d4-a716-446655440003', {
+      const res = await request('/locations/550e8400-e29b-41d4-a716-446655440003', {
         method: 'DELETE',
       })
 
@@ -294,7 +298,7 @@ describe('LocationsController', function () {
         return false
       }
 
-      const res = await app.request('/locations/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/locations/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -311,7 +315,7 @@ describe('LocationsController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/locations')
+      const res = await request('/locations')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

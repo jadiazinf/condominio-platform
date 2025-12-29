@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -36,6 +37,7 @@ function createExchangeRate(
 
 describe('ExchangeRatesController', function () {
   let app: Hono
+  let request: (path: string, options?: RequestInit) => Promise<Response>
   let mockRepository: TMockExchangeRatesRepository
   let testExchangeRates: TExchangeRate[]
 
@@ -114,11 +116,13 @@ describe('ExchangeRatesController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/exchange-rates', controller.createRouter())
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all exchange rates', async function () {
-      const res = await app.request('/exchange-rates')
+      const res = await request('/exchange-rates')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -130,7 +134,7 @@ describe('ExchangeRatesController', function () {
         return []
       }
 
-      const res = await app.request('/exchange-rates')
+      const res = await request('/exchange-rates')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -140,7 +144,7 @@ describe('ExchangeRatesController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return exchange rate by ID', async function () {
-      const res = await app.request('/exchange-rates/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/exchange-rates/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -150,7 +154,7 @@ describe('ExchangeRatesController', function () {
     })
 
     it('should return 404 when exchange rate not found', async function () {
-      const res = await app.request('/exchange-rates/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/exchange-rates/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -158,14 +162,14 @@ describe('ExchangeRatesController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/exchange-rates/invalid-id')
+      const res = await request('/exchange-rates/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /date/:date (getByDate)', function () {
     it('should return exchange rates by date', async function () {
-      const res = await app.request(`/exchange-rates/date/${testDate}`)
+      const res = await request(`/exchange-rates/date/${testDate}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -182,7 +186,7 @@ describe('ExchangeRatesController', function () {
         return []
       }
 
-      const res = await app.request('/exchange-rates/date/2020-01-01')
+      const res = await request('/exchange-rates/date/2020-01-01')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -190,14 +194,14 @@ describe('ExchangeRatesController', function () {
     })
 
     it('should return 400 for invalid date format', async function () {
-      const res = await app.request('/exchange-rates/date/invalid-date')
+      const res = await request('/exchange-rates/date/invalid-date')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /latest/:fromCurrencyId/:toCurrencyId (getLatestRate)', function () {
     it('should return latest rate for currency pair', async function () {
-      const res = await app.request(`/exchange-rates/latest/${currencyId1}/${currencyId2}`)
+      const res = await request(`/exchange-rates/latest/${currencyId1}/${currencyId2}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -210,7 +214,7 @@ describe('ExchangeRatesController', function () {
         return null
       }
 
-      const res = await app.request(`/exchange-rates/latest/${currencyId2}/${currencyId1}`)
+      const res = await request(`/exchange-rates/latest/${currencyId2}/${currencyId1}`)
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -218,7 +222,7 @@ describe('ExchangeRatesController', function () {
     })
 
     it('should return 400 for invalid currency UUID', async function () {
-      const res = await app.request('/exchange-rates/latest/invalid-id/another-invalid')
+      const res = await request('/exchange-rates/latest/invalid-id/another-invalid')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
@@ -227,7 +231,7 @@ describe('ExchangeRatesController', function () {
     it('should create a new exchange rate', async function () {
       const newRate = createExchangeRate(currencyId2, currencyId1, { rate: '1.087000' })
 
-      const res = await app.request('/exchange-rates', {
+      const res = await request('/exchange-rates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newRate),
@@ -242,7 +246,7 @@ describe('ExchangeRatesController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/exchange-rates', {
+      const res = await request('/exchange-rates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fromCurrencyId: 'invalid' }),
@@ -258,7 +262,7 @@ describe('ExchangeRatesController', function () {
 
       const newRate = createExchangeRate(currencyId1, currencyId2)
 
-      const res = await app.request('/exchange-rates', {
+      const res = await request('/exchange-rates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newRate),
@@ -277,7 +281,7 @@ describe('ExchangeRatesController', function () {
 
       const newRate = createExchangeRate('550e8400-e29b-41d4-a716-446655440099', currencyId2)
 
-      const res = await app.request('/exchange-rates', {
+      const res = await request('/exchange-rates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newRate),
@@ -292,7 +296,7 @@ describe('ExchangeRatesController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing exchange rate', async function () {
-      const res = await app.request('/exchange-rates/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/exchange-rates/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rate: '0.950000' }),
@@ -305,7 +309,7 @@ describe('ExchangeRatesController', function () {
     })
 
     it('should return 404 when updating non-existent rate', async function () {
-      const res = await app.request('/exchange-rates/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/exchange-rates/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rate: '1.000000' }),
@@ -320,7 +324,7 @@ describe('ExchangeRatesController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing exchange rate', async function () {
-      const res = await app.request('/exchange-rates/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/exchange-rates/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -332,7 +336,7 @@ describe('ExchangeRatesController', function () {
         return false
       }
 
-      const res = await app.request('/exchange-rates/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/exchange-rates/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -349,7 +353,7 @@ describe('ExchangeRatesController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/exchange-rates')
+      const res = await request('/exchange-rates')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

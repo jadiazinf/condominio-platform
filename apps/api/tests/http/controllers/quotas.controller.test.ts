@@ -1,3 +1,4 @@
+import './setup-auth-mock'
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
@@ -52,12 +53,13 @@ describe('QuotasController', function () {
   let app: Hono
   let mockRepository: TMockQuotasRepository
   let testQuotas: TQuota[]
+  let request: (path: string, options?: RequestInit) => Promise<Response>
 
   const unitId1 = '550e8400-e29b-41d4-a716-446655440010'
   const unitId2 = '550e8400-e29b-41d4-a716-446655440011'
   const paymentConceptId = '550e8400-e29b-41d4-a716-446655440020'
 
-  beforeEach(function () {
+  beforeEach(async function () {
     // Create test data
     const quota1 = createQuota(unitId1, paymentConceptId, { status: 'pending', periodMonth: 1 })
     const quota2 = createQuota(unitId1, paymentConceptId, { status: 'paid', periodMonth: 2 })
@@ -136,11 +138,15 @@ describe('QuotasController', function () {
     // Create Hono app with controller routes
     app = createTestApp()
     app.route('/quotas', controller.createRouter())
+
+    // Get auth token
+
+    request = async (path, options) => app.request(path, options)
   })
 
   describe('GET / (list)', function () {
     it('should return all quotas', async function () {
-      const res = await app.request('/quotas')
+      const res = await request('/quotas')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -152,7 +158,7 @@ describe('QuotasController', function () {
         return []
       }
 
-      const res = await app.request('/quotas')
+      const res = await request('/quotas')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -162,7 +168,7 @@ describe('QuotasController', function () {
 
   describe('GET /:id (getById)', function () {
     it('should return quota by ID', async function () {
-      const res = await app.request('/quotas/550e8400-e29b-41d4-a716-446655440001')
+      const res = await request('/quotas/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -171,7 +177,7 @@ describe('QuotasController', function () {
     })
 
     it('should return 404 when quota not found', async function () {
-      const res = await app.request('/quotas/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/quotas/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -179,14 +185,14 @@ describe('QuotasController', function () {
     })
 
     it('should return 400 for invalid UUID format', async function () {
-      const res = await app.request('/quotas/invalid-id')
+      const res = await request('/quotas/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /unit/:unitId (getByUnitId)', function () {
     it('should return quotas by unit ID', async function () {
-      const res = await app.request(`/quotas/unit/${unitId1}`)
+      const res = await request(`/quotas/unit/${unitId1}`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -203,7 +209,7 @@ describe('QuotasController', function () {
         return []
       }
 
-      const res = await app.request('/quotas/unit/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request('/quotas/unit/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -213,7 +219,7 @@ describe('QuotasController', function () {
 
   describe('GET /unit/:unitId/pending (getPendingByUnit)', function () {
     it('should return pending quotas for unit', async function () {
-      const res = await app.request(`/quotas/unit/${unitId1}/pending`)
+      const res = await request(`/quotas/unit/${unitId1}/pending`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -226,7 +232,7 @@ describe('QuotasController', function () {
         return []
       }
 
-      const res = await app.request(`/quotas/unit/${unitId2}/pending`)
+      const res = await request(`/quotas/unit/${unitId2}/pending`)
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -236,7 +242,7 @@ describe('QuotasController', function () {
 
   describe('GET /status/:status (getByStatus)', function () {
     it('should return quotas by status', async function () {
-      const res = await app.request('/quotas/status/pending')
+      const res = await request('/quotas/status/pending')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -245,7 +251,7 @@ describe('QuotasController', function () {
     })
 
     it('should return paid quotas', async function () {
-      const res = await app.request('/quotas/status/paid')
+      const res = await request('/quotas/status/paid')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -254,14 +260,14 @@ describe('QuotasController', function () {
     })
 
     it('should return 400 for invalid status', async function () {
-      const res = await app.request('/quotas/status/invalid')
+      const res = await request('/quotas/status/invalid')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /overdue/:date (getOverdue)', function () {
     it('should return overdue quotas as of date', async function () {
-      const res = await app.request('/quotas/overdue/2024-01-01')
+      const res = await request('/quotas/overdue/2024-01-01')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -274,7 +280,7 @@ describe('QuotasController', function () {
         return []
       }
 
-      const res = await app.request('/quotas/overdue/2023-01-01')
+      const res = await request('/quotas/overdue/2023-01-01')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -282,14 +288,14 @@ describe('QuotasController', function () {
     })
 
     it('should return 400 for invalid date format', async function () {
-      const res = await app.request('/quotas/overdue/invalid-date')
+      const res = await request('/quotas/overdue/invalid-date')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
   describe('GET /period (getByPeriod)', function () {
     it('should return quotas by year', async function () {
-      const res = await app.request('/quotas/period?year=2024')
+      const res = await request('/quotas/period?year=2024')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -297,7 +303,7 @@ describe('QuotasController', function () {
     })
 
     it('should return quotas by year and month', async function () {
-      const res = await app.request('/quotas/period?year=2024&month=1')
+      const res = await request('/quotas/period?year=2024&month=1')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -305,7 +311,7 @@ describe('QuotasController', function () {
     })
 
     it('should return 400 when year is missing', async function () {
-      const res = await app.request('/quotas/period')
+      const res = await request('/quotas/period')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
@@ -314,7 +320,7 @@ describe('QuotasController', function () {
     it('should create a new quota', async function () {
       const newQuota = createQuota(unitId2, paymentConceptId, { periodMonth: 3 })
 
-      const res = await app.request('/quotas', {
+      const res = await request('/quotas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newQuota),
@@ -328,7 +334,7 @@ describe('QuotasController', function () {
     })
 
     it('should return 422 for invalid body', async function () {
-      const res = await app.request('/quotas', {
+      const res = await request('/quotas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ unitId: 'invalid' }),
@@ -344,7 +350,7 @@ describe('QuotasController', function () {
 
       const newQuota = createQuota(unitId1, paymentConceptId)
 
-      const res = await app.request('/quotas', {
+      const res = await request('/quotas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newQuota),
@@ -359,7 +365,7 @@ describe('QuotasController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing quota', async function () {
-      const res = await app.request('/quotas/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/quotas/550e8400-e29b-41d4-a716-446655440001', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'paid' }),
@@ -372,7 +378,7 @@ describe('QuotasController', function () {
     })
 
     it('should return 404 when updating non-existent quota', async function () {
-      const res = await app.request('/quotas/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/quotas/550e8400-e29b-41d4-a716-446655440099', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'paid' }),
@@ -387,7 +393,7 @@ describe('QuotasController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing quota', async function () {
-      const res = await app.request('/quotas/550e8400-e29b-41d4-a716-446655440001', {
+      const res = await request('/quotas/550e8400-e29b-41d4-a716-446655440001', {
         method: 'DELETE',
       })
 
@@ -399,7 +405,7 @@ describe('QuotasController', function () {
         return false
       }
 
-      const res = await app.request('/quotas/550e8400-e29b-41d4-a716-446655440099', {
+      const res = await request('/quotas/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
@@ -416,7 +422,7 @@ describe('QuotasController', function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await app.request('/quotas')
+      const res = await request('/quotas')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse
