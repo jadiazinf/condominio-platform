@@ -49,9 +49,11 @@ export const paymentMethodEnum = pgEnum('payment_method', ['transfer', 'cash', '
 
 export const paymentStatusEnum = pgEnum('payment_status', [
   'pending',
+  'pending_verification',
   'completed',
   'failed',
   'refunded',
+  'rejected',
 ])
 
 export const expenseStatusEnum = pgEnum('expense_status', [
@@ -761,6 +763,11 @@ export const payments = pgTable(
     registeredBy: uuid('registered_by').references(() => users.id, {
       onDelete: 'set null',
     }),
+    verifiedBy: uuid('verified_by').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    verifiedAt: timestamp('verified_at'),
+    verificationNotes: text('verification_notes'),
   },
   table => [
     index('idx_payments_user').on(table.userId),
@@ -771,6 +778,7 @@ export const payments = pgTable(
     index('idx_payments_gateway').on(table.paymentGatewayId),
     index('idx_payments_currency').on(table.currencyId),
     index('idx_payments_registered_by').on(table.registeredBy),
+    index('idx_payments_verified_by').on(table.verifiedBy),
   ]
 )
 

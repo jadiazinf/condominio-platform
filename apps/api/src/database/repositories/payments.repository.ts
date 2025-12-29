@@ -41,6 +41,9 @@ export class PaymentsRepository
       notes: r.notes,
       metadata: r.metadata as Record<string, unknown> | null,
       registeredBy: r.registeredBy,
+      verifiedBy: r.verifiedBy,
+      verifiedAt: r.verifiedAt,
+      verificationNotes: r.verificationNotes,
       createdAt: r.createdAt ?? new Date(),
       updatedAt: r.updatedAt ?? new Date(),
     }
@@ -176,5 +179,72 @@ export class PaymentsRepository
       .orderBy(desc(payments.paymentDate))
 
     return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Retrieves payments pending verification.
+   */
+  async getPendingVerification(): Promise<TPayment[]> {
+    const results = await this.db
+      .select()
+      .from(payments)
+      .where(eq(payments.status, 'pending_verification'))
+      .orderBy(desc(payments.registeredAt))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Verifies (approves) a payment, changing status to 'completed'.
+   */
+  async verifyPayment(
+    id: string,
+    verifiedBy: string,
+    verificationNotes?: string
+  ): Promise<TPayment | null> {
+    const results = await this.db
+      .update(payments)
+      .set({
+        status: 'completed',
+        verifiedBy,
+        verifiedAt: new Date(),
+        verificationNotes: verificationNotes ?? null,
+        updatedAt: new Date(),
+      })
+      .where(eq(payments.id, id))
+      .returning()
+
+    if (results.length === 0) {
+      return null
+    }
+
+    return this.mapToEntity(results[0])
+  }
+
+  /**
+   * Rejects a payment, changing status to 'rejected'.
+   */
+  async rejectPayment(
+    id: string,
+    verifiedBy: string,
+    verificationNotes?: string
+  ): Promise<TPayment | null> {
+    const results = await this.db
+      .update(payments)
+      .set({
+        status: 'rejected',
+        verifiedBy,
+        verifiedAt: new Date(),
+        verificationNotes: verificationNotes ?? null,
+        updatedAt: new Date(),
+      })
+      .where(eq(payments.id, id))
+      .returning()
+
+    if (results.length === 0) {
+      return null
+    }
+
+    return this.mapToEntity(results[0])
   }
 }

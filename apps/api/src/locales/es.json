@@ -14,6 +14,16 @@
         }
       }
     },
+    "controllers": {
+      "payments": {
+        "paymentNotFound": "Pago no encontrado.",
+        "paymentVerified": "Pago verificado exitosamente.",
+        "paymentRejected": "Pago rechazado.",
+        "paymentReported": "Pago reportado exitosamente, pendiente de verificación.",
+        "notPendingVerification": "El pago no está pendiente de verificación.",
+        "invalidPaymentStatus": "Estado de pago inválido."
+      }
+    },
     "locales": {
       "unknownError": "Error desconocido, intente nuevamente"
     },

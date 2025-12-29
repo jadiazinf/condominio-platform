@@ -13,6 +13,11 @@ import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
+import {
+  GetUserByEmailService,
+  GetUserByFirebaseUidService,
+  UpdateLastLoginService,
+} from '@src/services/users'
 
 const EmailParamSchema = z.object({
   email: z.email('Invalid email format'),
@@ -25,6 +30,8 @@ const FirebaseUidParamSchema = z.object({
 })
 
 type TFirebaseUidParam = z.infer<typeof FirebaseUidParamSchema>
+
+type TIdParam = z.infer<typeof IdParamSchema>
 
 /**
  * Controller for managing user resources.
@@ -40,8 +47,18 @@ type TFirebaseUidParam = z.infer<typeof FirebaseUidParamSchema>
  * - DELETE /:id                        Delete user
  */
 export class UsersController extends BaseController<TUser, TUserCreate, TUserUpdate> {
+  private readonly getUserByEmailService: GetUserByEmailService
+  private readonly getUserByFirebaseUidService: GetUserByFirebaseUidService
+  private readonly updateLastLoginService: UpdateLastLoginService
+
   constructor(repository: UsersRepository) {
     super(repository)
+
+    // Initialize services
+    this.getUserByEmailService = new GetUserByEmailService(repository)
+    this.getUserByFirebaseUidService = new GetUserByFirebaseUidService(repository)
+    this.updateLastLoginService = new UpdateLastLoginService(repository)
+
     // Bind custom methods to ensure correct 'this' context when used as route handlers
     this.getByEmail = this.getByEmail.bind(this)
     this.getByFirebaseUid = this.getByFirebaseUid.bind(this)
@@ -106,16 +123,17 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
 
   private async getByEmail(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TEmailParam>(c)
-    const repo = this.repository as UsersRepository
 
     try {
-      const user = await repo.getByEmail(ctx.params.email)
+      const result = await this.getUserByEmailService.execute({
+        email: ctx.params.email,
+      })
 
-      if (!user) {
-        return ctx.notFound({ error: 'User not found' })
+      if (!result.success) {
+        return ctx.notFound({ error: result.error })
       }
 
-      return ctx.ok({ data: user })
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -123,33 +141,35 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
 
   private async getByFirebaseUid(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TFirebaseUidParam>(c)
-    const repo = this.repository as UsersRepository
 
     try {
-      const user = await repo.getByFirebaseUid(ctx.params.firebaseUid)
+      const result = await this.getUserByFirebaseUidService.execute({
+        firebaseUid: ctx.params.firebaseUid,
+      })
 
-      if (!user) {
-        return ctx.notFound({ error: 'User not found' })
+      if (!result.success) {
+        return ctx.notFound({ error: result.error })
       }
 
-      return ctx.ok({ data: user })
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
   }
 
   private async updateLastLogin(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, unknown, { id: string }>(c)
-    const repo = this.repository as UsersRepository
+    const ctx = this.ctx<unknown, unknown, TIdParam>(c)
 
     try {
-      const user = await repo.updateLastLogin(ctx.params.id)
+      const result = await this.updateLastLoginService.execute({
+        userId: ctx.params.id,
+      })
 
-      if (!user) {
-        return ctx.notFound({ error: 'User not found' })
+      if (!result.success) {
+        return ctx.notFound({ error: result.error })
       }
 
-      return ctx.ok({ data: user })
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }

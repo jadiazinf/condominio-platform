@@ -13,6 +13,11 @@ import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
+import {
+  GetUnitsByBuildingService,
+  GetUnitByBuildingAndNumberService,
+  GetUnitsByFloorService,
+} from '@src/services/units'
 
 const BuildingIdParamSchema = z.object({
   buildingId: z.string().uuid('Invalid building ID format'),
@@ -48,8 +53,18 @@ type TBuildingAndFloorParam = z.infer<typeof BuildingAndFloorParamSchema>
  * - DELETE /:id                                           Delete unit
  */
 export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpdate> {
+  private readonly getUnitsByBuildingService: GetUnitsByBuildingService
+  private readonly getUnitByBuildingAndNumberService: GetUnitByBuildingAndNumberService
+  private readonly getUnitsByFloorService: GetUnitsByFloorService
+
   constructor(repository: UnitsRepository) {
     super(repository)
+
+    // Initialize services
+    this.getUnitsByBuildingService = new GetUnitsByBuildingService(repository)
+    this.getUnitByBuildingAndNumberService = new GetUnitByBuildingAndNumberService(repository)
+    this.getUnitsByFloorService = new GetUnitsByFloorService(repository)
+
     this.getByBuildingId = this.getByBuildingId.bind(this)
     this.getByBuildingAndNumber = this.getByBuildingAndNumber.bind(this)
     this.getByFloor = this.getByFloor.bind(this)
@@ -113,11 +128,17 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
 
   private async getByBuildingId(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)
-    const repo = this.repository as UnitsRepository
 
     try {
-      const units = await repo.getByBuildingId(ctx.params.buildingId)
-      return ctx.ok({ data: units })
+      const result = await this.getUnitsByBuildingService.execute({
+        buildingId: ctx.params.buildingId,
+      })
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -125,16 +146,18 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
 
   private async getByBuildingAndNumber(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TBuildingAndNumberParam>(c)
-    const repo = this.repository as UnitsRepository
 
     try {
-      const unit = await repo.getByBuildingAndNumber(ctx.params.buildingId, ctx.params.unitNumber)
+      const result = await this.getUnitByBuildingAndNumberService.execute({
+        buildingId: ctx.params.buildingId,
+        unitNumber: ctx.params.unitNumber,
+      })
 
-      if (!unit) {
-        return ctx.notFound({ error: 'Unit not found' })
+      if (!result.success) {
+        return ctx.notFound({ error: result.error })
       }
 
-      return ctx.ok({ data: unit })
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -142,11 +165,18 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
 
   private async getByFloor(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TBuildingAndFloorParam>(c)
-    const repo = this.repository as UnitsRepository
 
     try {
-      const units = await repo.getByFloor(ctx.params.buildingId, ctx.params.floor)
-      return ctx.ok({ data: units })
+      const result = await this.getUnitsByFloorService.execute({
+        buildingId: ctx.params.buildingId,
+        floor: ctx.params.floor,
+      })
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }

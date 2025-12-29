@@ -80,3 +80,43 @@ mock.module('@libs/firebase/config', () => {
     },
   }
 })
+
+// Mock auth middleware for controller tests
+// This allows tests to bypass authentication
+const mockUser = {
+  id: '550e8400-e29b-41d4-a716-446655440000',
+  email: 'auth@test.com',
+  firebaseUid: 'firebase-uid-1',
+  isActive: true,
+  displayName: 'Test User',
+  phoneNumber: null,
+  photoUrl: null,
+  firstName: 'Test',
+  lastName: 'User',
+  idDocumentType: null,
+  idDocumentNumber: null,
+  address: null,
+  locationId: null,
+  preferredLanguage: 'es',
+  preferredCurrencyId: null,
+  isEmailVerified: true,
+  lastLogin: null,
+  metadata: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+}
+
+const createAuthMock = () => {
+  const mockAuthHandler = async (c: { set: (key: string, value: unknown) => void }, next: () => Promise<void>) => {
+    c.set('user', mockUser)
+    await next()
+  }
+  return {
+    authMiddleware: mockAuthHandler,
+    isUserAuthenticated: mockAuthHandler,
+  }
+}
+
+// Mock both path alias and resolved paths for auth middleware
+mock.module('@http/middlewares/auth', createAuthMock)
+mock.module(path.resolve(process.cwd(), 'src/http/middlewares/auth.ts'), createAuthMock)

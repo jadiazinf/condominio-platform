@@ -10,9 +10,13 @@ import type { BuildingsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { authMiddleware } from '../../middlewares/auth'
-import { IdParamSchema, CodeParamSchema, type TCodeParam } from '../common'
+import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
+import {
+  GetBuildingsByCondominiumService,
+  GetBuildingByCondominiumAndCodeService,
+} from '@src/services/buildings'
 
 const CondominiumIdParamSchema = z.object({
   condominiumId: z.string().uuid('Invalid condominium ID format'),
@@ -44,8 +48,16 @@ export class BuildingsController extends BaseController<
   TBuildingCreate,
   TBuildingUpdate
 > {
+  private readonly getBuildingsByCondominiumService: GetBuildingsByCondominiumService
+  private readonly getBuildingByCondominiumAndCodeService: GetBuildingByCondominiumAndCodeService
+
   constructor(repository: BuildingsRepository) {
     super(repository)
+
+    // Initialize services
+    this.getBuildingsByCondominiumService = new GetBuildingsByCondominiumService(repository)
+    this.getBuildingByCondominiumAndCodeService = new GetBuildingByCondominiumAndCodeService(repository)
+
     this.getByCondominiumId = this.getByCondominiumId.bind(this)
     this.getByCondominiumAndCode = this.getByCondominiumAndCode.bind(this)
   }
@@ -102,11 +114,17 @@ export class BuildingsController extends BaseController<
 
   private async getByCondominiumId(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TCondominiumIdParam>(c)
-    const repo = this.repository as BuildingsRepository
 
     try {
-      const buildings = await repo.getByCondominiumId(ctx.params.condominiumId)
-      return ctx.ok({ data: buildings })
+      const result = await this.getBuildingsByCondominiumService.execute({
+        condominiumId: ctx.params.condominiumId,
+      })
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -114,16 +132,18 @@ export class BuildingsController extends BaseController<
 
   private async getByCondominiumAndCode(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TCondominiumAndCodeParam>(c)
-    const repo = this.repository as BuildingsRepository
 
     try {
-      const building = await repo.getByCondominiumAndCode(ctx.params.condominiumId, ctx.params.code)
+      const result = await this.getBuildingByCondominiumAndCodeService.execute({
+        condominiumId: ctx.params.condominiumId,
+        code: ctx.params.code,
+      })
 
-      if (!building) {
-        return ctx.notFound({ error: 'Building not found' })
+      if (!result.success) {
+        return ctx.notFound({ error: result.error })
       }
 
-      return ctx.ok({ data: building })
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }

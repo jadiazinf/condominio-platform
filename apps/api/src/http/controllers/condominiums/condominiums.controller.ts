@@ -13,6 +13,11 @@ import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema, CodeParamSchema, type TCodeParam } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
+import {
+  GetCondominiumByCodeService,
+  GetCondominiumsByManagementCompanyService,
+  GetCondominiumsByLocationService,
+} from '@src/services/condominiums'
 
 const ManagementCompanyIdParamSchema = z.object({
   managementCompanyId: z.string().uuid('Invalid management company ID format'),
@@ -44,8 +49,18 @@ export class CondominiumsController extends BaseController<
   TCondominiumCreate,
   TCondominiumUpdate
 > {
+  private readonly getCondominiumByCodeService: GetCondominiumByCodeService
+  private readonly getCondominiumsByManagementCompanyService: GetCondominiumsByManagementCompanyService
+  private readonly getCondominiumsByLocationService: GetCondominiumsByLocationService
+
   constructor(repository: CondominiumsRepository) {
     super(repository)
+
+    // Initialize services
+    this.getCondominiumByCodeService = new GetCondominiumByCodeService(repository)
+    this.getCondominiumsByManagementCompanyService = new GetCondominiumsByManagementCompanyService(repository)
+    this.getCondominiumsByLocationService = new GetCondominiumsByLocationService(repository)
+
     this.getByCode = this.getByCode.bind(this)
     this.getByManagementCompanyId = this.getByManagementCompanyId.bind(this)
     this.getByLocationId = this.getByLocationId.bind(this)
@@ -109,16 +124,17 @@ export class CondominiumsController extends BaseController<
 
   private async getByCode(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TCodeParam>(c)
-    const repo = this.repository as CondominiumsRepository
 
     try {
-      const condominium = await repo.getByCode(ctx.params.code)
+      const result = await this.getCondominiumByCodeService.execute({
+        code: ctx.params.code,
+      })
 
-      if (!condominium) {
-        return ctx.notFound({ error: 'Condominium not found' })
+      if (!result.success) {
+        return ctx.notFound({ error: result.error })
       }
 
-      return ctx.ok({ data: condominium })
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -126,11 +142,17 @@ export class CondominiumsController extends BaseController<
 
   private async getByManagementCompanyId(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TManagementCompanyIdParam>(c)
-    const repo = this.repository as CondominiumsRepository
 
     try {
-      const condominiums = await repo.getByManagementCompanyId(ctx.params.managementCompanyId)
-      return ctx.ok({ data: condominiums })
+      const result = await this.getCondominiumsByManagementCompanyService.execute({
+        managementCompanyId: ctx.params.managementCompanyId,
+      })
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -138,11 +160,17 @@ export class CondominiumsController extends BaseController<
 
   private async getByLocationId(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TLocationIdParam>(c)
-    const repo = this.repository as CondominiumsRepository
 
     try {
-      const condominiums = await repo.getByLocationId(ctx.params.locationId)
-      return ctx.ok({ data: condominiums })
+      const result = await this.getCondominiumsByLocationService.execute({
+        locationId: ctx.params.locationId,
+      })
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }

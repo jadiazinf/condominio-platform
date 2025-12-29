@@ -17,6 +17,14 @@ import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
+import {
+  GetPendingApprovalExpensesService,
+  GetExpensesByCondominiumService,
+  GetExpensesByBuildingService,
+  GetExpensesByCategoryService,
+  GetExpensesByStatusService,
+  GetExpensesByDateRangeService,
+} from '@src/services/expenses'
 
 const CondominiumIdParamSchema = z.object({
   condominiumId: z.string().uuid('Invalid condominium ID format'),
@@ -66,8 +74,24 @@ type TDateRangeQuery = z.infer<typeof DateRangeQuerySchema>
  * - DELETE /:id                           Delete expense (hard delete)
  */
 export class ExpensesController extends BaseController<TExpense, TExpenseCreate, TExpenseUpdate> {
+  private readonly getPendingApprovalExpensesService: GetPendingApprovalExpensesService
+  private readonly getExpensesByCondominiumService: GetExpensesByCondominiumService
+  private readonly getExpensesByBuildingService: GetExpensesByBuildingService
+  private readonly getExpensesByCategoryService: GetExpensesByCategoryService
+  private readonly getExpensesByStatusService: GetExpensesByStatusService
+  private readonly getExpensesByDateRangeService: GetExpensesByDateRangeService
+
   constructor(repository: ExpensesRepository) {
     super(repository)
+
+    // Initialize services
+    this.getPendingApprovalExpensesService = new GetPendingApprovalExpensesService(repository)
+    this.getExpensesByCondominiumService = new GetExpensesByCondominiumService(repository)
+    this.getExpensesByBuildingService = new GetExpensesByBuildingService(repository)
+    this.getExpensesByCategoryService = new GetExpensesByCategoryService(repository)
+    this.getExpensesByStatusService = new GetExpensesByStatusService(repository)
+    this.getExpensesByDateRangeService = new GetExpensesByDateRangeService(repository)
+
     this.getPendingApproval = this.getPendingApproval.bind(this)
     this.getByCondominiumId = this.getByCondominiumId.bind(this)
     this.getByBuildingId = this.getByBuildingId.bind(this)
@@ -152,11 +176,15 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
 
   private async getPendingApproval(c: Context): Promise<Response> {
     const ctx = this.ctx(c)
-    const repo = this.repository as ExpensesRepository
 
     try {
-      const expenses = await repo.getPendingApproval()
-      return ctx.ok({ data: expenses })
+      const result = await this.getPendingApprovalExpensesService.execute()
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -164,11 +192,17 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
 
   private async getByCondominiumId(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TCondominiumIdParam>(c)
-    const repo = this.repository as ExpensesRepository
 
     try {
-      const expenses = await repo.getByCondominiumId(ctx.params.condominiumId)
-      return ctx.ok({ data: expenses })
+      const result = await this.getExpensesByCondominiumService.execute({
+        condominiumId: ctx.params.condominiumId,
+      })
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -176,11 +210,17 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
 
   private async getByBuildingId(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)
-    const repo = this.repository as ExpensesRepository
 
     try {
-      const expenses = await repo.getByBuildingId(ctx.params.buildingId)
-      return ctx.ok({ data: expenses })
+      const result = await this.getExpensesByBuildingService.execute({
+        buildingId: ctx.params.buildingId,
+      })
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -188,11 +228,17 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
 
   private async getByCategoryId(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TCategoryIdParam>(c)
-    const repo = this.repository as ExpensesRepository
 
     try {
-      const expenses = await repo.getByCategoryId(ctx.params.categoryId)
-      return ctx.ok({ data: expenses })
+      const result = await this.getExpensesByCategoryService.execute({
+        categoryId: ctx.params.categoryId,
+      })
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -200,11 +246,17 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
 
   private async getByStatus(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TStatusParam>(c)
-    const repo = this.repository as ExpensesRepository
 
     try {
-      const expenses = await repo.getByStatus(ctx.params.status)
-      return ctx.ok({ data: expenses })
+      const result = await this.getExpensesByStatusService.execute({
+        status: ctx.params.status,
+      })
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -212,11 +264,18 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
 
   private async getByDateRange(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, TDateRangeQuery>(c)
-    const repo = this.repository as ExpensesRepository
 
     try {
-      const expenses = await repo.getByDateRange(ctx.query.startDate, ctx.query.endDate)
-      return ctx.ok({ data: expenses })
+      const result = await this.getExpensesByDateRangeService.execute({
+        startDate: ctx.query.startDate,
+        endDate: ctx.query.endDate,
+      })
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }

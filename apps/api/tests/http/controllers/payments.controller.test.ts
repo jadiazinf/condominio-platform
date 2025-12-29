@@ -19,6 +19,9 @@ type TMockPaymentsRepository = {
   getByUnitId: (unitId: string) => Promise<TPayment[]>
   getByStatus: (status: string) => Promise<TPayment[]>
   getByDateRange: (startDate: string, endDate: string) => Promise<TPayment[]>
+  getPendingVerification: () => Promise<TPayment[]>
+  verifyPayment: (id: string, verifiedBy: string, notes?: string) => Promise<TPayment | null>
+  rejectPayment: (id: string, verifiedBy: string, notes?: string) => Promise<TPayment | null>
 }
 
 function createPayment(
@@ -77,11 +80,17 @@ describe('PaymentsController', function () {
       status: 'failed',
       paymentDate: '2024-02-01',
     })
+    const payment4 = createPayment(userId2, unitId2, {
+      paymentNumber: 'PAY-004',
+      status: 'pending_verification',
+      paymentDate: '2024-02-10',
+    })
 
     testPayments = [
       withId(payment1, '550e8400-e29b-41d4-a716-446655440001') as TPayment,
       withId(payment2, '550e8400-e29b-41d4-a716-446655440002') as TPayment,
       withId(payment3, '550e8400-e29b-41d4-a716-446655440003') as TPayment,
+      withId(payment4, '550e8400-e29b-41d4-a716-446655440004') as TPayment,
     ]
 
     // Create mock repository
@@ -138,6 +147,37 @@ describe('PaymentsController', function () {
           return p.paymentDate >= startDate && p.paymentDate <= endDate
         })
       },
+      getPendingVerification: async function () {
+        return testPayments.filter(function (p) {
+          return p.status === 'pending_verification'
+        })
+      },
+      verifyPayment: async function (id: string, verifiedBy: string, notes?: string) {
+        const payment = testPayments.find(function (p) {
+          return p.id === id
+        })
+        if (!payment) return null
+        return {
+          ...payment,
+          status: 'completed' as const,
+          verifiedBy,
+          verifiedAt: new Date(),
+          verificationNotes: notes ?? null,
+        }
+      },
+      rejectPayment: async function (id: string, verifiedBy: string, notes?: string) {
+        const payment = testPayments.find(function (p) {
+          return p.id === id
+        })
+        if (!payment) return null
+        return {
+          ...payment,
+          status: 'rejected' as const,
+          verifiedBy,
+          verifiedAt: new Date(),
+          verificationNotes: notes ?? null,
+        }
+      },
     }
 
     // Create controller with mock repository
@@ -158,7 +198,7 @@ describe('PaymentsController', function () {
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(3)
+      expect(json.data).toHaveLength(4)
     })
 
     it('should return empty array when no payments exist', async function () {
@@ -427,6 +467,229 @@ describe('PaymentsController', function () {
 
       const json = (await res.json()) as IApiResponse
       expect(json.error).toBe('Resource not found')
+    })
+  })
+
+  describe('GET /pending-verification (getPendingVerification)', function () {
+    it('should return payments pending verification', async function () {
+      const res = await request('/payments/pending-verification')
+      expect(res.status).toBe(StatusCodes.OK)
+
+      const json = (await res.json()) as IApiResponse
+      expect(json.data).toHaveLength(1)
+      expect(json.data[0].status).toBe('pending_verification')
+    })
+
+    it('should return empty array when no payments pending verification', async function () {
+      mockRepository.getPendingVerification = async function () {
+        return []
+      }
+
+      const res = await request('/payments/pending-verification')
+      expect(res.status).toBe(StatusCodes.OK)
+
+      const json = (await res.json()) as IApiResponse
+      expect(json.data).toHaveLength(0)
+    })
+  })
+
+  describe('POST /report (reportPayment)', function () {
+    it('should report an external payment with pending_verification status', async function () {
+      const reportedPayment = createPayment(userId1, unitId1, {
+        paymentNumber: 'PAY-REPORT-001',
+        paymentMethod: 'cash',
+      })
+
+      const res = await request('/payments/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reportedPayment),
+      })
+
+      expect(res.status).toBe(StatusCodes.CREATED)
+
+      const json = (await res.json()) as IApiResponse
+      expect(json.data.id).toBeDefined()
+      expect(json.data.status).toBe('pending_verification')
+    })
+
+    it('should return 422 for invalid body', async function () {
+      const res = await request('/payments/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: 'invalid' }),
+      })
+
+      expect(res.status).toBe(StatusCodes.UNPROCESSABLE_ENTITY)
+    })
+  })
+
+  describe('POST /:id/verify (verifyPayment)', function () {
+    it('should verify a payment pending verification', async function () {
+      const res = await request('/payments/550e8400-e29b-41d4-a716-446655440004/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: 'Verified after reviewing receipt' }),
+      })
+
+      expect(res.status).toBe(StatusCodes.OK)
+
+      const json = (await res.json()) as IApiResponse
+      expect(json.data.status).toBe('completed')
+      expect(json.data.verifiedBy).toBeDefined()
+      expect(json.data.verifiedAt).toBeDefined()
+      expect(json.data.verificationNotes).toBe('Verified after reviewing receipt')
+      expect(json.message).toBe('Payment verified successfully')
+    })
+
+    it('should verify a payment without notes', async function () {
+      const res = await request('/payments/550e8400-e29b-41d4-a716-446655440004/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+
+      expect(res.status).toBe(StatusCodes.OK)
+
+      const json = (await res.json()) as IApiResponse
+      expect(json.data.status).toBe('completed')
+    })
+
+    it('should return 404 when payment not found', async function () {
+      mockRepository.getById = async function () {
+        return null
+      }
+
+      const res = await request('/payments/550e8400-e29b-41d4-a716-446655440099/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+
+      expect(res.status).toBe(StatusCodes.NOT_FOUND)
+
+      const json = (await res.json()) as IApiResponse
+      expect(json.error).toBe('Payment not found')
+    })
+
+    it('should return 400 when payment is not pending verification', async function () {
+      const res = await request('/payments/550e8400-e29b-41d4-a716-446655440001/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+
+      expect(res.status).toBe(StatusCodes.BAD_REQUEST)
+
+      const json = (await res.json()) as IApiResponse & { currentStatus?: string }
+      expect(json.error).toBe('Payment is not pending verification')
+      expect(json.currentStatus).toBe('pending')
+    })
+
+    it('should return 400 for invalid UUID format', async function () {
+      const res = await request('/payments/invalid-id/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+
+      expect(res.status).toBe(StatusCodes.BAD_REQUEST)
+    })
+  })
+
+  describe('POST /:id/reject (rejectPayment)', function () {
+    it('should reject a payment pending verification', async function () {
+      const res = await request('/payments/550e8400-e29b-41d4-a716-446655440004/reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: 'Receipt does not match payment details' }),
+      })
+
+      expect(res.status).toBe(StatusCodes.OK)
+
+      const json = (await res.json()) as IApiResponse
+      expect(json.data.status).toBe('rejected')
+      expect(json.data.verifiedBy).toBeDefined()
+      expect(json.data.verifiedAt).toBeDefined()
+      expect(json.data.verificationNotes).toBe('Receipt does not match payment details')
+      expect(json.message).toBe('Payment rejected')
+    })
+
+    it('should reject a payment without notes', async function () {
+      const res = await request('/payments/550e8400-e29b-41d4-a716-446655440004/reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+
+      expect(res.status).toBe(StatusCodes.OK)
+
+      const json = (await res.json()) as IApiResponse
+      expect(json.data.status).toBe('rejected')
+    })
+
+    it('should return 404 when payment not found', async function () {
+      mockRepository.getById = async function () {
+        return null
+      }
+
+      const res = await request('/payments/550e8400-e29b-41d4-a716-446655440099/reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+
+      expect(res.status).toBe(StatusCodes.NOT_FOUND)
+
+      const json = (await res.json()) as IApiResponse
+      expect(json.error).toBe('Payment not found')
+    })
+
+    it('should return 400 when payment is not pending verification', async function () {
+      const res = await request('/payments/550e8400-e29b-41d4-a716-446655440002/reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+
+      expect(res.status).toBe(StatusCodes.BAD_REQUEST)
+
+      const json = (await res.json()) as IApiResponse & { currentStatus?: string }
+      expect(json.error).toBe('Payment is not pending verification')
+      expect(json.currentStatus).toBe('completed')
+    })
+
+    it('should return 400 for invalid UUID format', async function () {
+      const res = await request('/payments/invalid-id/reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+
+      expect(res.status).toBe(StatusCodes.BAD_REQUEST)
+    })
+  })
+
+  describe('GET /status/:status with new statuses', function () {
+    it('should return payments with pending_verification status', async function () {
+      const res = await request('/payments/status/pending_verification')
+      expect(res.status).toBe(StatusCodes.OK)
+
+      const json = (await res.json()) as IApiResponse
+      expect(json.data).toHaveLength(1)
+      expect(json.data[0].status).toBe('pending_verification')
+    })
+
+    it('should return 400 for rejected status filter', async function () {
+      mockRepository.getByStatus = async function () {
+        return []
+      }
+
+      const res = await request('/payments/status/rejected')
+      expect(res.status).toBe(StatusCodes.OK)
+
+      const json = (await res.json()) as IApiResponse
+      expect(json.data).toHaveLength(0)
     })
   })
 
