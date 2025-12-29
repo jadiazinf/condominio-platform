@@ -11,4 +11,8 @@ export const paymentCreateSchema = paymentSchema.omit({
   paidCurrency: true,
   paymentGateway: true,
   registeredByUser: true,
+  verifiedByUser: true,
+  verifiedBy: true,
+  verifiedAt: true,
+  verificationNotes: true,
 })

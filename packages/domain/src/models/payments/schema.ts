@@ -14,7 +14,14 @@ export const EPaymentMethods = [
   'other',
 ] as const
 
-export const EPaymentStatuses = ['pending', 'completed', 'failed', 'refunded'] as const
+export const EPaymentStatuses = [
+  'pending',
+  'pending_verification',
+  'completed',
+  'failed',
+  'refunded',
+  'rejected',
+] as const
 
 export const paymentSchema = baseModelSchema.extend({
   paymentNumber: z.string().max(100).nullable(),
@@ -36,6 +43,10 @@ export const paymentSchema = baseModelSchema.extend({
   notes: z.string().nullable(),
   metadata: z.record(z.string(), z.unknown()).nullable(),
   registeredBy: z.uuid().nullable(),
+  // Verification fields
+  verifiedBy: z.uuid().nullable(),
+  verifiedAt: timestampField.nullable(),
+  verificationNotes: z.string().nullable(),
   // Relations
   user: userSchema.optional(),
   unit: unitSchema.optional(),
@@ -43,4 +54,5 @@ export const paymentSchema = baseModelSchema.extend({
   paidCurrency: currencySchema.optional(),
   paymentGateway: paymentGatewaySchema.optional(),
   registeredByUser: userSchema.optional(),
+  verifiedByUser: userSchema.optional(),
 })
