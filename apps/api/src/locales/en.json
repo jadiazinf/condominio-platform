@@ -9,7 +9,8 @@
           "userDisabled": "User account is disabled.",
           "notAuthenticated": "User not authenticated.",
           "insufficientRoles": "You do not have the required roles to access this resource.",
-          "insufficientPermissions": "You do not have the required permissions to access this resource."
+          "insufficientPermissions": "You do not have the required permissions to access this resource.",
+          "accessDenied": "You do not have permission to access this user's information."
         }
       }
     },

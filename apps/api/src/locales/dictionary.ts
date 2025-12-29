@@ -10,6 +10,7 @@ export const LocaleDictionary = {
           notAuthenticated: 'http.middlewares.utils.auth.notAuthenticated',
           insufficientRoles: 'http.middlewares.utils.auth.insufficientRoles',
           insufficientPermissions: 'http.middlewares.utils.auth.insufficientPermissions',
+          accessDenied: 'http.middlewares.utils.auth.accessDenied',
         },
       },
     },

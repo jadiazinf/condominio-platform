@@ -7,6 +7,7 @@ const envSchema = z.object({
       error: "NODE_ENV must be one of 'development', 'production', or 'staging'.",
     })
     .default('development'),
+  HOST: z.string().default('localhost'),
   PORT: z.coerce.number().min(1).max(65535).default(3000),
   DATABASE_URL: z.url(
     'Database URL must be a valid URL. Maybe is not defined as an environment variable?'

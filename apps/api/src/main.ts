@@ -12,6 +12,7 @@ async function main() {
     fetch: app.fetch,
     port: env.PORT,
   })
+  console.log(`🚀 Server is running on http://${env.HOST}:${env.PORT}`)
 }
 
 main().catch(error => {
