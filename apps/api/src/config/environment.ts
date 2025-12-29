@@ -14,7 +14,6 @@ const envSchema = z.object({
   ),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   CORS_ORIGIN: z.string().optional(),
-  FIREBASE_SERVICE_ACCOUNT: z.string('Path to Firebase service account JSON must be provided'),
   FIREBASE_API_KEY: z.string('Firebase API key must be provided'),
 })
 

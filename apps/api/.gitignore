@@ -35,3 +35,5 @@ env.production
 
 # Finder (MacOS) folder config
 .DS_Store
+
+firebaseServiceAccountKey.json
