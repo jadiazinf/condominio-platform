@@ -21,6 +21,19 @@
       "types": "./src/shared/index.ts",
       "import": "./src/shared/index.ts",
       "default": "./src/shared/index.ts"
+    },
+    "./i18n": {
+      "types": "./src/i18n/index.ts",
+      "import": "./src/i18n/index.ts",
+      "default": "./src/i18n/index.ts"
+    },
+    "./i18n/locales/es.json": {
+      "import": "./src/i18n/locales/es.json",
+      "default": "./src/i18n/locales/es.json"
+    },
+    "./i18n/locales/en.json": {
+      "import": "./src/i18n/locales/en.json",
+      "default": "./src/i18n/locales/en.json"
     }
   },
   "scripts": {

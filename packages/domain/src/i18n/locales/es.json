@@ -1,0 +1,334 @@
+{
+  "validation": {
+    "common": {
+      "required": "Este campo es requerido.",
+      "invalidType": "Tipo de dato inválido.",
+      "invalidUuid": "Debe ser un UUID válido.",
+      "invalidEmail": "Debe ser un correo electrónico válido.",
+      "invalidUrl": "Debe ser una URL válida.",
+      "invalidDate": "Debe ser una fecha válida.",
+      "invalidEnum": "El valor seleccionado no es válido.",
+      "stringMin": "Debe tener al menos {min} caracteres.",
+      "stringMax": "Debe tener como máximo {max} caracteres.",
+      "numberMin": "El valor debe ser al menos {min}.",
+      "numberMax": "El valor debe ser como máximo {max}.",
+      "numberInt": "Debe ser un número entero.",
+      "numberPositive": "Debe ser un número positivo.",
+      "arrayMin": "Debe contener al menos {min} elementos.",
+      "arrayMax": "Debe contener como máximo {max} elementos."
+    },
+    "models": {
+      "users": {
+        "firebaseUid": {
+          "required": "El UID de Firebase es requerido.",
+          "max": "El UID de Firebase debe tener como máximo 128 caracteres."
+        },
+        "email": {
+          "required": "El correo electrónico es requerido.",
+          "invalid": "El correo electrónico no es válido.",
+          "max": "El correo electrónico debe tener como máximo 255 caracteres."
+        },
+        "displayName": {
+          "max": "El nombre de usuario debe tener como máximo 255 caracteres."
+        },
+        "phoneNumber": {
+          "max": "El número de teléfono debe tener como máximo 50 caracteres."
+        },
+        "photoUrl": {
+          "invalid": "La URL de la foto no es válida."
+        },
+        "firstName": {
+          "max": "El nombre debe tener como máximo 100 caracteres."
+        },
+        "lastName": {
+          "max": "El apellido debe tener como máximo 100 caracteres."
+        },
+        "idDocumentType": {
+          "invalid": "El tipo de documento de identidad no es válido."
+        },
+        "idDocumentNumber": {
+          "max": "El número de documento debe tener como máximo 50 caracteres."
+        },
+        "address": {
+          "max": "La dirección debe tener como máximo 500 caracteres."
+        },
+        "locationId": {
+          "invalid": "El ID de ubicación no es válido."
+        },
+        "preferredLanguage": {
+          "invalid": "El idioma preferido no es válido."
+        },
+        "preferredCurrencyId": {
+          "invalid": "El ID de moneda preferida no es válido."
+        }
+      },
+      "condominiums": {
+        "name": {
+          "required": "El nombre del condominio es requerido.",
+          "max": "El nombre debe tener como máximo 255 caracteres."
+        },
+        "code": {
+          "max": "El código debe tener como máximo 50 caracteres."
+        },
+        "managementCompanyId": {
+          "invalid": "El ID de la empresa administradora no es válido."
+        },
+        "address": {
+          "max": "La dirección debe tener como máximo 500 caracteres."
+        },
+        "locationId": {
+          "invalid": "El ID de ubicación no es válido."
+        },
+        "email": {
+          "invalid": "El correo electrónico no es válido.",
+          "max": "El correo electrónico debe tener como máximo 255 caracteres."
+        },
+        "phone": {
+          "max": "El teléfono debe tener como máximo 50 caracteres."
+        },
+        "defaultCurrencyId": {
+          "invalid": "El ID de moneda por defecto no es válido."
+        }
+      },
+      "buildings": {
+        "name": {
+          "required": "El nombre del edificio es requerido.",
+          "max": "El nombre debe tener como máximo 255 caracteres."
+        },
+        "code": {
+          "max": "El código debe tener como máximo 50 caracteres."
+        },
+        "condominiumId": {
+          "required": "El ID del condominio es requerido.",
+          "invalid": "El ID del condominio no es válido."
+        },
+        "address": {
+          "max": "La dirección debe tener como máximo 500 caracteres."
+        },
+        "floorsCount": {
+          "invalid": "El número de pisos debe ser un número entero."
+        },
+        "unitsCount": {
+          "invalid": "El número de unidades debe ser un número entero."
+        }
+      },
+      "units": {
+        "buildingId": {
+          "required": "El ID del edificio es requerido.",
+          "invalid": "El ID del edificio no es válido."
+        },
+        "unitNumber": {
+          "required": "El número de unidad es requerido.",
+          "max": "El número de unidad debe tener como máximo 50 caracteres."
+        },
+        "floor": {
+          "invalid": "El piso debe ser un número entero."
+        },
+        "areaM2": {
+          "invalid": "El área debe ser un número válido."
+        },
+        "bedrooms": {
+          "invalid": "El número de habitaciones debe ser un número entero."
+        },
+        "bathrooms": {
+          "invalid": "El número de baños debe ser un número entero."
+        },
+        "parkingSpaces": {
+          "invalid": "El número de estacionamientos debe ser un número entero."
+        },
+        "aliquotPercentage": {
+          "invalid": "El porcentaje de alícuota debe ser un número válido."
+        }
+      },
+      "payments": {
+        "userId": {
+          "required": "El ID del usuario es requerido.",
+          "invalid": "El ID del usuario no es válido."
+        },
+        "unitId": {
+          "required": "El ID de la unidad es requerido.",
+          "invalid": "El ID de la unidad no es válido."
+        },
+        "amount": {
+          "required": "El monto es requerido.",
+          "invalid": "El monto debe ser un número válido."
+        },
+        "currencyId": {
+          "required": "El ID de la moneda es requerido.",
+          "invalid": "El ID de la moneda no es válido."
+        },
+        "paymentMethod": {
+          "required": "El método de pago es requerido.",
+          "invalid": "El método de pago no es válido."
+        },
+        "paymentDate": {
+          "required": "La fecha de pago es requerida.",
+          "invalid": "La fecha de pago no es válida."
+        },
+        "status": {
+          "invalid": "El estado del pago no es válido."
+        }
+      },
+      "quotas": {
+        "unitId": {
+          "required": "El ID de la unidad es requerido.",
+          "invalid": "El ID de la unidad no es válido."
+        },
+        "paymentConceptId": {
+          "required": "El ID del concepto de pago es requerido.",
+          "invalid": "El ID del concepto de pago no es válido."
+        },
+        "periodYear": {
+          "required": "El año del período es requerido.",
+          "invalid": "El año del período debe ser un número entero."
+        },
+        "periodMonth": {
+          "min": "El mes debe ser al menos 1.",
+          "max": "El mes debe ser como máximo 12."
+        },
+        "baseAmount": {
+          "required": "El monto base es requerido.",
+          "invalid": "El monto base debe ser un número válido."
+        },
+        "currencyId": {
+          "required": "El ID de la moneda es requerido.",
+          "invalid": "El ID de la moneda no es válido."
+        },
+        "issueDate": {
+          "required": "La fecha de emisión es requerida.",
+          "invalid": "La fecha de emisión no es válida."
+        },
+        "dueDate": {
+          "required": "La fecha de vencimiento es requerida.",
+          "invalid": "La fecha de vencimiento no es válida."
+        },
+        "status": {
+          "invalid": "El estado de la cuota no es válido."
+        }
+      },
+      "roles": {
+        "name": {
+          "required": "El nombre del rol es requerido.",
+          "max": "El nombre debe tener como máximo 100 caracteres."
+        },
+        "description": {
+          "max": "La descripción debe tener como máximo 500 caracteres."
+        }
+      },
+      "permissions": {
+        "name": {
+          "required": "El nombre del permiso es requerido.",
+          "max": "El nombre debe tener como máximo 100 caracteres."
+        },
+        "module": {
+          "required": "El módulo es requerido.",
+          "invalid": "El módulo no es válido."
+        },
+        "action": {
+          "required": "La acción es requerida.",
+          "invalid": "La acción no es válida."
+        }
+      },
+      "currencies": {
+        "code": {
+          "required": "El código de la moneda es requerido.",
+          "max": "El código debe tener como máximo 10 caracteres."
+        },
+        "name": {
+          "required": "El nombre de la moneda es requerido.",
+          "max": "El nombre debe tener como máximo 100 caracteres."
+        },
+        "symbol": {
+          "max": "El símbolo debe tener como máximo 10 caracteres."
+        },
+        "decimals": {
+          "invalid": "El número de decimales debe ser un número entero."
+        }
+      },
+      "locations": {
+        "name": {
+          "required": "El nombre es requerido.",
+          "max": "El nombre debe tener como máximo 200 caracteres."
+        },
+        "locationType": {
+          "required": "El tipo de ubicación es requerido.",
+          "invalid": "El tipo de ubicación no es válido."
+        },
+        "code": {
+          "max": "El código debe tener como máximo 50 caracteres."
+        }
+      },
+      "expenses": {
+        "description": {
+          "required": "La descripción es requerida."
+        },
+        "expenseDate": {
+          "required": "La fecha del gasto es requerida.",
+          "invalid": "La fecha del gasto no es válida."
+        },
+        "amount": {
+          "required": "El monto es requerido.",
+          "invalid": "El monto debe ser un número válido."
+        },
+        "currencyId": {
+          "required": "El ID de la moneda es requerido.",
+          "invalid": "El ID de la moneda no es válido."
+        },
+        "vendorName": {
+          "max": "El nombre del proveedor debe tener como máximo 255 caracteres."
+        },
+        "vendorTaxId": {
+          "max": "El RIF del proveedor debe tener como máximo 100 caracteres."
+        },
+        "invoiceNumber": {
+          "max": "El número de factura debe tener como máximo 100 caracteres."
+        },
+        "status": {
+          "invalid": "El estado del gasto no es válido."
+        }
+      },
+      "documents": {
+        "documentType": {
+          "required": "El tipo de documento es requerido.",
+          "invalid": "El tipo de documento no es válido."
+        },
+        "title": {
+          "required": "El título es requerido.",
+          "max": "El título debe tener como máximo 255 caracteres."
+        },
+        "fileUrl": {
+          "required": "La URL del archivo es requerida.",
+          "invalid": "La URL del archivo no es válida."
+        },
+        "fileName": {
+          "max": "El nombre del archivo debe tener como máximo 255 caracteres."
+        },
+        "fileType": {
+          "max": "El tipo de archivo debe tener como máximo 50 caracteres."
+        }
+      },
+      "messages": {
+        "senderId": {
+          "required": "El ID del remitente es requerido.",
+          "invalid": "El ID del remitente no es válido."
+        },
+        "recipientType": {
+          "required": "El tipo de destinatario es requerido.",
+          "invalid": "El tipo de destinatario no es válido."
+        },
+        "body": {
+          "required": "El cuerpo del mensaje es requerido."
+        },
+        "subject": {
+          "max": "El asunto debe tener como máximo 255 caracteres."
+        },
+        "messageType": {
+          "invalid": "El tipo de mensaje no es válido."
+        },
+        "priority": {
+          "invalid": "La prioridad no es válida."
+        }
+      }
+    }
+  }
+}

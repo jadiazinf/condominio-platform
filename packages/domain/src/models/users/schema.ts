@@ -9,7 +9,7 @@ export const EPreferredLanguages = ['es', 'en'] as const
 
 export const userSchema = baseModelSchema.extend({
   firebaseUid: z.string().max(128),
-  email: z.string().email().max(255),
+  email: z.email().max(255),
   displayName: z.string().max(255).nullable(),
   phoneNumber: z.string().max(50).nullable(),
   photoUrl: z.string().url().nullable(),

@@ -7,7 +7,7 @@ export const managementCompanySchema = baseModelSchema.extend({
   name: z.string().max(255),
   legalName: z.string().max(255).nullable(),
   taxId: z.string().max(100).nullable(),
-  email: z.string().email().max(255).nullable(),
+  email: z.email().max(255).nullable(),
   phone: z.string().max(50).nullable(),
   website: z.string().url().max(255).nullable(),
   address: z.string().max(500).nullable(),

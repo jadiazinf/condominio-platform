@@ -11,7 +11,7 @@ export const condominiumSchema = baseModelSchema.extend({
   managementCompanyId: z.uuid().nullable(),
   address: z.string().max(500).nullable(),
   locationId: z.uuid().nullable(),
-  email: z.string().email().max(255).nullable(),
+  email: z.email().max(255).nullable(),
   phone: z.string().max(50).nullable(),
   defaultCurrencyId: z.uuid().nullable(),
   isActive: z.boolean().default(true),

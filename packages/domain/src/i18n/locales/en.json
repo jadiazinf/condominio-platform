@@ -1,0 +1,334 @@
+{
+  "validation": {
+    "common": {
+      "required": "This field is required.",
+      "invalidType": "Invalid data type.",
+      "invalidUuid": "Must be a valid UUID.",
+      "invalidEmail": "Must be a valid email address.",
+      "invalidUrl": "Must be a valid URL.",
+      "invalidDate": "Must be a valid date.",
+      "invalidEnum": "The selected value is not valid.",
+      "stringMin": "Must have at least {min} characters.",
+      "stringMax": "Must have at most {max} characters.",
+      "numberMin": "Value must be at least {min}.",
+      "numberMax": "Value must be at most {max}.",
+      "numberInt": "Must be an integer.",
+      "numberPositive": "Must be a positive number.",
+      "arrayMin": "Must contain at least {min} items.",
+      "arrayMax": "Must contain at most {max} items."
+    },
+    "models": {
+      "users": {
+        "firebaseUid": {
+          "required": "Firebase UID is required.",
+          "max": "Firebase UID must have at most 128 characters."
+        },
+        "email": {
+          "required": "Email is required.",
+          "invalid": "Email is not valid.",
+          "max": "Email must have at most 255 characters."
+        },
+        "displayName": {
+          "max": "Display name must have at most 255 characters."
+        },
+        "phoneNumber": {
+          "max": "Phone number must have at most 50 characters."
+        },
+        "photoUrl": {
+          "invalid": "Photo URL is not valid."
+        },
+        "firstName": {
+          "max": "First name must have at most 100 characters."
+        },
+        "lastName": {
+          "max": "Last name must have at most 100 characters."
+        },
+        "idDocumentType": {
+          "invalid": "ID document type is not valid."
+        },
+        "idDocumentNumber": {
+          "max": "ID document number must have at most 50 characters."
+        },
+        "address": {
+          "max": "Address must have at most 500 characters."
+        },
+        "locationId": {
+          "invalid": "Location ID is not valid."
+        },
+        "preferredLanguage": {
+          "invalid": "Preferred language is not valid."
+        },
+        "preferredCurrencyId": {
+          "invalid": "Preferred currency ID is not valid."
+        }
+      },
+      "condominiums": {
+        "name": {
+          "required": "Condominium name is required.",
+          "max": "Name must have at most 255 characters."
+        },
+        "code": {
+          "max": "Code must have at most 50 characters."
+        },
+        "managementCompanyId": {
+          "invalid": "Management company ID is not valid."
+        },
+        "address": {
+          "max": "Address must have at most 500 characters."
+        },
+        "locationId": {
+          "invalid": "Location ID is not valid."
+        },
+        "email": {
+          "invalid": "Email is not valid.",
+          "max": "Email must have at most 255 characters."
+        },
+        "phone": {
+          "max": "Phone must have at most 50 characters."
+        },
+        "defaultCurrencyId": {
+          "invalid": "Default currency ID is not valid."
+        }
+      },
+      "buildings": {
+        "name": {
+          "required": "Building name is required.",
+          "max": "Name must have at most 255 characters."
+        },
+        "code": {
+          "max": "Code must have at most 50 characters."
+        },
+        "condominiumId": {
+          "required": "Condominium ID is required.",
+          "invalid": "Condominium ID is not valid."
+        },
+        "address": {
+          "max": "Address must have at most 500 characters."
+        },
+        "floorsCount": {
+          "invalid": "Floors count must be an integer."
+        },
+        "unitsCount": {
+          "invalid": "Units count must be an integer."
+        }
+      },
+      "units": {
+        "buildingId": {
+          "required": "Building ID is required.",
+          "invalid": "Building ID is not valid."
+        },
+        "unitNumber": {
+          "required": "Unit number is required.",
+          "max": "Unit number must have at most 50 characters."
+        },
+        "floor": {
+          "invalid": "Floor must be an integer."
+        },
+        "areaM2": {
+          "invalid": "Area must be a valid number."
+        },
+        "bedrooms": {
+          "invalid": "Bedrooms must be an integer."
+        },
+        "bathrooms": {
+          "invalid": "Bathrooms must be an integer."
+        },
+        "parkingSpaces": {
+          "invalid": "Parking spaces must be an integer."
+        },
+        "aliquotPercentage": {
+          "invalid": "Aliquot percentage must be a valid number."
+        }
+      },
+      "payments": {
+        "userId": {
+          "required": "User ID is required.",
+          "invalid": "User ID is not valid."
+        },
+        "unitId": {
+          "required": "Unit ID is required.",
+          "invalid": "Unit ID is not valid."
+        },
+        "amount": {
+          "required": "Amount is required.",
+          "invalid": "Amount must be a valid number."
+        },
+        "currencyId": {
+          "required": "Currency ID is required.",
+          "invalid": "Currency ID is not valid."
+        },
+        "paymentMethod": {
+          "required": "Payment method is required.",
+          "invalid": "Payment method is not valid."
+        },
+        "paymentDate": {
+          "required": "Payment date is required.",
+          "invalid": "Payment date is not valid."
+        },
+        "status": {
+          "invalid": "Payment status is not valid."
+        }
+      },
+      "quotas": {
+        "unitId": {
+          "required": "Unit ID is required.",
+          "invalid": "Unit ID is not valid."
+        },
+        "paymentConceptId": {
+          "required": "Payment concept ID is required.",
+          "invalid": "Payment concept ID is not valid."
+        },
+        "periodYear": {
+          "required": "Period year is required.",
+          "invalid": "Period year must be an integer."
+        },
+        "periodMonth": {
+          "min": "Month must be at least 1.",
+          "max": "Month must be at most 12."
+        },
+        "baseAmount": {
+          "required": "Base amount is required.",
+          "invalid": "Base amount must be a valid number."
+        },
+        "currencyId": {
+          "required": "Currency ID is required.",
+          "invalid": "Currency ID is not valid."
+        },
+        "issueDate": {
+          "required": "Issue date is required.",
+          "invalid": "Issue date is not valid."
+        },
+        "dueDate": {
+          "required": "Due date is required.",
+          "invalid": "Due date is not valid."
+        },
+        "status": {
+          "invalid": "Quota status is not valid."
+        }
+      },
+      "roles": {
+        "name": {
+          "required": "Role name is required.",
+          "max": "Name must have at most 100 characters."
+        },
+        "description": {
+          "max": "Description must have at most 500 characters."
+        }
+      },
+      "permissions": {
+        "name": {
+          "required": "Permission name is required.",
+          "max": "Name must have at most 100 characters."
+        },
+        "module": {
+          "required": "Module is required.",
+          "invalid": "Module is not valid."
+        },
+        "action": {
+          "required": "Action is required.",
+          "invalid": "Action is not valid."
+        }
+      },
+      "currencies": {
+        "code": {
+          "required": "Currency code is required.",
+          "max": "Code must have at most 10 characters."
+        },
+        "name": {
+          "required": "Currency name is required.",
+          "max": "Name must have at most 100 characters."
+        },
+        "symbol": {
+          "max": "Symbol must have at most 10 characters."
+        },
+        "decimals": {
+          "invalid": "Decimals must be an integer."
+        }
+      },
+      "locations": {
+        "name": {
+          "required": "Name is required.",
+          "max": "Name must have at most 200 characters."
+        },
+        "locationType": {
+          "required": "Location type is required.",
+          "invalid": "Location type is not valid."
+        },
+        "code": {
+          "max": "Code must have at most 50 characters."
+        }
+      },
+      "expenses": {
+        "description": {
+          "required": "Description is required."
+        },
+        "expenseDate": {
+          "required": "Expense date is required.",
+          "invalid": "Expense date is not valid."
+        },
+        "amount": {
+          "required": "Amount is required.",
+          "invalid": "Amount must be a valid number."
+        },
+        "currencyId": {
+          "required": "Currency ID is required.",
+          "invalid": "Currency ID is not valid."
+        },
+        "vendorName": {
+          "max": "Vendor name must have at most 255 characters."
+        },
+        "vendorTaxId": {
+          "max": "Vendor tax ID must have at most 100 characters."
+        },
+        "invoiceNumber": {
+          "max": "Invoice number must have at most 100 characters."
+        },
+        "status": {
+          "invalid": "Expense status is not valid."
+        }
+      },
+      "documents": {
+        "documentType": {
+          "required": "Document type is required.",
+          "invalid": "Document type is not valid."
+        },
+        "title": {
+          "required": "Title is required.",
+          "max": "Title must have at most 255 characters."
+        },
+        "fileUrl": {
+          "required": "File URL is required.",
+          "invalid": "File URL is not valid."
+        },
+        "fileName": {
+          "max": "File name must have at most 255 characters."
+        },
+        "fileType": {
+          "max": "File type must have at most 50 characters."
+        }
+      },
+      "messages": {
+        "senderId": {
+          "required": "Sender ID is required.",
+          "invalid": "Sender ID is not valid."
+        },
+        "recipientType": {
+          "required": "Recipient type is required.",
+          "invalid": "Recipient type is not valid."
+        },
+        "body": {
+          "required": "Message body is required."
+        },
+        "subject": {
+          "max": "Subject must have at most 255 characters."
+        },
+        "messageType": {
+          "invalid": "Message type is not valid."
+        },
+        "priority": {
+          "invalid": "Priority is not valid."
+        }
+      }
+    }
+  }
+}
