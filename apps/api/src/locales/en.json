@@ -25,7 +25,9 @@
       }
     },
     "locales": {
-      "unknownError": "Unknown error, contact support"
+      "unknownError": "Unknown error, contact support.",
+      "validationError": "Validation error in the submitted data.",
+      "malformedBody": "The request body is not valid."
     },
     "unhandledResponses": {
       "internalError": "Internal server error, please try again later."

@@ -1,10 +1,15 @@
 import { z } from 'zod'
 import { LocaleDictionary } from './dictionary'
+import type { TFieldError, TValidationErrorResponse } from '@http/responses/types'
+import { ErrorCodes } from '@http/responses/types'
 
 export type TTranslateZodMessages = {
   payload: string | string[] | Record<string, string[]>
 }
 
+/**
+ * @deprecated Use translateZodToValidationError instead for standardized error responses
+ */
 export function translateZodMessages<T>(
   errorTree: z.ZodError<T> | z.core.$ZodErrorTree<z.output<T>, string>,
   t: (key: string) => string
@@ -58,4 +63,42 @@ export function translateZodMessages<T>(
   }
 
   return { payload: normalize(errorTree) }
+}
+
+/**
+ * Translates a Zod 4 error into a standardized validation error response
+ * @param zodError - The Zod error from safeParse
+ * @param t - Translation function
+ * @returns Standardized validation error response with field-level errors
+ */
+export function translateZodToValidationError<T>(
+  zodError: z.ZodError<T>,
+  t: (key: string) => string
+): TValidationErrorResponse {
+  const fieldMap = new Map<string, string[]>()
+
+  for (const issue of zodError.issues) {
+    const fieldPath = issue.path.length > 0 ? issue.path.join('.') : '_root'
+    const translatedMessage = t(issue.message)
+
+    if (fieldMap.has(fieldPath)) {
+      fieldMap.get(fieldPath)!.push(translatedMessage)
+    } else {
+      fieldMap.set(fieldPath, [translatedMessage])
+    }
+  }
+
+  const fields: TFieldError[] = Array.from(fieldMap.entries()).map(([field, messages]) => ({
+    field,
+    messages,
+  }))
+
+  return {
+    success: false,
+    error: {
+      code: ErrorCodes.VALIDATION_ERROR,
+      message: t(LocaleDictionary.http.locales.validationError),
+      fields,
+    },
+  }
 }

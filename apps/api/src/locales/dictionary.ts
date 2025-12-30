@@ -16,6 +16,8 @@ export const LocaleDictionary = {
     },
     locales: {
       unknownError: 'http.locales.unknownError',
+      validationError: 'http.locales.validationError',
+      malformedBody: 'http.locales.malformedBody',
     },
     unhandledResponses: {
       internalError: 'http.unhandledResponses.internalError',

@@ -3,7 +3,9 @@ import type { MiddlewareHandler } from 'hono'
 import type { Context } from 'hono'
 import { StatusCodes } from 'http-status-codes'
 import { useTranslation } from '@intlify/hono'
-import { translateZodMessages } from '@locales/translator'
+import { translateZodToValidationError } from '@locales/translator'
+import { LocaleDictionary } from '@locales/dictionary'
+import { ErrorCodes } from '@http/responses/types'
 
 export const BODY_FIELD = 'body'
 
@@ -15,16 +17,25 @@ export function bodyValidator<T extends z.ZodTypeAny>(schema: T): MiddlewareHand
       body = await c.req.json()
     } catch {
       const t = useTranslation(c)
-      return c.json({ error: t('errors.malformedBody'), details: [] }, StatusCodes.BAD_REQUEST)
+      return c.json(
+        {
+          success: false,
+          error: {
+            code: ErrorCodes.BAD_REQUEST,
+            message: t(LocaleDictionary.http.locales.malformedBody),
+          },
+        },
+        StatusCodes.BAD_REQUEST
+      )
     }
 
     const { success, error, data } = schema.safeParse(body)
 
     if (!success) {
       const t = useTranslation(c)
-      const translated = translateZodMessages(error, t)
+      const validationError = translateZodToValidationError(error, t)
 
-      return c.json({ error: translated }, StatusCodes.UNPROCESSABLE_ENTITY)
+      return c.json(validationError, StatusCodes.UNPROCESSABLE_ENTITY)
     }
 
     c.set(BODY_FIELD, data)
@@ -41,9 +52,9 @@ export function paramsValidator<T extends z.ZodTypeAny>(schema: T): MiddlewareHa
 
     if (!result.success) {
       const t = useTranslation(c)
-      const translated = translateZodMessages(result.error, t)
+      const validationError = translateZodToValidationError(result.error, t)
 
-      return c.json({ error: translated }, StatusCodes.BAD_REQUEST)
+      return c.json(validationError, StatusCodes.BAD_REQUEST)
     }
 
     c.set(PARAMS_FIELD, result.data)
@@ -60,9 +71,9 @@ export function queryValidator<T extends z.ZodTypeAny>(schema: T): MiddlewareHan
 
     if (!result.success) {
       const t = useTranslation(c)
-      const translated = translateZodMessages(result.error, t)
+      const validationError = translateZodToValidationError(result.error, t)
 
-      return c.json({ error: translated }, StatusCodes.BAD_REQUEST)
+      return c.json(validationError, StatusCodes.BAD_REQUEST)
     }
 
     c.set(QUERY_FIELD, result.data)

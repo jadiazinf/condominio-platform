@@ -25,7 +25,9 @@
       }
     },
     "locales": {
-      "unknownError": "Error desconocido, intente nuevamente"
+      "unknownError": "Error desconocido, intente nuevamente.",
+      "validationError": "Error de validación en los datos enviados.",
+      "malformedBody": "El cuerpo de la solicitud no es válido."
     },
     "unhandledResponses": {
       "internalError": "Error interno del servidor, por favor intente nuevamente más tarde."
