@@ -6,7 +6,8 @@ import type { TLocation, TLocationCreate, TLocationUpdate, TLocationType } from 
 import { LocationsController } from '@http/controllers/locations'
 import type { LocationsRepository } from '@database/repositories'
 import { LocationFactory } from '../../setup/factories'
-import { withId, createTestApp, type IApiResponse } from './test-utils'
+import { withId, createTestApp, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods
 type TMockLocationsRepository = {
@@ -226,14 +227,29 @@ describe('LocationsController', function () {
       expect(json.data.id).toBeDefined()
     })
 
-    it('should return 422 for invalid body', async function () {
+    it('should return 422 for invalid body with validation error details', async function () {
       const res = await request('/locations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: '' }),
+        body: JSON.stringify({ locationType: 'invalid-type' }),
       })
 
       expect(res.status).toBe(StatusCodes.UNPROCESSABLE_ENTITY)
+
+      const json = (await res.json()) as IStandardErrorResponse
+      expect(json.success).toBe(false)
+      expect(json.error.code).toBe(ErrorCodes.VALIDATION_ERROR)
+      expect(json.error.message).toBeDefined()
+      expect(json.error.fields).toBeDefined()
+      expect(Array.isArray(json.error.fields)).toBe(true)
+      expect(json.error.fields!.length).toBeGreaterThan(0)
+
+      // Verify field error structure
+      const fieldError = json.error.fields?.[0]
+      expect(fieldError).toBeDefined()
+      expect(fieldError?.field).toBeDefined()
+      expect(fieldError?.messages).toBeDefined()
+      expect(Array.isArray(fieldError?.messages)).toBe(true)
     })
 
     it('should return 409 when duplicate location exists', async function () {

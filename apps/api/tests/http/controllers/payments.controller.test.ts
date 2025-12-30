@@ -5,7 +5,8 @@ import { StatusCodes } from 'http-status-codes'
 import type { TPayment, TPaymentCreate, TPaymentUpdate } from '@packages/domain'
 import { PaymentsController } from '@http/controllers/payments'
 import type { PaymentsRepository } from '@database/repositories'
-import { withId, createTestApp, type IApiResponse } from './test-utils'
+import { withId, createTestApp, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods
 type TMockPaymentsRepository = {
@@ -387,7 +388,7 @@ describe('PaymentsController', function () {
       expect(json.data.id).toBeDefined()
     })
 
-    it('should return 422 for invalid body', async function () {
+    it('should return 422 for invalid body with validation error details', async function () {
       const res = await request('/payments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -395,6 +396,14 @@ describe('PaymentsController', function () {
       })
 
       expect(res.status).toBe(StatusCodes.UNPROCESSABLE_ENTITY)
+
+      const json = (await res.json()) as IStandardErrorResponse
+      expect(json.success).toBe(false)
+      expect(json.error.code).toBe(ErrorCodes.VALIDATION_ERROR)
+      expect(json.error.message).toBeDefined()
+      expect(json.error.fields).toBeDefined()
+      expect(Array.isArray(json.error.fields)).toBe(true)
+      expect(json.error.fields!.length).toBeGreaterThan(0)
     })
 
     it('should return 409 when duplicate payment exists', async function () {
@@ -513,7 +522,7 @@ describe('PaymentsController', function () {
       expect(json.data.status).toBe('pending_verification')
     })
 
-    it('should return 422 for invalid body', async function () {
+    it('should return 422 for invalid body with validation error details', async function () {
       const res = await request('/payments/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -521,6 +530,13 @@ describe('PaymentsController', function () {
       })
 
       expect(res.status).toBe(StatusCodes.UNPROCESSABLE_ENTITY)
+
+      const json = (await res.json()) as IStandardErrorResponse
+      expect(json.success).toBe(false)
+      expect(json.error.code).toBe(ErrorCodes.VALIDATION_ERROR)
+      expect(json.error.message).toBeDefined()
+      expect(json.error.fields).toBeDefined()
+      expect(Array.isArray(json.error.fields)).toBe(true)
     })
   })
 

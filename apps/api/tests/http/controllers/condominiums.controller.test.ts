@@ -6,7 +6,8 @@ import type { TCondominium, TCondominiumCreate, TCondominiumUpdate } from '@pack
 import { CondominiumsController } from '@http/controllers/condominiums'
 import type { CondominiumsRepository } from '@database/repositories'
 import { CondominiumFactory } from '../../setup/factories'
-import { withId, createTestApp, type IApiResponse } from './test-utils'
+import { withId, createTestApp, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods
 type TMockCondominiumsRepository = {
@@ -245,7 +246,7 @@ describe('CondominiumsController', function () {
       expect(json.data.id).toBeDefined()
     })
 
-    it('should return 422 for invalid body', async function () {
+    it('should return 422 for invalid body with validation error details', async function () {
       const res = await request('/condominiums', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -253,6 +254,14 @@ describe('CondominiumsController', function () {
       })
 
       expect(res.status).toBe(StatusCodes.UNPROCESSABLE_ENTITY)
+
+      const json = (await res.json()) as IStandardErrorResponse
+      expect(json.success).toBe(false)
+      expect(json.error.code).toBe(ErrorCodes.VALIDATION_ERROR)
+      expect(json.error.message).toBeDefined()
+      expect(json.error.fields).toBeDefined()
+      expect(Array.isArray(json.error.fields)).toBe(true)
+      expect(json.error.fields!.length).toBeGreaterThan(0)
     })
 
     it('should return 409 when duplicate condominium exists', async function () {

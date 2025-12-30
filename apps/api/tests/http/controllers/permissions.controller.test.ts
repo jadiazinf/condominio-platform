@@ -6,7 +6,8 @@ import type { TPermission, TPermissionCreate, TPermissionUpdate } from '@package
 import { PermissionsController } from '@http/controllers/permissions'
 import type { PermissionsRepository } from '@database/repositories'
 import { PermissionFactory } from '../../setup/factories'
-import { withId, createTestApp, type IApiResponse } from './test-utils'
+import { withId, createTestApp, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods
 type TMockPermissionsRepository = {
@@ -218,6 +219,13 @@ describe('PermissionsController', function () {
       })
 
       expect(res.status).toBe(StatusCodes.UNPROCESSABLE_ENTITY)
+
+      const json = (await res.json()) as IStandardErrorResponse
+      expect(json.success).toBe(false)
+      expect(json.error.code).toBe(ErrorCodes.VALIDATION_ERROR)
+      expect(json.error.message).toBeDefined()
+      expect(json.error.fields).toBeDefined()
+      expect(Array.isArray(json.error.fields)).toBe(true)
     })
 
     it('should return 409 when duplicate permission exists', async function () {

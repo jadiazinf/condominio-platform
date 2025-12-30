@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import type { IRepository } from '@database/repositories/interfaces'
 import { applyI18nMiddleware } from '@http/middlewares/locales'
+import type { TFieldError } from '@http/responses/types'
 
 /**
  * Standard API response type for tests.
@@ -10,6 +11,18 @@ export interface IApiResponse {
   data?: any
   error?: string
   message?: string
+}
+
+/**
+ * Standardized error response type for validation and other errors.
+ */
+export interface IStandardErrorResponse {
+  success: false
+  error: {
+    code: string
+    message: string
+    fields?: TFieldError[]
+  }
 }
 
 /**
