@@ -328,6 +328,283 @@
         "priority": {
           "invalid": "La prioridad no es válida."
         }
+      },
+      "auditLogs": {
+        "tableName": {
+          "required": "El nombre de la tabla es requerido.",
+          "max": "El nombre de la tabla debe tener como máximo 100 caracteres."
+        },
+        "recordId": {
+          "required": "El ID del registro es requerido.",
+          "invalid": "El ID del registro no es válido."
+        },
+        "action": {
+          "required": "La acción es requerida.",
+          "invalid": "La acción no es válida."
+        },
+        "userId": {
+          "invalid": "El ID del usuario no es válido."
+        }
+      },
+      "entityPaymentGateways": {
+        "paymentGatewayId": {
+          "required": "El ID de la pasarela de pago es requerido.",
+          "invalid": "El ID de la pasarela de pago no es válido."
+        },
+        "condominiumId": {
+          "invalid": "El ID del condominio no es válido."
+        },
+        "buildingId": {
+          "invalid": "El ID del edificio no es válido."
+        },
+        "registeredBy": {
+          "invalid": "El ID del usuario que registró no es válido."
+        }
+      },
+      "exchangeRates": {
+        "fromCurrencyId": {
+          "required": "El ID de la moneda de origen es requerido.",
+          "invalid": "El ID de la moneda de origen no es válido."
+        },
+        "toCurrencyId": {
+          "required": "El ID de la moneda de destino es requerido.",
+          "invalid": "El ID de la moneda de destino no es válido."
+        },
+        "rate": {
+          "required": "La tasa de cambio es requerida.",
+          "invalid": "La tasa de cambio no es válida."
+        },
+        "effectiveDate": {
+          "required": "La fecha efectiva es requerida.",
+          "invalid": "La fecha efectiva no es válida."
+        },
+        "source": {
+          "max": "La fuente debe tener como máximo 100 caracteres."
+        },
+        "createdBy": {
+          "invalid": "El ID del usuario que creó no es válido."
+        }
+      },
+      "expenseCategories": {
+        "name": {
+          "required": "El nombre de la categoría es requerido.",
+          "max": "El nombre debe tener como máximo 100 caracteres."
+        },
+        "parentCategoryId": {
+          "invalid": "El ID de la categoría padre no es válido."
+        },
+        "registeredBy": {
+          "invalid": "El ID del usuario que registró no es válido."
+        }
+      },
+      "interestConfigurations": {
+        "name": {
+          "required": "El nombre de la configuración es requerido.",
+          "max": "El nombre debe tener como máximo 255 caracteres."
+        },
+        "condominiumId": {
+          "invalid": "El ID del condominio no es válido."
+        },
+        "buildingId": {
+          "invalid": "El ID del edificio no es válido."
+        },
+        "paymentConceptId": {
+          "invalid": "El ID del concepto de pago no es válido."
+        },
+        "interestType": {
+          "required": "El tipo de interés es requerido.",
+          "invalid": "El tipo de interés no es válido."
+        },
+        "interestRate": {
+          "invalid": "La tasa de interés no es válida."
+        },
+        "fixedAmount": {
+          "invalid": "El monto fijo no es válido."
+        },
+        "calculationPeriod": {
+          "invalid": "El período de cálculo no es válido."
+        },
+        "gracePeriodDays": {
+          "invalid": "Los días de gracia deben ser un número entero."
+        },
+        "currencyId": {
+          "invalid": "El ID de la moneda no es válido."
+        },
+        "effectiveFrom": {
+          "required": "La fecha de inicio de vigencia es requerida.",
+          "invalid": "La fecha de inicio de vigencia no es válida."
+        },
+        "effectiveTo": {
+          "invalid": "La fecha de fin de vigencia no es válida."
+        },
+        "createdBy": {
+          "invalid": "El ID del usuario que creó no es válido."
+        }
+      },
+      "managementCompanies": {
+        "name": {
+          "required": "El nombre de la empresa es requerido.",
+          "max": "El nombre debe tener como máximo 255 caracteres."
+        },
+        "legalName": {
+          "max": "La razón social debe tener como máximo 255 caracteres."
+        },
+        "taxId": {
+          "max": "El RIF debe tener como máximo 100 caracteres."
+        },
+        "email": {
+          "invalid": "El correo electrónico no es válido.",
+          "max": "El correo electrónico debe tener como máximo 255 caracteres."
+        },
+        "phone": {
+          "max": "El teléfono debe tener como máximo 50 caracteres."
+        },
+        "website": {
+          "invalid": "El sitio web no es válido.",
+          "max": "El sitio web debe tener como máximo 255 caracteres."
+        },
+        "address": {
+          "max": "La dirección debe tener como máximo 500 caracteres."
+        },
+        "locationId": {
+          "invalid": "El ID de ubicación no es válido."
+        },
+        "logoUrl": {
+          "invalid": "La URL del logo no es válida."
+        },
+        "createdBy": {
+          "invalid": "El ID del usuario que creó no es válido."
+        }
+      },
+      "paymentApplications": {
+        "paymentId": {
+          "required": "El ID del pago es requerido.",
+          "invalid": "El ID del pago no es válido."
+        },
+        "quotaId": {
+          "required": "El ID de la cuota es requerido.",
+          "invalid": "El ID de la cuota no es válido."
+        },
+        "appliedAmount": {
+          "required": "El monto aplicado es requerido.",
+          "invalid": "El monto aplicado no es válido."
+        },
+        "appliedToPrincipal": {
+          "invalid": "El monto aplicado al principal no es válido."
+        },
+        "appliedToInterest": {
+          "invalid": "El monto aplicado a intereses no es válido."
+        },
+        "registeredBy": {
+          "invalid": "El ID del usuario que registró no es válido."
+        }
+      },
+      "paymentConcepts": {
+        "name": {
+          "required": "El nombre del concepto es requerido.",
+          "max": "El nombre debe tener como máximo 255 caracteres."
+        },
+        "condominiumId": {
+          "invalid": "El ID del condominio no es válido."
+        },
+        "buildingId": {
+          "invalid": "El ID del edificio no es válido."
+        },
+        "conceptType": {
+          "required": "El tipo de concepto es requerido.",
+          "invalid": "El tipo de concepto no es válido."
+        },
+        "recurrencePeriod": {
+          "invalid": "El período de recurrencia no es válido."
+        },
+        "currencyId": {
+          "required": "El ID de la moneda es requerido.",
+          "invalid": "El ID de la moneda no es válido."
+        },
+        "createdBy": {
+          "invalid": "El ID del usuario que creó no es válido."
+        }
+      },
+      "paymentGateways": {
+        "name": {
+          "required": "El nombre de la pasarela es requerido.",
+          "max": "El nombre debe tener como máximo 100 caracteres."
+        },
+        "gatewayType": {
+          "required": "El tipo de pasarela es requerido.",
+          "invalid": "El tipo de pasarela no es válido."
+        },
+        "registeredBy": {
+          "invalid": "El ID del usuario que registró no es válido."
+        }
+      },
+      "rolePermissions": {
+        "roleId": {
+          "required": "El ID del rol es requerido.",
+          "invalid": "El ID del rol no es válido."
+        },
+        "permissionId": {
+          "required": "El ID del permiso es requerido.",
+          "invalid": "El ID del permiso no es válido."
+        },
+        "registeredBy": {
+          "invalid": "El ID del usuario que registró no es válido."
+        }
+      },
+      "unitOwnerships": {
+        "unitId": {
+          "required": "El ID de la unidad es requerido.",
+          "invalid": "El ID de la unidad no es válido."
+        },
+        "userId": {
+          "required": "El ID del usuario es requerido.",
+          "invalid": "El ID del usuario no es válido."
+        },
+        "ownershipType": {
+          "required": "El tipo de propiedad es requerido.",
+          "invalid": "El tipo de propiedad no es válido."
+        },
+        "ownershipPercentage": {
+          "invalid": "El porcentaje de propiedad no es válido."
+        },
+        "titleDeedNumber": {
+          "max": "El número de escritura debe tener como máximo 100 caracteres."
+        },
+        "titleDeedDate": {
+          "invalid": "La fecha de escritura no es válida."
+        },
+        "startDate": {
+          "required": "La fecha de inicio es requerida.",
+          "invalid": "La fecha de inicio no es válida."
+        },
+        "endDate": {
+          "invalid": "La fecha de fin no es válida."
+        }
+      },
+      "userRoles": {
+        "userId": {
+          "required": "El ID del usuario es requerido.",
+          "invalid": "El ID del usuario no es válido."
+        },
+        "roleId": {
+          "required": "El ID del rol es requerido.",
+          "invalid": "El ID del rol no es válido."
+        },
+        "condominiumId": {
+          "invalid": "El ID del condominio no es válido."
+        },
+        "buildingId": {
+          "invalid": "El ID del edificio no es válido."
+        },
+        "assignedBy": {
+          "invalid": "El ID del usuario que asignó no es válido."
+        },
+        "expiresAt": {
+          "invalid": "La fecha de expiración no es válida."
+        },
+        "registeredBy": {
+          "invalid": "El ID del usuario que registró no es válido."
+        }
       }
     }
   }

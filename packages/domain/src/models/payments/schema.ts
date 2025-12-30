@@ -4,6 +4,9 @@ import { userSchema } from '../users/schema'
 import { unitSchema } from '../units/schema'
 import { currencySchema } from '../currencies/schema'
 import { paymentGatewaySchema } from '../payment-gateways/schema'
+import { DomainLocaleDictionary } from '../../i18n/dictionary'
+
+const d = DomainLocaleDictionary.validation.models.payments
 
 export const EPaymentMethods = [
   'transfer',
@@ -25,19 +28,19 @@ export const EPaymentStatuses = [
 
 export const paymentSchema = baseModelSchema.extend({
   paymentNumber: z.string().max(100).nullable(),
-  userId: z.uuid(),
-  unitId: z.uuid(),
-  amount: z.string(),
-  currencyId: z.uuid(),
+  userId: z.uuid({ error: d.userId.invalid }),
+  unitId: z.uuid({ error: d.unitId.invalid }),
+  amount: z.string({ error: d.amount.required }),
+  currencyId: z.uuid({ error: d.currencyId.invalid }),
   paidAmount: z.string().nullable(),
   paidCurrencyId: z.uuid().nullable(),
   exchangeRate: z.string().nullable(),
-  paymentMethod: z.enum(EPaymentMethods),
+  paymentMethod: z.enum(EPaymentMethods, { error: d.paymentMethod.invalid }),
   paymentGatewayId: z.uuid().nullable(),
   paymentDetails: z.record(z.string(), z.unknown()).nullable(),
   paymentDate: dateField,
   registeredAt: timestampField,
-  status: z.enum(EPaymentStatuses).default('completed'),
+  status: z.enum(EPaymentStatuses, { error: d.status.invalid }).default('completed'),
   receiptUrl: z.string().url().nullable(),
   receiptNumber: z.string().max(100).nullable(),
   notes: z.string().nullable(),

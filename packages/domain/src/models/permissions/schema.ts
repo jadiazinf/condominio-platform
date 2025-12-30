@@ -1,5 +1,8 @@
 import { z } from 'zod'
 import { baseModelSchema } from '../../shared/base-model.schema'
+import { DomainLocaleDictionary } from '../../i18n/dictionary'
+
+const d = DomainLocaleDictionary.validation.models.permissions
 
 export const EPermissionModules = [
   'condominiums',
@@ -22,9 +25,11 @@ export const EPermissionActions = [
 ] as const
 
 export const permissionSchema = baseModelSchema.extend({
-  name: z.string().max(100),
+  name: z
+    .string({ error: d.name.required })
+    .max(100, { error: d.name.max }),
   description: z.string().nullable(),
-  module: z.enum(EPermissionModules),
-  action: z.enum(EPermissionActions),
+  module: z.enum(EPermissionModules, { error: d.module.invalid }),
+  action: z.enum(EPermissionActions, { error: d.action.invalid }),
   registeredBy: z.uuid().nullable(),
 })

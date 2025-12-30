@@ -328,6 +328,283 @@
         "priority": {
           "invalid": "Priority is not valid."
         }
+      },
+      "auditLogs": {
+        "tableName": {
+          "required": "Table name is required.",
+          "max": "Table name must have at most 100 characters."
+        },
+        "recordId": {
+          "required": "Record ID is required.",
+          "invalid": "Record ID is not valid."
+        },
+        "action": {
+          "required": "Action is required.",
+          "invalid": "Action is not valid."
+        },
+        "userId": {
+          "invalid": "User ID is not valid."
+        }
+      },
+      "entityPaymentGateways": {
+        "paymentGatewayId": {
+          "required": "Payment gateway ID is required.",
+          "invalid": "Payment gateway ID is not valid."
+        },
+        "condominiumId": {
+          "invalid": "Condominium ID is not valid."
+        },
+        "buildingId": {
+          "invalid": "Building ID is not valid."
+        },
+        "registeredBy": {
+          "invalid": "Registered by user ID is not valid."
+        }
+      },
+      "exchangeRates": {
+        "fromCurrencyId": {
+          "required": "Source currency ID is required.",
+          "invalid": "Source currency ID is not valid."
+        },
+        "toCurrencyId": {
+          "required": "Target currency ID is required.",
+          "invalid": "Target currency ID is not valid."
+        },
+        "rate": {
+          "required": "Exchange rate is required.",
+          "invalid": "Exchange rate is not valid."
+        },
+        "effectiveDate": {
+          "required": "Effective date is required.",
+          "invalid": "Effective date is not valid."
+        },
+        "source": {
+          "max": "Source must have at most 100 characters."
+        },
+        "createdBy": {
+          "invalid": "Created by user ID is not valid."
+        }
+      },
+      "expenseCategories": {
+        "name": {
+          "required": "Category name is required.",
+          "max": "Name must have at most 100 characters."
+        },
+        "parentCategoryId": {
+          "invalid": "Parent category ID is not valid."
+        },
+        "registeredBy": {
+          "invalid": "Registered by user ID is not valid."
+        }
+      },
+      "interestConfigurations": {
+        "name": {
+          "required": "Configuration name is required.",
+          "max": "Name must have at most 255 characters."
+        },
+        "condominiumId": {
+          "invalid": "Condominium ID is not valid."
+        },
+        "buildingId": {
+          "invalid": "Building ID is not valid."
+        },
+        "paymentConceptId": {
+          "invalid": "Payment concept ID is not valid."
+        },
+        "interestType": {
+          "required": "Interest type is required.",
+          "invalid": "Interest type is not valid."
+        },
+        "interestRate": {
+          "invalid": "Interest rate is not valid."
+        },
+        "fixedAmount": {
+          "invalid": "Fixed amount is not valid."
+        },
+        "calculationPeriod": {
+          "invalid": "Calculation period is not valid."
+        },
+        "gracePeriodDays": {
+          "invalid": "Grace period days must be an integer."
+        },
+        "currencyId": {
+          "invalid": "Currency ID is not valid."
+        },
+        "effectiveFrom": {
+          "required": "Effective from date is required.",
+          "invalid": "Effective from date is not valid."
+        },
+        "effectiveTo": {
+          "invalid": "Effective to date is not valid."
+        },
+        "createdBy": {
+          "invalid": "Created by user ID is not valid."
+        }
+      },
+      "managementCompanies": {
+        "name": {
+          "required": "Company name is required.",
+          "max": "Name must have at most 255 characters."
+        },
+        "legalName": {
+          "max": "Legal name must have at most 255 characters."
+        },
+        "taxId": {
+          "max": "Tax ID must have at most 100 characters."
+        },
+        "email": {
+          "invalid": "Email is not valid.",
+          "max": "Email must have at most 255 characters."
+        },
+        "phone": {
+          "max": "Phone must have at most 50 characters."
+        },
+        "website": {
+          "invalid": "Website is not valid.",
+          "max": "Website must have at most 255 characters."
+        },
+        "address": {
+          "max": "Address must have at most 500 characters."
+        },
+        "locationId": {
+          "invalid": "Location ID is not valid."
+        },
+        "logoUrl": {
+          "invalid": "Logo URL is not valid."
+        },
+        "createdBy": {
+          "invalid": "Created by user ID is not valid."
+        }
+      },
+      "paymentApplications": {
+        "paymentId": {
+          "required": "Payment ID is required.",
+          "invalid": "Payment ID is not valid."
+        },
+        "quotaId": {
+          "required": "Quota ID is required.",
+          "invalid": "Quota ID is not valid."
+        },
+        "appliedAmount": {
+          "required": "Applied amount is required.",
+          "invalid": "Applied amount is not valid."
+        },
+        "appliedToPrincipal": {
+          "invalid": "Applied to principal amount is not valid."
+        },
+        "appliedToInterest": {
+          "invalid": "Applied to interest amount is not valid."
+        },
+        "registeredBy": {
+          "invalid": "Registered by user ID is not valid."
+        }
+      },
+      "paymentConcepts": {
+        "name": {
+          "required": "Concept name is required.",
+          "max": "Name must have at most 255 characters."
+        },
+        "condominiumId": {
+          "invalid": "Condominium ID is not valid."
+        },
+        "buildingId": {
+          "invalid": "Building ID is not valid."
+        },
+        "conceptType": {
+          "required": "Concept type is required.",
+          "invalid": "Concept type is not valid."
+        },
+        "recurrencePeriod": {
+          "invalid": "Recurrence period is not valid."
+        },
+        "currencyId": {
+          "required": "Currency ID is required.",
+          "invalid": "Currency ID is not valid."
+        },
+        "createdBy": {
+          "invalid": "Created by user ID is not valid."
+        }
+      },
+      "paymentGateways": {
+        "name": {
+          "required": "Gateway name is required.",
+          "max": "Name must have at most 100 characters."
+        },
+        "gatewayType": {
+          "required": "Gateway type is required.",
+          "invalid": "Gateway type is not valid."
+        },
+        "registeredBy": {
+          "invalid": "Registered by user ID is not valid."
+        }
+      },
+      "rolePermissions": {
+        "roleId": {
+          "required": "Role ID is required.",
+          "invalid": "Role ID is not valid."
+        },
+        "permissionId": {
+          "required": "Permission ID is required.",
+          "invalid": "Permission ID is not valid."
+        },
+        "registeredBy": {
+          "invalid": "Registered by user ID is not valid."
+        }
+      },
+      "unitOwnerships": {
+        "unitId": {
+          "required": "Unit ID is required.",
+          "invalid": "Unit ID is not valid."
+        },
+        "userId": {
+          "required": "User ID is required.",
+          "invalid": "User ID is not valid."
+        },
+        "ownershipType": {
+          "required": "Ownership type is required.",
+          "invalid": "Ownership type is not valid."
+        },
+        "ownershipPercentage": {
+          "invalid": "Ownership percentage is not valid."
+        },
+        "titleDeedNumber": {
+          "max": "Title deed number must have at most 100 characters."
+        },
+        "titleDeedDate": {
+          "invalid": "Title deed date is not valid."
+        },
+        "startDate": {
+          "required": "Start date is required.",
+          "invalid": "Start date is not valid."
+        },
+        "endDate": {
+          "invalid": "End date is not valid."
+        }
+      },
+      "userRoles": {
+        "userId": {
+          "required": "User ID is required.",
+          "invalid": "User ID is not valid."
+        },
+        "roleId": {
+          "required": "Role ID is required.",
+          "invalid": "Role ID is not valid."
+        },
+        "condominiumId": {
+          "invalid": "Condominium ID is not valid."
+        },
+        "buildingId": {
+          "invalid": "Building ID is not valid."
+        },
+        "assignedBy": {
+          "invalid": "Assigned by user ID is not valid."
+        },
+        "expiresAt": {
+          "invalid": "Expiration date is not valid."
+        },
+        "registeredBy": {
+          "invalid": "Registered by user ID is not valid."
+        }
       }
     }
   }
