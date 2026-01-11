@@ -605,6 +605,152 @@
         "registeredBy": {
           "invalid": "El ID del usuario que registró no es válido."
         }
+      },
+      "quotaAdjustments": {
+        "quotaId": {
+          "required": "El ID de la cuota es requerido.",
+          "invalid": "El ID de la cuota no es válido."
+        },
+        "previousAmount": {
+          "required": "El monto anterior es requerido.",
+          "invalid": "El monto anterior debe ser un número válido."
+        },
+        "newAmount": {
+          "required": "El nuevo monto es requerido.",
+          "invalid": "El nuevo monto debe ser un número válido."
+        },
+        "adjustmentType": {
+          "required": "El tipo de ajuste es requerido.",
+          "invalid": "El tipo de ajuste no es válido."
+        },
+        "reason": {
+          "required": "El motivo del ajuste es requerido.",
+          "min": "El motivo debe tener al menos 10 caracteres."
+        },
+        "createdBy": {
+          "required": "El ID del usuario que realizó el ajuste es requerido.",
+          "invalid": "El ID del usuario que realizó el ajuste no es válido."
+        }
+      },
+      "notificationTemplates": {
+        "code": {
+          "required": "El código de la plantilla es requerido.",
+          "min": "El código debe tener al menos 1 carácter.",
+          "max": "El código debe tener como máximo 100 caracteres."
+        },
+        "name": {
+          "required": "El nombre de la plantilla es requerido.",
+          "min": "El nombre debe tener al menos 1 carácter.",
+          "max": "El nombre debe tener como máximo 255 caracteres."
+        },
+        "category": {
+          "required": "La categoría es requerida.",
+          "invalid": "La categoría no es válida."
+        },
+        "subjectTemplate": {
+          "max": "El asunto debe tener como máximo 500 caracteres."
+        },
+        "bodyTemplate": {
+          "required": "El cuerpo de la plantilla es requerido."
+        },
+        "defaultChannels": {
+          "invalid": "Los canales por defecto no son válidos."
+        },
+        "createdBy": {
+          "invalid": "El ID del usuario que creó no es válido."
+        }
+      },
+      "notifications": {
+        "userId": {
+          "required": "El ID del usuario es requerido.",
+          "invalid": "El ID del usuario no es válido."
+        },
+        "templateId": {
+          "invalid": "El ID de la plantilla no es válido."
+        },
+        "category": {
+          "required": "La categoría es requerida.",
+          "invalid": "La categoría no es válida."
+        },
+        "title": {
+          "required": "El título es requerido.",
+          "min": "El título debe tener al menos 1 carácter.",
+          "max": "El título debe tener como máximo 255 caracteres."
+        },
+        "body": {
+          "required": "El cuerpo de la notificación es requerido."
+        },
+        "priority": {
+          "invalid": "La prioridad no es válida."
+        },
+        "readAt": {
+          "invalid": "La fecha de lectura no es válida."
+        },
+        "expiresAt": {
+          "invalid": "La fecha de expiración no es válida."
+        }
+      },
+      "notificationDeliveries": {
+        "notificationId": {
+          "required": "El ID de la notificación es requerido.",
+          "invalid": "El ID de la notificación no es válido."
+        },
+        "channel": {
+          "required": "El canal es requerido.",
+          "invalid": "El canal no es válido."
+        },
+        "status": {
+          "invalid": "El estado de entrega no es válido."
+        },
+        "sentAt": {
+          "invalid": "La fecha de envío no es válida."
+        },
+        "deliveredAt": {
+          "invalid": "La fecha de entrega no es válida."
+        },
+        "failedAt": {
+          "invalid": "La fecha de fallo no es válida."
+        },
+        "externalId": {
+          "max": "El ID externo debe tener como máximo 255 caracteres."
+        }
+      },
+      "userNotificationPreferences": {
+        "userId": {
+          "required": "El ID del usuario es requerido.",
+          "invalid": "El ID del usuario no es válido."
+        },
+        "category": {
+          "required": "La categoría es requerida.",
+          "invalid": "La categoría no es válida."
+        },
+        "channel": {
+          "required": "El canal es requerido.",
+          "invalid": "El canal no es válido."
+        },
+        "quietHoursStart": {
+          "invalid": "La hora de inicio de silencio no es válida."
+        },
+        "quietHoursEnd": {
+          "invalid": "La hora de fin de silencio no es válida."
+        }
+      },
+      "userFcmTokens": {
+        "userId": {
+          "required": "El ID del usuario es requerido.",
+          "invalid": "El ID del usuario no es válido."
+        },
+        "token": {
+          "required": "El token FCM es requerido.",
+          "max": "El token FCM debe tener como máximo 500 caracteres."
+        },
+        "platform": {
+          "required": "La plataforma es requerida.",
+          "invalid": "La plataforma no es válida."
+        },
+        "deviceName": {
+          "max": "El nombre del dispositivo debe tener como máximo 255 caracteres."
+        }
       }
     }
   }

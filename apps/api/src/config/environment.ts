@@ -17,21 +17,42 @@ const envSchema = z.object({
   FIREBASE_API_KEY: z.string('Firebase API key must be provided'),
 })
 
-const parsed = envSchema.safeParse(Bun.env)
+// In test mode, use a more lenient validation
+const isTestMode = Bun.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'test'
 
-if (!parsed.success) {
-  logger.error('❌ Failed to validate environment variables')
+let env: z.infer<typeof envSchema>
 
-  const errorTree = treeifyError(parsed.error)
-  if (errorTree.properties) {
-    for (const [key, value] of Object.entries(errorTree.properties)) {
-      value.errors.forEach(msg => {
-        logger.error(`${key}: ${msg}`)
-      })
+if (isTestMode) {
+  // In test mode, provide defaults for missing values
+  const testDefaults = {
+    NODE_ENV: 'test' as const,
+    HOST: 'localhost',
+    PORT: 3000,
+    DATABASE_URL: Bun.env.DATABASE_URL || process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/test',
+    LOG_LEVEL: 'error' as const,
+    CORS_ORIGIN: undefined,
+    FIREBASE_API_KEY: Bun.env.FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || 'test-api-key',
+  }
+  env = testDefaults
+} else {
+  const parsed = envSchema.safeParse(Bun.env)
+
+  if (!parsed.success) {
+    logger.error('❌ Failed to validate environment variables')
+
+    const errorTree = treeifyError(parsed.error)
+    if (errorTree.properties) {
+      for (const [key, value] of Object.entries(errorTree.properties)) {
+        value.errors.forEach(msg => {
+          logger.error(`${key}: ${msg}`)
+        })
+      }
     }
+
+    process.exit(1)
   }
 
-  process.exit(1)
+  env = parsed.data
 }
 
-export const env = parsed.data
+export { env }

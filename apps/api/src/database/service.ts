@@ -45,4 +45,11 @@ export class DatabaseService {
       logger.info('Database pool closed')
     }
   }
+
+  /**
+   * Resets the singleton instance. Only for testing purposes.
+   */
+  public static resetInstance(): void {
+    DatabaseService.instance = undefined as unknown as DatabaseService
+  }
 }

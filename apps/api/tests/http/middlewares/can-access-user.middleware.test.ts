@@ -29,6 +29,11 @@ import {
 } from '../../setup/factories'
 import type { TUserRoleCreate, TUnitOwnershipCreate } from '@packages/domain'
 
+// Test user credentials from environment
+const TEST_USER_FIREBASE_UID = process.env.TEST_USER_FIREBASE_UID || 'n1Fx5t4aCWdh4r6XUDnhtOtw4Tj1'
+const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL || 'jesusdesk@gmail.com'
+const TEST_JWT_TOKEN = process.env.TEST_JWT_TOKEN || ''
+
 interface IApiResponse {
   user?: { id: string }
   error?: string
@@ -86,6 +91,8 @@ describe('Can Access User Middleware', () => {
   let unitOwnershipsRepo: UnitOwnershipsRepository
 
   beforeAll(async () => {
+    // Enable full auth middleware testing (disable bypass)
+    process.env.TEST_AUTH_MIDDLEWARE = 'true'
     db = await startTestContainer()
   })
 
@@ -120,12 +127,15 @@ describe('Can Access User Middleware', () => {
 
   describe('Self-access', () => {
     it('should allow user to access their own information', async () => {
-      const uid = 'self-access-user'
-      const userData = UserFactory.create({ firebaseUid: uid, isActive: true })
+      const userData = UserFactory.create({
+        firebaseUid: TEST_USER_FIREBASE_UID,
+        email: TEST_USER_EMAIL,
+        isActive: true,
+      })
       const user = await usersRepo.create(userData)
 
       const res = await app.request(`/users/${user.id}`, {
-        headers: { Authorization: `Bearer placeholder-token:${uid}` },
+        headers: { Authorization: `Bearer ${TEST_JWT_TOKEN}` },
       })
 
       expect(res.status).toBe(StatusCodes.OK)
@@ -136,9 +146,9 @@ describe('Can Access User Middleware', () => {
 
   describe('Access denied', () => {
     it('should deny access when user tries to access another user without admin role', async () => {
-      const authenticatedUid = 'authenticated-user'
       const authenticatedUserData = UserFactory.create({
-        firebaseUid: authenticatedUid,
+        firebaseUid: TEST_USER_FIREBASE_UID,
+        email: TEST_USER_EMAIL,
         isActive: true,
       })
       await usersRepo.create(authenticatedUserData)
@@ -150,7 +160,7 @@ describe('Can Access User Middleware', () => {
       const targetUser = await usersRepo.create(targetUserData)
 
       const res = await app.request(`/users/${targetUser.id}`, {
-        headers: { Authorization: `Bearer placeholder-token:${authenticatedUid}` },
+        headers: { Authorization: `Bearer ${TEST_JWT_TOKEN}` },
       })
 
       expect(res.status).toBe(StatusCodes.FORBIDDEN)
@@ -167,9 +177,12 @@ describe('Can Access User Middleware', () => {
 
   describe('Admin access through management company', () => {
     it('should allow admin of management company to access user in their condominium', async () => {
-      // Create admin user
-      const adminUid = 'admin-user'
-      const adminUserData = UserFactory.create({ firebaseUid: adminUid, isActive: true })
+      // Create admin user (using test JWT token credentials)
+      const adminUserData = UserFactory.create({
+        firebaseUid: TEST_USER_FIREBASE_UID,
+        email: TEST_USER_EMAIL,
+        isActive: true,
+      })
       const adminUser = await usersRepo.create(adminUserData)
 
       // Create target user
@@ -204,7 +217,7 @@ describe('Can Access User Middleware', () => {
       await unitOwnershipsRepo.create(createUnitOwnershipData(unit.id, targetUser.id))
 
       const res = await app.request(`/users/${targetUser.id}`, {
-        headers: { Authorization: `Bearer placeholder-token:${adminUid}` },
+        headers: { Authorization: `Bearer ${TEST_JWT_TOKEN}` },
       })
 
       expect(res.status).toBe(StatusCodes.OK)
@@ -213,9 +226,12 @@ describe('Can Access User Middleware', () => {
     })
 
     it('should deny admin access when target user is not in their managed condominiums', async () => {
-      // Create admin user
-      const adminUid = 'admin-user'
-      const adminUserData = UserFactory.create({ firebaseUid: adminUid, isActive: true })
+      // Create admin user (using test JWT token credentials)
+      const adminUserData = UserFactory.create({
+        firebaseUid: TEST_USER_FIREBASE_UID,
+        email: TEST_USER_EMAIL,
+        isActive: true,
+      })
       const adminUser = await usersRepo.create(adminUserData)
 
       // Create target user (not in any condominium)
@@ -240,16 +256,19 @@ describe('Can Access User Middleware', () => {
 
       // Target user has NO unit ownership - should be denied
       const res = await app.request(`/users/${targetUser.id}`, {
-        headers: { Authorization: `Bearer placeholder-token:${adminUid}` },
+        headers: { Authorization: `Bearer ${TEST_JWT_TOKEN}` },
       })
 
       expect(res.status).toBe(StatusCodes.FORBIDDEN)
     })
 
     it('should deny access when admin role is in different management company', async () => {
-      // Create admin user
-      const adminUid = 'admin-user'
-      const adminUserData = UserFactory.create({ firebaseUid: adminUid, isActive: true })
+      // Create admin user (using test JWT token credentials)
+      const adminUserData = UserFactory.create({
+        firebaseUid: TEST_USER_FIREBASE_UID,
+        email: TEST_USER_EMAIL,
+        isActive: true,
+      })
       const adminUser = await usersRepo.create(adminUserData)
 
       // Create target user
@@ -296,7 +315,7 @@ describe('Can Access User Middleware', () => {
 
       // Admin of company 1 should NOT access user in company 2
       const res = await app.request(`/users/${targetUser.id}`, {
-        headers: { Authorization: `Bearer placeholder-token:${adminUid}` },
+        headers: { Authorization: `Bearer ${TEST_JWT_TOKEN}` },
       })
 
       expect(res.status).toBe(StatusCodes.FORBIDDEN)
@@ -317,12 +336,15 @@ describe('Can Access User Middleware', () => {
         return c.json({ user: { id: c.req.param('userId') } })
       })
 
-      const uid = 'custom-param-user'
-      const userData = UserFactory.create({ firebaseUid: uid, isActive: true })
+      const userData = UserFactory.create({
+        firebaseUid: TEST_USER_FIREBASE_UID,
+        email: TEST_USER_EMAIL,
+        isActive: true,
+      })
       const user = await usersRepo.create(userData)
 
       const res = await customApp.request(`/profile/${user.id}`, {
-        headers: { Authorization: `Bearer placeholder-token:${uid}` },
+        headers: { Authorization: `Bearer ${TEST_JWT_TOKEN}` },
       })
 
       expect(res.status).toBe(StatusCodes.OK)
@@ -341,9 +363,12 @@ describe('Can Access User Middleware', () => {
         return c.json({ user: { id: c.req.param('id') } })
       })
 
-      // Create supervisor user
-      const supervisorUid = 'supervisor-user'
-      const supervisorUserData = UserFactory.create({ firebaseUid: supervisorUid, isActive: true })
+      // Create supervisor user (using test JWT token credentials)
+      const supervisorUserData = UserFactory.create({
+        firebaseUid: TEST_USER_FIREBASE_UID,
+        email: TEST_USER_EMAIL,
+        isActive: true,
+      })
       const supervisorUser = await usersRepo.create(supervisorUserData)
 
       // Create target user
@@ -377,7 +402,7 @@ describe('Can Access User Middleware', () => {
       await unitOwnershipsRepo.create(createUnitOwnershipData(unit.id, targetUser.id))
 
       const res = await customApp.request(`/users/${targetUser.id}`, {
-        headers: { Authorization: `Bearer placeholder-token:${supervisorUid}` },
+        headers: { Authorization: `Bearer ${TEST_JWT_TOKEN}` },
       })
 
       expect(res.status).toBe(StatusCodes.OK)

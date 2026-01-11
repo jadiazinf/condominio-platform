@@ -97,6 +97,7 @@ export async function startTestContainer(): Promise<TTestDrizzleClient> {
  * Uses IF NOT EXISTS to be idempotent.
  */
 async function createSchema(db: TTestDrizzleClient): Promise<void> {
+  const start = performance.now()
   // Create enums and tables in a single transaction block for performance
   await db.execute(sql`
     DO $$ BEGIN
@@ -135,7 +136,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     END $$;
 
     DO $$ BEGIN
-      CREATE TYPE payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
+      CREATE TYPE payment_status AS ENUM ('pending', 'pending_verification', 'completed', 'failed', 'refunded', 'rejected');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -166,6 +167,36 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
 
     DO $$ BEGIN
       CREATE TYPE audit_action AS ENUM ('INSERT', 'UPDATE', 'DELETE');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE adjustment_type AS ENUM ('discount', 'increase', 'correction', 'waiver');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE formula_type AS ENUM ('fixed', 'expression', 'per_unit');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE frequency_type AS ENUM ('days', 'monthly', 'quarterly', 'semi_annual', 'annual');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE generation_method AS ENUM ('manual_single', 'manual_batch', 'scheduled', 'range');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE generation_status AS ENUM ('completed', 'partial', 'failed');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE allocation_status AS ENUM ('pending', 'allocated', 'refunded');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -425,6 +456,99 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
     );
 
+    CREATE TABLE IF NOT EXISTS quota_adjustments (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      quota_id UUID NOT NULL REFERENCES quotas(id) ON DELETE CASCADE,
+      previous_amount DECIMAL(15, 2) NOT NULL,
+      new_amount DECIMAL(15, 2) NOT NULL,
+      adjustment_type adjustment_type NOT NULL,
+      reason TEXT NOT NULL,
+      created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+      created_at TIMESTAMP DEFAULT NOW(),
+      CONSTRAINT check_amount_changed CHECK (previous_amount != new_amount)
+    );
+
+    CREATE TABLE IF NOT EXISTS quota_formulas (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      name VARCHAR(255) NOT NULL,
+      description TEXT,
+      formula_type formula_type NOT NULL,
+      fixed_amount DECIMAL(15, 2),
+      expression TEXT,
+      variables JSONB,
+      unit_amounts JSONB,
+      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
+      is_active BOOLEAN DEFAULT true,
+      created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      updated_at TIMESTAMP DEFAULT NOW(),
+      update_reason TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS quota_generation_rules (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
+      payment_concept_id UUID NOT NULL REFERENCES payment_concepts(id) ON DELETE CASCADE,
+      quota_formula_id UUID NOT NULL REFERENCES quota_formulas(id) ON DELETE RESTRICT,
+      name VARCHAR(255) NOT NULL,
+      description TEXT,
+      effective_from DATE NOT NULL,
+      effective_to DATE,
+      is_active BOOLEAN DEFAULT true,
+      created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      updated_at TIMESTAMP DEFAULT NOW(),
+      update_reason TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS quota_generation_schedules (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      quota_generation_rule_id UUID NOT NULL REFERENCES quota_generation_rules(id) ON DELETE CASCADE,
+      name VARCHAR(255) NOT NULL,
+      frequency_type frequency_type NOT NULL,
+      frequency_value INTEGER,
+      generation_day INTEGER NOT NULL,
+      periods_in_advance INTEGER DEFAULT 1,
+      issue_day INTEGER NOT NULL,
+      due_day INTEGER NOT NULL,
+      grace_days INTEGER DEFAULT 0,
+      is_active BOOLEAN DEFAULT true,
+      last_generated_period VARCHAR(20),
+      last_generated_at TIMESTAMP,
+      next_generation_date DATE,
+      created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      updated_at TIMESTAMP DEFAULT NOW(),
+      update_reason TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS quota_generation_logs (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      generation_rule_id UUID REFERENCES quota_generation_rules(id) ON DELETE SET NULL,
+      generation_schedule_id UUID REFERENCES quota_generation_schedules(id) ON DELETE SET NULL,
+      quota_formula_id UUID REFERENCES quota_formulas(id) ON DELETE SET NULL,
+      generation_method generation_method NOT NULL,
+      period_year INTEGER NOT NULL,
+      period_month INTEGER,
+      period_description VARCHAR(100),
+      quotas_created INTEGER NOT NULL DEFAULT 0,
+      quotas_failed INTEGER NOT NULL DEFAULT 0,
+      total_amount DECIMAL(15, 2),
+      currency_id UUID REFERENCES currencies(id) ON DELETE SET NULL,
+      units_affected UUID[],
+      parameters JSONB,
+      formula_snapshot JSONB,
+      status generation_status NOT NULL,
+      error_details TEXT,
+      generated_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+      generated_at TIMESTAMP DEFAULT NOW()
+    );
+
     CREATE TABLE IF NOT EXISTS payment_gateways (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(100) NOT NULL UNIQUE,
@@ -472,7 +596,10 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       metadata JSONB,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
-      registered_by UUID REFERENCES users(id) ON DELETE SET NULL
+      registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      verified_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      verified_at TIMESTAMP,
+      verification_notes TEXT
     );
 
     CREATE TABLE IF NOT EXISTS payment_applications (
@@ -484,6 +611,20 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       applied_to_interest DECIMAL(15, 2) DEFAULT 0,
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
       applied_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS payment_pending_allocations (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      payment_id UUID NOT NULL REFERENCES payments(id) ON DELETE CASCADE,
+      pending_amount DECIMAL(15, 2) NOT NULL,
+      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
+      status allocation_status NOT NULL DEFAULT 'pending',
+      resolution_type VARCHAR(50),
+      resolution_notes TEXT,
+      allocated_to_quota_id UUID REFERENCES quotas(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      allocated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      allocated_at TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS expense_categories (
@@ -578,6 +719,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW()
     );
   `)
+  const elapsed = performance.now() - start
+  console.log(`[TestContainer] createSchema took ${elapsed.toFixed(1)}ms`)
 }
 
 /**
@@ -604,6 +747,14 @@ export async function stopTestContainer(): Promise<void> {
     await adminClient.end()
     schemaName = null
   }
+
+  // Reset DatabaseService singleton to avoid state leaks between test files
+  try {
+    const { DatabaseService } = await import('@database/service')
+    DatabaseService.resetInstance()
+  } catch {
+    // Ignore if import fails
+  }
 }
 
 /**
@@ -611,6 +762,7 @@ export async function stopTestContainer(): Promise<void> {
  * Uses a single TRUNCATE command for better performance.
  */
 export async function cleanDatabase(testDb: TTestDrizzleClient): Promise<void> {
+  const start = performance.now()
   // Truncate all tables in one command for better performance
   await testDb.execute(sql`
     TRUNCATE TABLE
@@ -619,10 +771,16 @@ export async function cleanDatabase(testDb: TTestDrizzleClient): Promise<void> {
       documents,
       expenses,
       expense_categories,
+      payment_pending_allocations,
       payment_applications,
       payments,
       entity_payment_gateways,
       payment_gateways,
+      quota_generation_logs,
+      quota_generation_schedules,
+      quota_generation_rules,
+      quota_formulas,
+      quota_adjustments,
       quotas,
       interest_configurations,
       payment_concepts,
@@ -641,6 +799,10 @@ export async function cleanDatabase(testDb: TTestDrizzleClient): Promise<void> {
       locations
     CASCADE
   `)
+  const elapsed = performance.now() - start
+  if (elapsed > 50) {
+    console.log(`[TestContainer] cleanDatabase took ${elapsed.toFixed(1)}ms`)
+  }
 }
 
 /**
@@ -648,4 +810,73 @@ export async function cleanDatabase(testDb: TTestDrizzleClient): Promise<void> {
  */
 export function getTestDb(): TTestDrizzleClient | null {
   return db
+}
+
+// ============================================================================
+// Transaction-based test isolation (FASTER alternative to cleanDatabase)
+// ============================================================================
+
+type TTestTransaction = {
+  db: TTestDrizzleClient
+  rollback: () => Promise<void>
+}
+
+/**
+ * Begins a transaction for test isolation.
+ * Use this instead of cleanDatabase for ~10x faster test cleanup.
+ *
+ * Usage in tests:
+ * ```
+ * let rollback: () => Promise<void>
+ *
+ * beforeEach(async () => {
+ *   const tx = await beginTestTransaction()
+ *   rollback = tx.rollback
+ * })
+ *
+ * afterEach(async () => {
+ *   await rollback()
+ * })
+ * ```
+ */
+export async function beginTestTransaction(): Promise<TTestTransaction> {
+  if (!db || !client) {
+    throw new Error('Database not initialized. Call startTestContainer() first.')
+  }
+
+  const start = performance.now()
+
+  // Begin a transaction
+  await db.execute(sql`BEGIN`)
+
+  const rollback = async () => {
+    const rollbackStart = performance.now()
+    await db!.execute(sql`ROLLBACK`)
+    const elapsed = performance.now() - rollbackStart
+    if (elapsed > 10) {
+      console.log(`[TestContainer] rollback took ${elapsed.toFixed(1)}ms`)
+    }
+  }
+
+  const elapsed = performance.now() - start
+  if (elapsed > 10) {
+    console.log(`[TestContainer] beginTestTransaction took ${elapsed.toFixed(1)}ms`)
+  }
+
+  return { db, rollback }
+}
+
+/**
+ * Alternative: Use a wrapper that automatically handles transaction lifecycle.
+ * This is useful for tests that need transaction-based isolation.
+ */
+export async function withTestTransaction<T>(
+  fn: (db: TTestDrizzleClient) => Promise<T>
+): Promise<T> {
+  const tx = await beginTestTransaction()
+  try {
+    return await fn(tx.db)
+  } finally {
+    await tx.rollback()
+  }
 }

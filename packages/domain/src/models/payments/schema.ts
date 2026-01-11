@@ -41,7 +41,7 @@ export const paymentSchema = baseModelSchema.extend({
   paymentDate: dateField,
   registeredAt: timestampField,
   status: z.enum(EPaymentStatuses, { error: d.status.invalid }).default('completed'),
-  receiptUrl: z.string().url().nullable(),
+  receiptUrl: z.url().nullable(),
   receiptNumber: z.string().max(100).nullable(),
   notes: z.string().nullable(),
   metadata: z.record(z.string(), z.unknown()).nullable(),

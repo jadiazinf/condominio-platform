@@ -19,8 +19,14 @@ export * from './unit-ownerships'
 // Payments
 export * from './payment-concepts'
 export * from './quotas'
+export * from './quota-adjustments'
+export * from './quota-formulas'
+export * from './quota-generation-rules'
+export * from './quota-generation-schedules'
+export * from './quota-generation-logs'
 export * from './payments'
 export * from './payment-applications'
+export * from './payment-pending-allocations'
 export * from './payment-gateways'
 export * from './entity-payment-gateways'
 export * from './interest-configurations'
@@ -33,6 +39,13 @@ export * from './exchange-rates'
 // Communication
 export * from './documents'
 export * from './messages'
+
+// Notifications
+export * from './notification-templates'
+export * from './notifications'
+export * from './notification-deliveries'
+export * from './user-notification-preferences'
+export * from './user-fcm-tokens'
 
 // Audit
 export * from './audit-logs'

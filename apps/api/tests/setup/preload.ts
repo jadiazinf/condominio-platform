@@ -3,8 +3,14 @@ import { stopTestContainer } from './test-container'
 import fs from 'node:fs'
 import path from 'node:path'
 
-// 1. Manually load .env.test if it exists (Bun might do this, but we want to be sure)
-const envPath = path.resolve(process.cwd(), '.env.test')
+// 0. Set environment variables BEFORE any imports
+// Try to find .env.test in current directory or parent directories
+let envPath = path.resolve(process.cwd(), '.env.test')
+if (!fs.existsSync(envPath)) {
+  // If not in current directory, try in the API directory
+  envPath = path.resolve(__dirname, '../..', '.env.test')
+}
+
 if (fs.existsSync(envPath)) {
   const envConfig = fs.readFileSync(envPath, 'utf-8')
   envConfig.split('\n').forEach(line => {
@@ -13,12 +19,22 @@ if (fs.existsSync(envPath)) {
       const value = valueParts.join('=').trim()
       const trimmedKey = key.trim()
 
-      // Only set if not already set, to respect existing env vars
-      if (!process.env[trimmedKey]) {
-        process.env[trimmedKey] = value
-      }
+      // Set both process.env and Bun.env
+      process.env[trimmedKey] = value
+      // @ts-ignore - Bun.env is writable
+      Bun.env[trimmedKey] = value
     }
   })
+  console.log(`[Preload] Loaded environment from ${envPath}`)
+} else {
+  console.log(`[Preload] Could not find .env.test at ${envPath}`)
+}
+
+// Also set NODE_ENV to test if not set
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'test'
+  // @ts-ignore
+  Bun.env.NODE_ENV = 'test'
 }
 
 // 2. Special handling for FIREBASE_SERVICE_ACCOUNT
@@ -60,6 +76,26 @@ process.on('beforeExit', async () => {
   await stopTestContainer()
 })
 
+// Helper function to decode JWT payload and extract UID
+function decodeJwtPayload(token: string): string | null {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+
+    // Decode base64url payload
+    const payload = parts[1]
+    if (!payload) return null
+
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = atob(base64)
+    const decoded = JSON.parse(jsonPayload)
+
+    return decoded.sub || decoded.user_id || null
+  } catch {
+    return null
+  }
+}
+
 // Mock Firebase Admin SDK
 mock.module('@libs/firebase/config', () => {
   console.log('[Preload] Mocking @libs/firebase/config')
@@ -67,10 +103,19 @@ mock.module('@libs/firebase/config', () => {
     admin: {
       auth: () => ({
         verifyIdToken: async (token: string) => {
+          // Handle placeholder tokens (legacy format)
           if (token.startsWith('placeholder-token:')) {
             const uid = token.split(':')[1]
             return { uid }
           }
+
+          // Handle real JWT tokens - decode and extract UID
+          const uid = decodeJwtPayload(token)
+          if (uid) {
+            return { uid }
+          }
+
+          // Fallback for any other format
           return { uid: 'test-user-uid' }
         },
         createCustomToken: async (uid: string) => {
@@ -120,3 +165,5 @@ const createAuthMock = () => {
 // Mock both path alias and resolved paths for auth middleware
 mock.module('@http/middlewares/auth', createAuthMock)
 mock.module(path.resolve(process.cwd(), 'src/http/middlewares/auth.ts'), createAuthMock)
+mock.module(path.resolve(__dirname, '../../src/http/middlewares/auth.ts'), createAuthMock)
+mock.module('../../middlewares/auth', createAuthMock)

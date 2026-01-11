@@ -606,6 +606,322 @@ export const DomainLocaleDictionary = {
           invalid: 'validation.models.userRoles.registeredBy.invalid',
         },
       },
+      quotaAdjustments: {
+        quotaId: {
+          required: 'validation.models.quotaAdjustments.quotaId.required',
+          invalid: 'validation.models.quotaAdjustments.quotaId.invalid',
+        },
+        previousAmount: {
+          required: 'validation.models.quotaAdjustments.previousAmount.required',
+          invalid: 'validation.models.quotaAdjustments.previousAmount.invalid',
+        },
+        newAmount: {
+          required: 'validation.models.quotaAdjustments.newAmount.required',
+          invalid: 'validation.models.quotaAdjustments.newAmount.invalid',
+        },
+        adjustmentType: {
+          required: 'validation.models.quotaAdjustments.adjustmentType.required',
+          invalid: 'validation.models.quotaAdjustments.adjustmentType.invalid',
+        },
+        reason: {
+          required: 'validation.models.quotaAdjustments.reason.required',
+          min: 'validation.models.quotaAdjustments.reason.min',
+        },
+        createdBy: {
+          required: 'validation.models.quotaAdjustments.createdBy.required',
+          invalid: 'validation.models.quotaAdjustments.createdBy.invalid',
+        },
+      },
+      quotaFormulas: {
+        condominiumId: {
+          required: 'validation.models.quotaFormulas.condominiumId.required',
+          invalid: 'validation.models.quotaFormulas.condominiumId.invalid',
+        },
+        name: {
+          required: 'validation.models.quotaFormulas.name.required',
+          max: 'validation.models.quotaFormulas.name.max',
+        },
+        formulaType: {
+          required: 'validation.models.quotaFormulas.formulaType.required',
+          invalid: 'validation.models.quotaFormulas.formulaType.invalid',
+        },
+        fixedAmount: {
+          invalid: 'validation.models.quotaFormulas.fixedAmount.invalid',
+        },
+        expression: {
+          invalid: 'validation.models.quotaFormulas.expression.invalid',
+        },
+        currencyId: {
+          required: 'validation.models.quotaFormulas.currencyId.required',
+          invalid: 'validation.models.quotaFormulas.currencyId.invalid',
+        },
+        createdBy: {
+          required: 'validation.models.quotaFormulas.createdBy.required',
+          invalid: 'validation.models.quotaFormulas.createdBy.invalid',
+        },
+        updatedBy: {
+          invalid: 'validation.models.quotaFormulas.updatedBy.invalid',
+        },
+      },
+      quotaGenerationRules: {
+        condominiumId: {
+          required: 'validation.models.quotaGenerationRules.condominiumId.required',
+          invalid: 'validation.models.quotaGenerationRules.condominiumId.invalid',
+        },
+        buildingId: {
+          invalid: 'validation.models.quotaGenerationRules.buildingId.invalid',
+        },
+        paymentConceptId: {
+          required: 'validation.models.quotaGenerationRules.paymentConceptId.required',
+          invalid: 'validation.models.quotaGenerationRules.paymentConceptId.invalid',
+        },
+        quotaFormulaId: {
+          required: 'validation.models.quotaGenerationRules.quotaFormulaId.required',
+          invalid: 'validation.models.quotaGenerationRules.quotaFormulaId.invalid',
+        },
+        name: {
+          required: 'validation.models.quotaGenerationRules.name.required',
+          max: 'validation.models.quotaGenerationRules.name.max',
+        },
+        effectiveFrom: {
+          required: 'validation.models.quotaGenerationRules.effectiveFrom.required',
+          invalid: 'validation.models.quotaGenerationRules.effectiveFrom.invalid',
+        },
+        effectiveTo: {
+          invalid: 'validation.models.quotaGenerationRules.effectiveTo.invalid',
+        },
+        createdBy: {
+          required: 'validation.models.quotaGenerationRules.createdBy.required',
+          invalid: 'validation.models.quotaGenerationRules.createdBy.invalid',
+        },
+        updatedBy: {
+          invalid: 'validation.models.quotaGenerationRules.updatedBy.invalid',
+        },
+      },
+      quotaGenerationSchedules: {
+        quotaGenerationRuleId: {
+          required: 'validation.models.quotaGenerationSchedules.quotaGenerationRuleId.required',
+          invalid: 'validation.models.quotaGenerationSchedules.quotaGenerationRuleId.invalid',
+        },
+        name: {
+          required: 'validation.models.quotaGenerationSchedules.name.required',
+          max: 'validation.models.quotaGenerationSchedules.name.max',
+        },
+        frequencyType: {
+          required: 'validation.models.quotaGenerationSchedules.frequencyType.required',
+          invalid: 'validation.models.quotaGenerationSchedules.frequencyType.invalid',
+        },
+        frequencyValue: {
+          invalid: 'validation.models.quotaGenerationSchedules.frequencyValue.invalid',
+          min: 'validation.models.quotaGenerationSchedules.frequencyValue.min',
+        },
+        generationDay: {
+          required: 'validation.models.quotaGenerationSchedules.generationDay.required',
+          min: 'validation.models.quotaGenerationSchedules.generationDay.min',
+          max: 'validation.models.quotaGenerationSchedules.generationDay.max',
+        },
+        periodsInAdvance: {
+          min: 'validation.models.quotaGenerationSchedules.periodsInAdvance.min',
+        },
+        issueDay: {
+          required: 'validation.models.quotaGenerationSchedules.issueDay.required',
+          min: 'validation.models.quotaGenerationSchedules.issueDay.min',
+          max: 'validation.models.quotaGenerationSchedules.issueDay.max',
+        },
+        dueDay: {
+          required: 'validation.models.quotaGenerationSchedules.dueDay.required',
+          min: 'validation.models.quotaGenerationSchedules.dueDay.min',
+          max: 'validation.models.quotaGenerationSchedules.dueDay.max',
+        },
+        graceDays: {
+          min: 'validation.models.quotaGenerationSchedules.graceDays.min',
+        },
+        createdBy: {
+          required: 'validation.models.quotaGenerationSchedules.createdBy.required',
+          invalid: 'validation.models.quotaGenerationSchedules.createdBy.invalid',
+        },
+        updatedBy: {
+          invalid: 'validation.models.quotaGenerationSchedules.updatedBy.invalid',
+        },
+      },
+      quotaGenerationLogs: {
+        generationRuleId: {
+          invalid: 'validation.models.quotaGenerationLogs.generationRuleId.invalid',
+        },
+        generationScheduleId: {
+          invalid: 'validation.models.quotaGenerationLogs.generationScheduleId.invalid',
+        },
+        quotaFormulaId: {
+          invalid: 'validation.models.quotaGenerationLogs.quotaFormulaId.invalid',
+        },
+        generationMethod: {
+          required: 'validation.models.quotaGenerationLogs.generationMethod.required',
+          invalid: 'validation.models.quotaGenerationLogs.generationMethod.invalid',
+        },
+        periodYear: {
+          required: 'validation.models.quotaGenerationLogs.periodYear.required',
+          invalid: 'validation.models.quotaGenerationLogs.periodYear.invalid',
+        },
+        periodMonth: {
+          min: 'validation.models.quotaGenerationLogs.periodMonth.min',
+          max: 'validation.models.quotaGenerationLogs.periodMonth.max',
+        },
+        status: {
+          required: 'validation.models.quotaGenerationLogs.status.required',
+          invalid: 'validation.models.quotaGenerationLogs.status.invalid',
+        },
+        generatedBy: {
+          required: 'validation.models.quotaGenerationLogs.generatedBy.required',
+          invalid: 'validation.models.quotaGenerationLogs.generatedBy.invalid',
+        },
+      },
+      paymentPendingAllocations: {
+        paymentId: {
+          required: 'validation.models.paymentPendingAllocations.paymentId.required',
+          invalid: 'validation.models.paymentPendingAllocations.paymentId.invalid',
+        },
+        pendingAmount: {
+          required: 'validation.models.paymentPendingAllocations.pendingAmount.required',
+          invalid: 'validation.models.paymentPendingAllocations.pendingAmount.invalid',
+        },
+        currencyId: {
+          required: 'validation.models.paymentPendingAllocations.currencyId.required',
+          invalid: 'validation.models.paymentPendingAllocations.currencyId.invalid',
+        },
+        status: {
+          required: 'validation.models.paymentPendingAllocations.status.required',
+          invalid: 'validation.models.paymentPendingAllocations.status.invalid',
+        },
+        resolutionType: {
+          max: 'validation.models.paymentPendingAllocations.resolutionType.max',
+        },
+        allocatedToQuotaId: {
+          invalid: 'validation.models.paymentPendingAllocations.allocatedToQuotaId.invalid',
+        },
+        allocatedBy: {
+          invalid: 'validation.models.paymentPendingAllocations.allocatedBy.invalid',
+        },
+      },
+      notificationTemplates: {
+        code: {
+          required: 'validation.models.notificationTemplates.code.required',
+          min: 'validation.models.notificationTemplates.code.min',
+          max: 'validation.models.notificationTemplates.code.max',
+        },
+        name: {
+          required: 'validation.models.notificationTemplates.name.required',
+          min: 'validation.models.notificationTemplates.name.min',
+          max: 'validation.models.notificationTemplates.name.max',
+        },
+        category: {
+          required: 'validation.models.notificationTemplates.category.required',
+          invalid: 'validation.models.notificationTemplates.category.invalid',
+        },
+        subjectTemplate: {
+          max: 'validation.models.notificationTemplates.subjectTemplate.max',
+        },
+        bodyTemplate: {
+          required: 'validation.models.notificationTemplates.bodyTemplate.required',
+        },
+        defaultChannels: {
+          invalid: 'validation.models.notificationTemplates.defaultChannels.invalid',
+        },
+        createdBy: {
+          invalid: 'validation.models.notificationTemplates.createdBy.invalid',
+        },
+      },
+      notifications: {
+        userId: {
+          required: 'validation.models.notifications.userId.required',
+          invalid: 'validation.models.notifications.userId.invalid',
+        },
+        templateId: {
+          invalid: 'validation.models.notifications.templateId.invalid',
+        },
+        category: {
+          required: 'validation.models.notifications.category.required',
+          invalid: 'validation.models.notifications.category.invalid',
+        },
+        title: {
+          required: 'validation.models.notifications.title.required',
+          min: 'validation.models.notifications.title.min',
+          max: 'validation.models.notifications.title.max',
+        },
+        body: {
+          required: 'validation.models.notifications.body.required',
+        },
+        priority: {
+          invalid: 'validation.models.notifications.priority.invalid',
+        },
+        readAt: {
+          invalid: 'validation.models.notifications.readAt.invalid',
+        },
+        expiresAt: {
+          invalid: 'validation.models.notifications.expiresAt.invalid',
+        },
+      },
+      notificationDeliveries: {
+        notificationId: {
+          required: 'validation.models.notificationDeliveries.notificationId.required',
+          invalid: 'validation.models.notificationDeliveries.notificationId.invalid',
+        },
+        channel: {
+          required: 'validation.models.notificationDeliveries.channel.required',
+          invalid: 'validation.models.notificationDeliveries.channel.invalid',
+        },
+        status: {
+          invalid: 'validation.models.notificationDeliveries.status.invalid',
+        },
+        sentAt: {
+          invalid: 'validation.models.notificationDeliveries.sentAt.invalid',
+        },
+        deliveredAt: {
+          invalid: 'validation.models.notificationDeliveries.deliveredAt.invalid',
+        },
+        failedAt: {
+          invalid: 'validation.models.notificationDeliveries.failedAt.invalid',
+        },
+        externalId: {
+          max: 'validation.models.notificationDeliveries.externalId.max',
+        },
+      },
+      userNotificationPreferences: {
+        userId: {
+          required: 'validation.models.userNotificationPreferences.userId.required',
+          invalid: 'validation.models.userNotificationPreferences.userId.invalid',
+        },
+        category: {
+          required: 'validation.models.userNotificationPreferences.category.required',
+          invalid: 'validation.models.userNotificationPreferences.category.invalid',
+        },
+        channel: {
+          required: 'validation.models.userNotificationPreferences.channel.required',
+          invalid: 'validation.models.userNotificationPreferences.channel.invalid',
+        },
+        quietHoursStart: {
+          invalid: 'validation.models.userNotificationPreferences.quietHoursStart.invalid',
+        },
+        quietHoursEnd: {
+          invalid: 'validation.models.userNotificationPreferences.quietHoursEnd.invalid',
+        },
+      },
+      userFcmTokens: {
+        userId: {
+          required: 'validation.models.userFcmTokens.userId.required',
+          invalid: 'validation.models.userFcmTokens.userId.invalid',
+        },
+        token: {
+          required: 'validation.models.userFcmTokens.token.required',
+          max: 'validation.models.userFcmTokens.token.max',
+        },
+        platform: {
+          required: 'validation.models.userFcmTokens.platform.required',
+          invalid: 'validation.models.userFcmTokens.platform.invalid',
+        },
+        deviceName: {
+          max: 'validation.models.userFcmTokens.deviceName.max',
+        },
+      },
     },
   },
 }

@@ -86,6 +86,28 @@ export const priorityEnum = pgEnum('priority', ['low', 'normal', 'high', 'urgent
 
 export const auditActionEnum = pgEnum('audit_action', ['INSERT', 'UPDATE', 'DELETE'])
 
+// Notification enums
+export const notificationCategoryEnum = pgEnum('notification_category', [
+  'payment',
+  'quota',
+  'announcement',
+  'reminder',
+  'alert',
+  'system',
+])
+
+export const notificationChannelEnum = pgEnum('notification_channel', ['in_app', 'email', 'push'])
+
+export const devicePlatformEnum = pgEnum('device_platform', ['web', 'ios', 'android'])
+
+export const deliveryStatusEnum = pgEnum('delivery_status', [
+  'pending',
+  'sent',
+  'delivered',
+  'failed',
+  'bounced',
+])
+
 // ============================================================================
 // MÓDULO: LOCACIONES (País/Provincia/Ciudad)
 // ============================================================================
@@ -667,6 +689,282 @@ export const quotas = pgTable(
 )
 
 // ============================================================================
+// MÓDULO: AJUSTES DE CUOTAS (Auditoría)
+// ============================================================================
+
+export const adjustmentTypeEnum = pgEnum('adjustment_type', [
+  'discount',
+  'increase',
+  'correction',
+  'waiver',
+])
+
+export const formulaTypeEnum = pgEnum('formula_type', ['fixed', 'expression', 'per_unit'])
+
+export const frequencyTypeEnum = pgEnum('frequency_type', [
+  'days',
+  'monthly',
+  'quarterly',
+  'semi_annual',
+  'annual',
+])
+
+export const generationMethodEnum = pgEnum('generation_method', [
+  'manual_single',
+  'manual_batch',
+  'scheduled',
+  'range',
+])
+
+export const generationStatusEnum = pgEnum('generation_status', ['completed', 'partial', 'failed'])
+
+export const allocationStatusEnum = pgEnum('allocation_status', [
+  'pending',
+  'allocated',
+  'refunded',
+])
+
+export const quotaAdjustments = pgTable(
+  'quota_adjustments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    quotaId: uuid('quota_id')
+      .notNull()
+      .references(() => quotas.id, { onDelete: 'cascade' }),
+    previousAmount: decimal('previous_amount', { precision: 15, scale: 2 }).notNull(),
+    newAmount: decimal('new_amount', { precision: 15, scale: 2 }).notNull(),
+    adjustmentType: adjustmentTypeEnum('adjustment_type').notNull(),
+    reason: text('reason').notNull(),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  table => [
+    index('idx_quota_adjustments_quota').on(table.quotaId),
+    index('idx_quota_adjustments_created_by').on(table.createdBy),
+    index('idx_quota_adjustments_type').on(table.adjustmentType),
+    check('check_amount_changed', sql`previous_amount != new_amount`),
+  ]
+)
+
+// ============================================================================
+// MÓDULO: FÓRMULAS Y GENERACIÓN DE CUOTAS
+// ============================================================================
+
+/**
+ * Plantillas reutilizables para calcular montos de cuotas.
+ * Pueden ser usadas por múltiples conceptos de pago.
+ */
+export const quotaFormulas = pgTable(
+  'quota_formulas',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    condominiumId: uuid('condominium_id')
+      .notNull()
+      .references(() => condominiums.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: text('description'),
+    formulaType: formulaTypeEnum('formula_type').notNull(),
+    // Para formula_type = 'fixed'
+    fixedAmount: decimal('fixed_amount', { precision: 15, scale: 2 }),
+    // Para formula_type = 'expression'
+    expression: text('expression'),
+    variables: jsonb('variables'),
+    // Para formula_type = 'per_unit'
+    unitAmounts: jsonb('unit_amounts'),
+    currencyId: uuid('currency_id')
+      .notNull()
+      .references(() => currencies.id, { onDelete: 'restrict' }),
+    isActive: boolean('is_active').default(true),
+    // Trazabilidad
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedBy: uuid('updated_by').references(() => users.id, { onDelete: 'set null' }),
+    updatedAt: timestamp('updated_at').defaultNow(),
+    updateReason: text('update_reason'),
+  },
+  table => [
+    index('idx_quota_formulas_condominium').on(table.condominiumId),
+    index('idx_quota_formulas_type').on(table.formulaType),
+    index('idx_quota_formulas_active').on(table.isActive),
+    index('idx_quota_formulas_created_by').on(table.createdBy),
+  ]
+)
+
+/**
+ * Vincula una fórmula a un concepto de pago con vigencia.
+ */
+export const quotaGenerationRules = pgTable(
+  'quota_generation_rules',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    condominiumId: uuid('condominium_id')
+      .notNull()
+      .references(() => condominiums.id, { onDelete: 'cascade' }),
+    buildingId: uuid('building_id').references(() => buildings.id, { onDelete: 'cascade' }),
+    paymentConceptId: uuid('payment_concept_id')
+      .notNull()
+      .references(() => paymentConcepts.id, { onDelete: 'cascade' }),
+    quotaFormulaId: uuid('quota_formula_id')
+      .notNull()
+      .references(() => quotaFormulas.id, { onDelete: 'restrict' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: text('description'),
+    // Vigencia
+    effectiveFrom: date('effective_from').notNull(),
+    effectiveTo: date('effective_to'),
+    isActive: boolean('is_active').default(true),
+    // Trazabilidad
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedBy: uuid('updated_by').references(() => users.id, { onDelete: 'set null' }),
+    updatedAt: timestamp('updated_at').defaultNow(),
+    updateReason: text('update_reason'),
+  },
+  table => [
+    index('idx_quota_gen_rules_condominium').on(table.condominiumId),
+    index('idx_quota_gen_rules_building').on(table.buildingId),
+    index('idx_quota_gen_rules_concept').on(table.paymentConceptId),
+    index('idx_quota_gen_rules_formula').on(table.quotaFormulaId),
+    index('idx_quota_gen_rules_dates').on(table.effectiveFrom, table.effectiveTo),
+    index('idx_quota_gen_rules_active').on(table.isActive),
+    index('idx_quota_gen_rules_created_by').on(table.createdBy),
+  ]
+)
+
+/**
+ * Configuración de generación automática con frecuencia flexible.
+ */
+export const quotaGenerationSchedules = pgTable(
+  'quota_generation_schedules',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    quotaGenerationRuleId: uuid('quota_generation_rule_id')
+      .notNull()
+      .references(() => quotaGenerationRules.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    // Frecuencia flexible
+    frequencyType: frequencyTypeEnum('frequency_type').notNull(),
+    frequencyValue: integer('frequency_value'), // Días si 'days', día del mes si 'monthly', etc.
+    generationDay: integer('generation_day').notNull(), // Día para ejecutar (1-28)
+    periodsInAdvance: integer('periods_in_advance').default(1),
+    // Fechas de la cuota generada
+    issueDay: integer('issue_day').notNull(),
+    dueDay: integer('due_day').notNull(),
+    graceDays: integer('grace_days').default(0),
+    // Control de ejecución
+    isActive: boolean('is_active').default(true),
+    lastGeneratedPeriod: varchar('last_generated_period', { length: 20 }),
+    lastGeneratedAt: timestamp('last_generated_at'),
+    nextGenerationDate: date('next_generation_date'),
+    // Trazabilidad
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedBy: uuid('updated_by').references(() => users.id, { onDelete: 'set null' }),
+    updatedAt: timestamp('updated_at').defaultNow(),
+    updateReason: text('update_reason'),
+  },
+  table => [
+    index('idx_quota_gen_schedules_rule').on(table.quotaGenerationRuleId),
+    index('idx_quota_gen_schedules_frequency').on(table.frequencyType),
+    index('idx_quota_gen_schedules_active').on(table.isActive),
+    index('idx_quota_gen_schedules_next').on(table.nextGenerationDate),
+    index('idx_quota_gen_schedules_created_by').on(table.createdBy),
+  ]
+)
+
+/**
+ * Auditoría de todas las generaciones de cuotas.
+ */
+export const quotaGenerationLogs = pgTable(
+  'quota_generation_logs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    generationRuleId: uuid('generation_rule_id').references(() => quotaGenerationRules.id, {
+      onDelete: 'set null',
+    }),
+    generationScheduleId: uuid('generation_schedule_id').references(
+      () => quotaGenerationSchedules.id,
+      { onDelete: 'set null' }
+    ),
+    quotaFormulaId: uuid('quota_formula_id').references(() => quotaFormulas.id, {
+      onDelete: 'set null',
+    }),
+    generationMethod: generationMethodEnum('generation_method').notNull(),
+    periodYear: integer('period_year').notNull(),
+    periodMonth: integer('period_month'),
+    periodDescription: varchar('period_description', { length: 100 }),
+    // Resultados
+    quotasCreated: integer('quotas_created').notNull().default(0),
+    quotasFailed: integer('quotas_failed').notNull().default(0),
+    totalAmount: decimal('total_amount', { precision: 15, scale: 2 }),
+    currencyId: uuid('currency_id').references(() => currencies.id, { onDelete: 'set null' }),
+    unitsAffected: uuid('units_affected').array(),
+    // Detalles
+    parameters: jsonb('parameters'),
+    formulaSnapshot: jsonb('formula_snapshot'),
+    status: generationStatusEnum('status').notNull(),
+    errorDetails: text('error_details'),
+    // Trazabilidad
+    generatedBy: uuid('generated_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    generatedAt: timestamp('generated_at').defaultNow(),
+  },
+  table => [
+    index('idx_quota_gen_logs_rule').on(table.generationRuleId),
+    index('idx_quota_gen_logs_schedule').on(table.generationScheduleId),
+    index('idx_quota_gen_logs_formula').on(table.quotaFormulaId),
+    index('idx_quota_gen_logs_method').on(table.generationMethod),
+    index('idx_quota_gen_logs_period').on(table.periodYear, table.periodMonth),
+    index('idx_quota_gen_logs_status').on(table.status),
+    index('idx_quota_gen_logs_generated_by').on(table.generatedBy),
+    index('idx_quota_gen_logs_generated_at').on(table.generatedAt),
+  ]
+)
+
+/**
+ * Excedentes de pagos pendientes de asignación administrativa.
+ */
+export const paymentPendingAllocations = pgTable(
+  'payment_pending_allocations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    paymentId: uuid('payment_id')
+      .notNull()
+      .references(() => payments.id, { onDelete: 'cascade' }),
+    pendingAmount: decimal('pending_amount', { precision: 15, scale: 2 }).notNull(),
+    currencyId: uuid('currency_id')
+      .notNull()
+      .references(() => currencies.id, { onDelete: 'restrict' }),
+    status: allocationStatusEnum('status').notNull().default('pending'),
+    // Resolución
+    resolutionType: varchar('resolution_type', { length: 50 }),
+    resolutionNotes: text('resolution_notes'),
+    allocatedToQuotaId: uuid('allocated_to_quota_id').references(() => quotas.id, {
+      onDelete: 'set null',
+    }),
+    // Trazabilidad
+    createdAt: timestamp('created_at').defaultNow(),
+    allocatedBy: uuid('allocated_by').references(() => users.id, { onDelete: 'set null' }),
+    allocatedAt: timestamp('allocated_at'),
+  },
+  table => [
+    index('idx_payment_pending_alloc_payment').on(table.paymentId),
+    index('idx_payment_pending_alloc_status').on(table.status),
+    index('idx_payment_pending_alloc_quota').on(table.allocatedToQuotaId),
+    index('idx_payment_pending_alloc_allocated_by').on(table.allocatedBy),
+  ]
+)
+
+// ============================================================================
 // MÓDULO: PASARELAS DE PAGO
 // ============================================================================
 
@@ -998,6 +1296,155 @@ export const messages = pgTable(
 )
 
 // ============================================================================
+// MÓDULO: NOTIFICACIONES
+// ============================================================================
+
+/**
+ * Plantillas de notificaciones reutilizables con variables.
+ */
+export const notificationTemplates = pgTable(
+  'notification_templates',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    code: varchar('code', { length: 100 }).notNull().unique(),
+    name: varchar('name', { length: 255 }).notNull(),
+    category: notificationCategoryEnum('category').notNull(),
+    subjectTemplate: varchar('subject_template', { length: 500 }),
+    bodyTemplate: text('body_template').notNull(),
+    variables: jsonb('variables'), // Array of variable names: ['user_name', 'amount']
+    defaultChannels: jsonb('default_channels').default(['in_app']), // Array: ['in_app', 'email']
+    isActive: boolean('is_active').default(true),
+    metadata: jsonb('metadata'),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+  },
+  table => [
+    index('idx_notification_templates_code').on(table.code),
+    index('idx_notification_templates_category').on(table.category),
+    index('idx_notification_templates_active').on(table.isActive),
+    index('idx_notification_templates_created_by').on(table.createdBy),
+  ]
+)
+
+/**
+ * Notificaciones enviadas a usuarios.
+ */
+export const notifications = pgTable(
+  'notifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    templateId: uuid('template_id').references(() => notificationTemplates.id, {
+      onDelete: 'set null',
+    }),
+    category: notificationCategoryEnum('category').notNull(),
+    title: varchar('title', { length: 255 }).notNull(),
+    body: text('body').notNull(),
+    priority: priorityEnum('priority').default('normal'),
+    data: jsonb('data'), // Additional data (links, action buttons, etc.)
+    isRead: boolean('is_read').default(false),
+    readAt: timestamp('read_at'),
+    expiresAt: timestamp('expires_at'),
+    metadata: jsonb('metadata'),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  table => [
+    index('idx_notifications_user').on(table.userId),
+    index('idx_notifications_template').on(table.templateId),
+    index('idx_notifications_category').on(table.category),
+    index('idx_notifications_read').on(table.userId, table.isRead),
+    index('idx_notifications_created').on(table.createdAt),
+  ]
+)
+
+/**
+ * Estado de entrega de notificaciones por canal.
+ */
+export const notificationDeliveries = pgTable(
+  'notification_deliveries',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    notificationId: uuid('notification_id')
+      .notNull()
+      .references(() => notifications.id, { onDelete: 'cascade' }),
+    channel: notificationChannelEnum('channel').notNull(),
+    status: deliveryStatusEnum('status').default('pending'),
+    sentAt: timestamp('sent_at'),
+    deliveredAt: timestamp('delivered_at'),
+    failedAt: timestamp('failed_at'),
+    errorMessage: text('error_message'),
+    retryCount: integer('retry_count').default(0),
+    externalId: varchar('external_id', { length: 255 }), // Email provider ID
+    metadata: jsonb('metadata'),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  table => [
+    index('idx_notification_deliveries_notification').on(table.notificationId),
+    index('idx_notification_deliveries_channel').on(table.channel),
+    index('idx_notification_deliveries_status').on(table.status),
+    uniqueIndex('idx_notification_deliveries_unique').on(table.notificationId, table.channel),
+  ]
+)
+
+/**
+ * Preferencias de notificación por usuario, categoría y canal.
+ */
+export const userNotificationPreferences = pgTable(
+  'user_notification_preferences',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    category: notificationCategoryEnum('category').notNull(),
+    channel: notificationChannelEnum('channel').notNull(),
+    isEnabled: boolean('is_enabled').default(true),
+    quietHoursStart: varchar('quiet_hours_start', { length: 5 }), // "22:00" format
+    quietHoursEnd: varchar('quiet_hours_end', { length: 5 }), // "08:00" format
+    metadata: jsonb('metadata'),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+  },
+  table => [
+    index('idx_user_notification_prefs_user').on(table.userId),
+    index('idx_user_notification_prefs_category').on(table.category),
+    index('idx_user_notification_prefs_channel').on(table.channel),
+    uniqueIndex('idx_user_notification_prefs_unique').on(table.userId, table.category, table.channel),
+  ]
+)
+
+/**
+ * Tokens FCM de usuarios para push notifications.
+ * Un usuario puede tener múltiples tokens (múltiples dispositivos).
+ */
+export const userFcmTokens = pgTable(
+  'user_fcm_tokens',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    token: varchar('token', { length: 500 }).notNull(),
+    platform: devicePlatformEnum('platform').notNull(),
+    deviceName: varchar('device_name', { length: 255 }),
+    isActive: boolean('is_active').default(true),
+    lastUsedAt: timestamp('last_used_at'),
+    metadata: jsonb('metadata'),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+  },
+  table => [
+    index('idx_user_fcm_tokens_user').on(table.userId),
+    index('idx_user_fcm_tokens_token').on(table.token),
+    index('idx_user_fcm_tokens_active').on(table.userId, table.isActive),
+    uniqueIndex('idx_user_fcm_tokens_unique').on(table.userId, table.token),
+  ]
+)
+
+// ============================================================================
 // MÓDULO: AUDITORÍA
 // ============================================================================
 
@@ -1098,6 +1545,9 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   payments: many(payments),
   messages: many(messages),
   documents: many(documents),
+  notifications: many(notifications),
+  notificationPreferences: many(userNotificationPreferences),
+  fcmTokens: many(userFcmTokens),
 }))
 
 export const permissionsRelations = relations(permissions, ({ one, many }) => ({
@@ -1196,6 +1646,8 @@ export const condominiumsRelations = relations(condominiums, ({ one, many }) => 
   expenses: many(expenses),
   documents: many(documents),
   messages: many(messages),
+  quotaFormulas: many(quotaFormulas),
+  quotaGenerationRules: many(quotaGenerationRules),
 }))
 
 export const buildingsRelations = relations(buildings, ({ one, many }) => ({
@@ -1215,6 +1667,7 @@ export const buildingsRelations = relations(buildings, ({ one, many }) => ({
   expenses: many(expenses),
   documents: many(documents),
   messages: many(messages),
+  quotaGenerationRules: many(quotaGenerationRules),
 }))
 
 export const unitsRelations = relations(units, ({ one, many }) => ({
@@ -1263,6 +1716,7 @@ export const paymentConceptsRelations = relations(paymentConcepts, ({ one, many 
   }),
   interestConfigurations: many(interestConfigurations),
   quotas: many(quotas),
+  generationRules: many(quotaGenerationRules),
 }))
 
 export const interestConfigurationsRelations = relations(interestConfigurations, ({ one }) => ({
@@ -1307,7 +1761,132 @@ export const quotasRelations = relations(quotas, ({ one, many }) => ({
   }),
   paymentApplications: many(paymentApplications),
   documents: many(documents),
+  adjustments: many(quotaAdjustments),
+  allocatedFromPending: many(paymentPendingAllocations),
 }))
+
+export const quotaAdjustmentsRelations = relations(quotaAdjustments, ({ one }) => ({
+  quota: one(quotas, {
+    fields: [quotaAdjustments.quotaId],
+    references: [quotas.id],
+  }),
+  createdByUser: one(users, {
+    fields: [quotaAdjustments.createdBy],
+    references: [users.id],
+  }),
+}))
+
+export const quotaFormulasRelations = relations(quotaFormulas, ({ one, many }) => ({
+  condominium: one(condominiums, {
+    fields: [quotaFormulas.condominiumId],
+    references: [condominiums.id],
+  }),
+  currency: one(currencies, {
+    fields: [quotaFormulas.currencyId],
+    references: [currencies.id],
+  }),
+  createdByUser: one(users, {
+    fields: [quotaFormulas.createdBy],
+    references: [users.id],
+  }),
+  updatedByUser: one(users, {
+    fields: [quotaFormulas.updatedBy],
+    references: [users.id],
+  }),
+  generationRules: many(quotaGenerationRules),
+}))
+
+export const quotaGenerationRulesRelations = relations(quotaGenerationRules, ({ one, many }) => ({
+  condominium: one(condominiums, {
+    fields: [quotaGenerationRules.condominiumId],
+    references: [condominiums.id],
+  }),
+  building: one(buildings, {
+    fields: [quotaGenerationRules.buildingId],
+    references: [buildings.id],
+  }),
+  paymentConcept: one(paymentConcepts, {
+    fields: [quotaGenerationRules.paymentConceptId],
+    references: [paymentConcepts.id],
+  }),
+  quotaFormula: one(quotaFormulas, {
+    fields: [quotaGenerationRules.quotaFormulaId],
+    references: [quotaFormulas.id],
+  }),
+  createdByUser: one(users, {
+    fields: [quotaGenerationRules.createdBy],
+    references: [users.id],
+  }),
+  updatedByUser: one(users, {
+    fields: [quotaGenerationRules.updatedBy],
+    references: [users.id],
+  }),
+  schedules: many(quotaGenerationSchedules),
+  logs: many(quotaGenerationLogs),
+}))
+
+export const quotaGenerationSchedulesRelations = relations(
+  quotaGenerationSchedules,
+  ({ one }) => ({
+    generationRule: one(quotaGenerationRules, {
+      fields: [quotaGenerationSchedules.quotaGenerationRuleId],
+      references: [quotaGenerationRules.id],
+    }),
+    createdByUser: one(users, {
+      fields: [quotaGenerationSchedules.createdBy],
+      references: [users.id],
+    }),
+    updatedByUser: one(users, {
+      fields: [quotaGenerationSchedules.updatedBy],
+      references: [users.id],
+    }),
+  })
+)
+
+export const quotaGenerationLogsRelations = relations(quotaGenerationLogs, ({ one }) => ({
+  generationRule: one(quotaGenerationRules, {
+    fields: [quotaGenerationLogs.generationRuleId],
+    references: [quotaGenerationRules.id],
+  }),
+  generationSchedule: one(quotaGenerationSchedules, {
+    fields: [quotaGenerationLogs.generationScheduleId],
+    references: [quotaGenerationSchedules.id],
+  }),
+  quotaFormula: one(quotaFormulas, {
+    fields: [quotaGenerationLogs.quotaFormulaId],
+    references: [quotaFormulas.id],
+  }),
+  currency: one(currencies, {
+    fields: [quotaGenerationLogs.currencyId],
+    references: [currencies.id],
+  }),
+  generatedByUser: one(users, {
+    fields: [quotaGenerationLogs.generatedBy],
+    references: [users.id],
+  }),
+}))
+
+export const paymentPendingAllocationsRelations = relations(
+  paymentPendingAllocations,
+  ({ one }) => ({
+    payment: one(payments, {
+      fields: [paymentPendingAllocations.paymentId],
+      references: [payments.id],
+    }),
+    currency: one(currencies, {
+      fields: [paymentPendingAllocations.currencyId],
+      references: [currencies.id],
+    }),
+    allocatedToQuota: one(quotas, {
+      fields: [paymentPendingAllocations.allocatedToQuotaId],
+      references: [quotas.id],
+    }),
+    allocatedByUser: one(users, {
+      fields: [paymentPendingAllocations.allocatedBy],
+      references: [users.id],
+    }),
+  })
+)
 
 export const paymentGatewaysRelations = relations(paymentGateways, ({ one, many }) => ({
   registeredByUser: one(users, {
@@ -1364,6 +1943,7 @@ export const paymentsRelations = relations(payments, ({ one, many }) => ({
   }),
   paymentApplications: many(paymentApplications),
   documents: many(documents),
+  pendingAllocations: many(paymentPendingAllocations),
 }))
 
 export const paymentApplicationsRelations = relations(paymentApplications, ({ one }) => ({
@@ -1488,6 +2068,54 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   user: one(users, {
     fields: [auditLogs.userId],
+    references: [users.id],
+  }),
+}))
+
+// ============================================================================
+// RELATIONS: NOTIFICACIONES
+// ============================================================================
+
+export const notificationTemplatesRelations = relations(notificationTemplates, ({ one, many }) => ({
+  createdByUser: one(users, {
+    fields: [notificationTemplates.createdBy],
+    references: [users.id],
+  }),
+  notifications: many(notifications),
+}))
+
+export const notificationsRelations = relations(notifications, ({ one, many }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+  template: one(notificationTemplates, {
+    fields: [notifications.templateId],
+    references: [notificationTemplates.id],
+  }),
+  deliveries: many(notificationDeliveries),
+}))
+
+export const notificationDeliveriesRelations = relations(notificationDeliveries, ({ one }) => ({
+  notification: one(notifications, {
+    fields: [notificationDeliveries.notificationId],
+    references: [notifications.id],
+  }),
+}))
+
+export const userNotificationPreferencesRelations = relations(
+  userNotificationPreferences,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userNotificationPreferences.userId],
+      references: [users.id],
+    }),
+  })
+)
+
+export const userFcmTokensRelations = relations(userFcmTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [userFcmTokens.userId],
     references: [users.id],
   }),
 }))
