@@ -38,9 +38,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         )}
       >
         <Providers themeProps={{ attribute: 'class', defaultTheme: 'light' }}>
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
+          <div className="relative flex flex-col min-h-screen">
+            <Navbar />
+            <main className="container mx-auto max-w-7xl pt-16 px-6 flex-grow">{children}</main>
+            <div className="container mx-auto max-w-7xl px-6">
+              <Footer />
+            </div>
+          </div>
         </Providers>
       </body>
     </html>
