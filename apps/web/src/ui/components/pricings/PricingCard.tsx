@@ -1,13 +1,13 @@
 'use client'
 
+import type { Frequency, Tier } from './pricing-types'
+
 import { Button } from '@heroui/button'
 import { Card, CardBody, CardFooter, CardHeader } from '@heroui/card'
 import { Chip } from '@heroui/chip'
 import { Divider } from '@heroui/divider'
 import { Link } from '@heroui/link'
 import { cn } from '@heroui/theme'
-
-import type { Frequency, Tier } from './pricing-types'
 
 interface PricingCardProps {
   tier: Tier
@@ -33,8 +33,8 @@ export function PricingCard({ tier, selectedFrequency }: PricingCardProps) {
         <Chip
           className="absolute top-4 right-4 font-semibold"
           color="primary"
-          variant="solid"
           size="sm"
+          variant="solid"
         >
           Mas Popular
         </Chip>
@@ -59,9 +59,7 @@ export function PricingCard({ tier, selectedFrequency }: PricingCardProps) {
               <div
                 className={cn(
                   'w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold',
-                  tier.mostPopular
-                    ? 'bg-primary text-white'
-                    : 'bg-secondary text-white'
+                  tier.mostPopular ? 'bg-primary text-white' : 'bg-secondary text-white'
                 )}
               >
                 ✓
@@ -73,16 +71,16 @@ export function PricingCard({ tier, selectedFrequency }: PricingCardProps) {
       </CardBody>
       <CardFooter className="pt-2">
         <Button
-          as={Link}
-          href={tier.href}
           fullWidth
-          color={tier.mostPopular ? 'primary' : 'default'}
-          variant={tier.mostPopular ? 'solid' : 'bordered'}
-          size="lg"
-          radius="md"
+          as={Link}
           className={cn('font-semibold', {
             'shadow-lg shadow-primary/30': tier.mostPopular,
           })}
+          color={tier.mostPopular ? 'primary' : 'default'}
+          href={tier.href}
+          radius="md"
+          size="lg"
+          variant={tier.mostPopular ? 'solid' : 'bordered'}
         >
           {tier.buttonText}
         </Button>

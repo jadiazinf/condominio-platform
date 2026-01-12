@@ -3,10 +3,11 @@
 import React from 'react'
 import { cn } from '@heroui/theme'
 
-import { Typography } from '@/ui/components/typography'
 import { FrequencyEnum } from './pricing-types'
 import { frequencies, tiers } from './pricing-tiers'
 import { PricingCard } from './PricingCard'
+
+import { Typography } from '@/ui/components/typography'
 
 export function PricingSection() {
   const [selectedFrequency, setSelectedFrequency] = React.useState(frequencies[0])

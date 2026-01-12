@@ -3,6 +3,7 @@ import { Metadata, Viewport } from 'next'
 import clsx from 'clsx'
 
 import { Providers } from './providers'
+import { Footer } from './components/Footer'
 
 import { siteConfig } from '@/config/site'
 import { fontSans } from '@/config/fonts'
@@ -36,11 +37,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           fontSans.variable
         )}
       >
-        <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>
-          <div className="relative flex flex-col h-screen">
-            <Navbar />
-            <main className="container mx-auto max-w-7xl pt-16 px-6 flex-grow">{children}</main>
-          </div>
+        <Providers themeProps={{ attribute: 'class', defaultTheme: 'light' }}>
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
         </Providers>
       </body>
     </html>

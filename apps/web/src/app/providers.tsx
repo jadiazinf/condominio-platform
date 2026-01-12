@@ -12,17 +12,11 @@ export interface ProvidersProps {
   themeProps?: ThemeProviderProps
 }
 
-declare module '@react-types/shared' {
-  interface RouterConfig {
-    routerOptions: NonNullable<Parameters<ReturnType<typeof useRouter>['push']>[1]>
-  }
-}
-
 export function Providers({ children, themeProps }: ProvidersProps) {
   const router = useRouter()
 
   return (
-    // @ts-expect-error - HeroUIProvider types are not fully compatible with React 18
+    // @ts-ignore
     <HeroUIProvider navigate={router.push}>
       <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
     </HeroUIProvider>
