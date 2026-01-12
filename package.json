@@ -9,6 +9,7 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
+    "@eslint/compat": "^2.0.1",
     "prettier": "^3.7.4",
     "turbo": "^2.7.2",
     "typescript": "5.9.2"
@@ -21,5 +22,7 @@
     "apps/*",
     "packages/*"
   ],
-  "dependencies": {}
+  "dependencies": {
+    "lucide-react": "^0.562.0"
+  }
 }

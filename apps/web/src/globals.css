@@ -1,0 +1,79 @@
+@import 'tailwindcss';
+
+@plugin './hero.ts';
+
+@source '../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Primary - Verde bosque */
+  --color-green-forest: #047857;
+  --color-green-light: #4ade80;
+  --color-green-dark: #15803d;
+
+  /* Secondary - Dorado */
+  --color-gold: #eab308;
+  --color-gold-light: #facc15;
+  --color-gold-dark: #ca8a04;
+
+  /* Dark theme backgrounds */
+  --color-dark-bg: #1e1f22;
+  --color-dark-card: #27272a;
+  --color-dark-hover: #3f3f46;
+  --color-dark-active: #52525b;
+  --color-dark-border: #3f3f46;
+
+  /* Light theme */
+  --color-light-bg: #fafafa;
+  --color-light-card: #ffffff;
+  --color-light-hover: #f4f4f5;
+  --color-light-border: #e4e4e7;
+
+  /* Text colors */
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #71717a;
+}
+
+/* Gradient text - Natural y elegante */
+.text-gradient-primary {
+  @apply bg-gradient-to-r from-[#047857] to-[#4ADE80] bg-clip-text text-transparent;
+}
+
+.text-gradient-secondary {
+  @apply bg-gradient-to-r from-[#EAB308] to-[#FACC15] bg-clip-text text-transparent;
+}
+
+.text-gradient-elegant {
+  @apply bg-gradient-to-r from-[#047857] via-[#16A34A] to-[#EAB308] bg-clip-text text-transparent;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection color */
+::selection {
+  background-color: rgba(4, 120, 87, 0.3);
+}
+
+/* Hero gradient background */
+.hero-gradient {
+  @apply bg-gradient-to-br from-primary/5 via-transparent to-secondary/5;
+}
+
+/* Card hover effect */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1;
+}
+
+/* Benefit card style */
+.benefit-card {
+  @apply bg-content1 border border-divider rounded-2xl p-6 transition-all duration-300;
+  @apply hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5;
+}

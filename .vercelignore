@@ -1,0 +1,20 @@
+# Ignora apps que no son web
+apps/api
+
+# Node modules locales (Vercel instalará las suyas)
+**/node_modules
+
+# Archivos de desarrollo
+**/.turbo
+**/.next
+**/dist
+
+# Archivos de test
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Documentación
+**/*.md
+!README.md
