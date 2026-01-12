@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-
 import { Checkbox } from '@heroui/checkbox'
 import { Link } from '@heroui/link'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
@@ -108,9 +107,9 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn }: SignInFormFieldsP
         </div>
 
         <Button
+          fullWidth
           className="w-full font-semibold dark:bg-primary/30 dark:text-white dark:hover:bg-primary/40"
           color="primary"
-          fullWidth
           size="lg"
           type="submit"
         >
@@ -130,8 +129,8 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn }: SignInFormFieldsP
       {/* Social Sign In */}
       <div className="space-y-3">
         <Button
-          className="w-full font-semibold"
           fullWidth
+          className="w-full font-semibold"
           size="lg"
           startContent={
             <svg className="w-5 h-5" viewBox="0 0 24 24">
