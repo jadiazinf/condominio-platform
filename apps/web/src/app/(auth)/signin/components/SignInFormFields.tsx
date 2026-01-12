@@ -6,25 +6,21 @@ import { Link } from '@heroui/link'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
 
+import { TSignInSchema } from '../schemas/types'
+
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
 import { Typography } from '@/ui/components/typography'
 
-export interface SignInFormData {
-  email: string
-  password: string
-  rememberMe: boolean
-}
-
 interface SignInFormFieldsProps {
-  onSubmit: (data: SignInFormData) => void
+  onSubmit: (data: TSignInSchema) => void
   onGoogleSignIn: () => void
 }
 
 export function SignInFormFields({ onSubmit, onGoogleSignIn }: SignInFormFieldsProps) {
   const [showPassword, setShowPassword] = useState(false)
 
-  const { control, handleSubmit } = useForm<SignInFormData>({
+  const { control, handleSubmit } = useForm<TSignInSchema>({
     defaultValues: {
       email: '',
       password: '',

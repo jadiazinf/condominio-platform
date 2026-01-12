@@ -49,7 +49,7 @@ export const Navbar = () => {
           <Link href="/signin">Iniciar Sesion</Link>
         </NavbarItem>
         <NavbarItem className="hidden md:flex">
-          <Button as={Link} color="primary" href="/register" variant="flat">
+          <Button as={Link} color="primary" href="/signup" variant="flat">
             Registrarse
           </Button>
         </NavbarItem>

@@ -1,15 +1,17 @@
 'use client'
 
-import { SignInFormFields, SignInFormData } from './SignInFormFields'
+import { TSignInSchema } from '../schemas/types'
+
+import { SignInFormFields } from './SignInFormFields'
 import { SignInHeader } from './SignInHeader'
 
 export function SignInForm() {
-  const handleSubmit = (data: SignInFormData) => {
+  function handleSubmit(data: TSignInSchema) {
     // TODO: Implement sign in logic
     console.log(data)
   }
 
-  const handleGoogleSignIn = () => {
+  function handleGoogleSignIn() {
     // TODO: Implement Google sign in
     console.log('Google sign in')
   }
@@ -21,4 +23,3 @@ export function SignInForm() {
     </div>
   )
 }
-
