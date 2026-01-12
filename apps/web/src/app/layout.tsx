@@ -3,11 +3,9 @@ import { Metadata, Viewport } from 'next'
 import clsx from 'clsx'
 
 import { Providers } from './providers'
-import { Footer } from './components/Footer'
 
 import { siteConfig } from '@/config/site'
 import { fontSans } from '@/config/fonts'
-import { Navbar } from '@/ui/components/navbar/Navbar'
 
 export const metadata: Metadata = {
   title: {
@@ -37,15 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           fontSans.variable
         )}
       >
-        <Providers themeProps={{ attribute: 'class', defaultTheme: 'light' }}>
-          <div className="relative flex flex-col min-h-screen">
-            <Navbar />
-            <main className="container mx-auto max-w-7xl pt-16 px-6 flex-grow">{children}</main>
-            <div className="container mx-auto max-w-7xl px-6">
-              <Footer />
-            </div>
-          </div>
-        </Providers>
+        <Providers themeProps={{ attribute: 'class', defaultTheme: 'light' }}>{children}</Providers>
       </body>
     </html>
   )

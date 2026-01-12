@@ -24,14 +24,14 @@ export const Navbar = () => {
       <NavbarContent>
         <NavbarMenuToggle
           aria-label={isMenuOpen ? 'Cerrar menu' : 'Abrir menu'}
-          className="sm:hidden"
+          className="md:hidden"
         />
         <NavbarBrand>
           <p className="font-bold text-inherit text-xl">CondominioApp</p>
         </NavbarBrand>
       </NavbarContent>
 
-      <NavbarContent className="hidden sm:flex gap-4" justify="center">
+      <NavbarContent className="hidden md:flex gap-4" justify="center">
         {siteConfig.navItems.map(item => (
           <NavbarItem key={item.href}>
             <Link color="foreground" href={item.href}>
@@ -45,10 +45,10 @@ export const Navbar = () => {
         <NavbarItem>
           <ThemeSwitch />
         </NavbarItem>
-        <NavbarItem className="hidden sm:flex">
-          <Link href="/login">Iniciar Sesion</Link>
+        <NavbarItem className="hidden md:flex">
+          <Link href="/signin">Iniciar Sesion</Link>
         </NavbarItem>
-        <NavbarItem className="hidden sm:flex">
+        <NavbarItem className="hidden md:flex">
           <Button as={Link} color="primary" href="/register" variant="flat">
             Registrarse
           </Button>

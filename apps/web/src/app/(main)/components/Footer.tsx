@@ -29,7 +29,7 @@ export function Footer() {
             </li>
             <li>
               <Link className="hover:text-primary" color="foreground" href="#pricing" size="sm">
-                Precios
+                Únete
               </Link>
             </li>
             <li>

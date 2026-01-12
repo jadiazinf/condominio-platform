@@ -49,11 +49,11 @@ export function BenefitsSection() {
                 <span className="text-3xl">{benefit.icon}</span>
               </div>
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
                   <Typography as="h3" variant="h4">
                     {benefit.title}
                   </Typography>
-                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-secondary/10 text-secondary">
+                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-secondary/10 text-secondary w-fit">
                     {benefit.highlight}
                   </span>
                 </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import type { Frequency, Tier } from './pricing-types'
+import type { Tier } from './pricing-types'
 
 import { Button } from '@heroui/button'
 import { Card, CardBody, CardFooter, CardHeader } from '@heroui/card'
@@ -11,12 +11,9 @@ import { cn } from '@heroui/theme'
 
 interface PricingCardProps {
   tier: Tier
-  selectedFrequency: Frequency
 }
 
-export function PricingCard({ tier, selectedFrequency }: PricingCardProps) {
-  const price = typeof tier.price === 'string' ? tier.price : tier.price[selectedFrequency.key]
-
+export function PricingCard({ tier }: PricingCardProps) {
   return (
     <Card
       className={cn(
@@ -36,7 +33,7 @@ export function PricingCard({ tier, selectedFrequency }: PricingCardProps) {
           size="sm"
           variant="solid"
         >
-          Mas Popular
+          Más Popular
         </Chip>
       )}
       <CardHeader className="flex flex-col items-start gap-2 pb-4">
@@ -46,12 +43,7 @@ export function PricingCard({ tier, selectedFrequency }: PricingCardProps) {
       <Divider className="bg-divider" />
       <CardBody className="gap-6 py-6">
         <div className="flex items-baseline gap-1">
-          <span className="text-4xl font-bold text-foreground">{price}</span>
-          {typeof tier.price !== 'string' && (
-            <span className="text-sm text-default-400 font-medium">
-              /{selectedFrequency.priceSuffix}
-            </span>
-          )}
+          <span className="text-2xl font-bold text-primary">{tier.price}</span>
         </div>
         <ul className="flex flex-col gap-3">
           {tier.features?.map(feature => (
@@ -76,11 +68,11 @@ export function PricingCard({ tier, selectedFrequency }: PricingCardProps) {
           className={cn('font-semibold', {
             'shadow-lg shadow-primary/30': tier.mostPopular,
           })}
-          color={tier.mostPopular ? 'primary' : 'default'}
+          color={tier.buttonColor}
           href={tier.href}
           radius="md"
           size="lg"
-          variant={tier.mostPopular ? 'solid' : 'bordered'}
+          variant={tier.buttonVariant}
         >
           {tier.buttonText}
         </Button>

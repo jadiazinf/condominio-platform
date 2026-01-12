@@ -1,5 +1,1 @@
-export { PricingCard } from './PricingCard'
 export { PricingSection } from './PricingSection'
-export { frequencies, tiers } from './pricing-tiers'
-export { FrequencyEnum, TiersEnum } from './pricing-types'
-export type { Frequency, Tier } from './pricing-types'

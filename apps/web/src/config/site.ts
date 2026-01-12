@@ -18,7 +18,7 @@ export const siteConfig = {
       href: '#como-funciona',
     },
     {
-      label: 'Precios',
+      label: 'Únete',
       href: '#pricing',
     },
   ],
@@ -36,7 +36,7 @@ export const siteConfig = {
       href: '#como-funciona',
     },
     {
-      label: 'Precios',
+      label: 'Únete',
       href: '#pricing',
     },
     {

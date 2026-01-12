@@ -1,55 +1,44 @@
-import type { Frequency, Tier } from './pricing-types'
+import type { Tier } from './pricing-types'
 
-import { FrequencyEnum, TiersEnum } from './pricing-types'
-
-export const frequencies: Array<Frequency> = [
-  { key: FrequencyEnum.Yearly, label: 'Anual', priceSuffix: 'al año', discount: 'Ahorra 20%' },
-  { key: FrequencyEnum.Monthly, label: 'Mensual', priceSuffix: 'al mes' },
-]
+import { TiersEnum } from './pricing-types'
 
 export const tiers: Array<Tier> = [
   {
     key: TiersEnum.Basico,
     title: 'Básico',
-    price: {
-      yearly: '$279',
-      monthly: '$29',
-    },
-    href: '/register?plan=basico',
+    price: 'Precio personalizado',
+    href: '/contact?plan=basico',
     featured: false,
     mostPopular: false,
-    description: 'Para condominios pequeños que quieren empezar a organizarse.',
+    description: 'Ideal para condominios pequeños que están comenzando.',
     features: [
       'Hasta 50 unidades',
-      'Genera y cobra cuotas',
+      'Gestión de cuotas y cobros',
       '1 administrador',
-      'Avisos a residentes',
+      'Sistema de avisos',
       'Soporte por email',
     ],
-    buttonText: 'Empezar gratis',
+    buttonText: 'Solicitar cotización',
     buttonColor: 'default',
-    buttonVariant: 'flat',
+    buttonVariant: 'bordered',
   },
   {
     key: TiersEnum.Profesional,
     title: 'Profesional',
-    description: 'Todo lo que necesitas para administrar sin complicaciones.',
-    href: '/register?plan=profesional',
+    description: 'La solución completa para administrar profesionalmente.',
+    href: '/contact?plan=profesional',
     mostPopular: true,
-    price: {
-      yearly: '$759',
-      monthly: '$79',
-    },
+    price: 'Precio personalizado',
     featured: false,
     features: [
       'Hasta 200 unidades',
-      'Pagos en línea',
-      '5 administradores',
+      'Pagos en línea integrados',
+      'Hasta 5 administradores',
       'Recordatorios automáticos',
-      'Reportes y estadísticas',
+      'Reportes y análisis avanzados',
       'Soporte prioritario',
     ],
-    buttonText: 'Comenzar ahora',
+    buttonText: 'Contactar ahora',
     buttonColor: 'primary',
     buttonVariant: 'solid',
   },
@@ -59,21 +48,19 @@ export const tiers: Array<Tier> = [
     href: '/contact?plan=empresarial',
     featured: true,
     mostPopular: false,
-    description: 'Para administradoras profesionales con múltiples condominios.',
-    price: {
-      yearly: '$1,999',
-      monthly: '$199',
-    },
+    description: 'Solución enterprise para administradoras con múltiples propiedades.',
+    price: 'Precio personalizado',
     features: [
       'Unidades ilimitadas',
       'Administradores ilimitados',
-      'Todas las funcionalidades',
-      'Integraciones a medida',
-      'Capacitación incluida',
+      'Funcionalidades completas',
+      'Integraciones personalizadas',
+      'Capacitación y onboarding',
       'Soporte dedicado 24/7',
+      'Manager de cuenta asignado',
     ],
-    buttonText: 'Hablar con ventas',
+    buttonText: 'Agendar reunión',
     buttonColor: 'default',
-    buttonVariant: 'flat',
+    buttonVariant: 'bordered',
   },
 ]
