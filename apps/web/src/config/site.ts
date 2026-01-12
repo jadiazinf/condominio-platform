@@ -41,11 +41,11 @@ export const siteConfig = {
     },
     {
       label: 'Iniciar Sesión',
-      href: '/login',
+      href: '/signin',
     },
     {
       label: 'Registrarse',
-      href: '/register',
+      href: '/signup',
     },
   ],
 }
