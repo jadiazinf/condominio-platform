@@ -1,6 +1,6 @@
 import { Link } from '@heroui/link'
 
-import { BackToHome } from '@/ui/components/backToHomeButton/BackToHome'
+import { BackToHomeButton } from '@/ui/components/backToHomeButton/BackToHomeButton'
 import { ThemeSwitch } from '@/ui/components/themeSwitch/ThemeSwitch'
 import { Typography } from '@/ui/components/typography'
 
@@ -10,7 +10,7 @@ export function SignInHeader() {
       {/* Theme Switch (left) and Back to Home (right) */}
       <div className="flex items-center justify-between w-full mb-6 -mt-4">
         <ThemeSwitch />
-        <BackToHome />
+        <BackToHomeButton />
       </div>
 
       {/* Logo */}

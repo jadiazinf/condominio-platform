@@ -1,7 +1,7 @@
 import { Link } from '@heroui/link'
 import { ArrowLeft } from 'lucide-react'
 
-export function BackToHome() {
+export function BackToHomeButton() {
   return (
     <Link
       className="flex items-center gap-2 text-default-600 hover:text-primary transition-colors"
