@@ -9,7 +9,9 @@ export interface IGetApplicationsByPaymentInput {
 export class GetApplicationsByPaymentService {
   constructor(private readonly repository: PaymentApplicationsRepository) {}
 
-  async execute(input: IGetApplicationsByPaymentInput): Promise<TServiceResult<TPaymentApplication[]>> {
+  async execute(
+    input: IGetApplicationsByPaymentInput
+  ): Promise<TServiceResult<TPaymentApplication[]>> {
     const applications = await this.repository.getByPaymentId(input.paymentId)
     return success(applications)
   }

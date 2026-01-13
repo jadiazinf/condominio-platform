@@ -58,9 +58,7 @@ describe('QuotaAdjustmentsRepository', () => {
     await cleanDatabase(db)
 
     // Create test user
-    testUser = await usersRepository.create(
-      UserFactory.create({ email: 'admin@test.com' })
-    )
+    testUser = await usersRepository.create(UserFactory.create({ email: 'admin@test.com' }))
 
     // Create currency
     testCurrency = await currenciesRepository.create(
@@ -154,12 +152,7 @@ describe('QuotaAdjustmentsRepository', () => {
     })
 
     it('should create a correction adjustment', async () => {
-      const data = QuotaAdjustmentFactory.correction(
-        testQuota.id,
-        testUser.id,
-        '100.00',
-        '95.50'
-      )
+      const data = QuotaAdjustmentFactory.correction(testQuota.id, testUser.id, '100.00', '95.50')
 
       const result = await repository.create(data)
 
@@ -169,11 +162,7 @@ describe('QuotaAdjustmentsRepository', () => {
     })
 
     it('should create a waiver adjustment', async () => {
-      const data = QuotaAdjustmentFactory.waiver(
-        testQuota.id,
-        testUser.id,
-        testQuota.baseAmount
-      )
+      const data = QuotaAdjustmentFactory.waiver(testQuota.id, testUser.id, testQuota.baseAmount)
 
       const result = await repository.create(data)
 
@@ -216,12 +205,8 @@ describe('QuotaAdjustmentsRepository', () => {
 
   describe('getByQuotaId', () => {
     it('should return all adjustments for a quota', async () => {
-      await repository.create(
-        QuotaAdjustmentFactory.discount(testQuota.id, testUser.id, '100.00')
-      )
-      await repository.create(
-        QuotaAdjustmentFactory.increase(testQuota.id, testUser.id, '90.00')
-      )
+      await repository.create(QuotaAdjustmentFactory.discount(testQuota.id, testUser.id, '100.00'))
+      await repository.create(QuotaAdjustmentFactory.increase(testQuota.id, testUser.id, '90.00'))
 
       const result = await repository.getByQuotaId(testQuota.id)
 
@@ -257,12 +242,8 @@ describe('QuotaAdjustmentsRepository', () => {
         UserFactory.create({ email: 'other@test.com' })
       )
 
-      await repository.create(
-        QuotaAdjustmentFactory.discount(testQuota.id, testUser.id, '100.00')
-      )
-      await repository.create(
-        QuotaAdjustmentFactory.increase(testQuota.id, testUser.id, '90.00')
-      )
+      await repository.create(QuotaAdjustmentFactory.discount(testQuota.id, testUser.id, '100.00'))
+      await repository.create(QuotaAdjustmentFactory.increase(testQuota.id, testUser.id, '90.00'))
       await repository.create(
         QuotaAdjustmentFactory.correction(testQuota.id, otherUser.id, '100.00', '95.00')
       )
@@ -276,15 +257,9 @@ describe('QuotaAdjustmentsRepository', () => {
 
   describe('getByType', () => {
     it('should return all adjustments of a specific type', async () => {
-      await repository.create(
-        QuotaAdjustmentFactory.discount(testQuota.id, testUser.id, '100.00')
-      )
-      await repository.create(
-        QuotaAdjustmentFactory.discount(testQuota.id, testUser.id, '90.00')
-      )
-      await repository.create(
-        QuotaAdjustmentFactory.increase(testQuota.id, testUser.id, '80.00')
-      )
+      await repository.create(QuotaAdjustmentFactory.discount(testQuota.id, testUser.id, '100.00'))
+      await repository.create(QuotaAdjustmentFactory.discount(testQuota.id, testUser.id, '90.00'))
+      await repository.create(QuotaAdjustmentFactory.increase(testQuota.id, testUser.id, '80.00'))
 
       const result = await repository.getByType('discount')
 
@@ -293,9 +268,7 @@ describe('QuotaAdjustmentsRepository', () => {
     })
 
     it('should return empty array when no adjustments of type exist', async () => {
-      await repository.create(
-        QuotaAdjustmentFactory.discount(testQuota.id, testUser.id, '100.00')
-      )
+      await repository.create(QuotaAdjustmentFactory.discount(testQuota.id, testUser.id, '100.00'))
 
       const result = await repository.getByType('waiver')
 
@@ -305,15 +278,9 @@ describe('QuotaAdjustmentsRepository', () => {
 
   describe('listAll', () => {
     it('should return all adjustments', async () => {
-      await repository.create(
-        QuotaAdjustmentFactory.discount(testQuota.id, testUser.id, '100.00')
-      )
-      await repository.create(
-        QuotaAdjustmentFactory.increase(testQuota.id, testUser.id, '90.00')
-      )
-      await repository.create(
-        QuotaAdjustmentFactory.waiver(testQuota.id, testUser.id, '100.00')
-      )
+      await repository.create(QuotaAdjustmentFactory.discount(testQuota.id, testUser.id, '100.00'))
+      await repository.create(QuotaAdjustmentFactory.increase(testQuota.id, testUser.id, '90.00'))
+      await repository.create(QuotaAdjustmentFactory.waiver(testQuota.id, testUser.id, '100.00'))
 
       const result = await repository.listAll()
 

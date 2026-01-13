@@ -37,9 +37,12 @@ export class UpdateQuotaFormulaService {
     const effectiveFormulaType = updateFields.formulaType ?? existingFormula.formulaType
 
     // 3. Validate formula configuration if type or values changed
-    if (updateFields.formulaType || updateFields.fixedAmount !== undefined ||
-        updateFields.expression !== undefined || updateFields.unitAmounts !== undefined) {
-
+    if (
+      updateFields.formulaType ||
+      updateFields.fixedAmount !== undefined ||
+      updateFields.expression !== undefined ||
+      updateFields.unitAmounts !== undefined
+    ) {
       const fixedAmount = updateFields.fixedAmount ?? existingFormula.fixedAmount
       const expression = updateFields.expression ?? existingFormula.expression
       const unitAmounts = updateFields.unitAmounts ?? existingFormula.unitAmounts

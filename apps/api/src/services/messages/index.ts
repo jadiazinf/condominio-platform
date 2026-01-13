@@ -14,4 +14,7 @@ export { GetMessagesByCondominiumService } from './get-messages-by-condominium.s
 export type { IGetMessagesByCondominiumInput } from './get-messages-by-condominium.service'
 
 export { MarkMessageAsReadService } from './mark-message-as-read.service'
-export type { IMarkMessageAsReadInput, IMarkMessageAsReadOutput } from './mark-message-as-read.service'
+export type {
+  IMarkMessageAsReadInput,
+  IMarkMessageAsReadOutput,
+} from './mark-message-as-read.service'

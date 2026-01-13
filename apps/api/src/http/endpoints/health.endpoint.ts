@@ -7,7 +7,7 @@ export class HealthEndpoint implements IEndpoint {
   getRouter(): Hono {
     const router = new Hono()
 
-    router.get('/', (c) => {
+    router.get('/', c => {
       return c.json({
         status: 'ok',
         timestamp: new Date().toISOString(),

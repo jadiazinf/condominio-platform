@@ -23,7 +23,12 @@ export class PaymentPendingAllocationsRepository
     TPaymentPendingAllocationCreate,
     TPaymentPendingAllocationUpdate
   >
-  implements IRepository<TPaymentPendingAllocation, TPaymentPendingAllocationCreate, TPaymentPendingAllocationUpdate>
+  implements
+    IRepository<
+      TPaymentPendingAllocation,
+      TPaymentPendingAllocationCreate,
+      TPaymentPendingAllocationUpdate
+    >
 {
   constructor(db: TDrizzleClient) {
     super(db, paymentPendingAllocations)

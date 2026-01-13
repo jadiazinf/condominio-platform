@@ -6,9 +6,7 @@ const d = DomainLocaleDictionary.validation.models.expenseCategories
 
 export const expenseCategoryBaseSchema = z.object({
   id: z.uuid(),
-  name: z
-    .string({ error: d.name.required })
-    .max(100, { error: d.name.max }),
+  name: z.string({ error: d.name.required }).max(100, { error: d.name.max }),
   description: z.string().nullable(),
   parentCategoryId: z.uuid({ error: d.parentCategoryId.invalid }).nullable(),
   isActive: z.boolean().default(true),

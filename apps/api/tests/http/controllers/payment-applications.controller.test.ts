@@ -207,9 +207,7 @@ describe('PaymentApplicationsController', function () {
         return []
       }
 
-      const res = await request(
-        '/payment-applications/quota/550e8400-e29b-41d4-a716-446655440099'
-      )
+      const res = await request('/payment-applications/quota/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse

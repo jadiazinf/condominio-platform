@@ -24,7 +24,9 @@ export function hasAuthorization(options: IAuthorizationOptions) {
     const user = c.get(AUTHENTICATED_USER_PROP)
 
     if (!user) {
-      return ctx.unauthorized({ error: t(LocaleDictionary.http.middlewares.utils.auth.notAuthenticated) })
+      return ctx.unauthorized({
+        error: t(LocaleDictionary.http.middlewares.utils.auth.notAuthenticated),
+      })
     }
 
     const db = DatabaseService.getInstance().getDb()
@@ -41,7 +43,10 @@ export function hasAuthorization(options: IAuthorizationOptions) {
       .leftJoin(rolePermissions, eq(roles.id, rolePermissions.roleId))
       .leftJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
       .where(
-        and(eq(userRoles.userId, user.id), or(isNull(userRoles.expiresAt), gt(userRoles.expiresAt, now)))
+        and(
+          eq(userRoles.userId, user.id),
+          or(isNull(userRoles.expiresAt), gt(userRoles.expiresAt, now))
+        )
       )
 
     const userRoleNames = [...new Set(userRolesWithPermissions.map(r => r.roleName))]
@@ -60,7 +65,9 @@ export function hasAuthorization(options: IAuthorizationOptions) {
         : requiredRoles.some(role => userRoleNames.includes(role))
 
       if (!hasRoles) {
-        return ctx.forbidden({ error: t(LocaleDictionary.http.middlewares.utils.auth.insufficientRoles) })
+        return ctx.forbidden({
+          error: t(LocaleDictionary.http.middlewares.utils.auth.insufficientRoles),
+        })
       }
     }
 
@@ -74,7 +81,9 @@ export function hasAuthorization(options: IAuthorizationOptions) {
           )
 
       if (!hasPermissions) {
-        return ctx.forbidden({ error: t(LocaleDictionary.http.middlewares.utils.auth.insufficientPermissions) })
+        return ctx.forbidden({
+          error: t(LocaleDictionary.http.middlewares.utils.auth.insufficientPermissions),
+        })
       }
     }
 

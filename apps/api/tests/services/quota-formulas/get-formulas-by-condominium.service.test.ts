@@ -73,7 +73,10 @@ describe('GetFormulasByCondominiumService', function () {
 
   beforeEach(function () {
     mockRepository = {
-      getByCondominiumId: async function (requestedCondominiumId: string, includeInactive: boolean) {
+      getByCondominiumId: async function (
+        requestedCondominiumId: string,
+        includeInactive: boolean
+      ) {
         const filtered = mockFormulas.filter(function (f) {
           return f.condominiumId === requestedCondominiumId
         })
@@ -98,7 +101,7 @@ describe('GetFormulasByCondominiumService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((f) => f.isActive)).toBe(true)
+        expect(result.data.every(f => f.isActive)).toBe(true)
       }
     })
 
@@ -111,7 +114,7 @@ describe('GetFormulasByCondominiumService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(3)
-        expect(result.data.some((f) => !f.isActive)).toBe(true)
+        expect(result.data.some(f => !f.isActive)).toBe(true)
       }
     })
 
@@ -131,7 +134,7 @@ describe('GetFormulasByCondominiumService', function () {
 
       expect(result.success).toBe(true)
       if (result.success) {
-        const types = result.data.map((f) => f.formulaType)
+        const types = result.data.map(f => f.formulaType)
         expect(types).toContain('fixed')
         expect(types).toContain('expression')
       }
@@ -142,7 +145,7 @@ describe('GetFormulasByCondominiumService', function () {
 
       expect(result.success).toBe(true)
       if (result.success) {
-        expect(result.data.every((f) => f.condominiumId === condominiumId)).toBe(true)
+        expect(result.data.every(f => f.condominiumId === condominiumId)).toBe(true)
       }
     })
 
@@ -154,7 +157,7 @@ describe('GetFormulasByCondominiumService', function () {
 
       expect(result.success).toBe(true)
       if (result.success) {
-        const inactiveFormulas = result.data.filter((f) => !f.isActive)
+        const inactiveFormulas = result.data.filter(f => !f.isActive)
         expect(inactiveFormulas).toHaveLength(1)
         expect(inactiveFormulas[0]?.name).toBe('Inactive Formula')
       }
@@ -169,7 +172,7 @@ describe('GetFormulasByCondominiumService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((f) => f.isActive)).toBe(true)
+        expect(result.data.every(f => f.isActive)).toBe(true)
       }
     })
   })

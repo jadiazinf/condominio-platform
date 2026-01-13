@@ -70,7 +70,7 @@ describe('GetAuditLogsByActionService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((log) => log.action === 'INSERT')).toBe(true)
+        expect(result.data.every(log => log.action === 'INSERT')).toBe(true)
       }
     })
 
@@ -80,7 +80,7 @@ describe('GetAuditLogsByActionService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((log) => log.action === 'UPDATE')).toBe(true)
+        expect(result.data.every(log => log.action === 'UPDATE')).toBe(true)
       }
     })
 
@@ -90,7 +90,7 @@ describe('GetAuditLogsByActionService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((log) => log.action === 'DELETE')).toBe(true)
+        expect(result.data.every(log => log.action === 'DELETE')).toBe(true)
       }
     })
   })

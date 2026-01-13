@@ -79,7 +79,7 @@ describe('GetPendingAllocationsService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(3)
-        expect(result.data.every((a) => a.status === 'pending')).toBe(true)
+        expect(result.data.every(a => a.status === 'pending')).toBe(true)
       }
     })
 
@@ -89,7 +89,7 @@ describe('GetPendingAllocationsService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((a) => a.paymentId === paymentId1)).toBe(true)
+        expect(result.data.every(a => a.paymentId === paymentId1)).toBe(true)
       }
     })
 

@@ -3,7 +3,10 @@ import type { TInterestConfiguration } from '@packages/domain'
 import { GetActiveConfigForDateService } from '@src/services/interest-configurations'
 
 type TMockRepository = {
-  getActiveForDate: (paymentConceptId: string, date: string) => Promise<TInterestConfiguration | null>
+  getActiveForDate: (
+    paymentConceptId: string,
+    date: string
+  ) => Promise<TInterestConfiguration | null>
 }
 
 describe('GetActiveConfigForDateService', function () {
@@ -62,7 +65,8 @@ describe('GetActiveConfigForDateService', function () {
       getActiveForDate: async function (requestedPaymentConceptId: string, date: string) {
         const found = mockConfigs.find(function (c) {
           const matchesPaymentConcept = c.paymentConceptId === requestedPaymentConceptId
-          const isWithinEffectivePeriod = c.effectiveFrom <= date && (c.effectiveTo === null || c.effectiveTo >= date)
+          const isWithinEffectivePeriod =
+            c.effectiveFrom <= date && (c.effectiveTo === null || c.effectiveTo >= date)
           return matchesPaymentConcept && c.isActive && isWithinEffectivePeriod
         })
         return found ?? null

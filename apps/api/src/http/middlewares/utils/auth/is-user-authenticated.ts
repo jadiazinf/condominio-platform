@@ -54,7 +54,9 @@ export async function isUserAuthenticated(
   const authHeader = c.req.header('Authorization')
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return ctx.unauthorized({ error: t(LocaleDictionary.http.middlewares.utils.auth.malformedHeader) })
+    return ctx.unauthorized({
+      error: t(LocaleDictionary.http.middlewares.utils.auth.malformedHeader),
+    })
   }
 
   const token = authHeader.slice(7)
@@ -67,7 +69,9 @@ export async function isUserAuthenticated(
     const user = await usersRepository.getByFirebaseUid(decodedToken.uid)
 
     if (!user) {
-      return ctx.unauthorized({ error: t(LocaleDictionary.http.middlewares.utils.auth.userNotFound) })
+      return ctx.unauthorized({
+        error: t(LocaleDictionary.http.middlewares.utils.auth.userNotFound),
+      })
     }
 
     if (!user.isActive) {

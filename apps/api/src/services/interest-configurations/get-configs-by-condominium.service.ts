@@ -10,7 +10,9 @@ export interface IGetConfigsByCondominiumInput {
 export class GetConfigsByCondominiumService {
   constructor(private readonly repository: InterestConfigurationsRepository) {}
 
-  async execute(input: IGetConfigsByCondominiumInput): Promise<TServiceResult<TInterestConfiguration[]>> {
+  async execute(
+    input: IGetConfigsByCondominiumInput
+  ): Promise<TServiceResult<TInterestConfiguration[]>> {
     const configs = await this.repository.getByCondominiumId(
       input.condominiumId,
       input.includeInactive

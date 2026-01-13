@@ -17,7 +17,9 @@ export class RefundPendingAllocationService {
     private readonly paymentPendingAllocationsRepository: PaymentPendingAllocationsRepository
   ) {}
 
-  async execute(input: TRefundPendingAllocationInput): Promise<TServiceResult<TPaymentPendingAllocation>> {
+  async execute(
+    input: TRefundPendingAllocationInput
+  ): Promise<TServiceResult<TPaymentPendingAllocation>> {
     const { allocationId, resolutionNotes, allocatedByUserId } = input
 
     // 1. Get the pending allocation

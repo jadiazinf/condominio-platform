@@ -11,7 +11,9 @@ export class QuotaFactory {
   static create(overrides: Partial<TQuotaCreate> = {}): TQuotaCreate {
     const year = faker.date.recent().getFullYear()
     const month = faker.number.int({ min: 1, max: 12 })
-    const baseAmount = overrides.baseAmount ?? faker.number.float({ min: 50, max: 500, fractionDigits: 2 }).toString()
+    const baseAmount =
+      overrides.baseAmount ??
+      faker.number.float({ min: 50, max: 500, fractionDigits: 2 }).toString()
 
     return {
       unitId: faker.string.uuid(),

@@ -323,14 +323,11 @@ describe('EntityPaymentGatewaysController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing entity payment gateway', async function () {
-      const res = await request(
-        '/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440001',
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ isActive: false }),
-        }
-      )
+      const res = await request('/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440001', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: false }),
+      })
 
       expect(res.status).toBe(StatusCodes.OK)
 
@@ -339,14 +336,11 @@ describe('EntityPaymentGatewaysController', function () {
     })
 
     it('should return 404 when updating non-existent gateway', async function () {
-      const res = await request(
-        '/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440099',
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ isActive: false }),
-        }
-      )
+      const res = await request('/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440099', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: false }),
+      })
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
@@ -357,12 +351,9 @@ describe('EntityPaymentGatewaysController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing entity payment gateway', async function () {
-      const res = await request(
-        '/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440001',
-        {
-          method: 'DELETE',
-        }
-      )
+      const res = await request('/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440001', {
+        method: 'DELETE',
+      })
 
       expect(res.status).toBe(StatusCodes.NO_CONTENT)
     })
@@ -372,12 +363,9 @@ describe('EntityPaymentGatewaysController', function () {
         return false
       }
 
-      const res = await request(
-        '/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440099',
-        {
-          method: 'DELETE',
-        }
-      )
+      const res = await request('/entity-payment-gateways/550e8400-e29b-41d4-a716-446655440099', {
+        method: 'DELETE',
+      })
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 

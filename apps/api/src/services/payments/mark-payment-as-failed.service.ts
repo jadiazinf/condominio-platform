@@ -22,7 +22,9 @@ export interface IMarkPaymentAsFailedOutput {
 export class MarkPaymentAsFailedService {
   constructor(private readonly repository: PaymentsRepository) {}
 
-  async execute(input: IMarkPaymentAsFailedInput): Promise<TServiceResult<IMarkPaymentAsFailedOutput>> {
+  async execute(
+    input: IMarkPaymentAsFailedInput
+  ): Promise<TServiceResult<IMarkPaymentAsFailedOutput>> {
     const { paymentId, failureReason, updatedByUserId } = input
 
     // 1. Get the payment

@@ -8,9 +8,7 @@ const d = DomainLocaleDictionary.validation.models.units
 
 export const unitSchema = baseModelSchema.extend({
   buildingId: z.uuid({ error: d.buildingId.invalid }),
-  unitNumber: z
-    .string({ error: d.unitNumber.required })
-    .max(50, { error: d.unitNumber.max }),
+  unitNumber: z.string({ error: d.unitNumber.required }).max(50, { error: d.unitNumber.max }),
   floor: z.number().int({ error: d.floor.invalid }).nullable(),
   areaM2: z.string().nullable(),
   bedrooms: z.number().int({ error: d.bedrooms.invalid }).nullable(),

@@ -7,9 +7,7 @@ const d = DomainLocaleDictionary.validation.models.paymentGateways
 export const EGatewayTypes = ['stripe', 'banco_plaza', 'paypal', 'zelle', 'other'] as const
 
 export const paymentGatewaySchema = baseModelSchema.extend({
-  name: z
-    .string({ error: d.name.required })
-    .max(100, { error: d.name.max }),
+  name: z.string({ error: d.name.required }).max(100, { error: d.name.max }),
   gatewayType: z.enum(EGatewayTypes, { error: d.gatewayType.invalid }),
   configuration: z.record(z.string(), z.unknown()).nullable(),
   supportedCurrencies: z.array(z.uuid()).nullable(),

@@ -1,14 +1,10 @@
 // Config
-export { getEnvConfig, setEnvConfig, resetEnvConfig } from "./config/index.js";
-export type { EnvConfig } from "./config/index.js";
+export { getEnvConfig, setEnvConfig, resetEnvConfig } from './config/index'
+export type { EnvConfig } from './config/index'
 
 // Client
-export {
-  createHttpClient,
-  getHttpClient,
-  setHttpClient,
-} from "./client/index.js";
-export type { HttpClient, HttpClientConfig } from "./client/index.js";
+export { createHttpClient, getHttpClient, setHttpClient } from './client/index'
+export type { HttpClient, HttpClientConfig } from './client/index'
 
 // Hooks
 export {
@@ -25,14 +21,14 @@ export {
   useInfiniteQuery,
   useIsFetching,
   useIsMutating,
-} from "./hooks/index.js";
+} from './hooks/index'
 export type {
   QueryProviderProps,
   UseApiQueryOptions,
   UseApiMutationOptions,
   HealthCheckResult,
   UseHealthCheckOptions,
-} from "./hooks/index.js";
+} from './hooks/index'
 
 // Types
 export type {
@@ -40,7 +36,7 @@ export type {
   RequestConfig,
   ApiResponse,
   ApiError,
-  // API Response Types
+  // API Response Types (generic)
   TApiDataResponse,
   TApiMessageResponse,
   TApiDataMessageResponse,
@@ -57,7 +53,148 @@ export type {
   TApiCreatedResponse,
   TApiUpdatedResponse,
   TApiDeletedResponse,
-} from "./types/index.js";
+  // Entity-specific Response Types
+  TEntityListResponse,
+  TEntityResponse,
+  TEntityCreatedResponse,
+  // Users & Authentication
+  TUserListResponse,
+  TUserResponse,
+  TUserCreatedResponse,
+  TUserUpdatedResponse,
+  TRoleListResponse,
+  TRoleResponse,
+  TRoleCreatedResponse,
+  TRoleUpdatedResponse,
+  TPermissionListResponse,
+  TPermissionResponse,
+  TPermissionCreatedResponse,
+  TPermissionUpdatedResponse,
+  TRolePermissionListResponse,
+  TRolePermissionResponse,
+  TRolePermissionCreatedResponse,
+  TUserRoleListResponse,
+  TUserRoleResponse,
+  TUserRoleCreatedResponse,
+  // Locations & Currencies
+  TLocationListResponse,
+  TLocationResponse,
+  TLocationCreatedResponse,
+  TLocationUpdatedResponse,
+  TCurrencyListResponse,
+  TCurrencyResponse,
+  TCurrencyCreatedResponse,
+  TCurrencyUpdatedResponse,
+  // Properties
+  TManagementCompanyListResponse,
+  TManagementCompanyResponse,
+  TManagementCompanyCreatedResponse,
+  TManagementCompanyUpdatedResponse,
+  TCondominiumListResponse,
+  TCondominiumResponse,
+  TCondominiumCreatedResponse,
+  TCondominiumUpdatedResponse,
+  TBuildingListResponse,
+  TBuildingResponse,
+  TBuildingCreatedResponse,
+  TBuildingUpdatedResponse,
+  TUnitListResponse,
+  TUnitResponse,
+  TUnitCreatedResponse,
+  TUnitUpdatedResponse,
+  TUnitOwnershipListResponse,
+  TUnitOwnershipResponse,
+  TUnitOwnershipCreatedResponse,
+  TUnitOwnershipUpdatedResponse,
+  // Payments & Billing
+  TPaymentConceptListResponse,
+  TPaymentConceptResponse,
+  TPaymentConceptCreatedResponse,
+  TPaymentConceptUpdatedResponse,
+  TQuotaListResponse,
+  TQuotaResponse,
+  TQuotaCreatedResponse,
+  TQuotaUpdatedResponse,
+  TQuotaAdjustmentListResponse,
+  TQuotaAdjustmentResponse,
+  TQuotaAdjustmentCreatedResponse,
+  TQuotaFormulaListResponse,
+  TQuotaFormulaResponse,
+  TQuotaFormulaCreatedResponse,
+  TQuotaFormulaUpdatedResponse,
+  TQuotaGenerationRuleListResponse,
+  TQuotaGenerationRuleResponse,
+  TQuotaGenerationRuleCreatedResponse,
+  TQuotaGenerationRuleUpdatedResponse,
+  TPaymentListResponse,
+  TPaymentResponse,
+  TPaymentCreatedResponse,
+  TPaymentUpdatedResponse,
+  TPaymentVerifiedResponse,
+  TPaymentApplicationListResponse,
+  TPaymentApplicationResponse,
+  TPaymentApplicationCreatedResponse,
+  TPaymentPendingAllocationListResponse,
+  TPaymentPendingAllocationResponse,
+  TPaymentPendingAllocationCreatedResponse,
+  TPaymentGatewayListResponse,
+  TPaymentGatewayResponse,
+  TPaymentGatewayCreatedResponse,
+  TPaymentGatewayUpdatedResponse,
+  TEntityPaymentGatewayListResponse,
+  TEntityPaymentGatewayResponse,
+  TEntityPaymentGatewayCreatedResponse,
+  TEntityPaymentGatewayUpdatedResponse,
+  TInterestConfigurationListResponse,
+  TInterestConfigurationResponse,
+  TInterestConfigurationCreatedResponse,
+  TInterestConfigurationUpdatedResponse,
+  // Expenses
+  TExpenseListResponse,
+  TExpenseResponse,
+  TExpenseCreatedResponse,
+  TExpenseUpdatedResponse,
+  TExpenseCategoryListResponse,
+  TExpenseCategoryResponse,
+  TExpenseCategoryCreatedResponse,
+  TExpenseCategoryUpdatedResponse,
+  TExchangeRateListResponse,
+  TExchangeRateResponse,
+  TExchangeRateCreatedResponse,
+  TExchangeRateUpdatedResponse,
+  // Communication
+  TDocumentListResponse,
+  TDocumentResponse,
+  TDocumentCreatedResponse,
+  TDocumentUpdatedResponse,
+  TMessageListResponse,
+  TMessageResponse,
+  TMessageCreatedResponse,
+  TMessageUpdatedResponse,
+  // Notifications
+  TNotificationTemplateListResponse,
+  TNotificationTemplateResponse,
+  TNotificationTemplateCreatedResponse,
+  TNotificationTemplateUpdatedResponse,
+  TNotificationListResponse,
+  TNotificationResponse,
+  TNotificationCreatedResponse,
+  TNotificationUpdatedResponse,
+  TUserNotificationPreferenceListResponse,
+  TUserNotificationPreferenceResponse,
+  TUserNotificationPreferenceCreatedResponse,
+  TUserNotificationPreferenceUpdatedResponse,
+  TUserFcmTokenListResponse,
+  TUserFcmTokenResponse,
+  TUserFcmTokenCreatedResponse,
+  TUserFcmTokenUpdatedResponse,
+  // Audit
+  TAuditLogListResponse,
+  TAuditLogResponse,
+  // Health
+  THealthCheckData,
+  THealthCheckResponse,
+} from './types/index'
 
 export {
   HttpError,
@@ -68,4 +205,4 @@ export {
   isApiValidationError,
   isApiErrorResponse,
   isApiSimpleError,
-} from "./types/index.js";
+} from './types/index'

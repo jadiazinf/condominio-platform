@@ -9,7 +9,9 @@ export interface IGetCompaniesByLocationInput {
 export class GetCompaniesByLocationService {
   constructor(private readonly repository: ManagementCompaniesRepository) {}
 
-  async execute(input: IGetCompaniesByLocationInput): Promise<TServiceResult<TManagementCompany[]>> {
+  async execute(
+    input: IGetCompaniesByLocationInput
+  ): Promise<TServiceResult<TManagementCompany[]>> {
     const companies = await this.repository.getByLocationId(input.locationId)
     return success(companies)
   }

@@ -28,10 +28,7 @@ export class QuotaFormulaFactory {
   /**
    * Creates a fixed amount formula.
    */
-  static fixed(
-    amount: string,
-    overrides: Partial<TQuotaFormulaCreate> = {}
-  ): TQuotaFormulaCreate {
+  static fixed(amount: string, overrides: Partial<TQuotaFormulaCreate> = {}): TQuotaFormulaCreate {
     return this.create({
       formulaType: 'fixed',
       fixedAmount: amount,

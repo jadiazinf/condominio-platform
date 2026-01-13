@@ -100,7 +100,7 @@ describe('GetOverdueQuotasService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((q) => q.dueDate < '2024-02-20')).toBe(true)
+        expect(result.data.every(q => q.dueDate < '2024-02-20')).toBe(true)
       }
     })
 

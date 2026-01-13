@@ -65,7 +65,7 @@ describe('GetRecurringConceptsService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((c) => c.isRecurring && c.isActive)).toBe(true)
+        expect(result.data.every(c => c.isRecurring && c.isActive)).toBe(true)
       }
     })
 
@@ -75,7 +75,7 @@ describe('GetRecurringConceptsService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((c) => c.isRecurring)).toBe(true)
+        expect(result.data.every(c => c.isRecurring)).toBe(true)
       }
     })
 
@@ -85,7 +85,7 @@ describe('GetRecurringConceptsService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((c) => c.isRecurring && c.isActive)).toBe(true)
+        expect(result.data.every(c => c.isRecurring && c.isActive)).toBe(true)
       }
     })
   })

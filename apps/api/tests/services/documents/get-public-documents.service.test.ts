@@ -77,7 +77,7 @@ describe('GetPublicDocumentsService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((d) => d.isPublic === true)).toBe(true)
+        expect(result.data.every(d => d.isPublic === true)).toBe(true)
       }
     })
 

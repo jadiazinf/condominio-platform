@@ -81,12 +81,14 @@ describe('GetDocumentsByCondominiumService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((d) => d.condominiumId === condominiumId)).toBe(true)
+        expect(result.data.every(d => d.condominiumId === condominiumId)).toBe(true)
       }
     })
 
     it('should return empty array when condominium has no documents', async function () {
-      const result = await service.execute({ condominiumId: '550e8400-e29b-41d4-a716-446655440099' })
+      const result = await service.execute({
+        condominiumId: '550e8400-e29b-41d4-a716-446655440099',
+      })
 
       expect(result.success).toBe(true)
       if (result.success) {

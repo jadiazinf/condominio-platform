@@ -67,7 +67,7 @@ describe('GetCompaniesByLocationService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((c) => c.locationId === locationId)).toBe(true)
+        expect(result.data.every(c => c.locationId === locationId)).toBe(true)
       }
     })
 

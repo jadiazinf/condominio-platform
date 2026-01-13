@@ -13,7 +13,9 @@ export type TGetRulesByCondominiumInput = {
 export class GetRulesByCondominiumService {
   constructor(private readonly quotaGenerationRulesRepository: QuotaGenerationRulesRepository) {}
 
-  async execute(input: TGetRulesByCondominiumInput): Promise<TServiceResult<TQuotaGenerationRule[]>> {
+  async execute(
+    input: TGetRulesByCondominiumInput
+  ): Promise<TServiceResult<TQuotaGenerationRule[]>> {
     const { condominiumId, includeInactive = false } = input
 
     const rules = await this.quotaGenerationRulesRepository.getByCondominiumId(

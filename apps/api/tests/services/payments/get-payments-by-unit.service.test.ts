@@ -60,7 +60,7 @@ describe('GetPaymentsByUnitService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((p) => p.unitId === unitId)).toBe(true)
+        expect(result.data.every(p => p.unitId === unitId)).toBe(true)
       }
     })
 

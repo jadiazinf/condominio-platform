@@ -67,7 +67,7 @@ describe('GetConceptsByBuildingService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((c) => c.buildingId === buildingId && c.isActive)).toBe(true)
+        expect(result.data.every(c => c.buildingId === buildingId && c.isActive)).toBe(true)
       }
     })
 
@@ -77,7 +77,7 @@ describe('GetConceptsByBuildingService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((c) => c.buildingId === buildingId)).toBe(true)
+        expect(result.data.every(c => c.buildingId === buildingId)).toBe(true)
       }
     })
 

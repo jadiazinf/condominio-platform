@@ -1,11 +1,12 @@
-import { describe, it, expect, beforeAll, beforeEach , afterAll} from 'bun:test'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'bun:test'
 import { ExpenseCategoriesRepository } from '@database/repositories'
 import {
   startTestContainer,
   cleanDatabase,
   ExpenseCategoryFactory,
   type TTestDrizzleClient,
- stopTestContainer} from '@tests/setup'
+  stopTestContainer,
+} from '@tests/setup'
 
 describe('ExpenseCategoriesRepository', () => {
   let db: TTestDrizzleClient

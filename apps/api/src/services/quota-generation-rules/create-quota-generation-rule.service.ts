@@ -33,7 +33,9 @@ export class CreateQuotaGenerationRuleService {
     private readonly quotaFormulasRepository: QuotaFormulasRepository
   ) {}
 
-  async execute(input: TCreateQuotaGenerationRuleInput): Promise<TServiceResult<TQuotaGenerationRule>> {
+  async execute(
+    input: TCreateQuotaGenerationRuleInput
+  ): Promise<TServiceResult<TQuotaGenerationRule>> {
     const {
       condominiumId,
       buildingId,
@@ -84,11 +86,15 @@ export class CreateQuotaGenerationRuleService {
 
     // 5. Validate date range
     if (effectiveTo && effectiveFrom > effectiveTo) {
-      return failure('Effective from date must be before or equal to effective to date', 'BAD_REQUEST')
+      return failure(
+        'Effective from date must be before or equal to effective to date',
+        'BAD_REQUEST'
+      )
     }
 
     // 6. Check for overlapping rules with same concept
-    const existingRules = await this.quotaGenerationRulesRepository.getByPaymentConceptId(paymentConceptId)
+    const existingRules =
+      await this.quotaGenerationRulesRepository.getByPaymentConceptId(paymentConceptId)
     const overlappingRules = existingRules.filter(rule => {
       // Only check rules for the same scope (condominium or building level)
       if (buildingId) {

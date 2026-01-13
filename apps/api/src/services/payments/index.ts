@@ -28,7 +28,10 @@ export { RejectPaymentService } from './reject-payment.service'
 export type { IRejectPaymentInput, IRejectPaymentOutput } from './reject-payment.service'
 
 export { MarkPaymentAsFailedService } from './mark-payment-as-failed.service'
-export type { IMarkPaymentAsFailedInput, IMarkPaymentAsFailedOutput } from './mark-payment-as-failed.service'
+export type {
+  IMarkPaymentAsFailedInput,
+  IMarkPaymentAsFailedOutput,
+} from './mark-payment-as-failed.service'
 
 export { RefundPaymentService } from './refund-payment.service'
 export type { IRefundPaymentInput, IRefundPaymentOutput } from './refund-payment.service'

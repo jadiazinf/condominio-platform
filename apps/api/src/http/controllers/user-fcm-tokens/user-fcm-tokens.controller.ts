@@ -151,7 +151,7 @@ export class UserFcmTokensController extends BaseController<
         return ctx.internalError({ error: result.error })
       }
 
-      return ctx.ok({ deleted: result.data.deleted })
+      return ctx.ok({ data: { deleted: result.data.deleted } })
     } catch (error) {
       return this.handleError(ctx, error)
     }

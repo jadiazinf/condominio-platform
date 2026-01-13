@@ -49,9 +49,7 @@ describe('MessagesRepository', () => {
     const condominium = await condominiumsRepository.create(
       CondominiumFactory.create({ defaultCurrencyId: currency.id })
     )
-    const building = await buildingsRepository.create(
-      BuildingFactory.create(condominium.id)
-    )
+    const building = await buildingsRepository.create(BuildingFactory.create(condominium.id))
 
     senderId = sender.id
     recipientId = recipient.id
@@ -158,19 +156,21 @@ describe('MessagesRepository', () => {
       const result = await repository.getBySenderId(senderId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((m) => m.senderId === senderId)).toBe(true)
+      expect(result.every(m => m.senderId === senderId)).toBe(true)
     })
   })
 
   describe('getByRecipientUserId', () => {
     it('should return messages for recipient', async () => {
       await repository.create(MessageFactory.toUser(senderId, recipientId))
-      await repository.create(MessageFactory.notification({ senderId, recipientUserId: recipientId }))
+      await repository.create(
+        MessageFactory.notification({ senderId, recipientUserId: recipientId })
+      )
 
       const result = await repository.getByRecipientUserId(recipientId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((m) => m.recipientUserId === recipientId)).toBe(true)
+      expect(result.every(m => m.recipientUserId === recipientId)).toBe(true)
     })
   })
 
@@ -187,12 +187,8 @@ describe('MessagesRepository', () => {
 
   describe('getUnreadByUserId', () => {
     it('should return unread messages for user', async () => {
-      await repository.create(
-        MessageFactory.toUser(senderId, recipientId, { isRead: false })
-      )
-      await repository.create(
-        MessageFactory.toUser(senderId, recipientId, { isRead: true })
-      )
+      await repository.create(MessageFactory.toUser(senderId, recipientId, { isRead: false }))
+      await repository.create(MessageFactory.toUser(senderId, recipientId, { isRead: true }))
 
       const result = await repository.getUnreadByUserId(recipientId)
 

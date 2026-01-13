@@ -57,9 +57,7 @@ describe('UserRolesRepository', () => {
     const condominium = await condominiumsRepository.create(
       CondominiumFactory.create({ defaultCurrencyId: currency.id })
     )
-    const building = await buildingsRepository.create(
-      BuildingFactory.create(condominium.id)
-    )
+    const building = await buildingsRepository.create(BuildingFactory.create(condominium.id))
 
     userId = user.id
     roleId = role.id
@@ -151,7 +149,7 @@ describe('UserRolesRepository', () => {
       const result = await repository.getByUserId(userId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((r) => r.userId === userId)).toBe(true)
+      expect(result.every(r => r.userId === userId)).toBe(true)
     })
 
     it('should return empty array for user with no roles', async () => {

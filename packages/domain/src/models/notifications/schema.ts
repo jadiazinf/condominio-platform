@@ -1,7 +1,10 @@
 import { z } from 'zod'
 import { timestampField } from '../../shared/base-model.schema'
 import { userSchema } from '../users/schema'
-import { notificationTemplateSchema, ENotificationCategories } from '../notification-templates/schema'
+import {
+  notificationTemplateSchema,
+  ENotificationCategories,
+} from '../notification-templates/schema'
 import { DomainLocaleDictionary } from '../../i18n/dictionary'
 
 const d = DomainLocaleDictionary.validation.models.notifications

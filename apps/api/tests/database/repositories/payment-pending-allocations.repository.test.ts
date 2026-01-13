@@ -54,9 +54,7 @@ describe('PaymentPendingAllocationsRepository', () => {
     const condominium = await condominiumsRepository.create(
       CondominiumFactory.create({ defaultCurrencyId: currency.id })
     )
-    const building = await buildingsRepository.create(
-      BuildingFactory.create(condominium.id)
-    )
+    const building = await buildingsRepository.create(BuildingFactory.create(condominium.id))
     const unit = await unitsRepository.create(UnitFactory.create(building.id))
 
     const payment1 = await paymentsRepository.create(
@@ -108,8 +106,12 @@ describe('PaymentPendingAllocationsRepository', () => {
 
   describe('listAll', () => {
     it('should return all allocations', async () => {
-      await repository.create(PaymentPendingAllocationFactory.pending(paymentId, '50.00', currencyId))
-      await repository.create(PaymentPendingAllocationFactory.pending(paymentId2, '25.00', currencyId))
+      await repository.create(
+        PaymentPendingAllocationFactory.pending(paymentId, '50.00', currencyId)
+      )
+      await repository.create(
+        PaymentPendingAllocationFactory.pending(paymentId2, '25.00', currencyId)
+      )
 
       const result = await repository.listAll()
 
@@ -134,14 +136,20 @@ describe('PaymentPendingAllocationsRepository', () => {
 
   describe('getByPaymentId', () => {
     it('should return allocations for payment', async () => {
-      await repository.create(PaymentPendingAllocationFactory.pending(paymentId, '50.00', currencyId))
-      await repository.create(PaymentPendingAllocationFactory.pending(paymentId, '25.00', currencyId))
-      await repository.create(PaymentPendingAllocationFactory.pending(paymentId2, '30.00', currencyId))
+      await repository.create(
+        PaymentPendingAllocationFactory.pending(paymentId, '50.00', currencyId)
+      )
+      await repository.create(
+        PaymentPendingAllocationFactory.pending(paymentId, '25.00', currencyId)
+      )
+      await repository.create(
+        PaymentPendingAllocationFactory.pending(paymentId2, '30.00', currencyId)
+      )
 
       const result = await repository.getByPaymentId(paymentId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((a) => a.paymentId === paymentId)).toBe(true)
+      expect(result.every(a => a.paymentId === paymentId)).toBe(true)
     })
   })
 
@@ -151,7 +159,11 @@ describe('PaymentPendingAllocationsRepository', () => {
         PaymentPendingAllocationFactory.create({ paymentId, currencyId, status: 'pending' })
       )
       await repository.create(
-        PaymentPendingAllocationFactory.create({ paymentId: paymentId2, currencyId, status: 'allocated' })
+        PaymentPendingAllocationFactory.create({
+          paymentId: paymentId2,
+          currencyId,
+          status: 'allocated',
+        })
       )
 
       const result = await repository.getByStatus('pending')
@@ -167,7 +179,11 @@ describe('PaymentPendingAllocationsRepository', () => {
         PaymentPendingAllocationFactory.create({ paymentId, currencyId, status: 'pending' })
       )
       await repository.create(
-        PaymentPendingAllocationFactory.create({ paymentId: paymentId2, currencyId, status: 'allocated' })
+        PaymentPendingAllocationFactory.create({
+          paymentId: paymentId2,
+          currencyId,
+          status: 'allocated',
+        })
       )
       await repository.create(
         PaymentPendingAllocationFactory.create({ paymentId, currencyId, status: 'pending' })
@@ -176,7 +192,7 @@ describe('PaymentPendingAllocationsRepository', () => {
       const result = await repository.getPendingAllocations()
 
       expect(result).toHaveLength(2)
-      expect(result.every((a) => a.status === 'pending')).toBe(true)
+      expect(result.every(a => a.status === 'pending')).toBe(true)
     })
   })
 

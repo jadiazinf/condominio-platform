@@ -67,7 +67,9 @@ describe('GetOwnershipsByUnitService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((ownership) => ownership.unitId === unitId && ownership.isActive)).toBe(true)
+        expect(
+          result.data.every(ownership => ownership.unitId === unitId && ownership.isActive)
+        ).toBe(true)
       }
     })
 
@@ -77,7 +79,7 @@ describe('GetOwnershipsByUnitService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((ownership) => ownership.unitId === unitId)).toBe(true)
+        expect(result.data.every(ownership => ownership.unitId === unitId)).toBe(true)
       }
     })
 

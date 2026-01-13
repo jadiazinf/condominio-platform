@@ -9,7 +9,9 @@ export interface IGetRecurringConceptsInput {
 export class GetRecurringConceptsService {
   constructor(private readonly repository: PaymentConceptsRepository) {}
 
-  async execute(input: IGetRecurringConceptsInput = {}): Promise<TServiceResult<TPaymentConcept[]>> {
+  async execute(
+    input: IGetRecurringConceptsInput = {}
+  ): Promise<TServiceResult<TPaymentConcept[]>> {
     const concepts = await this.repository.getRecurringConcepts(input.includeInactive ?? false)
     return success(concepts)
   }

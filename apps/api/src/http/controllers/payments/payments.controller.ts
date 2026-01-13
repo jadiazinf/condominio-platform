@@ -49,7 +49,14 @@ const UnitIdParamSchema = z.object({
 type TUnitIdParam = z.infer<typeof UnitIdParamSchema>
 
 const StatusParamSchema = z.object({
-  status: z.enum(['pending', 'pending_verification', 'completed', 'failed', 'refunded', 'rejected']),
+  status: z.enum([
+    'pending',
+    'pending_verification',
+    'completed',
+    'failed',
+    'refunded',
+    'rejected',
+  ]),
 })
 
 type TStatusParam = z.infer<typeof StatusParamSchema>
@@ -108,7 +115,9 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
     this.getPaymentsByUnitService = new GetPaymentsByUnitService(repository)
     this.getPaymentsByStatusService = new GetPaymentsByStatusService(repository)
     this.getPaymentsByDateRangeService = new GetPaymentsByDateRangeService(repository)
-    this.getPendingVerificationPaymentsService = new GetPendingVerificationPaymentsService(repository)
+    this.getPendingVerificationPaymentsService = new GetPendingVerificationPaymentsService(
+      repository
+    )
     this.reportPaymentService = new ReportPaymentService(repository)
     this.verifyPaymentService = new VerifyPaymentService(repository)
     this.rejectPaymentService = new RejectPaymentService(repository)
@@ -186,13 +195,21 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         method: 'post',
         path: '/:id/verify',
         handler: this.verifyPayment,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema), bodyValidator(VerificationBodySchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(IdParamSchema),
+          bodyValidator(VerificationBodySchema),
+        ],
       },
       {
         method: 'post',
         path: '/:id/reject',
         handler: this.rejectPayment,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema), bodyValidator(VerificationBodySchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(IdParamSchema),
+          bodyValidator(VerificationBodySchema),
+        ],
       },
       {
         method: 'patch',

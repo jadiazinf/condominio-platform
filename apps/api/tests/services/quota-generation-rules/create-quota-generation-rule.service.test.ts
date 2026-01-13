@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
-import type { TQuotaGenerationRule, TCondominium, TBuilding, TPaymentConcept, TQuotaFormula } from '@packages/domain'
+import type {
+  TQuotaGenerationRule,
+  TCondominium,
+  TBuilding,
+  TPaymentConcept,
+  TQuotaFormula,
+} from '@packages/domain'
 import { CreateQuotaGenerationRuleService } from '@src/services/quota-generation-rules'
 
 type TMockQuotaGenerationRulesRepository = {
@@ -414,7 +420,9 @@ describe('CreateQuotaGenerationRuleService', function () {
 
       expect(result.success).toBe(false)
       if (!result.success) {
-        expect(result.error).toBe('Effective from date must be before or equal to effective to date')
+        expect(result.error).toBe(
+          'Effective from date must be before or equal to effective to date'
+        )
         expect(result.code).toBe('BAD_REQUEST')
       }
     })
@@ -442,7 +450,9 @@ describe('CreateQuotaGenerationRuleService', function () {
 
       expect(result.success).toBe(false)
       if (!result.success) {
-        expect(result.error).toBe('A rule already exists for this payment concept in the specified date range')
+        expect(result.error).toBe(
+          'A rule already exists for this payment concept in the specified date range'
+        )
         expect(result.code).toBe('CONFLICT')
       }
     })

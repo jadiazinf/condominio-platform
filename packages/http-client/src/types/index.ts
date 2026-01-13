@@ -1,11 +1,6 @@
-export type {
-  HttpMethod,
-  RequestConfig,
-  ApiResponse,
-  ApiError,
-} from "./http.js";
+export type { HttpMethod, RequestConfig, ApiResponse, ApiError } from './http'
 
-export { HttpError } from "./http.js";
+export { HttpError } from './http'
 
 // API Response Types
 export type {
@@ -25,7 +20,7 @@ export type {
   TApiCreatedResponse,
   TApiUpdatedResponse,
   TApiDeletedResponse,
-} from "./api-responses.js";
+} from './api-responses'
 
 export {
   ApiErrorCodes,
@@ -34,4 +29,152 @@ export {
   isApiValidationError,
   isApiErrorResponse,
   isApiSimpleError,
-} from "./api-responses.js";
+} from './api-responses'
+
+// Entity-specific Response Types
+export type {
+  // Generic helpers
+  TEntityListResponse,
+  TEntityResponse,
+  TEntityCreatedResponse,
+  // Users & Authentication
+  TUserListResponse,
+  TUserResponse,
+  TUserCreatedResponse,
+  TUserUpdatedResponse,
+  TRoleListResponse,
+  TRoleResponse,
+  TRoleCreatedResponse,
+  TRoleUpdatedResponse,
+  TPermissionListResponse,
+  TPermissionResponse,
+  TPermissionCreatedResponse,
+  TPermissionUpdatedResponse,
+  TRolePermissionListResponse,
+  TRolePermissionResponse,
+  TRolePermissionCreatedResponse,
+  TUserRoleListResponse,
+  TUserRoleResponse,
+  TUserRoleCreatedResponse,
+  // Locations & Currencies
+  TLocationListResponse,
+  TLocationResponse,
+  TLocationCreatedResponse,
+  TLocationUpdatedResponse,
+  TCurrencyListResponse,
+  TCurrencyResponse,
+  TCurrencyCreatedResponse,
+  TCurrencyUpdatedResponse,
+  // Properties
+  TManagementCompanyListResponse,
+  TManagementCompanyResponse,
+  TManagementCompanyCreatedResponse,
+  TManagementCompanyUpdatedResponse,
+  TCondominiumListResponse,
+  TCondominiumResponse,
+  TCondominiumCreatedResponse,
+  TCondominiumUpdatedResponse,
+  TBuildingListResponse,
+  TBuildingResponse,
+  TBuildingCreatedResponse,
+  TBuildingUpdatedResponse,
+  TUnitListResponse,
+  TUnitResponse,
+  TUnitCreatedResponse,
+  TUnitUpdatedResponse,
+  TUnitOwnershipListResponse,
+  TUnitOwnershipResponse,
+  TUnitOwnershipCreatedResponse,
+  TUnitOwnershipUpdatedResponse,
+  // Payments & Billing
+  TPaymentConceptListResponse,
+  TPaymentConceptResponse,
+  TPaymentConceptCreatedResponse,
+  TPaymentConceptUpdatedResponse,
+  TQuotaListResponse,
+  TQuotaResponse,
+  TQuotaCreatedResponse,
+  TQuotaUpdatedResponse,
+  TQuotaAdjustmentListResponse,
+  TQuotaAdjustmentResponse,
+  TQuotaAdjustmentCreatedResponse,
+  TQuotaFormulaListResponse,
+  TQuotaFormulaResponse,
+  TQuotaFormulaCreatedResponse,
+  TQuotaFormulaUpdatedResponse,
+  TQuotaGenerationRuleListResponse,
+  TQuotaGenerationRuleResponse,
+  TQuotaGenerationRuleCreatedResponse,
+  TQuotaGenerationRuleUpdatedResponse,
+  TPaymentListResponse,
+  TPaymentResponse,
+  TPaymentCreatedResponse,
+  TPaymentUpdatedResponse,
+  TPaymentVerifiedResponse,
+  TPaymentApplicationListResponse,
+  TPaymentApplicationResponse,
+  TPaymentApplicationCreatedResponse,
+  TPaymentPendingAllocationListResponse,
+  TPaymentPendingAllocationResponse,
+  TPaymentPendingAllocationCreatedResponse,
+  TPaymentGatewayListResponse,
+  TPaymentGatewayResponse,
+  TPaymentGatewayCreatedResponse,
+  TPaymentGatewayUpdatedResponse,
+  TEntityPaymentGatewayListResponse,
+  TEntityPaymentGatewayResponse,
+  TEntityPaymentGatewayCreatedResponse,
+  TEntityPaymentGatewayUpdatedResponse,
+  TInterestConfigurationListResponse,
+  TInterestConfigurationResponse,
+  TInterestConfigurationCreatedResponse,
+  TInterestConfigurationUpdatedResponse,
+  // Expenses
+  TExpenseListResponse,
+  TExpenseResponse,
+  TExpenseCreatedResponse,
+  TExpenseUpdatedResponse,
+  TExpenseCategoryListResponse,
+  TExpenseCategoryResponse,
+  TExpenseCategoryCreatedResponse,
+  TExpenseCategoryUpdatedResponse,
+  TExchangeRateListResponse,
+  TExchangeRateResponse,
+  TExchangeRateCreatedResponse,
+  TExchangeRateUpdatedResponse,
+  // Communication
+  TDocumentListResponse,
+  TDocumentResponse,
+  TDocumentCreatedResponse,
+  TDocumentUpdatedResponse,
+  TMessageListResponse,
+  TMessageResponse,
+  TMessageCreatedResponse,
+  TMessageUpdatedResponse,
+  // Notifications
+  TNotificationTemplateListResponse,
+  TNotificationTemplateResponse,
+  TNotificationTemplateCreatedResponse,
+  TNotificationTemplateUpdatedResponse,
+  TNotificationListResponse,
+  TNotificationResponse,
+  TNotificationCreatedResponse,
+  TNotificationUpdatedResponse,
+  TUserNotificationPreferenceListResponse,
+  TUserNotificationPreferenceResponse,
+  TUserNotificationPreferenceCreatedResponse,
+  TUserNotificationPreferenceUpdatedResponse,
+  TUserFcmTokenListResponse,
+  TUserFcmTokenResponse,
+  TUserFcmTokenCreatedResponse,
+  TUserFcmTokenUpdatedResponse,
+  // Audit
+  TAuditLogListResponse,
+  TAuditLogResponse,
+  // Health
+  THealthCheckData,
+  THealthCheckResponse,
+} from './entity-responses'
+
+// Endpoint Types (for type-safe API communication)
+export * from './endpoints'

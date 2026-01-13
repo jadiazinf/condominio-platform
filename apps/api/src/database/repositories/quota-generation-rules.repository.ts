@@ -23,7 +23,8 @@ export class QuotaGenerationRulesRepository
     TQuotaGenerationRuleCreate,
     TQuotaGenerationRuleUpdate
   >
-  implements IRepository<TQuotaGenerationRule, TQuotaGenerationRuleCreate, TQuotaGenerationRuleUpdate>
+  implements
+    IRepository<TQuotaGenerationRule, TQuotaGenerationRuleCreate, TQuotaGenerationRuleUpdate>
 {
   constructor(db: TDrizzleClient) {
     super(db, quotaGenerationRules)

@@ -9,9 +9,7 @@ export const EAuditActions = ['INSERT', 'UPDATE', 'DELETE'] as const
 
 export const auditLogSchema = z.object({
   id: z.uuid(),
-  tableName: z
-    .string({ error: d.tableName.required })
-    .max(100, { error: d.tableName.max }),
+  tableName: z.string({ error: d.tableName.required }).max(100, { error: d.tableName.max }),
   recordId: z.uuid({ error: d.recordId.invalid }),
   action: z.enum(EAuditActions, { error: d.action.invalid }),
   oldValues: z.record(z.string(), z.unknown()).nullable(),

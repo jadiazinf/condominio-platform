@@ -4,7 +4,7 @@ const MAX_RETRIES = 5
 const INITIAL_DELAY_MS = 1000
 
 function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 async function tryApiConnection(): Promise<void> {

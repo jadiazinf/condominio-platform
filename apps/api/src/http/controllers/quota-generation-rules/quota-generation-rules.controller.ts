@@ -9,7 +9,11 @@ import type {
   QuotaFormulasRepository,
 } from '@database/repositories'
 import { HttpContext } from '../../context'
-import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
+import {
+  bodyValidator,
+  paramsValidator,
+  queryValidator,
+} from '../../middlewares/utils/payload-validator'
 import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
@@ -34,7 +38,10 @@ const CondominiumIdParamSchema = z.object({
 type TCondominiumIdParam = z.infer<typeof CondominiumIdParamSchema>
 
 const IncludeInactiveQuerySchema = z.object({
-  includeInactive: z.enum(['true', 'false']).optional().transform(v => v === 'true'),
+  includeInactive: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform(v => v === 'true'),
 })
 
 type TIncludeInactiveQuery = z.infer<typeof IncludeInactiveQuerySchema>
@@ -47,7 +54,11 @@ const CreateQuotaGenerationRuleBodySchema = z.object({
   name: z.string().min(1).max(255),
   description: z.string().max(1000).optional().nullable(),
   effectiveFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
-  effectiveTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format').optional().nullable(),
+  effectiveTo: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
+    .optional()
+    .nullable(),
 })
 
 type TCreateQuotaGenerationRuleBody = z.infer<typeof CreateQuotaGenerationRuleBodySchema>
@@ -58,8 +69,15 @@ const UpdateQuotaGenerationRuleBodySchema = z.object({
   quotaFormulaId: z.string().uuid().optional(),
   name: z.string().min(1).max(255).optional(),
   description: z.string().max(1000).optional().nullable(),
-  effectiveFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format').optional(),
-  effectiveTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format').optional().nullable(),
+  effectiveFrom: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
+    .optional(),
+  effectiveTo: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
+    .optional()
+    .nullable(),
   isActive: z.boolean().optional(),
   updateReason: z.string().max(500).optional().nullable(),
 })
@@ -126,9 +144,7 @@ export class QuotaGenerationRulesController {
     this.getRulesByCondominiumService = new GetRulesByCondominiumService(
       quotaGenerationRulesRepository
     )
-    this.getApplicableRuleService = new GetApplicableRuleService(
-      quotaGenerationRulesRepository
-    )
+    this.getApplicableRuleService = new GetApplicableRuleService(quotaGenerationRulesRepository)
     this.getEffectiveRulesForDateService = new GetEffectiveRulesForDateService(
       quotaGenerationRulesRepository
     )

@@ -11,12 +11,8 @@ export const EIdDocumentTypes = ['CI', 'RIF', 'Pasaporte'] as const
 export const EPreferredLanguages = ['es', 'en'] as const
 
 export const userSchema = baseModelSchema.extend({
-  firebaseUid: z
-    .string({ error: d.firebaseUid.required })
-    .max(128, { error: d.firebaseUid.max }),
-  email: z
-    .email({ error: d.email.invalid })
-    .max(255, { error: d.email.max }),
+  firebaseUid: z.string({ error: d.firebaseUid.required }).max(128, { error: d.firebaseUid.max }),
+  email: z.email({ error: d.email.invalid }).max(255, { error: d.email.max }),
   displayName: z.string().max(255, { error: d.displayName.max }).nullable(),
   phoneNumber: z.string().max(50, { error: d.phoneNumber.max }).nullable(),
   photoUrl: z.string().url({ error: d.photoUrl.invalid }).nullable(),
@@ -26,7 +22,9 @@ export const userSchema = baseModelSchema.extend({
   idDocumentNumber: z.string().max(50, { error: d.idDocumentNumber.max }).nullable(),
   address: z.string().max(500, { error: d.address.max }).nullable(),
   locationId: z.uuid({ error: d.locationId.invalid }).nullable(),
-  preferredLanguage: z.enum(EPreferredLanguages, { error: d.preferredLanguage.invalid }).default('es'),
+  preferredLanguage: z
+    .enum(EPreferredLanguages, { error: d.preferredLanguage.invalid })
+    .default('es'),
   preferredCurrencyId: z.uuid({ error: d.preferredCurrencyId.invalid }).nullable(),
   isActive: z.boolean().default(true),
   isEmailVerified: z.boolean().default(false),

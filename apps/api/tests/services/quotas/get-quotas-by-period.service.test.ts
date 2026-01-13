@@ -126,7 +126,7 @@ describe('GetQuotasByPeriodService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((q) => q.periodYear === 2024 && q.periodMonth === 1)).toBe(true)
+        expect(result.data.every(q => q.periodYear === 2024 && q.periodMonth === 1)).toBe(true)
       }
     })
 
@@ -136,7 +136,7 @@ describe('GetQuotasByPeriodService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(3)
-        expect(result.data.every((q) => q.periodYear === 2024)).toBe(true)
+        expect(result.data.every(q => q.periodYear === 2024)).toBe(true)
       }
     })
 

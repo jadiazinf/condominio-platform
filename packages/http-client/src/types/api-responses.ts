@@ -11,23 +11,23 @@
  * Standard success response with data
  */
 export type TApiDataResponse<T> = {
-  data: T;
-};
+  data: T
+}
 
 /**
  * Success response with message only
  */
 export type TApiMessageResponse = {
-  message: string;
-};
+  message: string
+}
 
 /**
  * Success response with both data and message
  */
 export type TApiDataMessageResponse<T> = {
-  data: T;
-  message: string;
-};
+  data: T
+  message: string
+}
 
 // ============================================================================
 // Error Response Types
@@ -37,55 +37,55 @@ export type TApiDataMessageResponse<T> = {
  * Validation error field detail
  */
 export type TValidationFieldError = {
-  field: string;
-  messages: string[];
-};
+  field: string
+  messages: string[]
+}
 
 /**
  * Validation error response (HTTP 422)
  */
 export type TApiValidationErrorResponse = {
-  success: false;
+  success: false
   error: {
-    code: "VALIDATION_ERROR";
-    message: string;
-    fields: TValidationFieldError[];
-  };
-};
+    code: 'VALIDATION_ERROR'
+    message: string
+    fields: TValidationFieldError[]
+  }
+}
 
 /**
  * Standard error response
  */
 export type TApiErrorResponse = {
-  success: false;
+  success: false
   error: {
-    code: string;
-    message: string;
-  };
-};
+    code: string
+    message: string
+  }
+}
 
 /**
  * Simple error response (legacy format)
  */
 export type TApiSimpleErrorResponse = {
-  error: string;
-};
+  error: string
+}
 
 // ============================================================================
 // Error Codes
 // ============================================================================
 
 export const ApiErrorCodes = {
-  VALIDATION_ERROR: "VALIDATION_ERROR",
-  NOT_FOUND: "NOT_FOUND",
-  UNAUTHORIZED: "UNAUTHORIZED",
-  FORBIDDEN: "FORBIDDEN",
-  BAD_REQUEST: "BAD_REQUEST",
-  INTERNAL_ERROR: "INTERNAL_ERROR",
-  CONFLICT: "CONFLICT",
-} as const;
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  NOT_FOUND: 'NOT_FOUND',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  FORBIDDEN: 'FORBIDDEN',
+  BAD_REQUEST: 'BAD_REQUEST',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  CONFLICT: 'CONFLICT',
+} as const
 
-export type TApiErrorCode = (typeof ApiErrorCodes)[keyof typeof ApiErrorCodes];
+export type TApiErrorCode = (typeof ApiErrorCodes)[keyof typeof ApiErrorCodes]
 
 // ============================================================================
 // Combined Types
@@ -97,7 +97,7 @@ export type TApiErrorCode = (typeof ApiErrorCodes)[keyof typeof ApiErrorCodes];
 export type TApiSuccessResponse<T> =
   | TApiDataResponse<T>
   | TApiMessageResponse
-  | TApiDataMessageResponse<T>;
+  | TApiDataMessageResponse<T>
 
 /**
  * All possible error response types
@@ -105,77 +105,67 @@ export type TApiSuccessResponse<T> =
 export type TApiErrorResponseUnion =
   | TApiValidationErrorResponse
   | TApiErrorResponse
-  | TApiSimpleErrorResponse;
+  | TApiSimpleErrorResponse
 
 /**
  * Complete API response union type
  */
-export type TApiResponse<T> = TApiSuccessResponse<T> | TApiErrorResponseUnion;
+export type TApiResponse<T> = TApiSuccessResponse<T> | TApiErrorResponseUnion
 
 // ============================================================================
 // Type Guards
 // ============================================================================
 
-export function isApiDataResponse<T>(
-  response: unknown
-): response is TApiDataResponse<T> {
+export function isApiDataResponse<T>(response: unknown): response is TApiDataResponse<T> {
   return (
-    typeof response === "object" &&
+    typeof response === 'object' &&
     response !== null &&
-    "data" in response &&
-    !("success" in response && (response as { success: unknown }).success === false)
-  );
+    'data' in response &&
+    !('success' in response && (response as { success: unknown }).success === false)
+  )
 }
 
-export function isApiMessageResponse(
-  response: unknown
-): response is TApiMessageResponse {
+export function isApiMessageResponse(response: unknown): response is TApiMessageResponse {
   return (
-    typeof response === "object" &&
+    typeof response === 'object' &&
     response !== null &&
-    "message" in response &&
-    !("data" in response) &&
-    !("success" in response)
-  );
+    'message' in response &&
+    !('data' in response) &&
+    !('success' in response)
+  )
 }
 
-export function isApiValidationError(
-  response: unknown
-): response is TApiValidationErrorResponse {
+export function isApiValidationError(response: unknown): response is TApiValidationErrorResponse {
   return (
-    typeof response === "object" &&
+    typeof response === 'object' &&
     response !== null &&
-    "success" in response &&
+    'success' in response &&
     (response as { success: unknown }).success === false &&
-    "error" in response &&
-    typeof (response as { error: unknown }).error === "object" &&
+    'error' in response &&
+    typeof (response as { error: unknown }).error === 'object' &&
     (response as { error: { code?: unknown } }).error !== null &&
-    (response as { error: { code?: unknown } }).error.code === "VALIDATION_ERROR"
-  );
+    (response as { error: { code?: unknown } }).error.code === 'VALIDATION_ERROR'
+  )
 }
 
-export function isApiErrorResponse(
-  response: unknown
-): response is TApiErrorResponse {
+export function isApiErrorResponse(response: unknown): response is TApiErrorResponse {
   return (
-    typeof response === "object" &&
+    typeof response === 'object' &&
     response !== null &&
-    "success" in response &&
+    'success' in response &&
     (response as { success: unknown }).success === false &&
-    "error" in response &&
-    typeof (response as { error: unknown }).error === "object"
-  );
+    'error' in response &&
+    typeof (response as { error: unknown }).error === 'object'
+  )
 }
 
-export function isApiSimpleError(
-  response: unknown
-): response is TApiSimpleErrorResponse {
+export function isApiSimpleError(response: unknown): response is TApiSimpleErrorResponse {
   return (
-    typeof response === "object" &&
+    typeof response === 'object' &&
     response !== null &&
-    "error" in response &&
-    typeof (response as { error: unknown }).error === "string"
-  );
+    'error' in response &&
+    typeof (response as { error: unknown }).error === 'string'
+  )
 }
 
 // ============================================================================
@@ -185,24 +175,24 @@ export function isApiSimpleError(
 /**
  * List response type (array of entities)
  */
-export type TApiListResponse<T> = TApiDataResponse<T[]>;
+export type TApiListResponse<T> = TApiDataResponse<T[]>
 
 /**
  * Single entity response type
  */
-export type TApiEntityResponse<T> = TApiDataResponse<T>;
+export type TApiEntityResponse<T> = TApiDataResponse<T>
 
 /**
  * Created entity response type
  */
-export type TApiCreatedResponse<T> = TApiDataResponse<T> | TApiDataMessageResponse<T>;
+export type TApiCreatedResponse<T> = TApiDataResponse<T> | TApiDataMessageResponse<T>
 
 /**
  * Updated entity response type
  */
-export type TApiUpdatedResponse<T> = TApiDataResponse<T>;
+export type TApiUpdatedResponse<T> = TApiDataResponse<T>
 
 /**
  * Deleted response type (no content or message)
  */
-export type TApiDeletedResponse = void | TApiMessageResponse;
+export type TApiDeletedResponse = void | TApiMessageResponse

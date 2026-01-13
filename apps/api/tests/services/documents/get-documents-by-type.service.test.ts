@@ -79,7 +79,7 @@ describe('GetDocumentsByTypeService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((d) => d.documentType === 'invoice')).toBe(true)
+        expect(result.data.every(d => d.documentType === 'invoice')).toBe(true)
       }
     })
 
@@ -89,7 +89,7 @@ describe('GetDocumentsByTypeService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((d) => d.documentType === 'receipt')).toBe(true)
+        expect(result.data.every(d => d.documentType === 'receipt')).toBe(true)
       }
     })
 

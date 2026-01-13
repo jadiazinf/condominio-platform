@@ -35,7 +35,9 @@ export class SendFcmNotificationService {
    * Sends a push notification to a single user via FCM.
    * Sends to all active devices registered for the user.
    */
-  async execute(input: ISendFcmNotificationInput): Promise<TServiceResult<ISendFcmNotificationOutput>> {
+  async execute(
+    input: ISendFcmNotificationInput
+  ): Promise<TServiceResult<ISendFcmNotificationOutput>> {
     const tokens = await this.fcmTokensRepository.getActiveByUserId(input.userId)
 
     if (tokens.length === 0) {

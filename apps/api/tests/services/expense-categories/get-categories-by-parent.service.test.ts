@@ -3,7 +3,10 @@ import type { TExpenseCategory } from '@packages/domain'
 import { GetCategoriesByParentService } from '@src/services/expense-categories'
 
 type TMockRepository = {
-  getByParentId: (parentCategoryId: string, includeInactive?: boolean) => Promise<TExpenseCategory[]>
+  getByParentId: (
+    parentCategoryId: string,
+    includeInactive?: boolean
+  ) => Promise<TExpenseCategory[]>
 }
 
 describe('GetCategoriesByParentService', function () {
@@ -66,8 +69,8 @@ describe('GetCategoriesByParentService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((c) => c.isActive)).toBe(true)
-        expect(result.data.every((c) => c.parentCategoryId === parentCategoryId)).toBe(true)
+        expect(result.data.every(c => c.isActive)).toBe(true)
+        expect(result.data.every(c => c.parentCategoryId === parentCategoryId)).toBe(true)
       }
     })
 
@@ -77,12 +80,14 @@ describe('GetCategoriesByParentService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(3)
-        expect(result.data.every((c) => c.parentCategoryId === parentCategoryId)).toBe(true)
+        expect(result.data.every(c => c.parentCategoryId === parentCategoryId)).toBe(true)
       }
     })
 
     it('should return empty array when parent has no children', async function () {
-      const result = await service.execute({ parentCategoryId: '550e8400-e29b-41d4-a716-446655440099' })
+      const result = await service.execute({
+        parentCategoryId: '550e8400-e29b-41d4-a716-446655440099',
+      })
 
       expect(result.success).toBe(true)
       if (result.success) {

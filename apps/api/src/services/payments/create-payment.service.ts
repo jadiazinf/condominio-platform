@@ -1,5 +1,10 @@
 import type { TPayment, TPaymentCreate } from '@packages/domain'
-import type { PaymentsRepository, UsersRepository, UnitsRepository, CurrenciesRepository } from '@database/repositories'
+import type {
+  PaymentsRepository,
+  UsersRepository,
+  UnitsRepository,
+  CurrenciesRepository,
+} from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 
 export interface ICreatePaymentInput {
@@ -67,9 +72,8 @@ export class CreatePaymentService {
     // 5. Determine initial status based on payment method
     // Gateway payments start as 'pending' for automatic processing
     // Manual methods (transfer, cash, card, mobile_payment) start as 'pending_verification'
-    const status: TPayment['status'] = input.paymentMethod === 'gateway'
-      ? 'pending'
-      : 'pending_verification'
+    const status: TPayment['status'] =
+      input.paymentMethod === 'gateway' ? 'pending' : 'pending_verification'
 
     // 6. Create payment
     const paymentData: TPaymentCreate = {
@@ -95,9 +99,10 @@ export class CreatePaymentService {
 
     const payment = await this.paymentsRepository.create(paymentData)
 
-    const message = status === 'pending'
-      ? 'Payment created and pending automatic processing'
-      : 'Payment created and pending manual verification'
+    const message =
+      status === 'pending'
+        ? 'Payment created and pending automatic processing'
+        : 'Payment created and pending manual verification'
 
     return success({
       payment,

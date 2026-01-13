@@ -82,9 +82,20 @@ describe('QuotaAdjustmentsController', function () {
   beforeEach(async function () {
     testQuota = createTestQuota()
     testAdjustments = [
-      createTestAdjustment({ id: '550e8400-e29b-41d4-a716-446655440100', adjustmentType: 'discount' }),
-      createTestAdjustment({ id: '550e8400-e29b-41d4-a716-446655440101', adjustmentType: 'increase', newAmount: '110.00' }),
-      createTestAdjustment({ id: '550e8400-e29b-41d4-a716-446655440102', adjustmentType: 'discount', createdBy: '550e8400-e29b-41d4-a716-446655440098' }),
+      createTestAdjustment({
+        id: '550e8400-e29b-41d4-a716-446655440100',
+        adjustmentType: 'discount',
+      }),
+      createTestAdjustment({
+        id: '550e8400-e29b-41d4-a716-446655440101',
+        adjustmentType: 'increase',
+        newAmount: '110.00',
+      }),
+      createTestAdjustment({
+        id: '550e8400-e29b-41d4-a716-446655440102',
+        adjustmentType: 'discount',
+        createdBy: '550e8400-e29b-41d4-a716-446655440098',
+      }),
     ]
 
     mockQuotasRepository = {

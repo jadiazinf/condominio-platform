@@ -243,7 +243,7 @@ describe('ExchangeRatesRepository', () => {
       const result = await repository.getByDate('2025-01-15')
 
       expect(result).toHaveLength(2)
-      expect(result.every((r) => r.effectiveDate === '2025-01-15')).toBe(true)
+      expect(result.every(r => r.effectiveDate === '2025-01-15')).toBe(true)
     })
 
     it('should return empty array when no rates for date', async () => {

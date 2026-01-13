@@ -9,7 +9,9 @@ export interface IGetApplicationsByQuotaInput {
 export class GetApplicationsByQuotaService {
   constructor(private readonly repository: PaymentApplicationsRepository) {}
 
-  async execute(input: IGetApplicationsByQuotaInput): Promise<TServiceResult<TPaymentApplication[]>> {
+  async execute(
+    input: IGetApplicationsByQuotaInput
+  ): Promise<TServiceResult<TPaymentApplication[]>> {
     const applications = await this.repository.getByQuotaId(input.quotaId)
     return success(applications)
   }

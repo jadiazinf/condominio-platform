@@ -3,7 +3,10 @@ import type { TEntityPaymentGateway } from '@packages/domain'
 import { GetGatewaysByPaymentGatewayService } from '@src/services/entity-payment-gateways'
 
 type TMockRepository = {
-  getByPaymentGatewayId: (paymentGatewayId: string, includeInactive?: boolean) => Promise<TEntityPaymentGateway[]>
+  getByPaymentGatewayId: (
+    paymentGatewayId: string,
+    includeInactive?: boolean
+  ) => Promise<TEntityPaymentGateway[]>
 }
 
 describe('GetGatewaysByPaymentGatewayService', function () {
@@ -37,7 +40,10 @@ describe('GetGatewaysByPaymentGatewayService', function () {
 
   beforeEach(function () {
     mockRepository = {
-      getByPaymentGatewayId: async function (requestedPaymentGatewayId: string, includeInactive?: boolean) {
+      getByPaymentGatewayId: async function (
+        requestedPaymentGatewayId: string,
+        includeInactive?: boolean
+      ) {
         return mockGateways.filter(function (g) {
           const matchesPaymentGateway = g.paymentGatewayId === requestedPaymentGatewayId
           const matchesActive = includeInactive || g.isActive
@@ -55,7 +61,9 @@ describe('GetGatewaysByPaymentGatewayService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((g) => g.paymentGatewayId === paymentGatewayId && g.isActive)).toBe(true)
+        expect(result.data.every(g => g.paymentGatewayId === paymentGatewayId && g.isActive)).toBe(
+          true
+        )
       }
     })
 
@@ -65,12 +73,14 @@ describe('GetGatewaysByPaymentGatewayService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((g) => g.paymentGatewayId === paymentGatewayId)).toBe(true)
+        expect(result.data.every(g => g.paymentGatewayId === paymentGatewayId)).toBe(true)
       }
     })
 
     it('should return empty array when payment gateway has no entity gateways', async function () {
-      const result = await service.execute({ paymentGatewayId: '550e8400-e29b-41d4-a716-446655440099' })
+      const result = await service.execute({
+        paymentGatewayId: '550e8400-e29b-41d4-a716-446655440099',
+      })
 
       expect(result.success).toBe(true)
       if (result.success) {

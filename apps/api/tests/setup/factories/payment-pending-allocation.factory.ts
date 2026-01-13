@@ -8,7 +8,9 @@ export class PaymentPendingAllocationFactory {
   /**
    * Creates fake data for a payment pending allocation.
    */
-  static create(overrides: Partial<TPaymentPendingAllocationCreate> = {}): TPaymentPendingAllocationCreate {
+  static create(
+    overrides: Partial<TPaymentPendingAllocationCreate> = {}
+  ): TPaymentPendingAllocationCreate {
     return {
       paymentId: faker.string.uuid(),
       pendingAmount: faker.number.float({ min: 10, max: 500, fractionDigits: 2 }).toString(),

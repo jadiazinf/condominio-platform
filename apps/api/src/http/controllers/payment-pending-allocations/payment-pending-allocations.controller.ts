@@ -1,12 +1,13 @@
 import type { Context } from 'hono'
 import { z } from 'zod'
 import { EAllocationStatuses, type TPaymentPendingAllocation } from '@packages/domain'
-import type {
-  PaymentPendingAllocationsRepository,
-  QuotasRepository,
-} from '@database/repositories'
+import type { PaymentPendingAllocationsRepository, QuotasRepository } from '@database/repositories'
 import { HttpContext } from '../../context'
-import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
+import {
+  bodyValidator,
+  paramsValidator,
+  queryValidator,
+} from '../../middlewares/utils/payload-validator'
 import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
@@ -154,7 +155,9 @@ export class PaymentPendingAllocationsController {
 
     try {
       if (ctx.query.status) {
-        const allocations = await this.paymentPendingAllocationsRepository.getByStatus(ctx.query.status)
+        const allocations = await this.paymentPendingAllocationsRepository.getByStatus(
+          ctx.query.status
+        )
         return ctx.ok({ data: allocations })
       }
 

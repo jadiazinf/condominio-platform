@@ -56,7 +56,9 @@ export class BuildingsController extends BaseController<
 
     // Initialize services
     this.getBuildingsByCondominiumService = new GetBuildingsByCondominiumService(repository)
-    this.getBuildingByCondominiumAndCodeService = new GetBuildingByCondominiumAndCodeService(repository)
+    this.getBuildingByCondominiumAndCodeService = new GetBuildingByCondominiumAndCodeService(
+      repository
+    )
 
     this.getByCondominiumId = this.getByCondominiumId.bind(this)
     this.getByCondominiumAndCode = this.getByCondominiumAndCode.bind(this)

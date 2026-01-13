@@ -7,9 +7,7 @@ const d = DomainLocaleDictionary.validation.models.locations
 export const ELocationTypes = ['country', 'province', 'city'] as const
 
 export const locationBaseSchema = baseModelSchema.extend({
-  name: z
-    .string({ error: d.name.required })
-    .max(200, { error: d.name.max }),
+  name: z.string({ error: d.name.required }).max(200, { error: d.name.max }),
   locationType: z.enum(ELocationTypes, { error: d.locationType.invalid }),
   parentId: z.uuid().nullable(),
   code: z.string().max(50, { error: d.code.max }).nullable(),

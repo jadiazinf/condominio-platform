@@ -7,7 +7,11 @@ import type {
   UnitsRepository,
 } from '@database/repositories'
 import { HttpContext } from '../../context'
-import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
+import {
+  bodyValidator,
+  paramsValidator,
+  queryValidator,
+} from '../../middlewares/utils/payload-validator'
 import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
@@ -31,7 +35,10 @@ const CondominiumIdParamSchema = z.object({
 type TCondominiumIdParam = z.infer<typeof CondominiumIdParamSchema>
 
 const IncludeInactiveQuerySchema = z.object({
-  includeInactive: z.enum(['true', 'false']).optional().transform(v => v === 'true'),
+  includeInactive: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform(v => v === 'true'),
 })
 
 type TIncludeInactiveQuery = z.infer<typeof IncludeInactiveQuerySchema>

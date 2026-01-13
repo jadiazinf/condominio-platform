@@ -1,2 +1,2 @@
-export { getEnvConfig, setEnvConfig, resetEnvConfig } from "./env.js";
-export type { EnvConfig } from "./env.js";
+export { getEnvConfig, setEnvConfig, resetEnvConfig } from './env'
+export type { EnvConfig } from './env'

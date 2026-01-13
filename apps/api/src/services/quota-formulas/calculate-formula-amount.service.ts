@@ -129,7 +129,10 @@ export class CalculateFormulaAmountService {
 
       // Validate the expression contains only allowed characters
       if (!/^[\d\s+\-*/.()]+$/.test(evaluableExpression)) {
-        return { success: false, error: 'Expression contains invalid characters after variable substitution' }
+        return {
+          success: false,
+          error: 'Expression contains invalid characters after variable substitution',
+        }
       }
 
       // Use Function constructor for safe evaluation (sandboxed)

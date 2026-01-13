@@ -10,7 +10,9 @@ export interface IGetCondominiumsByManagementCompanyInput {
 export class GetCondominiumsByManagementCompanyService {
   constructor(private readonly repository: CondominiumsRepository) {}
 
-  async execute(input: IGetCondominiumsByManagementCompanyInput): Promise<TServiceResult<TCondominium[]>> {
+  async execute(
+    input: IGetCondominiumsByManagementCompanyInput
+  ): Promise<TServiceResult<TCondominium[]>> {
     const condominiums = await this.repository.getByManagementCompanyId(
       input.managementCompanyId,
       input.includeInactive

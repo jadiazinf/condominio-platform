@@ -53,9 +53,7 @@ describe('EntityPaymentGatewaysRepository', () => {
     const condominium = await condominiumsRepository.create(
       CondominiumFactory.create({ defaultCurrencyId: currency.id })
     )
-    const building = await buildingsRepository.create(
-      BuildingFactory.create(condominium.id)
-    )
+    const building = await buildingsRepository.create(BuildingFactory.create(condominium.id))
 
     paymentGatewayId = gateway1.id
     paymentGatewayId2 = gateway2.id
@@ -149,7 +147,7 @@ describe('EntityPaymentGatewaysRepository', () => {
       const result = await repository.getByCondominiumId(condominiumId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((g) => g.condominiumId === condominiumId)).toBe(true)
+      expect(result.every(g => g.condominiumId === condominiumId)).toBe(true)
     })
   })
 
@@ -174,8 +172,7 @@ describe('EntityPaymentGatewaysRepository', () => {
       const result = await repository.getByPaymentGatewayId(paymentGatewayId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((g) => g.paymentGatewayId === paymentGatewayId)).toBe(true)
+      expect(result.every(g => g.paymentGatewayId === paymentGatewayId)).toBe(true)
     })
   })
-
 })

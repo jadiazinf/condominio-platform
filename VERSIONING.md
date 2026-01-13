@@ -7,6 +7,7 @@ Este documento describe cómo gestionar versiones de dependencias en este monore
 Las siguientes dependencias **DEBEN** mantenerse en las mismas versiones en todo el monorepo:
 
 ### React y TypeScript
+
 ```json
 {
   "react": "18.3.1",
@@ -20,6 +21,7 @@ Las siguientes dependencias **DEBEN** mantenerse en las mismas versiones en todo
 **Ubicación:** Definidas en el `package.json` raíz y heredadas por todos los workspaces.
 
 **⚠️ IMPORTANTE:**
+
 - NO uses carets (^) o tildes (~) en estas dependencias
 - Si necesitas actualizar React, actualiza PRIMERO en el root y luego en todos los workspaces
 - Verifica compatibilidad con Expo antes de actualizar (mobile usa React Native)
@@ -40,6 +42,7 @@ Platform/
 ## 🔄 Proceso de Actualización de Dependencias
 
 ### 1. Actualizar React
+
 ```bash
 # 1. Actualizar en el root
 nano package.json  # Cambiar version de react
@@ -60,6 +63,7 @@ bun run build
 ```
 
 ### 2. Actualizar otras dependencias
+
 ```bash
 # Actualizar solo en el workspace específico
 cd apps/web
@@ -78,6 +82,7 @@ bun run validate:versions
 ```
 
 Este script verifica que:
+
 - React tenga la misma versión en todos los workspaces
 - TypeScript tenga la misma versión en todos los workspaces
 - No haya conflictos de versiones en @types/react
@@ -93,18 +98,22 @@ Este script verifica que:
 ## 🐛 Problemas Comunes
 
 ### Error: "Objects are not valid as a React child"
+
 **Causa:** Versiones diferentes de React entre workspaces
 **Solución:**
+
 ```bash
 rm -rf node_modules apps/*/node_modules packages/*/node_modules bun.lock
 bun install
 ```
 
 ### Error de tipos con HeroUI/NextUI
+
 **Causa:** @types/react incompatible
 **Solución:** Verificar que `@types/react` sea exactamente `18.3.3` en todos lados
 
 ### Build falla en Vercel
+
 **Causa:** Output directory incorrecto
 **Solución:** Ver `DEPLOYMENT.md`
 

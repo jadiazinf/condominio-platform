@@ -136,8 +136,7 @@ export class CreateQuotaFormulaService {
     ]
 
     // Allowed operators and functions
-    const allowedPattern =
-      /^[\d\s+\-*/().]+$|^[\w\s+\-*/().]+$/
+    const allowedPattern = /^[\d\s+\-*/().]+$|^[\w\s+\-*/().]+$/
     const dangerousPatterns = [
       /function/i,
       /eval/i,

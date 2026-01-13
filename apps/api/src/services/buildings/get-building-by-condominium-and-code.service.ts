@@ -11,10 +11,7 @@ export class GetBuildingByCondominiumAndCodeService {
   constructor(private readonly repository: BuildingsRepository) {}
 
   async execute(input: IGetBuildingByCondominiumAndCodeInput): Promise<TServiceResult<TBuilding>> {
-    const building = await this.repository.getByCondominiumAndCode(
-      input.condominiumId,
-      input.code
-    )
+    const building = await this.repository.getByCondominiumAndCode(input.condominiumId, input.code)
 
     if (!building) {
       return failure('Building not found', 'NOT_FOUND')

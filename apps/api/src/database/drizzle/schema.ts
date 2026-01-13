@@ -1412,7 +1412,11 @@ export const userNotificationPreferences = pgTable(
     index('idx_user_notification_prefs_user').on(table.userId),
     index('idx_user_notification_prefs_category').on(table.category),
     index('idx_user_notification_prefs_channel').on(table.channel),
-    uniqueIndex('idx_user_notification_prefs_unique').on(table.userId, table.category, table.channel),
+    uniqueIndex('idx_user_notification_prefs_unique').on(
+      table.userId,
+      table.category,
+      table.channel
+    ),
   ]
 )
 
@@ -1825,23 +1829,20 @@ export const quotaGenerationRulesRelations = relations(quotaGenerationRules, ({ 
   logs: many(quotaGenerationLogs),
 }))
 
-export const quotaGenerationSchedulesRelations = relations(
-  quotaGenerationSchedules,
-  ({ one }) => ({
-    generationRule: one(quotaGenerationRules, {
-      fields: [quotaGenerationSchedules.quotaGenerationRuleId],
-      references: [quotaGenerationRules.id],
-    }),
-    createdByUser: one(users, {
-      fields: [quotaGenerationSchedules.createdBy],
-      references: [users.id],
-    }),
-    updatedByUser: one(users, {
-      fields: [quotaGenerationSchedules.updatedBy],
-      references: [users.id],
-    }),
-  })
-)
+export const quotaGenerationSchedulesRelations = relations(quotaGenerationSchedules, ({ one }) => ({
+  generationRule: one(quotaGenerationRules, {
+    fields: [quotaGenerationSchedules.quotaGenerationRuleId],
+    references: [quotaGenerationRules.id],
+  }),
+  createdByUser: one(users, {
+    fields: [quotaGenerationSchedules.createdBy],
+    references: [users.id],
+  }),
+  updatedByUser: one(users, {
+    fields: [quotaGenerationSchedules.updatedBy],
+    references: [users.id],
+  }),
+}))
 
 export const quotaGenerationLogsRelations = relations(quotaGenerationLogs, ({ one }) => ({
   generationRule: one(quotaGenerationRules, {

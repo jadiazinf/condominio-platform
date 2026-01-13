@@ -28,7 +28,10 @@ if (isTestMode) {
     NODE_ENV: 'test' as const,
     HOST: 'localhost',
     PORT: 3000,
-    DATABASE_URL: Bun.env.DATABASE_URL || process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/test',
+    DATABASE_URL:
+      Bun.env.DATABASE_URL ||
+      process.env.DATABASE_URL ||
+      'postgresql://test:test@localhost:5432/test',
     LOG_LEVEL: 'error' as const,
     CORS_ORIGIN: undefined,
     FIREBASE_API_KEY: Bun.env.FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || 'test-api-key',

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach , afterAll} from 'bun:test'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'bun:test'
 import {
   UnitsRepository,
   BuildingsRepository,
@@ -11,7 +11,8 @@ import {
   BuildingFactory,
   CondominiumFactory,
   type TTestDrizzleClient,
- stopTestContainer} from '@tests/setup'
+  stopTestContainer,
+} from '@tests/setup'
 
 describe('UnitsRepository', () => {
   let db: TTestDrizzleClient

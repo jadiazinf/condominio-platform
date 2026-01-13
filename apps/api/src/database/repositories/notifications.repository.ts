@@ -1,9 +1,5 @@
 import { and, eq, desc, sql, count } from 'drizzle-orm'
-import type {
-  TNotification,
-  TNotificationCreate,
-  TNotificationUpdate,
-} from '@packages/domain'
+import type { TNotification, TNotificationCreate, TNotificationUpdate } from '@packages/domain'
 import { notifications } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
 import { BaseRepository } from './base'

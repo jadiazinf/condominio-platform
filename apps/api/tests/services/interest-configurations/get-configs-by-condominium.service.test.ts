@@ -3,7 +3,10 @@ import type { TInterestConfiguration } from '@packages/domain'
 import { GetConfigsByCondominiumService } from '@src/services/interest-configurations'
 
 type TMockRepository = {
-  getByCondominiumId: (condominiumId: string, includeInactive?: boolean) => Promise<TInterestConfiguration[]>
+  getByCondominiumId: (
+    condominiumId: string,
+    includeInactive?: boolean
+  ) => Promise<TInterestConfiguration[]>
 }
 
 describe('GetConfigsByCondominiumService', function () {
@@ -59,7 +62,10 @@ describe('GetConfigsByCondominiumService', function () {
 
   beforeEach(function () {
     mockRepository = {
-      getByCondominiumId: async function (requestedCondominiumId: string, includeInactive?: boolean) {
+      getByCondominiumId: async function (
+        requestedCondominiumId: string,
+        includeInactive?: boolean
+      ) {
         return mockConfigs.filter(function (c) {
           const matchesCondominium = c.condominiumId === requestedCondominiumId
           const matchesActive = includeInactive || c.isActive
@@ -77,7 +83,7 @@ describe('GetConfigsByCondominiumService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((c) => c.condominiumId === condominiumId && c.isActive)).toBe(true)
+        expect(result.data.every(c => c.condominiumId === condominiumId && c.isActive)).toBe(true)
       }
     })
 
@@ -87,12 +93,14 @@ describe('GetConfigsByCondominiumService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((c) => c.condominiumId === condominiumId)).toBe(true)
+        expect(result.data.every(c => c.condominiumId === condominiumId)).toBe(true)
       }
     })
 
     it('should return empty array when condominium has no configs', async function () {
-      const result = await service.execute({ condominiumId: '550e8400-e29b-41d4-a716-446655440099' })
+      const result = await service.execute({
+        condominiumId: '550e8400-e29b-41d4-a716-446655440099',
+      })
 
       expect(result.success).toBe(true)
       if (result.success) {

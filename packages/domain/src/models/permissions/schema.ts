@@ -25,9 +25,7 @@ export const EPermissionActions = [
 ] as const
 
 export const permissionSchema = baseModelSchema.extend({
-  name: z
-    .string({ error: d.name.required })
-    .max(100, { error: d.name.max }),
+  name: z.string({ error: d.name.required }).max(100, { error: d.name.max }),
   description: z.string().nullable(),
   module: z.enum(EPermissionModules, { error: d.module.invalid }),
   action: z.enum(EPermissionActions, { error: d.action.invalid }),

@@ -27,10 +27,7 @@ export class GetApplicableRuleService {
     )
 
     if (!rule) {
-      return failure(
-        'No applicable rule found for the given parameters',
-        'NOT_FOUND'
-      )
+      return failure('No applicable rule found for the given parameters', 'NOT_FOUND')
     }
 
     return success(rule)

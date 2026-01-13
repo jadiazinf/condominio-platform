@@ -68,7 +68,7 @@ describe('InterestConfigurationsRepository', () => {
       expect(result.id).toBeDefined()
       expect(result.condominiumId).toBe(condominiumId)
       expect(result.interestType).toBe('simple')
-      expect(parseFloat(result.interestRate ?? '0')).toBe(10.00)
+      expect(parseFloat(result.interestRate ?? '0')).toBe(10.0)
       expect(result.isActive).toBe(true)
     })
 
@@ -80,7 +80,7 @@ describe('InterestConfigurationsRepository', () => {
       const result = await repository.create(data)
 
       expect(result.interestType).toBe('compound')
-      expect(parseFloat(result.interestRate ?? '0')).toBe(12.00)
+      expect(parseFloat(result.interestRate ?? '0')).toBe(12.0)
     })
 
     it('should create configuration for specific concept', async () => {
@@ -115,8 +115,12 @@ describe('InterestConfigurationsRepository', () => {
 
   describe('listAll', () => {
     it('should return active configurations only by default', async () => {
-      await repository.create(InterestConfigurationFactory.simple({ condominiumId, isActive: true }))
-      await repository.create(InterestConfigurationFactory.simple({ condominiumId, isActive: false }))
+      await repository.create(
+        InterestConfigurationFactory.simple({ condominiumId, isActive: true })
+      )
+      await repository.create(
+        InterestConfigurationFactory.simple({ condominiumId, isActive: false })
+      )
 
       const result = await repository.listAll()
 
@@ -148,12 +152,16 @@ describe('InterestConfigurationsRepository', () => {
       const result = await repository.getByCondominiumId(condominiumId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((c) => c.condominiumId === condominiumId)).toBe(true)
+      expect(result.every(c => c.condominiumId === condominiumId)).toBe(true)
     })
 
     it('should filter inactive by default', async () => {
-      await repository.create(InterestConfigurationFactory.simple({ condominiumId, isActive: true }))
-      await repository.create(InterestConfigurationFactory.compound({ condominiumId, isActive: false }))
+      await repository.create(
+        InterestConfigurationFactory.simple({ condominiumId, isActive: true })
+      )
+      await repository.create(
+        InterestConfigurationFactory.compound({ condominiumId, isActive: false })
+      )
 
       const result = await repository.getByCondominiumId(condominiumId)
 
@@ -162,8 +170,12 @@ describe('InterestConfigurationsRepository', () => {
     })
 
     it('should include inactive when requested', async () => {
-      await repository.create(InterestConfigurationFactory.simple({ condominiumId, isActive: true }))
-      await repository.create(InterestConfigurationFactory.compound({ condominiumId, isActive: false }))
+      await repository.create(
+        InterestConfigurationFactory.simple({ condominiumId, isActive: true })
+      )
+      await repository.create(
+        InterestConfigurationFactory.compound({ condominiumId, isActive: false })
+      )
 
       const result = await repository.getByCondominiumId(condominiumId, true)
 

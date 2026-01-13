@@ -63,9 +63,7 @@ describe('UnitOwnershipsRepository', () => {
     const condominium = await condominiumsRepository.create(
       CondominiumFactory.create({ defaultCurrencyId: currency.id })
     )
-    const building = await buildingsRepository.create(
-      BuildingFactory.create(condominium.id)
-    )
+    const building = await buildingsRepository.create(BuildingFactory.create(condominium.id))
     const unit1 = await unitsRepository.create(UnitFactory.create(building.id))
     const unit2 = await unitsRepository.create(UnitFactory.create(building.id))
 
@@ -188,7 +186,7 @@ describe('UnitOwnershipsRepository', () => {
       const result = await repository.getByUserId(userId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((o) => o.userId === userId)).toBe(true)
+      expect(result.every(o => o.userId === userId)).toBe(true)
     })
   })
 

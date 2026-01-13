@@ -47,7 +47,7 @@ describe('GetPermissionsByRoleService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((rp) => rp.roleId === roleId)).toBe(true)
+        expect(result.data.every(rp => rp.roleId === roleId)).toBe(true)
       }
     })
 

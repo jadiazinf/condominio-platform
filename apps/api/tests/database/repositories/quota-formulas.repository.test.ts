@@ -123,10 +123,20 @@ describe('QuotaFormulasRepository', () => {
   describe('listAll', () => {
     it('should return active formulas only by default', async () => {
       await repository.create(
-        QuotaFormulaFactory.fixed('100.00', { condominiumId, currencyId, createdBy: userId, isActive: true })
+        QuotaFormulaFactory.fixed('100.00', {
+          condominiumId,
+          currencyId,
+          createdBy: userId,
+          isActive: true,
+        })
       )
       await repository.create(
-        QuotaFormulaFactory.fixed('50.00', { condominiumId, currencyId, createdBy: userId, isActive: false })
+        QuotaFormulaFactory.fixed('50.00', {
+          condominiumId,
+          currencyId,
+          createdBy: userId,
+          isActive: false,
+        })
       )
 
       const result = await repository.listAll()
@@ -157,16 +167,24 @@ describe('QuotaFormulasRepository', () => {
         QuotaFormulaFactory.fixed('100.00', { condominiumId, currencyId, createdBy: userId })
       )
       await repository.create(
-        QuotaFormulaFactory.expression('base_rate', { condominiumId, currencyId, createdBy: userId })
+        QuotaFormulaFactory.expression('base_rate', {
+          condominiumId,
+          currencyId,
+          createdBy: userId,
+        })
       )
       await repository.create(
-        QuotaFormulaFactory.fixed('50.00', { condominiumId: condominiumId2, currencyId, createdBy: userId })
+        QuotaFormulaFactory.fixed('50.00', {
+          condominiumId: condominiumId2,
+          currencyId,
+          createdBy: userId,
+        })
       )
 
       const result = await repository.getByCondominiumId(condominiumId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((f) => f.condominiumId === condominiumId)).toBe(true)
+      expect(result.every(f => f.condominiumId === condominiumId)).toBe(true)
     })
   })
 
@@ -174,10 +192,20 @@ describe('QuotaFormulasRepository', () => {
   describe('getActiveByCondominiumId', () => {
     it('should return only active formulas', async () => {
       await repository.create(
-        QuotaFormulaFactory.fixed('100.00', { condominiumId, currencyId, createdBy: userId, isActive: true })
+        QuotaFormulaFactory.fixed('100.00', {
+          condominiumId,
+          currencyId,
+          createdBy: userId,
+          isActive: true,
+        })
       )
       await repository.create(
-        QuotaFormulaFactory.fixed('50.00', { condominiumId, currencyId, createdBy: userId, isActive: false })
+        QuotaFormulaFactory.fixed('50.00', {
+          condominiumId,
+          currencyId,
+          createdBy: userId,
+          isActive: false,
+        })
       )
 
       const result = await repository.getByCondominiumId(condominiumId)
@@ -193,16 +221,24 @@ describe('QuotaFormulasRepository', () => {
         QuotaFormulaFactory.fixed('100.00', { condominiumId, currencyId, createdBy: userId })
       )
       await repository.create(
-        QuotaFormulaFactory.expression('base_rate', { condominiumId, currencyId, createdBy: userId })
+        QuotaFormulaFactory.expression('base_rate', {
+          condominiumId,
+          currencyId,
+          createdBy: userId,
+        })
       )
       await repository.create(
-        QuotaFormulaFactory.fixed('50.00', { condominiumId: condominiumId2, currencyId, createdBy: userId })
+        QuotaFormulaFactory.fixed('50.00', {
+          condominiumId: condominiumId2,
+          currencyId,
+          createdBy: userId,
+        })
       )
 
       const result = await repository.getByFormulaType('fixed')
 
       expect(result).toHaveLength(2)
-      expect(result.every((f) => f.formulaType === 'fixed')).toBe(true)
+      expect(result.every(f => f.formulaType === 'fixed')).toBe(true)
     })
   })
 })

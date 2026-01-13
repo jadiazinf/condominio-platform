@@ -15,9 +15,10 @@ export class GetUserTokensService {
   constructor(private readonly fcmTokensRepository: UserFcmTokensRepository) {}
 
   async execute(input: IGetUserTokensInput): Promise<TServiceResult<IGetUserTokensOutput>> {
-    const tokens = input.activeOnly !== false
-      ? await this.fcmTokensRepository.getActiveByUserId(input.userId)
-      : await this.fcmTokensRepository.getByUserId(input.userId)
+    const tokens =
+      input.activeOnly !== false
+        ? await this.fcmTokensRepository.getActiveByUserId(input.userId)
+        : await this.fcmTokensRepository.getByUserId(input.userId)
 
     return success({ tokens })
   }

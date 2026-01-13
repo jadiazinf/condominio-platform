@@ -10,11 +10,10 @@ export interface IGetGatewaysByBuildingInput {
 export class GetGatewaysByBuildingService {
   constructor(private readonly repository: EntityPaymentGatewaysRepository) {}
 
-  async execute(input: IGetGatewaysByBuildingInput): Promise<TServiceResult<TEntityPaymentGateway[]>> {
-    const gateways = await this.repository.getByBuildingId(
-      input.buildingId,
-      input.includeInactive
-    )
+  async execute(
+    input: IGetGatewaysByBuildingInput
+  ): Promise<TServiceResult<TEntityPaymentGateway[]>> {
+    const gateways = await this.repository.getByBuildingId(input.buildingId, input.includeInactive)
     return success(gateways)
   }
 }

@@ -58,7 +58,9 @@ export class CondominiumsController extends BaseController<
 
     // Initialize services
     this.getCondominiumByCodeService = new GetCondominiumByCodeService(repository)
-    this.getCondominiumsByManagementCompanyService = new GetCondominiumsByManagementCompanyService(repository)
+    this.getCondominiumsByManagementCompanyService = new GetCondominiumsByManagementCompanyService(
+      repository
+    )
     this.getCondominiumsByLocationService = new GetCondominiumsByLocationService(repository)
 
     this.getByCode = this.getByCode.bind(this)

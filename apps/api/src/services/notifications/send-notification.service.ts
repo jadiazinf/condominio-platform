@@ -103,10 +103,14 @@ export class SendNotificationService {
               status: fcmResult.data.successCount > 0 ? 'delivered' : 'failed',
               sentAt: new Date(),
               deliveredAt: fcmResult.data.successCount > 0 ? new Date() : null,
-              failedAt: fcmResult.data.failureCount > 0 && fcmResult.data.successCount === 0 ? new Date() : null,
-              errorMessage: fcmResult.data.failureCount > 0
-                ? `${fcmResult.data.failureCount} device(s) failed`
-                : null,
+              failedAt:
+                fcmResult.data.failureCount > 0 && fcmResult.data.successCount === 0
+                  ? new Date()
+                  : null,
+              errorMessage:
+                fcmResult.data.failureCount > 0
+                  ? `${fcmResult.data.failureCount} device(s) failed`
+                  : null,
               retryCount: 0,
               externalId: null,
               metadata: {

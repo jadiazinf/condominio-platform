@@ -51,7 +51,10 @@ describe('GetRolesByUserAndCondominiumService', function () {
 
   beforeEach(function () {
     mockRepository = {
-      getByUserAndCondominium: async function (requestedUserId: string, requestedCondominiumId: string) {
+      getByUserAndCondominium: async function (
+        requestedUserId: string,
+        requestedCondominiumId: string
+      ) {
         return mockUserRoles.filter(function (role) {
           return role.userId === requestedUserId && role.condominiumId === requestedCondominiumId
         })
@@ -67,7 +70,9 @@ describe('GetRolesByUserAndCondominiumService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((role) => role.userId === userId && role.condominiumId === condominiumId)).toBe(true)
+        expect(
+          result.data.every(role => role.userId === userId && role.condominiumId === condominiumId)
+        ).toBe(true)
       }
     })
 

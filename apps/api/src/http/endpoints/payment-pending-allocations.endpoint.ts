@@ -1,8 +1,5 @@
 import type { Hono } from 'hono'
-import {
-  PaymentPendingAllocationsRepository,
-  QuotasRepository,
-} from '@database/repositories'
+import { PaymentPendingAllocationsRepository, QuotasRepository } from '@database/repositories'
 import { PaymentPendingAllocationsController } from '../controllers'
 import type { IEndpoint } from './types'
 import type { TDrizzleClient } from '@database/repositories/interfaces'

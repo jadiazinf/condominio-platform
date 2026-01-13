@@ -55,14 +55,16 @@ describe('QuotaGenerationRulesRepository', () => {
     const condominium = await condominiumsRepository.create(
       CondominiumFactory.create({ defaultCurrencyId: currency.id })
     )
-    const building = await buildingsRepository.create(
-      BuildingFactory.create(condominium.id)
-    )
+    const building = await buildingsRepository.create(BuildingFactory.create(condominium.id))
     const concept = await paymentConceptsRepository.create(
       PaymentConceptFactory.maintenance({ condominiumId: condominium.id, currencyId: currency.id })
     )
     const formula = await quotaFormulasRepository.create(
-      QuotaFormulaFactory.fixed('100.00', { condominiumId: condominium.id, currencyId: currency.id, createdBy: user.id })
+      QuotaFormulaFactory.fixed('100.00', {
+        condominiumId: condominium.id,
+        currencyId: currency.id,
+        createdBy: user.id,
+      })
     )
 
     userId = user.id
@@ -110,7 +112,9 @@ describe('QuotaGenerationRulesRepository', () => {
   describe('getById', () => {
     it('should return rule by id', async () => {
       const created = await repository.create(
-        QuotaGenerationRuleFactory.forCondominium(condominiumId, paymentConceptId, quotaFormulaId, { createdBy: userId })
+        QuotaGenerationRuleFactory.forCondominium(condominiumId, paymentConceptId, quotaFormulaId, {
+          createdBy: userId,
+        })
       )
 
       const result = await repository.getById(created.id)
@@ -134,10 +138,16 @@ describe('QuotaGenerationRulesRepository', () => {
         })
       )
       await repository.create(
-        QuotaGenerationRuleFactory.forBuilding(condominiumId, buildingId, paymentConceptId, quotaFormulaId, {
-          isActive: false,
-          createdBy: userId,
-        })
+        QuotaGenerationRuleFactory.forBuilding(
+          condominiumId,
+          buildingId,
+          paymentConceptId,
+          quotaFormulaId,
+          {
+            isActive: false,
+            createdBy: userId,
+          }
+        )
       )
 
       const result = await repository.listAll()
@@ -150,7 +160,9 @@ describe('QuotaGenerationRulesRepository', () => {
   describe('delete (soft delete)', () => {
     it('should soft delete rule', async () => {
       const created = await repository.create(
-        QuotaGenerationRuleFactory.forCondominium(condominiumId, paymentConceptId, quotaFormulaId, { createdBy: userId })
+        QuotaGenerationRuleFactory.forCondominium(condominiumId, paymentConceptId, quotaFormulaId, {
+          createdBy: userId,
+        })
       )
 
       const result = await repository.delete(created.id)
@@ -165,26 +177,42 @@ describe('QuotaGenerationRulesRepository', () => {
   describe('getByCondominiumId', () => {
     it('should return rules for condominium', async () => {
       await repository.create(
-        QuotaGenerationRuleFactory.forCondominium(condominiumId, paymentConceptId, quotaFormulaId, { createdBy: userId })
+        QuotaGenerationRuleFactory.forCondominium(condominiumId, paymentConceptId, quotaFormulaId, {
+          createdBy: userId,
+        })
       )
       await repository.create(
-        QuotaGenerationRuleFactory.forBuilding(condominiumId, buildingId, paymentConceptId, quotaFormulaId, { createdBy: userId })
+        QuotaGenerationRuleFactory.forBuilding(
+          condominiumId,
+          buildingId,
+          paymentConceptId,
+          quotaFormulaId,
+          { createdBy: userId }
+        )
       )
 
       const result = await repository.getByCondominiumId(condominiumId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((r) => r.condominiumId === condominiumId)).toBe(true)
+      expect(result.every(r => r.condominiumId === condominiumId)).toBe(true)
     })
   })
 
   describe('getByBuildingId', () => {
     it('should return rules for building', async () => {
       await repository.create(
-        QuotaGenerationRuleFactory.forCondominium(condominiumId, paymentConceptId, quotaFormulaId, { createdBy: userId })
+        QuotaGenerationRuleFactory.forCondominium(condominiumId, paymentConceptId, quotaFormulaId, {
+          createdBy: userId,
+        })
       )
       await repository.create(
-        QuotaGenerationRuleFactory.forBuilding(condominiumId, buildingId, paymentConceptId, quotaFormulaId, { createdBy: userId })
+        QuotaGenerationRuleFactory.forBuilding(
+          condominiumId,
+          buildingId,
+          paymentConceptId,
+          quotaFormulaId,
+          { createdBy: userId }
+        )
       )
 
       const result = await repository.getByBuildingId(buildingId)
@@ -197,7 +225,9 @@ describe('QuotaGenerationRulesRepository', () => {
   describe('getByPaymentConceptId', () => {
     it('should return rules for payment concept', async () => {
       await repository.create(
-        QuotaGenerationRuleFactory.forCondominium(condominiumId, paymentConceptId, quotaFormulaId, { createdBy: userId })
+        QuotaGenerationRuleFactory.forCondominium(condominiumId, paymentConceptId, quotaFormulaId, {
+          createdBy: userId,
+        })
       )
 
       const result = await repository.getByPaymentConceptId(paymentConceptId)
@@ -245,11 +275,17 @@ describe('QuotaGenerationRulesRepository', () => {
         })
       )
       await repository.create(
-        QuotaGenerationRuleFactory.forBuilding(condominiumId, buildingId, paymentConceptId, quotaFormulaId, {
-          name: 'Building Rule',
-          effectiveFrom: '2025-01-01',
-          createdBy: userId,
-        })
+        QuotaGenerationRuleFactory.forBuilding(
+          condominiumId,
+          buildingId,
+          paymentConceptId,
+          quotaFormulaId,
+          {
+            name: 'Building Rule',
+            effectiveFrom: '2025-01-01',
+            createdBy: userId,
+          }
+        )
       )
 
       const result = await repository.getApplicableRule(

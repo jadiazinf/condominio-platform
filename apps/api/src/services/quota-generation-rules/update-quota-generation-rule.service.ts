@@ -33,7 +33,9 @@ export class UpdateQuotaGenerationRuleService {
     private readonly quotaFormulasRepository: QuotaFormulasRepository
   ) {}
 
-  async execute(input: TUpdateQuotaGenerationRuleInput): Promise<TServiceResult<TQuotaGenerationRule>> {
+  async execute(
+    input: TUpdateQuotaGenerationRuleInput
+  ): Promise<TServiceResult<TQuotaGenerationRule>> {
     const { ruleId, updatedByUserId, updateReason, ...updateFields } = input
 
     // 1. Get existing rule
@@ -49,13 +51,15 @@ export class UpdateQuotaGenerationRuleService {
         return failure('Building not found', 'NOT_FOUND')
       }
       if (building.condominiumId !== existingRule.condominiumId) {
-        return failure('Building does not belong to the rule\'s condominium', 'BAD_REQUEST')
+        return failure("Building does not belong to the rule's condominium", 'BAD_REQUEST')
       }
     }
 
     // 3. Validate payment concept if being updated
     if (updateFields.paymentConceptId !== undefined) {
-      const paymentConcept = await this.paymentConceptsRepository.getById(updateFields.paymentConceptId)
+      const paymentConcept = await this.paymentConceptsRepository.getById(
+        updateFields.paymentConceptId
+      )
       if (!paymentConcept) {
         return failure('Payment concept not found', 'NOT_FOUND')
       }
@@ -68,7 +72,7 @@ export class UpdateQuotaGenerationRuleService {
         return failure('Quota formula not found', 'NOT_FOUND')
       }
       if (quotaFormula.condominiumId !== existingRule.condominiumId) {
-        return failure('Quota formula does not belong to the rule\'s condominium', 'BAD_REQUEST')
+        return failure("Quota formula does not belong to the rule's condominium", 'BAD_REQUEST')
       }
       if (!quotaFormula.isActive) {
         return failure('Quota formula is not active', 'BAD_REQUEST')
@@ -77,12 +81,14 @@ export class UpdateQuotaGenerationRuleService {
 
     // 5. Validate date range if being updated
     const effectiveFrom = updateFields.effectiveFrom ?? existingRule.effectiveFrom
-    const effectiveTo = updateFields.effectiveTo !== undefined
-      ? updateFields.effectiveTo
-      : existingRule.effectiveTo
+    const effectiveTo =
+      updateFields.effectiveTo !== undefined ? updateFields.effectiveTo : existingRule.effectiveTo
 
     if (effectiveTo && effectiveFrom > effectiveTo) {
-      return failure('Effective from date must be before or equal to effective to date', 'BAD_REQUEST')
+      return failure(
+        'Effective from date must be before or equal to effective to date',
+        'BAD_REQUEST'
+      )
     }
 
     // 6. Build update data
@@ -92,11 +98,14 @@ export class UpdateQuotaGenerationRuleService {
     }
 
     if (updateFields.buildingId !== undefined) updateData.buildingId = updateFields.buildingId
-    if (updateFields.paymentConceptId !== undefined) updateData.paymentConceptId = updateFields.paymentConceptId
-    if (updateFields.quotaFormulaId !== undefined) updateData.quotaFormulaId = updateFields.quotaFormulaId
+    if (updateFields.paymentConceptId !== undefined)
+      updateData.paymentConceptId = updateFields.paymentConceptId
+    if (updateFields.quotaFormulaId !== undefined)
+      updateData.quotaFormulaId = updateFields.quotaFormulaId
     if (updateFields.name !== undefined) updateData.name = updateFields.name
     if (updateFields.description !== undefined) updateData.description = updateFields.description
-    if (updateFields.effectiveFrom !== undefined) updateData.effectiveFrom = updateFields.effectiveFrom
+    if (updateFields.effectiveFrom !== undefined)
+      updateData.effectiveFrom = updateFields.effectiveFrom
     if (updateFields.effectiveTo !== undefined) updateData.effectiveTo = updateFields.effectiveTo
     if (updateFields.isActive !== undefined) updateData.isActive = updateFields.isActive
 

@@ -116,7 +116,9 @@ describe('QuotasRepository', () => {
   describe('listAll', () => {
     it('should return all quotas', async () => {
       await repository.create(QuotaFactory.pending({ unitId, paymentConceptId, currencyId }))
-      await repository.create(QuotaFactory.pending({ unitId: unitId2, paymentConceptId, currencyId }))
+      await repository.create(
+        QuotaFactory.pending({ unitId: unitId2, paymentConceptId, currencyId })
+      )
 
       const result = await repository.listAll()
 
@@ -144,12 +146,14 @@ describe('QuotasRepository', () => {
     it('should return quotas for unit', async () => {
       await repository.create(QuotaFactory.pending({ unitId, paymentConceptId, currencyId }))
       await repository.create(QuotaFactory.pending({ unitId, paymentConceptId, currencyId }))
-      await repository.create(QuotaFactory.pending({ unitId: unitId2, paymentConceptId, currencyId }))
+      await repository.create(
+        QuotaFactory.pending({ unitId: unitId2, paymentConceptId, currencyId })
+      )
 
       const result = await repository.getByUnitId(unitId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((q) => q.unitId === unitId)).toBe(true)
+      expect(result.every(q => q.unitId === unitId)).toBe(true)
     })
   })
 
@@ -168,7 +172,7 @@ describe('QuotasRepository', () => {
       const result = await repository.getByStatus('pending')
 
       expect(result).toHaveLength(2)
-      expect(result.every((q) => q.status === 'pending')).toBe(true)
+      expect(result.every(q => q.status === 'pending')).toBe(true)
     })
   })
 
@@ -256,7 +260,7 @@ describe('QuotasRepository', () => {
       const result = await repository.getByPeriod(2025, 1)
 
       expect(result).toHaveLength(2)
-      expect(result.every((q) => q.periodYear === 2025 && q.periodMonth === 1)).toBe(true)
+      expect(result.every(q => q.periodYear === 2025 && q.periodMonth === 1)).toBe(true)
     })
 
     it('should return quotas for year only', async () => {
@@ -291,7 +295,7 @@ describe('QuotasRepository', () => {
       const result = await repository.getByPeriod(2025)
 
       expect(result).toHaveLength(2)
-      expect(result.every((q) => q.periodYear === 2025)).toBe(true)
+      expect(result.every(q => q.periodYear === 2025)).toBe(true)
     })
   })
 })

@@ -100,7 +100,7 @@ describe('GetQuotasByStatusService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((q) => q.status === 'pending')).toBe(true)
+        expect(result.data.every(q => q.status === 'pending')).toBe(true)
       }
     })
 
@@ -110,7 +110,7 @@ describe('GetQuotasByStatusService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((q) => q.status === 'paid')).toBe(true)
+        expect(result.data.every(q => q.status === 'paid')).toBe(true)
       }
     })
 
@@ -120,7 +120,7 @@ describe('GetQuotasByStatusService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((q) => q.status === 'overdue')).toBe(true)
+        expect(result.data.every(q => q.status === 'overdue')).toBe(true)
       }
     })
 

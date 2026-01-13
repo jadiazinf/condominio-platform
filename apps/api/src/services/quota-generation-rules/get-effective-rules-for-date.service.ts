@@ -13,7 +13,9 @@ export type TGetEffectiveRulesForDateInput = {
 export class GetEffectiveRulesForDateService {
   constructor(private readonly quotaGenerationRulesRepository: QuotaGenerationRulesRepository) {}
 
-  async execute(input: TGetEffectiveRulesForDateInput): Promise<TServiceResult<TQuotaGenerationRule[]>> {
+  async execute(
+    input: TGetEffectiveRulesForDateInput
+  ): Promise<TServiceResult<TQuotaGenerationRule[]>> {
     const { condominiumId, targetDate } = input
 
     const rules = await this.quotaGenerationRulesRepository.getEffectiveRulesForDate(

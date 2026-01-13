@@ -334,14 +334,11 @@ describe('InterestConfigurationsController', function () {
 
   describe('PATCH /:id (update)', function () {
     it('should update an existing configuration', async function () {
-      const res = await request(
-        '/interest-configurations/550e8400-e29b-41d4-a716-446655440001',
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ interestRate: '0.060000' }),
-        }
-      )
+      const res = await request('/interest-configurations/550e8400-e29b-41d4-a716-446655440001', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ interestRate: '0.060000' }),
+      })
 
       expect(res.status).toBe(StatusCodes.OK)
 
@@ -350,14 +347,11 @@ describe('InterestConfigurationsController', function () {
     })
 
     it('should return 404 when updating non-existent configuration', async function () {
-      const res = await request(
-        '/interest-configurations/550e8400-e29b-41d4-a716-446655440099',
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ interestRate: '0.060000' }),
-        }
-      )
+      const res = await request('/interest-configurations/550e8400-e29b-41d4-a716-446655440099', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ interestRate: '0.060000' }),
+      })
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
@@ -368,12 +362,9 @@ describe('InterestConfigurationsController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing configuration', async function () {
-      const res = await request(
-        '/interest-configurations/550e8400-e29b-41d4-a716-446655440001',
-        {
-          method: 'DELETE',
-        }
-      )
+      const res = await request('/interest-configurations/550e8400-e29b-41d4-a716-446655440001', {
+        method: 'DELETE',
+      })
 
       expect(res.status).toBe(StatusCodes.NO_CONTENT)
     })
@@ -383,12 +374,9 @@ describe('InterestConfigurationsController', function () {
         return false
       }
 
-      const res = await request(
-        '/interest-configurations/550e8400-e29b-41d4-a716-446655440099',
-        {
-          method: 'DELETE',
-        }
-      )
+      const res = await request('/interest-configurations/550e8400-e29b-41d4-a716-446655440099', {
+        method: 'DELETE',
+      })
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 

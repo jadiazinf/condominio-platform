@@ -17,9 +17,7 @@ export const interestConfigurationSchema = baseModelSchema.extend({
   condominiumId: z.uuid({ error: d.condominiumId.invalid }).nullable(),
   buildingId: z.uuid({ error: d.buildingId.invalid }).nullable(),
   paymentConceptId: z.uuid({ error: d.paymentConceptId.invalid }).nullable(),
-  name: z
-    .string({ error: d.name.required })
-    .max(255, { error: d.name.max }),
+  name: z.string({ error: d.name.required }).max(255, { error: d.name.max }),
   description: z.string().nullable(),
   interestType: z.enum(EInterestTypes, { error: d.interestType.invalid }),
   interestRate: z.string().nullable(),

@@ -3,7 +3,10 @@ import type { TPaymentConcept } from '@packages/domain'
 import { GetConceptsByTypeService } from '@src/services/payment-concepts'
 
 type TMockRepository = {
-  getByConceptType: (conceptType: TPaymentConcept['conceptType'], includeInactive: boolean) => Promise<TPaymentConcept[]>
+  getByConceptType: (
+    conceptType: TPaymentConcept['conceptType'],
+    includeInactive: boolean
+  ) => Promise<TPaymentConcept[]>
 }
 
 describe('GetConceptsByTypeService', function () {
@@ -63,7 +66,10 @@ describe('GetConceptsByTypeService', function () {
 
   beforeEach(function () {
     mockRepository = {
-      getByConceptType: async function (conceptType: TPaymentConcept['conceptType'], includeInactive: boolean) {
+      getByConceptType: async function (
+        conceptType: TPaymentConcept['conceptType'],
+        includeInactive: boolean
+      ) {
         return mockConcepts.filter(function (c) {
           const matchesType = c.conceptType === conceptType
           const matchesActive = includeInactive || c.isActive
@@ -81,7 +87,7 @@ describe('GetConceptsByTypeService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((c) => c.conceptType === 'maintenance' && c.isActive)).toBe(true)
+        expect(result.data.every(c => c.conceptType === 'maintenance' && c.isActive)).toBe(true)
       }
     })
 
@@ -91,7 +97,7 @@ describe('GetConceptsByTypeService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((c) => c.conceptType === 'fine' && c.isActive)).toBe(true)
+        expect(result.data.every(c => c.conceptType === 'fine' && c.isActive)).toBe(true)
       }
     })
 
@@ -101,7 +107,7 @@ describe('GetConceptsByTypeService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((c) => c.conceptType === 'maintenance')).toBe(true)
+        expect(result.data.every(c => c.conceptType === 'maintenance')).toBe(true)
       }
     })
 

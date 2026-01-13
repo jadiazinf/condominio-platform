@@ -9,9 +9,7 @@ import { DomainLocaleDictionary } from '../../i18n/dictionary'
 const d = DomainLocaleDictionary.validation.models.condominiums
 
 export const condominiumSchema = baseModelSchema.extend({
-  name: z
-    .string({ error: d.name.required })
-    .max(255, { error: d.name.max }),
+  name: z.string({ error: d.name.required }).max(255, { error: d.name.max }),
   code: z.string().max(50, { error: d.code.max }).nullable(),
   managementCompanyId: z.uuid({ error: d.managementCompanyId.invalid }).nullable(),
   address: z.string().max(500, { error: d.address.max }).nullable(),

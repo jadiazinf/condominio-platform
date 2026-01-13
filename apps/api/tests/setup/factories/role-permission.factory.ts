@@ -20,10 +20,7 @@ export class RolePermissionFactory {
   /**
    * Creates a role permission with specific IDs.
    */
-  static forRole(
-    roleId: string,
-    permissionId: string
-  ): TRolePermissionCreate {
+  static forRole(roleId: string, permissionId: string): TRolePermissionCreate {
     return this.create({
       roleId,
       permissionId,

@@ -52,9 +52,7 @@ describe('ExpensesRepository', () => {
     const condominium = await condominiumsRepository.create(
       CondominiumFactory.create({ defaultCurrencyId: currency.id })
     )
-    const building = await buildingsRepository.create(
-      BuildingFactory.create(condominium.id)
-    )
+    const building = await buildingsRepository.create(BuildingFactory.create(condominium.id))
     const category = await expenseCategoriesRepository.create(ExpenseCategoryFactory.create())
 
     userId = user.id
@@ -133,7 +131,12 @@ describe('ExpensesRepository', () => {
         ExpenseFactory.pending({ condominiumId, expenseCategoryId: categoryId, currencyId })
       )
       await repository.create(
-        ExpenseFactory.approved({ buildingId, expenseCategoryId: categoryId, currencyId, approvedBy: userId })
+        ExpenseFactory.approved({
+          buildingId,
+          expenseCategoryId: categoryId,
+          currencyId,
+          approvedBy: userId,
+        })
       )
 
       const result = await repository.listAll()
@@ -163,13 +166,18 @@ describe('ExpensesRepository', () => {
         ExpenseFactory.pending({ condominiumId, expenseCategoryId: categoryId, currencyId })
       )
       await repository.create(
-        ExpenseFactory.approved({ condominiumId, expenseCategoryId: categoryId, currencyId, approvedBy: userId })
+        ExpenseFactory.approved({
+          condominiumId,
+          expenseCategoryId: categoryId,
+          currencyId,
+          approvedBy: userId,
+        })
       )
 
       const result = await repository.getByCondominiumId(condominiumId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((e) => e.condominiumId === condominiumId)).toBe(true)
+      expect(result.every(e => e.condominiumId === condominiumId)).toBe(true)
     })
   })
 
@@ -192,7 +200,12 @@ describe('ExpensesRepository', () => {
         ExpenseFactory.pending({ condominiumId, expenseCategoryId: categoryId, currencyId })
       )
       await repository.create(
-        ExpenseFactory.approved({ condominiumId, expenseCategoryId: categoryId, currencyId, approvedBy: userId })
+        ExpenseFactory.approved({
+          condominiumId,
+          expenseCategoryId: categoryId,
+          currencyId,
+          approvedBy: userId,
+        })
       )
       await repository.create(
         ExpenseFactory.pending({ buildingId, expenseCategoryId: categoryId, currencyId })
@@ -201,7 +214,7 @@ describe('ExpensesRepository', () => {
       const result = await repository.getByStatus('pending')
 
       expect(result).toHaveLength(2)
-      expect(result.every((e) => e.status === 'pending')).toBe(true)
+      expect(result.every(e => e.status === 'pending')).toBe(true)
     })
   })
 
@@ -217,7 +230,7 @@ describe('ExpensesRepository', () => {
       const result = await repository.getByCategoryId(categoryId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((e) => e.expenseCategoryId === categoryId)).toBe(true)
+      expect(result.every(e => e.expenseCategoryId === categoryId)).toBe(true)
     })
   })
 
@@ -227,7 +240,12 @@ describe('ExpensesRepository', () => {
         ExpenseFactory.pending({ condominiumId, expenseCategoryId: categoryId, currencyId })
       )
       await repository.create(
-        ExpenseFactory.approved({ condominiumId, expenseCategoryId: categoryId, currencyId, approvedBy: userId })
+        ExpenseFactory.approved({
+          condominiumId,
+          expenseCategoryId: categoryId,
+          currencyId,
+          approvedBy: userId,
+        })
       )
 
       const result = await repository.getPendingApproval()

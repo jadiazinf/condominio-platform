@@ -10,11 +10,10 @@ export interface IGetActiveConfigForDateInput {
 export class GetActiveConfigForDateService {
   constructor(private readonly repository: InterestConfigurationsRepository) {}
 
-  async execute(input: IGetActiveConfigForDateInput): Promise<TServiceResult<TInterestConfiguration | null>> {
-    const config = await this.repository.getActiveForDate(
-      input.paymentConceptId,
-      input.date
-    )
+  async execute(
+    input: IGetActiveConfigForDateInput
+  ): Promise<TServiceResult<TInterestConfiguration | null>> {
+    const config = await this.repository.getActiveForDate(input.paymentConceptId, input.date)
     return success(config)
   }
 }

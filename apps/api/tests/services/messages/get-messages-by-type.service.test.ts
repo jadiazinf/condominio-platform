@@ -69,7 +69,7 @@ describe('GetMessagesByTypeService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((m) => m.messageType === 'message')).toBe(true)
+        expect(result.data.every(m => m.messageType === 'message')).toBe(true)
       }
     })
 
@@ -79,7 +79,7 @@ describe('GetMessagesByTypeService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((m) => m.messageType === 'announcement')).toBe(true)
+        expect(result.data.every(m => m.messageType === 'announcement')).toBe(true)
       }
     })
 

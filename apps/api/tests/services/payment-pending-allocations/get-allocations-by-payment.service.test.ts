@@ -82,7 +82,7 @@ describe('GetAllocationsByPaymentService', function () {
 
       expect(result.success).toBe(true)
       if (result.success) {
-        const pending = result.data.filter((a) => a.status === 'pending')
+        const pending = result.data.filter(a => a.status === 'pending')
         expect(pending.length).toBeGreaterThan(0)
       }
     })
@@ -92,7 +92,7 @@ describe('GetAllocationsByPaymentService', function () {
 
       expect(result.success).toBe(true)
       if (result.success) {
-        const allocated = result.data.filter((a) => a.status === 'allocated')
+        const allocated = result.data.filter(a => a.status === 'allocated')
         expect(allocated.length).toBeGreaterThan(0)
         expect(allocated[0]?.resolutionType).toBe('allocated_to_quota')
       }
@@ -103,7 +103,7 @@ describe('GetAllocationsByPaymentService', function () {
 
       expect(result.success).toBe(true)
       if (result.success) {
-        const refunded = result.data.filter((a) => a.status === 'refunded')
+        const refunded = result.data.filter(a => a.status === 'refunded')
         expect(refunded.length).toBeGreaterThan(0)
         expect(refunded[0]?.resolutionType).toBe('refunded')
       }
@@ -125,7 +125,7 @@ describe('GetAllocationsByPaymentService', function () {
 
       expect(result.success).toBe(true)
       if (result.success) {
-        expect(result.data.every((a) => a.paymentId === paymentId)).toBe(true)
+        expect(result.data.every(a => a.paymentId === paymentId)).toBe(true)
       }
     })
   })

@@ -102,8 +102,8 @@ describe('GetPendingQuotasByUnitService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((q) => q.status === 'pending')).toBe(true)
-        expect(result.data.every((q) => q.unitId === unitId)).toBe(true)
+        expect(result.data.every(q => q.status === 'pending')).toBe(true)
+        expect(result.data.every(q => q.unitId === unitId)).toBe(true)
       }
     })
 

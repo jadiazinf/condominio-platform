@@ -77,7 +77,7 @@ describe('GetExpensesByCategoryService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((e) => e.expenseCategoryId === categoryId)).toBe(true)
+        expect(result.data.every(e => e.expenseCategoryId === categoryId)).toBe(true)
       }
     })
 

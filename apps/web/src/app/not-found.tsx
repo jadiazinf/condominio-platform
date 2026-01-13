@@ -19,8 +19,8 @@ export default function NotFound() {
         {/* Mensaje */}
         <h1 className="text-2xl font-bold text-foreground mb-3">Página no encontrada</h1>
         <p className="text-default-500 mb-8">
-          Lo sentimos, la página que buscas no existe o ha sido movida. Pero no te preocupes,
-          puedes volver al inicio.
+          Lo sentimos, la página que buscas no existe o ha sido movida. Pero no te preocupes, puedes
+          volver al inicio.
         </p>
 
         {/* Botón de acción */}

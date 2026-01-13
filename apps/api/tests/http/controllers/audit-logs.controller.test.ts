@@ -301,9 +301,7 @@ describe('AuditLogsController', function () {
 
   describe('GET /date-range (getByDateRange)', function () {
     it('should return logs by date range', async function () {
-      const res = await request(
-        '/audit-logs/date-range?startDate=2024-01-15&endDate=2024-01-16'
-      )
+      const res = await request('/audit-logs/date-range?startDate=2024-01-15&endDate=2024-01-16')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -311,9 +309,7 @@ describe('AuditLogsController', function () {
     })
 
     it('should return logs within a single day', async function () {
-      const res = await request(
-        '/audit-logs/date-range?startDate=2024-01-17&endDate=2024-01-17'
-      )
+      const res = await request('/audit-logs/date-range?startDate=2024-01-17&endDate=2024-01-17')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse

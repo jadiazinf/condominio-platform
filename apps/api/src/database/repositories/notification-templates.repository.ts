@@ -34,7 +34,9 @@ export class NotificationTemplatesRepository extends BaseRepository<
       subjectTemplate: r.subjectTemplate,
       bodyTemplate: r.bodyTemplate,
       variables: r.variables as string[] | null,
-      defaultChannels: (r.defaultChannels ?? ['in_app']) as TNotificationTemplate['defaultChannels'],
+      defaultChannels: (r.defaultChannels ?? [
+        'in_app',
+      ]) as TNotificationTemplate['defaultChannels'],
       isActive: r.isActive ?? true,
       metadata: r.metadata as Record<string, unknown> | null,
       createdBy: r.createdBy,

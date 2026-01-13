@@ -10,7 +10,9 @@ export interface IGetConfigsByPaymentConceptInput {
 export class GetConfigsByPaymentConceptService {
   constructor(private readonly repository: InterestConfigurationsRepository) {}
 
-  async execute(input: IGetConfigsByPaymentConceptInput): Promise<TServiceResult<TInterestConfiguration[]>> {
+  async execute(
+    input: IGetConfigsByPaymentConceptInput
+  ): Promise<TServiceResult<TInterestConfiguration[]>> {
     const configs = await this.repository.getByPaymentConceptId(
       input.paymentConceptId,
       input.includeInactive

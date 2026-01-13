@@ -3,7 +3,10 @@ import type { TQuotaGenerationRule } from '@packages/domain'
 import { GetEffectiveRulesForDateService } from '@src/services/quota-generation-rules'
 
 type TMockRepository = {
-  getEffectiveRulesForDate: (condominiumId: string, targetDate: string) => Promise<TQuotaGenerationRule[]>
+  getEffectiveRulesForDate: (
+    condominiumId: string,
+    targetDate: string
+  ) => Promise<TQuotaGenerationRule[]>
 }
 
 describe('GetEffectiveRulesForDateService', function () {
@@ -69,7 +72,10 @@ describe('GetEffectiveRulesForDateService', function () {
 
   beforeEach(function () {
     mockRepository = {
-      getEffectiveRulesForDate: async function (requestedCondominiumId: string, targetDate: string) {
+      getEffectiveRulesForDate: async function (
+        requestedCondominiumId: string,
+        targetDate: string
+      ) {
         if (requestedCondominiumId !== condominiumId) return []
 
         return mockRules.filter(function (rule) {
@@ -98,7 +104,7 @@ describe('GetEffectiveRulesForDateService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        const ruleNames = result.data.map((r) => r.name)
+        const ruleNames = result.data.map(r => r.name)
         expect(ruleNames).toContain('Always Active Rule')
         expect(ruleNames).toContain('First Half 2024 Rule')
       }
@@ -113,7 +119,7 @@ describe('GetEffectiveRulesForDateService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        const ruleNames = result.data.map((r) => r.name)
+        const ruleNames = result.data.map(r => r.name)
         expect(ruleNames).toContain('Always Active Rule')
         expect(ruleNames).toContain('Second Half 2024 Rule')
         expect(ruleNames).not.toContain('First Half 2024 Rule')
@@ -177,7 +183,7 @@ describe('GetEffectiveRulesForDateService', function () {
 
       expect(result.success).toBe(true)
       if (result.success) {
-        const ruleNames = result.data.map((r) => r.name)
+        const ruleNames = result.data.map(r => r.name)
         expect(ruleNames).toContain('First Half 2024 Rule')
       }
     })

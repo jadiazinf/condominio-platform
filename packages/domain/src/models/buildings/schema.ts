@@ -10,9 +10,7 @@ export const EBankAccountTypes = ['Corriente', 'Ahorro'] as const
 
 export const buildingSchema = baseModelSchema.extend({
   condominiumId: z.uuid({ error: d.condominiumId.invalid }),
-  name: z
-    .string({ error: d.name.required })
-    .max(255, { error: d.name.max }),
+  name: z.string({ error: d.name.required }).max(255, { error: d.name.max }),
   code: z.string().max(50, { error: d.code.max }).nullable(),
   address: z.string().max(500, { error: d.address.max }).nullable(),
   floorsCount: z.number().int({ error: d.floorsCount.invalid }).nullable(),

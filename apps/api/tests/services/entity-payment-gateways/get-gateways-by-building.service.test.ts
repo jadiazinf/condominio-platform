@@ -3,7 +3,10 @@ import type { TEntityPaymentGateway } from '@packages/domain'
 import { GetGatewaysByBuildingService } from '@src/services/entity-payment-gateways'
 
 type TMockRepository = {
-  getByBuildingId: (buildingId: string, includeInactive?: boolean) => Promise<TEntityPaymentGateway[]>
+  getByBuildingId: (
+    buildingId: string,
+    includeInactive?: boolean
+  ) => Promise<TEntityPaymentGateway[]>
 }
 
 describe('GetGatewaysByBuildingService', function () {
@@ -55,7 +58,7 @@ describe('GetGatewaysByBuildingService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((g) => g.buildingId === buildingId && g.isActive)).toBe(true)
+        expect(result.data.every(g => g.buildingId === buildingId && g.isActive)).toBe(true)
       }
     })
 
@@ -65,7 +68,7 @@ describe('GetGatewaysByBuildingService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((g) => g.buildingId === buildingId)).toBe(true)
+        expect(result.data.every(g => g.buildingId === buildingId)).toBe(true)
       }
     })
 

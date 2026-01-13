@@ -11,7 +11,4 @@ export { GetRolesByUserAndBuildingService } from './get-roles-by-user-and-buildi
 export type { IGetRolesByUserAndBuildingInput } from './get-roles-by-user-and-building.service'
 
 export { CheckUserHasRoleService } from './check-user-has-role.service'
-export type {
-  ICheckUserHasRoleInput,
-  ICheckUserHasRoleOutput,
-} from './check-user-has-role.service'
+export type { ICheckUserHasRoleInput, ICheckUserHasRoleOutput } from './check-user-has-role.service'

@@ -69,7 +69,7 @@ describe('GetUnitsByBuildingService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((u) => u.buildingId === buildingId)).toBe(true)
+        expect(result.data.every(u => u.buildingId === buildingId)).toBe(true)
       }
     })
 

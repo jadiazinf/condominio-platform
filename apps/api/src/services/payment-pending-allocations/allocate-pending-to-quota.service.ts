@@ -1,8 +1,5 @@
 import type { TPaymentPendingAllocation } from '@packages/domain'
-import type {
-  PaymentPendingAllocationsRepository,
-  QuotasRepository,
-} from '@database/repositories'
+import type { PaymentPendingAllocationsRepository, QuotasRepository } from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 
 export type TAllocatePendingToQuotaInput = {
@@ -22,7 +19,9 @@ export class AllocatePendingToQuotaService {
     private readonly quotasRepository: QuotasRepository
   ) {}
 
-  async execute(input: TAllocatePendingToQuotaInput): Promise<TServiceResult<TPaymentPendingAllocation>> {
+  async execute(
+    input: TAllocatePendingToQuotaInput
+  ): Promise<TServiceResult<TPaymentPendingAllocation>> {
     const { allocationId, quotaId, resolutionNotes, allocatedByUserId } = input
 
     // 1. Get the pending allocation

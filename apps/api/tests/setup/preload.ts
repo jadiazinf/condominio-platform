@@ -152,7 +152,10 @@ const mockUser = {
 }
 
 const createAuthMock = () => {
-  const mockAuthHandler = async (c: { set: (key: string, value: unknown) => void }, next: () => Promise<void>) => {
+  const mockAuthHandler = async (
+    c: { set: (key: string, value: unknown) => void },
+    next: () => Promise<void>
+  ) => {
     c.set('user', mockUser)
     await next()
   }

@@ -85,8 +85,8 @@ describe('GetLocationsByTypeService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((l) => l.locationType === 'country')).toBe(true)
-        expect(result.data.every((l) => l.isActive)).toBe(true)
+        expect(result.data.every(l => l.locationType === 'country')).toBe(true)
+        expect(result.data.every(l => l.isActive)).toBe(true)
       }
     })
 
@@ -96,7 +96,7 @@ describe('GetLocationsByTypeService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(3)
-        expect(result.data.every((l) => l.locationType === 'country')).toBe(true)
+        expect(result.data.every(l => l.locationType === 'country')).toBe(true)
       }
     })
 

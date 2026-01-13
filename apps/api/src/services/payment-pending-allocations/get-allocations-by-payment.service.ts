@@ -14,7 +14,9 @@ export class GetAllocationsByPaymentService {
     private readonly paymentPendingAllocationsRepository: PaymentPendingAllocationsRepository
   ) {}
 
-  async execute(input: TGetAllocationsByPaymentInput): Promise<TServiceResult<TPaymentPendingAllocation[]>> {
+  async execute(
+    input: TGetAllocationsByPaymentInput
+  ): Promise<TServiceResult<TPaymentPendingAllocation[]>> {
     const { paymentId } = input
 
     const allocations = await this.paymentPendingAllocationsRepository.getByPaymentId(paymentId)

@@ -5,7 +5,10 @@ import appEn from '@locales/en.json'
 import appEs from '@locales/es.json'
 import { domainLocalesEn, domainLocalesEs } from '@packages/domain'
 
-function deepMerge<T extends Record<string, unknown>>(target: T, source: Record<string, unknown>): T {
+function deepMerge<T extends Record<string, unknown>>(
+  target: T,
+  source: Record<string, unknown>
+): T {
   const result = { ...target } as Record<string, unknown>
 
   for (const key of Object.keys(source)) {
@@ -17,7 +20,10 @@ function deepMerge<T extends Record<string, unknown>>(target: T, source: Record<
       typeof target[key] === 'object' &&
       !Array.isArray(target[key])
     ) {
-      result[key] = deepMerge(target[key] as Record<string, unknown>, source[key] as Record<string, unknown>)
+      result[key] = deepMerge(
+        target[key] as Record<string, unknown>,
+        source[key] as Record<string, unknown>
+      )
     } else {
       result[key] = source[key]
     }

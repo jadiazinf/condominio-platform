@@ -71,7 +71,7 @@ describe('GetPermissionsByModuleService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(3)
-        expect(result.data.every((p) => p.module === 'payments')).toBe(true)
+        expect(result.data.every(p => p.module === 'payments')).toBe(true)
       }
     })
 

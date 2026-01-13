@@ -130,7 +130,7 @@ describe('RolePermissionsRepository', () => {
       const result = await repository.getByRoleId(roleId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((rp) => rp.roleId === roleId)).toBe(true)
+      expect(result.every(rp => rp.roleId === roleId)).toBe(true)
     })
 
     it('should return empty array for role with no permissions', async () => {
@@ -148,7 +148,7 @@ describe('RolePermissionsRepository', () => {
       const result = await repository.getByPermissionId(permissionId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((rp) => rp.permissionId === permissionId)).toBe(true)
+      expect(result.every(rp => rp.permissionId === permissionId)).toBe(true)
     })
   })
 

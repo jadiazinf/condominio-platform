@@ -21,9 +21,7 @@ export const ERecurrencePeriods = ['monthly', 'quarterly', 'yearly'] as const
 export const paymentConceptSchema = baseModelSchema.extend({
   condominiumId: z.uuid({ error: d.condominiumId.invalid }).nullable(),
   buildingId: z.uuid({ error: d.buildingId.invalid }).nullable(),
-  name: z
-    .string({ error: d.name.required })
-    .max(255, { error: d.name.max }),
+  name: z.string({ error: d.name.required }).max(255, { error: d.name.max }),
   description: z.string().nullable(),
   conceptType: z.enum(EConceptTypes, { error: d.conceptType.invalid }),
   isRecurring: z.boolean().default(true),

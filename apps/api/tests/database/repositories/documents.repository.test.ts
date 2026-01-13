@@ -51,9 +51,7 @@ describe('DocumentsRepository', () => {
     const condominium = await condominiumsRepository.create(
       CondominiumFactory.create({ defaultCurrencyId: currency.id })
     )
-    const building = await buildingsRepository.create(
-      BuildingFactory.create(condominium.id)
-    )
+    const building = await buildingsRepository.create(BuildingFactory.create(condominium.id))
     const unit = await unitsRepository.create(UnitFactory.create(building.id))
 
     userId = user.id
@@ -147,7 +145,7 @@ describe('DocumentsRepository', () => {
       const result = await repository.getByCondominiumId(condominiumId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((d) => d.condominiumId === condominiumId)).toBe(true)
+      expect(result.every(d => d.condominiumId === condominiumId)).toBe(true)
     })
   })
 
@@ -170,7 +168,7 @@ describe('DocumentsRepository', () => {
       const result = await repository.getByUnitId(unitId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((d) => d.unitId === unitId)).toBe(true)
+      expect(result.every(d => d.unitId === unitId)).toBe(true)
     })
   })
 
@@ -194,7 +192,7 @@ describe('DocumentsRepository', () => {
       const result = await repository.getByType('receipt')
 
       expect(result).toHaveLength(2)
-      expect(result.every((d) => d.documentType === 'receipt')).toBe(true)
+      expect(result.every(d => d.documentType === 'receipt')).toBe(true)
     })
   })
 

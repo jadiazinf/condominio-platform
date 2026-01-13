@@ -3,7 +3,10 @@ import type { TQuotaGenerationRule } from '@packages/domain'
 import { GetRulesByCondominiumService } from '@src/services/quota-generation-rules'
 
 type TMockRepository = {
-  getByCondominiumId: (condominiumId: string, includeInactive: boolean) => Promise<TQuotaGenerationRule[]>
+  getByCondominiumId: (
+    condominiumId: string,
+    includeInactive: boolean
+  ) => Promise<TQuotaGenerationRule[]>
 }
 
 describe('GetRulesByCondominiumService', function () {
@@ -69,7 +72,10 @@ describe('GetRulesByCondominiumService', function () {
 
   beforeEach(function () {
     mockRepository = {
-      getByCondominiumId: async function (requestedCondominiumId: string, includeInactive: boolean) {
+      getByCondominiumId: async function (
+        requestedCondominiumId: string,
+        includeInactive: boolean
+      ) {
         const filtered = mockRules.filter(function (r) {
           return r.condominiumId === requestedCondominiumId
         })
@@ -94,7 +100,7 @@ describe('GetRulesByCondominiumService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((r) => r.isActive)).toBe(true)
+        expect(result.data.every(r => r.isActive)).toBe(true)
       }
     })
 
@@ -107,7 +113,7 @@ describe('GetRulesByCondominiumService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(3)
-        expect(result.data.some((r) => !r.isActive)).toBe(true)
+        expect(result.data.some(r => !r.isActive)).toBe(true)
       }
     })
 
@@ -127,7 +133,7 @@ describe('GetRulesByCondominiumService', function () {
 
       expect(result.success).toBe(true)
       if (result.success) {
-        expect(result.data.every((r) => r.condominiumId === condominiumId)).toBe(true)
+        expect(result.data.every(r => r.condominiumId === condominiumId)).toBe(true)
       }
     })
 
@@ -136,8 +142,8 @@ describe('GetRulesByCondominiumService', function () {
 
       expect(result.success).toBe(true)
       if (result.success) {
-        const condominiumLevelRules = result.data.filter((r) => r.buildingId === null)
-        const buildingLevelRules = result.data.filter((r) => r.buildingId !== null)
+        const condominiumLevelRules = result.data.filter(r => r.buildingId === null)
+        const buildingLevelRules = result.data.filter(r => r.buildingId !== null)
 
         expect(condominiumLevelRules.length).toBeGreaterThan(0)
         expect(buildingLevelRules.length).toBeGreaterThan(0)

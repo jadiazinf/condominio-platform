@@ -23,9 +23,7 @@ export const EDocumentTypes = [
 
 export const documentSchema = baseModelSchema.extend({
   documentType: z.enum(EDocumentTypes, { error: d.documentType.invalid }),
-  title: z
-    .string({ error: d.title.required })
-    .max(255, { error: d.title.max }),
+  title: z.string({ error: d.title.required }).max(255, { error: d.title.max }),
   description: z.string().nullable(),
   condominiumId: z.uuid().nullable(),
   buildingId: z.uuid().nullable(),

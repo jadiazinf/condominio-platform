@@ -2,7 +2,12 @@ import { describe, it, expect, beforeEach } from 'bun:test'
 import { CheckUserHasRoleService } from '@src/services/user-roles'
 
 type TMockRepository = {
-  userHasRole: (userId: string, roleId: string, condominiumId?: string, buildingId?: string) => Promise<boolean>
+  userHasRole: (
+    userId: string,
+    roleId: string,
+    condominiumId?: string,
+    buildingId?: string
+  ) => Promise<boolean>
 }
 
 describe('CheckUserHasRoleService', function () {

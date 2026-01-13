@@ -85,7 +85,7 @@ describe('GetPaymentsByStatusService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((p) => p.status === 'pending_verification')).toBe(true)
+        expect(result.data.every(p => p.status === 'pending_verification')).toBe(true)
       }
     })
 
@@ -95,7 +95,7 @@ describe('GetPaymentsByStatusService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((p) => p.status === 'completed')).toBe(true)
+        expect(result.data.every(p => p.status === 'completed')).toBe(true)
       }
     })
 

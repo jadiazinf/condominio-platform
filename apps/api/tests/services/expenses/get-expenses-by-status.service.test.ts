@@ -75,7 +75,7 @@ describe('GetExpensesByStatusService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((e) => e.status === 'pending')).toBe(true)
+        expect(result.data.every(e => e.status === 'pending')).toBe(true)
       }
     })
 
@@ -85,7 +85,7 @@ describe('GetExpensesByStatusService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(1)
-        expect(result.data.every((e) => e.status === 'approved')).toBe(true)
+        expect(result.data.every(e => e.status === 'approved')).toBe(true)
       }
     })
 

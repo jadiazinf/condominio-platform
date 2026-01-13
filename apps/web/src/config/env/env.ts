@@ -39,7 +39,8 @@ class Env {
       for (const issue of result.error.issues) {
         const key = issue.path.join('.')
 
-        if (issue.code === 'invalid_type' && issue.received === 'undefined') {
+        // Check if the variable is missing (value is undefined in raw object)
+        if (issue.code === 'invalid_type' && raw[key] === undefined) {
           missingVars.push(key)
         } else {
           invalidVars.push(`${key}: ${issue.message}`)

@@ -23,7 +23,6 @@ const UserIdParamSchema = z.object({
 })
 
 type TUserIdParam = z.infer<typeof UserIdParamSchema>
-type TIdParam = z.infer<typeof IdParamSchema>
 
 const UpdatePreferenceBodySchema = z.object({
   category: z.enum(['payment', 'quota', 'announcement', 'reminder', 'alert', 'system']),
@@ -100,7 +99,10 @@ export class UserNotificationPreferencesController extends BaseController<
         method: 'put',
         path: '/user/:userId',
         handler: this.updateForUser,
-        middlewares: [paramsValidator(UserIdParamSchema), bodyValidator(UpdatePreferenceBodySchema)],
+        middlewares: [
+          paramsValidator(UserIdParamSchema),
+          bodyValidator(UpdatePreferenceBodySchema),
+        ],
       },
       {
         method: 'patch',

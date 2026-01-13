@@ -60,9 +60,7 @@ describe('PaymentApplicationsRepository', () => {
     const condominium = await condominiumsRepository.create(
       CondominiumFactory.create({ defaultCurrencyId: currency.id })
     )
-    const building = await buildingsRepository.create(
-      BuildingFactory.create(condominium.id)
-    )
+    const building = await buildingsRepository.create(BuildingFactory.create(condominium.id))
     const unit = await unitsRepository.create(UnitFactory.create(building.id))
     const concept = await paymentConceptsRepository.create(
       PaymentConceptFactory.maintenance({ condominiumId: condominium.id, currencyId: currency.id })
@@ -76,10 +74,18 @@ describe('PaymentApplicationsRepository', () => {
     )
 
     const quota1 = await quotasRepository.create(
-      QuotaFactory.pending({ unitId: unit.id, paymentConceptId: concept.id, currencyId: currency.id })
+      QuotaFactory.pending({
+        unitId: unit.id,
+        paymentConceptId: concept.id,
+        currencyId: currency.id,
+      })
     )
     const quota2 = await quotasRepository.create(
-      QuotaFactory.pending({ unitId: unit.id, paymentConceptId: concept.id, currencyId: currency.id })
+      QuotaFactory.pending({
+        unitId: unit.id,
+        paymentConceptId: concept.id,
+        currencyId: currency.id,
+      })
     )
 
     paymentId = payment1.id
@@ -167,7 +173,7 @@ describe('PaymentApplicationsRepository', () => {
       const result = await repository.getByPaymentId(paymentId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((a) => a.paymentId === paymentId)).toBe(true)
+      expect(result.every(a => a.paymentId === paymentId)).toBe(true)
     })
   })
 
@@ -180,7 +186,7 @@ describe('PaymentApplicationsRepository', () => {
       const result = await repository.getByQuotaId(quotaId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((a) => a.quotaId === quotaId)).toBe(true)
+      expect(result.every(a => a.quotaId === quotaId)).toBe(true)
     })
   })
 

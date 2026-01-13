@@ -41,7 +41,11 @@ describe('GetGlobalRolesByUserService', function () {
     mockRepository = {
       getGlobalRolesByUser: async function (requestedUserId: string) {
         return mockUserRoles.filter(function (role) {
-          return role.userId === requestedUserId && role.condominiumId === null && role.buildingId === null
+          return (
+            role.userId === requestedUserId &&
+            role.condominiumId === null &&
+            role.buildingId === null
+          )
         })
       },
     }
@@ -55,8 +59,10 @@ describe('GetGlobalRolesByUserService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every((role) => role.userId === userId)).toBe(true)
-        expect(result.data.every((role) => role.condominiumId === null && role.buildingId === null)).toBe(true)
+        expect(result.data.every(role => role.userId === userId)).toBe(true)
+        expect(
+          result.data.every(role => role.condominiumId === null && role.buildingId === null)
+        ).toBe(true)
       }
     })
 

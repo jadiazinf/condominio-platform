@@ -1,5 +1,5 @@
-import { QueryClient } from "@tanstack/react-query";
-import { HttpError } from "../types/http.js";
+import { QueryClient } from '@tanstack/react-query'
+import { HttpError } from '../types/http'
 
 export function createQueryClient(): QueryClient {
   return new QueryClient({
@@ -10,9 +10,9 @@ export function createQueryClient(): QueryClient {
         retry: (failureCount, error) => {
           // Don't retry on 4xx errors
           if (HttpError.isHttpError(error) && error.status >= 400 && error.status < 500) {
-            return false;
+            return false
           }
-          return failureCount < 3;
+          return failureCount < 3
         },
         refetchOnWindowFocus: false,
       },
@@ -20,18 +20,18 @@ export function createQueryClient(): QueryClient {
         retry: false,
       },
     },
-  });
+  })
 }
 
-let defaultQueryClient: QueryClient | null = null;
+let defaultQueryClient: QueryClient | null = null
 
 export function getQueryClient(): QueryClient {
   if (!defaultQueryClient) {
-    defaultQueryClient = createQueryClient();
+    defaultQueryClient = createQueryClient()
   }
-  return defaultQueryClient;
+  return defaultQueryClient
 }
 
 export function setQueryClient(client: QueryClient): void {
-  defaultQueryClient = client;
+  defaultQueryClient = client
 }

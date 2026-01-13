@@ -55,9 +55,7 @@ describe('PaymentsRepository', () => {
     const condominium = await condominiumsRepository.create(
       CondominiumFactory.create({ defaultCurrencyId: currency.id })
     )
-    const building = await buildingsRepository.create(
-      BuildingFactory.create(condominium.id)
-    )
+    const building = await buildingsRepository.create(BuildingFactory.create(condominium.id))
     const unit = await unitsRepository.create(UnitFactory.create(building.id))
 
     userId = user.id
@@ -100,9 +98,7 @@ describe('PaymentsRepository', () => {
 
   describe('getById', () => {
     it('should return payment by id', async () => {
-      const created = await repository.create(
-        PaymentFactory.create({ userId, unitId, currencyId })
-      )
+      const created = await repository.create(PaymentFactory.create({ userId, unitId, currencyId }))
 
       const result = await repository.getById(created.id)
 
@@ -144,9 +140,7 @@ describe('PaymentsRepository', () => {
 
   describe('delete (hard delete)', () => {
     it('should hard delete payment', async () => {
-      const created = await repository.create(
-        PaymentFactory.create({ userId, unitId, currencyId })
-      )
+      const created = await repository.create(PaymentFactory.create({ userId, unitId, currencyId }))
 
       const result = await repository.delete(created.id)
 
@@ -188,7 +182,7 @@ describe('PaymentsRepository', () => {
       const result = await repository.getByUserId(userId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((p) => p.userId === userId)).toBe(true)
+      expect(result.every(p => p.userId === userId)).toBe(true)
     })
   })
 
@@ -200,7 +194,7 @@ describe('PaymentsRepository', () => {
       const result = await repository.getByUnitId(unitId)
 
       expect(result).toHaveLength(2)
-      expect(result.every((p) => p.unitId === unitId)).toBe(true)
+      expect(result.every(p => p.unitId === unitId)).toBe(true)
     })
   })
 
@@ -219,7 +213,7 @@ describe('PaymentsRepository', () => {
       const result = await repository.getByStatus('completed')
 
       expect(result).toHaveLength(2)
-      expect(result.every((p) => p.status === 'completed')).toBe(true)
+      expect(result.every(p => p.status === 'completed')).toBe(true)
     })
   })
 
@@ -257,7 +251,7 @@ describe('PaymentsRepository', () => {
       const result = await repository.getPendingVerification()
 
       expect(result).toHaveLength(2)
-      expect(result.every((p) => p.status === 'pending_verification')).toBe(true)
+      expect(result.every(p => p.status === 'pending_verification')).toBe(true)
     })
   })
 

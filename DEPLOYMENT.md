@@ -73,6 +73,7 @@ vercel --prod
 #### Error: "No Output Directory named .next found"
 
 **Solución:**
+
 1. Verifica que `Root Directory` sea `apps/web` en Vercel
 2. O que `Output Directory` sea `apps/web/.next` si Root Directory es raíz
 3. Verifica que el build command incluya el filtro correcto
@@ -80,6 +81,7 @@ vercel --prod
 #### Error: "Build failed with exit code 1"
 
 **Solución:**
+
 ```bash
 # Local: verificar que el build funcione
 bun run build --filter=@apps/web
@@ -97,17 +99,20 @@ bun install
 ### Railway
 
 1. **Crear Proyecto**
+
    ```bash
    railway login
    railway init
    ```
 
 2. **Configurar**
+
    ```bash
    railway link
    ```
 
    Crear `apps/api/railway.json`:
+
    ```json
    {
      "build": {
@@ -131,6 +136,7 @@ bun install
 ### Configuración Inicial
 
 1. **Instalar EAS CLI**
+
    ```bash
    bun add -g eas-cli
    eas login
@@ -209,6 +215,7 @@ Antes de cada deploy, verifica:
 ## 🔐 Secrets y Variables de Entorno
 
 ### Web (Vercel)
+
 ```env
 NEXT_PUBLIC_API_URL=
 DATABASE_URL=
@@ -216,6 +223,7 @@ AUTH_SECRET=
 ```
 
 ### API (Railway)
+
 ```env
 DATABASE_URL=
 JWT_SECRET=
@@ -223,6 +231,7 @@ PORT=3000
 ```
 
 ### Mobile (EAS)
+
 ```env
 EXPO_PUBLIC_API_URL=
 ```
