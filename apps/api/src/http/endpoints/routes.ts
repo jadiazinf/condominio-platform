@@ -1,6 +1,7 @@
 import { DatabaseService } from '@database/service'
 import type { TApiEndpointDefinition, IEndpoint } from './types'
 
+import { HealthEndpoint } from './health.endpoint'
 import { AuditLogsEndpoint } from './audit-logs.endpoint'
 import { BuildingsEndpoint } from './buildings.endpoint'
 import { CondominiumsEndpoint } from './condominiums.endpoint'
@@ -46,6 +47,9 @@ export class ApiRoutes {
     const db = DatabaseService.getInstance().getDb()
 
     this.endpoints = [
+      // Health check (no DB dependency)
+      new HealthEndpoint(),
+
       // Core entities
       new CurrenciesEndpoint(db),
       new LocationsEndpoint(db),

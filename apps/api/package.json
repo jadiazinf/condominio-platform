@@ -23,6 +23,7 @@
     "@faker-js/faker": "^10.1.0",
     "@intlify/hono": "^1.0.0",
     "@packages/domain": "workspace:*",
+    "@packages/http-client": "workspace:*",
     "@packages/utils": "workspace:*",
     "dayjs": "^1.11.19",
     "drizzle-orm": "^0.44.7",

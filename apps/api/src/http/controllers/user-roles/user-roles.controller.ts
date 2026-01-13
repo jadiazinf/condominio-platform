@@ -26,29 +26,29 @@ import {
 } from '@src/services/user-roles'
 
 const UserIdParamSchema = z.object({
-  userId: z.string().uuid('Invalid user ID format'),
+  userId: z.uuid('Invalid user ID format'),
 })
 
 type TUserIdParam = z.infer<typeof UserIdParamSchema>
 
 const UserAndCondominiumParamSchema = z.object({
-  userId: z.string().uuid('Invalid user ID format'),
-  condominiumId: z.string().uuid('Invalid condominium ID format'),
+  userId: z.uuid('Invalid user ID format'),
+  condominiumId: z.uuid('Invalid condominium ID format'),
 })
 
 type TUserAndCondominiumParam = z.infer<typeof UserAndCondominiumParamSchema>
 
 const UserAndBuildingParamSchema = z.object({
-  userId: z.string().uuid('Invalid user ID format'),
-  buildingId: z.string().uuid('Invalid building ID format'),
+  userId: z.uuid('Invalid user ID format'),
+  buildingId: z.uuid('Invalid building ID format'),
 })
 
 type TUserAndBuildingParam = z.infer<typeof UserAndBuildingParamSchema>
 
 const CheckRoleQuerySchema = z.object({
-  roleId: z.string().uuid('Invalid role ID format'),
-  condominiumId: z.string().uuid('Invalid condominium ID format').optional(),
-  buildingId: z.string().uuid('Invalid building ID format').optional(),
+  roleId: z.uuid('Invalid role ID format'),
+  condominiumId: z.uuid('Invalid condominium ID format').optional(),
+  buildingId: z.uuid('Invalid building ID format').optional(),
 })
 
 type TCheckRoleQuery = z.infer<typeof CheckRoleQuerySchema>

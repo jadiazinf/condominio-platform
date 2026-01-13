@@ -1,0 +1,41 @@
+{
+  "name": "@packages/http-client",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./config": {
+      "types": "./src/config/index.ts",
+      "default": "./src/config/index.ts"
+    },
+    "./hooks": {
+      "types": "./src/hooks/index.ts",
+      "default": "./src/hooks/index.ts"
+    },
+    "./client": {
+      "types": "./src/client/index.ts",
+      "default": "./src/client/index.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --build --noEmit",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.16",
+    "zod": "^3.25.67"
+  }
+}

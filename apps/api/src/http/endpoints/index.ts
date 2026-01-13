@@ -2,6 +2,7 @@
 export type { TApiEndpointDefinition, IEndpoint } from './types'
 
 // Endpoints
+export { HealthEndpoint } from './health.endpoint'
 export { AuditLogsEndpoint } from './audit-logs.endpoint'
 export { BuildingsEndpoint } from './buildings.endpoint'
 export { CondominiumsEndpoint } from './condominiums.endpoint'

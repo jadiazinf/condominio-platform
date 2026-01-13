@@ -1,82 +1,53 @@
 /**
- * Field validation error - represents an error for a specific field
- */
-export type TFieldError = {
-  field: string
-  messages: string[]
-}
-
-/**
- * Standard validation error response
- * This format is returned when schema validation fails
+ * API Response Types
  *
- * @example
- * {
- *   success: false,
- *   error: {
- *     code: "VALIDATION_ERROR",
- *     message: "Error de validación",
- *     fields: [
- *       { field: "email", messages: ["El correo electrónico no es válido."] },
- *       { field: "name", messages: ["El nombre es requerido.", "El nombre debe tener como máximo 255 caracteres."] }
- *     ]
- *   }
- * }
+ * Re-exported from @packages/http-client for consistency between client and server.
+ * All response types are defined in the shared package to ensure type safety
+ * across the entire application.
  */
-export type TValidationErrorResponse = {
-  success: false
-  error: {
-    code: 'VALIDATION_ERROR'
-    message: string
-    fields: TFieldError[]
-  }
-}
+export {
+  // Error codes
+  ApiErrorCodes,
+  ApiErrorCodes as ErrorCodes,
+  // Type guards
+  isApiDataResponse,
+  isApiMessageResponse,
+  isApiValidationError,
+  isApiErrorResponse,
+  isApiSimpleError,
+} from '@packages/http-client'
 
-/**
- * Standard error response for non-validation errors
- *
- * @example
- * {
- *   success: false,
- *   error: {
- *     code: "NOT_FOUND",
- *     message: "Recurso no encontrado"
- *   }
- * }
- */
-export type TErrorResponse = {
-  success: false
-  error: {
-    code: string
-    message: string
-  }
-}
+export type {
+  // Success response types
+  TApiDataResponse,
+  TApiMessageResponse,
+  TApiDataMessageResponse,
+  TApiSuccessResponse,
+  // Error response types
+  TValidationFieldError,
+  TApiValidationErrorResponse,
+  TApiErrorResponse,
+  TApiSimpleErrorResponse,
+  TApiErrorResponseUnion,
+  TApiErrorCode,
+  // Combined types
+  TApiResponse,
+  // Utility types for entity responses
+  TApiListResponse,
+  TApiEntityResponse,
+  TApiCreatedResponse,
+  TApiUpdatedResponse,
+  TApiDeletedResponse,
+} from '@packages/http-client'
 
-/**
- * Standard success response
- *
- * @example
- * {
- *   success: true,
- *   data: { ... }
- * }
- */
+// Legacy type aliases for backwards compatibility
+export type { TValidationFieldError as TFieldError } from '@packages/http-client'
+export type { TApiValidationErrorResponse as TValidationErrorResponse } from '@packages/http-client'
+export type { TApiErrorResponse as TErrorResponse } from '@packages/http-client'
+export type { TApiErrorCode as TErrorCode } from '@packages/http-client'
+
+// Legacy success response type (uses different structure than new types)
 export type TSuccessResponse<T> = {
   success: true
   data: T
 }
-
-/**
- * Common error codes used in the API
- */
-export const ErrorCodes = {
-  VALIDATION_ERROR: 'VALIDATION_ERROR',
-  NOT_FOUND: 'NOT_FOUND',
-  UNAUTHORIZED: 'UNAUTHORIZED',
-  FORBIDDEN: 'FORBIDDEN',
-  BAD_REQUEST: 'BAD_REQUEST',
-  INTERNAL_ERROR: 'INTERNAL_ERROR',
-  CONFLICT: 'CONFLICT',
-} as const
-
-export type TErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes]
