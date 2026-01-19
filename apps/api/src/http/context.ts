@@ -8,6 +8,8 @@ import type {
   TApiMessageResponse,
   TApiDataMessageResponse,
   TApiSimpleErrorResponse,
+  TApiErrorResponse,
+  TApiErrorCode,
 } from '@packages/http-client'
 
 // Response type aliases for convenience
@@ -24,6 +26,9 @@ type TSuccessPayload<T> = TDataPayload<T> | TMessagePayload | TDataMessagePayloa
 
 // Error response payloads (with optional extra properties)
 type TErrorPayload = TApiSimpleErrorResponse & TExtraProps
+
+// Typed error response payload (with code)
+type TTypedErrorPayload = Omit<TApiErrorResponse, 'success'> & TExtraProps
 
 export class HttpContext<TBody = unknown, TQuery = unknown, TParams = unknown> {
   constructor(private readonly c: Context) {}
@@ -107,6 +112,30 @@ export class HttpContext<TBody = unknown, TQuery = unknown, TParams = unknown> {
    */
   unauthorized(error: TErrorPayload): TResponse {
     return this.c.json(error, StatusCodes.UNAUTHORIZED)
+  }
+
+  /**
+   * HTTP 401 Unauthorized with typed error code
+   * @param code Error code from ApiErrorCodes
+   * @param message Error message
+   */
+  unauthorizedWithCode(code: TApiErrorCode, message: string): TResponse {
+    const payload: TTypedErrorPayload = {
+      error: { code, message },
+    }
+    return this.c.json(payload, StatusCodes.UNAUTHORIZED)
+  }
+
+  /**
+   * HTTP 403 Forbidden with typed error code
+   * @param code Error code from ApiErrorCodes
+   * @param message Error message
+   */
+  forbiddenWithCode(code: TApiErrorCode, message: string): TResponse {
+    const payload: TTypedErrorPayload = {
+      error: { code, message },
+    }
+    return this.c.json(payload, StatusCodes.FORBIDDEN)
   }
 
   /**

@@ -91,6 +91,10 @@ firebase-debug.log
 firestore-debug.log
 ui-debug.log
 pubsub-debug.log
+firebaseServiceAccountKey.json
+firebase-service-account.json
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
 
 # Docker
 docker-compose.override.yml

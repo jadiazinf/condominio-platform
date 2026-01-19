@@ -2,6 +2,7 @@ import type { MiddlewareHandler } from 'hono'
 import { useTranslation } from '@intlify/hono'
 import { admin } from '@libs/firebase/config'
 import type { TUser } from '@packages/domain'
+import { ApiErrorCodes } from '@packages/http-client'
 import { HttpContext } from '@http/context'
 import { DatabaseService } from '@database/service'
 import { UsersRepository } from '@database/repositories/users.repository'
@@ -54,9 +55,10 @@ export async function isUserAuthenticated(
   const authHeader = c.req.header('Authorization')
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return ctx.unauthorized({
-      error: t(LocaleDictionary.http.middlewares.utils.auth.malformedHeader),
-    })
+    return ctx.unauthorizedWithCode(
+      ApiErrorCodes.MALFORMED_HEADER,
+      t(LocaleDictionary.http.middlewares.utils.auth.malformedHeader)
+    )
   }
 
   const token = authHeader.slice(7)
@@ -69,18 +71,25 @@ export async function isUserAuthenticated(
     const user = await usersRepository.getByFirebaseUid(decodedToken.uid)
 
     if (!user) {
-      return ctx.unauthorized({
-        error: t(LocaleDictionary.http.middlewares.utils.auth.userNotFound),
-      })
+      return ctx.unauthorizedWithCode(
+        ApiErrorCodes.USER_NOT_REGISTERED,
+        t(LocaleDictionary.http.middlewares.utils.auth.userNotFound)
+      )
     }
 
     if (!user.isActive) {
-      return ctx.forbidden({ error: t(LocaleDictionary.http.middlewares.utils.auth.userDisabled) })
+      return ctx.forbiddenWithCode(
+        ApiErrorCodes.USER_DISABLED,
+        t(LocaleDictionary.http.middlewares.utils.auth.userDisabled)
+      )
     }
 
     c.set(AUTHENTICATED_USER_PROP, user)
     await next()
   } catch {
-    return ctx.unauthorized({ error: t(LocaleDictionary.http.middlewares.utils.auth.invalidToken) })
+    return ctx.unauthorizedWithCode(
+      ApiErrorCodes.INVALID_TOKEN,
+      t(LocaleDictionary.http.middlewares.utils.auth.invalidToken)
+    )
   }
 }

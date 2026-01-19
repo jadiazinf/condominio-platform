@@ -7,6 +7,7 @@ export type { TRouteDefinition, THttpMethod, TRouteHandler } from './types'
 export * from './common'
 
 // Controllers
+export { AuthController } from './auth'
 export { CurrenciesController } from './currencies'
 export { LocationsController } from './locations'
 export { UsersController } from './users'

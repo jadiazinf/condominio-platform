@@ -30,6 +30,8 @@
     "signIn": "Sign In",
     "signUp": "Sign Up",
     "dashboard": "Dashboard",
+    "profile": "Profile",
+    "settings": "Settings",
     "logout": "Log Out",
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
@@ -214,7 +216,18 @@
       "success": "Account created successfully",
       "googleSuccess": "Successfully signed up with Google",
       "error": "Error creating account",
-      "googleError": "Error signing up with Google"
+      "googleError": "Error signing up with Google",
+      "alreadyRegistered": "You already have a registered account",
+      "contactSupport": "This email is already registered with another account. Please contact support."
+    },
+    "loading": {
+      "title": "Getting everything ready...",
+      "subtitle": "We're loading your information",
+      "error": "Error loading your information",
+      "retry": "Retry",
+      "logout": "Log out",
+      "notRegistered": "You don't have a registered account. Please sign up first.",
+      "accountDisabled": "Your account has been deactivated. Please contact support."
     },
     "errors": {
       "invalidCredentials": "Invalid credentials. Please check your email and password.",
@@ -258,5 +271,23 @@
     "select": "Language",
     "es": "Español",
     "en": "English"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {name}",
+    "title": "Dashboard"
+  },
+  "errors": {
+    "error": {
+      "title": "A Disturbance in the Force",
+      "description": "Something dark has disrupted our servers. Our finest wizards have been summoned. You may try again or begin the journey back home.",
+      "retry": "Try again",
+      "backToHome": "Return home",
+      "code": "Error scroll: {code}"
+    },
+    "notFound": {
+      "title": "The map shows no such path",
+      "description": "It seems you have ventured beyond the known maps. This page exists in no realm. But fear not, the road home is always open.",
+      "backToHome": "Return home"
+    }
   }
 }

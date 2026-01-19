@@ -16,6 +16,7 @@ import {
   domainLocalesEs,
   domainLocalesEn,
 } from '@packages/domain'
+import { setGlobalLocale } from '@packages/http-client'
 
 import {
   appLocalesEs,
@@ -159,6 +160,11 @@ export function I18nProvider({ children, initialLocale }: II18nProviderProps) {
 
     setI18nAdapter(adapter)
   }, [t])
+
+  // Configure http-client locale for Accept-Language header
+  useEffect(() => {
+    setGlobalLocale(() => locale)
+  }, [locale])
 
   // Set initial html lang attribute
   useEffect(() => {

@@ -30,6 +30,8 @@
     "signIn": "Iniciar Sesión",
     "signUp": "Registrarse",
     "dashboard": "Panel",
+    "profile": "Perfil",
+    "settings": "Configuración",
     "logout": "Cerrar Sesión",
     "openMenu": "Abrir menu",
     "closeMenu": "Cerrar menu"
@@ -214,7 +216,18 @@
       "success": "Cuenta creada exitosamente",
       "googleSuccess": "Registro con Google exitoso",
       "error": "Error al crear la cuenta",
-      "googleError": "Error al registrarse con Google"
+      "googleError": "Error al registrarse con Google",
+      "alreadyRegistered": "Ya tienes una cuenta registrada",
+      "contactSupport": "Este correo ya está registrado con otra cuenta. Por favor contacta a soporte."
+    },
+    "loading": {
+      "title": "Preparando todo...",
+      "subtitle": "Estamos cargando tu información",
+      "error": "Error al cargar tu información",
+      "retry": "Reintentar",
+      "logout": "Cerrar sesión",
+      "notRegistered": "No tienes una cuenta registrada. Por favor regístrate primero.",
+      "accountDisabled": "Tu cuenta ha sido desactivada. Por favor contacta a soporte."
     },
     "errors": {
       "invalidCredentials": "Credenciales inválidas. Por favor verifica tu email y contraseña.",
@@ -258,5 +271,23 @@
     "select": "Idioma",
     "es": "Español",
     "en": "English"
+  },
+  "dashboard": {
+    "welcome": "Bienvenido, {name}",
+    "title": "Panel de Control"
+  },
+  "errors": {
+    "error": {
+      "title": "Un disturbio en la Fuerza",
+      "description": "Algo oscuro ha perturbado nuestros servidores. Nuestros mejores magos ya fueron convocados. Puedes intentar de nuevo o emprender el camino de regreso.",
+      "retry": "Intentar de nuevo",
+      "backToHome": "Volver a casa",
+      "code": "Pergamino de error: {code}"
+    },
+    "notFound": {
+      "title": "El mapa no muestra este camino",
+      "description": "Parece que te has aventurado más allá de los mapas conocidos. Esta página no existe en ningún reino. Pero no temas, el camino a casa siempre está abierto.",
+      "backToHome": "Volver a casa"
+    }
   }
 }

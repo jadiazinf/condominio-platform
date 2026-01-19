@@ -7,7 +7,12 @@ function buildUrl(
   path: string,
   params?: Record<string, string | number | boolean | undefined>
 ): string {
-  const url = new URL(path, baseUrl)
+  // Remove trailing slash from baseUrl and leading slash from path to concatenate properly
+  const normalizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  const fullUrl = `${normalizedBase}${normalizedPath}`
+
+  const url = new URL(fullUrl)
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
@@ -31,22 +36,40 @@ async function parseResponseBody<T>(response: Response): Promise<T> {
 }
 
 async function handleErrorResponse(response: Response): Promise<never> {
-  let errorData: Partial<ApiError> = {}
+  let message: string | undefined
+  let code: string | undefined
+  let details: unknown
 
   try {
-    const body = await parseResponseBody<{ message?: string; code?: string }>(response)
+    const body = await parseResponseBody<unknown>(response)
+    details = body
+
     if (typeof body === 'object' && body !== null) {
-      errorData = body
+      // Handle typed error format: { error: { code, message } }
+      if ('error' in body && typeof (body as { error: unknown }).error === 'object') {
+        const errorObj = (body as { error: { code?: string; message?: string } }).error
+        message = errorObj?.message
+        code = errorObj?.code
+      }
+      // Handle simple error format: { error: string }
+      else if ('error' in body && typeof (body as { error: unknown }).error === 'string') {
+        message = (body as { error: string }).error
+      }
+      // Handle flat format: { message, code }
+      else if ('message' in body) {
+        message = (body as { message?: string }).message
+        code = (body as { code?: string }).code
+      }
     }
   } catch {
     // Ignore parsing errors
   }
 
   const error: ApiError = {
-    message: errorData.message ?? response.statusText ?? 'An unknown error occurred',
+    message: message ?? response.statusText ?? 'An unknown error occurred',
     status: response.status,
-    code: errorData.code,
-    details: errorData,
+    code,
+    details,
   }
 
   throw new HttpError(error)
@@ -57,6 +80,7 @@ export interface HttpClientConfig {
   defaultHeaders?: Record<string, string>
   timeout?: number
   getAuthToken?: () => string | null | Promise<string | null>
+  getLocale?: () => string | null | Promise<string | null>
 }
 
 export function createHttpClient(config: HttpClientConfig = {}) {
@@ -82,6 +106,13 @@ export function createHttpClient(config: HttpClientConfig = {}) {
       const token = await config.getAuthToken()
       if (token) {
         headers['Authorization'] = `Bearer ${token}`
+      }
+    }
+
+    if (config.getLocale) {
+      const locale = await config.getLocale()
+      if (locale) {
+        headers['Accept-Language'] = locale
       }
     }
 
@@ -138,12 +169,25 @@ export function createHttpClient(config: HttpClientConfig = {}) {
 
 export type HttpClient = ReturnType<typeof createHttpClient>
 
+// Global locale getter (can be set by the app)
+let globalLocaleGetter: (() => string | null) | null = null
+
+export function setGlobalLocale(localeGetter: () => string | null): void {
+  globalLocaleGetter = localeGetter
+  // Reset the default client so it picks up the new locale getter
+  if (defaultClient) {
+    defaultClient = null
+  }
+}
+
 // Default client instance (uses env config)
 let defaultClient: HttpClient | null = null
 
 export function getHttpClient(): HttpClient {
   if (!defaultClient) {
-    defaultClient = createHttpClient()
+    defaultClient = createHttpClient({
+      getLocale: globalLocaleGetter ?? undefined,
+    })
   }
   return defaultClient
 }

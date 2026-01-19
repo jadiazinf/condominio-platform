@@ -5,7 +5,8 @@ import { Checkbox } from '@heroui/checkbox'
 import { Link } from '@heroui/link'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
-import { type TSignInSchema } from '@packages/domain'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { signInSchema, type TSignInSchema } from '@packages/domain'
 
 import { useTranslation } from '@/contexts'
 import { Button } from '@/ui/components/button'
@@ -22,13 +23,25 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn, isLoading }: SignIn
   const { t } = useTranslation()
   const [showPassword, setShowPassword] = useState(false)
 
-  const { control, handleSubmit } = useForm<TSignInSchema>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<TSignInSchema>({
+    resolver: zodResolver(signInSchema),
     defaultValues: {
       email: '',
       password: '',
       rememberMe: false,
     },
   })
+
+  // Translate error messages from i18n keys
+  function translateError(message: string | undefined): string | undefined {
+    if (!message) return undefined
+
+    return t(message)
+  }
 
   return (
     <>
@@ -44,6 +57,8 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn, isLoading }: SignIn
             render={({ field }) => (
               <Input
                 isRequired
+                errorMessage={translateError(errors.email?.message)}
+                isInvalid={!!errors.email}
                 placeholder={t('auth.signIn.emailPlaceholder')}
                 size="lg"
                 startContent={<Mail className="w-5 h-5 text-default-400" />}
@@ -78,6 +93,8 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn, isLoading }: SignIn
                     )}
                   </button>
                 }
+                errorMessage={translateError(errors.password?.message)}
+                isInvalid={!!errors.password}
                 placeholder={t('auth.signIn.passwordPlaceholder')}
                 size="lg"
                 startContent={<Lock className="w-5 h-5 text-default-400" />}

@@ -9,29 +9,37 @@ export type EnvConfig = z.infer<typeof envSchema>
 
 let cachedConfig: EnvConfig | null = null
 
-function isBrowser(): boolean {
-  return typeof globalThis !== 'undefined' && 'window' in globalThis
+// Next.js replaces NEXT_PUBLIC_* variables at build time, so we must access them
+// with their full literal names - dynamic access like process.env[varName] won't work.
+// This function provides the raw env values for each supported platform.
+function getApiBaseUrl(): string {
+  // Next.js (must be literal for build-time replacement)
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL
+  }
+
+  // Expo
+  if (process.env.EXPO_PUBLIC_API_BASE_URL) {
+    return process.env.EXPO_PUBLIC_API_BASE_URL
+  }
+
+  // Server-side / direct
+  return process.env.API_BASE_URL ?? ''
 }
 
-function getEnvValue(key: string): string | undefined {
-  // Next.js (client-side uses NEXT_PUBLIC_ prefix)
-  if (isBrowser()) {
-    // Browser environment - check for Next.js public env vars
-    const nextPublicKey = `NEXT_PUBLIC_${key}`
-    if (nextPublicKey in (process.env ?? {})) {
-      return process.env[nextPublicKey]
-    }
+function getApiTimeout(): number {
+  // Next.js
+  if (process.env.NEXT_PUBLIC_API_TIMEOUT) {
+    return Number(process.env.NEXT_PUBLIC_API_TIMEOUT) || 30000
   }
 
-  // Server-side Next.js or Expo
-  // Expo uses EXPO_PUBLIC_ prefix for client-side env vars
-  const expoKey = `EXPO_PUBLIC_${key}`
-  if (expoKey in (process.env ?? {})) {
-    return process.env[expoKey]
+  // Expo
+  if (process.env.EXPO_PUBLIC_API_TIMEOUT) {
+    return Number(process.env.EXPO_PUBLIC_API_TIMEOUT) || 30000
   }
 
-  // Direct env var (server-side)
-  return process.env[key]
+  // Server-side / direct
+  return Number(process.env.API_TIMEOUT) || 30000
 }
 
 export function getEnvConfig(): EnvConfig {
@@ -40,8 +48,8 @@ export function getEnvConfig(): EnvConfig {
   }
 
   const rawConfig = {
-    apiBaseUrl: getEnvValue('API_BASE_URL') ?? '',
-    apiTimeout: Number(getEnvValue('API_TIMEOUT')) || 30000,
+    apiBaseUrl: getApiBaseUrl(),
+    apiTimeout: getApiTimeout(),
   }
 
   const result = envSchema.safeParse(rawConfig)

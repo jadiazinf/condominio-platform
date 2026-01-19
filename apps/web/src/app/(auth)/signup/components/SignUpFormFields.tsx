@@ -5,7 +5,8 @@ import { Checkbox } from '@heroui/checkbox'
 import { Link } from '@heroui/link'
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
-import { type TSignUpSchema } from '@packages/domain'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { signUpSchema, type TSignUpSchema } from '@packages/domain'
 
 import { useTranslation } from '@/contexts'
 import { Button } from '@/ui/components/button'
@@ -23,7 +24,12 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-  const { control, handleSubmit } = useForm<TSignUpSchema>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<TSignUpSchema>({
+    resolver: zodResolver(signUpSchema),
     defaultValues: {
       firstName: '',
       lastName: '',
@@ -33,6 +39,13 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
       acceptTerms: false,
     },
   })
+
+  // Translate error messages from i18n keys
+  function translateError(message: string | undefined): string | undefined {
+    if (!message) return undefined
+
+    return t(message)
+  }
 
   return (
     <>
@@ -49,6 +62,8 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
               render={({ field }) => (
                 <Input
                   isRequired
+                  errorMessage={translateError(errors.firstName?.message)}
+                  isInvalid={!!errors.firstName}
                   placeholder={t('auth.signUp.firstNamePlaceholder')}
                   size="lg"
                   startContent={<User className="w-5 h-5 text-default-400" />}
@@ -70,6 +85,8 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
               render={({ field }) => (
                 <Input
                   isRequired
+                  errorMessage={translateError(errors.lastName?.message)}
+                  isInvalid={!!errors.lastName}
                   placeholder={t('auth.signUp.lastNamePlaceholder')}
                   size="lg"
                   startContent={<User className="w-5 h-5 text-default-400" />}
@@ -92,6 +109,8 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
             render={({ field }) => (
               <Input
                 isRequired
+                errorMessage={translateError(errors.email?.message)}
+                isInvalid={!!errors.email}
                 placeholder={t('auth.signUp.emailPlaceholder')}
                 size="lg"
                 startContent={<Mail className="w-5 h-5 text-default-400" />}
@@ -126,6 +145,8 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
                     )}
                   </button>
                 }
+                errorMessage={translateError(errors.password?.message)}
+                isInvalid={!!errors.password}
                 placeholder={t('auth.signUp.passwordPlaceholder')}
                 size="lg"
                 startContent={<Lock className="w-5 h-5 text-default-400" />}
@@ -160,6 +181,8 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
                     )}
                   </button>
                 }
+                errorMessage={translateError(errors.confirmPassword?.message)}
+                isInvalid={!!errors.confirmPassword}
                 placeholder={t('auth.signUp.confirmPasswordPlaceholder')}
                 size="lg"
                 startContent={<Lock className="w-5 h-5 text-default-400" />}
@@ -171,24 +194,31 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
           />
         </div>
 
-        <Controller
-          control={control}
-          name="acceptTerms"
-          render={({ field }) => (
-            <Checkbox isSelected={field.value} size="sm" onValueChange={field.onChange}>
-              <Typography variant="body2">
-                {t('auth.signUp.acceptTerms')}{' '}
-                <Link className="text-sm" href="/terms">
-                  {t('auth.signUp.termsAndConditions')}
-                </Link>{' '}
-                {t('auth.signUp.and')}{' '}
-                <Link className="text-sm" href="/privacy">
-                  {t('auth.signUp.privacyPolicy')}
-                </Link>
-              </Typography>
-            </Checkbox>
+        <div>
+          <Controller
+            control={control}
+            name="acceptTerms"
+            render={({ field }) => (
+              <Checkbox isSelected={field.value} size="sm" onValueChange={field.onChange}>
+                <Typography variant="body2">
+                  {t('auth.signUp.acceptTerms')}{' '}
+                  <Link className="text-sm" href="/terms">
+                    {t('auth.signUp.termsAndConditions')}
+                  </Link>{' '}
+                  {t('auth.signUp.and')}{' '}
+                  <Link className="text-sm" href="/privacy">
+                    {t('auth.signUp.privacyPolicy')}
+                  </Link>
+                </Typography>
+              </Checkbox>
+            )}
+          />
+          {errors.acceptTerms && (
+            <Typography className="mt-1 text-danger text-xs" variant="body2">
+              {translateError(errors.acceptTerms.message)}
+            </Typography>
           )}
-        />
+        </div>
 
         <div className="pt-4">
           <Button

@@ -11,6 +11,22 @@ export {
   type HealthCheckResult,
   type UseHealthCheckOptions,
 } from './use-health-check'
+export {
+  useCurrentUser,
+  useUserByFirebaseUid,
+  type UseCurrentUserOptions,
+  type UseUserByFirebaseUidOptions,
+} from './use-user'
+export {
+  useRegisterWithGoogle,
+  registerWithGoogle,
+  useRegisterUser,
+  registerUser,
+  type UseRegisterWithGoogleOptions,
+  type TGoogleRegisterVariables,
+  type UseRegisterUserOptions,
+  type TRegisterVariables,
+} from './use-auth'
 
 // Re-export commonly used TanStack Query hooks
 export {

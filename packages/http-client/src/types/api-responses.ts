@@ -83,6 +83,11 @@ export const ApiErrorCodes = {
   BAD_REQUEST: 'BAD_REQUEST',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   CONFLICT: 'CONFLICT',
+  // Auth-specific error codes
+  USER_NOT_REGISTERED: 'USER_NOT_REGISTERED',
+  USER_DISABLED: 'USER_DISABLED',
+  INVALID_TOKEN: 'INVALID_TOKEN',
+  MALFORMED_HEADER: 'MALFORMED_HEADER',
 } as const
 
 export type TApiErrorCode = (typeof ApiErrorCodes)[keyof typeof ApiErrorCodes]

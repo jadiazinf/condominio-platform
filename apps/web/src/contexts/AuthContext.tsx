@@ -20,6 +20,9 @@ import {
 } from 'firebase/auth'
 
 import { getFirebaseAuth } from '@/libs/firebase'
+import { clearUserCookie } from '@/libs/cookies'
+
+const SESSION_COOKIE_NAME = '__session'
 
 interface AuthContextType {
   user: User | null
@@ -29,6 +32,7 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string) => Promise<void>
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
+  deleteCurrentUser: () => Promise<void>
   clearError: () => void
 }
 
@@ -38,6 +42,22 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
+async function setSessionCookie(user: User): Promise<void> {
+  const idToken = await user.getIdToken()
+  const isSecure = window.location.protocol === 'https:'
+  const secureFlag = isSecure ? '; Secure' : ''
+
+  document.cookie = `${SESSION_COOKIE_NAME}=${idToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secureFlag}`
+}
+
+function clearSessionCookie(): void {
+  const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:'
+  const secureFlag = isSecure ? '; Secure' : ''
+
+  document.cookie = `${SESSION_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax${secureFlag}`
+  clearUserCookie()
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -45,9 +65,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const auth = getFirebaseAuth()
-    const unsubscribe = onAuthStateChanged(auth, user => {
-      setUser(user)
+    const unsubscribe = onAuthStateChanged(auth, async firebaseUser => {
+      setUser(firebaseUser)
       setLoading(false)
+
+      if (firebaseUser) {
+        await setSessionCookie(firebaseUser)
+      } else {
+        clearSessionCookie()
+      }
     })
 
     return () => unsubscribe()
@@ -59,7 +85,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setLoading(true)
       const auth = getFirebaseAuth()
 
-      await signInWithEmailAndPassword(auth, email, password)
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      await setSessionCookie(userCredential.user)
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
 
@@ -76,7 +103,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setLoading(true)
       const auth = getFirebaseAuth()
 
-      await createUserWithEmailAndPassword(auth, email, password)
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+      await setSessionCookie(userCredential.user)
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
 
@@ -97,7 +125,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       provider.setCustomParameters({
         prompt: 'select_account',
       })
-      await signInWithPopup(auth, provider)
+      const userCredential = await signInWithPopup(auth, provider)
+      await setSessionCookie(userCredential.user)
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
 
@@ -114,6 +143,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const auth = getFirebaseAuth()
 
       await firebaseSignOut(auth)
+      clearSessionCookie()
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
 
@@ -121,6 +151,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
       throw err
     }
   }, [])
+
+  const deleteCurrentUser = useCallback(async () => {
+    try {
+      setError(null)
+
+      if (!user) {
+        throw new Error('No user to delete')
+      }
+
+      await user.delete()
+      clearSessionCookie()
+    } catch (err) {
+      const errorMessage = getFirebaseErrorMessage(err)
+
+      setError(errorMessage)
+      throw err
+    }
+  }, [user])
 
   const clearError = useCallback(() => {
     setError(null)
@@ -135,9 +183,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       signUpWithEmail,
       signInWithGoogle,
       signOut,
+      deleteCurrentUser,
       clearError,
     }),
-    [user, loading, error, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut, clearError]
+    [user, loading, error, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut, deleteCurrentUser, clearError]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -153,7 +202,43 @@ export function useAuth() {
   return context
 }
 
+// Maps Firebase error codes to i18n translation keys
+export function getFirebaseErrorKey(error: unknown): string {
+  if (error && typeof error === 'object' && 'code' in error) {
+    const firebaseError = error as { code: string }
+
+    switch (firebaseError.code) {
+      case 'auth/email-already-in-use':
+        return 'auth.errors.emailInUse'
+      case 'auth/invalid-email':
+        return 'auth.errors.invalidCredentials'
+      case 'auth/weak-password':
+        return 'auth.errors.weakPassword'
+      case 'auth/user-disabled':
+        return 'auth.errors.userDisabled'
+      case 'auth/user-not-found':
+        return 'auth.errors.userNotFound'
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+        return 'auth.errors.invalidCredentials'
+      case 'auth/popup-closed-by-user':
+      case 'auth/cancelled-popup-request':
+        return 'auth.errors.popupClosed'
+      case 'auth/too-many-requests':
+        return 'auth.errors.tooManyRequests'
+      case 'auth/network-request-failed':
+        return 'auth.errors.networkError'
+      default:
+        return 'auth.errors.generic'
+    }
+  }
+
+  return 'auth.errors.generic'
+}
+
 function getFirebaseErrorMessage(error: unknown): string {
+  // This function returns a fallback message for internal use
+  // Components should use getFirebaseErrorKey with i18n for translated messages
   if (error && typeof error === 'object' && 'code' in error) {
     const firebaseError = error as { code: string }
 

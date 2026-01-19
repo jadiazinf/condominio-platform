@@ -37,6 +37,7 @@ type TIdParam = z.infer<typeof IdParamSchema>
  * Controller for managing user resources.
  *
  * Endpoints:
+ * - GET    /me                         Get current authenticated user
  * - GET    /                           List all users
  * - GET    /email/:email               Get user by email
  * - GET    /firebase/:firebaseUid      Get user by Firebase UID
@@ -63,10 +64,13 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
     this.getByEmail = this.getByEmail.bind(this)
     this.getByFirebaseUid = this.getByFirebaseUid.bind(this)
     this.updateLastLogin = this.updateLastLogin.bind(this)
+    this.getCurrentUser = this.getCurrentUser.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
+      // /me must be before /:id to avoid being matched as an ID
+      { method: 'get', path: '/me', handler: this.getCurrentUser, middlewares: [authMiddleware] },
       { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
       {
         method: 'get',
@@ -170,6 +174,22 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
       }
 
       return ctx.ok({ data: result.data })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  /**
+   * Get the current authenticated user.
+   * The user is already available in the context from the auth middleware.
+   */
+  private async getCurrentUser(c: Context): Promise<Response> {
+    const ctx = this.ctx(c)
+
+    try {
+      const user = ctx.getAuthenticatedUser()
+
+      return ctx.ok({ data: user })
     } catch (error) {
       return this.handleError(ctx, error)
     }

@@ -1,6 +1,7 @@
 import { DatabaseService } from '@database/service'
 import type { TApiEndpointDefinition, IEndpoint } from './types'
 
+import { AuthEndpoint } from './auth.endpoint'
 import { HealthEndpoint } from './health.endpoint'
 import { AuditLogsEndpoint } from './audit-logs.endpoint'
 import { BuildingsEndpoint } from './buildings.endpoint'
@@ -49,6 +50,9 @@ export class ApiRoutes {
     this.endpoints = [
       // Health check (no DB dependency)
       new HealthEndpoint(),
+
+      // Auth (public endpoints for registration)
+      new AuthEndpoint(db),
 
       // Core entities
       new CurrenciesEndpoint(db),

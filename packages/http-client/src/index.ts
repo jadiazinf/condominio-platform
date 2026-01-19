@@ -3,7 +3,7 @@ export { getEnvConfig, setEnvConfig, resetEnvConfig } from './config/index'
 export type { EnvConfig } from './config/index'
 
 // Client
-export { createHttpClient, getHttpClient, setHttpClient } from './client/index'
+export { createHttpClient, getHttpClient, setHttpClient, setGlobalLocale } from './client/index'
 export type { HttpClient, HttpClientConfig } from './client/index'
 
 // Hooks
@@ -15,6 +15,12 @@ export {
   useApiQuery,
   useApiMutation,
   useHealthCheck,
+  useCurrentUser,
+  useUserByFirebaseUid,
+  useRegisterWithGoogle,
+  registerWithGoogle,
+  useRegisterUser,
+  registerUser,
   useQuery,
   useMutation,
   useQueryClient,
@@ -28,6 +34,12 @@ export type {
   UseApiMutationOptions,
   HealthCheckResult,
   UseHealthCheckOptions,
+  UseCurrentUserOptions,
+  UseUserByFirebaseUidOptions,
+  UseRegisterWithGoogleOptions,
+  TGoogleRegisterVariables,
+  UseRegisterUserOptions,
+  TRegisterVariables,
 } from './hooks/index'
 
 // Types
@@ -206,3 +218,6 @@ export {
   isApiErrorResponse,
   isApiSimpleError,
 } from './types/index'
+
+// Server utilities
+export { fetchUserByFirebaseUid } from './server/index'
