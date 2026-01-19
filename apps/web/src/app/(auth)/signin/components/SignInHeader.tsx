@@ -1,15 +1,24 @@
+'use client'
+
 import { Link } from '@heroui/link'
 
+import { useTranslation } from '@/contexts'
 import { BackToHomeButton } from '@/ui/components/backToHomeButton/BackToHomeButton'
+import { LanguageSwitcher } from '@/ui/components/language-switcher'
 import { ThemeSwitch } from '@/ui/components/themeSwitch/ThemeSwitch'
 import { Typography } from '@/ui/components/typography'
 
 export function SignInHeader() {
+  const { t } = useTranslation()
+
   return (
     <>
-      {/* Theme Switch (left) and Back to Home (right) */}
+      {/* Theme Switch + Language Switcher (left) and Back to Home (right) */}
       <div className="flex items-center justify-between w-full mb-6 -mt-4">
-        <ThemeSwitch />
+        <div className="flex items-center gap-2">
+          <ThemeSwitch />
+          <LanguageSwitcher variant="icon" />
+        </div>
         <BackToHomeButton />
       </div>
 
@@ -23,10 +32,10 @@ export function SignInHeader() {
       {/* Title */}
       <div className="mb-8">
         <Typography className="mb-2" variant="h2">
-          Inicia sesión en tu cuenta
+          {t('auth.signIn.title')}
         </Typography>
         <Typography color="muted" variant="body2">
-          Inicia sesión en tu cuenta para que puedas continuar gestionando tu condominio.
+          {t('auth.signIn.subtitle')}
         </Typography>
       </div>
     </>

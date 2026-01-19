@@ -10,22 +10,24 @@ import { PricingSection } from '@/ui/components/pricings'
 
 export default function Home() {
   return (
-    <div className="flex flex-col gap-20 pb-16">
-      <HeroSection />
+    <>
+      <div className="relative z-10 flex flex-col gap-20 pb-16">
+        <HeroSection />
 
-      <ProblemsSection />
+        <ProblemsSection />
 
-      <BenefitsSection />
+        <BenefitsSection />
 
-      <HowItWorksSection />
+        <HowItWorksSection />
 
-      <Divider />
+        <Divider />
 
-      <PricingSection />
+        <PricingSection />
 
-      <Divider />
+        <Divider />
 
-      <CTASection />
-    </div>
+        <CTASection />
+      </div>
+    </>
   )
 }

@@ -1,0 +1,262 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Exitoso",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "back": "Volver",
+    "backToHome": "Ir a inicio",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "yes": "Sí",
+    "no": "No"
+  },
+  "nav": {
+    "home": "Inicio",
+    "benefits": "Beneficios",
+    "howItWorks": "Cómo funciona",
+    "join": "Únete",
+    "features": "Características",
+    "pricing": "Precios",
+    "contact": "Contacto",
+    "signIn": "Iniciar Sesión",
+    "signUp": "Registrarse",
+    "dashboard": "Panel",
+    "logout": "Cerrar Sesión",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Cerrar menu"
+  },
+  "landing": {
+    "hero": {
+      "title": "Administrar tu condominio",
+      "titleHighlight": "ya no tiene que ser un dolor de cabeza",
+      "subtitle": "La herramienta que te ayuda a cobrar cuotas, mantener informados a los vecinos y tener las cuentas en orden. Simple, como debería ser.",
+      "cta": "Pruébalo gratis",
+      "howItWorks": "¿Cómo funciona?",
+      "noCreditCard": "Sin tarjeta de crédito · Cancela cuando quieras"
+    },
+    "problems": {
+      "title": "Sabemos lo difícil que es",
+      "subtitle": "Administrar un condominio puede ser agotador. Nosotros lo hacemos más fácil.",
+      "items": {
+        "payments": {
+          "problem": "¿Cansado de perseguir pagos?",
+          "solution": "Los vecinos pagan en línea y tú ves todo al instante"
+        },
+        "meetings": {
+          "problem": "¿Reuniones interminables?",
+          "solution": "Envía comunicados y recibe respuestas sin salir de casa"
+        },
+        "communication": {
+          "problem": "¿Vecinos que no se enteran?",
+          "solution": "Notificaciones automáticas que sí llegan y sí se leen"
+        },
+        "spreadsheets": {
+          "problem": "¿Excel con mil pestañas?",
+          "solution": "Un sistema simple que hace los cálculos por ti"
+        }
+      }
+    },
+    "benefits": {
+      "label": "Beneficios",
+      "title": "Todo lo que necesitas, nada que no",
+      "items": {
+        "paperwork": {
+          "title": "Olvídate del papeleo",
+          "description": "Todo en un solo lugar: cuotas, pagos, comunicados. Sin hojas de Excel ni carpetas perdidas.",
+          "highlight": "Ahorra tiempo"
+        },
+        "collections": {
+          "title": "Cobra sin perseguir a nadie",
+          "description": "Los vecinos reciben recordatorios automáticos y pueden pagar desde su celular.",
+          "highlight": "Menos estrés"
+        },
+        "informed": {
+          "title": "Todos informados",
+          "description": "Comunicados, avisos y documentos llegan directo al celular de cada residente.",
+          "highlight": "Sin malentendidos"
+        },
+        "transparency": {
+          "title": "Cuentas claras",
+          "description": "Cada vecino ve sus pagos, recibos y estado de cuenta cuando quiera, sin llamarte.",
+          "highlight": "Transparencia total"
+        }
+      }
+    },
+    "howItWorks": {
+      "label": "Así de simple",
+      "title": "Empieza en 3 pasos",
+      "steps": {
+        "register": {
+          "step": "1",
+          "title": "Registra tu condominio",
+          "description": "En menos de 5 minutos tienes todo listo"
+        },
+        "invite": {
+          "step": "2",
+          "title": "Invita a los vecinos",
+          "description": "Les llega un link y listo, ya están dentro"
+        },
+        "manage": {
+          "step": "3",
+          "title": "Empieza a administrar",
+          "description": "Genera cuotas, recibe pagos, envía avisos"
+        }
+      }
+    },
+    "cta": {
+      "title": "¿Listo para simplificar tu vida?",
+      "subtitle": "Únete a los administradores que ya dejaron de sufrir con el papeleo y los pagos atrasados.",
+      "button": "Comenzar gratis",
+      "note": "Configuración en minutos · Soporte incluido"
+    },
+    "pricing": {
+      "label": "Para administradoras de condominios",
+      "title": "Comienza a administrar con nuestra plataforma",
+      "subtitle": "Diseñamos soluciones personalizadas para cada administradora. Agenda una reunión para conocer tu negocio y crear un plan que se ajuste a tus necesidades.",
+      "processTitle": "Proceso de registro",
+      "steps": {
+        "schedule": {
+          "title": "Agenda una reunión",
+          "description": "Conversemos sobre tu administradora y necesidades específicas"
+        },
+        "negotiate": {
+          "title": "Negociamos el precio",
+          "description": "Creamos un plan personalizado según el tamaño de tu operación"
+        },
+        "start": {
+          "title": "Comienza a operar",
+          "description": "Una vez acordado, te damos acceso completo a la plataforma"
+        }
+      },
+      "ctaButton": "Agendar reunión",
+      "ctaNote": "Respuesta en menos de 24 horas",
+      "questions": "¿Tienes preguntas?",
+      "writeUs": "Escríbenos",
+      "helpText": "y te ayudamos a entender cómo funciona"
+    }
+  },
+  "footer": {
+    "description": "La forma más fácil de administrar tu condominio.",
+    "product": "Producto",
+    "benefits": "Beneficios",
+    "join": "Únete",
+    "howItWorks": "Cómo funciona",
+    "support": "Soporte",
+    "helpCenter": "Centro de ayuda",
+    "contact": "Contacto",
+    "legal": "Legal",
+    "privacy": "Privacidad",
+    "terms": "Términos de uso",
+    "copyright": "© {year} CondominioApp. Todos los derechos reservados.",
+    "madeWith": "Hecho con ❤️ para administradores de condominios"
+  },
+  "auth": {
+    "signIn": {
+      "title": "Bienvenido de vuelta",
+      "subtitle": "Inicia sesión para continuar",
+      "email": "Email",
+      "emailPlaceholder": "Ingresa tu email",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Ingresa tu contraseña",
+      "rememberMe": "Recuérdame",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "submit": "Iniciar Sesión",
+      "orContinueWith": "O inicia con",
+      "continueWithGoogle": "Continuar con Google",
+      "noAccount": "¿No tienes cuenta?",
+      "signUpLink": "Regístrate",
+      "success": "Inicio de sesión exitoso",
+      "googleSuccess": "Inicio de sesión con Google exitoso",
+      "error": "Error al iniciar sesión",
+      "googleError": "Error al iniciar sesión con Google"
+    },
+    "signUpCTA": {
+      "title": "¿No tienes una cuenta?",
+      "subtitle": "Regístrate para que puedas comenzar a disfrutar de tu primera experiencia de administración de condominios.",
+      "button": "Registrarse"
+    },
+    "signInCTA": {
+      "title": "¿Ya tienes una cuenta?",
+      "subtitle": "Inicia sesión para continuar gestionando tu condominio y acceder a todas tus funcionalidades.",
+      "button": "Iniciar sesión"
+    },
+    "signUp": {
+      "title": "Crea tu cuenta",
+      "subtitle": "Comienza a administrar tu condominio hoy",
+      "firstName": "Nombre",
+      "firstNamePlaceholder": "Tu nombre",
+      "lastName": "Apellido",
+      "lastNamePlaceholder": "Tu apellido",
+      "email": "Email",
+      "emailPlaceholder": "Ingresa tu email",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Crea una contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "confirmPasswordPlaceholder": "Confirma tu contraseña",
+      "acceptTerms": "Acepto los",
+      "termsAndConditions": "términos y condiciones",
+      "and": "y la",
+      "privacyPolicy": "política de privacidad",
+      "submit": "Crear cuenta",
+      "orContinueWith": "O regístrate con",
+      "continueWithGoogle": "Continuar con Google",
+      "hasAccount": "¿Ya tienes cuenta?",
+      "signInLink": "Inicia sesión",
+      "success": "Cuenta creada exitosamente",
+      "googleSuccess": "Registro con Google exitoso",
+      "error": "Error al crear la cuenta",
+      "googleError": "Error al registrarse con Google"
+    },
+    "errors": {
+      "invalidCredentials": "Credenciales inválidas. Por favor verifica tu email y contraseña.",
+      "emailInUse": "Este correo electrónico ya está en uso.",
+      "weakPassword": "La contraseña es muy débil. Usa al menos 8 caracteres.",
+      "networkError": "Error de conexión. Por favor verifica tu conexión a internet.",
+      "tooManyRequests": "Demasiados intentos fallidos. Por favor intenta más tarde.",
+      "userNotFound": "No existe una cuenta con este correo electrónico.",
+      "userDisabled": "Esta cuenta ha sido deshabilitada.",
+      "popupClosed": "El proceso de autenticación fue cancelado.",
+      "generic": "Ocurrió un error inesperado. Por favor intenta de nuevo."
+    }
+  },
+  "validation": {
+    "models": {
+      "auth": {
+        "email": {
+          "required": "El correo electrónico es requerido.",
+          "invalid": "El correo electrónico no es válido."
+        },
+        "password": {
+          "required": "La contraseña es requerida.",
+          "min": "La contraseña debe tener al menos 8 caracteres."
+        },
+        "firstName": {
+          "required": "El nombre es requerido."
+        },
+        "lastName": {
+          "required": "El apellido es requerido."
+        },
+        "confirmPassword": {
+          "mismatch": "Las contraseñas no coinciden."
+        },
+        "acceptTerms": {
+          "required": "Debes aceptar los términos y condiciones."
+        }
+      }
+    }
+  },
+  "language": {
+    "select": "Idioma",
+    "es": "Español",
+    "en": "English"
+  }
+}

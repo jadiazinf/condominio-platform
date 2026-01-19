@@ -54,6 +54,7 @@
     "@react-aria/ssr": "3.9.10",
     "@react-aria/visually-hidden": "3.8.29",
     "clsx": "2.1.1",
+    "firebase": "^12.8.0",
     "framer-motion": "11.18.2",
     "intl-messageformat": "10.7.16",
     "lucide": "^0.562.0",
@@ -61,7 +62,8 @@
     "next": "15.5.9",
     "next-themes": "0.4.6",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "react-hot-toast": "^2.6.0"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "14.2.35",

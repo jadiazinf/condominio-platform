@@ -6,6 +6,7 @@ import { Providers } from './providers'
 
 import { siteConfig } from '@/config/site'
 import { fontSans } from '@/config/fonts'
+import { getLocale } from '@/libs/i18n'
 
 export const metadata: Metadata = {
   title: {
@@ -25,9 +26,11 @@ export const viewport: Viewport = {
   ],
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale()
+
   return (
-    <html suppressHydrationWarning lang="en">
+    <html suppressHydrationWarning lang={locale}>
       <head />
       <body
         className={clsx(
@@ -35,7 +38,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           fontSans.variable
         )}
       >
-        <Providers themeProps={{ attribute: 'class', defaultTheme: 'light' }}>{children}</Providers>
+        <Providers locale={locale} themeProps={{ attribute: 'class', defaultTheme: 'light' }}>
+          {children}
+        </Providers>
       </body>
     </html>
   )

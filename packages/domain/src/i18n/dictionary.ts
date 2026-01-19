@@ -18,6 +18,28 @@ export const DomainLocaleDictionary = {
       arrayMax: 'validation.common.arrayMax',
     },
     models: {
+      auth: {
+        email: {
+          required: 'validation.models.auth.email.required',
+          invalid: 'validation.models.auth.email.invalid',
+        },
+        password: {
+          required: 'validation.models.auth.password.required',
+          min: 'validation.models.auth.password.min',
+        },
+        firstName: {
+          required: 'validation.models.auth.firstName.required',
+        },
+        lastName: {
+          required: 'validation.models.auth.lastName.required',
+        },
+        confirmPassword: {
+          mismatch: 'validation.models.auth.confirmPassword.mismatch',
+        },
+        acceptTerms: {
+          required: 'validation.models.auth.acceptTerms.required',
+        },
+      },
       users: {
         firebaseUid: {
           required: 'validation.models.users.firebaseUid.required',

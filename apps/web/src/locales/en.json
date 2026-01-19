@@ -1,0 +1,262 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "backToHome": "Go to home",
+    "next": "Next",
+    "previous": "Previous",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "nav": {
+    "home": "Home",
+    "benefits": "Benefits",
+    "howItWorks": "How it works",
+    "join": "Join",
+    "features": "Features",
+    "pricing": "Pricing",
+    "contact": "Contact",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "dashboard": "Dashboard",
+    "logout": "Log Out",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "landing": {
+    "hero": {
+      "title": "Managing your condo",
+      "titleHighlight": "doesn't have to be a headache anymore",
+      "subtitle": "The tool that helps you collect fees, keep neighbors informed, and keep your accounts in order. Simple, as it should be.",
+      "cta": "Try it free",
+      "howItWorks": "How does it work?",
+      "noCreditCard": "No credit card · Cancel anytime"
+    },
+    "problems": {
+      "title": "We know how hard it is",
+      "subtitle": "Managing a condo can be exhausting. We make it easier.",
+      "items": {
+        "payments": {
+          "problem": "Tired of chasing payments?",
+          "solution": "Neighbors pay online and you see everything instantly"
+        },
+        "meetings": {
+          "problem": "Endless meetings?",
+          "solution": "Send announcements and receive responses from home"
+        },
+        "communication": {
+          "problem": "Neighbors who don't find out?",
+          "solution": "Automatic notifications that actually arrive and get read"
+        },
+        "spreadsheets": {
+          "problem": "Excel with a thousand tabs?",
+          "solution": "A simple system that does the calculations for you"
+        }
+      }
+    },
+    "benefits": {
+      "label": "Benefits",
+      "title": "Everything you need, nothing you don't",
+      "items": {
+        "paperwork": {
+          "title": "Forget the paperwork",
+          "description": "Everything in one place: fees, payments, announcements. No Excel sheets or lost folders.",
+          "highlight": "Save time"
+        },
+        "collections": {
+          "title": "Collect without chasing anyone",
+          "description": "Neighbors receive automatic reminders and can pay from their phone.",
+          "highlight": "Less stress"
+        },
+        "informed": {
+          "title": "Everyone informed",
+          "description": "Announcements, notices, and documents go directly to each resident's phone.",
+          "highlight": "No misunderstandings"
+        },
+        "transparency": {
+          "title": "Clear accounts",
+          "description": "Each neighbor sees their payments, receipts, and account status whenever they want, without calling you.",
+          "highlight": "Total transparency"
+        }
+      }
+    },
+    "howItWorks": {
+      "label": "That simple",
+      "title": "Start in 3 steps",
+      "steps": {
+        "register": {
+          "step": "1",
+          "title": "Register your condo",
+          "description": "In less than 5 minutes you're all set"
+        },
+        "invite": {
+          "step": "2",
+          "title": "Invite the neighbors",
+          "description": "They get a link and that's it, they're in"
+        },
+        "manage": {
+          "step": "3",
+          "title": "Start managing",
+          "description": "Generate fees, receive payments, send notices"
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready to simplify your life?",
+      "subtitle": "Join the administrators who already stopped suffering with paperwork and late payments.",
+      "button": "Start free",
+      "note": "Setup in minutes · Support included"
+    },
+    "pricing": {
+      "label": "For condo management companies",
+      "title": "Start managing with our platform",
+      "subtitle": "We design customized solutions for each management company. Schedule a meeting to learn about your business and create a plan that fits your needs.",
+      "processTitle": "Registration process",
+      "steps": {
+        "schedule": {
+          "title": "Schedule a meeting",
+          "description": "Let's talk about your management company and specific needs"
+        },
+        "negotiate": {
+          "title": "We negotiate the price",
+          "description": "We create a personalized plan based on the size of your operation"
+        },
+        "start": {
+          "title": "Start operating",
+          "description": "Once agreed, we give you full access to the platform"
+        }
+      },
+      "ctaButton": "Schedule meeting",
+      "ctaNote": "Response in less than 24 hours",
+      "questions": "Have questions?",
+      "writeUs": "Write to us",
+      "helpText": "and we'll help you understand how it works"
+    }
+  },
+  "footer": {
+    "description": "The easiest way to manage your condo.",
+    "product": "Product",
+    "benefits": "Benefits",
+    "join": "Join",
+    "howItWorks": "How it works",
+    "support": "Support",
+    "helpCenter": "Help center",
+    "contact": "Contact",
+    "legal": "Legal",
+    "privacy": "Privacy",
+    "terms": "Terms of use",
+    "copyright": "© {year} CondominioApp. All rights reserved.",
+    "madeWith": "Made with ❤️ for condo administrators"
+  },
+  "auth": {
+    "signIn": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to continue",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot your password?",
+      "submit": "Sign In",
+      "orContinueWith": "Or sign in with",
+      "continueWithGoogle": "Continue with Google",
+      "noAccount": "Don't have an account?",
+      "signUpLink": "Sign up",
+      "success": "Successfully signed in",
+      "googleSuccess": "Successfully signed in with Google",
+      "error": "Error signing in",
+      "googleError": "Error signing in with Google"
+    },
+    "signUpCTA": {
+      "title": "Don't have an account?",
+      "subtitle": "Sign up to start enjoying your first condo management experience.",
+      "button": "Sign Up"
+    },
+    "signInCTA": {
+      "title": "Already have an account?",
+      "subtitle": "Sign in to continue managing your condo and access all your features.",
+      "button": "Sign In"
+    },
+    "signUp": {
+      "title": "Create your account",
+      "subtitle": "Start managing your condo today",
+      "firstName": "First Name",
+      "firstNamePlaceholder": "Your first name",
+      "lastName": "Last Name",
+      "lastNamePlaceholder": "Your last name",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email",
+      "password": "Password",
+      "passwordPlaceholder": "Create a password",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "acceptTerms": "I accept the",
+      "termsAndConditions": "terms and conditions",
+      "and": "and the",
+      "privacyPolicy": "privacy policy",
+      "submit": "Create account",
+      "orContinueWith": "Or sign up with",
+      "continueWithGoogle": "Continue with Google",
+      "hasAccount": "Already have an account?",
+      "signInLink": "Sign in",
+      "success": "Account created successfully",
+      "googleSuccess": "Successfully signed up with Google",
+      "error": "Error creating account",
+      "googleError": "Error signing up with Google"
+    },
+    "errors": {
+      "invalidCredentials": "Invalid credentials. Please check your email and password.",
+      "emailInUse": "This email is already in use.",
+      "weakPassword": "Password is too weak. Use at least 8 characters.",
+      "networkError": "Connection error. Please check your internet connection.",
+      "tooManyRequests": "Too many failed attempts. Please try again later.",
+      "userNotFound": "No account exists with this email.",
+      "userDisabled": "This account has been disabled.",
+      "popupClosed": "The authentication process was cancelled.",
+      "generic": "An unexpected error occurred. Please try again."
+    }
+  },
+  "validation": {
+    "models": {
+      "auth": {
+        "email": {
+          "required": "Email is required.",
+          "invalid": "Email is not valid."
+        },
+        "password": {
+          "required": "Password is required.",
+          "min": "Password must be at least 8 characters."
+        },
+        "firstName": {
+          "required": "First name is required."
+        },
+        "lastName": {
+          "required": "Last name is required."
+        },
+        "confirmPassword": {
+          "mismatch": "Passwords do not match."
+        },
+        "acceptTerms": {
+          "required": "You must accept the terms and conditions."
+        }
+      }
+    }
+  },
+  "language": {
+    "select": "Language",
+    "es": "Español",
+    "en": "English"
+  }
+}

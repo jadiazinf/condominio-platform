@@ -36,6 +36,7 @@ async function checkApiConnection(): Promise<void> {
     try {
       await tryApiConnection()
       console.log(`✅ API connection successful: ${apiBaseUrl}`)
+
       return
     } catch (error) {
       lastError = error instanceof Error ? error : new Error('Unknown error')
@@ -46,6 +47,7 @@ async function checkApiConnection(): Promise<void> {
       }
 
       const delay = INITIAL_DELAY_MS * Math.pow(2, attempt - 1)
+
       console.log(
         `⏳ API connection attempt ${attempt}/${MAX_RETRIES} failed. Retrying in ${delay}ms...`
       )

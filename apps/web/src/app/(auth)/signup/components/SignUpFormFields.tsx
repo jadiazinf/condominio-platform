@@ -5,9 +5,9 @@ import { Checkbox } from '@heroui/checkbox'
 import { Link } from '@heroui/link'
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
+import { type TSignUpSchema } from '@packages/domain'
 
-import { TSignUpSchema } from '../schemas/types'
-
+import { useTranslation } from '@/contexts'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
 import { Typography } from '@/ui/components/typography'
@@ -15,9 +15,11 @@ import { Typography } from '@/ui/components/typography'
 interface SignUpFormFieldsProps {
   onSubmit: (data: TSignUpSchema) => void
   onGoogleSignUp: () => void
+  isLoading?: boolean
 }
 
-export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsProps) {
+export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUpFormFieldsProps) {
+  const { t } = useTranslation()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -39,7 +41,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Typography className="mb-2" variant="body2">
-              Nombre
+              {t('auth.signUp.firstName')}
             </Typography>
             <Controller
               control={control}
@@ -47,7 +49,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
               render={({ field }) => (
                 <Input
                   isRequired
-                  placeholder="Tu nombre"
+                  placeholder={t('auth.signUp.firstNamePlaceholder')}
                   size="lg"
                   startContent={<User className="w-5 h-5 text-default-400" />}
                   type="text"
@@ -60,7 +62,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
 
           <div>
             <Typography className="mb-2" variant="body2">
-              Apellido
+              {t('auth.signUp.lastName')}
             </Typography>
             <Controller
               control={control}
@@ -68,7 +70,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
               render={({ field }) => (
                 <Input
                   isRequired
-                  placeholder="Tu apellido"
+                  placeholder={t('auth.signUp.lastNamePlaceholder')}
                   size="lg"
                   startContent={<User className="w-5 h-5 text-default-400" />}
                   type="text"
@@ -82,7 +84,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
 
         <div>
           <Typography className="mb-2" variant="body2">
-            Email
+            {t('auth.signUp.email')}
           </Typography>
           <Controller
             control={control}
@@ -90,7 +92,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
             render={({ field }) => (
               <Input
                 isRequired
-                placeholder="Ingresa tu email"
+                placeholder={t('auth.signUp.emailPlaceholder')}
                 size="lg"
                 startContent={<Mail className="w-5 h-5 text-default-400" />}
                 type="email"
@@ -103,7 +105,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
 
         <div>
           <Typography className="mb-2" variant="body2">
-            Contraseña
+            {t('auth.signUp.password')}
           </Typography>
           <Controller
             control={control}
@@ -124,7 +126,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
                     )}
                   </button>
                 }
-                placeholder="Crea una contraseña"
+                placeholder={t('auth.signUp.passwordPlaceholder')}
                 size="lg"
                 startContent={<Lock className="w-5 h-5 text-default-400" />}
                 type={showPassword ? 'text' : 'password'}
@@ -137,7 +139,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
 
         <div>
           <Typography className="mb-2" variant="body2">
-            Confirmar contraseña
+            {t('auth.signUp.confirmPassword')}
           </Typography>
           <Controller
             control={control}
@@ -158,7 +160,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
                     )}
                   </button>
                 }
-                placeholder="Confirma tu contraseña"
+                placeholder={t('auth.signUp.confirmPasswordPlaceholder')}
                 size="lg"
                 startContent={<Lock className="w-5 h-5 text-default-400" />}
                 type={showConfirmPassword ? 'text' : 'password'}
@@ -175,13 +177,13 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
           render={({ field }) => (
             <Checkbox isSelected={field.value} size="sm" onValueChange={field.onChange}>
               <Typography variant="body2">
-                Acepto los{' '}
+                {t('auth.signUp.acceptTerms')}{' '}
                 <Link className="text-sm" href="/terms">
-                  términos y condiciones
+                  {t('auth.signUp.termsAndConditions')}
                 </Link>{' '}
-                y la{' '}
+                {t('auth.signUp.and')}{' '}
                 <Link className="text-sm" href="/privacy">
-                  política de privacidad
+                  {t('auth.signUp.privacyPolicy')}
                 </Link>
               </Typography>
             </Checkbox>
@@ -193,10 +195,12 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
             fullWidth
             className="w-full font-semibold dark:bg-primary/30 dark:text-white dark:hover:bg-primary/40"
             color="primary"
+            isDisabled={isLoading}
+            isLoading={isLoading}
             size="lg"
             type="submit"
           >
-            Crear cuenta
+            {t('auth.signUp.submit')}
           </Button>
         </div>
       </form>
@@ -205,7 +209,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
       <div className="flex items-center gap-4 my-6">
         <div className="flex-1 h-px bg-divider" />
         <Typography color="muted" variant="body2">
-          O regístrate con
+          {t('auth.signUp.orContinueWith')}
         </Typography>
         <div className="flex-1 h-px bg-divider" />
       </div>
@@ -215,6 +219,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
         <Button
           fullWidth
           className="w-full font-semibold"
+          isDisabled={isLoading}
           size="lg"
           startContent={
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -239,7 +244,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp }: SignUpFormFieldsP
           variant="bordered"
           onPress={onGoogleSignUp}
         >
-          Continuar con Google
+          {t('auth.signUp.continueWithGoogle')}
         </Button>
       </div>
     </>

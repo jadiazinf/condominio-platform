@@ -1,17 +1,22 @@
+'use client'
+
 import { Button } from '@heroui/button'
 import { Link } from '@heroui/link'
 
+import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 
 export function CTASection() {
+  const { t } = useTranslation()
+
   return (
     <section className="flex flex-col items-center gap-6 py-16 text-center relative">
       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 rounded-3xl -z-10" />
 
-      <Typography variant="h2">¿Listo para simplificar tu vida?</Typography>
+      <Typography variant="h2">{t('landing.cta.title')}</Typography>
 
       <Typography className="max-w-lg" color="muted" variant="body1">
-        Únete a los administradores que ya dejaron de sufrir con el papeleo y los pagos atrasados.
+        {t('landing.cta.subtitle')}
       </Typography>
 
       <Button
@@ -23,11 +28,11 @@ export function CTASection() {
         size="lg"
         variant="solid"
       >
-        Comenzar gratis
+        {t('landing.cta.button')}
       </Button>
 
       <Typography color="muted" variant="caption">
-        Configuración en minutos · Soporte incluido
+        {t('landing.cta.note')}
       </Typography>
     </section>
   )

@@ -5,9 +5,9 @@ import { Checkbox } from '@heroui/checkbox'
 import { Link } from '@heroui/link'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
+import { type TSignInSchema } from '@packages/domain'
 
-import { TSignInSchema } from '../schemas/types'
-
+import { useTranslation } from '@/contexts'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
 import { Typography } from '@/ui/components/typography'
@@ -15,9 +15,11 @@ import { Typography } from '@/ui/components/typography'
 interface SignInFormFieldsProps {
   onSubmit: (data: TSignInSchema) => void
   onGoogleSignIn: () => void
+  isLoading?: boolean
 }
 
-export function SignInFormFields({ onSubmit, onGoogleSignIn }: SignInFormFieldsProps) {
+export function SignInFormFields({ onSubmit, onGoogleSignIn, isLoading }: SignInFormFieldsProps) {
+  const { t } = useTranslation()
   const [showPassword, setShowPassword] = useState(false)
 
   const { control, handleSubmit } = useForm<TSignInSchema>({
@@ -34,7 +36,7 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn }: SignInFormFieldsP
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <div>
           <Typography className="mb-2" variant="body2">
-            Email
+            {t('auth.signIn.email')}
           </Typography>
           <Controller
             control={control}
@@ -42,7 +44,7 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn }: SignInFormFieldsP
             render={({ field }) => (
               <Input
                 isRequired
-                placeholder="Ingresa tu email"
+                placeholder={t('auth.signIn.emailPlaceholder')}
                 size="lg"
                 startContent={<Mail className="w-5 h-5 text-default-400" />}
                 type="email"
@@ -55,7 +57,7 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn }: SignInFormFieldsP
 
         <div>
           <Typography className="mb-2" variant="body2">
-            Contraseña
+            {t('auth.signIn.password')}
           </Typography>
           <Controller
             control={control}
@@ -76,7 +78,7 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn }: SignInFormFieldsP
                     )}
                   </button>
                 }
-                placeholder="Ingresa tu contraseña"
+                placeholder={t('auth.signIn.passwordPlaceholder')}
                 size="lg"
                 startContent={<Lock className="w-5 h-5 text-default-400" />}
                 type={showPassword ? 'text' : 'password'}
@@ -93,12 +95,12 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn }: SignInFormFieldsP
             name="rememberMe"
             render={({ field }) => (
               <Checkbox isSelected={field.value} size="sm" onValueChange={field.onChange}>
-                <Typography variant="body2">Recuérdame</Typography>
+                <Typography variant="body2">{t('auth.signIn.rememberMe')}</Typography>
               </Checkbox>
             )}
           />
           <Link className="text-sm" href="/forgot-password">
-            ¿Olvidaste tu contraseña?
+            {t('auth.signIn.forgotPassword')}
           </Link>
         </div>
 
@@ -106,10 +108,12 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn }: SignInFormFieldsP
           fullWidth
           className="w-full font-semibold dark:bg-primary/30 dark:text-white dark:hover:bg-primary/40"
           color="primary"
+          isDisabled={isLoading}
+          isLoading={isLoading}
           size="lg"
           type="submit"
         >
-          Iniciar Sesión
+          {t('auth.signIn.submit')}
         </Button>
       </form>
 
@@ -117,7 +121,7 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn }: SignInFormFieldsP
       <div className="flex items-center gap-4 my-6">
         <div className="flex-1 h-px bg-divider" />
         <Typography color="muted" variant="body2">
-          O inicia con
+          {t('auth.signIn.orContinueWith')}
         </Typography>
         <div className="flex-1 h-px bg-divider" />
       </div>
@@ -127,6 +131,7 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn }: SignInFormFieldsP
         <Button
           fullWidth
           className="w-full font-semibold"
+          isDisabled={isLoading}
           size="lg"
           startContent={
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -151,7 +156,7 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn }: SignInFormFieldsP
           variant="bordered"
           onPress={onGoogleSignIn}
         >
-          Continuar con Google
+          {t('auth.signIn.continueWithGoogle')}
         </Button>
       </div>
     </>

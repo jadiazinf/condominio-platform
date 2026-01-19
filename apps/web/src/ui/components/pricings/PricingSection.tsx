@@ -5,9 +5,12 @@ import { Button } from '@heroui/button'
 import { Card, CardBody } from '@heroui/card'
 import { Link } from '@heroui/link'
 
+import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 
 export function PricingSection() {
+  const { t } = useTranslation()
+
   return (
     <section className="relative flex flex-col items-center py-24 px-4" id="pricing">
       {/* Background decoration */}
@@ -28,14 +31,13 @@ export function PricingSection() {
       <div className="relative z-10 w-full max-w-4xl">
         <div className="flex flex-col text-center mb-12">
           <Typography className="mb-3" color="primary" variant="overline">
-            Para administradoras de condominios
+            {t('landing.pricing.label')}
           </Typography>
-          <Typography className="mb-4" gutterBottom variant="h2">
-            Comienza a administrar con nuestra plataforma
+          <Typography gutterBottom className="mb-4" variant="h2">
+            {t('landing.pricing.title')}
           </Typography>
           <Typography className="text-lg" color="muted" variant="body1">
-            Diseñamos soluciones personalizadas para cada administradora. Agenda una reunión para
-            conocer tu negocio y crear un plan que se ajuste a tus necesidades.
+            {t('landing.pricing.subtitle')}
           </Typography>
         </div>
 
@@ -54,7 +56,7 @@ export function PricingSection() {
             <div className="flex flex-col gap-6 text-center">
               <div className="space-y-4">
                 <Typography className="text-2xl font-bold" variant="h3">
-                  Proceso de registro
+                  {t('landing.pricing.processTitle')}
                 </Typography>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
                   <div className="flex flex-col gap-2">
@@ -62,10 +64,10 @@ export function PricingSection() {
                       <span className="text-2xl font-bold text-primary">1</span>
                     </div>
                     <Typography className="font-semibold" variant="body1">
-                      Agenda una reunión
+                      {t('landing.pricing.steps.schedule.title')}
                     </Typography>
                     <Typography color="muted" variant="body2">
-                      Conversemos sobre tu administradora y necesidades específicas
+                      {t('landing.pricing.steps.schedule.description')}
                     </Typography>
                   </div>
                   <div className="flex flex-col gap-2">
@@ -73,10 +75,10 @@ export function PricingSection() {
                       <span className="text-2xl font-bold text-primary">2</span>
                     </div>
                     <Typography className="font-semibold" variant="body1">
-                      Negociamos el precio
+                      {t('landing.pricing.steps.negotiate.title')}
                     </Typography>
                     <Typography color="muted" variant="body2">
-                      Creamos un plan personalizado según el tamaño de tu operación
+                      {t('landing.pricing.steps.negotiate.description')}
                     </Typography>
                   </div>
                   <div className="flex flex-col gap-2">
@@ -84,10 +86,10 @@ export function PricingSection() {
                       <span className="text-2xl font-bold text-primary">3</span>
                     </div>
                     <Typography className="font-semibold" variant="body1">
-                      Comienza a operar
+                      {t('landing.pricing.steps.start.title')}
                     </Typography>
                     <Typography color="muted" variant="body2">
-                      Una vez acordado, te damos acceso completo a la plataforma
+                      {t('landing.pricing.steps.start.description')}
                     </Typography>
                   </div>
                 </div>
@@ -103,10 +105,10 @@ export function PricingSection() {
                   size="lg"
                   variant="solid"
                 >
-                  Agendar reunión
+                  {t('landing.pricing.ctaButton')}
                 </Button>
                 <Typography color="muted" variant="body2">
-                  Respuesta en menos de 24 horas
+                  {t('landing.pricing.ctaNote')}
                 </Typography>
               </div>
             </div>
@@ -115,14 +117,14 @@ export function PricingSection() {
 
         <div className="mt-8 text-center">
           <Typography color="muted" variant="body2">
-            ¿Tienes preguntas?{' '}
+            {t('landing.pricing.questions')}{' '}
             <a
               className="text-primary font-medium underline hover:text-primary/80 transition-colors"
               href="/contact"
             >
-              Escríbenos
+              {t('landing.pricing.writeUs')}
             </a>{' '}
-            y te ayudamos a entender cómo funciona
+            {t('landing.pricing.helpText')}
           </Typography>
         </div>
       </div>

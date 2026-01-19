@@ -1,8 +1,13 @@
+'use client'
+
 import { Link } from '@heroui/link'
 
+import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 
 export function Footer() {
+  const { t } = useTranslation()
+
   return (
     <footer className="border-t border-divider pt-12 mt-8">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
@@ -12,24 +17,24 @@ export function Footer() {
             CondominioApp
           </Typography>
           <Typography className="mb-4" color="muted" variant="body2">
-            La forma más fácil de administrar tu condominio.
+            {t('footer.description')}
           </Typography>
         </div>
 
         {/* Producto */}
         <div>
           <Typography className="mb-4" variant="subtitle2" weight="semibold">
-            Producto
+            {t('footer.product')}
           </Typography>
           <ul className="space-y-2">
             <li>
               <Link className="hover:text-primary" color="foreground" href="#beneficios" size="sm">
-                Beneficios
+                {t('footer.benefits')}
               </Link>
             </li>
             <li>
               <Link className="hover:text-primary" color="foreground" href="#pricing" size="sm">
-                Únete
+                {t('footer.join')}
               </Link>
             </li>
             <li>
@@ -39,7 +44,7 @@ export function Footer() {
                 href="#como-funciona"
                 size="sm"
               >
-                Cómo funciona
+                {t('footer.howItWorks')}
               </Link>
             </li>
           </ul>
@@ -48,17 +53,17 @@ export function Footer() {
         {/* Soporte */}
         <div>
           <Typography className="mb-4" variant="subtitle2" weight="semibold">
-            Soporte
+            {t('footer.support')}
           </Typography>
           <ul className="space-y-2">
             <li>
               <Link className="hover:text-primary" color="foreground" href="/help" size="sm">
-                Centro de ayuda
+                {t('footer.helpCenter')}
               </Link>
             </li>
             <li>
               <Link className="hover:text-primary" color="foreground" href="/contact" size="sm">
-                Contacto
+                {t('footer.contact')}
               </Link>
             </li>
           </ul>
@@ -67,17 +72,17 @@ export function Footer() {
         {/* Legal */}
         <div>
           <Typography className="mb-4" variant="subtitle2" weight="semibold">
-            Legal
+            {t('footer.legal')}
           </Typography>
           <ul className="space-y-2">
             <li>
               <Link className="hover:text-primary" color="foreground" href="/privacy" size="sm">
-                Privacidad
+                {t('footer.privacy')}
               </Link>
             </li>
             <li>
               <Link className="hover:text-primary" color="foreground" href="/terms" size="sm">
-                Términos de uso
+                {t('footer.terms')}
               </Link>
             </li>
           </ul>
@@ -87,12 +92,12 @@ export function Footer() {
       {/* Copyright */}
       <div className="border-t border-divider pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
         <Typography color="muted" variant="caption">
-          © {new Date().getFullYear()} CondominioApp. Todos los derechos reservados.
+          {t('footer.copyright', { year: new Date().getFullYear() })}
         </Typography>
 
         <div className="flex items-center gap-4">
           <Typography color="muted" variant="caption">
-            Hecho con ❤️ para administradores de condominios
+            {t('footer.madeWith')}
           </Typography>
         </div>
       </div>
