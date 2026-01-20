@@ -13,7 +13,7 @@ COPY packages/ ./packages/
 COPY apps/api/ ./apps/api/
 
 # Install all dependencies
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # Production stage
 FROM oven/bun:1.3.6-alpine AS runner
