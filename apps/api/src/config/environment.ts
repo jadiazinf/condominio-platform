@@ -1,4 +1,4 @@
-// environment configuration and validation using zod
+// environment configuration and validation using zod.
 import { z, treeifyError } from 'zod'
 import logger from '@utils/logger'
 
