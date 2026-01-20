@@ -718,6 +718,26 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       user_agent TEXT,
       created_at TIMESTAMP DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS superadmin_users (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+      notes TEXT,
+      is_active BOOLEAN DEFAULT true,
+      last_access_at TIMESTAMP,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS superadmin_user_permissions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      superadmin_user_id UUID NOT NULL REFERENCES superadmin_users(id) ON DELETE CASCADE,
+      permission_id UUID NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+      created_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      UNIQUE(superadmin_user_id, permission_id)
+    );
   `)
   const elapsed = performance.now() - start
   console.log(`[TestContainer] createSchema took ${elapsed.toFixed(1)}ms`)
@@ -792,6 +812,8 @@ export async function cleanDatabase(testDb: TTestDrizzleClient): Promise<void> {
       management_companies,
       role_permissions,
       roles,
+      superadmin_user_permissions,
+      superadmin_users,
       permissions,
       exchange_rates,
       users,

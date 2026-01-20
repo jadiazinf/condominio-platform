@@ -49,3 +49,7 @@ export * from './user-fcm-tokens'
 
 // Audit
 export * from './audit-logs'
+
+// Superadmin
+export * from './superadmin-users'
+export * from './superadmin-user-permissions'

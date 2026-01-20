@@ -36,6 +36,8 @@ import { NotificationsEndpoint } from './notifications.endpoint'
 import { NotificationTemplatesEndpoint } from './notification-templates.endpoint'
 import { UserNotificationPreferencesEndpoint } from './user-notification-preferences.endpoint'
 import { UserFcmTokensEndpoint } from './user-fcm-tokens.endpoint'
+import { SuperadminUsersEndpoint } from './superadmin-users.endpoint'
+import { SuperadminUserPermissionsEndpoint } from './superadmin-user-permissions.endpoint'
 
 /**
  * Central class that manages all API routes.
@@ -106,6 +108,10 @@ export class ApiRoutes {
 
       // Audit
       new AuditLogsEndpoint(db),
+
+      // Superadmin
+      new SuperadminUsersEndpoint(db),
+      new SuperadminUserPermissionsEndpoint(db),
     ]
   }
 

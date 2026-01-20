@@ -30,3 +30,7 @@ export { MessageFactory } from './message.factory'
 export { QuotaFormulaFactory } from './quota-formula.factory'
 export { QuotaGenerationRuleFactory } from './quota-generation-rule.factory'
 export { PaymentPendingAllocationFactory } from './payment-pending-allocation.factory'
+
+// Superadmin factories
+export { SuperadminUserFactory } from './superadmin-user.factory'
+export { SuperadminUserPermissionFactory } from './superadmin-user-permission.factory'

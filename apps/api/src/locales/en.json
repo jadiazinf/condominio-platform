@@ -10,7 +10,10 @@
           "notAuthenticated": "User not authenticated.",
           "insufficientRoles": "You do not have the required roles to access this resource.",
           "insufficientPermissions": "You do not have the required permissions to access this resource.",
-          "accessDenied": "You do not have permission to access this user's information."
+          "accessDenied": "You do not have permission to access this user's information.",
+          "notSuperadmin": "You do not have superadmin privileges.",
+          "superadminDisabled": "Superadmin account is disabled.",
+          "insufficientSuperadminPermissions": "You do not have the required superadmin permissions for this action."
         }
       }
     },

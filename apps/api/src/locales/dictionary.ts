@@ -11,6 +11,10 @@ export const LocaleDictionary = {
           insufficientRoles: 'http.middlewares.utils.auth.insufficientRoles',
           insufficientPermissions: 'http.middlewares.utils.auth.insufficientPermissions',
           accessDenied: 'http.middlewares.utils.auth.accessDenied',
+          notSuperadmin: 'http.middlewares.utils.auth.notSuperadmin',
+          superadminDisabled: 'http.middlewares.utils.auth.superadminDisabled',
+          insufficientSuperadminPermissions:
+            'http.middlewares.utils.auth.insufficientSuperadminPermissions',
         },
       },
     },

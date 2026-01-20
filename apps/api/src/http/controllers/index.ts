@@ -43,3 +43,7 @@ export { NotificationsController } from './notifications'
 export { NotificationTemplatesController } from './notification-templates'
 export { UserNotificationPreferencesController } from './user-notification-preferences'
 export { UserFcmTokensController } from './user-fcm-tokens'
+
+// Superadmin
+export { SuperadminUsersController } from './superadmin-users'
+export { SuperadminUserPermissionsController } from './superadmin-user-permissions'
