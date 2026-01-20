@@ -50,6 +50,7 @@ export function JsonLd({ type = 'WebSite' }: JsonLdProps) {
   return (
     <script
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas[type]) }}
+      suppressHydrationWarning
       type="application/ld+json"
     />
   )

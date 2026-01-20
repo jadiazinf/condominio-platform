@@ -53,10 +53,10 @@ export default function SelectCondominiumPage() {
     function () {
       if (hasRedirected.current || authLoading || !user) return
 
-      // If there are no condominiums in context, redirect to loading to fetch them
-      if (condominiums.length === 0) {
+      // If there are no condominiums, redirect to dashboard
+      if (!condominiums || condominiums.length === 0) {
         hasRedirected.current = true
-        router.replace('/loading')
+        router.replace('/dashboard')
 
         return
       }
@@ -87,7 +87,7 @@ export default function SelectCondominiumPage() {
   }
 
   // Show nothing while checking auth state
-  if (authLoading || !user || condominiums.length === 0) {
+  if (authLoading || !user || !condominiums || condominiums.length === 0) {
     return null
   }
 

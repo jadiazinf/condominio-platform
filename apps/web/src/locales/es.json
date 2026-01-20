@@ -239,7 +239,8 @@
       "retry": "Reintentar",
       "logout": "Cerrar sesión",
       "notRegistered": "No tienes una cuenta registrada. Por favor regístrate primero.",
-      "accountDisabled": "Tu cuenta ha sido desactivada. Por favor contacta a soporte."
+      "accountDisabled": "Tu cuenta ha sido desactivada. Por favor contacta a soporte.",
+      "noPendingData": "No se encontraron datos de registro. Por favor intenta registrarte nuevamente."
     },
     "errors": {
       "invalidCredentials": "Credenciales inválidas. Por favor verifica tu email y contraseña.",

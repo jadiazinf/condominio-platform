@@ -20,7 +20,7 @@ export function LoadingView({ error, onRetry, onLogout, step = 'auth' }: Loading
 
   if (error) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 px-4 bg-background">
+      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 px-4 bg-background">
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="w-16 h-16 rounded-full bg-danger/10 flex items-center justify-center">
             <svg
@@ -62,7 +62,7 @@ export function LoadingView({ error, onRetry, onLogout, step = 'auth' }: Loading
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center px-4 bg-background">
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-4 bg-background">
       <Progress
         aria-label="Loading..."
         className="max-w-md"

@@ -6,10 +6,7 @@ import { createContext, useContext, useState, useCallback, useMemo, type ReactNo
 
 import {
   setCondominiumsCookie,
-  getCondominiumsCookie,
-  clearCondominiumsCookie,
   setSelectedCondominiumCookie,
-  getSelectedCondominiumCookie,
   clearSelectedCondominiumCookie,
   clearAllCondominiumCookies,
 } from '@/libs/cookies'
@@ -50,16 +47,16 @@ export function CondominiumProvider({
   initialCondominiums,
   initialSelectedCondominium,
 }: CondominiumProviderProps) {
-  // Initialize state from props or cookies
-  const [condominiums, setCondominiumsState] = useState<TUserCondominiumAccess[]>(() => {
-    if (initialCondominiums) return initialCondominiums
-    return getCondominiumsCookie() ?? []
-  })
+  // Initialize state from props or empty array
+  // Note: Cookie reading happens on client-side only, so we start with initialCondominiums or empty array
+  // to avoid hydration mismatches. The CondominiumHydration component handles syncing from server data.
+  const [condominiums, setCondominiumsState] = useState<TUserCondominiumAccess[]>(
+    () => initialCondominiums ?? []
+  )
 
-  const [selectedCondominium, setSelectedCondominiumState] = useState<TUserCondominiumAccess | null>(() => {
-    if (initialSelectedCondominium !== undefined) return initialSelectedCondominium
-    return getSelectedCondominiumCookie()
-  })
+  // Initialize selectedCondominium from props only to avoid hydration mismatches
+  const [selectedCondominium, setSelectedCondominiumState] =
+    useState<TUserCondominiumAccess | null>(() => initialSelectedCondominium ?? null)
 
   const [isLoading, setIsLoading] = useState(false)
 
@@ -84,7 +81,7 @@ export function CondominiumProvider({
     clearAllCondominiumCookies()
   }, [])
 
-  const hasMultipleCondominiums = condominiums.length > 1
+  const hasMultipleCondominiums = (condominiums ?? []).length > 1
   const hasSelectedCondominium = selectedCondominium !== null
 
   const value = useMemo(

@@ -3,6 +3,8 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { LoadingView } from './LoadingView'
+
 export function RedirectToDashboard() {
   const router = useRouter()
 
@@ -10,5 +12,5 @@ export function RedirectToDashboard() {
     router.replace('/dashboard')
   }, [router])
 
-  return null
+  return <LoadingView />
 }

@@ -2,12 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import {
-  useUserCondominiums,
-  registerUser,
-  HttpError,
-  ApiErrorCodes,
-} from '@packages/http-client'
+import { useUserCondominiums, registerUser, HttpError, ApiErrorCodes } from '@packages/http-client'
 
 import { LoadingView } from './LoadingView'
 
@@ -56,7 +51,7 @@ export function ClientLoadingFlow() {
   })
 
   const [token, setToken] = useState<string | null>(null)
-  const [isRegistering, setIsRegistering] = useState(false)
+  const [, setIsRegistering] = useState(false)
   const [loadingStep, setLoadingStep] = useState<TLoadingStep>('auth')
   const [shouldFetchCondominiums, setShouldFetchCondominiums] = useState(false)
 
@@ -116,48 +111,44 @@ export function ClientLoadingFlow() {
   // ============================================
   // REGISTRATION FLOW
   // ============================================
-  useEffect(
-    function handleRegistrationFlow() {
-      if (!token || !shouldRegister || flowControl.current.isRegistering) return
+  useEffect(() => {
+    if (!token || !shouldRegister || flowControl.current.isRegistering) return
 
-      async function executeRegistration() {
-        flowControl.current.isRegistering = true
-        setIsRegistering(true)
+    async function executeRegistration() {
+      flowControl.current.isRegistering = true
+      setIsRegistering(true)
 
-        const pendingData = getPendingRegistration()
+      const pendingData = getPendingRegistration()
 
-        if (!pendingData) {
-          flowControl.current.isRegistering = false
-          setIsRegistering(false)
+      if (!pendingData) {
+        flowControl.current.isRegistering = false
+        setIsRegistering(false)
 
-          return
-        }
+        // No pending registration data found - this shouldn't happen normally
+        // Redirect to signup to start fresh
+        toast.error(t('auth.loading.noPendingData'))
+        flowControl.current.hasRedirected = true
+        router.replace('/signup')
 
-        try {
-          const user = await registerUser(token!, pendingData)
+        return
+      }
 
+      try {
+        const user = await registerUser(token!, pendingData)
+
+        clearPendingRegistration()
+        setUser(user)
+        setUserCookie(user)
+
+        // New user has no condominiums, go directly to dashboard
+        setCondominiums([])
+        setCondominiumsCookie([])
+
+        flowControl.current.hasRedirected = true
+        router.replace('/dashboard')
+      } catch (err) {
+        if (HttpError.isHttpError(err) && err.code === ApiErrorCodes.CONFLICT) {
           clearPendingRegistration()
-          setUser(user)
-          setUserCookie(user)
-
-          setShouldFetchCondominiums(true)
-          setLoadingStep('condominiums')
-        } catch (err) {
-          if (HttpError.isHttpError(err) && err.code === ApiErrorCodes.CONFLICT) {
-            clearPendingRegistration()
-
-            try {
-              await deleteCurrentUser()
-            } catch {
-              await signOut()
-            }
-
-            toast.error(t('auth.signUp.contactSupport'))
-            flowControl.current.hasRedirected = true
-            router.replace('/signup')
-
-            return
-          }
 
           try {
             await deleteCurrentUser()
@@ -165,21 +156,31 @@ export function ClientLoadingFlow() {
             await signOut()
           }
 
-          clearPendingRegistration()
-
-          const errorMessage = err instanceof Error ? err.message : t('auth.signUp.error')
-
-          toast.error(errorMessage)
+          toast.error(t('auth.signUp.contactSupport'))
           flowControl.current.hasRedirected = true
           router.replace('/signup')
-        }
-      }
 
-      executeRegistration()
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [token, shouldRegister]
-  )
+          return
+        }
+
+        try {
+          await deleteCurrentUser()
+        } catch {
+          await signOut()
+        }
+
+        clearPendingRegistration()
+
+        const errorMessage = err instanceof Error ? err.message : t('auth.signUp.error')
+
+        toast.error(errorMessage)
+        flowControl.current.hasRedirected = true
+        router.replace('/signup')
+      }
+    }
+
+    executeRegistration()
+  }, [token, shouldRegister])
 
   // ============================================
   // CONDOMINIUMS FETCH (only after registration)
@@ -187,6 +188,7 @@ export function ClientLoadingFlow() {
   const {
     data: condominiumsData,
     error: condominiumsError,
+    isSuccess: condominiumsFetched,
     refetch: refetchCondominiums,
   } = useUserCondominiums({
     token,
@@ -196,49 +198,53 @@ export function ClientLoadingFlow() {
   // ============================================
   // PROCESS CONDOMINIUMS & REDIRECT
   // ============================================
-  useEffect(
-    function processCondominiumsAndRedirect() {
-      if (flowControl.current.hasRedirected || flowControl.current.hasProcessedCondominiums) return
-      if (!condominiumsData) return
+  useEffect(() => {
+    if (flowControl.current.hasRedirected || flowControl.current.hasProcessedCondominiums) return
+    if (!condominiumsFetched) return
 
-      flowControl.current.hasProcessedCondominiums = true
+    flowControl.current.hasProcessedCondominiums = true
 
-      const { condominiums: userCondominiums, total } = condominiumsData
+    // Handle case where API returns empty or undefined condominiums
+    const userCondominiums = condominiumsData?.condominiums ?? []
 
-      setCondominiums(userCondominiums)
-      setCondominiumsCookie(userCondominiums)
+    setCondominiums(userCondominiums)
+    setCondominiumsCookie(userCondominiums)
 
-      if (total === 0) {
-        flowControl.current.hasRedirected = true
-        router.replace('/dashboard')
+    // Use actual array length instead of total from API
+    if (userCondominiums.length === 0) {
+      flowControl.current.hasRedirected = true
+      router.replace('/dashboard')
 
-        return
-      }
+      return
+    }
 
-      if (total === 1) {
-        const singleCondominium = userCondominiums[0]
+    if (userCondominiums.length === 1) {
+      const singleCondominium = userCondominiums[0]
 
-        selectCondominium(singleCondominium)
-        setSelectedCondominiumCookie(singleCondominium)
-
-        flowControl.current.hasRedirected = true
-        router.replace('/dashboard')
-
-        return
-      }
+      selectCondominium(singleCondominium)
+      setSelectedCondominiumCookie(singleCondominium)
 
       flowControl.current.hasRedirected = true
-      router.replace('/select-condominium')
-    },
-    [condominiumsData, setCondominiums, selectCondominium, router]
-  )
+      router.replace('/dashboard')
+
+      return
+    }
+
+    // Multiple condominiums - let user select
+    flowControl.current.hasRedirected = true
+    router.replace('/select-condominium')
+  }, [condominiumsFetched, condominiumsData, setCondominiums, selectCondominium, router])
 
   // ============================================
   // CONDOMINIUMS ERROR HANDLING
   // ============================================
   useEffect(
     function handleCondominiumsErrors() {
-      if (!condominiumsError || flowControl.current.hasHandledCondominiumsError || flowControl.current.hasRedirected)
+      if (
+        !condominiumsError ||
+        flowControl.current.hasHandledCondominiumsError ||
+        flowControl.current.hasRedirected
+      )
         return
 
       flowControl.current.hasHandledCondominiumsError = true

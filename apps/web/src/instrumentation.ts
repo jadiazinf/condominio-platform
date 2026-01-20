@@ -49,7 +49,7 @@ async function checkApiConnection(): Promise<void> {
       const delay = INITIAL_DELAY_MS * Math.pow(2, attempt - 1)
 
       console.log(
-        `⏳ API connection attempt ${attempt}/${MAX_RETRIES} failed. Retrying in ${delay}ms...`
+        `⏳ API connection (${apiBaseUrl}) attempt ${attempt}/${MAX_RETRIES} failed. Retrying in ${delay}ms...`
       )
       await sleep(delay)
     }
