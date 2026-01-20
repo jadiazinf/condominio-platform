@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="96" fill="#6366F1"/>
+  <g fill="white">
+    <!-- Building icon -->
+    <rect x="156" y="180" width="200" height="252" rx="8"/>
+    <rect x="176" y="200" width="40" height="40" rx="4" fill="#6366F1"/>
+    <rect x="236" y="200" width="40" height="40" rx="4" fill="#6366F1"/>
+    <rect x="296" y="200" width="40" height="40" rx="4" fill="#6366F1"/>
+    <rect x="176" y="260" width="40" height="40" rx="4" fill="#6366F1"/>
+    <rect x="236" y="260" width="40" height="40" rx="4" fill="#6366F1"/>
+    <rect x="296" y="260" width="40" height="40" rx="4" fill="#6366F1"/>
+    <rect x="176" y="320" width="40" height="40" rx="4" fill="#6366F1"/>
+    <rect x="236" y="320" width="40" height="40" rx="4" fill="#6366F1"/>
+    <rect x="296" y="320" width="40" height="40" rx="4" fill="#6366F1"/>
+    <!-- Door -->
+    <rect x="226" y="372" width="60" height="60" rx="4"/>
+    <!-- Roof -->
+    <path d="M256 80 L376 160 H136 Z"/>
+  </g>
+</svg>

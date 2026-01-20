@@ -1,5 +1,16 @@
+import type { Metadata } from 'next'
+
 import { SignInForm } from './components/SignInForm'
 import { SignUpCTA } from './components/SignUpCTA'
+
+export const metadata: Metadata = {
+  title: 'Iniciar Sesión',
+  description: 'Accede a tu cuenta de CondominioApp para administrar tu condominio.',
+  robots: {
+    index: false,
+    follow: true,
+  },
+}
 
 export default function SignInPage() {
   return (

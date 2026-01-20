@@ -1,6 +1,4 @@
-'use client'
-
-import { useTranslation } from '@/contexts'
+import { getTranslations } from '@/libs/i18n/server'
 import { Typography } from '@/ui/components/typography'
 
 const benefitKeys = ['paperwork', 'collections', 'informed', 'transparency'] as const
@@ -12,8 +10,8 @@ const benefitIcons: Record<(typeof benefitKeys)[number], string> = {
   transparency: '✨',
 }
 
-export function BenefitsSection() {
-  const { t } = useTranslation()
+export async function BenefitsSection() {
+  const { t } = await getTranslations()
 
   return (
     <section className="flex flex-col gap-10" id="beneficios">

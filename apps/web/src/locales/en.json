@@ -217,7 +217,19 @@
       "googleSuccess": "Successfully signed up with Google",
       "error": "Error creating account",
       "googleError": "Error signing up with Google",
-      "alreadyRegistered": "You already have a registered account",
+      "alreadyRegistered": "You already have a registered account"
+    },
+    "forgotPassword": {
+      "title": "Forgot your password?",
+      "subtitle": "No worries, we'll send you instructions to reset it",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email",
+      "submit": "Send instructions",
+      "backToSignIn": "Back to sign in",
+      "success": "Email sent successfully",
+      "successMessage": "Check your email for recovery instructions",
+      "error": "Error sending email",
+      "invalidEmail": "The email entered is not registered",
       "contactSupport": "This email is already registered with another account. Please contact support."
     },
     "loading": {

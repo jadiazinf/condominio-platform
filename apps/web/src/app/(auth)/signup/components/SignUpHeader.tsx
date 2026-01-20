@@ -3,9 +3,8 @@
 import { Link } from '@heroui/link'
 
 import { useTranslation } from '@/contexts'
+import { AuthControls } from '@/ui/components/auth-controls'
 import { BackToHomeButton } from '@/ui/components/backToHomeButton/BackToHomeButton'
-import { LanguageSwitcher } from '@/ui/components/language-switcher'
-import { ThemeSwitch } from '@/ui/components/themeSwitch/ThemeSwitch'
 import { Typography } from '@/ui/components/typography'
 
 export function SignUpHeader() {
@@ -15,10 +14,7 @@ export function SignUpHeader() {
     <>
       {/* Theme Switch + Language Switcher (left) and Back to Home (right) */}
       <div className="flex items-center justify-between w-full mb-6 -mt-4">
-        <div className="flex items-center gap-2">
-          <ThemeSwitch />
-          <LanguageSwitcher variant="icon" />
-        </div>
+        <AuthControls />
         <BackToHomeButton />
       </div>
 

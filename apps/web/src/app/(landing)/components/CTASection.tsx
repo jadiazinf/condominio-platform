@@ -1,13 +1,11 @@
-'use client'
-
 import { Button } from '@heroui/button'
 import { Link } from '@heroui/link'
 
-import { useTranslation } from '@/contexts'
+import { getTranslations } from '@/libs/i18n/server'
 import { Typography } from '@/ui/components/typography'
 
-export function CTASection() {
-  const { t } = useTranslation()
+export async function CTASection() {
+  const { t } = await getTranslations()
 
   return (
     <section className="flex flex-col items-center gap-6 py-16 text-center relative">

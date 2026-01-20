@@ -1,5 +1,17 @@
+import type { Metadata } from 'next'
+
 import { SignInCTA } from './components/SignInCTA'
 import { SignUpForm } from './components/SignUpForm'
+
+export const metadata: Metadata = {
+  title: 'Crear Cuenta',
+  description:
+    'Regístrate en CondominioApp y comienza a administrar tu condominio de forma fácil y eficiente.',
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
 
 export default function SignUpPage() {
   return (

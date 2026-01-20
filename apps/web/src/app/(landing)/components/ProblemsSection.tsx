@@ -1,14 +1,12 @@
-'use client'
-
 import { Card, CardBody } from '@heroui/card'
 
-import { useTranslation } from '@/contexts'
+import { getTranslations } from '@/libs/i18n/server'
 import { Typography } from '@/ui/components/typography'
 
 const problemKeys = ['payments', 'meetings', 'communication', 'spreadsheets'] as const
 
-export function ProblemsSection() {
-  const { t } = useTranslation()
+export async function ProblemsSection() {
+  const { t } = await getTranslations()
 
   return (
     <section className="flex flex-col gap-10">

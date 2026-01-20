@@ -1,13 +1,14 @@
 'use client'
 
 import { Link } from '@heroui/link'
+import { KeyRound } from 'lucide-react'
 
 import { useTranslation } from '@/contexts'
 import { AuthControls } from '@/ui/components/auth-controls'
 import { BackToHomeButton } from '@/ui/components/backToHomeButton/BackToHomeButton'
 import { Typography } from '@/ui/components/typography'
 
-export function SignInHeader() {
+export function ForgotPasswordHeader() {
   const { t } = useTranslation()
 
   return (
@@ -25,13 +26,20 @@ export function SignInHeader() {
         </Typography>
       </Link>
 
+      {/* Icon */}
+      <div className="flex justify-center mb-6">
+        <div className="rounded-full bg-primary/10 p-4">
+          <KeyRound className="w-8 h-8 text-primary" />
+        </div>
+      </div>
+
       {/* Title */}
-      <div className="mb-8">
+      <div className="mb-8 text-center">
         <Typography className="mb-2" variant="h2">
-          {t('auth.signIn.title')}
+          {t('auth.forgotPassword.title')}
         </Typography>
         <Typography color="muted" variant="body2">
-          {t('auth.signIn.subtitle')}
+          {t('auth.forgotPassword.subtitle')}
         </Typography>
       </div>
     </>

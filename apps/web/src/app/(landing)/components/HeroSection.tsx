@@ -1,13 +1,11 @@
-'use client'
-
 import { Button } from '@heroui/button'
 import { Link } from '@heroui/link'
 
-import { useTranslation } from '@/contexts'
+import { getTranslations } from '@/libs/i18n/server'
 import { Typography } from '@/ui/components/typography'
 
-export function HeroSection() {
-  const { t } = useTranslation()
+export async function HeroSection() {
+  const { t } = await getTranslations()
 
   return (
     <section className="dark relative min-h-[calc(100vh-64px)] flex flex-col items-center justify-center gap-8 py-16 md:py-24 text-center px-6 text-white">

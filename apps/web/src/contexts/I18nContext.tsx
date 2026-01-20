@@ -92,7 +92,7 @@ const allMessages: Record<TAppLanguages, TMessages> = {
 
 interface II18nContextValue {
   locale: TAppLanguages
-  setLocale: (locale: TAppLanguages) => void
+  setLocale: (locale: TAppLanguages, refresh?: boolean) => void
   t: (key: string, values?: Record<string, string | number>) => string
 }
 
@@ -146,12 +146,19 @@ export function I18nProvider({ children, initialLocale }: II18nProviderProps) {
     [messages, locale]
   )
 
-  const setLocale = useCallback((newLocale: TAppLanguages) => {
-    setLocaleState(newLocale)
+  const setLocale = useCallback((newLocale: TAppLanguages, refresh: boolean = true) => {
     if (typeof window !== 'undefined') {
       setCookie(LOCALE_COOKIE, newLocale)
+
+      if (refresh) {
+        window.location.reload()
+
+        return
+      }
+
       document.documentElement.lang = newLocale
     }
+    setLocaleState(newLocale)
   }, [])
 
   // Configure domain i18n adapter

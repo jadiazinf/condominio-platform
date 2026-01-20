@@ -217,7 +217,19 @@
       "googleSuccess": "Registro con Google exitoso",
       "error": "Error al crear la cuenta",
       "googleError": "Error al registrarse con Google",
-      "alreadyRegistered": "Ya tienes una cuenta registrada",
+      "alreadyRegistered": "Ya tienes una cuenta registrada"
+    },
+    "forgotPassword": {
+      "title": "¿Olvidaste tu contraseña?",
+      "subtitle": "No te preocupes, te enviaremos instrucciones para restablecerla",
+      "email": "Email",
+      "emailPlaceholder": "Ingresa tu email",
+      "submit": "Enviar instrucciones",
+      "backToSignIn": "Volver a iniciar sesión",
+      "success": "Email enviado exitosamente",
+      "successMessage": "Revisa tu correo electrónico para las instrucciones de recuperación",
+      "error": "Error al enviar el email",
+      "invalidEmail": "El email ingresado no está registrado",
       "contactSupport": "Este correo ya está registrado con otra cuenta. Por favor contacta a soporte."
     },
     "loading": {

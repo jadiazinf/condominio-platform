@@ -1,13 +1,11 @@
-'use client'
-
 import { Card, CardBody } from '@heroui/card'
 
-import { useTranslation } from '@/contexts'
+import { getTranslations } from '@/libs/i18n/server'
 import { Button } from '@/ui/components/button'
 import { Typography } from '@/ui/components/typography'
 
-export function SignUpCTA() {
-  const { t } = useTranslation()
+export async function SignUpCTA() {
+  const { t } = await getTranslations()
 
   return (
     <div className="flex justify-center lg:justify-center">

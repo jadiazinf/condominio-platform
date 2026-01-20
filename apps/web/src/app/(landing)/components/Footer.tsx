@@ -1,12 +1,10 @@
-'use client'
-
 import { Link } from '@heroui/link'
 
-import { useTranslation } from '@/contexts'
+import { getTranslations } from '@/libs/i18n/server'
 import { Typography } from '@/ui/components/typography'
 
-export function Footer() {
-  const { t } = useTranslation()
+export async function Footer() {
+  const { t } = await getTranslations()
 
   return (
     <footer className="border-t border-divider pt-12 mt-8">
