@@ -8,7 +8,7 @@ const SUPPORTED_LOCALES = ['es', 'en']
 const DEFAULT_LOCALE = 'es'
 
 const protectedRoutes = ['/dashboard']
-const authRoutes = ['/signin', '/signup']
+const authRoutes = ['/signin', '/signup', '/forgot-password']
 
 function getLocaleFromHeaders(request: NextRequest): string {
   const acceptLanguage = request.headers.get('accept-language')
@@ -58,8 +58,16 @@ export function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)
   const hasSession = !!sessionCookie?.value
 
-  // Skip auth middleware for loading page - it handles its own redirects
+  // For loading page: allow if it has flow params (register, signout), otherwise treat as auth route
   if (pathname === '/loading') {
+    const hasFlowParams =
+      request.nextUrl.searchParams.has('register') || request.nextUrl.searchParams.has('signout')
+
+    // If no flow params and user is authenticated, redirect to dashboard
+    if (!hasFlowParams && hasSession) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+
     return handleLocale(request)
   }
 
@@ -81,6 +89,7 @@ export function middleware(request: NextRequest) {
   // Don't redirect to dashboard if session is expired (let client clear cookies)
   const isExpiredSession = request.nextUrl.searchParams.get('expired') === 'true'
 
+  // Redirect authenticated users away from auth routes
   if (isAuthRoute && hasSession && !isExpiredSession) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }

@@ -1,4 +1,15 @@
-export default function SignInLayout({ children }: { children: React.ReactNode }) {
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get('__session')
+
+  // If user has a session, redirect to dashboard
+  if (sessionCookie?.value) {
+    redirect('/dashboard')
+  }
+
   return (
     <>
       {/* Background that covers full viewport */}
