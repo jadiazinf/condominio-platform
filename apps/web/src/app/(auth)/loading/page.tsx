@@ -1,223 +1,134 @@
-'use client'
+import type { TUser, TUserCondominiumAccess } from '@packages/domain'
 
-import { useEffect, useRef, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useCurrentUser, registerUser, HttpError, ApiErrorCodes } from '@packages/http-client'
+import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
+import { fetchUserByFirebaseUid, fetchUserCondominiums } from '@packages/http-client'
 
-import { LoadingView } from './components/LoadingView'
+import { ClientLoadingFlow } from './components/ClientLoadingFlow'
+import { CondominiumHydration } from './components/CondominiumHydration'
+import { RedirectToDashboard } from './components/RedirectToDashboard'
+import { RedirectToSelectCondominium } from './components/RedirectToSelectCondominium'
 
-import { useAuth, useUser, useTranslation } from '@/contexts'
-import { setUserCookie, clearUserCookie } from '@/libs/cookies'
-import { getPendingRegistration, clearPendingRegistration } from '@/libs/storage'
-import { useToast } from '@/ui/components/toast'
+import { verifySessionToken } from '@/libs/firebase/server'
+import { UserHydration } from '@/app/(dashboard)/components/UserHydration'
 
-export default function AuthLoadingPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const toast = useToast()
-  const { t } = useTranslation()
-  const { user: firebaseUser, loading: authLoading, signOut, deleteCurrentUser } = useAuth()
-  const { setUser, clearUser } = useUser()
-  const hasRedirected = useRef(false)
-  const hasSignedOut = useRef(false)
-  const isRegisteringRef = useRef(false)
-  const [token, setToken] = useState<string | null>(null)
-  const [isRegistering, setIsRegistering] = useState(false)
-  const [authChecked, setAuthChecked] = useState(false)
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
 
-  const shouldRegister = searchParams.get('register') === 'true'
-  const shouldSignOut = searchParams.get('signout') === 'true'
+interface ILoadingPageProps {
+  searchParams: Promise<{ register?: string; signout?: string }>
+}
 
-  // Handle sign out flow
-  useEffect(
-    function () {
-      async function handleSignOut() {
-        if (!shouldSignOut || hasSignedOut.current) return
+interface ISearchParams {
+  register?: string
+  signout?: string
+}
 
-        hasSignedOut.current = true
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper Functions
+// ─────────────────────────────────────────────────────────────────────────────
 
-        // Clear user context
-        clearUser()
+function isClientSideFlow(params: ISearchParams): boolean {
+  return params.register === 'true' || params.signout === 'true'
+}
 
-        // Clear user cookie
-        clearUserCookie()
+async function getSessionToken(): Promise<string> {
+  const cookieStore = await cookies()
+  const sessionToken = cookieStore.get('__session')?.value
 
-        // Sign out from Firebase (this also clears session cookie)
-        await signOut()
-
-        // Redirect to landing page
-        hasRedirected.current = true
-        router.replace('/')
-      }
-
-      handleSignOut()
-    },
-    [shouldSignOut, signOut, clearUser, router]
-  )
-
-  // Get Firebase token when user is available
-  useEffect(
-    function () {
-      // Don't fetch token if signing out
-      if (shouldSignOut) return
-
-      if (firebaseUser) {
-        firebaseUser.getIdToken().then(setToken)
-        setAuthChecked(true)
-      } else if (!authLoading) {
-        // Auth loading finished but no user - mark as checked
-        setAuthChecked(true)
-      }
-    },
-    [firebaseUser, authLoading, shouldSignOut]
-  )
-
-  // Register user in database if coming from signup
-  useEffect(
-    function () {
-      // Guard against multiple calls
-      if (!token || !shouldRegister || isRegisteringRef.current) return
-
-      async function handleRegistration() {
-        isRegisteringRef.current = true
-        setIsRegistering(true)
-
-        const pendingData = getPendingRegistration()
-
-        if (!pendingData) {
-          isRegisteringRef.current = false
-          setIsRegistering(false)
-
-          return
-        }
-
-        try {
-          const user = await registerUser(token!, pendingData)
-
-          clearPendingRegistration()
-          setUser(user)
-          setUserCookie(user)
-
-          hasRedirected.current = true
-          router.replace('/dashboard')
-        } catch (err) {
-          if (HttpError.isHttpError(err) && err.code === ApiErrorCodes.CONFLICT) {
-            // User exists in DB but not linked to this Firebase account
-            clearPendingRegistration()
-
-            try {
-              await deleteCurrentUser()
-            } catch {
-              await signOut()
-            }
-
-            toast.error(t('auth.signUp.contactSupport'))
-            hasRedirected.current = true
-            router.replace('/signup')
-
-            return
-          }
-
-          // Database registration failed - delete the Firebase user
-          try {
-            await deleteCurrentUser()
-          } catch {
-            await signOut()
-          }
-
-          clearPendingRegistration()
-
-          const errorMessage = err instanceof Error ? err.message : t('auth.signUp.error')
-
-          toast.error(errorMessage)
-          hasRedirected.current = true
-          router.replace('/signup')
-        }
-      }
-
-      handleRegistration()
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [token, shouldRegister]
-  )
-
-  const {
-    data: userData,
-    error,
-    refetch,
-  } = useCurrentUser({
-    token,
-    enabled: !!token && !authLoading && !shouldRegister && !isRegistering && !shouldSignOut,
-  })
-
-  useEffect(
-    function () {
-      if (hasRedirected.current) return
-
-      // Don't process redirects while signing out, registration is in progress or pending
-      if (shouldSignOut || shouldRegister || isRegistering) return
-
-      // Wait until auth state has been checked at least once
-      if (!authChecked) return
-
-      // Redirect to signin if not authenticated (after auth check completes)
-      if (!authLoading && !firebaseUser) {
-        hasRedirected.current = true
-        router.replace('/signin')
-
-        return
-      }
-
-      // Handle USER_NOT_REGISTERED error - redirect to signup
-      if (error && HttpError.isHttpError(error) && error.code === ApiErrorCodes.USER_NOT_REGISTERED) {
-        hasRedirected.current = true
-        toast.error(t('auth.loading.notRegistered'))
-        router.replace('/signup')
-
-        return
-      }
-
-      // Handle USER_DISABLED error - user account is deactivated
-      if (error && HttpError.isHttpError(error) && error.code === ApiErrorCodes.USER_DISABLED) {
-        hasRedirected.current = true
-        signOut()
-        toast.error(t('auth.loading.accountDisabled'))
-        router.replace('/signin')
-
-        return
-      }
-
-      // Handle successful user fetch - set context, cookie, and redirect
-      if (userData) {
-        hasRedirected.current = true
-
-        setUser(userData)
-
-        setUserCookie(userData)
-        router.replace('/dashboard')
-      }
-    },
-    [authLoading, authChecked, firebaseUser, userData, error, router, setUser, toast, t, shouldSignOut, shouldRegister, isRegistering]
-  )
-
-  function handleRetry() {
-    refetch()
+  if (!sessionToken) {
+    redirect('/signin')
   }
 
-  async function handleLogout() {
-    await signOut()
-    router.replace('/signin')
+  return sessionToken
+}
+
+async function validateSessionToken(sessionToken: string): Promise<string> {
+  const decodedToken = await verifySessionToken(sessionToken)
+
+  if (!decodedToken) {
+    redirect('/signin?expired=true')
   }
 
-  // Don't show error for codes we handle with redirects
-  const isHandledError =
-    error &&
-    HttpError.isHttpError(error) &&
-    (error.code === ApiErrorCodes.USER_NOT_REGISTERED || error.code === ApiErrorCodes.USER_DISABLED)
+  return decodedToken.uid
+}
 
-  const displayError = isHandledError ? null : error?.message ?? null
+async function fetchUser(firebaseUid: string, sessionToken: string): Promise<TUser> {
+  const user = await fetchUserByFirebaseUid(firebaseUid, sessionToken)
 
+  if (!user) {
+    redirect('/signup')
+  }
+
+  return user
+}
+
+async function fetchCondominiums(sessionToken: string): Promise<TUserCondominiumAccess[]> {
+  const response = await fetchUserCondominiums(sessionToken)
+
+  if (!response) {
+    redirect('/signin')
+  }
+
+  return response.condominiums
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Render Functions
+// ─────────────────────────────────────────────────────────────────────────────
+
+function renderWithDashboardRedirect(
+  user: TUser,
+  condominiums: TUserCondominiumAccess[],
+  selectedCondominium: TUserCondominiumAccess | null
+) {
   return (
-    <LoadingView error={displayError} onLogout={handleLogout} onRetry={handleRetry} />
+    <>
+      <UserHydration user={user} />
+      <CondominiumHydration condominiums={condominiums} selectedCondominium={selectedCondominium} />
+      <RedirectToDashboard />
+    </>
   )
+}
+
+function renderWithSelectionRedirect(user: TUser, condominiums: TUserCondominiumAccess[]) {
+  return (
+    <>
+      <UserHydration user={user} />
+      <CondominiumHydration condominiums={condominiums} selectedCondominium={null} />
+      <RedirectToSelectCondominium />
+    </>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+export default async function AuthLoadingPage({ searchParams }: ILoadingPageProps) {
+  const params = await searchParams
+
+  // Special cases: delegate to Client Component
+  // Registration requires sessionStorage, signout requires Firebase client SDK
+  if (isClientSideFlow(params)) {
+    return <ClientLoadingFlow />
+  }
+
+  // Server-side flow
+  const sessionToken = await getSessionToken()
+  const firebaseUid = await validateSessionToken(sessionToken)
+  const user = await fetchUser(firebaseUid, sessionToken)
+  const condominiums = await fetchCondominiums(sessionToken)
+
+  // Determine destination based on condominium count
+  if (condominiums.length === 0) {
+    return renderWithDashboardRedirect(user, [], null)
+  }
+
+  if (condominiums.length === 1) {
+    return renderWithDashboardRedirect(user, condominiums, condominiums[0])
+  }
+
+  return renderWithSelectionRedirect(user, condominiums)
 }

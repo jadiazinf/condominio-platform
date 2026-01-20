@@ -1,8 +1,13 @@
+import type { LucideIcon } from 'lucide-react'
 import { User, Settings, LogOut } from 'lucide-react'
 
 import type { TSidebarItem } from '@/ui/components/sidebar'
 
-export const dashboardSidebarItems: TSidebarItem[] = [
+type TSidebarItemConfig = Omit<TSidebarItem, 'icon'> & {
+  icon?: LucideIcon
+}
+
+export const dashboardSidebarItems: TSidebarItemConfig[] = [
   {
     key: 'profile',
     title: 'nav.profile',

@@ -1,15 +1,10 @@
 'use client'
 
-import type { LucideIcon } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 
 import { Sidebar, type TSidebarItem } from '@/ui/components/sidebar'
 import { useTranslation } from '@/contexts'
 import { dashboardSidebarItems } from '../config/sidebar-items'
-
-type SidebarItemConfig = Omit<TSidebarItem, 'icon'> & {
-  icon?: LucideIcon
-}
 
 interface DashboardSidebarProps {
   isCompact?: boolean
@@ -22,7 +17,7 @@ export function DashboardSidebar({ isCompact = false, onItemSelect }: DashboardS
   const { t } = useTranslation()
 
   // Translate sidebar items and render icons
-  const translatedItems: TSidebarItem[] = (dashboardSidebarItems as SidebarItemConfig[]).map(item => {
+  const translatedItems: TSidebarItem[] = dashboardSidebarItems.map(item => {
     const IconComponent = item.icon
 
     return {

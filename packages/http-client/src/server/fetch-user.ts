@@ -15,7 +15,6 @@ export async function fetchUserByFirebaseUid(
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      cache: 'no-store',
     })
 
     if (!response.ok) {
@@ -25,7 +24,7 @@ export async function fetchUserByFirebaseUid(
       throw new Error(`Failed to fetch user: ${response.status}`)
     }
 
-    const data: TApiDataResponse<TUser> = await response.json()
+    const data = (await response.json()) as TApiDataResponse<TUser>
     return data.data
   } catch (error) {
     console.error('Error fetching user by Firebase UID:', error)

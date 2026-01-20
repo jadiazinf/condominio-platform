@@ -1,23 +1,26 @@
 'use client'
 
 import { Button } from '@heroui/button'
-import { Spinner } from '@heroui/spinner'
+import { Progress } from '@heroui/progress'
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
+
+type TLoadingStep = 'auth' | 'user' | 'condominiums'
 
 interface LoadingViewProps {
   error?: string | null
   onRetry?: () => void
   onLogout?: () => void
+  step?: TLoadingStep
 }
 
-export function LoadingView({ error, onRetry, onLogout }: LoadingViewProps) {
+export function LoadingView({ error, onRetry, onLogout, step = 'auth' }: LoadingViewProps) {
   const { t } = useTranslation()
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-6 px-4">
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 px-4 bg-background">
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="w-16 h-16 rounded-full bg-danger/10 flex items-center justify-center">
             <svg
@@ -59,16 +62,14 @@ export function LoadingView({ error, onRetry, onLogout }: LoadingViewProps) {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-6">
-      <Spinner color="primary" size="lg" />
-      <div className="flex flex-col items-center gap-2 text-center">
-        <Typography color="default" variant="h3">
-          {t('auth.loading.title')}
-        </Typography>
-        <Typography color="muted" variant="body2">
-          {t('auth.loading.subtitle')}
-        </Typography>
-      </div>
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center px-4 bg-background">
+      <Progress
+        aria-label="Loading..."
+        className="max-w-md"
+        color="primary"
+        isIndeterminate
+        size="sm"
+      />
     </div>
   )
 }

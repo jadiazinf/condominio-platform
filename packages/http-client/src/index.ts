@@ -17,6 +17,7 @@ export {
   useHealthCheck,
   useCurrentUser,
   useUserByFirebaseUid,
+  useUserCondominiums,
   useRegisterWithGoogle,
   registerWithGoogle,
   useRegisterUser,
@@ -36,6 +37,7 @@ export type {
   UseHealthCheckOptions,
   UseCurrentUserOptions,
   UseUserByFirebaseUidOptions,
+  UseUserCondominiumsOptions,
   UseRegisterWithGoogleOptions,
   TGoogleRegisterVariables,
   UseRegisterUserOptions,
@@ -220,4 +222,4 @@ export {
 } from './types/index'
 
 // Server utilities
-export { fetchUserByFirebaseUid } from './server/index'
+export { fetchUserByFirebaseUid, fetchUserCondominiums } from './server/index'

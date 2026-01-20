@@ -1,0 +1,52 @@
+# Dependencies (installed fresh in Docker)
+**/node_modules/
+**/.bun/
+
+# Build outputs
+**/.next/
+**/dist/
+**/.turbo/
+**/out/
+
+# Environment files (set via Railway)
+**/.env
+**/.env.local
+**/.env.*.local
+
+# IDE and editors
+.vscode/
+.idea/
+**/*.swp
+**/*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Logs
+**/*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# Test files and coverage
+**/tests/
+**/*.test.ts
+**/*.spec.ts
+**/coverage/
+**/__tests__/
+
+# Documentation (except essential)
+**/*.md
+!README.md
+!DEPLOYMENT.md
+
+# Mobile app (not needed for API)
+apps/mobile/
+
+# Web app (not needed for API)
+apps/web/

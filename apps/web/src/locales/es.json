@@ -288,6 +288,20 @@
     "welcome": "Bienvenido, {name}",
     "title": "Panel de Control"
   },
+  "condominium": {
+    "selection": {
+      "title": "Selecciona tu condominio",
+      "subtitle": "Tienes acceso a múltiples condominios. Selecciona con cuál deseas trabajar en esta sesión.",
+      "roles": "Roles",
+      "units": "Unidades",
+      "noCondominiums": "No tienes condominios asignados",
+      "noCondominiumsDescription": "Aún no tienes acceso a ningún condominio. Contacta a tu administrador para que te asigne a un condominio.",
+      "contactSupport": "Contactar soporte"
+    },
+    "loading": {
+      "fetchingCondominiums": "Cargando tus condominios..."
+    }
+  },
   "errors": {
     "error": {
       "title": "Un disturbio en la Fuerza",

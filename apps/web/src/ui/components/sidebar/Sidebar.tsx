@@ -27,7 +27,7 @@ export type TSidebarItem = {
   className?: string
 }
 
-export type SidebarProps = Omit<ListboxProps<TSidebarItem>, 'children'> & {
+export type SidebarProps = Omit<ListboxProps<TSidebarItem>, 'children' | 'onSelect'> & {
   items: TSidebarItem[]
   isCompact?: boolean
   hideEndContent?: boolean

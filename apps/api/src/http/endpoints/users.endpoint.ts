@@ -10,7 +10,7 @@ export class UsersEndpoint implements IEndpoint {
 
   constructor(db: TDrizzleClient) {
     const repository = new UsersRepository(db)
-    this.controller = new UsersController(repository)
+    this.controller = new UsersController(repository, db)
   }
 
   getRouter(): Hono {

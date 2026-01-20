@@ -1,7 +1,7 @@
 'use client'
 
 import type { ThemeProviderProps } from 'next-themes'
-import type { TUser } from '@packages/domain'
+import type { TUser, TUserCondominiumAccess } from '@packages/domain'
 
 import * as React from 'react'
 import { HeroUIProvider } from '@heroui/system'
@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import { QueryProvider } from '@packages/http-client'
 
-import { AuthProvider, I18nProvider, UserProvider } from '@/contexts'
+import { AuthProvider, I18nProvider, UserProvider, CondominiumProvider } from '@/contexts'
 import { ToastProvider } from '@/ui/components/toast'
 import { type TAppLanguages } from '@/locales'
 
@@ -18,9 +18,18 @@ export interface ProvidersProps {
   themeProps?: ThemeProviderProps
   locale?: TAppLanguages
   initialUser?: TUser | null
+  initialCondominiums?: TUserCondominiumAccess[]
+  initialSelectedCondominium?: TUserCondominiumAccess | null
 }
 
-export function Providers({ children, themeProps, locale, initialUser }: ProvidersProps) {
+export function Providers({
+  children,
+  themeProps,
+  locale,
+  initialUser,
+  initialCondominiums,
+  initialSelectedCondominium,
+}: ProvidersProps) {
   const router = useRouter()
 
   return (
@@ -31,8 +40,13 @@ export function Providers({ children, themeProps, locale, initialUser }: Provide
           <I18nProvider initialLocale={locale}>
             <AuthProvider>
               <UserProvider initialUser={initialUser}>
-                {children}
-                <ToastProvider position="top-center" />
+                <CondominiumProvider
+                  initialCondominiums={initialCondominiums}
+                  initialSelectedCondominium={initialSelectedCondominium}
+                >
+                  {children}
+                  <ToastProvider position="top-center" />
+                </CondominiumProvider>
               </UserProvider>
             </AuthProvider>
           </I18nProvider>

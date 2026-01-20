@@ -288,6 +288,20 @@
     "welcome": "Welcome, {name}",
     "title": "Dashboard"
   },
+  "condominium": {
+    "selection": {
+      "title": "Select your condominium",
+      "subtitle": "You have access to multiple condominiums. Select which one you want to work with in this session.",
+      "roles": "Roles",
+      "units": "Units",
+      "noCondominiums": "No condominiums assigned",
+      "noCondominiumsDescription": "You don't have access to any condominium yet. Contact your administrator to be assigned to a condominium.",
+      "contactSupport": "Contact support"
+    },
+    "loading": {
+      "fetchingCondominiums": "Loading your condominiums..."
+    }
+  },
   "errors": {
     "error": {
       "title": "A Disturbance in the Force",
