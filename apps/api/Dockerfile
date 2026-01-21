@@ -6,14 +6,17 @@ WORKDIR /app
 # Copy workspace configuration
 COPY package.json bun.lock turbo.json ./
 
+# Copy scripts (needed for preinstall hook)
+COPY scripts/ ./scripts/
+
 # Copy all packages (needed for workspace resolution)
 COPY packages/ ./packages/
 
 # Copy the API app
 COPY apps/api/ ./apps/api/
 
-# Install all dependencies
-RUN bun install
+# Install all dependencies (ignore preinstall script errors in Docker)
+RUN bun install --ignore-scripts || bun install
 
 # Production stage
 FROM oven/bun:1.3.6-alpine AS runner
