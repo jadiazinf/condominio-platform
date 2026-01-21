@@ -20,6 +20,7 @@
   },
   "scripts": {
     "build": "tsc --build --noEmit",
+    "check-types": "tsc --noEmit",
     "clean": "rm -rf ./dist",
     "lint": "eslint ."
   },

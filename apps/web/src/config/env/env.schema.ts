@@ -17,9 +17,11 @@ export const envSchema = z.object({
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: z.string().optional(),
   NEXT_PUBLIC_FIREBASE_APP_ID: z.string(),
 
-  // Firebase Admin (Server-only)
+  // Firebase Admin (Server-only) - Use FIREBASE_SERVICE_ACCOUNT_BASE64 (preferred)
+  // or individual variables as fallback
+  FIREBASE_SERVICE_ACCOUNT_BASE64: z.string().optional(),
   FIREBASE_ADMIN_PROJECT_ID: z.string().optional(),
-  FIREBASE_ADMIN_CLIENT_EMAIL: z.email().optional(),
+  FIREBASE_ADMIN_CLIENT_EMAIL: z.string().email().optional(),
   FIREBASE_ADMIN_PRIVATE_KEY: z.string().optional(),
 
   // Feature flags (ejemplo)

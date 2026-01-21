@@ -1,16 +1,16 @@
 'use client'
 
-import { useDisclosure } from '@heroui/use-disclosure'
+import { useDisclosure } from '@heroui/modal'
 import { Drawer, DrawerContent, DrawerHeader, DrawerBody } from '@heroui/drawer'
 
 import { DashboardNavbar } from './DashboardNavbar'
 import { DashboardSidebar } from './DashboardSidebar'
 
-interface DashboardShellProps {
+interface IDashboardShellProps {
   children: React.ReactNode
 }
 
-export function DashboardShell({ children }: DashboardShellProps) {
+export function DashboardShell({ children }: IDashboardShellProps) {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure()
 
   function handleSidebarSelect() {

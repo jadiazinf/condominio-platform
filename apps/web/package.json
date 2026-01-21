@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint --fix"
+    "lint": "eslint --fix",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@heroui/accordion": "2.2.26",
@@ -16,6 +17,7 @@
     "@heroui/badge": "2.2.18",
     "@heroui/button": "^2.2.29",
     "@heroui/card": "^2.2.27",
+    "@heroui/checkbox": "^2.3.29",
     "@heroui/chip": "^2.2.24",
     "@heroui/code": "2.2.22",
     "@heroui/divider": "^2.2.21",
@@ -51,6 +53,7 @@
     "@heroui/user": "2.2.24",
     "@hookform/resolvers": "^5.2.2",
     "@packages/domain": "workspace:*",
+    "@packages/http-client": "workspace:*",
     "@packages/utils": "workspace:*",
     "@react-aria/ssr": "3.9.10",
     "@react-aria/visually-hidden": "3.8.29",
@@ -65,7 +68,8 @@
     "next-themes": "0.4.6",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-hot-toast": "^2.6.0"
+    "react-hot-toast": "^2.6.0",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "14.2.35",

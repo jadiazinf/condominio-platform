@@ -12,6 +12,7 @@
     "test": "bun run test",
     "test:coverage": "bun test --coverage --coverage-reporter=text",
     "typecheck": "bun x tsc --noEmit --project tsconfig.json",
+    "check-types": "tsc --noEmit",
     "drizzle:push": "bun x drizzle-kit push",
     "drizzle:generate": "bun x drizzle-kit generate",
     "drizzle:migrate": "bun x drizzle-kit migrate",
