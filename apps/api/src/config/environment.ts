@@ -1,3 +1,4 @@
+// environment.ts
 import { z, treeifyError } from 'zod'
 import logger from '@utils/logger'
 
