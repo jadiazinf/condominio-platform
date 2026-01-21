@@ -1,4 +1,3 @@
-// environment.ts
 import { z, treeifyError } from 'zod'
 import logger from '@utils/logger'
 
@@ -16,6 +15,7 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   CORS_ORIGIN: z.string().optional(),
   FIREBASE_API_KEY: z.string('Firebase API key must be provided'),
+  FIREBASE_SERVICE_ACCOUNT_BASE64: z.string().optional(),
 })
 
 // In test mode, use a more lenient validation
@@ -36,6 +36,7 @@ if (isTestMode) {
     LOG_LEVEL: 'error' as const,
     CORS_ORIGIN: undefined,
     FIREBASE_API_KEY: Bun.env.FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || 'test-api-key',
+    FIREBASE_SERVICE_ACCOUNT_BASE64: undefined,
   }
   env = testDefaults
 } else {
