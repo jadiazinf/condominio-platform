@@ -9,6 +9,11 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'codominioapp.firebasestorage.app',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: '*.firebasestorage.app',
         pathname: '/**',
       },

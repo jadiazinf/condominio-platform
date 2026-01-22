@@ -1,4 +1,5 @@
 export { isUserAuthenticated, AUTHENTICATED_USER_PROP } from './is-user-authenticated'
+export { isTokenValid, DECODED_TOKEN_PROP } from './is-token-valid'
 export { hasAuthorization, type IAuthorizationOptions } from './has-authorization'
 export { isSuperadmin, SUPERADMIN_USER_PROP } from './is-superadmin'
 export {

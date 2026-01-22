@@ -160,9 +160,19 @@ const createAuthMock = () => {
     c.set('user', mockUser)
     await next()
   }
+  const mockTokenOnlyHandler = async (
+    c: { set: (key: string, value: unknown) => void },
+    next: () => Promise<void>
+  ) => {
+    // For token-only middleware, set decoded token instead of user
+    c.set('decodedToken', { uid: 'test-firebase-uid', email: 'test@test.com' })
+    await next()
+  }
   return {
     authMiddleware: mockAuthHandler,
     isUserAuthenticated: mockAuthHandler,
+    tokenOnlyMiddleware: mockTokenOnlyHandler,
+    isTokenValid: mockTokenOnlyHandler,
   }
 }
 

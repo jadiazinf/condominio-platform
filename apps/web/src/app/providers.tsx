@@ -8,6 +8,7 @@ import { HeroUIProvider } from '@heroui/system'
 import { useRouter } from 'next/navigation'
 import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import { QueryProvider } from '@packages/http-client'
+import { Analytics } from '@vercel/analytics/next'
 
 import {
   AuthProvider,
@@ -41,6 +42,7 @@ export function Providers({
 
   return (
     <QueryProvider>
+      <Analytics />
       {/* @ts-ignore */}
       <HeroUIProvider navigate={router.push}>
         <NextThemesProvider {...themeProps}>

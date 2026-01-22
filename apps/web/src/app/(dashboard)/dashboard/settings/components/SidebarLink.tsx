@@ -29,7 +29,7 @@ export function SidebarLink({ href, iconName, label }: ISidebarLinkProps) {
       className={cn(
         'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
         'text-default-600 hover:text-foreground hover:bg-default-100',
-        isActive && 'bg-default-100 text-foreground font-medium border-l-3 border-primary'
+        isActive && 'bg-default-100 text-foreground font-medium border-2 border-primary'
       )}
       href={href}
     >
