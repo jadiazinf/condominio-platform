@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint --fix",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "generate:icons": "node scripts/generate-pwa-icons.js"
   },
   "dependencies": {
     "@heroui/accordion": "2.2.26",
@@ -65,6 +66,7 @@
     "lucide": "^0.562.0",
     "lucide-react": "^0.562.0",
     "next": "15.5.9",
+    "next-pwa": "^5.6.0",
     "next-themes": "0.4.6",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -95,6 +97,7 @@
     "globals": "16.0.0",
     "postcss": "8.5.6",
     "prettier": "3.5.3",
+    "sharp": "^0.34.5",
     "tailwind-variants": "3.2.2",
     "tailwindcss": "4.1.11",
     "typescript": "5.9.2"
