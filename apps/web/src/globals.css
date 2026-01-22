@@ -1,4 +1,3 @@
-/* styles */
 @import 'tailwindcss';
 
 @plugin './hero.ts';
