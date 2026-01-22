@@ -1,16 +1,20 @@
 import { Hono } from 'hono'
 import type { IRepository } from '@database/repositories/interfaces'
 import { applyI18nMiddleware } from '@http/middlewares/locales'
+import { applyErrorHandler } from '@http/middlewares/error-handler'
 import type { TFieldError } from '@http/responses/types'
+import type { ErrorCode } from '@errors/index'
 
 /**
  * Standard API response type for tests.
+ * Supports both old format (error as string) and new format (error as object).
  */
 export interface IApiResponse {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any
-  error?: string
+  error?: string | { code: ErrorCode; message: string; details?: Record<string, unknown> }
   message?: string
+  success?: boolean
 }
 
 /**
@@ -22,7 +26,18 @@ export interface IStandardErrorResponse {
     code: string
     message: string
     fields?: TFieldError[]
+    details?: Record<string, unknown>
   }
+}
+
+/**
+ * Helper to extract error message from response.
+ * Works with both old format (error as string) and new format (error as object).
+ */
+export function getErrorMessage(response: IApiResponse | IStandardErrorResponse): string {
+  if (!response.error) return ''
+  if (typeof response.error === 'string') return response.error
+  return response.error.message
 }
 
 /**
@@ -33,10 +48,12 @@ export async function parseJson(response: Response): Promise<IApiResponse> {
 }
 
 /**
- * Creates a Hono test app with i18n middleware configured.
+ * Creates a Hono test app with error handler and i18n middleware configured.
+ * Error handler must be first to catch all errors from subsequent middlewares and routes.
  */
 export function createTestApp(): Hono {
   const app = new Hono()
+  applyErrorHandler(app)
   applyI18nMiddleware(app)
   return app
 }

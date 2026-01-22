@@ -1,16 +1,28 @@
 'use client'
 
-import type { TUser, TUserCondominiumAccess } from '@packages/domain'
+import type { TUser, TUserCondominiumAccess, TSuperadminUser, TPermission } from '@packages/domain'
 
 import { useEffect, useRef } from 'react'
 
-import { useUser, useCondominium } from '@/contexts'
-import { getUserCookie } from '@/libs/cookies/user-cookie'
+import { useUser, useCondominium, useSuperadmin } from '@/contexts'
+import { getUserCookie, setUserCookie } from '@/libs/cookies/user-cookie'
+import {
+  setCondominiumsCookie,
+  setSelectedCondominiumCookie,
+} from '@/libs/cookies/condominium-cookie'
+import {
+  setSuperadminCookie,
+  setSuperadminPermissionsCookie,
+} from '@/libs/cookies/superadmin-cookie'
 
 interface StoreHydrationProps {
   user: TUser | null
   condominiums: TUserCondominiumAccess[]
   selectedCondominium: TUserCondominiumAccess | null
+  superadmin?: TSuperadminUser | null
+  superadminPermissions?: TPermission[]
+  /** True if data was fetched from API (not from cookies) - should update cookies */
+  wasFetched?: boolean
 }
 
 /**
@@ -33,10 +45,18 @@ function mergeUserData(serverUser: TUser, clientUser: TUser | null): TUser {
 }
 
 /**
- * Hydrates the client-side stores (user, condominiums) from server data.
+ * Hydrates the client-side stores (user, condominiums, superadmin) from server data.
  * Merges server data with client cookie data to preserve client-only updates like photoUrl.
+ * Also updates cookies when data was freshly fetched from API.
  */
-export function StoreHydration({ user, condominiums, selectedCondominium }: StoreHydrationProps) {
+export function StoreHydration({
+  user,
+  condominiums,
+  selectedCondominium,
+  superadmin,
+  superadminPermissions,
+  wasFetched = false,
+}: StoreHydrationProps) {
   const { setUser } = useUser()
   const {
     condominiums: currentCondominiums,
@@ -44,6 +64,12 @@ export function StoreHydration({ user, condominiums, selectedCondominium }: Stor
     setCondominiums,
     selectCondominium,
   } = useCondominium()
+  const {
+    superadmin: currentSuperadmin,
+    permissions: currentPermissions,
+    setSuperadmin,
+    setPermissions,
+  } = useSuperadmin()
 
   const hasHydrated = useRef(false)
 
@@ -58,6 +84,7 @@ export function StoreHydration({ user, condominiums, selectedCondominium }: Stor
     if (process.env.NODE_ENV === 'development') {
       console.log('[StoreHydration] Server user:', user)
       console.log('[StoreHydration] Cookie user:', cookieUser)
+      console.log('[StoreHydration] Was fetched from API:', wasFetched)
     }
 
     // Merge server user with cookie user, preserving client-only data like photoUrl
@@ -69,26 +96,63 @@ export function StoreHydration({ user, condominiums, selectedCondominium }: Stor
       }
 
       setUser(mergedUser)
+
+      // If data was fetched from API, update cookies
+      if (wasFetched) {
+        setUserCookie(mergedUser)
+      }
     }
 
     // Hydrate condominiums if store is empty
     if ((!currentCondominiums || currentCondominiums.length === 0) && condominiums.length > 0) {
       setCondominiums(condominiums)
+
+      // If data was fetched from API, update cookies
+      if (wasFetched) {
+        setCondominiumsCookie(condominiums)
+      }
     }
 
     // Hydrate selected condominium if store is empty
     if (!currentSelected && selectedCondominium) {
       selectCondominium(selectedCondominium)
+
+      // If data was fetched from API, update cookie
+      if (wasFetched) {
+        setSelectedCondominiumCookie(selectedCondominium)
+      }
+    }
+
+    // Hydrate superadmin data if store is empty
+    if (!currentSuperadmin && superadmin) {
+      setSuperadmin(superadmin)
+      if (wasFetched) {
+        setSuperadminCookie(superadmin)
+      }
+    }
+
+    if ((!currentPermissions || currentPermissions.length === 0) && superadminPermissions && superadminPermissions.length > 0) {
+      setPermissions(superadminPermissions)
+      if (wasFetched) {
+        setSuperadminPermissionsCookie(superadminPermissions)
+      }
     }
   }, [
     user,
     condominiums,
     selectedCondominium,
+    superadmin,
+    superadminPermissions,
+    wasFetched,
     currentCondominiums,
     currentSelected,
+    currentSuperadmin,
+    currentPermissions,
     setUser,
     setCondominiums,
     selectCondominium,
+    setSuperadmin,
+    setPermissions,
   ])
 
   return null

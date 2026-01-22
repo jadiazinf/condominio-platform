@@ -3,24 +3,19 @@ import { HttpContext } from '../context'
 import type { IRepository } from '@database/repositories/interfaces'
 import type { TRouteDefinition } from './types'
 import { createRouter } from './create-router'
+import { AppError } from '@errors/index'
 
 /**
  * Base controller providing common CRUD handlers and utilities.
  * Uses dependency injection for the repository.
+ * Arrow functions are used for handlers to maintain correct 'this' context.
  *
  * @template TEntity - The entity type returned by the repository
  * @template TCreate - The DTO type for creating entities
  * @template TUpdate - The DTO type for updating entities
  */
 export abstract class BaseController<TEntity, TCreate, TUpdate> {
-  constructor(protected readonly repository: IRepository<TEntity, TCreate, TUpdate>) {
-    // Bind methods to ensure correct 'this' context when used as route handlers
-    this.list = this.list.bind(this)
-    this.getById = this.getById.bind(this)
-    this.create = this.create.bind(this)
-    this.update = this.update.bind(this)
-    this.delete = this.delete.bind(this)
-  }
+  constructor(protected readonly repository: IRepository<TEntity, TCreate, TUpdate>) {}
 
   /**
    * Returns the route definitions for this controller.
@@ -43,118 +38,83 @@ export abstract class BaseController<TEntity, TCreate, TUpdate> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Standard CRUD Handlers
+  // Standard CRUD Handlers (Arrow functions for automatic 'this' binding)
   // ─────────────────────────────────────────────────────────────────────────────
 
   /**
    * Handler: List all entities.
    */
-  protected async list(c: Context): Promise<Response> {
+  protected list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-
-    try {
-      const entities = await this.repository.listAll()
-      return ctx.ok({ data: entities })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const entities = await this.repository.listAll()
+    return ctx.ok({ data: entities })
   }
 
   /**
    * Handler: Get entity by ID.
    * Expects params.id to be set by middleware.
    */
-  protected async getById(c: Context): Promise<Response> {
+  protected getById = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
+    const entity = await this.repository.getById(ctx.params.id)
 
-    try {
-      const entity = await this.repository.getById(ctx.params.id)
-
-      if (!entity) {
-        return ctx.notFound({ error: 'Resource not found' })
-      }
-
-      return ctx.ok({ data: entity })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!entity) {
+      throw AppError.notFound('Resource', ctx.params.id)
     }
+
+    return ctx.ok({ data: entity })
   }
 
   /**
    * Handler: Create entity.
    * Expects body to be validated by middleware.
    */
-  protected async create(c: Context): Promise<Response> {
+  protected create = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TCreate>(c)
-
-    try {
-      const entity = await this.repository.create(ctx.body)
-      return ctx.created({ data: entity })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const entity = await this.repository.create(ctx.body)
+    return ctx.created({ data: entity })
   }
 
   /**
    * Handler: Update entity.
    * Expects params.id and body to be set/validated by middleware.
    */
-  protected async update(c: Context): Promise<Response> {
+  protected update = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TUpdate, unknown, { id: string }>(c)
+    const entity = await this.repository.update(ctx.params.id, ctx.body)
 
-    try {
-      const entity = await this.repository.update(ctx.params.id, ctx.body)
-
-      if (!entity) {
-        return ctx.notFound({ error: 'Resource not found' })
-      }
-
-      return ctx.ok({ data: entity })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!entity) {
+      throw AppError.notFound('Resource', ctx.params.id)
     }
+
+    return ctx.ok({ data: entity })
   }
 
   /**
    * Handler: Delete entity (soft delete).
    * Expects params.id to be set by middleware.
    */
-  protected async delete(c: Context): Promise<Response> {
+  protected delete = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
+    const success = await this.repository.delete(ctx.params.id)
 
-    try {
-      const success = await this.repository.delete(ctx.params.id)
-
-      if (!success) {
-        return ctx.notFound({ error: 'Resource not found' })
-      }
-
-      return ctx.noContent()
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!success) {
+      throw AppError.notFound('Resource', ctx.params.id)
     }
+
+    return ctx.noContent()
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Error Handling
+  // Error Handling (Deprecated - errors now handled by global middleware)
   // ─────────────────────────────────────────────────────────────────────────────
 
   /**
-   * Handles errors consistently across all controllers.
+   * @deprecated Use throw instead - errors are now handled by global middleware.
+   * This method is kept for backwards compatibility with existing controllers.
+   * Simply re-throws the error to be caught by the error handler middleware.
    */
-  protected handleError(ctx: HttpContext, error: unknown): Response | Promise<Response> {
-    console.error('Controller error:', error)
-
-    if (error instanceof Error) {
-      if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
-        return ctx.conflict({ error: 'Resource already exists' })
-      }
-
-      if (error.message.includes('foreign key') || error.message.includes('violates foreign key')) {
-        return ctx.badRequest({ error: 'Invalid reference to related resource' })
-      }
-    }
-
-    return ctx.internalError({ error: 'An unexpected error occurred' })
+  protected handleError(_ctx: HttpContext, error: unknown): never {
+    throw error
   }
 }

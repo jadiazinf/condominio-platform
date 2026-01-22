@@ -231,6 +231,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       firebase_uid VARCHAR(128) NOT NULL UNIQUE,
       email VARCHAR(255) NOT NULL UNIQUE,
       display_name VARCHAR(255),
+      phone_country_code VARCHAR(10),
       phone_number VARCHAR(50),
       photo_url TEXT,
       first_name VARCHAR(100),

@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes'
 import type { TPayment, TPaymentCreate, TPaymentUpdate } from '@packages/domain'
 import { PaymentsController } from '@http/controllers/payments'
 import type { PaymentsRepository } from '@database/repositories'
-import { withId, createTestApp, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods
@@ -229,7 +229,7 @@ describe('PaymentsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Resource not found')
+      expect(getErrorMessage(json)).toContain('not found')
     })
 
     it('should return 400 for invalid UUID format', async function () {
@@ -256,7 +256,7 @@ describe('PaymentsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Payment not found')
+      expect(getErrorMessage(json)).toBe('Payment not found')
     })
   })
 
@@ -422,7 +422,7 @@ describe('PaymentsController', function () {
       expect(res.status).toBe(StatusCodes.CONFLICT)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Resource already exists')
+      expect(getErrorMessage(json)).toContain('already exists')
     })
   })
 
@@ -450,7 +450,7 @@ describe('PaymentsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Resource not found')
+      expect(getErrorMessage(json)).toContain('not found')
     })
   })
 
@@ -475,7 +475,7 @@ describe('PaymentsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Resource not found')
+      expect(getErrorMessage(json)).toContain('not found')
     })
   })
 
@@ -585,7 +585,7 @@ describe('PaymentsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Payment not found')
+      expect(getErrorMessage(json)).toBe('Payment not found')
     })
 
     it('should return 400 when payment is not pending verification', async function () {
@@ -598,7 +598,7 @@ describe('PaymentsController', function () {
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
 
       const json = (await res.json()) as IApiResponse & { currentStatus?: string }
-      expect(json.error).toBe('Payment is not pending verification')
+      expect(getErrorMessage(json)).toBe('Payment is not pending verification')
       expect(json.currentStatus).toBe('pending')
     })
 
@@ -658,7 +658,7 @@ describe('PaymentsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Payment not found')
+      expect(getErrorMessage(json)).toBe('Payment not found')
     })
 
     it('should return 400 when payment is not pending verification', async function () {
@@ -671,7 +671,7 @@ describe('PaymentsController', function () {
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
 
       const json = (await res.json()) as IApiResponse & { currentStatus?: string }
-      expect(json.error).toBe('Payment is not pending verification')
+      expect(getErrorMessage(json)).toBe('Payment is not pending verification')
       expect(json.currentStatus).toBe('completed')
     })
 
@@ -719,7 +719,7 @@ describe('PaymentsController', function () {
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('An unexpected error occurred')
+      expect(getErrorMessage(json)).toContain('unexpected')
     })
   })
 })

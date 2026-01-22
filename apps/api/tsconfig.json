@@ -38,7 +38,9 @@
       "@tests/*": ["./tests/*"],
       "@utils/*": ["./src/utils/*"],
       "@entities/*": ["./src/domain/entities/*"],
-      "@shared/*": ["./src/shared/*"]
+      "@shared/*": ["./src/shared/*"],
+      "@errors/*": ["./src/errors/*"],
+      "@errors": ["./src/errors/index.ts"]
     }
   },
   "include": ["src", "tests", "drizzle.config.ts", "eslint.config.mjs"],

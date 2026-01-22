@@ -15,6 +15,7 @@ import { createRouter } from '../create-router'
 import type { TRouteDefinition } from '../types'
 import { RegisterGoogleUserService, RegisterUserService } from '@src/services/auth'
 import { LocaleDictionary } from '@locales/dictionary'
+import { AppError } from '@errors/index'
 
 /**
  * Controller for authentication endpoints.
@@ -30,10 +31,6 @@ export class AuthController {
   constructor(usersRepository: UsersRepository) {
     this.registerGoogleUserService = new RegisterGoogleUserService(usersRepository)
     this.registerUserService = new RegisterUserService(usersRepository)
-
-    // Bind methods
-    this.register = this.register.bind(this)
-    this.registerWithGoogle = this.registerWithGoogle.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -62,7 +59,7 @@ export class AuthController {
    * Works for any Firebase auth method (email/password, Google, etc.).
    * Expects a valid Firebase token in the Authorization header.
    */
-  private async register(c: Context): Promise<Response> {
+  private register = async (c: Context): Promise<Response> => {
     const ctx = new HttpContext<TRegisterSchema>(c)
     const t = useTranslation(c)
 
@@ -70,10 +67,7 @@ export class AuthController {
     const authHeader = c.req.header('Authorization')
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return ctx.unauthorizedWithCode(
-        ApiErrorCodes.MALFORMED_HEADER,
-        t(LocaleDictionary.http.middlewares.utils.auth.malformedHeader)
-      )
+      throw AppError.unauthorized(t(LocaleDictionary.http.middlewares.utils.auth.malformedHeader))
     }
 
     const token = authHeader.slice(7)
@@ -86,7 +80,7 @@ export class AuthController {
       const { uid: firebaseUid, email, name, picture, email_verified } = decodedToken
 
       if (!email) {
-        return ctx.badRequest({ error: 'Email is required for registration' })
+        throw AppError.validation('Email is required for registration')
       }
 
       // Register the user
@@ -101,18 +95,17 @@ export class AuthController {
 
       if (!result.success) {
         if (result.code === 'CONFLICT') {
-          return ctx.conflict({ error: result.error })
+          throw AppError.alreadyExists('User', 'email')
         }
-
-        return ctx.badRequest({ error: result.error })
+        throw AppError.validation(result.error)
       }
 
       return ctx.created({ data: result.data })
-    } catch {
-      return ctx.unauthorizedWithCode(
-        ApiErrorCodes.INVALID_TOKEN,
-        t(LocaleDictionary.http.middlewares.utils.auth.invalidToken)
-      )
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error
+      }
+      throw AppError.invalidToken()
     }
   }
 
@@ -121,7 +114,7 @@ export class AuthController {
    * Expects a valid Firebase token in the Authorization header.
    * The token is verified and user data is extracted from it.
    */
-  private async registerWithGoogle(c: Context): Promise<Response> {
+  private registerWithGoogle = async (c: Context): Promise<Response> => {
     const ctx = new HttpContext<TGoogleRegisterSchema>(c)
     const t = useTranslation(c)
 
@@ -129,10 +122,7 @@ export class AuthController {
     const authHeader = c.req.header('Authorization')
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return ctx.unauthorizedWithCode(
-        ApiErrorCodes.MALFORMED_HEADER,
-        t(LocaleDictionary.http.middlewares.utils.auth.malformedHeader)
-      )
+      throw AppError.unauthorized(t(LocaleDictionary.http.middlewares.utils.auth.malformedHeader))
     }
 
     const token = authHeader.slice(7)
@@ -145,7 +135,7 @@ export class AuthController {
       const { uid: firebaseUid, email, name, picture, email_verified } = decodedToken
 
       if (!email) {
-        return ctx.badRequest({ error: 'Email is required for registration' })
+        throw AppError.validation('Email is required for registration')
       }
 
       // Register the user
@@ -160,17 +150,17 @@ export class AuthController {
 
       if (!result.success) {
         if (result.code === 'CONFLICT') {
-          return ctx.conflict({ error: result.error })
+          throw AppError.alreadyExists('User', 'email')
         }
-        return ctx.badRequest({ error: result.error })
+        throw AppError.validation(result.error)
       }
 
       return ctx.created({ data: result.data })
-    } catch {
-      return ctx.unauthorizedWithCode(
-        ApiErrorCodes.INVALID_TOKEN,
-        t(LocaleDictionary.http.middlewares.utils.auth.invalidToken)
-      )
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error
+      }
+      throw AppError.invalidToken()
     }
   }
 }

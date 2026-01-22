@@ -163,6 +163,10 @@ async function findOrCreateSuperadminUser(): Promise<string> {
     .values(superadminData)
     .returning()
 
+  if (!newSuperadmin) {
+    throw new Error('Failed to create superadmin record')
+  }
+
   console.log(`   ✅ Created superadmin record (${newSuperadmin.id})`)
   return newSuperadmin.id
 }

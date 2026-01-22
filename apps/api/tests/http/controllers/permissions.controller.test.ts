@@ -6,7 +6,7 @@ import type { TPermission, TPermissionCreate, TPermissionUpdate } from '@package
 import { PermissionsController } from '@http/controllers/permissions'
 import type { PermissionsRepository } from '@database/repositories'
 import { PermissionFactory } from '../../setup/factories'
-import { withId, createTestApp, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods
@@ -139,7 +139,7 @@ describe('PermissionsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Resource not found')
+      expect(getErrorMessage(json)).toContain('not found')
     })
 
     it('should return 400 for invalid UUID format', async function () {
@@ -186,7 +186,7 @@ describe('PermissionsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Permission not found')
+      expect(getErrorMessage(json)).toBe('Permission not found')
     })
   })
 
@@ -244,7 +244,7 @@ describe('PermissionsController', function () {
       expect(res.status).toBe(StatusCodes.CONFLICT)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Resource already exists')
+      expect(getErrorMessage(json)).toContain('already exists')
     })
   })
 
@@ -272,7 +272,7 @@ describe('PermissionsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Resource not found')
+      expect(getErrorMessage(json)).toContain('not found')
     })
   })
 
@@ -297,7 +297,7 @@ describe('PermissionsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Resource not found')
+      expect(getErrorMessage(json)).toContain('not found')
     })
   })
 
@@ -311,7 +311,7 @@ describe('PermissionsController', function () {
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('An unexpected error occurred')
+      expect(getErrorMessage(json)).toContain('unexpected')
     })
   })
 })

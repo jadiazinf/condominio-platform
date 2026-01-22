@@ -54,6 +54,7 @@ export class RegisterGoogleUserService
       isEmailVerified: emailVerified,
       isActive: true,
       // Set nullable fields to null
+      phoneCountryCode: null,
       phoneNumber: null,
       idDocumentType: null,
       idDocumentNumber: null,

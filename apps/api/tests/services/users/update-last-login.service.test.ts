@@ -17,6 +17,7 @@ describe('UpdateLastLoginService', function () {
     firebaseUid: 'firebase-uid-001',
     email: 'test@example.com',
     displayName: 'Test User',
+    phoneCountryCode: '+58',
     phoneNumber: '+1234567890',
     photoUrl: null,
     firstName: 'Test',

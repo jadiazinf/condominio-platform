@@ -24,7 +24,7 @@ export default function SelectCondominiumPage() {
   } = useCondominium()
   const hasRedirected = useRef(false)
 
-  // Redirect to loading if user is not authenticated or no user data
+  // Redirect if user is not authenticated or no user data
   useEffect(
     function () {
       if (hasRedirected.current || authLoading) return
@@ -37,10 +37,10 @@ export default function SelectCondominiumPage() {
         return
       }
 
-      // If no user data in context, redirect to loading to fetch it
+      // If no user data in context, redirect to dashboard to fetch it
       if (!user) {
         hasRedirected.current = true
-        router.replace('/loading')
+        router.replace('/dashboard')
 
         return
       }

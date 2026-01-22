@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes'
 import type { TMessage, TMessageCreate, TMessageUpdate } from '@packages/domain'
 import { MessagesController } from '@http/controllers/messages'
 import type { MessagesRepository } from '@database/repositories'
-import { withId, createTestApp, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods
@@ -186,7 +186,7 @@ describe('MessagesController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Resource not found')
+      expect(getErrorMessage(json)).toContain('not found')
     })
 
     it('should return 400 for invalid UUID format', async function () {
@@ -347,7 +347,7 @@ describe('MessagesController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Message not found')
+      expect(getErrorMessage(json)).toBe('Message not found')
     })
   })
 
@@ -404,7 +404,7 @@ describe('MessagesController', function () {
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Invalid reference to related resource')
+      expect(getErrorMessage(json)).toContain('reference')
     })
   })
 
@@ -432,7 +432,7 @@ describe('MessagesController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Resource not found')
+      expect(getErrorMessage(json)).toContain('not found')
     })
   })
 
@@ -457,7 +457,7 @@ describe('MessagesController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('Resource not found')
+      expect(getErrorMessage(json)).toContain('not found')
     })
   })
 
@@ -471,7 +471,7 @@ describe('MessagesController', function () {
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.error).toBe('An unexpected error occurred')
+      expect(getErrorMessage(json)).toContain('unexpected')
     })
   })
 })

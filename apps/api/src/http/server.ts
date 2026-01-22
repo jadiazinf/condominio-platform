@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { applyLogger } from './middlewares/logger'
+import { applyErrorHandler } from './middlewares/error-handler'
 import { ApiRoutes } from './endpoints'
 import {
   applyBodyLimit,
@@ -40,6 +41,8 @@ export class Server {
   }
 
   private setupMiddlewares(app: Hono) {
+    // Error handler must be first to catch all errors from subsequent middlewares
+    applyErrorHandler(app)
     applySecurityHeaders(app)
     applyCors(app)
     applyBodyLimit(app)

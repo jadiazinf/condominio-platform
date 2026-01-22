@@ -45,7 +45,8 @@ export function SignInForm() {
     try {
       setIsSubmitting(true)
       await signInWithEmail(data.email, data.password)
-      router.push('/loading')
+      // Redirect directly to dashboard - the layout will handle session setup
+      router.push('/dashboard')
     } catch (err) {
       const errorKey = getFirebaseErrorKey(err)
 
@@ -59,7 +60,8 @@ export function SignInForm() {
     try {
       setIsSubmitting(true)
       await signInWithGoogle()
-      router.push('/loading')
+      // Redirect directly to dashboard - the layout will handle session setup
+      router.push('/dashboard')
     } catch (err) {
       const errorKey = getFirebaseErrorKey(err)
 

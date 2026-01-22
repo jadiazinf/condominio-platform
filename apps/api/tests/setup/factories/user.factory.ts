@@ -13,6 +13,7 @@ export class UserFactory {
       firebaseUid: faker.string.alphanumeric(28),
       email: faker.internet.email(),
       displayName: faker.person.fullName(),
+      phoneCountryCode: '+58',
       phoneNumber: faker.phone.number(),
       photoUrl: faker.image.avatar(),
       firstName: faker.person.firstName(),

@@ -134,6 +134,7 @@ const mockUser = {
   firebaseUid: 'firebase-uid-1',
   isActive: true,
   displayName: 'Test User',
+  phoneCountryCode: null,
   phoneNumber: null,
   photoUrl: null,
   firstName: 'Test',

@@ -58,14 +58,15 @@ export function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)
   const hasSession = !!sessionCookie?.value
 
-  // For loading page: allow if it has flow params (register, signout), otherwise treat as auth route
+  // Loading page is only needed for registration and signout flows
+  // These require client-side processing (sessionStorage for registration, Firebase SDK for signout)
   if (pathname === '/loading') {
-    const hasFlowParams =
-      request.nextUrl.searchParams.has('register') || request.nextUrl.searchParams.has('signout')
+    const isRegistrationFlow = request.nextUrl.searchParams.get('register') === 'true'
+    const isSignoutFlow = request.nextUrl.searchParams.get('signout') === 'true'
 
-    // If no flow params and user is authenticated, redirect to dashboard
-    if (!hasFlowParams && hasSession) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+    // Only allow loading page for special flows, redirect others to dashboard or signin
+    if (!isRegistrationFlow && !isSignoutFlow) {
+      return NextResponse.redirect(new URL(hasSession ? '/dashboard' : '/signin', request.url))
     }
 
     return handleLocale(request)
@@ -78,6 +79,7 @@ export function middleware(request: NextRequest) {
     return pathname.startsWith(route)
   })
 
+  // Protect routes - redirect to signin if no session
   if (isProtectedRoute && !hasSession) {
     const signInUrl = new URL('/signin', request.url)
 

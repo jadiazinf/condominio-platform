@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { PageErrorBoundary } from '@/ui/components/error-boundary'
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
@@ -40,7 +41,9 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       </div>
 
       {/* Content */}
-      <div className="relative z-10">{children}</div>
+      <div className="relative z-10">
+        <PageErrorBoundary pageName="Authentication">{children}</PageErrorBoundary>
+      </div>
     </>
   )
 }

@@ -25,6 +25,7 @@ export class UsersRepository
       firebaseUid: r.firebaseUid,
       email: r.email,
       displayName: r.displayName,
+      phoneCountryCode: r.phoneCountryCode,
       phoneNumber: r.phoneNumber,
       photoUrl: r.photoUrl,
       firstName: r.firstName,
@@ -49,6 +50,7 @@ export class UsersRepository
       firebaseUid: dto.firebaseUid,
       email: dto.email,
       displayName: dto.displayName,
+      phoneCountryCode: dto.phoneCountryCode,
       phoneNumber: dto.phoneNumber,
       photoUrl: dto.photoUrl,
       firstName: dto.firstName,
@@ -72,6 +74,7 @@ export class UsersRepository
     if (dto.firebaseUid !== undefined) values.firebaseUid = dto.firebaseUid
     if (dto.email !== undefined) values.email = dto.email
     if (dto.displayName !== undefined) values.displayName = dto.displayName
+    if (dto.phoneCountryCode !== undefined) values.phoneCountryCode = dto.phoneCountryCode
     if (dto.phoneNumber !== undefined) values.phoneNumber = dto.phoneNumber
     if (dto.photoUrl !== undefined) values.photoUrl = dto.photoUrl
     if (dto.firstName !== undefined) values.firstName = dto.firstName

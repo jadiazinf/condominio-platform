@@ -30,6 +30,7 @@ describe('CreatePaymentService', function () {
     firebaseUid: 'firebase-uid-123',
     email: 'user@example.com',
     displayName: 'Test User',
+    phoneCountryCode: null,
     phoneNumber: null,
     photoUrl: null,
     firstName: 'Test',

@@ -1,51 +1,39 @@
+import { redirect } from 'next/navigation'
+
 import { StoreHydration } from './components/StoreHydration'
 import { SuperadminHydration } from './components/SuperadminHydration'
 import { DashboardShell } from './components/DashboardShell'
 import { SuperadminShell } from './components/SuperadminShell'
-
-import { getAuthenticatedSession } from '@/libs/firebase/server'
-import {
-  getUserCookieServer,
-  getCondominiumsCookieServer,
-  getSelectedCondominiumCookieServer,
-  getSuperadminCookieServer,
-  getSuperadminPermissionsCookieServer,
-} from '@/libs/cookies/server'
+import { PageErrorBoundary } from '@/ui/components/error-boundary'
+import { getFullSession } from '@/libs/session'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  // Get user from authenticated session (validates token)
-  const { user: sessionUser } = await getAuthenticatedSession()
+  // Get full session data - validates token and fetches/caches user data
+  const session = await getFullSession()
 
-  // Get data from cookies (set by loading page)
-  const [cookieUser, condominiums, selectedCondominium, superadmin, superadminPermissions] =
-    await Promise.all([
-      getUserCookieServer(),
-      getCondominiumsCookieServer(),
-      getSelectedCondominiumCookieServer(),
-      getSuperadminCookieServer(),
-      getSuperadminPermissionsCookieServer(),
-    ])
-
-  // Prefer cookie user if available, fallback to session user
-  const user = cookieUser ?? sessionUser
+  // If user needs to select a condominium, redirect
+  if (session.needsCondominiumSelection) {
+    redirect('/select-condominium')
+  }
 
   // Determine if user is a superadmin
-  const isSuperadmin = superadmin?.isActive === true
+  const isSuperadmin = session.superadmin?.isActive === true
 
   // Render appropriate shell based on user type
   if (isSuperadmin) {
     return (
       <>
         <StoreHydration
-          condominiums={condominiums ?? []}
-          selectedCondominium={selectedCondominium}
-          user={user}
+          condominiums={session.condominiums}
+          selectedCondominium={session.selectedCondominium}
+          user={session.user}
+          superadmin={session.superadmin}
+          superadminPermissions={session.superadminPermissions}
+          wasFetched={session.wasFetched}
         />
-        <SuperadminHydration
-          superadmin={superadmin}
-          permissions={superadminPermissions ?? []}
-        />
-        <SuperadminShell>{children}</SuperadminShell>
+        <SuperadminShell>
+          <PageErrorBoundary pageName="Dashboard">{children}</PageErrorBoundary>
+        </SuperadminShell>
       </>
     )
   }
@@ -53,11 +41,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <>
       <StoreHydration
-        condominiums={condominiums ?? []}
-        selectedCondominium={selectedCondominium}
-        user={user}
+        condominiums={session.condominiums}
+        selectedCondominium={session.selectedCondominium}
+        user={session.user}
+        wasFetched={session.wasFetched}
       />
-      <DashboardShell>{children}</DashboardShell>
+      <DashboardShell>
+        <PageErrorBoundary pageName="Dashboard">{children}</PageErrorBoundary>
+      </DashboardShell>
     </>
   )
 }

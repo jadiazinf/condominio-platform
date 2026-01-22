@@ -80,9 +80,9 @@ export function SignUpForm() {
       // Handle API error codes
       if (HttpError.isHttpError(err)) {
         if (err.code === ApiErrorCodes.CONFLICT) {
-          // User already registered, redirect to loading to get the existing user
+          // User already registered, redirect to dashboard - layout will handle session
           toast.success(t('auth.signUp.alreadyRegistered'))
-          router.push('/loading')
+          router.push('/dashboard')
 
           return
         }

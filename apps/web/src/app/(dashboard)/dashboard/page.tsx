@@ -1,22 +1,23 @@
+import { Suspense } from 'react'
 import { Users, Building2, Building, CreditCard } from 'lucide-react'
 
 import { Typography } from '@/ui/components/typography'
-import { getAuthenticatedSession } from '@/libs/firebase/server'
+import { getFullSession } from '@/libs/session'
 import { getTranslations } from '@/libs/i18n/server'
-import { getSuperadminCookieServer } from '@/libs/cookies/server'
 
 import { KpiStatCard } from '../components/KpiStatCard'
 import { AnalyticsChart } from '../components/AnalyticsChart'
 import { DistributionChart } from '../components/DistributionChart'
 import { ActivityFeed, type TActivity } from '../components/ActivityFeed'
 import { SystemStatusCard } from '../components/SystemStatusCard'
+import { DashboardSkeleton, SuperadminDashboardSkeleton } from './components/DashboardSkeleton'
 
 // Regular user dashboard content
 async function RegularDashboardContent() {
-  const { t } = await getTranslations()
-  const { user } = await getAuthenticatedSession()
+  // Fetch translations and session in parallel
+  const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
 
-  const displayName = user?.displayName || user?.firstName || user?.email || ''
+  const displayName = session.user?.displayName || session.user?.firstName || session.user?.email || ''
 
   return (
     <div className="py-8">
@@ -30,10 +31,10 @@ async function RegularDashboardContent() {
 
 // Superadmin dashboard content
 async function SuperadminDashboardContent() {
-  const { t } = await getTranslations()
-  const { user } = await getAuthenticatedSession()
+  // Fetch translations and session in parallel
+  const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
 
-  const displayName = user?.displayName || user?.firstName || 'Admin'
+  const displayName = session.user?.displayName || session.user?.firstName || 'Admin'
 
   // TODO: Fetch real data from API
   const metrics = {
@@ -220,12 +221,22 @@ async function SuperadminDashboardContent() {
 }
 
 export default async function DashboardPage() {
-  const superadmin = await getSuperadminCookieServer()
-  const isSuperadmin = superadmin?.isActive === true
+  // Use getFullSession to get superadmin data - it's cached so this is efficient
+  // We can't rely on cookies alone because they may not be set yet on first login
+  const session = await getFullSession()
+  const isSuperadmin = session.superadmin?.isActive === true
 
   if (isSuperadmin) {
-    return <SuperadminDashboardContent />
+    return (
+      <Suspense fallback={<SuperadminDashboardSkeleton />}>
+        <SuperadminDashboardContent />
+      </Suspense>
+    )
   }
 
-  return <RegularDashboardContent />
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <RegularDashboardContent />
+    </Suspense>
+  )
 }

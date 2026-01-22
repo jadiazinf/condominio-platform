@@ -22,6 +22,7 @@ import {
   UpdateLastLoginService,
   GetUserCondominiumsService,
 } from '@src/services/users'
+import { AppError } from '@errors/index'
 
 const EmailParamSchema = z.object({
   email: z.email('Invalid email format'),
@@ -66,14 +67,6 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
     this.getUserByFirebaseUidService = new GetUserByFirebaseUidService(repository)
     this.updateLastLoginService = new UpdateLastLoginService(repository)
     this.getUserCondominiumsService = new GetUserCondominiumsService(db)
-
-    // Bind custom methods to ensure correct 'this' context when used as route handlers
-    this.getByEmail = this.getByEmail.bind(this)
-    this.getByFirebaseUid = this.getByFirebaseUid.bind(this)
-    this.updateLastLogin = this.updateLastLogin.bind(this)
-    this.getCurrentUser = this.getCurrentUser.bind(this)
-    this.getCondominiums = this.getCondominiums.bind(this)
-    this.updateCurrentUser = this.updateCurrentUser.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -138,123 +131,92 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Custom Handlers
+  // Custom Handlers (Arrow functions for automatic 'this' binding)
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByEmail(c: Context): Promise<Response> {
+  private getByEmail = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TEmailParam>(c)
+    const result = await this.getUserByEmailService.execute({
+      email: ctx.params.email,
+    })
 
-    try {
-      const result = await this.getUserByEmailService.execute({
-        email: ctx.params.email,
-      })
-
-      if (!result.success) {
-        return ctx.notFound({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!result.success) {
+      throw AppError.notFound('User', ctx.params.email)
     }
+
+    return ctx.ok({ data: result.data })
   }
 
-  private async getByFirebaseUid(c: Context): Promise<Response> {
+  private getByFirebaseUid = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TFirebaseUidParam>(c)
+    const result = await this.getUserByFirebaseUidService.execute({
+      firebaseUid: ctx.params.firebaseUid,
+    })
 
-    try {
-      const result = await this.getUserByFirebaseUidService.execute({
-        firebaseUid: ctx.params.firebaseUid,
-      })
-
-      if (!result.success) {
-        return ctx.notFound({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!result.success) {
+      throw AppError.notFound('User', ctx.params.firebaseUid)
     }
+
+    return ctx.ok({ data: result.data })
   }
 
-  private async updateLastLogin(c: Context): Promise<Response> {
+  private updateLastLogin = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TIdParam>(c)
+    const result = await this.updateLastLoginService.execute({
+      userId: ctx.params.id,
+    })
 
-    try {
-      const result = await this.updateLastLoginService.execute({
-        userId: ctx.params.id,
-      })
-
-      if (!result.success) {
-        return ctx.notFound({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!result.success) {
+      throw AppError.notFound('User', ctx.params.id)
     }
+
+    return ctx.ok({ data: result.data })
   }
 
   /**
    * Get the current authenticated user.
    * The user is already available in the context from the auth middleware.
    */
-  private async getCurrentUser(c: Context): Promise<Response> {
+  private getCurrentUser = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-
-    try {
-      const user = ctx.getAuthenticatedUser()
-
-      return ctx.ok({ data: user })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const user = ctx.getAuthenticatedUser()
+    return ctx.ok({ data: user })
   }
 
   /**
    * Update the current authenticated user's profile.
    * Only allows modifying fields defined in userUpdateProfileSchema.
    */
-  private async updateCurrentUser(c: Context): Promise<Response> {
+  private updateCurrentUser = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TUserUpdateProfile>(c)
+    const user = ctx.getAuthenticatedUser()
+    const data = ctx.body
 
-    try {
-      const user = ctx.getAuthenticatedUser()
-      const data = ctx.body
+    const result = await this.repository.update(user.id, data)
 
-      const result = await this.repository.update(user.id, data)
-
-      if (!result) {
-        return ctx.notFound({ error: 'User not found' })
-      }
-
-      return ctx.ok({ data: result, message: 'Profile updated successfully' })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!result) {
+      throw AppError.notFound('User', user.id)
     }
+
+    return ctx.ok({ data: result, message: 'Profile updated successfully' })
   }
 
   /**
    * Get all condominiums the authenticated user has access to.
    * This includes condominiums where the user owns/rents units or has roles assigned.
    */
-  private async getCondominiums(c: Context): Promise<Response> {
+  private getCondominiums = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
+    const user = ctx.getAuthenticatedUser()
 
-    try {
-      const user = ctx.getAuthenticatedUser()
+    const result = await this.getUserCondominiumsService.execute({
+      userId: user.id,
+    })
 
-      const result = await this.getUserCondominiumsService.execute({
-        userId: user.id,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!result.success) {
+      throw AppError.internal(result.error)
     }
+
+    return ctx.ok({ data: result.data })
   }
 }

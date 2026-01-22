@@ -11,7 +11,7 @@ import type {
 } from '@packages/domain'
 import { QuotaAdjustmentsController } from '@http/controllers/quota-adjustments'
 import type { QuotasRepository, QuotaAdjustmentsRepository } from '@database/repositories'
-import { withId, createTestApp, type IApiResponse } from './test-utils'
+import { withId, createTestApp, getErrorMessage, type IApiResponse } from './test-utils'
 
 // Mock repository types
 type TMockQuotasRepository = {
