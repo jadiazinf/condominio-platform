@@ -5,6 +5,7 @@ import { SuperadminHydration } from './components/SuperadminHydration'
 import { DashboardShell } from './components/DashboardShell'
 import { SuperadminShell } from './components/SuperadminShell'
 import { PageErrorBoundary } from '@/ui/components/error-boundary'
+import { AvatarPreloader } from '@/ui/components/avatar'
 import { getFullSession } from '@/libs/session'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -31,6 +32,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           superadminPermissions={session.superadminPermissions}
           wasFetched={session.wasFetched}
         />
+        <AvatarPreloader />
         <SuperadminShell>
           <PageErrorBoundary pageName="Dashboard">{children}</PageErrorBoundary>
         </SuperadminShell>
@@ -46,6 +48,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         user={session.user}
         wasFetched={session.wasFetched}
       />
+      <AvatarPreloader />
       <DashboardShell>
         <PageErrorBoundary pageName="Dashboard">{children}</PageErrorBoundary>
       </DashboardShell>

@@ -1,4 +1,4 @@
-export { fetchUserByFirebaseUid } from './fetch-user'
+export { fetchUserByFirebaseUid, syncUserFirebaseUid, FetchUserError } from './fetch-user'
 export { fetchUserCondominiums } from './fetch-user-condominiums'
 export {
   fetchSuperadminByUserId,

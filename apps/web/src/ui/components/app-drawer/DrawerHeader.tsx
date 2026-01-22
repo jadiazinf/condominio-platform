@@ -85,7 +85,11 @@ function UserInfo({ displayName, email, photoUrl }: IUserInfoProps) {
         name={displayName}
         size="md"
         src={photoUrl || undefined}
-        imgProps={{ crossOrigin: 'anonymous' }}
+        imgProps={{
+          crossOrigin: 'anonymous',
+          loading: 'eager',
+          fetchPriority: 'high',
+        }}
       />
       <div className="flex flex-col overflow-hidden">
         <span className="text-sm font-semibold truncate">{displayName}</span>

@@ -12,7 +12,7 @@ import type { UsersRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware } from '../../middlewares/auth'
+import { authMiddleware, tokenOnlyMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -21,6 +21,7 @@ import {
   GetUserByFirebaseUidService,
   UpdateLastLoginService,
   GetUserCondominiumsService,
+  SyncFirebaseUidService,
 } from '@src/services/users'
 import { AppError } from '@errors/index'
 
@@ -37,6 +38,13 @@ const FirebaseUidParamSchema = z.object({
 type TFirebaseUidParam = z.infer<typeof FirebaseUidParamSchema>
 
 type TIdParam = z.infer<typeof IdParamSchema>
+
+const SyncFirebaseUidSchema = z.object({
+  email: z.email('Invalid email format'),
+  firebaseUid: z.string().min(1),
+})
+
+type TSyncFirebaseUidBody = z.infer<typeof SyncFirebaseUidSchema>
 
 /**
  * Controller for managing user resources.
@@ -58,6 +66,7 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
   private readonly getUserByFirebaseUidService: GetUserByFirebaseUidService
   private readonly updateLastLoginService: UpdateLastLoginService
   private readonly getUserCondominiumsService: GetUserCondominiumsService
+  private readonly syncFirebaseUidService: SyncFirebaseUidService
 
   constructor(repository: UsersRepository, db: TDrizzleClient) {
     super(repository)
@@ -67,6 +76,7 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
     this.getUserByFirebaseUidService = new GetUserByFirebaseUidService(repository)
     this.updateLastLoginService = new UpdateLastLoginService(repository)
     this.getUserCondominiumsService = new GetUserCondominiumsService(db)
+    this.syncFirebaseUidService = new SyncFirebaseUidService(repository)
   }
 
   get routes(): TRouteDefinition[] {
@@ -97,6 +107,12 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
         path: '/firebase/:firebaseUid',
         handler: this.getByFirebaseUid,
         middlewares: [authMiddleware, paramsValidator(FirebaseUidParamSchema)],
+      },
+      {
+        method: 'post',
+        path: '/sync-firebase-uid',
+        handler: this.syncFirebaseUid,
+        middlewares: [tokenOnlyMiddleware, bodyValidator(SyncFirebaseUidSchema)],
       },
       {
         method: 'get',
@@ -163,6 +179,27 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
     }
 
     return ctx.ok({ data: result.data })
+  }
+
+  /**
+   * Sync Firebase UID for an existing user by email.
+   * This handles cases where a user exists with a different Firebase UID
+   * (e.g., when testing across different environments).
+   */
+  private syncFirebaseUid = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TSyncFirebaseUidBody>(c)
+    const { email, firebaseUid } = ctx.body
+
+    const result = await this.syncFirebaseUidService.execute({
+      email,
+      firebaseUid,
+    })
+
+    if (!result.success) {
+      throw AppError.notFound('User', email)
+    }
+
+    return ctx.ok({ data: result.data, message: 'Firebase UID synced successfully' })
   }
 
   private updateLastLogin = async (c: Context): Promise<Response> => {

@@ -227,6 +227,8 @@ export {
 // Server utilities
 export {
   fetchUserByFirebaseUid,
+  syncUserFirebaseUid,
+  FetchUserError,
   fetchUserCondominiums,
   fetchSuperadminByUserId,
   fetchSuperadminPermissions,

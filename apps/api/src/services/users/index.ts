@@ -9,3 +9,6 @@ export type { IUpdateLastLoginInput } from './update-last-login.service'
 
 export { GetUserCondominiumsService } from './get-user-condominiums.service'
 export type { IGetUserCondominiumsInput } from './get-user-condominiums.service'
+
+export { SyncFirebaseUidService } from './sync-firebase-uid.service'
+export type { ISyncFirebaseUidInput } from './sync-firebase-uid.service'

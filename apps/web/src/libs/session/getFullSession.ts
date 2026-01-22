@@ -4,6 +4,8 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import {
   fetchUserByFirebaseUid,
+  syncUserFirebaseUid,
+  FetchUserError,
   fetchUserCondominiums,
   fetchSuperadminSession,
 } from '@packages/http-client'
@@ -87,8 +89,25 @@ export async function getFullSession(): Promise<FullSession> {
   let superadminPermissions: TPermission[] = cookiePermissions ?? []
 
   if (needsFetch) {
-    // Fetch user from API
-    const fetchedUser = await fetchUserByFirebaseUid(decodedToken.uid, sessionToken)
+    // Fetch user from API by Firebase UID
+    let fetchedUser: TUser | null = null
+
+    try {
+      fetchedUser = await fetchUserByFirebaseUid(decodedToken.uid, sessionToken)
+    } catch (error) {
+      // Handle retryable errors (429, 5xx) - redirect to signin with error
+      if (error instanceof FetchUserError && error.isRetryable) {
+        redirect('/signin?error=temporary')
+      }
+      // For other errors, continue to try sync by email
+    }
+
+    // If user not found by Firebase UID, try to sync by email
+    // This handles cases where the user exists with a different Firebase UID
+    // (e.g., testing across different environments or Firebase projects)
+    if (!fetchedUser && decodedToken.email) {
+      fetchedUser = await syncUserFirebaseUid(decodedToken.email, decodedToken.uid, sessionToken)
+    }
 
     if (!fetchedUser) {
       redirect('/signup')

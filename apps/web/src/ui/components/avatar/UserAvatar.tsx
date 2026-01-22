@@ -43,7 +43,11 @@ export function UserAvatar({
       classNames={{
         base: isClickable ? 'cursor-pointer transition-transform hover:scale-105' : '',
       }}
-      imgProps={{ crossOrigin: 'anonymous' }}
+      imgProps={{
+        crossOrigin: 'anonymous',
+        loading: 'eager',
+        fetchPriority: 'high',
+      }}
     />
   )
 

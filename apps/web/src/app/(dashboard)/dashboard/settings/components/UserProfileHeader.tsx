@@ -28,7 +28,11 @@ export function UserProfileHeader() {
         className="w-16 h-16"
         name={displayName}
         src={photoUrl}
-        imgProps={{ crossOrigin: 'anonymous' }}
+        imgProps={{
+          crossOrigin: 'anonymous',
+          loading: 'eager',
+          fetchPriority: 'high',
+        }}
       />
       <UserInfo name={displayName} email={user?.email} />
     </header>

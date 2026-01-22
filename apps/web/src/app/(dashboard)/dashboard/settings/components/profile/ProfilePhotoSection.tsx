@@ -46,7 +46,11 @@ export function ProfilePhotoSection() {
               isBordered
               className="w-24 h-24 text-large"
               color="primary"
-              imgProps={{ crossOrigin: 'anonymous' }}
+              imgProps={{
+                crossOrigin: 'anonymous',
+                loading: 'eager',
+                fetchPriority: 'high',
+              }}
               name={displayName}
               src={user?.photoUrl || undefined}
             />
