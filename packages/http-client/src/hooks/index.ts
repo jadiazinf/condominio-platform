@@ -31,6 +31,7 @@ export {
   type UseRegisterUserOptions,
   type TRegisterVariables,
 } from './use-auth'
+export { useUpdateProfile, updateProfile, type UseUpdateProfileOptions } from './use-update-profile'
 
 // Re-export commonly used TanStack Query hooks
 export {

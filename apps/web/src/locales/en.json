@@ -5,6 +5,7 @@
     "success": "Success",
     "cancel": "Cancel",
     "save": "Save",
+    "saving": "Saving...",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
@@ -256,6 +257,14 @@
   },
   "validation": {
     "models": {
+      "users": {
+        "phoneCountryCode": {
+          "max": "Country code cannot exceed 10 characters."
+        },
+        "phoneNumber": {
+          "max": "Phone number cannot exceed 50 characters."
+        }
+      },
       "auth": {
         "email": {
           "required": "Email is required.",
@@ -303,6 +312,64 @@
       "fetchingCondominiums": "Loading your condominiums..."
     }
   },
+  "superadmin": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "condominiums": "Condominiums",
+      "companies": "Companies",
+      "managementCompanies": "Management Companies",
+      "permissions": "Permissions",
+      "billing": "Billing",
+      "activity": "Activity",
+      "auditLogs": "Audit Logs",
+      "settings": "Settings"
+    },
+    "dashboard": {
+      "title": "Superadmin Dashboard",
+      "welcome": "Welcome, {name}!",
+      "subtitle": "Platform performance and metrics overview",
+      "recentActivity": "Recent Activity",
+      "systemStatus": "System Status",
+      "revenueAnalytics": "Revenue Analytics",
+      "userDistribution": "User Distribution"
+    },
+    "metrics": {
+      "totalUsers": "Total Users",
+      "activeCondominiums": "Active Condominiums",
+      "managementCompanies": "Management Companies",
+      "monthlyRevenue": "Monthly Revenue",
+      "monthlyTransactions": "Monthly Transactions",
+      "pendingAlerts": "Pending Alerts",
+      "activeUsers24h": "Active Users (24h)"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications",
+    "markAsRead": "Mark as read",
+    "markAllAsRead": "Mark all as read",
+    "viewAll": "View all",
+    "delete": "Delete",
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{count} min ago",
+      "hoursAgo": "{count} h ago",
+      "daysAgo": "{count} days ago"
+    },
+    "categories": {
+      "payment": "Payment",
+      "quota": "Quota",
+      "announcement": "Announcement",
+      "reminder": "Reminder",
+      "alert": "Alert",
+      "system": "System"
+    }
+  },
+  "network": {
+    "offline": "No internet connection",
+    "online": "Connection restored"
+  },
   "errors": {
     "error": {
       "title": "A Disturbance in the Force",
@@ -315,6 +382,74 @@
       "title": "The map shows no such path",
       "description": "It seems you have ventured beyond the known maps. This page exists in no realm. But fear not, the road home is always open.",
       "backToHome": "Return home"
+    }
+  },
+  "settings": {
+    "nav": {
+      "profile": "Public profile",
+      "profileDescription": "Information visible to other users",
+      "language": "Language",
+      "languageDescription": "Application language preferences",
+      "appearance": "Appearance",
+      "appearanceDescription": "Customize the visual theme"
+    },
+    "profile": {
+      "title": "Public profile",
+      "subtitle": "This information will be visible to other users in your condominium",
+      "photo": "Profile picture",
+      "photoDescription": "Your photo will appear on your profile and comments",
+      "uploadPhoto": "Upload photo",
+      "removePhoto": "Remove photo",
+      "photoUploadSuccess": "Photo updated successfully",
+      "photoUploadError": "Error uploading photo",
+      "photoDeleteSuccess": "Photo deleted successfully",
+      "photoDeleteError": "Error deleting photo",
+      "photoInvalidType": "File must be an image",
+      "photoTooLarge": "Image cannot exceed 5MB",
+      "basicInfo": "Basic information",
+      "basicInfoDescription": "Your personal information",
+      "firstName": "First name",
+      "firstNamePlaceholder": "Your first name",
+      "lastName": "Last name",
+      "lastNamePlaceholder": "Your last name",
+      "displayName": "Display name",
+      "displayNamePlaceholder": "How you want to be called",
+      "displayNameDescription": "This is the name other users will see",
+      "email": "Email",
+      "emailDescription": "Your email cannot be modified",
+      "phone": "Phone",
+      "phonePlaceholder": "412 123 4567",
+      "identityDocument": "Identity document",
+      "identityDocumentDescription": "Your identification document information",
+      "idDocument": "Identity document",
+      "idDocumentType": "Document type",
+      "idDocumentTypePlaceholder": "Type",
+      "idDocumentNumber": "Document number",
+      "idDocumentNumberPlaceholder": "Document number",
+      "addressSection": "Address",
+      "addressSectionDescription": "Your residence address",
+      "address": "Full address",
+      "addressPlaceholder": "Street, number, city, country",
+      "updateSuccess": "Profile updated successfully",
+      "updateError": "Error updating profile"
+    },
+    "language": {
+      "title": "Language",
+      "subtitle": "Select the application language",
+      "selectLanguage": "Select language",
+      "selectLanguageDescription": "The change will be applied immediately across the application"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "subtitle": "Customize how the application looks",
+      "theme": "Theme",
+      "themeDescription": "Select your preferred theme for the interface",
+      "lightMode": "Light mode",
+      "lightModeDescription": "Light interface, ideal for daytime use",
+      "darkMode": "Dark mode",
+      "darkModeDescription": "Dark interface, reduces eye strain in low-light environments",
+      "systemMode": "Automatic",
+      "systemModeDescription": "Automatically adjusts based on your device settings"
     }
   }
 }

@@ -12,8 +12,14 @@ function getSecureFlag(): string {
 export function setUserCookie(user: TUser): void {
   const userJson = JSON.stringify(user)
   const encodedUser = encodeURIComponent(userJson)
+  const cookieValue = `${USER_COOKIE_NAME}=${encodedUser}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${getSecureFlag()}`
 
-  document.cookie = `${USER_COOKIE_NAME}=${encodedUser}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${getSecureFlag()}`
+  // Check cookie size (browsers typically limit to ~4KB)
+  if (cookieValue.length > 4096) {
+    console.warn('[UserCookie] Cookie size exceeds 4KB limit:', cookieValue.length, 'bytes')
+  }
+
+  document.cookie = cookieValue
 }
 
 export function getUserCookie(): TUser | null {

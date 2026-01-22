@@ -8,7 +8,7 @@ export async function HeroSection() {
   const { t } = await getTranslations()
 
   return (
-    <section className="dark relative min-h-[calc(100vh-64px)] flex flex-col items-center justify-center gap-8 py-16 md:py-24 text-center px-6 text-white">
+    <section className="dark relative min-h-[calc(100vh-64px)] flex flex-col items-center justify-center gap-8 pt-16 md:pt-24 pb-20 text-center px-6 text-white">
       <Typography className="max-w-3xl leading-tight" variant="h1">
         {t('landing.hero.title')}{' '}
         <span className="text-gradient-primary">{t('landing.hero.titleHighlight')}</span>

@@ -15,22 +15,22 @@ export function NavbarActions() {
   const isAuthenticated = user !== null
 
   return (
-    <NavbarContent justify="end">
-      <NavbarItem>
+    <NavbarContent className="items-center gap-2" justify="end">
+      <NavbarItem className="flex">
         <LanguageSwitcher variant="icon" />
       </NavbarItem>
-      <NavbarItem>
+      <NavbarItem className="flex">
         <ThemeSwitch />
       </NavbarItem>
       {isAuthenticated ? (
-        <NavbarItem className="hidden md:flex">
+        <NavbarItem className="hidden md:flex ml-2">
           <Button as={Link} color="primary" href="/dashboard" variant="flat">
             {t('nav.dashboard')}
           </Button>
         </NavbarItem>
       ) : (
         <>
-          <NavbarItem className="hidden md:flex">
+          <NavbarItem className="hidden md:flex ml-2">
             <Link href="/signin">{t('nav.signIn')}</Link>
           </NavbarItem>
           <NavbarItem className="hidden md:flex">

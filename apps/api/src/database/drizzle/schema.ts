@@ -213,6 +213,7 @@ export const users = pgTable(
     firebaseUid: varchar('firebase_uid', { length: 128 }).notNull().unique(),
     email: varchar('email', { length: 255 }).notNull().unique(),
     displayName: varchar('display_name', { length: 255 }),
+    phoneCountryCode: varchar('phone_country_code', { length: 10 }),
     phoneNumber: varchar('phone_number', { length: 50 }),
     photoUrl: text('photo_url'),
     firstName: varchar('first_name', { length: 100 }),

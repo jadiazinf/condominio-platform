@@ -22,6 +22,8 @@ export {
   registerWithGoogle,
   useRegisterUser,
   registerUser,
+  useUpdateProfile,
+  updateProfile,
   useQuery,
   useMutation,
   useQueryClient,
@@ -42,6 +44,7 @@ export type {
   TGoogleRegisterVariables,
   UseRegisterUserOptions,
   TRegisterVariables,
+  UseUpdateProfileOptions,
 } from './hooks/index'
 
 // Types
@@ -222,4 +225,11 @@ export {
 } from './types/index'
 
 // Server utilities
-export { fetchUserByFirebaseUid, fetchUserCondominiums } from './server/index'
+export {
+  fetchUserByFirebaseUid,
+  fetchUserCondominiums,
+  fetchSuperadminByUserId,
+  fetchSuperadminPermissions,
+  fetchSuperadminSession,
+} from './server/index'
+export type { TSuperadminSession } from './server/index'

@@ -14,6 +14,7 @@ export const userSchema = baseModelSchema.extend({
   firebaseUid: z.string({ error: d.firebaseUid.required }).max(128, { error: d.firebaseUid.max }),
   email: z.email({ error: d.email.invalid }).max(255, { error: d.email.max }),
   displayName: z.string().max(255, { error: d.displayName.max }).nullable(),
+  phoneCountryCode: z.string().max(10, { error: d.phoneCountryCode.max }).nullable(),
   phoneNumber: z.string().max(50, { error: d.phoneNumber.max }).nullable(),
   photoUrl: z.string().url({ error: d.photoUrl.invalid }).nullable(),
   firstName: z.string().max(100, { error: d.firstName.max }).nullable(),

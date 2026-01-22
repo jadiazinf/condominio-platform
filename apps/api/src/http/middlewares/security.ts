@@ -22,7 +22,7 @@ export function applyCors(app: Hono) {
     '*',
     cors({
       origin: env.CORS_ORIGIN ?? '*',
-      allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+      allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     })
   )
 }

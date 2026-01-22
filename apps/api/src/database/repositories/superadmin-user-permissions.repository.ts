@@ -2,8 +2,9 @@ import { eq, and } from 'drizzle-orm'
 import type {
   TSuperadminUserPermission,
   TSuperadminUserPermissionCreate,
+  TPermission,
 } from '@packages/domain'
-import { superadminUserPermissions } from '@database/drizzle/schema'
+import { superadminUserPermissions, permissions } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -101,5 +102,35 @@ export class SuperadminUserPermissionsRepository
       .returning()
 
     return results.length > 0
+  }
+
+  async getPermissionsWithDetailsBySuperadminUserId(
+    superadminUserId: string
+  ): Promise<TPermission[]> {
+    const results = await this.db
+      .select({
+        id: permissions.id,
+        name: permissions.name,
+        description: permissions.description,
+        module: permissions.module,
+        action: permissions.action,
+        registeredBy: permissions.registeredBy,
+        createdAt: permissions.createdAt,
+        updatedAt: permissions.updatedAt,
+      })
+      .from(superadminUserPermissions)
+      .innerJoin(permissions, eq(superadminUserPermissions.permissionId, permissions.id))
+      .where(eq(superadminUserPermissions.superadminUserId, superadminUserId))
+
+    return results.map(r => ({
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      module: r.module,
+      action: r.action,
+      registeredBy: r.registeredBy,
+      createdAt: r.createdAt ?? new Date(),
+      updatedAt: r.updatedAt ?? new Date(),
+    }))
   }
 }

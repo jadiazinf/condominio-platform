@@ -53,6 +53,9 @@ export const DomainLocaleDictionary = {
         displayName: {
           max: 'validation.models.users.displayName.max',
         },
+        phoneCountryCode: {
+          max: 'validation.models.users.phoneCountryCode.max',
+        },
         phoneNumber: {
           max: 'validation.models.users.phoneNumber.max',
         },

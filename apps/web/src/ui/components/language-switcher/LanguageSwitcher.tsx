@@ -22,7 +22,7 @@ interface ILanguageSwitcherProps {
   size?: 'sm' | 'md' | 'lg'
 }
 
-export function LanguageSwitcher({ variant = 'icon', size = 'md' }: ILanguageSwitcherProps) {
+export function LanguageSwitcher({ variant = 'icon', size = 'sm' }: ILanguageSwitcherProps) {
   const { locale, setLocale, t } = useI18n()
 
   const handleLanguageChange = (key: string | number) => {
@@ -53,11 +53,10 @@ export function LanguageSwitcher({ variant = 'icon', size = 'md' }: ILanguageSwi
           <Button
             isIconOnly
             aria-label={t('language.select')}
-            className="bg-transparent min-w-0 w-auto h-auto p-0"
             size={size}
             variant="light"
           >
-            <Globe size={22} />
+            <Globe size={20} />
           </Button>
         )
     }

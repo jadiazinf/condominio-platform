@@ -6,13 +6,14 @@ import { useUserCondominiums, registerUser, HttpError, ApiErrorCodes } from '@pa
 
 import { LoadingView } from './LoadingView'
 
-import { useAuth, useUser, useCondominium, useTranslation } from '@/contexts'
+import { useAuth, useUser, useCondominium, useSuperadmin, useTranslation } from '@/contexts'
 import {
   setUserCookie,
   clearUserCookie,
   setCondominiumsCookie,
   setSelectedCondominiumCookie,
   clearAllCondominiumCookies,
+  clearAllSuperadminCookies,
 } from '@/libs/cookies'
 import { getPendingRegistration, clearPendingRegistration } from '@/libs/storage'
 import { useToast } from '@/ui/components/toast'
@@ -41,6 +42,7 @@ export function ClientLoadingFlow() {
   const { user: firebaseUser, loading: authLoading, signOut, deleteCurrentUser } = useAuth()
   const { setUser, clearUser } = useUser()
   const { setCondominiums, selectCondominium, clearAllCondominiums } = useCondominium()
+  const { clearSuperadmin } = useSuperadmin()
 
   const flowControl = useRef<FlowControl>({
     hasRedirected: false,
@@ -66,8 +68,10 @@ export function ClientLoadingFlow() {
     clearUserCookie()
     clearAllCondominiums()
     clearAllCondominiumCookies()
+    clearSuperadmin()
+    clearAllSuperadminCookies()
     await signOut()
-  }, [clearUser, clearAllCondominiums, signOut])
+  }, [clearUser, clearAllCondominiums, clearSuperadmin, signOut])
 
   // ============================================
   // SIGNOUT FLOW
@@ -83,6 +87,8 @@ export function ClientLoadingFlow() {
         clearAllCondominiums()
         clearUserCookie()
         clearAllCondominiumCookies()
+        clearSuperadmin()
+        clearAllSuperadminCookies()
         await signOut()
 
         flowControl.current.hasRedirected = true
@@ -91,7 +97,7 @@ export function ClientLoadingFlow() {
 
       executeSignOut()
     },
-    [shouldSignOut, signOut, clearUser, clearAllCondominiums, router]
+    [shouldSignOut, signOut, clearUser, clearAllCondominiums, clearSuperadmin, router]
   )
 
   // ============================================

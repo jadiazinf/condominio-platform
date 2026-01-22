@@ -6,8 +6,8 @@ import { Link } from '@heroui/link'
 import { Menu } from 'lucide-react'
 
 import { useUser } from '@/contexts'
-import { ThemeSwitch } from '@/ui/components/themeSwitch/ThemeSwitch'
-import { LanguageSwitcher } from '@/ui/components/language-switcher'
+import { NotificationPanel } from '@/ui/components/notifications'
+import { UserAvatar } from '@/ui/components/avatar'
 
 interface DashboardNavbarProps {
   onToggleSidebar?: () => void
@@ -31,17 +31,16 @@ export function DashboardNavbar({ onToggleSidebar }: DashboardNavbarProps) {
         </NavbarBrand>
       </NavbarContent>
 
-      <NavbarContent justify="end">
-        <NavbarItem>
-          <LanguageSwitcher variant="icon" />
+      <NavbarContent className="items-center gap-2" justify="end">
+        <NavbarItem className="flex">
+          <NotificationPanel />
         </NavbarItem>
-        <NavbarItem>
-          <ThemeSwitch />
-        </NavbarItem>
-        <NavbarItem>
-          <span className="text-sm text-foreground/70">
-            {user?.displayName || user?.firstName || user?.email}
-          </span>
+        <NavbarItem className="flex ml-2">
+          <UserAvatar
+            href="/dashboard/settings"
+            name={user?.displayName || user?.firstName || user?.email}
+            src={user?.photoUrl}
+          />
         </NavbarItem>
       </NavbarContent>
     </HeroUINavbar>

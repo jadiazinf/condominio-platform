@@ -10,3 +10,14 @@ export {
   getSelectedCondominiumCookieName,
   clearAllCondominiumCookies,
 } from './condominium-cookie'
+export {
+  setSuperadminCookie,
+  getSuperadminCookie,
+  clearSuperadminCookie,
+  getSuperadminCookieName,
+  setSuperadminPermissionsCookie,
+  getSuperadminPermissionsCookie,
+  clearSuperadminPermissionsCookie,
+  getSuperadminPermissionsCookieName,
+  clearAllSuperadminCookies,
+} from './superadmin-cookie'

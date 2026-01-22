@@ -1,5 +1,15 @@
 import type { LucideIcon } from 'lucide-react'
-import { User, Settings, LogOut } from 'lucide-react'
+import {
+  User,
+  Settings,
+  LogOut,
+  LayoutDashboard,
+  Users,
+  Building2,
+  Building,
+  Shield,
+  CreditCard,
+} from 'lucide-react'
 
 import type { TSidebarItem } from '@/ui/components/sidebar'
 
@@ -24,5 +34,50 @@ export const dashboardSidebarItems: TSidebarItemConfig[] = [
     key: 'logout',
     title: 'nav.logout',
     icon: LogOut,
+  },
+]
+
+export const superadminSidebarItems: TSidebarItemConfig[] = [
+  {
+    key: 'dashboard',
+    title: 'superadmin.nav.dashboard',
+    icon: LayoutDashboard,
+    href: '/dashboard',
+  },
+  {
+    key: 'users',
+    title: 'superadmin.nav.users',
+    icon: Users,
+    href: '/dashboard/users',
+  },
+  {
+    key: 'condominiums',
+    title: 'superadmin.nav.condominiums',
+    icon: Building2,
+    href: '/dashboard/condominiums',
+  },
+  {
+    key: 'companies',
+    title: 'superadmin.nav.companies',
+    icon: Building,
+    href: '/dashboard/companies',
+  },
+  {
+    key: 'permissions',
+    title: 'superadmin.nav.permissions',
+    icon: Shield,
+    href: '/dashboard/permissions',
+  },
+  {
+    key: 'billing',
+    title: 'superadmin.nav.billing',
+    icon: CreditCard,
+    href: '/dashboard/billing',
+  },
+  {
+    key: 'settings',
+    title: 'nav.settings',
+    icon: Settings,
+    href: '/dashboard/settings',
   },
 ]

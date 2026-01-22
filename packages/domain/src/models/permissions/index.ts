@@ -1,3 +1,15 @@
-export { permissionSchema, EPermissionModules, EPermissionActions } from './schema'
-export type { TPermission, TPermissionModule, TPermissionAction } from './types'
+export {
+  permissionSchema,
+  EPermissionModules,
+  ESuperadminPermissionModules,
+  EAllPermissionModules,
+  EPermissionActions,
+} from './schema'
+export type {
+  TPermission,
+  TPermissionModule,
+  TSuperadminPermissionModule,
+  TAllPermissionModule,
+  TPermissionAction,
+} from './types'
 export * from './dtos'

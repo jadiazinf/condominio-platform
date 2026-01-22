@@ -2,9 +2,11 @@ import type { Context } from 'hono'
 import {
   userCreateSchema,
   userUpdateSchema,
+  userUpdateProfileSchema,
   type TUser,
   type TUserCreate,
   type TUserUpdate,
+  type TUserUpdateProfile,
 } from '@packages/domain'
 import type { UsersRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
@@ -71,12 +73,19 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
     this.updateLastLogin = this.updateLastLogin.bind(this)
     this.getCurrentUser = this.getCurrentUser.bind(this)
     this.getCondominiums = this.getCondominiums.bind(this)
+    this.updateCurrentUser = this.updateCurrentUser.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
       // /me routes must be before /:id to avoid being matched as an ID
       { method: 'get', path: '/me', handler: this.getCurrentUser, middlewares: [authMiddleware] },
+      {
+        method: 'patch',
+        path: '/me',
+        handler: this.updateCurrentUser,
+        middlewares: [authMiddleware, bodyValidator(userUpdateProfileSchema)],
+      },
       { method: 'get', path: '/me/condominiums', handler: this.getCondominiums, middlewares: [authMiddleware] },
       { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
       {
@@ -197,6 +206,29 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
       const user = ctx.getAuthenticatedUser()
 
       return ctx.ok({ data: user })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  /**
+   * Update the current authenticated user's profile.
+   * Only allows modifying fields defined in userUpdateProfileSchema.
+   */
+  private async updateCurrentUser(c: Context): Promise<Response> {
+    const ctx = this.ctx<TUserUpdateProfile>(c)
+
+    try {
+      const user = ctx.getAuthenticatedUser()
+      const data = ctx.body
+
+      const result = await this.repository.update(user.id, data)
+
+      if (!result) {
+        return ctx.notFound({ error: 'User not found' })
+      }
+
+      return ctx.ok({ data: result, message: 'Profile updated successfully' })
     } catch (error) {
       return this.handleError(ctx, error)
     }

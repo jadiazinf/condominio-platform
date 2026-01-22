@@ -5,6 +5,7 @@
     "success": "Exitoso",
     "cancel": "Cancelar",
     "save": "Guardar",
+    "saving": "Guardando...",
     "delete": "Eliminar",
     "edit": "Editar",
     "create": "Crear",
@@ -256,6 +257,14 @@
   },
   "validation": {
     "models": {
+      "users": {
+        "phoneCountryCode": {
+          "max": "El código de país no puede exceder 10 caracteres."
+        },
+        "phoneNumber": {
+          "max": "El número de teléfono no puede exceder 50 caracteres."
+        }
+      },
       "auth": {
         "email": {
           "required": "El correo electrónico es requerido.",
@@ -303,6 +312,64 @@
       "fetchingCondominiums": "Cargando tus condominios..."
     }
   },
+  "superadmin": {
+    "nav": {
+      "dashboard": "Panel",
+      "users": "Usuarios",
+      "condominiums": "Condominios",
+      "companies": "Empresas",
+      "managementCompanies": "Administradoras",
+      "permissions": "Permisos",
+      "billing": "Facturación",
+      "activity": "Actividad",
+      "auditLogs": "Logs de Auditoría",
+      "settings": "Configuración"
+    },
+    "dashboard": {
+      "title": "Panel de Superadmin",
+      "welcome": "¡Bienvenido, {name}!",
+      "subtitle": "Vista general del rendimiento y métricas de la plataforma",
+      "recentActivity": "Actividad Reciente",
+      "systemStatus": "Estado del Sistema",
+      "revenueAnalytics": "Análisis de Ingresos",
+      "userDistribution": "Distribución de Usuarios"
+    },
+    "metrics": {
+      "totalUsers": "Total Usuarios",
+      "activeCondominiums": "Condominios Activos",
+      "managementCompanies": "Administradoras",
+      "monthlyRevenue": "Ingresos del Mes",
+      "monthlyTransactions": "Transacciones del Mes",
+      "pendingAlerts": "Alertas Pendientes",
+      "activeUsers24h": "Usuarios Activos (24h)"
+    }
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "empty": "No tienes notificaciones",
+    "markAsRead": "Marcar como leída",
+    "markAllAsRead": "Marcar todas como leídas",
+    "viewAll": "Ver todas",
+    "delete": "Eliminar",
+    "time": {
+      "justNow": "Ahora mismo",
+      "minutesAgo": "Hace {count} min",
+      "hoursAgo": "Hace {count} h",
+      "daysAgo": "Hace {count} días"
+    },
+    "categories": {
+      "payment": "Pago",
+      "quota": "Cuota",
+      "announcement": "Anuncio",
+      "reminder": "Recordatorio",
+      "alert": "Alerta",
+      "system": "Sistema"
+    }
+  },
+  "network": {
+    "offline": "Sin conexión a internet",
+    "online": "Conexión restablecida"
+  },
   "errors": {
     "error": {
       "title": "Un disturbio en la Fuerza",
@@ -315,6 +382,74 @@
       "title": "El mapa no muestra este camino",
       "description": "Parece que te has aventurado más allá de los mapas conocidos. Esta página no existe en ningún reino. Pero no temas, el camino a casa siempre está abierto.",
       "backToHome": "Volver a casa"
+    }
+  },
+  "settings": {
+    "nav": {
+      "profile": "Perfil público",
+      "profileDescription": "Información visible para otros usuarios",
+      "language": "Idioma",
+      "languageDescription": "Preferencias de idioma de la aplicación",
+      "appearance": "Apariencia",
+      "appearanceDescription": "Personaliza el tema visual"
+    },
+    "profile": {
+      "title": "Perfil público",
+      "subtitle": "Esta información será visible para otros usuarios de tu condominio",
+      "photo": "Foto de perfil",
+      "photoDescription": "Tu foto aparecerá en tu perfil y en tus comentarios",
+      "uploadPhoto": "Subir foto",
+      "removePhoto": "Eliminar foto",
+      "photoUploadSuccess": "Foto actualizada exitosamente",
+      "photoUploadError": "Error al subir la foto",
+      "photoDeleteSuccess": "Foto eliminada exitosamente",
+      "photoDeleteError": "Error al eliminar la foto",
+      "photoInvalidType": "El archivo debe ser una imagen",
+      "photoTooLarge": "La imagen no puede superar los 5MB",
+      "basicInfo": "Información básica",
+      "basicInfoDescription": "Tu información personal",
+      "firstName": "Nombre",
+      "firstNamePlaceholder": "Tu nombre",
+      "lastName": "Apellido",
+      "lastNamePlaceholder": "Tu apellido",
+      "displayName": "Nombre para mostrar",
+      "displayNamePlaceholder": "Cómo quieres que te llamen",
+      "displayNameDescription": "Este es el nombre que verán los demás usuarios",
+      "email": "Correo electrónico",
+      "emailDescription": "Tu correo electrónico no puede ser modificado",
+      "phone": "Teléfono",
+      "phonePlaceholder": "412 123 4567",
+      "identityDocument": "Documento de identidad",
+      "identityDocumentDescription": "Información de tu documento de identificación",
+      "idDocument": "Documento de identidad",
+      "idDocumentType": "Tipo de documento",
+      "idDocumentTypePlaceholder": "Tipo",
+      "idDocumentNumber": "Número de documento",
+      "idDocumentNumberPlaceholder": "Número de documento",
+      "addressSection": "Dirección",
+      "addressSectionDescription": "Tu dirección de residencia",
+      "address": "Dirección completa",
+      "addressPlaceholder": "Calle, número, ciudad, país",
+      "updateSuccess": "Perfil actualizado exitosamente",
+      "updateError": "Error al actualizar el perfil"
+    },
+    "language": {
+      "title": "Idioma",
+      "subtitle": "Selecciona el idioma de la aplicación",
+      "selectLanguage": "Seleccionar idioma",
+      "selectLanguageDescription": "El cambio se aplicará inmediatamente en toda la aplicación"
+    },
+    "appearance": {
+      "title": "Apariencia",
+      "subtitle": "Personaliza cómo se ve la aplicación",
+      "theme": "Tema",
+      "themeDescription": "Selecciona el tema que prefieras para la interfaz",
+      "lightMode": "Modo claro",
+      "lightModeDescription": "Interfaz clara, ideal para uso durante el día",
+      "darkMode": "Modo oscuro",
+      "darkModeDescription": "Interfaz oscura, reduce la fatiga visual en ambientes con poca luz",
+      "systemMode": "Automático",
+      "systemModeDescription": "Se ajusta automáticamente según la configuración de tu dispositivo"
     }
   }
 }

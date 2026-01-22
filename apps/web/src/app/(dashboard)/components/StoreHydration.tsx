@@ -5,6 +5,7 @@ import type { TUser, TUserCondominiumAccess } from '@packages/domain'
 import { useEffect, useRef } from 'react'
 
 import { useUser, useCondominium } from '@/contexts'
+import { getUserCookie } from '@/libs/cookies/user-cookie'
 
 interface StoreHydrationProps {
   user: TUser | null
@@ -13,11 +14,30 @@ interface StoreHydrationProps {
 }
 
 /**
+ * Merges server user data with client user data, preferring client values
+ * for fields that exist only on the client (like photoUrl after upload).
+ */
+function mergeUserData(serverUser: TUser, clientUser: TUser | null): TUser {
+  if (!clientUser) return serverUser
+
+  // Always prefer client's photoUrl if it exists
+  // This handles the case where user uploads a photo and then refreshes,
+  // and the server hasn't persisted it yet or returns stale data
+  const mergedUser = { ...serverUser }
+
+  if (clientUser.photoUrl) {
+    mergedUser.photoUrl = clientUser.photoUrl
+  }
+
+  return mergedUser
+}
+
+/**
  * Hydrates the client-side stores (user, condominiums) from server data.
- * Only sets data if the store is empty to avoid overwriting user actions.
+ * Merges server data with client cookie data to preserve client-only updates like photoUrl.
  */
 export function StoreHydration({ user, condominiums, selectedCondominium }: StoreHydrationProps) {
-  const { user: currentUser, setUser } = useUser()
+  const { setUser } = useUser()
   const {
     condominiums: currentCondominiums,
     selectedCondominium: currentSelected,
@@ -31,9 +51,24 @@ export function StoreHydration({ user, condominiums, selectedCondominium }: Stor
     if (hasHydrated.current) return
     hasHydrated.current = true
 
-    // Hydrate user if store is empty
-    if (!currentUser && user) {
-      setUser(user)
+    // Read cookie directly to avoid race condition with UserContext hydration
+    const cookieUser = getUserCookie()
+
+    // Debug: Log hydration data in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[StoreHydration] Server user:', user)
+      console.log('[StoreHydration] Cookie user:', cookieUser)
+    }
+
+    // Merge server user with cookie user, preserving client-only data like photoUrl
+    if (user) {
+      const mergedUser = mergeUserData(user, cookieUser)
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[StoreHydration] Merged user:', mergedUser)
+      }
+
+      setUser(mergedUser)
     }
 
     // Hydrate condominiums if store is empty
@@ -49,7 +84,6 @@ export function StoreHydration({ user, condominiums, selectedCondominium }: Stor
     user,
     condominiums,
     selectedCondominium,
-    currentUser,
     currentCondominiums,
     currentSelected,
     setUser,

@@ -2,7 +2,9 @@
 
 import type { TUser } from '@packages/domain'
 
-import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useMemo, useEffect, type ReactNode } from 'react'
+
+import { setUserCookie, clearUserCookie, getUserCookie } from '@/libs/cookies/user-cookie'
 
 interface UserContextType {
   user: TUser | null
@@ -20,15 +22,32 @@ interface UserProviderProps {
 }
 
 export function UserProvider({ children, initialUser = null }: UserProviderProps) {
+  // Initialize with initialUser prop, but will try to hydrate from cookie on mount
   const [user, setUserState] = useState<TUser | null>(initialUser)
   const [isLoading, setIsLoading] = useState(false)
 
+  // Hydrate from client cookie on mount (handles page refresh)
+  useEffect(() => {
+    const cookieUser = getUserCookie()
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[UserContext] Mount - current user:', user)
+      console.log('[UserContext] Mount - cookie user:', cookieUser)
+    }
+
+    if (!user && cookieUser) {
+      setUserState(cookieUser)
+    }
+  }, [])
+
   const setUser = useCallback((newUser: TUser) => {
     setUserState(newUser)
+    setUserCookie(newUser)
   }, [])
 
   const clearUser = useCallback(() => {
     setUserState(null)
+    clearUserCookie()
   }, [])
 
   const value = useMemo(

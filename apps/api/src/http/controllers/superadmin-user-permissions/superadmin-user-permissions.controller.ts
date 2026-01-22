@@ -44,6 +44,7 @@ export class SuperadminUserPermissionsController extends BaseController<
   constructor(repository: SuperadminUserPermissionsRepository) {
     super(repository)
     this.getBySuperadminUserId = this.getBySuperadminUserId.bind(this)
+    this.getDetailedBySuperadminUserId = this.getDetailedBySuperadminUserId.bind(this)
     this.checkHasPermission = this.checkHasPermission.bind(this)
     this.deleteByPermissionId = this.deleteByPermissionId.bind(this)
   }
@@ -55,6 +56,12 @@ export class SuperadminUserPermissionsController extends BaseController<
         method: 'get',
         path: '/superadmin/:superadminUserId',
         handler: this.getBySuperadminUserId,
+        middlewares: [authMiddleware, paramsValidator(SuperadminUserIdParamSchema)],
+      },
+      {
+        method: 'get',
+        path: '/superadmin/:superadminUserId/detailed',
+        handler: this.getDetailedBySuperadminUserId,
         middlewares: [authMiddleware, paramsValidator(SuperadminUserIdParamSchema)],
       },
       {
@@ -96,6 +103,20 @@ export class SuperadminUserPermissionsController extends BaseController<
 
     try {
       const permissions = await repo.getBySuperadminUserId(ctx.params.superadminUserId)
+      return ctx.ok({ data: permissions })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private async getDetailedBySuperadminUserId(c: Context): Promise<Response> {
+    const ctx = this.ctx<unknown, unknown, TSuperadminUserIdParam>(c)
+    const repo = this.repository as SuperadminUserPermissionsRepository
+
+    try {
+      const permissions = await repo.getPermissionsWithDetailsBySuperadminUserId(
+        ctx.params.superadminUserId
+      )
       return ctx.ok({ data: permissions })
     } catch (error) {
       return this.handleError(ctx, error)
