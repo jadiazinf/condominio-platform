@@ -43,11 +43,8 @@ export function ProfilePhotoSection() {
           {/* Avatar with camera button */}
           <div className="relative">
             <Avatar
-              isBordered
               className="w-24 h-24 text-large"
-              color="primary"
               imgProps={{
-                crossOrigin: 'anonymous',
                 loading: 'eager',
                 fetchPriority: 'high',
               }}

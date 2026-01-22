@@ -54,6 +54,11 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(function Side
 ) {
   const [selected, setSelected] = React.useState<string>(defaultSelectedKey)
 
+  // Update selected when defaultSelectedKey changes (e.g., on navigation)
+  React.useEffect(() => {
+    setSelected(defaultSelectedKey)
+  }, [defaultSelectedKey])
+
   function handleSelectionChange(keys: 'all' | Set<React.Key>) {
     const key = Array.from(keys)[0] as string
 

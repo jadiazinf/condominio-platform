@@ -1,11 +1,9 @@
 import { redirect } from 'next/navigation'
 
 import { StoreHydration } from './components/StoreHydration'
-import { SuperadminHydration } from './components/SuperadminHydration'
 import { DashboardShell } from './components/DashboardShell'
 import { SuperadminShell } from './components/SuperadminShell'
 import { PageErrorBoundary } from '@/ui/components/error-boundary'
-import { AvatarPreloader } from '@/ui/components/avatar'
 import { getFullSession } from '@/libs/session'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -20,10 +18,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Determine if user is a superadmin
   const isSuperadmin = session.superadmin?.isActive === true
 
+  // Preload avatar image from server to prevent flash
+  const avatarPreloadLink = session.user?.photoUrl ? (
+    <link rel="preload" as="image" href={session.user.photoUrl} />
+  ) : null
+
   // Render appropriate shell based on user type
   if (isSuperadmin) {
     return (
       <>
+        {avatarPreloadLink}
         <StoreHydration
           condominiums={session.condominiums}
           selectedCondominium={session.selectedCondominium}
@@ -32,8 +36,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           superadminPermissions={session.superadminPermissions}
           wasFetched={session.wasFetched}
         />
-        <AvatarPreloader />
-        <SuperadminShell>
+        <SuperadminShell initialUser={session.user}>
           <PageErrorBoundary pageName="Dashboard">{children}</PageErrorBoundary>
         </SuperadminShell>
       </>
@@ -42,14 +45,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <>
+      {avatarPreloadLink}
       <StoreHydration
         condominiums={session.condominiums}
         selectedCondominium={session.selectedCondominium}
         user={session.user}
         wasFetched={session.wasFetched}
       />
-      <AvatarPreloader />
-      <DashboardShell>
+      <DashboardShell initialUser={session.user}>
         <PageErrorBoundary pageName="Dashboard">{children}</PageErrorBoundary>
       </DashboardShell>
     </>

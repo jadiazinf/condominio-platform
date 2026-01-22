@@ -299,6 +299,37 @@
     "welcome": "Welcome, {name}",
     "title": "Dashboard"
   },
+  "resident": {
+    "dashboard": {
+      "subtitle": "Here you can see a summary of your account and pending quotas",
+      "totalPending": "Total pending",
+      "dueThisMonth": "Due this month",
+      "upToDate": "Up to date",
+      "payNow": "Pay now",
+      "upcomingQuotas": "Upcoming quotas",
+      "noUpcomingQuotas": "No pending quotas",
+      "dueDate": "Due",
+      "status": {
+        "pending": "Pending",
+        "overdue": "Overdue",
+        "paid": "Paid"
+      },
+      "recentPayments": "Recent payments",
+      "noRecentPayments": "No recent payments",
+      "paymentStatus": {
+        "completed": "Completed",
+        "pending_verification": "Pending verification",
+        "rejected": "Rejected"
+      },
+      "quickActions": "Quick actions",
+      "payQuota": "Pay quota",
+      "viewStatement": "View statement",
+      "paymentHistory": "History",
+      "notifications": "Notifications",
+      "unit": "Unit",
+      "building": "Building"
+    }
+  },
   "condominium": {
     "selection": {
       "title": "Select your condominium",

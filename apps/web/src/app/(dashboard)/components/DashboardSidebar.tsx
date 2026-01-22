@@ -2,9 +2,10 @@
 
 import { useRouter, usePathname } from 'next/navigation'
 
+import { dashboardSidebarItems } from '../config/sidebar-items'
+
 import { Sidebar, type TSidebarItem } from '@/ui/components/sidebar'
 import { useTranslation } from '@/contexts'
-import { dashboardSidebarItems } from '../config/sidebar-items'
 
 interface DashboardSidebarProps {
   isCompact?: boolean
@@ -28,9 +29,12 @@ export function DashboardSidebar({ isCompact = false, onItemSelect }: DashboardS
   })
 
   // Get current selected key from pathname
+  // Sort by href length descending to match more specific paths first
   const currentKey =
-    dashboardSidebarItems.find(item => item.href && pathname.startsWith(item.href))?.key ??
-    'profile'
+    [...dashboardSidebarItems]
+      .filter(item => item.href)
+      .sort((a, b) => (b.href?.length ?? 0) - (a.href?.length ?? 0))
+      .find(item => item.href && pathname.startsWith(item.href))?.key ?? 'dashboard'
 
   function handleSelect(key: string) {
     if (key === 'logout') {

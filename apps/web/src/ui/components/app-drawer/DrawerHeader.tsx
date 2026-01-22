@@ -86,7 +86,6 @@ function UserInfo({ displayName, email, photoUrl }: IUserInfoProps) {
         size="md"
         src={photoUrl || undefined}
         imgProps={{
-          crossOrigin: 'anonymous',
           loading: 'eager',
           fetchPriority: 'high',
         }}

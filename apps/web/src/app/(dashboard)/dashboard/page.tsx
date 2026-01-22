@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { Users, Building2, Building, CreditCard } from 'lucide-react'
+import { Users, Building2, Building as BuildingIcon, CreditCard } from 'lucide-react'
 
 import { Typography } from '@/ui/components/typography'
 import { getFullSession } from '@/libs/session'
@@ -11,6 +11,14 @@ import { DistributionChart } from '../components/DistributionChart'
 import { ActivityFeed, type TActivity } from '../components/ActivityFeed'
 import { SystemStatusCard } from '../components/SystemStatusCard'
 import { DashboardSkeleton, SuperadminDashboardSkeleton } from './components/DashboardSkeleton'
+import {
+  AccountBalanceCard,
+  UpcomingQuotas,
+  RecentPayments,
+  QuickActions,
+  type IQuota,
+  type IPayment,
+} from './components/resident'
 
 // Regular user dashboard content
 async function RegularDashboardContent() {
@@ -20,12 +28,134 @@ async function RegularDashboardContent() {
   const displayName =
     session.user?.displayName || session.user?.firstName || session.user?.email || ''
 
+  // Get the selected condominium info
+  const selectedCondominium = session.selectedCondominium
+
+  // TODO: Fetch real data from API based on user's units
+  const mockQuotas: IQuota[] = [
+    {
+      id: '1',
+      concept: 'Cuota de condominio - Enero 2025',
+      amount: 150,
+      currency: '$',
+      dueDate: '15/01/2025',
+      status: 'pending',
+    },
+    {
+      id: '2',
+      concept: 'Fondo de reserva',
+      amount: 50,
+      currency: '$',
+      dueDate: '15/01/2025',
+      status: 'pending',
+    },
+    {
+      id: '3',
+      concept: 'Cuota de condominio - Diciembre 2024',
+      amount: 150,
+      currency: '$',
+      dueDate: '15/12/2024',
+      status: 'overdue',
+    },
+  ]
+
+  const mockPayments: IPayment[] = [
+    {
+      id: '1',
+      amount: 150,
+      currency: '$',
+      date: '15/12/2024',
+      method: 'Transferencia bancaria',
+      status: 'completed',
+    },
+    {
+      id: '2',
+      amount: 200,
+      currency: '$',
+      date: '10/12/2024',
+      method: 'Pago móvil',
+      status: 'pending_verification',
+    },
+  ]
+
+  const totalPending = mockQuotas
+    .filter(q => q.status !== 'paid')
+    .reduce((sum, q) => sum + q.amount, 0)
+
+  const dueThisMonth = mockQuotas
+    .filter(q => q.status === 'pending')
+    .reduce((sum, q) => sum + q.amount, 0)
+
   return (
-    <div className="py-8">
-      <Typography variant="h1">{t('dashboard.welcome', { name: displayName })}</Typography>
-      <Typography className="mt-4" color="muted" variant="body1">
-        {t('dashboard.title')}
-      </Typography>
+    <div className="space-y-6">
+      {/* Welcome Header */}
+      <div>
+        <Typography variant="h2">{t('dashboard.welcome', { name: displayName })}</Typography>
+        <Typography className="mt-1" color="muted" variant="body2">
+          {t('resident.dashboard.subtitle')}
+        </Typography>
+        {selectedCondominium && (
+          <Typography className="mt-2" color="muted" variant="caption">
+            {selectedCondominium.condominium.name}
+          </Typography>
+        )}
+      </div>
+
+      {/* Account Balance + Quick Actions Row */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <AccountBalanceCard
+            currency="$"
+            dueThisMonth={dueThisMonth}
+            totalPending={totalPending}
+            trend={{ value: 5, isPositive: true }}
+            translations={{
+              totalPending: t('resident.dashboard.totalPending'),
+              dueThisMonth: t('resident.dashboard.dueThisMonth'),
+              upToDate: t('resident.dashboard.upToDate'),
+              payNow: t('resident.dashboard.payNow'),
+            }}
+          />
+        </div>
+        <QuickActions
+          translations={{
+            title: t('resident.dashboard.quickActions'),
+            payQuota: t('resident.dashboard.payQuota'),
+            viewStatement: t('resident.dashboard.viewStatement'),
+            paymentHistory: t('resident.dashboard.paymentHistory'),
+            notifications: t('resident.dashboard.notifications'),
+          }}
+        />
+      </div>
+
+      {/* Quotas and Payments Row */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <UpcomingQuotas
+          quotas={mockQuotas}
+          translations={{
+            title: t('resident.dashboard.upcomingQuotas'),
+            noQuotas: t('resident.dashboard.noUpcomingQuotas'),
+            dueDate: t('resident.dashboard.dueDate'),
+            status: {
+              pending: t('resident.dashboard.status.pending'),
+              overdue: t('resident.dashboard.status.overdue'),
+              paid: t('resident.dashboard.status.paid'),
+            },
+          }}
+        />
+        <RecentPayments
+          payments={mockPayments}
+          translations={{
+            title: t('resident.dashboard.recentPayments'),
+            noPayments: t('resident.dashboard.noRecentPayments'),
+            status: {
+              completed: t('resident.dashboard.paymentStatus.completed'),
+              pending_verification: t('resident.dashboard.paymentStatus.pending_verification'),
+              rejected: t('resident.dashboard.paymentStatus.rejected'),
+            },
+          }}
+        />
+      </div>
     </div>
   )
 }
@@ -176,7 +306,7 @@ async function SuperadminDashboardContent() {
           chartData={companiesChartData}
           chartIndex={2}
           color="violet"
-          icon={<Building className="text-white" size={20} />}
+          icon={<BuildingIcon className="text-white" size={20} />}
           title={t('superadmin.metrics.managementCompanies')}
           trend={{ value: 5, label: 'vs mes anterior', isPositive: true }}
           value={metrics.managementCompanies}

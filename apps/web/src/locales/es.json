@@ -299,6 +299,37 @@
     "welcome": "Bienvenido, {name}",
     "title": "Panel de Control"
   },
+  "resident": {
+    "dashboard": {
+      "subtitle": "Aquí puedes ver el resumen de tu cuenta y cuotas pendientes",
+      "totalPending": "Total pendiente",
+      "dueThisMonth": "Vence este mes",
+      "upToDate": "Al día",
+      "payNow": "Pagar ahora",
+      "upcomingQuotas": "Cuotas próximas",
+      "noUpcomingQuotas": "No tienes cuotas pendientes",
+      "dueDate": "Vence",
+      "status": {
+        "pending": "Pendiente",
+        "overdue": "Vencida",
+        "paid": "Pagada"
+      },
+      "recentPayments": "Pagos recientes",
+      "noRecentPayments": "No hay pagos recientes",
+      "paymentStatus": {
+        "completed": "Completado",
+        "pending_verification": "En verificación",
+        "rejected": "Rechazado"
+      },
+      "quickActions": "Acciones rápidas",
+      "payQuota": "Pagar cuota",
+      "viewStatement": "Estado de cuenta",
+      "paymentHistory": "Historial",
+      "notifications": "Notificaciones",
+      "unit": "Unidad",
+      "building": "Edificio"
+    }
+  },
   "condominium": {
     "selection": {
       "title": "Selecciona tu condominio",

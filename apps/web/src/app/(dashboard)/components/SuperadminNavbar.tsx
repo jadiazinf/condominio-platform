@@ -1,22 +1,23 @@
 'use client'
 
+import type { TUser } from '@packages/domain'
+
 import { Navbar as HeroUINavbar, NavbarBrand, NavbarContent, NavbarItem } from '@heroui/navbar'
 import { Button } from '@heroui/button'
 import { Link } from '@heroui/link'
 import { Chip } from '@heroui/chip'
 import { Menu, Shield } from 'lucide-react'
 
-import { useUser } from '@/contexts'
 import { NotificationPanel } from '@/ui/components/notifications'
-import { UserAvatar } from '@/ui/components/avatar'
+import { CurrentUserAvatar } from '@/ui/components/avatar'
 
 interface SuperadminNavbarProps {
   onToggleSidebar?: () => void
+  /** Initial user data from server to prevent avatar flash */
+  initialUser?: TUser | null
 }
 
-export function SuperadminNavbar({ onToggleSidebar }: SuperadminNavbarProps) {
-  const { user } = useUser()
-
+export function SuperadminNavbar({ onToggleSidebar, initialUser }: SuperadminNavbarProps) {
   return (
     <HeroUINavbar isBordered classNames={{ wrapper: 'px-4' }} maxWidth="full">
       <NavbarContent justify="start">
@@ -45,11 +46,7 @@ export function SuperadminNavbar({ onToggleSidebar }: SuperadminNavbarProps) {
           <NotificationPanel />
         </NavbarItem>
         <NavbarItem className="flex ml-2">
-          <UserAvatar
-            href="/dashboard/settings"
-            name={user?.displayName || user?.firstName || user?.email}
-            src={user?.photoUrl}
-          />
+          <CurrentUserAvatar initialUser={initialUser} isClickable />
         </NavbarItem>
       </NavbarContent>
     </HeroUINavbar>

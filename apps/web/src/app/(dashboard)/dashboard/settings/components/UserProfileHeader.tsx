@@ -1,15 +1,13 @@
 'use client'
 
-import { Avatar } from '@heroui/avatar'
-
 import { useUser, useTranslation } from '@/contexts'
+import { CurrentUserAvatar } from '@/ui/components/avatar'
 
 export function UserProfileHeader() {
   const { user } = useUser()
   const { t } = useTranslation()
 
   const displayName = getUserDisplayName()
-  const photoUrl = user?.photoUrl || undefined
 
   function getUserDisplayName(): string {
     if (!user) return t('common.user')
@@ -23,17 +21,7 @@ export function UserProfileHeader() {
 
   return (
     <header className="flex items-center gap-4 pb-6 border-b border-divider">
-      <Avatar
-        key={photoUrl}
-        className="w-16 h-16"
-        name={displayName}
-        src={photoUrl}
-        imgProps={{
-          crossOrigin: 'anonymous',
-          loading: 'eager',
-          fetchPriority: 'high',
-        }}
-      />
+      <CurrentUserAvatar className="w-16 h-16" isBordered={false} />
       <UserInfo name={displayName} email={user?.email} />
     </header>
   )

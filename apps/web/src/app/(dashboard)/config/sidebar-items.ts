@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
+import type { TSidebarItem } from '@/ui/components/sidebar'
+
 import {
-  User,
   Settings,
   LogOut,
   LayoutDashboard,
@@ -11,18 +12,16 @@ import {
   CreditCard,
 } from 'lucide-react'
 
-import type { TSidebarItem } from '@/ui/components/sidebar'
-
 type TSidebarItemConfig = Omit<TSidebarItem, 'icon'> & {
   icon?: LucideIcon
 }
 
 export const dashboardSidebarItems: TSidebarItemConfig[] = [
   {
-    key: 'profile',
-    title: 'nav.profile',
-    icon: User,
-    href: '/dashboard/profile',
+    key: 'dashboard',
+    title: 'nav.dashboard',
+    icon: LayoutDashboard,
+    href: '/dashboard',
   },
   {
     key: 'settings',
