@@ -50,6 +50,25 @@ async function setSessionCookie(user: User): Promise<void> {
   document.cookie = `${SESSION_COOKIE_NAME}=${idToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secureFlag}`
 }
 
+function getCookie(name: string): string | undefined {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) {
+    return parts.pop()?.split(';').shift()
+  }
+  return undefined
+}
+
+async function waitForCookie(name: string, maxAttempts = 10, delayMs = 50): Promise<boolean> {
+  for (let i = 0; i < maxAttempts; i++) {
+    if (getCookie(name)) {
+      return true
+    }
+    await new Promise(resolve => setTimeout(resolve, delayMs))
+  }
+  return false
+}
+
 function clearSessionCookie(): void {
   const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:'
   const secureFlag = isSecure ? '; Secure' : ''
@@ -87,6 +106,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       await setSessionCookie(userCredential.user)
+      // Wait for cookie to be readable to avoid race condition with server-side validation
+      await waitForCookie(SESSION_COOKIE_NAME)
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
 
@@ -127,6 +148,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       })
       const userCredential = await signInWithPopup(auth, provider)
       await setSessionCookie(userCredential.user)
+      // Wait for cookie to be readable to avoid race condition with server-side validation
+      await waitForCookie(SESSION_COOKIE_NAME)
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
 

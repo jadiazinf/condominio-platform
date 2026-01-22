@@ -19,18 +19,31 @@ const getFirebaseCredentials = (): admin.ServiceAccount => {
   return localCredentials as admin.ServiceAccount
 }
 
+let firebaseInitialized = false
+
 const initializeFirebase = () => {
+  const isProduction = env.NODE_ENV === 'production' || env.NODE_ENV === 'staging'
+
   try {
     const credentials = getFirebaseCredentials()
     admin.initializeApp({
       credential: admin.credential.cert(credentials),
     })
+    firebaseInitialized = true
     logger.info('Firebase Admin SDK initialized successfully')
   } catch (error) {
     logger.error({ err: error }, 'Failed to initialize Firebase Admin SDK')
+    // In production, fail hard if Firebase cannot be initialized
+    if (isProduction) {
+      throw error
+    }
   }
+}
+
+function isFirebaseInitialized(): boolean {
+  return firebaseInitialized
 }
 
 initializeFirebase()
 
-export { admin }
+export { admin, isFirebaseInitialized }

@@ -45,13 +45,13 @@ export function SignInForm() {
     try {
       setIsSubmitting(true)
       await signInWithEmail(data.email, data.password)
-      // Redirect directly to dashboard - the layout will handle session setup
-      router.push('/dashboard')
+      // Use window.location for a full page reload to ensure the cookie is sent with the request
+      // router.push() causes a client-side navigation that may not include the newly set cookie
+      window.location.href = '/dashboard'
     } catch (err) {
       const errorKey = getFirebaseErrorKey(err)
 
       toast.error(t(errorKey))
-    } finally {
       setIsSubmitting(false)
     }
   }
@@ -60,13 +60,13 @@ export function SignInForm() {
     try {
       setIsSubmitting(true)
       await signInWithGoogle()
-      // Redirect directly to dashboard - the layout will handle session setup
-      router.push('/dashboard')
+      // Use window.location for a full page reload to ensure the cookie is sent with the request
+      // router.push() causes a client-side navigation that may not include the newly set cookie
+      window.location.href = '/dashboard'
     } catch (err) {
       const errorKey = getFirebaseErrorKey(err)
 
       toast.error(t(errorKey))
-    } finally {
       setIsSubmitting(false)
     }
   }
