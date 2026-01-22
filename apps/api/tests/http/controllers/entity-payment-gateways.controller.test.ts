@@ -9,7 +9,13 @@ import type {
 } from '@packages/domain'
 import { EntityPaymentGatewaysController } from '@http/controllers/entity-payment-gateways'
 import type { EntityPaymentGatewaysRepository } from '@database/repositories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods

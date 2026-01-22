@@ -21,7 +21,8 @@ export function MetricCard({ title, value, icon, trend, description, className }
     if (!trend) return null
 
     const TrendIcon = trend.value === 0 ? Minus : trend.isPositive ? TrendingUp : TrendingDown
-    const trendColor = trend.value === 0 ? 'text-default-500' : trend.isPositive ? 'text-success' : 'text-danger'
+    const trendColor =
+      trend.value === 0 ? 'text-default-500' : trend.isPositive ? 'text-success' : 'text-danger'
 
     return (
       <div className={cn('flex items-center gap-1 text-sm', trendColor)}>

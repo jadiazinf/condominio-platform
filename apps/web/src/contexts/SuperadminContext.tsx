@@ -1,10 +1,18 @@
 'use client'
 
-import type { TSuperadminUser, TPermission, TAllPermissionModule, TPermissionAction } from '@packages/domain'
+import type {
+  TSuperadminUser,
+  TPermission,
+  TAllPermissionModule,
+  TPermissionAction,
+} from '@packages/domain'
 
 import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react'
 
-import { getSuperadminCookie, getSuperadminPermissionsCookie } from '@/libs/cookies/superadmin-cookie'
+import {
+  getSuperadminCookie,
+  getSuperadminPermissionsCookie,
+} from '@/libs/cookies/superadmin-cookie'
 
 interface SuperadminContextType {
   superadmin: TSuperadminUser | null
@@ -14,8 +22,12 @@ interface SuperadminContextType {
   clearSuperadmin: () => void
   isSuperadmin: boolean
   hasPermission: (module: TAllPermissionModule, action: TPermissionAction) => boolean
-  hasAnyPermission: (checks: Array<{ module: TAllPermissionModule; action: TPermissionAction }>) => boolean
-  hasAllPermissions: (checks: Array<{ module: TAllPermissionModule; action: TPermissionAction }>) => boolean
+  hasAnyPermission: (
+    checks: Array<{ module: TAllPermissionModule; action: TPermissionAction }>
+  ) => boolean
+  hasAllPermissions: (
+    checks: Array<{ module: TAllPermissionModule; action: TPermissionAction }>
+  ) => boolean
 }
 
 const SuperadminContext = createContext<SuperadminContextType | undefined>(undefined)

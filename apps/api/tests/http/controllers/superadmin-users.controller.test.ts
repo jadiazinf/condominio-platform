@@ -10,7 +10,13 @@ import type {
 import { SuperadminUsersController } from '@http/controllers/superadmin-users'
 import type { SuperadminUsersRepository } from '@database/repositories'
 import { SuperadminUserFactory } from '../../setup/factories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods

@@ -6,7 +6,13 @@ import type { TPermission, TPermissionCreate, TPermissionUpdate } from '@package
 import { PermissionsController } from '@http/controllers/permissions'
 import type { PermissionsRepository } from '@database/repositories'
 import { PermissionFactory } from '../../setup/factories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods

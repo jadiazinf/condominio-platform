@@ -17,7 +17,10 @@ interface SystemStatusCardProps {
   services: Service[]
 }
 
-const statusConfig: Record<ServiceStatus, { icon: React.ReactNode; color: 'success' | 'warning' | 'danger'; label: string }> = {
+const statusConfig: Record<
+  ServiceStatus,
+  { icon: React.ReactNode; color: 'success' | 'warning' | 'danger'; label: string }
+> = {
   operational: {
     icon: <CheckCircle size={14} />,
     color: 'success',
@@ -56,7 +59,10 @@ export function SystemStatusCard({ title, services }: SystemStatusCardProps) {
           const config = statusConfig[service.status]
 
           return (
-            <div key={service.name} className="flex items-center justify-between py-2 border-b border-divider last:border-b-0">
+            <div
+              key={service.name}
+              className="flex items-center justify-between py-2 border-b border-divider last:border-b-0"
+            >
               <div className="flex items-center gap-2">
                 <span className={`text-${config.color}`}>{config.icon}</span>
                 <span className="text-sm">{service.name}</span>

@@ -10,7 +10,13 @@ import type {
 import { PaymentGatewaysController } from '@http/controllers/payment-gateways'
 import type { PaymentGatewaysRepository } from '@database/repositories'
 import { PaymentGatewayFactory } from '../../setup/factories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods

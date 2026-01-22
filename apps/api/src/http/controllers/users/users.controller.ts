@@ -79,7 +79,12 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
         handler: this.updateCurrentUser,
         middlewares: [authMiddleware, bodyValidator(userUpdateProfileSchema)],
       },
-      { method: 'get', path: '/me/condominiums', handler: this.getCondominiums, middlewares: [authMiddleware] },
+      {
+        method: 'get',
+        path: '/me/condominiums',
+        handler: this.getCondominiums,
+        middlewares: [authMiddleware],
+      },
       { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
       {
         method: 'get',

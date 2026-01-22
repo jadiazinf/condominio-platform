@@ -1,12 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  varchar,
-  boolean,
-  timestamp,
-  integer,
-  index,
-} from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, boolean, timestamp, integer, index } from 'drizzle-orm/pg-core'
 
 export const currencies = pgTable(
   'currencies',

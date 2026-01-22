@@ -17,7 +17,8 @@ async function RegularDashboardContent() {
   // Fetch translations and session in parallel
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
 
-  const displayName = session.user?.displayName || session.user?.firstName || session.user?.email || ''
+  const displayName =
+    session.user?.displayName || session.user?.firstName || session.user?.email || ''
 
   return (
     <div className="py-8">

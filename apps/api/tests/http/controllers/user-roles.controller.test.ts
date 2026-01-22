@@ -5,7 +5,13 @@ import { StatusCodes } from 'http-status-codes'
 import type { TUserRole, TUserRoleCreate, TUserRoleUpdate } from '@packages/domain'
 import { UserRolesController } from '@http/controllers/user-roles'
 import type { UserRolesRepository } from '@database/repositories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods

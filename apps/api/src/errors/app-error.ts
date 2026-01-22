@@ -116,11 +116,9 @@ export class AppError extends Error {
    * Creates a FOREIGN_KEY_VIOLATION error.
    */
   static foreignKeyViolation(reference: string): AppError {
-    return new AppError(
-      ErrorCode.FOREIGN_KEY_VIOLATION,
-      `Invalid reference to ${reference}`,
-      { reference }
-    )
+    return new AppError(ErrorCode.FOREIGN_KEY_VIOLATION, `Invalid reference to ${reference}`, {
+      reference,
+    })
   }
 
   /**
@@ -169,7 +167,9 @@ export class AppError extends Error {
    * Creates a SERVICE_UNAVAILABLE error.
    */
   static serviceUnavailable(service?: string): AppError {
-    const message = service ? `${service} is currently unavailable` : 'Service is currently unavailable'
+    const message = service
+      ? `${service} is currently unavailable`
+      : 'Service is currently unavailable'
     return new AppError(ErrorCode.SERVICE_UNAVAILABLE, message, { service })
   }
 
@@ -177,11 +177,9 @@ export class AppError extends Error {
    * Creates a RATE_LIMITED error.
    */
   static rateLimited(retryAfter?: number): AppError {
-    return new AppError(
-      ErrorCode.RATE_LIMITED,
-      'Too many requests. Please try again later.',
-      { retryAfter }
-    )
+    return new AppError(ErrorCode.RATE_LIMITED, 'Too many requests. Please try again later.', {
+      retryAfter,
+    })
   }
 
   /**

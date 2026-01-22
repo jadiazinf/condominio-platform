@@ -75,10 +75,11 @@ export function DistributionChart({
             </PieChart>
           </ResponsiveContainer>
           {(centerLabel || centerValue) && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style={{ top: '-20px' }}>
-              {centerLabel && (
-                <span className="text-xs text-default-500">{centerLabel}</span>
-              )}
+            <div
+              className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
+              style={{ top: '-20px' }}
+            >
+              {centerLabel && <span className="text-xs text-default-500">{centerLabel}</span>}
               {centerValue && (
                 <span className="text-xl font-bold text-foreground">{centerValue}</span>
               )}

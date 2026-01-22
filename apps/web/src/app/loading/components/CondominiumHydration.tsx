@@ -12,7 +12,10 @@ interface CondominiumHydrationProps {
   selectedCondominium: TUserCondominiumAccess | null
 }
 
-export function CondominiumHydration({ condominiums, selectedCondominium }: CondominiumHydrationProps) {
+export function CondominiumHydration({
+  condominiums,
+  selectedCondominium,
+}: CondominiumHydrationProps) {
   const { setCondominiums, selectCondominium } = useCondominium()
 
   useEffect(() => {

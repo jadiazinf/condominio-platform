@@ -19,7 +19,10 @@ export const userUpdateProfileSchema = z.object({
   phoneNumber: z.string().max(50, { error: d.phoneNumber.max }).nullable().optional(),
   photoUrl: z.string().url({ error: d.photoUrl.invalid }).nullable().optional(),
   // Identity document
-  idDocumentType: z.enum(EIdDocumentTypes, { error: d.idDocumentType.invalid }).nullable().optional(),
+  idDocumentType: z
+    .enum(EIdDocumentTypes, { error: d.idDocumentType.invalid })
+    .nullable()
+    .optional(),
   idDocumentNumber: z.string().max(50, { error: d.idDocumentNumber.max }).nullable().optional(),
   // Address
   address: z.string().max(500, { error: d.address.max }).nullable().optional(),

@@ -24,7 +24,10 @@ interface ActivityFeedProps extends Omit<CardProps, 'children'> {
   emptyMessage?: string
 }
 
-const activityAvatarColors: Record<TActivityType, 'primary' | 'success' | 'warning' | 'danger' | 'secondary'> = {
+const activityAvatarColors: Record<
+  TActivityType,
+  'primary' | 'success' | 'warning' | 'danger' | 'secondary'
+> = {
   user: 'primary',
   payment: 'success',
   condominium: 'secondary',

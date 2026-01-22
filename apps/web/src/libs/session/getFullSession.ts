@@ -2,7 +2,11 @@ import type { TUser, TUserCondominiumAccess, TSuperadminUser, TPermission } from
 
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { fetchUserByFirebaseUid, fetchUserCondominiums, fetchSuperadminSession } from '@packages/http-client'
+import {
+  fetchUserByFirebaseUid,
+  fetchUserCondominiums,
+  fetchSuperadminSession,
+} from '@packages/http-client'
 
 import { verifySessionToken } from '@/libs/firebase/server'
 import {
@@ -56,17 +60,23 @@ export async function getFullSession(): Promise<FullSession> {
   }
 
   // Try to get all data from cookies first
-  const [cookieUser, cookieCondominiums, cookieSelectedCondominium, cookieSuperadmin, cookiePermissions] =
-    await Promise.all([
-      getUserCookieServer(),
-      getCondominiumsCookieServer(),
-      getSelectedCondominiumCookieServer(),
-      getSuperadminCookieServer(),
-      getSuperadminPermissionsCookieServer(),
-    ])
+  const [
+    cookieUser,
+    cookieCondominiums,
+    cookieSelectedCondominium,
+    cookieSuperadmin,
+    cookiePermissions,
+  ] = await Promise.all([
+    getUserCookieServer(),
+    getCondominiumsCookieServer(),
+    getSelectedCondominiumCookieServer(),
+    getSuperadminCookieServer(),
+    getSuperadminPermissionsCookieServer(),
+  ])
 
   // Validate that cached user matches current session
-  const validCachedUser = cookieUser && cookieUser.firebaseUid === decodedToken.uid ? cookieUser : null
+  const validCachedUser =
+    cookieUser && cookieUser.firebaseUid === decodedToken.uid ? cookieUser : null
 
   // Determine what needs to be fetched
   const needsFetch = !validCachedUser || cookieCondominiums === null
@@ -103,7 +113,8 @@ export async function getFullSession(): Promise<FullSession> {
     condominiums = cookieCondominiums ?? []
   }
 
-  const selectedCondominium = cookieSelectedCondominium ?? (condominiums.length === 1 ? condominiums[0] : null)
+  const selectedCondominium =
+    cookieSelectedCondominium ?? (condominiums.length === 1 ? condominiums[0] : null)
   const needsCondominiumSelection = condominiums.length > 1 && !selectedCondominium
 
   return {

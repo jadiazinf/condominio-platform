@@ -17,11 +17,7 @@ export default function SelectCondominiumPage() {
   const { t } = useTranslation()
   const { user: firebaseUser, loading: authLoading } = useAuth()
   const { user } = useUser()
-  const {
-    condominiums,
-    hasMultipleCondominiums,
-    selectCondominium,
-  } = useCondominium()
+  const { condominiums, hasMultipleCondominiums, selectCondominium } = useCondominium()
   const hasRedirected = useRef(false)
 
   // Redirect if user is not authenticated or no user data
@@ -108,10 +104,7 @@ export default function SelectCondominiumPage() {
         {condominiums.length === 0 ? (
           <NoCondominiums onContactSupport={handleContactSupport} />
         ) : (
-          <CondominiumList
-            condominiums={condominiums}
-            onSelect={handleSelectCondominium}
-          />
+          <CondominiumList condominiums={condominiums} onSelect={handleSelectCondominium} />
         )}
       </div>
     </div>

@@ -1,10 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  timestamp,
-  index,
-  uniqueIndex,
-} from 'drizzle-orm/pg-core'
+import { pgTable, uuid, timestamp, index, uniqueIndex } from 'drizzle-orm/pg-core'
 import { users } from './users'
 import { roles } from './roles'
 import { condominiums } from './condominiums'

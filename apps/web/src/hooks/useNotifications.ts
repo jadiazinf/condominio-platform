@@ -31,14 +31,18 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     enabled: !!userId && options.enabled !== false,
   })
 
-  const { data: unreadCountData, refetch: refetchUnreadCount } =
-    useApiQuery<TApiDataResponse<UnreadCountResponse>>({
-      path: `/notifications/user/${userId}/unread-count`,
-      queryKey: ['notifications', 'unread-count', userId],
-      enabled: !!userId && options.enabled !== false,
-    })
+  const { data: unreadCountData, refetch: refetchUnreadCount } = useApiQuery<
+    TApiDataResponse<UnreadCountResponse>
+  >({
+    path: `/notifications/user/${userId}/unread-count`,
+    queryKey: ['notifications', 'unread-count', userId],
+    enabled: !!userId && options.enabled !== false,
+  })
 
-  const { mutateAsync: markAsReadMutation } = useApiMutation<TApiDataResponse<TNotification>, { id: string }>({
+  const { mutateAsync: markAsReadMutation } = useApiMutation<
+    TApiDataResponse<TNotification>,
+    { id: string }
+  >({
     path: variables => `/notifications/${variables.id}/read`,
     method: 'POST',
     onSuccess: () => {
@@ -47,7 +51,10 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     },
   })
 
-  const { mutateAsync: markAllAsReadMutation } = useApiMutation<TApiDataResponse<{ count: number }>, void>({
+  const { mutateAsync: markAllAsReadMutation } = useApiMutation<
+    TApiDataResponse<{ count: number }>,
+    void
+  >({
     path: `/notifications/user/${userId}/read-all`,
     method: 'POST',
     onSuccess: () => {
@@ -56,7 +63,10 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     },
   })
 
-  const { mutateAsync: deleteNotificationMutation } = useApiMutation<TApiDataResponse<void>, { id: string }>({
+  const { mutateAsync: deleteNotificationMutation } = useApiMutation<
+    TApiDataResponse<void>,
+    { id: string }
+  >({
     path: variables => `/notifications/${variables.id}`,
     method: 'DELETE',
     onSuccess: () => {

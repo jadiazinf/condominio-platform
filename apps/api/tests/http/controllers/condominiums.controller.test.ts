@@ -6,7 +6,13 @@ import type { TCondominium, TCondominiumCreate, TCondominiumUpdate } from '@pack
 import { CondominiumsController } from '@http/controllers/condominiums'
 import type { CondominiumsRepository } from '@database/repositories'
 import { CondominiumFactory } from '../../setup/factories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods

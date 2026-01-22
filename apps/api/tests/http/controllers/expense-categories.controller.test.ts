@@ -10,7 +10,13 @@ import type {
 import { ExpenseCategoriesController } from '@http/controllers/expense-categories'
 import type { ExpenseCategoriesRepository } from '@database/repositories'
 import { ExpenseCategoryFactory } from '../../setup/factories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods

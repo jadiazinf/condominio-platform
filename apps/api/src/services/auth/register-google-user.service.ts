@@ -22,9 +22,10 @@ export type TRegisterGoogleUserInput = {
  * Service to register a new user from Google Sign-In.
  * Creates the user in the database using Firebase token data.
  */
-export class RegisterGoogleUserService
-  implements IService<TRegisterGoogleUserInput, TServiceResult<TUser>>
-{
+export class RegisterGoogleUserService implements IService<
+  TRegisterGoogleUserInput,
+  TServiceResult<TUser>
+> {
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async execute(input: TRegisterGoogleUserInput): Promise<TServiceResult<TUser>> {

@@ -6,7 +6,13 @@ import type { TSuperadminUserPermission, TSuperadminUserPermissionCreate } from 
 import { SuperadminUserPermissionsController } from '@http/controllers/superadmin-user-permissions'
 import type { SuperadminUserPermissionsRepository } from '@database/repositories'
 import { SuperadminUserPermissionFactory } from '../../setup/factories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods
@@ -149,7 +155,9 @@ describe('SuperadminUserPermissionsController', function () {
 
       const json = (await res.json()) as IApiResponse
       expect(json.data).toHaveLength(2)
-      expect(json.data.every((p: TSuperadminUserPermission) => p.superadminUserId === testSuperadminId)).toBe(true)
+      expect(
+        json.data.every((p: TSuperadminUserPermission) => p.superadminUserId === testSuperadminId)
+      ).toBe(true)
     })
 
     it('should return empty array when superadmin has no permissions', async function () {
@@ -252,9 +260,12 @@ describe('SuperadminUserPermissionsController', function () {
 
   describe('DELETE /:id (delete)', function () {
     it('should delete an existing permission assignment', async function () {
-      const res = await request('/superadmin-user-permissions/550e8400-e29b-41d4-a716-446655440101', {
-        method: 'DELETE',
-      })
+      const res = await request(
+        '/superadmin-user-permissions/550e8400-e29b-41d4-a716-446655440101',
+        {
+          method: 'DELETE',
+        }
+      )
 
       expect(res.status).toBe(StatusCodes.NO_CONTENT)
     })
@@ -264,9 +275,12 @@ describe('SuperadminUserPermissionsController', function () {
         return false
       }
 
-      const res = await request('/superadmin-user-permissions/550e8400-e29b-41d4-a716-446655440099', {
-        method: 'DELETE',
-      })
+      const res = await request(
+        '/superadmin-user-permissions/550e8400-e29b-41d4-a716-446655440099',
+        {
+          method: 'DELETE',
+        }
+      )
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 

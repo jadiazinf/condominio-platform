@@ -18,13 +18,7 @@ interface IAppDrawerProps {
   children: React.ReactNode
 }
 
-export function AppDrawer({
-  isOpen,
-  onOpenChange,
-  onClose,
-  badge,
-  children,
-}: IAppDrawerProps) {
+export function AppDrawer({ isOpen, onOpenChange, onClose, badge, children }: IAppDrawerProps) {
   return (
     <Drawer
       classNames={{

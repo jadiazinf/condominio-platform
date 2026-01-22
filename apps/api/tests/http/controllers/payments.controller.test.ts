@@ -5,7 +5,13 @@ import { StatusCodes } from 'http-status-codes'
 import type { TPayment, TPaymentCreate, TPaymentUpdate } from '@packages/domain'
 import { PaymentsController } from '@http/controllers/payments'
 import type { PaymentsRepository } from '@database/repositories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods

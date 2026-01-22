@@ -23,7 +23,13 @@ export function UserProfileHeader() {
 
   return (
     <header className="flex items-center gap-4 pb-6 border-b border-divider">
-      <Avatar key={photoUrl} className="w-16 h-16" name={displayName} src={photoUrl} imgProps={{ crossOrigin: 'anonymous' }} />
+      <Avatar
+        key={photoUrl}
+        className="w-16 h-16"
+        name={displayName}
+        src={photoUrl}
+        imgProps={{ crossOrigin: 'anonymous' }}
+      />
       <UserInfo name={displayName} email={user?.email} />
     </header>
   )

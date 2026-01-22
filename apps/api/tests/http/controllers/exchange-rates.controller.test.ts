@@ -5,7 +5,13 @@ import { StatusCodes } from 'http-status-codes'
 import type { TExchangeRate, TExchangeRateCreate, TExchangeRateUpdate } from '@packages/domain'
 import { ExchangeRatesController } from '@http/controllers/exchange-rates'
 import type { ExchangeRatesRepository } from '@database/repositories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods

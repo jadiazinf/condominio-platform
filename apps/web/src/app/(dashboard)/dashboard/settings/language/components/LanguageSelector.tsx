@@ -5,7 +5,10 @@ import { RadioGroup, Radio } from '@heroui/radio'
 import { useI18n } from '@/contexts'
 import { EAppLanguages, SUPPORTED_LANGUAGES, type TAppLanguages } from '@/locales'
 
-const LANGUAGE_OPTIONS: Record<TAppLanguages, { label: string; flag: string; description: string }> = {
+const LANGUAGE_OPTIONS: Record<
+  TAppLanguages,
+  { label: string; flag: string; description: string }
+> = {
   [EAppLanguages.ES]: {
     label: 'Español',
     flag: '🇪🇸',

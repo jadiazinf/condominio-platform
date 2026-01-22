@@ -38,10 +38,7 @@ export function useUpdateProfile(options: UseUpdateProfileOptions) {
  * Function to update the current user's profile.
  * Use this for imperative updates where you need dynamic token handling.
  */
-export async function updateProfile(
-  token: string,
-  data: TUserUpdateProfile
-): Promise<TUser> {
+export async function updateProfile(token: string, data: TUserUpdateProfile): Promise<TUser> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataMessageResponse<TUser>>('/users/me', data, {
     headers: {

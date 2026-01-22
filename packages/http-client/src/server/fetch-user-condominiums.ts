@@ -3,7 +3,9 @@ import type { TUserCondominiumsResponse } from '@packages/domain'
 import { getEnvConfig } from '../config/env'
 import type { TApiDataResponse } from '../types/api-responses'
 
-export async function fetchUserCondominiums(token: string): Promise<TUserCondominiumsResponse | null> {
+export async function fetchUserCondominiums(
+  token: string
+): Promise<TUserCondominiumsResponse | null> {
   try {
     const { apiBaseUrl } = getEnvConfig()
     const response = await fetch(`${apiBaseUrl}/users/me/condominiums`, {

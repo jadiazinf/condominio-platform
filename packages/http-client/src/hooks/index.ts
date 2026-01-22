@@ -17,10 +17,7 @@ export {
   type UseCurrentUserOptions,
   type UseUserByFirebaseUidOptions,
 } from './use-user'
-export {
-  useUserCondominiums,
-  type UseUserCondominiumsOptions,
-} from './use-user-condominiums'
+export { useUserCondominiums, type UseUserCondominiumsOptions } from './use-user-condominiums'
 export {
   useRegisterWithGoogle,
   registerWithGoogle,

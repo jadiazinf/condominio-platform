@@ -28,7 +28,9 @@ export function DashboardSidebar({ isCompact = false, onItemSelect }: DashboardS
   })
 
   // Get current selected key from pathname
-  const currentKey = dashboardSidebarItems.find(item => item.href && pathname.startsWith(item.href))?.key ?? 'profile'
+  const currentKey =
+    dashboardSidebarItems.find(item => item.href && pathname.startsWith(item.href))?.key ??
+    'profile'
 
   function handleSelect(key: string) {
     if (key === 'logout') {

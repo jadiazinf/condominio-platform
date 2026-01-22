@@ -22,9 +22,7 @@ export type TRegisterUserInput = {
  * Service to register a new user from any Firebase authentication method.
  * Creates the user in the database using Firebase token data.
  */
-export class RegisterUserService
-  implements IService<TRegisterUserInput, TServiceResult<TUser>>
-{
+export class RegisterUserService implements IService<TRegisterUserInput, TServiceResult<TUser>> {
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async execute(input: TRegisterUserInput): Promise<TServiceResult<TUser>> {

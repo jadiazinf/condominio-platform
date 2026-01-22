@@ -2,7 +2,15 @@
 
 import type { TUser } from '@packages/domain'
 
-import { createContext, useContext, useState, useCallback, useMemo, useEffect, type ReactNode } from 'react'
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  type ReactNode,
+} from 'react'
 
 import { setUserCookie, clearUserCookie, getUserCookie } from '@/libs/cookies/user-cookie'
 

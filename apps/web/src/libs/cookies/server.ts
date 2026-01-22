@@ -47,7 +47,9 @@ export async function getUserCookieServer(): Promise<TUser | null> {
 // Condominiums Cookie (Server-side)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function setCondominiumsCookieServer(condominiums: TUserCondominiumAccess[]): Promise<void> {
+export async function setCondominiumsCookieServer(
+  condominiums: TUserCondominiumAccess[]
+): Promise<void> {
   const cookieStore = await cookies()
   const condominiumsJson = JSON.stringify(condominiums)
   const encodedCondominiums = encodeURIComponent(condominiumsJson)
@@ -151,7 +153,9 @@ export async function getSuperadminCookieServer(): Promise<TSuperadminUser | nul
 // Superadmin Permissions Cookie (Server-side)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function setSuperadminPermissionsCookieServer(permissions: TPermission[]): Promise<void> {
+export async function setSuperadminPermissionsCookieServer(
+  permissions: TPermission[]
+): Promise<void> {
   const cookieStore = await cookies()
   const permissionsJson = JSON.stringify(permissions)
   const encodedPermissions = encodeURIComponent(permissionsJson)

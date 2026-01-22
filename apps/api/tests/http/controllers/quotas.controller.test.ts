@@ -5,7 +5,13 @@ import { StatusCodes } from 'http-status-codes'
 import type { TQuota, TQuotaCreate, TQuotaUpdate } from '@packages/domain'
 import { QuotasController } from '@http/controllers/quotas'
 import type { QuotasRepository } from '@database/repositories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods

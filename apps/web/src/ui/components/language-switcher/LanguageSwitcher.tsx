@@ -50,12 +50,7 @@ export function LanguageSwitcher({ variant = 'icon', size = 'sm' }: ILanguageSwi
       case 'icon':
       default:
         return (
-          <Button
-            isIconOnly
-            aria-label={t('language.select')}
-            size={size}
-            variant="light"
-          >
+          <Button isIconOnly aria-label={t('language.select')} size={size} variant="light">
             <Globe size={20} />
           </Button>
         )

@@ -17,7 +17,12 @@ export class SuperadminUserPermissionsRepository
     TSuperadminUserPermissionCreate,
     Partial<TSuperadminUserPermissionCreate>
   >
-  implements IRepositoryWithHardDelete<TSuperadminUserPermission, TSuperadminUserPermissionCreate, Partial<TSuperadminUserPermissionCreate>>
+  implements
+    IRepositoryWithHardDelete<
+      TSuperadminUserPermission,
+      TSuperadminUserPermissionCreate,
+      Partial<TSuperadminUserPermissionCreate>
+    >
 {
   constructor(db: TDrizzleClient) {
     super(db, superadminUserPermissions)
@@ -87,10 +92,7 @@ export class SuperadminUserPermissionsRepository
     return results.length > 0
   }
 
-  async deleteByPermissionId(
-    superadminUserId: string,
-    permissionId: string
-  ): Promise<boolean> {
+  async deleteByPermissionId(superadminUserId: string, permissionId: string): Promise<boolean> {
     const results = await this.db
       .delete(superadminUserPermissions)
       .where(

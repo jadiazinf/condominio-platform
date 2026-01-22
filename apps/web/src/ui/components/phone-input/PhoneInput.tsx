@@ -99,9 +99,7 @@ export function PhoneInput({
           isInvalid={!!phoneNumberError}
         />
       </div>
-      {description && !isInvalid && (
-        <p className="text-tiny text-foreground-400">{description}</p>
-      )}
+      {description && !isInvalid && <p className="text-tiny text-foreground-400">{description}</p>}
       {errorMessage && <p className="text-tiny text-danger">{errorMessage}</p>}
     </div>
   )

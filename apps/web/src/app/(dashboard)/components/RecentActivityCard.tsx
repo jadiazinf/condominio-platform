@@ -44,7 +44,10 @@ export function RecentActivityCard({ title, activities }: RecentActivityCardProp
           <p className="text-default-500 text-sm py-4 text-center">No hay actividad reciente</p>
         ) : (
           activities.map(activity => (
-            <div key={activity.id} className="flex items-start gap-3 py-2 border-b border-divider last:border-b-0">
+            <div
+              key={activity.id}
+              className="flex items-start gap-3 py-2 border-b border-divider last:border-b-0"
+            >
               <Chip
                 classNames={{
                   base: 'min-w-8 h-8',
@@ -60,7 +63,9 @@ export function RecentActivityCard({ title, activities }: RecentActivityCardProp
                 <p className="text-sm font-medium truncate">{activity.title}</p>
                 <p className="text-xs text-default-500 truncate">{activity.description}</p>
               </div>
-              <span className="text-xs text-default-400 whitespace-nowrap">{activity.timestamp}</span>
+              <span className="text-xs text-default-400 whitespace-nowrap">
+                {activity.timestamp}
+              </span>
             </div>
           ))
         )}

@@ -6,7 +6,13 @@ import type { TRole, TRoleCreate, TRoleUpdate } from '@packages/domain'
 import { RolesController } from '@http/controllers/roles'
 import type { RolesRepository } from '@database/repositories'
 import { RoleFactory } from '../../setup/factories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods

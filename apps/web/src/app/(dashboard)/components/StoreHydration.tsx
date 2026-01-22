@@ -14,6 +14,7 @@ import {
   setSuperadminCookie,
   setSuperadminPermissionsCookie,
 } from '@/libs/cookies/superadmin-cookie'
+import { getProfilePhotoUrl } from '@/libs/firebase'
 
 interface StoreHydrationProps {
   user: TUser | null
@@ -72,6 +73,7 @@ export function StoreHydration({
   } = useSuperadmin()
 
   const hasHydrated = useRef(false)
+  const hasRefreshedPhotoUrl = useRef(false)
 
   useEffect(() => {
     if (hasHydrated.current) return
@@ -131,7 +133,11 @@ export function StoreHydration({
       }
     }
 
-    if ((!currentPermissions || currentPermissions.length === 0) && superadminPermissions && superadminPermissions.length > 0) {
+    if (
+      (!currentPermissions || currentPermissions.length === 0) &&
+      superadminPermissions &&
+      superadminPermissions.length > 0
+    ) {
       setPermissions(superadminPermissions)
       if (wasFetched) {
         setSuperadminPermissionsCookie(superadminPermissions)
@@ -154,6 +160,35 @@ export function StoreHydration({
     setSuperadmin,
     setPermissions,
   ])
+
+  // Refresh photo URL from Firebase Storage to ensure it has a valid token
+  useEffect(() => {
+    if (!user || hasRefreshedPhotoUrl.current) return
+
+    async function refreshPhotoUrl() {
+      hasRefreshedPhotoUrl.current = true
+
+      try {
+        // Get fresh URL from Firebase Storage
+        const freshPhotoUrl = await getProfilePhotoUrl(user!.id)
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[StoreHydration] Fresh photo URL:', freshPhotoUrl)
+        }
+
+        // Update user with fresh photo URL (or null if photo doesn't exist)
+        const updatedUser = { ...user!, photoUrl: freshPhotoUrl }
+        setUser(updatedUser)
+        setUserCookie(updatedUser)
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[StoreHydration] Error refreshing photo URL:', error)
+        }
+      }
+    }
+
+    refreshPhotoUrl()
+  }, [user, setUser])
 
   return null
 }

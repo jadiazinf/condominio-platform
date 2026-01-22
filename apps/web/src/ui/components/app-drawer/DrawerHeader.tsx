@@ -20,7 +20,9 @@ export function DrawerHeader({ badge, onClose }: IDrawerHeaderProps) {
   const { user } = useUser()
 
   const displayName =
-    user?.displayName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || t('common.user')
+    user?.displayName ||
+    `${user?.firstName || ''} ${user?.lastName || ''}`.trim() ||
+    t('common.user')
 
   return (
     <HeroUIDrawerHeader className="flex flex-col gap-4 bg-gradient-to-br from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700 p-5 text-white">

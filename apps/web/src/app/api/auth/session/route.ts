@@ -2,7 +2,11 @@ import type { TUserCondominiumAccess } from '@packages/domain'
 
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
-import { fetchUserByFirebaseUid, fetchUserCondominiums, fetchSuperadminSession } from '@packages/http-client'
+import {
+  fetchUserByFirebaseUid,
+  fetchUserCondominiums,
+  fetchSuperadminSession,
+} from '@packages/http-client'
 
 import { verifySessionToken } from '@/libs/firebase/server'
 

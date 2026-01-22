@@ -158,10 +158,7 @@ async function findOrCreateSuperadminUser(): Promise<string> {
     createdBy: null,
   }
 
-  const [newSuperadmin] = await db
-    .insert(schema.superadminUsers)
-    .values(superadminData)
-    .returning()
+  const [newSuperadmin] = await db.insert(schema.superadminUsers).values(superadminData).returning()
 
   if (!newSuperadmin) {
     throw new Error('Failed to create superadmin record')
@@ -214,7 +211,7 @@ async function assignAllPermissions(superadminId: string): Promise<void> {
 
 async function seed() {
   console.log('🌱 Starting complete superadmin setup...')
-  console.log('=' .repeat(50))
+  console.log('='.repeat(50))
 
   try {
     // Step 1: Create permissions
@@ -226,7 +223,7 @@ async function seed() {
     // Step 3: Assign all permissions
     await assignAllPermissions(superadminId)
 
-    console.log('\n' + '=' .repeat(50))
+    console.log('\n' + '='.repeat(50))
     console.log('✅ Superadmin setup completed successfully!')
     console.log('\nYou can now access /superadmin with the first user in the database.')
   } catch (error) {

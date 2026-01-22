@@ -209,7 +209,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
       deleteCurrentUser,
       clearError,
     }),
-    [user, loading, error, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut, deleteCurrentUser, clearError]
+    [
+      user,
+      loading,
+      error,
+      signInWithEmail,
+      signUpWithEmail,
+      signInWithGoogle,
+      signOut,
+      deleteCurrentUser,
+      clearError,
+    ]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

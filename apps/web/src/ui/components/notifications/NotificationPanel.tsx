@@ -17,14 +17,8 @@ interface NotificationPanelProps {
 
 export function NotificationPanel({ maxNotifications = 5 }: NotificationPanelProps) {
   const { t } = useTranslation()
-  const {
-    notifications,
-    unreadCount,
-    isLoading,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification,
-  } = useNotifications()
+  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, deleteNotification } =
+    useNotifications()
 
   const displayNotifications = notifications.slice(0, maxNotifications)
   const hasUnread = unreadCount > 0
@@ -71,11 +65,7 @@ export function NotificationPanel({ maxNotifications = 5 }: NotificationPanelPro
           </div>
           <Divider />
           <div className="p-3 text-center">
-            <Link
-              href="/dashboard/notifications"
-              size="sm"
-              className="text-xs font-medium"
-            >
+            <Link href="/dashboard/notifications" size="sm" className="text-xs font-medium">
               {t('notifications.viewAll')}
             </Link>
           </div>

@@ -5,7 +5,13 @@ import { StatusCodes } from 'http-status-codes'
 import type { TDocument, TDocumentCreate, TDocumentUpdate } from '@packages/domain'
 import { DocumentsController } from '@http/controllers/documents'
 import type { DocumentsRepository } from '@database/repositories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods

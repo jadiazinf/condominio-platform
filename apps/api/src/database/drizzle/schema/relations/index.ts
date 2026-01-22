@@ -743,20 +743,23 @@ export const superadminUsersRelations = relations(superadminUsers, ({ one, many 
   permissions: many(superadminUserPermissions),
 }))
 
-export const superadminUserPermissionsRelations = relations(superadminUserPermissions, ({ one }) => ({
-  superadminUser: one(superadminUsers, {
-    fields: [superadminUserPermissions.superadminUserId],
-    references: [superadminUsers.id],
-  }),
-  permission: one(permissions, {
-    fields: [superadminUserPermissions.permissionId],
-    references: [permissions.id],
-  }),
-  createdByUser: one(users, {
-    fields: [superadminUserPermissions.createdBy],
-    references: [users.id],
-  }),
-}))
+export const superadminUserPermissionsRelations = relations(
+  superadminUserPermissions,
+  ({ one }) => ({
+    superadminUser: one(superadminUsers, {
+      fields: [superadminUserPermissions.superadminUserId],
+      references: [superadminUsers.id],
+    }),
+    permission: one(permissions, {
+      fields: [superadminUserPermissions.permissionId],
+      references: [permissions.id],
+    }),
+    createdByUser: one(users, {
+      fields: [superadminUserPermissions.createdBy],
+      references: [users.id],
+    }),
+  })
+)
 
 // ============================================================================
 // AUDIT LOGS RELATIONS

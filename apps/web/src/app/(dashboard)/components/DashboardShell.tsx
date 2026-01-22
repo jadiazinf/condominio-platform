@@ -23,11 +23,7 @@ export function DashboardShell({ children }: IDashboardShellProps) {
 
       <main className="flex-1 overflow-y-auto p-6">{children}</main>
 
-      <AppDrawer
-        isOpen={isOpen}
-        onClose={onClose}
-        onOpenChange={onOpenChange}
-      >
+      <AppDrawer isOpen={isOpen} onClose={onClose} onOpenChange={onOpenChange}>
         <DashboardSidebar onItemSelect={handleSidebarSelect} />
       </AppDrawer>
     </div>

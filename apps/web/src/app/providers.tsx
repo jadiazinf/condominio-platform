@@ -9,7 +9,13 @@ import { useRouter } from 'next/navigation'
 import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import { QueryProvider } from '@packages/http-client'
 
-import { AuthProvider, I18nProvider, UserProvider, CondominiumProvider, SuperadminProvider } from '@/contexts'
+import {
+  AuthProvider,
+  I18nProvider,
+  UserProvider,
+  CondominiumProvider,
+  SuperadminProvider,
+} from '@/contexts'
 import { ToastProvider } from '@/ui/components/toast'
 import { NetworkStatusMonitor } from '@/ui/components/network-status'
 import { type TAppLanguages } from '@/locales'

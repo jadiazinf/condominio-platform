@@ -8,14 +8,11 @@ import type {
   TAllPermissionModule,
   TPermissionAction,
 } from '@packages/domain'
+
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-import {
-  setUserCookie,
-  clearUserCookie,
-  getUserCookie,
-} from '@/libs/cookies/user-cookie'
+import { setUserCookie, clearUserCookie, getUserCookie } from '@/libs/cookies/user-cookie'
 import {
   setCondominiumsCookie,
   setSelectedCondominiumCookie,
@@ -69,8 +66,12 @@ interface SessionActions {
   hasSelectedCondominium: () => boolean
   isSuperadmin: () => boolean
   hasPermission: (module: TAllPermissionModule, action: TPermissionAction) => boolean
-  hasAnyPermission: (checks: Array<{ module: TAllPermissionModule; action: TPermissionAction }>) => boolean
-  hasAllPermissions: (checks: Array<{ module: TAllPermissionModule; action: TPermissionAction }>) => boolean
+  hasAnyPermission: (
+    checks: Array<{ module: TAllPermissionModule; action: TPermissionAction }>
+  ) => boolean
+  hasAllPermissions: (
+    checks: Array<{ module: TAllPermissionModule; action: TPermissionAction }>
+  ) => boolean
 
   // Session management
   clearSession: () => void
@@ -99,7 +100,7 @@ export const useSessionStore = create<SessionStore>()(
       user: null,
       isUserLoading: false,
 
-      setUser: (user) => {
+      setUser: user => {
         set({ user })
         setUserCookie(user)
       },
@@ -109,7 +110,7 @@ export const useSessionStore = create<SessionStore>()(
         clearUserCookie()
       },
 
-      setIsUserLoading: (isUserLoading) => set({ isUserLoading }),
+      setIsUserLoading: isUserLoading => set({ isUserLoading }),
 
       // ─────────────────────────────────────────────────────────────────────────
       // Condominium Slice
@@ -118,12 +119,12 @@ export const useSessionStore = create<SessionStore>()(
       selectedCondominium: null,
       isCondominiumLoading: false,
 
-      setCondominiums: (condominiums) => {
+      setCondominiums: condominiums => {
         set({ condominiums })
         setCondominiumsCookie(condominiums)
       },
 
-      selectCondominium: (condominium) => {
+      selectCondominium: condominium => {
         set({ selectedCondominium: condominium })
         setSelectedCondominiumCookie(condominium)
       },
@@ -138,7 +139,7 @@ export const useSessionStore = create<SessionStore>()(
         clearAllCondominiumCookies()
       },
 
-      setIsCondominiumLoading: (isCondominiumLoading) => set({ isCondominiumLoading }),
+      setIsCondominiumLoading: isCondominiumLoading => set({ isCondominiumLoading }),
 
       // ─────────────────────────────────────────────────────────────────────────
       // Superadmin Slice
@@ -146,12 +147,12 @@ export const useSessionStore = create<SessionStore>()(
       superadmin: null,
       permissions: [],
 
-      setSuperadmin: (superadmin) => {
+      setSuperadmin: superadmin => {
         set({ superadmin })
         setSuperadminCookie(superadmin)
       },
 
-      setPermissions: (permissions) => {
+      setPermissions: permissions => {
         set({ permissions })
         setSuperadminPermissionsCookie(permissions)
       },
@@ -168,6 +169,7 @@ export const useSessionStore = create<SessionStore>()(
       hasSelectedCondominium: () => get().selectedCondominium !== null,
       isSuperadmin: () => {
         const { superadmin } = get()
+
         return superadmin !== null && superadmin.isActive
       },
 
@@ -175,13 +177,15 @@ export const useSessionStore = create<SessionStore>()(
         return get().permissions.some(p => p.module === module && p.action === action)
       },
 
-      hasAnyPermission: (checks) => {
+      hasAnyPermission: checks => {
         const { hasPermission } = get()
+
         return checks.some(check => hasPermission(check.module, check.action))
       },
 
-      hasAllPermissions: (checks) => {
+      hasAllPermissions: checks => {
         const { hasPermission } = get()
+
         return checks.every(check => hasPermission(check.module, check.action))
       },
 
@@ -219,7 +223,7 @@ export const useSessionStore = create<SessionStore>()(
         })
       },
 
-      hydrateFromServer: (data) => {
+      hydrateFromServer: data => {
         const currentState = get()
 
         set({
@@ -241,7 +245,7 @@ export const useSessionStore = create<SessionStore>()(
     {
       name: 'session-storage',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
+      partialize: state => ({
         // Only persist essential data, not loading states
         user: state.user,
         condominiums: state.condominiums,
@@ -274,10 +278,10 @@ export const selectIsCondominiumLoading = (state: SessionStore) => state.isCondo
  */
 export function useUser() {
   const user = useSessionStore(selectUser)
-  const setUser = useSessionStore((s) => s.setUser)
-  const clearUser = useSessionStore((s) => s.clearUser)
+  const setUser = useSessionStore(s => s.setUser)
+  const clearUser = useSessionStore(s => s.clearUser)
   const isLoading = useSessionStore(selectIsUserLoading)
-  const setIsLoading = useSessionStore((s) => s.setIsUserLoading)
+  const setIsLoading = useSessionStore(s => s.setIsUserLoading)
 
   return { user, setUser, clearUser, isLoading, setIsLoading }
 }
@@ -288,14 +292,14 @@ export function useUser() {
 export function useCondominium() {
   const condominiums = useSessionStore(selectCondominiums)
   const selectedCondominium = useSessionStore(selectSelectedCondominium)
-  const setCondominiums = useSessionStore((s) => s.setCondominiums)
-  const selectCondominium = useSessionStore((s) => s.selectCondominium)
-  const clearSelectedCondominium = useSessionStore((s) => s.clearSelectedCondominium)
-  const clearAllCondominiums = useSessionStore((s) => s.clearAllCondominiums)
-  const hasMultipleCondominiums = useSessionStore((s) => s.hasMultipleCondominiums)
-  const hasSelectedCondominium = useSessionStore((s) => s.hasSelectedCondominium)
+  const setCondominiums = useSessionStore(s => s.setCondominiums)
+  const selectCondominium = useSessionStore(s => s.selectCondominium)
+  const clearSelectedCondominium = useSessionStore(s => s.clearSelectedCondominium)
+  const clearAllCondominiums = useSessionStore(s => s.clearAllCondominiums)
+  const hasMultipleCondominiums = useSessionStore(s => s.hasMultipleCondominiums)
+  const hasSelectedCondominium = useSessionStore(s => s.hasSelectedCondominium)
   const isLoading = useSessionStore(selectIsCondominiumLoading)
-  const setIsLoading = useSessionStore((s) => s.setIsCondominiumLoading)
+  const setIsLoading = useSessionStore(s => s.setIsCondominiumLoading)
 
   return {
     condominiums,
@@ -317,13 +321,13 @@ export function useCondominium() {
 export function useSuperadmin() {
   const superadmin = useSessionStore(selectSuperadmin)
   const permissions = useSessionStore(selectPermissions)
-  const setSuperadmin = useSessionStore((s) => s.setSuperadmin)
-  const setPermissions = useSessionStore((s) => s.setPermissions)
-  const clearSuperadmin = useSessionStore((s) => s.clearSuperadmin)
-  const isSuperadmin = useSessionStore((s) => s.isSuperadmin)
-  const hasPermission = useSessionStore((s) => s.hasPermission)
-  const hasAnyPermission = useSessionStore((s) => s.hasAnyPermission)
-  const hasAllPermissions = useSessionStore((s) => s.hasAllPermissions)
+  const setSuperadmin = useSessionStore(s => s.setSuperadmin)
+  const setPermissions = useSessionStore(s => s.setPermissions)
+  const clearSuperadmin = useSessionStore(s => s.clearSuperadmin)
+  const isSuperadmin = useSessionStore(s => s.isSuperadmin)
+  const hasPermission = useSessionStore(s => s.hasPermission)
+  const hasAnyPermission = useSessionStore(s => s.hasAnyPermission)
+  const hasAllPermissions = useSessionStore(s => s.hasAllPermissions)
 
   return {
     superadmin,

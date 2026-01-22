@@ -24,7 +24,9 @@ export interface IGetUserCondominiumsInput {
 export class GetUserCondominiumsService {
   constructor(private readonly db: TDrizzleClient) {}
 
-  async execute(input: IGetUserCondominiumsInput): Promise<TServiceResult<TUserCondominiumsResponse>> {
+  async execute(
+    input: IGetUserCondominiumsInput
+  ): Promise<TServiceResult<TUserCondominiumsResponse>> {
     const { userId } = input
 
     // Get all unit ownerships with their related data
@@ -79,12 +81,12 @@ export class GetUserCondominiumsService {
       .where(eq(userRoles.userId, userId))
 
     // Get condominiums from roles that don't have unit ownerships
-    const condominiumIdsFromOwnerships = new Set(
-      ownershipResults.map(r => r.condominium.id)
-    )
+    const condominiumIdsFromOwnerships = new Set(ownershipResults.map(r => r.condominium.id))
 
     const roleCondominiumIds = roleResults
-      .filter(r => r.userRole.condominiumId && !condominiumIdsFromOwnerships.has(r.userRole.condominiumId))
+      .filter(
+        r => r.userRole.condominiumId && !condominiumIdsFromOwnerships.has(r.userRole.condominiumId)
+      )
       .map(r => r.userRole.condominiumId!)
 
     // Fetch additional condominiums from roles

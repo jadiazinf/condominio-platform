@@ -6,7 +6,13 @@ import type { TUser, TUserCreate, TUserUpdate } from '@packages/domain'
 import { UsersController } from '@http/controllers/users'
 import type { UsersRepository } from '@database/repositories'
 import { UserFactory } from '../../setup/factories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods

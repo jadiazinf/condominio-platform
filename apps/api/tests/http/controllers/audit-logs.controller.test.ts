@@ -6,7 +6,13 @@ import type { TAuditLog, TAuditLogCreate, TAuditAction } from '@packages/domain'
 import { AuditLogsController } from '@http/controllers/audit-logs'
 import type { AuditLogsRepository } from '@database/repositories'
 import { AuditLogFactory } from '../../setup/factories'
-import { withId, createTestApp, getErrorMessage, type IApiResponse, type IStandardErrorResponse } from './test-utils'
+import {
+  withId,
+  createTestApp,
+  getErrorMessage,
+  type IApiResponse,
+  type IStandardErrorResponse,
+} from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
 // Mock repository type with custom methods

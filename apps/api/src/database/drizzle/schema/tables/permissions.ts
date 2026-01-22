@@ -1,12 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  varchar,
-  text,
-  timestamp,
-  index,
-  uniqueIndex,
-} from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, text, timestamp, index, uniqueIndex } from 'drizzle-orm/pg-core'
 import { users } from './users'
 
 export const permissions = pgTable(
