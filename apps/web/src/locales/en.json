@@ -349,8 +349,7 @@
       "dashboard": "Dashboard",
       "users": "Users",
       "condominiums": "Condominiums",
-      "companies": "Companies",
-      "managementCompanies": "Management Companies",
+      "administradoras": "Management Companies",
       "permissions": "Permissions",
       "billing": "Billing",
       "activity": "Activity",
@@ -374,6 +373,139 @@
       "monthlyTransactions": "Monthly Transactions",
       "pendingAlerts": "Pending Alerts",
       "activeUsers24h": "Active Users (24h)"
+    },
+    "companies": {
+      "title": "Management Companies",
+      "subtitle": "Manage condominium management companies",
+      "create": "New Company",
+      "empty": "No management companies registered",
+      "emptyDescription": "Create the first management company to get started",
+      "search": "Search company...",
+      "table": {
+        "name": "Name",
+        "legalName": "Legal Name",
+        "taxId": "Tax ID",
+        "email": "Email",
+        "phone": "Phone",
+        "status": "Status",
+        "condominiums": "Condominiums",
+        "createdAt": "Registration Date",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "all": "All"
+      },
+      "filters": {
+        "searchPlaceholder": "Search by name, email or tax ID...",
+        "status": "Status",
+        "clearFilters": "Clear filters"
+      },
+      "actions": {
+        "view": "View details",
+        "edit": "Edit",
+        "activate": "Activate",
+        "deactivate": "Deactivate",
+        "activateConfirm": "Do you want to activate this company?",
+        "deactivateConfirm": "Do you want to deactivate this company?",
+        "activateSuccess": "Company activated successfully",
+        "deactivateSuccess": "Company deactivated successfully",
+        "toggleError": "Error changing status"
+      },
+      "form": {
+        "createTitle": "Create Management Company",
+        "createSubtitle": "Register a new management company with its administrator user",
+        "editTitle": "Edit Company",
+        "steps": {
+          "company": "Company Details",
+          "admin": "Administrator User",
+          "confirmation": "Confirmation"
+        },
+        "companySection": {
+          "title": "Company Information",
+          "description": "Basic details of the management company"
+        },
+        "contactSection": {
+          "title": "Contact Information",
+          "description": "Company contact details"
+        },
+        "addressSection": {
+          "title": "Location",
+          "description": "Company address"
+        },
+        "adminSection": {
+          "title": "Administrator User",
+          "description": "Details of the user who will manage the company"
+        },
+        "adminMode": {
+          "label": "Administrator type",
+          "new": "Create new user",
+          "existing": "Use existing user"
+        },
+        "adminSearch": {
+          "description": "Search by email and select the administrator user",
+          "email": "User email",
+          "emailPlaceholder": "user@company.com",
+          "button": "Search",
+          "notFound": "No user found with that email",
+          "error": "Error searching user",
+          "selectedTitle": "Selected user",
+          "clear": "Clear selection"
+        },
+        "fields": {
+          "name": "Commercial Name",
+          "namePlaceholder": "Company name",
+          "nameDescription": "The commercial name that identifies the management company",
+          "legalName": "Legal Name",
+          "legalNamePlaceholder": "Full legal name",
+          "legalNameDescription": "Legally registered company name",
+          "taxId": "Tax ID",
+          "taxIdPlaceholder": "12-3456789",
+          "taxIdDescription": "Tax identification number",
+          "email": "Company Email",
+          "emailPlaceholder": "contact@company.com",
+          "emailDescription": "Company's main email address",
+          "phone": "Phone",
+          "phonePlaceholder": "212 123 4567",
+          "phoneDescription": "Company contact number",
+          "website": "Website",
+          "websitePlaceholder": "https://www.company.com",
+          "websiteDescription": "Company website (optional)",
+          "address": "Address",
+          "addressPlaceholder": "Street, building, office...",
+          "addressDescription": "Company physical address",
+          "adminFirstName": "First Name",
+          "adminFirstNamePlaceholder": "Administrator's first name",
+          "adminLastName": "Last Name",
+          "adminLastNamePlaceholder": "Administrator's last name",
+          "adminEmail": "Email",
+          "adminEmailPlaceholder": "admin@company.com",
+          "adminEmailDescription": "This will be the administrator's login email",
+          "adminPhone": "Phone",
+          "adminPhonePlaceholder": "412 123 4567"
+        },
+        "confirmation": {
+          "title": "Confirm Creation",
+          "description": "Review the details before creating the management company",
+          "companyInfo": "Company Details",
+          "adminInfo": "Administrator Details",
+          "warning": "An email will be sent to the administrator with access instructions"
+        },
+        "submit": "Create Company",
+        "submitting": "Creating...",
+        "success": "Management company created successfully",
+        "error": "Error creating management company"
+      },
+      "detail": {
+        "title": "Company Details",
+        "tabs": {
+          "general": "General",
+          "condominiums": "Condominiums",
+          "users": "Users",
+          "billing": "Billing"
+        }
+      }
     }
   },
   "notifications": {

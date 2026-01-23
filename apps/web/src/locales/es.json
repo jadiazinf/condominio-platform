@@ -349,8 +349,7 @@
       "dashboard": "Panel",
       "users": "Usuarios",
       "condominiums": "Condominios",
-      "companies": "Empresas",
-      "managementCompanies": "Administradoras",
+      "administradoras": "Administradoras",
       "permissions": "Permisos",
       "billing": "Facturación",
       "activity": "Actividad",
@@ -374,6 +373,139 @@
       "monthlyTransactions": "Transacciones del Mes",
       "pendingAlerts": "Alertas Pendientes",
       "activeUsers24h": "Usuarios Activos (24h)"
+    },
+    "companies": {
+      "title": "Administradoras de Condominio",
+      "subtitle": "Gestiona las empresas administradoras de condominios",
+      "create": "Nueva Administradora",
+      "empty": "No hay administradoras registradas",
+      "emptyDescription": "Crea la primera administradora de condominio para comenzar",
+      "search": "Buscar administradora...",
+      "table": {
+        "name": "Nombre",
+        "legalName": "Razón Social",
+        "taxId": "RIF",
+        "email": "Email",
+        "phone": "Teléfono",
+        "status": "Estado",
+        "condominiums": "Condominios",
+        "createdAt": "Fecha de Registro",
+        "actions": "Acciones"
+      },
+      "status": {
+        "active": "Activa",
+        "inactive": "Inactiva",
+        "all": "Todos"
+      },
+      "filters": {
+        "searchPlaceholder": "Buscar por nombre, email o RIF...",
+        "status": "Estado",
+        "clearFilters": "Limpiar filtros"
+      },
+      "actions": {
+        "view": "Ver detalles",
+        "edit": "Editar",
+        "activate": "Activar",
+        "deactivate": "Desactivar",
+        "activateConfirm": "¿Deseas activar esta administradora?",
+        "deactivateConfirm": "¿Deseas desactivar esta administradora?",
+        "activateSuccess": "Administradora activada correctamente",
+        "deactivateSuccess": "Administradora desactivada correctamente",
+        "toggleError": "Error al cambiar el estado"
+      },
+      "form": {
+        "createTitle": "Crear Administradora de Condominio",
+        "createSubtitle": "Registra una nueva empresa administradora con su usuario administrador",
+        "editTitle": "Editar Administradora",
+        "steps": {
+          "company": "Datos de la Empresa",
+          "admin": "Usuario Administrador",
+          "confirmation": "Confirmación"
+        },
+        "companySection": {
+          "title": "Información de la Empresa",
+          "description": "Datos básicos de la administradora de condominios"
+        },
+        "contactSection": {
+          "title": "Información de Contacto",
+          "description": "Datos de contacto de la empresa"
+        },
+        "addressSection": {
+          "title": "Ubicación",
+          "description": "Dirección de la empresa"
+        },
+        "adminSection": {
+          "title": "Usuario Administrador",
+          "description": "Datos del usuario que administrará la empresa"
+        },
+        "adminMode": {
+          "label": "Tipo de usuario administrador",
+          "new": "Crear nuevo usuario",
+          "existing": "Usar usuario existente"
+        },
+        "adminSearch": {
+          "description": "Busca por email y selecciona el usuario administrador",
+          "email": "Email del usuario",
+          "emailPlaceholder": "usuario@empresa.com",
+          "button": "Buscar",
+          "notFound": "No se encontró un usuario con ese email",
+          "error": "Error buscando usuario",
+          "selectedTitle": "Usuario seleccionado",
+          "clear": "Limpiar selección"
+        },
+        "fields": {
+          "name": "Nombre Comercial",
+          "namePlaceholder": "Nombre de la empresa",
+          "nameDescription": "El nombre comercial que identifica a la administradora",
+          "legalName": "Razón Social",
+          "legalNamePlaceholder": "Razón social completa",
+          "legalNameDescription": "Nombre legal registrado de la empresa",
+          "taxId": "RIF",
+          "taxIdPlaceholder": "J-12345678-9",
+          "taxIdDescription": "Registro de Información Fiscal",
+          "email": "Email de la Empresa",
+          "emailPlaceholder": "contacto@empresa.com",
+          "emailDescription": "Correo electrónico principal de la empresa",
+          "phone": "Teléfono",
+          "phonePlaceholder": "212 123 4567",
+          "phoneDescription": "Número de contacto de la empresa",
+          "website": "Sitio Web",
+          "websitePlaceholder": "https://www.empresa.com",
+          "websiteDescription": "Página web de la empresa (opcional)",
+          "address": "Dirección",
+          "addressPlaceholder": "Calle, edificio, oficina...",
+          "addressDescription": "Dirección física de la empresa",
+          "adminFirstName": "Nombre",
+          "adminFirstNamePlaceholder": "Nombre del administrador",
+          "adminLastName": "Apellido",
+          "adminLastNamePlaceholder": "Apellido del administrador",
+          "adminEmail": "Email",
+          "adminEmailPlaceholder": "admin@empresa.com",
+          "adminEmailDescription": "Este será el correo de acceso del administrador",
+          "adminPhone": "Teléfono",
+          "adminPhonePlaceholder": "412 123 4567"
+        },
+        "confirmation": {
+          "title": "Confirmar Creación",
+          "description": "Revisa los datos antes de crear la administradora",
+          "companyInfo": "Datos de la Empresa",
+          "adminInfo": "Datos del Administrador",
+          "warning": "Se enviará un correo al administrador con las instrucciones de acceso"
+        },
+        "submit": "Crear Administradora",
+        "submitting": "Creando...",
+        "success": "Administradora creada exitosamente",
+        "error": "Error al crear la administradora"
+      },
+      "detail": {
+        "title": "Detalle de Administradora",
+        "tabs": {
+          "general": "General",
+          "condominiums": "Condominios",
+          "users": "Usuarios",
+          "billing": "Facturación"
+        }
+      }
     }
   },
   "notifications": {

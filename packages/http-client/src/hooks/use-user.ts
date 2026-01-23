@@ -1,6 +1,8 @@
 import type { TUser } from '@packages/domain'
 
 import { useApiQuery } from './use-api-query'
+import { getHttpClient } from '../client/http-client'
+import type { TApiDataResponse } from '../types/api-responses'
 
 export interface UseCurrentUserOptions {
   token?: string | null
@@ -55,4 +57,18 @@ export function useUserByFirebaseUid(
         }
       : undefined,
   })
+}
+
+/**
+ * Function to fetch a user by email.
+ */
+export async function getUserByEmail(token: string, email: string): Promise<TUser> {
+  const client = getHttpClient()
+  const response = await client.get<TApiDataResponse<TUser>>(`/users/email/${email}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  return response.data.data
 }

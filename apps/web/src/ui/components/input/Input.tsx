@@ -1,8 +1,10 @@
 'use client'
 
 import { Input as HeroUIInput } from '@heroui/input'
+import { Tooltip } from '@heroui/tooltip'
 import { cn } from '@heroui/theme'
 import { ReactNode } from 'react'
+import { Info } from 'lucide-react'
 
 type TInputType = 'text' | 'email' | 'password' | 'tel' | 'url' | 'search' | 'number'
 
@@ -26,6 +28,8 @@ interface IInputProps {
   labelPlacement?: TLabelPlacement
   placeholder?: string
   description?: string
+  /** Tooltip text shown on hover of info icon next to label */
+  tooltip?: string
   errorMessage?: string
   value?: string
   defaultValue?: string
@@ -56,6 +60,7 @@ export function Input({
   labelPlacement = 'outside',
   placeholder,
   description,
+  tooltip,
   errorMessage,
   value,
   defaultValue,
@@ -75,12 +80,32 @@ export function Input({
   onValueChange,
   onClear,
 }: IInputProps) {
+  // Create label with tooltip and required asterisk (always on the left)
+  const labelContent = label ? (
+    <span className="flex items-center gap-1.5">
+      {isRequired && <span className="text-danger">*</span>}
+      {label}
+      {tooltip && (
+        <Tooltip
+          content={tooltip}
+          placement="right"
+          showArrow
+          classNames={{
+            content: 'max-w-xs text-sm',
+          }}
+        >
+          <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
+        </Tooltip>
+      )}
+    </span>
+  ) : undefined
+
   return (
     <HeroUIInput
       className={cn(className)}
       color={color}
       defaultValue={defaultValue}
-      description={description}
+      description={tooltip ? undefined : description}
       endContent={endContent}
       errorMessage={errorMessage}
       fullWidth={fullWidth}
@@ -88,8 +113,8 @@ export function Input({
       isDisabled={isDisabled}
       isInvalid={isInvalid}
       isReadOnly={isReadOnly}
-      isRequired={isRequired}
-      label={label}
+      isRequired={false}
+      label={labelContent}
       labelPlacement={labelPlacement}
       maxLength={maxLength}
       minLength={minLength}

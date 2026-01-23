@@ -14,6 +14,7 @@ export {
 export {
   useCurrentUser,
   useUserByFirebaseUid,
+  getUserByEmail,
   type UseCurrentUserOptions,
   type UseUserByFirebaseUidOptions,
 } from './use-user'
@@ -29,6 +30,33 @@ export {
   type TRegisterVariables,
 } from './use-auth'
 export { useUpdateProfile, updateProfile, type UseUpdateProfileOptions } from './use-update-profile'
+export {
+  useManagementCompanies,
+  useManagementCompaniesPaginated,
+  useManagementCompany,
+  useCreateManagementCompany,
+  useUpdateManagementCompany,
+  useToggleManagementCompanyActive,
+  useCreateUser,
+  getManagementCompanies,
+  getManagementCompaniesPaginated,
+  getManagementCompanyById,
+  createManagementCompany,
+  createUser,
+  createManagementCompanyWithAdmin,
+  toggleManagementCompanyActive,
+  updateManagementCompany,
+  type UseManagementCompaniesOptions,
+  type UseManagementCompaniesPaginatedOptions,
+  type UseManagementCompanyOptions,
+  type UseCreateManagementCompanyOptions,
+  type UseUpdateManagementCompanyOptions,
+  type UseToggleManagementCompanyActiveOptions,
+  type UseCreateUserOptions,
+  type TCreateManagementCompanyWithAdminInput,
+  type TCreateManagementCompanyWithAdminResult,
+  type TToggleActiveInput,
+} from './use-management-companies'
 
 // Re-export commonly used TanStack Query hooks
 export {

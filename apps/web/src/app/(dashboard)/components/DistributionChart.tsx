@@ -4,7 +4,7 @@ import type { CardProps } from '@heroui/card'
 
 import { Card, CardHeader, CardBody } from '@heroui/card'
 import { cn } from '@heroui/theme'
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts'
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 
 type TDistributionDataPoint = {
   name: string
@@ -36,7 +36,7 @@ export function DistributionChart({
       </CardHeader>
       <CardBody className="flex flex-col items-center justify-center px-4 pb-4">
         <div className="relative h-[200px] w-full">
-          <ResponsiveContainer className="[&_.recharts-surface]:outline-hidden" width="100%">
+          <ResponsiveContainer className="[&_.recharts-surface]:outline-hidden" width="100%" height="100%">
             <PieChart>
               <Pie
                 cx="50%"
@@ -52,39 +52,30 @@ export function DistributionChart({
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Legend
-                align="center"
-                content={({ payload }) => (
-                  <div className="flex flex-wrap justify-center gap-4 mt-4">
-                    {payload?.map((entry, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <span
-                          className="h-3 w-3 rounded-full"
-                          style={{ backgroundColor: entry.color }}
-                        />
-                        <span className="text-xs text-default-600">
-                          {Math.round((data[index].value / total) * 100)}%
-                        </span>
-                        <span className="text-xs text-default-500">{entry.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                verticalAlign="bottom"
-              />
             </PieChart>
           </ResponsiveContainer>
           {(centerLabel || centerValue) && (
-            <div
-              className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
-              style={{ top: '-20px' }}
-            >
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               {centerLabel && <span className="text-xs text-default-500">{centerLabel}</span>}
               {centerValue && (
                 <span className="text-xl font-bold text-foreground">{centerValue}</span>
               )}
             </div>
           )}
+        </div>
+        <div className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-2 sm:gap-4 mt-4">
+          {data.map((entry, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <span
+                className="h-3 w-3 rounded-full flex-shrink-0"
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-xs text-default-600">
+                {Math.round((entry.value / total) * 100)}%
+              </span>
+              <span className="text-xs text-default-500">{entry.name}</span>
+            </div>
+          ))}
         </div>
       </CardBody>
     </Card>

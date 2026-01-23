@@ -1,8 +1,10 @@
-import { eq } from 'drizzle-orm'
+import { eq, and, or, ilike, sql, desc } from 'drizzle-orm'
 import type {
   TManagementCompany,
   TManagementCompanyCreate,
   TManagementCompanyUpdate,
+  TPaginatedResponse,
+  TManagementCompaniesQuerySchema,
 } from '@packages/domain'
 import { managementCompanies } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
@@ -111,5 +113,83 @@ export class ManagementCompaniesRepository
       .where(eq(managementCompanies.locationId, locationId))
 
     return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Retrieves management companies with pagination, filtering, and ordering.
+   */
+  async listPaginated(
+    query: TManagementCompaniesQuerySchema
+  ): Promise<TPaginatedResponse<TManagementCompany>> {
+    const { page = 1, limit = 20, search, isActive = true } = query
+    const offset = (page - 1) * limit
+
+    // Build conditions array
+    const conditions = []
+
+    // Filter by isActive (default to true)
+    if (isActive !== undefined) {
+      conditions.push(eq(managementCompanies.isActive, isActive))
+    }
+
+    // Search filter (name, email, taxId)
+    if (search && search.trim()) {
+      const searchTerm = `%${search.trim()}%`
+      conditions.push(
+        or(
+          ilike(managementCompanies.name, searchTerm),
+          ilike(managementCompanies.email, searchTerm),
+          ilike(managementCompanies.taxId, searchTerm)
+        )
+      )
+    }
+
+    // Build where clause
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    // Get paginated data ordered by createdAt DESC
+    const results = await this.db
+      .select()
+      .from(managementCompanies)
+      .where(whereClause)
+      .orderBy(desc(managementCompanies.createdAt))
+      .limit(limit)
+      .offset(offset)
+
+    // Get total count
+    const countResult = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(managementCompanies)
+      .where(whereClause)
+
+    const total = countResult[0]?.count ?? 0
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data: results.map(record => this.mapToEntity(record)),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    }
+  }
+
+  /**
+   * Toggles the isActive status of a management company.
+   */
+  async toggleActive(id: string, isActive: boolean): Promise<TManagementCompany | null> {
+    const results = await this.db
+      .update(managementCompanies)
+      .set({ isActive, updatedAt: new Date() })
+      .where(eq(managementCompanies.id, id))
+      .returning()
+
+    if (results.length === 0) {
+      return null
+    }
+
+    return this.mapToEntity(results[0])
   }
 }

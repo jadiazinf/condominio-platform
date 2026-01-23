@@ -201,3 +201,39 @@ export type TApiUpdatedResponse<T> = TApiDataResponse<T>
  * Deleted response type (no content or message)
  */
 export type TApiDeletedResponse = void | TApiMessageResponse
+
+// ============================================================================
+// Paginated Response Types
+// ============================================================================
+
+/**
+ * Pagination metadata
+ */
+export type TApiPaginationMeta = {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
+/**
+ * Paginated list response type
+ */
+export type TApiPaginatedResponse<T> = {
+  data: T[]
+  pagination: TApiPaginationMeta
+}
+
+/**
+ * Type guard for paginated response
+ */
+export function isApiPaginatedResponse<T>(response: unknown): response is TApiPaginatedResponse<T> {
+  return (
+    typeof response === 'object' &&
+    response !== null &&
+    'data' in response &&
+    Array.isArray((response as { data: unknown }).data) &&
+    'pagination' in response &&
+    typeof (response as { pagination: unknown }).pagination === 'object'
+  )
+}

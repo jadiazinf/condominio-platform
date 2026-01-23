@@ -20,6 +20,8 @@ export type {
   TApiCreatedResponse,
   TApiUpdatedResponse,
   TApiDeletedResponse,
+  TApiPaginationMeta,
+  TApiPaginatedResponse,
 } from './api-responses'
 
 export {
@@ -29,6 +31,7 @@ export {
   isApiValidationError,
   isApiErrorResponse,
   isApiSimpleError,
+  isApiPaginatedResponse,
 } from './api-responses'
 
 // Entity-specific Response Types

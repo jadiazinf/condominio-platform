@@ -2,13 +2,15 @@ import type { Context } from 'hono'
 import {
   managementCompanyCreateSchema,
   managementCompanyUpdateSchema,
+  managementCompaniesQuerySchema,
   type TManagementCompany,
   type TManagementCompanyCreate,
   type TManagementCompanyUpdate,
+  type TManagementCompaniesQuerySchema,
 } from '@packages/domain'
 import type { ManagementCompaniesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -24,6 +26,12 @@ const LocationIdParamSchema = z.object({
 })
 
 type TLocationIdParam = z.infer<typeof LocationIdParamSchema>
+
+const ToggleActiveBodySchema = z.object({
+  isActive: z.boolean(),
+})
+
+type TToggleActiveBody = z.infer<typeof ToggleActiveBodySchema>
 
 /**
  * Controller for managing management company resources.
@@ -44,13 +52,20 @@ export class ManagementCompaniesController extends BaseController<
 > {
   constructor(repository: ManagementCompaniesRepository) {
     super(repository)
+    this.listPaginated = this.listPaginated.bind(this)
     this.getByTaxId = this.getByTaxId.bind(this)
     this.getByLocationId = this.getByLocationId.bind(this)
+    this.toggleActive = this.toggleActive.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.listPaginated,
+        middlewares: [queryValidator(managementCompaniesQuerySchema)],
+      },
       {
         method: 'get',
         path: '/tax-id/:taxId',
@@ -82,6 +97,12 @@ export class ManagementCompaniesController extends BaseController<
         middlewares: [paramsValidator(IdParamSchema), bodyValidator(managementCompanyUpdateSchema)],
       },
       {
+        method: 'patch',
+        path: '/:id/toggle-active',
+        handler: this.toggleActive,
+        middlewares: [paramsValidator(IdParamSchema), bodyValidator(ToggleActiveBodySchema)],
+      },
+      {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
@@ -93,6 +114,25 @@ export class ManagementCompaniesController extends BaseController<
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
+
+  private async listPaginated(c: Context): Promise<Response> {
+    const ctx = this.ctx<unknown, TManagementCompaniesQuerySchema>(c)
+    const repo = this.repository as ManagementCompaniesRepository
+    const result = await repo.listPaginated(ctx.query)
+    return ctx.ok(result)
+  }
+
+  private async toggleActive(c: Context): Promise<Response> {
+    const ctx = this.ctx<TToggleActiveBody, unknown, { id: string }>(c)
+    const repo = this.repository as ManagementCompaniesRepository
+    const company = await repo.toggleActive(ctx.params.id, ctx.body.isActive)
+
+    if (!company) {
+      return ctx.notFound({ error: 'Management company not found' })
+    }
+
+    return ctx.ok({ data: company })
+  }
 
   private async getByTaxId(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TTaxIdParam>(c)
