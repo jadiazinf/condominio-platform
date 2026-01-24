@@ -33,6 +33,14 @@ const mockAuthHandler = async (
   await next()
 }
 
+const mockTokenOnlyHandler = async (
+  c: { set: (key: string, value: unknown) => void },
+  next: () => Promise<void>
+) => {
+  // Token-only middleware doesn't set user, just validates token
+  await next()
+}
+
 // Mock the actual path that controllers import from
 const authModulePath = path.resolve(__dirname, '../../../src/http/middlewares/auth.ts')
 console.log('[Auth Mock] Mocking auth module at:', authModulePath)
@@ -40,10 +48,14 @@ console.log('[Auth Mock] Mocking auth module at:', authModulePath)
 mock.module(authModulePath, () => ({
   authMiddleware: mockAuthHandler,
   isUserAuthenticated: mockAuthHandler,
+  tokenOnlyMiddleware: mockTokenOnlyHandler,
+  isTokenValid: mockTokenOnlyHandler,
 }))
 
 // Also try mocking with alias
 mock.module('@http/middlewares/auth', () => ({
   authMiddleware: mockAuthHandler,
   isUserAuthenticated: mockAuthHandler,
+  tokenOnlyMiddleware: mockTokenOnlyHandler,
+  isTokenValid: mockTokenOnlyHandler,
 }))

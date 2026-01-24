@@ -33,7 +33,8 @@ describe('ManagementCompaniesRepository', () => {
       const data = ManagementCompanyFactory.create({
         name: 'Inmobiliaria ABC',
         legalName: 'Inmobiliaria ABC C.A.',
-        taxId: 'J-12345678-9',
+        taxIdType: 'J',
+        taxIdNumber: '12345678-9',
         email: 'contact@abc.com',
       })
 
@@ -43,7 +44,8 @@ describe('ManagementCompaniesRepository', () => {
       expect(result.id).toBeDefined()
       expect(result.name).toBe('Inmobiliaria ABC')
       expect(result.legalName).toBe('Inmobiliaria ABC C.A.')
-      expect(result.taxId).toBe('J-12345678-9')
+      expect(result.taxIdType).toBe('J')
+      expect(result.taxIdNumber).toBe('12345678-9')
       expect(result.isActive).toBe(true)
     })
 
@@ -60,16 +62,18 @@ describe('ManagementCompaniesRepository', () => {
       expect(result.locationId).toBe(location.id)
     })
 
-    it('should throw error on duplicate tax id', async () => {
+    it('should create companies with same tax id number but different types', async () => {
       await repository.create(
-        ManagementCompanyFactory.create({ name: 'Company 1', taxId: 'DUPLICATE' })
+        ManagementCompanyFactory.create({ name: 'Company 1', taxIdType: 'J', taxIdNumber: '12345678-9' })
       )
 
-      await expect(
-        repository.create(
-          ManagementCompanyFactory.create({ name: 'Company 2', taxId: 'DUPLICATE' })
-        )
-      ).rejects.toThrow()
+      // This should succeed because the combination is different
+      const result = await repository.create(
+        ManagementCompanyFactory.create({ name: 'Company 2', taxIdType: 'V', taxIdNumber: '12345678-9' })
+      )
+
+      expect(result).toBeDefined()
+      expect(result.name).toBe('Company 2')
     })
   })
 
@@ -148,20 +152,20 @@ describe('ManagementCompaniesRepository', () => {
     })
   })
 
-  describe('getByTaxId', () => {
-    it('should return company by tax id', async () => {
+  describe('getByTaxIdNumber', () => {
+    it('should return company by tax id number', async () => {
       await repository.create(
-        ManagementCompanyFactory.create({ name: 'Tax Company', taxId: 'J-99999999-0' })
+        ManagementCompanyFactory.create({ name: 'Tax Company', taxIdType: 'J', taxIdNumber: '99999999-0' })
       )
 
-      const result = await repository.getByTaxId('J-99999999-0')
+      const result = await repository.getByTaxIdNumber('99999999-0')
 
       expect(result).toBeDefined()
-      expect(result?.taxId).toBe('J-99999999-0')
+      expect(result?.taxIdNumber).toBe('99999999-0')
     })
 
-    it('should return null for non-existent tax id', async () => {
-      const result = await repository.getByTaxId('NONEXISTENT')
+    it('should return null for non-existent tax id number', async () => {
+      const result = await repository.getByTaxIdNumber('NONEXISTENT')
 
       expect(result).toBeNull()
     })

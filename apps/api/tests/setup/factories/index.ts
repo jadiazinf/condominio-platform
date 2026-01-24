@@ -34,3 +34,6 @@ export { PaymentPendingAllocationFactory } from './payment-pending-allocation.fa
 // Superadmin factories
 export { SuperadminUserFactory } from './superadmin-user.factory'
 export { SuperadminUserPermissionFactory } from './superadmin-user-permission.factory'
+
+// Admin invitations
+export { AdminInvitationFactory } from './admin-invitation.factory'

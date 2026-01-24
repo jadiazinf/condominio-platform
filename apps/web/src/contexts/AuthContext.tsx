@@ -19,10 +19,12 @@ import {
   signOut as firebaseSignOut,
 } from 'firebase/auth'
 
-import { getFirebaseAuth } from '@/libs/firebase'
-import { clearUserCookie } from '@/libs/cookies'
-
-const SESSION_COOKIE_NAME = '__session'
+import { getFirebaseAuth, getFirebaseErrorMessage } from '@/libs/firebase'
+import {
+  setSessionCookie,
+  waitForSessionCookie,
+  clearSessionCookie,
+} from '@/libs/cookies'
 
 interface AuthContextType {
   user: User | null
@@ -40,41 +42,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 interface AuthProviderProps {
   children: ReactNode
-}
-
-async function setSessionCookie(user: User): Promise<void> {
-  const idToken = await user.getIdToken()
-  const isSecure = window.location.protocol === 'https:'
-  const secureFlag = isSecure ? '; Secure' : ''
-
-  document.cookie = `${SESSION_COOKIE_NAME}=${idToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secureFlag}`
-}
-
-function getCookie(name: string): string | undefined {
-  const value = `; ${document.cookie}`
-  const parts = value.split(`; ${name}=`)
-  if (parts.length === 2) {
-    return parts.pop()?.split(';').shift()
-  }
-  return undefined
-}
-
-async function waitForCookie(name: string, maxAttempts = 10, delayMs = 50): Promise<boolean> {
-  for (let i = 0; i < maxAttempts; i++) {
-    if (getCookie(name)) {
-      return true
-    }
-    await new Promise(resolve => setTimeout(resolve, delayMs))
-  }
-  return false
-}
-
-function clearSessionCookie(): void {
-  const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:'
-  const secureFlag = isSecure ? '; Secure' : ''
-
-  document.cookie = `${SESSION_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax${secureFlag}`
-  clearUserCookie()
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
@@ -106,11 +73,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       await setSessionCookie(userCredential.user)
-      // Wait for cookie to be readable to avoid race condition with server-side validation
-      await waitForCookie(SESSION_COOKIE_NAME)
+      await waitForSessionCookie()
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
-
       setError(errorMessage)
       throw err
     } finally {
@@ -128,7 +93,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await setSessionCookie(userCredential.user)
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
-
       setError(errorMessage)
       throw err
     } finally {
@@ -148,11 +112,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       })
       const userCredential = await signInWithPopup(auth, provider)
       await setSessionCookie(userCredential.user)
-      // Wait for cookie to be readable to avoid race condition with server-side validation
-      await waitForCookie(SESSION_COOKIE_NAME)
+      await waitForSessionCookie()
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
-
       setError(errorMessage)
       throw err
     } finally {
@@ -169,7 +131,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clearSessionCookie()
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
-
       setError(errorMessage)
       throw err
     }
@@ -187,7 +148,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clearSessionCookie()
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
-
       setError(errorMessage)
       throw err
     }
@@ -233,75 +193,4 @@ export function useAuth() {
   }
 
   return context
-}
-
-// Maps Firebase error codes to i18n translation keys
-export function getFirebaseErrorKey(error: unknown): string {
-  if (error && typeof error === 'object' && 'code' in error) {
-    const firebaseError = error as { code: string }
-
-    switch (firebaseError.code) {
-      case 'auth/email-already-in-use':
-        return 'auth.errors.emailInUse'
-      case 'auth/invalid-email':
-        return 'auth.errors.invalidCredentials'
-      case 'auth/weak-password':
-        return 'auth.errors.weakPassword'
-      case 'auth/user-disabled':
-        return 'auth.errors.userDisabled'
-      case 'auth/user-not-found':
-        return 'auth.errors.userNotFound'
-      case 'auth/wrong-password':
-      case 'auth/invalid-credential':
-        return 'auth.errors.invalidCredentials'
-      case 'auth/popup-closed-by-user':
-      case 'auth/cancelled-popup-request':
-        return 'auth.errors.popupClosed'
-      case 'auth/too-many-requests':
-        return 'auth.errors.tooManyRequests'
-      case 'auth/network-request-failed':
-        return 'auth.errors.networkError'
-      default:
-        return 'auth.errors.generic'
-    }
-  }
-
-  return 'auth.errors.generic'
-}
-
-function getFirebaseErrorMessage(error: unknown): string {
-  // This function returns a fallback message for internal use
-  // Components should use getFirebaseErrorKey with i18n for translated messages
-  if (error && typeof error === 'object' && 'code' in error) {
-    const firebaseError = error as { code: string }
-
-    switch (firebaseError.code) {
-      case 'auth/email-already-in-use':
-        return 'Este email ya está registrado'
-      case 'auth/invalid-email':
-        return 'Email inválido'
-      case 'auth/operation-not-allowed':
-        return 'Operación no permitida'
-      case 'auth/weak-password':
-        return 'La contraseña es muy débil'
-      case 'auth/user-disabled':
-        return 'Esta cuenta ha sido deshabilitada'
-      case 'auth/user-not-found':
-        return 'Usuario no encontrado'
-      case 'auth/wrong-password':
-        return 'Contraseña incorrecta'
-      case 'auth/invalid-credential':
-        return 'Credenciales inválidas'
-      case 'auth/popup-closed-by-user':
-        return 'El inicio de sesión fue cancelado'
-      case 'auth/cancelled-popup-request':
-        return 'Se canceló la solicitud de inicio de sesión'
-      case 'auth/popup-blocked':
-        return 'El navegador bloqueó la ventana emergente. Por favor, habilita las ventanas emergentes'
-      default:
-        return 'Ha ocurrido un error. Por favor, intenta de nuevo'
-    }
-  }
-
-  return 'Ha ocurrido un error inesperado'
 }

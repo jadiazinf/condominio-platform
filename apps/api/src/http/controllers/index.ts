@@ -47,3 +47,6 @@ export { UserFcmTokensController } from './user-fcm-tokens'
 // Superadmin
 export { SuperadminUsersController } from './superadmin-users'
 export { SuperadminUserPermissionsController } from './superadmin-user-permissions'
+
+// Admin Invitations
+export { AdminInvitationsController } from './admin-invitations'

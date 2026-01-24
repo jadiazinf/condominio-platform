@@ -56,10 +56,10 @@ export const superadminSidebarItems: TSidebarItemConfig[] = [
     href: '/dashboard/condominiums',
   },
   {
-    key: 'administradoras',
-    title: 'superadmin.nav.administradoras',
+    key: 'admins',
+    title: 'superadmin.nav.admins',
     icon: Building,
-    href: '/dashboard/administradoras',
+    href: '/dashboard/admins',
   },
   {
     key: 'permissions',

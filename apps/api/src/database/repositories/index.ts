@@ -51,3 +51,6 @@ export { UserFcmTokensRepository } from './user-fcm-tokens.repository'
 // Superadmin
 export { SuperadminUsersRepository } from './superadmin-users.repository'
 export { SuperadminUserPermissionsRepository } from './superadmin-user-permissions.repository'
+
+// Admin Invitations
+export { AdminInvitationsRepository } from './admin-invitations.repository'

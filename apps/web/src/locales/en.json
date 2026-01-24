@@ -253,16 +253,46 @@
       "userNotFound": "No account exists with this email.",
       "userDisabled": "This account has been disabled.",
       "popupClosed": "The authentication process was cancelled.",
-      "generic": "An unexpected error occurred. Please try again."
+      "generic": "An unexpected error occurred. Please try again.",
+      "passwordMinLength": "Password must be at least 8 characters.",
+      "passwordUppercase": "Password must contain at least one uppercase letter.",
+      "passwordLowercase": "Password must contain at least one lowercase letter.",
+      "passwordNumber": "Password must contain at least one number.",
+      "confirmPasswordRequired": "Please confirm your password.",
+      "passwordsDoNotMatch": "Passwords do not match.",
+      "acceptTerms": "You must accept the terms and conditions."
+    },
+    "acceptInvitation": {
+      "title": "Complete your registration",
+      "subtitle": "You've been invited to manage {companyName}",
+      "validating": "Validating invitation...",
+      "yourEmail": "Your email",
+      "setPassword": "Create a password to access your account",
+      "submit": "Complete registration",
+      "success": "Registration completed successfully",
+      "invalidTitle": "Invalid invitation",
+      "expiredTitle": "Invitation expired",
+      "expiredDescription": "The invitation to manage {companyName} has expired.",
+      "expiredContact": "Contact {email} to request a new invitation.",
+      "goToSignIn": "Go to sign in",
+      "goToHome": "Go to home",
+      "errors": {
+        "noToken": "No invitation token provided.",
+        "invalid": "This invitation is not valid or has already been used.",
+        "unknown": "An error occurred while validating the invitation.",
+        "firebaseCreateFailed": "Error creating account. Please try again."
+      }
     }
   },
   "validation": {
     "models": {
       "users": {
         "phoneCountryCode": {
+          "required": "Area code is required.",
           "max": "Country code cannot exceed 10 characters."
         },
         "phoneNumber": {
+          "required": "Phone number is required.",
           "max": "Phone number cannot exceed 50 characters."
         }
       },
@@ -286,6 +316,49 @@
         },
         "acceptTerms": {
           "required": "You must accept the terms and conditions."
+        }
+      },
+      "managementCompanies": {
+        "name": {
+          "required": "Commercial name is required.",
+          "max": "Commercial name cannot exceed 255 characters."
+        },
+        "legalName": {
+          "required": "Legal name is required.",
+          "max": "Legal name cannot exceed 255 characters."
+        },
+        "taxIdType": {
+          "required": "Tax ID type is required.",
+          "invalid": "Tax ID type is not valid."
+        },
+        "taxIdNumber": {
+          "required": "Tax ID number is required.",
+          "max": "Tax ID number cannot exceed 50 characters."
+        },
+        "email": {
+          "required": "Email is required.",
+          "invalid": "Email is not valid.",
+          "max": "Email cannot exceed 255 characters."
+        },
+        "phoneCountryCode": {
+          "required": "Area code is required.",
+          "max": "Area code cannot exceed 10 characters."
+        },
+        "phone": {
+          "required": "Phone is required.",
+          "max": "Phone cannot exceed 50 characters."
+        },
+        "website": {
+          "invalid": "Website is not valid.",
+          "max": "Website cannot exceed 255 characters."
+        },
+        "address": {
+          "required": "Address is required.",
+          "max": "Address cannot exceed 500 characters."
+        },
+        "locationId": {
+          "required": "Location is required.",
+          "invalid": "Location is not valid."
         }
       }
     }
@@ -349,7 +422,7 @@
       "dashboard": "Dashboard",
       "users": "Users",
       "condominiums": "Condominiums",
-      "administradoras": "Management Companies",
+      "admins": "Property Managers",
       "permissions": "Permissions",
       "billing": "Billing",
       "activity": "Activity",
@@ -424,19 +497,19 @@
         },
         "companySection": {
           "title": "Company Information",
-          "description": "Basic details of the management company"
+          "description": "Enter the legal identification data of the management company, including its commercial name, legal name and tax ID"
         },
         "contactSection": {
           "title": "Contact Information",
-          "description": "Company contact details"
+          "description": "Enter the main contact methods for the management company, such as email, phone and website"
         },
         "addressSection": {
           "title": "Location",
-          "description": "Company address"
+          "description": "Indicate the geographic location and physical address of the management company's offices"
         },
         "adminSection": {
           "title": "Administrator User",
-          "description": "Details of the user who will manage the company"
+          "description": "Details of the user who will have access to manage this company on the platform"
         },
         "adminMode": {
           "label": "Administrator type",
@@ -455,26 +528,35 @@
         },
         "fields": {
           "name": "Commercial Name",
-          "namePlaceholder": "Company name",
-          "nameDescription": "The commercial name that identifies the management company",
+          "namePlaceholder": "Management company name",
+          "nameDescription": "The name by which the management company is publicly known. It will appear on documents and communications with residents",
           "legalName": "Legal Name",
           "legalNamePlaceholder": "Full legal name",
-          "legalNameDescription": "Legally registered company name",
+          "legalNameDescription": "Full legal name as it appears in the commercial registry. Include the company designation (Inc., LLC, etc.)",
           "taxId": "Tax ID",
-          "taxIdPlaceholder": "12-3456789",
-          "taxIdDescription": "Tax identification number",
+          "taxIdTypePlaceholder": "Type",
+          "taxIdNumberPlaceholder": "123456789",
+          "taxIdDescription": "Tax identification number of the management company. Select the type and then enter the number without dashes",
           "email": "Company Email",
           "emailPlaceholder": "contact@company.com",
-          "emailDescription": "Company's main email address",
+          "emailDescription": "Main email address for receiving official communications and system notifications",
           "phone": "Phone",
-          "phonePlaceholder": "212 123 4567",
-          "phoneDescription": "Company contact number",
+          "phonePlaceholder": "4121234567",
+          "phoneDescription": "Main phone number of the management company. Residents will be able to use this number for contact",
           "website": "Website",
           "websitePlaceholder": "https://www.company.com",
-          "websiteDescription": "Company website (optional)",
+          "websiteDescription": "Management company website (optional). If you don't have a website, leave this field empty",
           "address": "Address",
-          "addressPlaceholder": "Street, building, office...",
-          "addressDescription": "Company physical address",
+          "addressPlaceholder": "Main Ave, Tower Building, Floor 5, Office 5-A",
+          "addressDescription": "Complete physical address of the management company's offices, including references if necessary",
+          "location": "Geographic Location",
+          "locationDescription": "Select the country, state and city where the management company's offices are located",
+          "country": "Country",
+          "countryPlaceholder": "Select a country",
+          "province": "State/Province",
+          "provincePlaceholder": "Select a state",
+          "city": "City",
+          "cityPlaceholder": "Select a city",
           "adminFirstName": "First Name",
           "adminFirstNamePlaceholder": "Administrator's first name",
           "adminLastName": "Last Name",
@@ -495,7 +577,13 @@
         "submit": "Create Company",
         "submitting": "Creating...",
         "success": "Management company created successfully",
-        "error": "Error creating management company"
+        "error": "Error creating management company",
+        "emailNotSent": "The company was created but the invitation email could not be sent. You can resend the invitation from the companies list.",
+        "adminValidation": {
+          "emailExists": "This email is already registered. Use the 'Use existing user' option to select this user",
+          "userInactive": "This user is inactive and cannot be used as an administrator",
+          "error": "Error validating email address"
+        }
       },
       "detail": {
         "title": "Company Details",

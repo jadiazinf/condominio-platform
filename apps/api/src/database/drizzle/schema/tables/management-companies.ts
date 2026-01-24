@@ -8,8 +8,10 @@ export const managementCompanies = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     name: varchar('name', { length: 255 }).notNull(),
     legalName: varchar('legal_name', { length: 255 }),
-    taxId: varchar('tax_id', { length: 100 }).unique(),
+    taxIdType: varchar('tax_id_type', { length: 5 }),
+    taxIdNumber: varchar('tax_id_number', { length: 50 }),
     email: varchar('email', { length: 255 }),
+    phoneCountryCode: varchar('phone_country_code', { length: 10 }),
     phone: varchar('phone', { length: 50 }),
     website: varchar('website', { length: 255 }),
     address: varchar('address', { length: 500 }),
@@ -27,7 +29,7 @@ export const managementCompanies = pgTable(
   },
   table => [
     index('idx_management_companies_name').on(table.name),
-    index('idx_management_companies_tax_id').on(table.taxId),
+    index('idx_management_companies_tax_id_number').on(table.taxIdNumber),
     index('idx_management_companies_active').on(table.isActive),
     index('idx_management_companies_created_by').on(table.createdBy),
   ]

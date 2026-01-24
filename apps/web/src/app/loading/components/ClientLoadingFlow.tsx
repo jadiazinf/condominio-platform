@@ -39,7 +39,7 @@ export function ClientLoadingFlow() {
   const searchParams = useSearchParams()
   const toast = useToast()
   const { t } = useTranslation()
-  const { user: firebaseUser, loading: authLoading, signOut, deleteCurrentUser } = useAuth()
+  const { user: firebaseUser, signOut, deleteCurrentUser } = useAuth()
   const { setUser, clearUser } = useUser()
   const { setCondominiums, selectCondominium, clearAllCondominiums } = useCondominium()
   const { clearSuperadmin } = useSuperadmin()
@@ -54,8 +54,8 @@ export function ClientLoadingFlow() {
 
   const [token, setToken] = useState<string | null>(null)
   const [, setIsRegistering] = useState(false)
-  const [loadingStep, setLoadingStep] = useState<TLoadingStep>('auth')
-  const [shouldFetchCondominiums, setShouldFetchCondominiums] = useState(false)
+  const [loadingStep] = useState<TLoadingStep>('auth')
+  const [shouldFetchCondominiums] = useState(false)
 
   const shouldRegister = searchParams.get('register') === 'true'
   const shouldSignOut = searchParams.get('signout') === 'true'
@@ -111,7 +111,7 @@ export function ClientLoadingFlow() {
         firebaseUser.getIdToken().then(setToken)
       }
     },
-    [firebaseUser, authLoading, shouldSignOut]
+    [firebaseUser, shouldSignOut]
   )
 
   // ============================================

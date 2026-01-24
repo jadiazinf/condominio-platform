@@ -35,8 +35,10 @@ export class ManagementCompaniesRepository
       id: r.id,
       name: r.name,
       legalName: r.legalName,
-      taxId: r.taxId,
+      taxIdType: r.taxIdType as 'J' | 'G' | 'V' | 'E' | 'P' | null,
+      taxIdNumber: r.taxIdNumber,
       email: r.email,
+      phoneCountryCode: r.phoneCountryCode,
       phone: r.phone,
       website: r.website,
       address: r.address,
@@ -54,8 +56,10 @@ export class ManagementCompaniesRepository
     return {
       name: dto.name,
       legalName: dto.legalName,
-      taxId: dto.taxId,
+      taxIdType: dto.taxIdType,
+      taxIdNumber: dto.taxIdNumber,
       email: dto.email,
+      phoneCountryCode: dto.phoneCountryCode,
       phone: dto.phone,
       website: dto.website,
       address: dto.address,
@@ -72,8 +76,10 @@ export class ManagementCompaniesRepository
 
     if (dto.name !== undefined) values.name = dto.name
     if (dto.legalName !== undefined) values.legalName = dto.legalName
-    if (dto.taxId !== undefined) values.taxId = dto.taxId
+    if (dto.taxIdType !== undefined) values.taxIdType = dto.taxIdType
+    if (dto.taxIdNumber !== undefined) values.taxIdNumber = dto.taxIdNumber
     if (dto.email !== undefined) values.email = dto.email
+    if (dto.phoneCountryCode !== undefined) values.phoneCountryCode = dto.phoneCountryCode
     if (dto.phone !== undefined) values.phone = dto.phone
     if (dto.website !== undefined) values.website = dto.website
     if (dto.address !== undefined) values.address = dto.address
@@ -87,13 +93,13 @@ export class ManagementCompaniesRepository
   }
 
   /**
-   * Retrieves a management company by tax ID.
+   * Retrieves a management company by tax ID number.
    */
-  async getByTaxId(taxId: string): Promise<TManagementCompany | null> {
+  async getByTaxIdNumber(taxIdNumber: string): Promise<TManagementCompany | null> {
     const results = await this.db
       .select()
       .from(managementCompanies)
-      .where(eq(managementCompanies.taxId, taxId))
+      .where(eq(managementCompanies.taxIdNumber, taxIdNumber))
       .limit(1)
 
     if (results.length === 0) {
@@ -132,14 +138,14 @@ export class ManagementCompaniesRepository
       conditions.push(eq(managementCompanies.isActive, isActive))
     }
 
-    // Search filter (name, email, taxId)
+    // Search filter (name, email, taxIdNumber)
     if (search && search.trim()) {
       const searchTerm = `%${search.trim()}%`
       conditions.push(
         or(
           ilike(managementCompanies.name, searchTerm),
           ilike(managementCompanies.email, searchTerm),
-          ilike(managementCompanies.taxId, searchTerm)
+          ilike(managementCompanies.taxIdNumber, searchTerm)
         )
       )
     }

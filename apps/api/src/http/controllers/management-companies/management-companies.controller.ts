@@ -15,11 +15,11 @@ import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
 
-const TaxIdParamSchema = z.object({
-  taxId: z.string().min(1),
+const TaxIdNumberParamSchema = z.object({
+  taxIdNumber: z.string().min(1),
 })
 
-type TTaxIdParam = z.infer<typeof TaxIdParamSchema>
+type TTaxIdNumberParam = z.infer<typeof TaxIdNumberParamSchema>
 
 const LocationIdParamSchema = z.object({
   locationId: z.string().uuid('Invalid location ID format'),
@@ -37,13 +37,13 @@ type TToggleActiveBody = z.infer<typeof ToggleActiveBodySchema>
  * Controller for managing management company resources.
  *
  * Endpoints:
- * - GET    /                        List all management companies
- * - GET    /tax-id/:taxId           Get by tax ID
- * - GET    /location/:locationId    Get by location
- * - GET    /:id                     Get by ID
- * - POST   /                        Create management company
- * - PATCH  /:id                     Update management company
- * - DELETE /:id                     Delete management company
+ * - GET    /                                  List all management companies
+ * - GET    /tax-id-number/:taxIdNumber        Get by tax ID number
+ * - GET    /location/:locationId              Get by location
+ * - GET    /:id                               Get by ID
+ * - POST   /                                  Create management company
+ * - PATCH  /:id                               Update management company
+ * - DELETE /:id                               Delete management company
  */
 export class ManagementCompaniesController extends BaseController<
   TManagementCompany,
@@ -53,7 +53,7 @@ export class ManagementCompaniesController extends BaseController<
   constructor(repository: ManagementCompaniesRepository) {
     super(repository)
     this.listPaginated = this.listPaginated.bind(this)
-    this.getByTaxId = this.getByTaxId.bind(this)
+    this.getByTaxIdNumber = this.getByTaxIdNumber.bind(this)
     this.getByLocationId = this.getByLocationId.bind(this)
     this.toggleActive = this.toggleActive.bind(this)
   }
@@ -68,9 +68,9 @@ export class ManagementCompaniesController extends BaseController<
       },
       {
         method: 'get',
-        path: '/tax-id/:taxId',
-        handler: this.getByTaxId,
-        middlewares: [paramsValidator(TaxIdParamSchema)],
+        path: '/tax-id-number/:taxIdNumber',
+        handler: this.getByTaxIdNumber,
+        middlewares: [paramsValidator(TaxIdNumberParamSchema)],
       },
       {
         method: 'get',
@@ -134,12 +134,12 @@ export class ManagementCompaniesController extends BaseController<
     return ctx.ok({ data: company })
   }
 
-  private async getByTaxId(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, unknown, TTaxIdParam>(c)
+  private async getByTaxIdNumber(c: Context): Promise<Response> {
+    const ctx = this.ctx<unknown, unknown, TTaxIdNumberParam>(c)
     const repo = this.repository as ManagementCompaniesRepository
 
     try {
-      const company = await repo.getByTaxId(ctx.params.taxId)
+      const company = await repo.getByTaxIdNumber(ctx.params.taxIdNumber)
 
       if (!company) {
         return ctx.notFound({ error: 'Management company not found' })

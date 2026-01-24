@@ -200,6 +200,11 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
+    DO $$ BEGIN
+      CREATE TYPE admin_invitation_status AS ENUM ('pending', 'accepted', 'expired', 'cancelled');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
     CREATE TABLE IF NOT EXISTS locations (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(200) NOT NULL,
@@ -296,8 +301,10 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(255) NOT NULL,
       legal_name VARCHAR(255),
-      tax_id VARCHAR(100) UNIQUE,
+      tax_id_type VARCHAR(50),
+      tax_id_number VARCHAR(100),
       email VARCHAR(255),
+      phone_country_code VARCHAR(10),
       phone VARCHAR(50),
       website VARCHAR(255),
       address VARCHAR(500),
@@ -739,6 +746,22 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_by UUID REFERENCES users(id) ON DELETE SET NULL,
       UNIQUE(superadmin_user_id, permission_id)
     );
+
+    CREATE TABLE IF NOT EXISTS admin_invitations (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      management_company_id UUID NOT NULL REFERENCES management_companies(id) ON DELETE CASCADE,
+      token VARCHAR(128) NOT NULL UNIQUE,
+      token_hash VARCHAR(64) NOT NULL,
+      status admin_invitation_status NOT NULL DEFAULT 'pending',
+      email VARCHAR(255) NOT NULL,
+      expires_at TIMESTAMP NOT NULL,
+      accepted_at TIMESTAMP,
+      email_error TEXT,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL
+    );
   `)
   const elapsed = performance.now() - start
   console.log(`[TestContainer] createSchema took ${elapsed.toFixed(1)}ms`)
@@ -810,6 +833,7 @@ export async function cleanDatabase(testDb: TTestDrizzleClient): Promise<void> {
       user_roles,
       buildings,
       condominiums,
+      admin_invitations,
       management_companies,
       role_permissions,
       roles,

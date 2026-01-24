@@ -2,7 +2,9 @@
 
 import { Input as HeroUIInput } from '@heroui/input'
 import { Select, SelectItem } from '@heroui/select'
+import { Tooltip } from '@heroui/tooltip'
 import { cn } from '@heroui/theme'
+import { Info } from 'lucide-react'
 import { PHONE_COUNTRY_CODES, DEFAULT_PHONE_COUNTRY_CODE } from '@packages/domain'
 
 type TInputSize = 'sm' | 'md' | 'lg'
@@ -16,7 +18,7 @@ interface IPhoneInputProps {
   onPhoneNumberChange?: (value: string) => void
   label?: string
   placeholder?: string
-  description?: string
+  tooltip?: string
   countryCodeError?: string
   phoneNumberError?: string
   size?: TInputSize
@@ -35,7 +37,7 @@ export function PhoneInput({
   onPhoneNumberChange,
   label,
   placeholder,
-  description,
+  tooltip,
   countryCodeError,
   phoneNumberError,
   size = 'md',
@@ -47,15 +49,26 @@ export function PhoneInput({
   className,
 }: IPhoneInputProps) {
   const selectedCountryCode = countryCode || DEFAULT_PHONE_COUNTRY_CODE
-  const isInvalid = !!countryCodeError || !!phoneNumberError
   const errorMessage = countryCodeError || phoneNumberError
 
   return (
     <div className={cn('flex flex-col gap-1', className)}>
       {label && (
-        <label className="text-small text-foreground-500">
+        <label className="text-small text-foreground-500 flex items-center gap-1">
+          {isRequired && <span className="text-danger">*</span>}
           {label}
-          {isRequired && <span className="text-danger ml-1">*</span>}
+          {tooltip && (
+            <Tooltip
+              content={tooltip}
+              placement="right"
+              showArrow
+              classNames={{
+                content: 'max-w-xs text-sm',
+              }}
+            >
+              <Info className="h-4 w-4 text-default-400 cursor-help" />
+            </Tooltip>
+          )}
         </label>
       )}
       <div className="flex gap-2">
@@ -99,7 +112,6 @@ export function PhoneInput({
           isInvalid={!!phoneNumberError}
         />
       </div>
-      {description && !isInvalid && <p className="text-tiny text-foreground-400">{description}</p>}
       {errorMessage && <p className="text-tiny text-danger">{errorMessage}</p>}
     </div>
   )

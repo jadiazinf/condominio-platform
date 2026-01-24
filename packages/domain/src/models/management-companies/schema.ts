@@ -6,11 +6,16 @@ import { DomainLocaleDictionary } from '../../i18n/dictionary'
 
 const d = DomainLocaleDictionary.validation.models.managementCompanies
 
+// Tax ID types for companies (RIF prefixes in Venezuela)
+export const ETaxIdTypes = ['J', 'G', 'V', 'E', 'P'] as const
+
 export const managementCompanySchema = baseModelSchema.extend({
   name: z.string({ error: d.name.required }).max(255, { error: d.name.max }),
   legalName: z.string().max(255, { error: d.legalName.max }).nullable(),
-  taxId: z.string().max(100, { error: d.taxId.max }).nullable(),
+  taxIdType: z.enum(ETaxIdTypes, { error: d.taxIdType.invalid }).nullable(),
+  taxIdNumber: z.string().max(50, { error: d.taxIdNumber.max }).nullable(),
   email: z.email({ error: d.email.invalid }).max(255, { error: d.email.max }).nullable(),
+  phoneCountryCode: z.string().max(10).nullable(),
   phone: z.string().max(50, { error: d.phone.max }).nullable(),
   website: z
     .string()

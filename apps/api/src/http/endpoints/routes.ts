@@ -38,6 +38,7 @@ import { UserNotificationPreferencesEndpoint } from './user-notification-prefere
 import { UserFcmTokensEndpoint } from './user-fcm-tokens.endpoint'
 import { SuperadminUsersEndpoint } from './superadmin-users.endpoint'
 import { SuperadminUserPermissionsEndpoint } from './superadmin-user-permissions.endpoint'
+import { AdminInvitationsEndpoint } from './admin-invitations.endpoint'
 
 /**
  * Central class that manages all API routes.
@@ -112,6 +113,9 @@ export class ApiRoutes {
       // Superadmin
       new SuperadminUsersEndpoint(db),
       new SuperadminUserPermissionsEndpoint(db),
+
+      // Admin Invitations
+      new AdminInvitationsEndpoint(db),
     ]
   }
 

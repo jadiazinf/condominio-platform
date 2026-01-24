@@ -54,9 +54,11 @@ export const DomainLocaleDictionary = {
           max: 'validation.models.users.displayName.max',
         },
         phoneCountryCode: {
+          required: 'validation.models.users.phoneCountryCode.required',
           max: 'validation.models.users.phoneCountryCode.max',
         },
         phoneNumber: {
+          required: 'validation.models.users.phoneNumber.required',
           max: 'validation.models.users.phoneNumber.max',
         },
         photoUrl: {
@@ -472,16 +474,28 @@ export const DomainLocaleDictionary = {
           max: 'validation.models.managementCompanies.name.max',
         },
         legalName: {
+          required: 'validation.models.managementCompanies.legalName.required',
           max: 'validation.models.managementCompanies.legalName.max',
         },
-        taxId: {
-          max: 'validation.models.managementCompanies.taxId.max',
+        taxIdType: {
+          required: 'validation.models.managementCompanies.taxIdType.required',
+          invalid: 'validation.models.managementCompanies.taxIdType.invalid',
+        },
+        taxIdNumber: {
+          required: 'validation.models.managementCompanies.taxIdNumber.required',
+          max: 'validation.models.managementCompanies.taxIdNumber.max',
         },
         email: {
+          required: 'validation.models.managementCompanies.email.required',
           invalid: 'validation.models.managementCompanies.email.invalid',
           max: 'validation.models.managementCompanies.email.max',
         },
+        phoneCountryCode: {
+          required: 'validation.models.managementCompanies.phoneCountryCode.required',
+          max: 'validation.models.managementCompanies.phoneCountryCode.max',
+        },
         phone: {
+          required: 'validation.models.managementCompanies.phone.required',
           max: 'validation.models.managementCompanies.phone.max',
         },
         website: {
@@ -489,9 +503,11 @@ export const DomainLocaleDictionary = {
           max: 'validation.models.managementCompanies.website.max',
         },
         address: {
+          required: 'validation.models.managementCompanies.address.required',
           max: 'validation.models.managementCompanies.address.max',
         },
         locationId: {
+          required: 'validation.models.managementCompanies.locationId.required',
           invalid: 'validation.models.managementCompanies.locationId.invalid',
         },
         logoUrl: {

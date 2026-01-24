@@ -26,7 +26,7 @@ type TMockManagementCompaniesRepository = {
   create: (data: TManagementCompanyCreate) => Promise<TManagementCompany>
   update: (id: string, data: TManagementCompanyUpdate) => Promise<TManagementCompany | null>
   delete: (id: string) => Promise<boolean>
-  getByTaxId: (taxId: string) => Promise<TManagementCompany | null>
+  getByTaxIdNumber: (taxIdNumber: string) => Promise<TManagementCompany | null>
   getByLocationId: (locationId: string) => Promise<TManagementCompany[]>
 }
 
@@ -40,12 +40,14 @@ describe('ManagementCompaniesController', function () {
     // Create test data
     const company1 = ManagementCompanyFactory.create({
       name: 'Administradora ABC',
-      taxId: 'J-12345678-9',
+      taxIdType: 'J',
+      taxIdNumber: '12345678-9',
       locationId: '550e8400-e29b-41d4-a716-446655440010',
     })
     const company2 = ManagementCompanyFactory.create({
       name: 'Gestiones XYZ',
-      taxId: 'J-98765432-1',
+      taxIdType: 'J',
+      taxIdNumber: '98765432-1',
       locationId: '550e8400-e29b-41d4-a716-446655440010',
     })
 
@@ -81,10 +83,10 @@ describe('ManagementCompaniesController', function () {
           return c.id === id
         })
       },
-      getByTaxId: async function (taxId: string) {
+      getByTaxIdNumber: async function (taxIdNumber: string) {
         return (
           testCompanies.find(function (c) {
-            return c.taxId === taxId
+            return c.taxIdNumber === taxIdNumber
           }) || null
         )
       },
@@ -152,18 +154,18 @@ describe('ManagementCompaniesController', function () {
     })
   })
 
-  describe('GET /tax-id/:taxId (getByTaxId)', function () {
-    it('should return company by tax ID', async function () {
-      const res = await request('/management-companies/tax-id/J-12345678-9')
+  describe('GET /tax-id-number/:taxIdNumber (getByTaxIdNumber)', function () {
+    it('should return company by tax ID number', async function () {
+      const res = await request('/management-companies/tax-id-number/12345678-9')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
       expect(json.data.name).toBe('Administradora ABC')
-      expect(json.data.taxId).toBe('J-12345678-9')
+      expect(json.data.taxIdNumber).toBe('12345678-9')
     })
 
-    it('should return 404 when company with tax ID not found', async function () {
-      const res = await request('/management-companies/tax-id/J-00000000-0')
+    it('should return 404 when company with tax ID number not found', async function () {
+      const res = await request('/management-companies/tax-id-number/00000000-0')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
@@ -206,7 +208,8 @@ describe('ManagementCompaniesController', function () {
     it('should create a new management company', async function () {
       const newCompany = ManagementCompanyFactory.create({
         name: 'Nueva Administradora',
-        taxId: 'J-11111111-1',
+        taxIdType: 'J',
+        taxIdNumber: '11111111-1',
       })
 
       const res = await request('/management-companies', {
@@ -244,7 +247,7 @@ describe('ManagementCompaniesController', function () {
         throw new Error('duplicate key value violates unique constraint')
       }
 
-      const newCompany = ManagementCompanyFactory.create({ taxId: 'J-12345678-9' })
+      const newCompany = ManagementCompanyFactory.create({ taxIdType: 'J', taxIdNumber: '12345678-9' })
 
       const res = await request('/management-companies', {
         method: 'POST',

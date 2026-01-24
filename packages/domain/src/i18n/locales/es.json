@@ -449,8 +449,11 @@
         "legalName": {
           "max": "La razón social debe tener como máximo 255 caracteres."
         },
-        "taxId": {
-          "max": "El RIF debe tener como máximo 100 caracteres."
+        "taxIdType": {
+          "invalid": "El tipo de documento fiscal no es válido."
+        },
+        "taxIdNumber": {
+          "max": "El número de documento fiscal debe tener como máximo 50 caracteres."
         },
         "email": {
           "invalid": "El correo electrónico no es válido.",

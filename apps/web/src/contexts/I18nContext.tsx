@@ -25,65 +25,14 @@ import {
   DEFAULT_LANGUAGE,
   type TAppLanguages,
 } from '@/locales'
-
-const LOCALE_COOKIE = 'NEXT_LOCALE'
+import {
+  deepMerge,
+  getNestedValue,
+  getLocaleCookie,
+  setLocaleCookie,
+} from '@/libs/i18n/utils'
 
 type TMessages = Record<string, unknown>
-
-function deepMerge<T extends TMessages>(target: T, source: TMessages): T {
-  const result = { ...target } as TMessages
-
-  for (const key of Object.keys(source)) {
-    if (
-      source[key] &&
-      typeof source[key] === 'object' &&
-      !Array.isArray(source[key]) &&
-      target[key] &&
-      typeof target[key] === 'object' &&
-      !Array.isArray(target[key])
-    ) {
-      result[key] = deepMerge(target[key] as TMessages, source[key] as TMessages)
-    } else {
-      result[key] = source[key]
-    }
-  }
-
-  return result as T
-}
-
-function getNestedValue(obj: TMessages, path: string): string | undefined {
-  const keys = path.split('.')
-  let current: unknown = obj
-
-  for (const key of keys) {
-    if (current === null || current === undefined || typeof current !== 'object') {
-      return undefined
-    }
-    current = (current as TMessages)[key]
-  }
-
-  return typeof current === 'string' ? current : undefined
-}
-
-function getCookie(name: string): string | undefined {
-  if (typeof document === 'undefined') return undefined
-  const value = `; ${document.cookie}`
-  const parts = value.split(`; ${name}=`)
-
-  if (parts.length === 2) {
-    return parts.pop()?.split(';').shift()
-  }
-
-  return undefined
-}
-
-function setCookie(name: string, value: string, days: number = 365): void {
-  if (typeof document === 'undefined') return
-  const expires = new Date()
-
-  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000)
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`
-}
 
 const allMessages: Record<TAppLanguages, TMessages> = {
   [EAppLanguages.ES]: deepMerge(domainLocalesEs as TMessages, appLocalesEs as TMessages),
@@ -108,7 +57,7 @@ export function I18nProvider({ children, initialLocale }: II18nProviderProps) {
     if (initialLocale) return initialLocale
     if (typeof window === 'undefined') return DEFAULT_LANGUAGE
 
-    const cookieLocale = getCookie(LOCALE_COOKIE)
+    const cookieLocale = getLocaleCookie()
 
     if (cookieLocale && (cookieLocale === EAppLanguages.ES || cookieLocale === EAppLanguages.EN)) {
       return cookieLocale as TAppLanguages
@@ -125,18 +74,15 @@ export function I18nProvider({ children, initialLocale }: II18nProviderProps) {
 
       if (!message) {
         console.warn(`[i18n] Missing translation for key: ${key}`)
-
         return key
       }
 
       if (values) {
         try {
           const formatter = new IntlMessageFormat(message, locale)
-
           return formatter.format(values) as string
         } catch (error) {
           console.warn(`[i18n] Error formatting message for key: ${key}`, error)
-
           return message
         }
       }
@@ -148,11 +94,10 @@ export function I18nProvider({ children, initialLocale }: II18nProviderProps) {
 
   const setLocale = useCallback((newLocale: TAppLanguages, refresh: boolean = true) => {
     if (typeof window !== 'undefined') {
-      setCookie(LOCALE_COOKIE, newLocale)
+      setLocaleCookie(newLocale)
 
       if (refresh) {
         window.location.reload()
-
         return
       }
 
@@ -161,19 +106,15 @@ export function I18nProvider({ children, initialLocale }: II18nProviderProps) {
     setLocaleState(newLocale)
   }, [])
 
-  // Configure domain i18n adapter
   useEffect(() => {
     const adapter = createTranslateFunction(t)
-
     setI18nAdapter(adapter)
   }, [t])
 
-  // Configure http-client locale for Accept-Language header
   useEffect(() => {
     setGlobalLocale(() => locale)
   }, [locale])
 
-  // Set initial html lang attribute
   useEffect(() => {
     if (typeof window !== 'undefined') {
       document.documentElement.lang = locale
@@ -204,6 +145,5 @@ export function useI18n(): II18nContextValue {
 
 export function useTranslation() {
   const { t, locale } = useI18n()
-
   return { t, locale }
 }

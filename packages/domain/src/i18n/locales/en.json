@@ -449,8 +449,11 @@
         "legalName": {
           "max": "Legal name must have at most 255 characters."
         },
-        "taxId": {
-          "max": "Tax ID must have at most 100 characters."
+        "taxIdType": {
+          "invalid": "Tax ID type is not valid."
+        },
+        "taxIdNumber": {
+          "max": "Tax ID number must have at most 50 characters."
         },
         "email": {
           "invalid": "Email is not valid.",

@@ -16,6 +16,10 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().optional(),
   FIREBASE_API_KEY: z.string('Firebase API key must be provided'),
   FIREBASE_SERVICE_ACCOUNT_BASE64: z.string().optional(),
+  // Resend (Email)
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM_EMAIL: z.string().optional().default('Condominio App <noreply@resend.dev>'),
+  APP_URL: z.string().optional().default('http://localhost:3000'),
 })
 
 // In test mode, use a more lenient validation
@@ -37,6 +41,9 @@ if (isTestMode) {
     CORS_ORIGIN: undefined,
     FIREBASE_API_KEY: Bun.env.FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || 'test-api-key',
     FIREBASE_SERVICE_ACCOUNT_BASE64: undefined,
+    RESEND_API_KEY: undefined,
+    RESEND_FROM_EMAIL: 'Condominio App <noreply@resend.dev>',
+    APP_URL: 'http://localhost:3000',
   }
   env = testDefaults
 } else {

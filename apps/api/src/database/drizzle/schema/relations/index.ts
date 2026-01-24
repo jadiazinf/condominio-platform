@@ -38,6 +38,7 @@ import {
 } from '../tables/notifications'
 import { superadminUsers, superadminUserPermissions } from '../tables/superadmin'
 import { auditLogs } from '../tables/audit-logs'
+import { adminInvitations } from '../tables/admin-invitations'
 
 // ============================================================================
 // LOCATIONS RELATIONS
@@ -121,6 +122,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   notifications: many(notifications),
   notificationPreferences: many(userNotificationPreferences),
   fcmTokens: many(userFcmTokens),
+  adminInvitations: many(adminInvitations),
 }))
 
 // ============================================================================
@@ -200,6 +202,7 @@ export const managementCompaniesRelations = relations(managementCompanies, ({ on
     references: [users.id],
   }),
   condominiums: many(condominiums),
+  adminInvitations: many(adminInvitations),
 }))
 
 export const condominiumsRelations = relations(condominiums, ({ one, many }) => ({
@@ -769,5 +772,25 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   user: one(users, {
     fields: [auditLogs.userId],
     references: [users.id],
+  }),
+}))
+
+// ============================================================================
+// ADMIN INVITATIONS RELATIONS
+// ============================================================================
+
+export const adminInvitationsRelations = relations(adminInvitations, ({ one }) => ({
+  user: one(users, {
+    fields: [adminInvitations.userId],
+    references: [users.id],
+  }),
+  managementCompany: one(managementCompanies, {
+    fields: [adminInvitations.managementCompanyId],
+    references: [managementCompanies.id],
+  }),
+  createdByUser: one(users, {
+    fields: [adminInvitations.createdBy],
+    references: [users.id],
+    relationName: 'invitationCreator',
   }),
 }))

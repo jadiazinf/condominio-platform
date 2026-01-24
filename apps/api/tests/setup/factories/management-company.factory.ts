@@ -10,12 +10,15 @@ export class ManagementCompanyFactory {
    */
   static create(overrides: Partial<TManagementCompanyCreate> = {}): TManagementCompanyCreate {
     const companyName = faker.company.name()
+    const taxIdTypes = ['J', 'G', 'V', 'E', 'P'] as const
 
     return {
       name: companyName,
       legalName: `${companyName} S.A.`,
-      taxId: faker.string.alphanumeric(11).toUpperCase(),
+      taxIdType: faker.helpers.arrayElement(taxIdTypes),
+      taxIdNumber: faker.string.numeric(8) + '-' + faker.string.numeric(1),
       email: faker.internet.email(),
+      phoneCountryCode: '+58',
       phone: faker.phone.number(),
       website: faker.internet.url(),
       address: faker.location.streetAddress(),

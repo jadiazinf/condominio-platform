@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { Accordion, AccordionItem } from '@heroui/accordion'
 import {
   Listbox,
   ListboxItem,
@@ -9,23 +8,14 @@ import {
   type ListboxProps,
   type ListboxSectionProps,
 } from '@heroui/listbox'
-import { Tooltip } from '@heroui/tooltip'
 import { cn } from '@heroui/theme'
 
-export enum SidebarItemType {
-  Nest = 'nest',
-}
+import { SidebarIcon } from './SidebarIcon'
+import { SidebarCompactItem } from './SidebarCompactItem'
+import { SidebarNestItem } from './SidebarNestItem'
+import { SidebarItemType, type TSidebarItem } from './types'
 
-export type TSidebarItem = {
-  key: string
-  title: string
-  icon?: React.ReactNode
-  href?: string
-  type?: SidebarItemType.Nest
-  endContent?: React.ReactNode
-  items?: TSidebarItem[]
-  className?: string
-}
+export { SidebarItemType, type TSidebarItem }
 
 export type SidebarProps = Omit<ListboxProps<TSidebarItem>, 'children' | 'onSelect'> & {
   items: TSidebarItem[]
@@ -54,14 +44,12 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(function Side
 ) {
   const [selected, setSelected] = React.useState<string>(defaultSelectedKey)
 
-  // Update selected when defaultSelectedKey changes (e.g., on navigation)
   React.useEffect(() => {
     setSelected(defaultSelectedKey)
   }, [defaultSelectedKey])
 
   function handleSelectionChange(keys: 'all' | Set<React.Key>) {
     const key = Array.from(keys)[0] as string
-
     setSelected(key)
     onSelect?.(key)
   }
@@ -78,97 +66,32 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(function Side
     base: cn(itemClassesProp?.base, { 'w-11 h-11 gap-0 p-0': isCompact }),
   }
 
-  const renderIcon = React.useCallback((icon?: React.ReactNode) => {
-    if (!icon) return null
+  function renderItem(item: TSidebarItem) {
+    const isNestType = item.items && item.items.length > 0 && item.type === SidebarItemType.Nest
+
+    if (isNestType) {
+      return (
+        <SidebarNestItem
+          key={item.key}
+          hideEndContent={hideEndContent}
+          isCompact={isCompact}
+          item={item}
+        />
+      )
+    }
 
     return (
-      <span className="text-default-500 group-data-[selected=true]:text-foreground">{icon}</span>
+      <ListboxItem
+        key={item.key}
+        endContent={isCompact || hideEndContent ? null : (item.endContent ?? null)}
+        startContent={isCompact ? null : <SidebarIcon icon={item.icon} />}
+        textValue={item.title}
+        title={isCompact ? null : item.title}
+      >
+        {isCompact ? <SidebarCompactItem item={item} /> : null}
+      </ListboxItem>
     )
-  }, [])
-
-  const renderCompactContent = React.useCallback(
-    (item: TSidebarItem) => (
-      <Tooltip content={item.title} placement="right">
-        <div className="flex w-full items-center justify-center">{renderIcon(item.icon)}</div>
-      </Tooltip>
-    ),
-    [renderIcon]
-  )
-
-  const renderNestItem = React.useCallback(
-    (item: TSidebarItem) => {
-      const isNestType = item.items && item.items.length > 0 && item.type === SidebarItemType.Nest
-
-      return (
-        <ListboxItem
-          key={item.key}
-          classNames={{
-            base: cn(
-              { 'h-auto p-0': !isCompact && isNestType },
-              { 'inline-block w-11': isCompact && isNestType }
-            ),
-          }}
-          endContent={isCompact || isNestType || hideEndContent ? null : (item.endContent ?? null)}
-          href={isNestType ? undefined : item.href}
-          startContent={isCompact || isNestType ? null : renderIcon(item.icon)}
-          textValue={item.title}
-          title={isCompact || isNestType ? null : item.title}
-        >
-          {isCompact ? renderCompactContent(item) : null}
-          {!isCompact && isNestType ? (
-            <Accordion className="p-0">
-              <AccordionItem
-                key={item.key}
-                aria-label={item.title}
-                classNames={{ heading: 'pr-3', trigger: 'p-0', content: 'py-0 pl-4' }}
-                title={
-                  <div className="flex h-11 items-center gap-2 px-2 py-1.5">
-                    {renderIcon(item.icon)}
-                    <span className="text-small text-default-500 font-medium">{item.title}</span>
-                  </div>
-                }
-              >
-                {item.items && item.items.length > 0 ? (
-                  <Listbox
-                    className="mt-0.5"
-                    classNames={{ list: 'border-l border-default-200 pl-4' }}
-                    items={item.items}
-                    variant="flat"
-                  >
-                    {item.items.map(renderItem)}
-                  </Listbox>
-                ) : null}
-              </AccordionItem>
-            </Accordion>
-          ) : null}
-        </ListboxItem>
-      )
-    },
-    [isCompact, hideEndContent, renderIcon, renderCompactContent]
-  )
-
-  const renderItem = React.useCallback(
-    (item: TSidebarItem) => {
-      const isNestType = item.items && item.items.length > 0 && item.type === SidebarItemType.Nest
-
-      if (isNestType) {
-        return renderNestItem(item)
-      }
-
-      return (
-        <ListboxItem
-          key={item.key}
-          endContent={isCompact || hideEndContent ? null : (item.endContent ?? null)}
-          startContent={isCompact ? null : renderIcon(item.icon)}
-          textValue={item.title}
-          title={isCompact ? null : item.title}
-        >
-          {isCompact ? renderCompactContent(item) : null}
-        </ListboxItem>
-      )
-    },
-    [isCompact, hideEndContent, renderIcon, renderCompactContent, renderNestItem]
-  )
+  }
 
   return (
     <Listbox
@@ -199,7 +122,14 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(function Side
     >
       {item => {
         if (item.items && item.items.length > 0 && item.type === SidebarItemType.Nest) {
-          return renderNestItem(item)
+          return (
+            <SidebarNestItem
+              key={item.key}
+              hideEndContent={hideEndContent}
+              isCompact={isCompact}
+              item={item}
+            />
+          )
         }
 
         if (item.items && item.items.length > 0) {

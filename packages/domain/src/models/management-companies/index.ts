@@ -1,3 +1,3 @@
-export { managementCompanySchema } from './schema'
-export type { TManagementCompany } from './types'
+export { managementCompanySchema, ETaxIdTypes } from './schema'
+export type { TManagementCompany, TTaxIdType } from './types'
 export * from './dtos'

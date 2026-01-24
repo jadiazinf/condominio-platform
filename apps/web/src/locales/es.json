@@ -253,16 +253,46 @@
       "userNotFound": "No existe una cuenta con este correo electrónico.",
       "userDisabled": "Esta cuenta ha sido deshabilitada.",
       "popupClosed": "El proceso de autenticación fue cancelado.",
-      "generic": "Ocurrió un error inesperado. Por favor intenta de nuevo."
+      "generic": "Ocurrió un error inesperado. Por favor intenta de nuevo.",
+      "passwordMinLength": "La contraseña debe tener al menos 8 caracteres.",
+      "passwordUppercase": "La contraseña debe contener al menos una letra mayúscula.",
+      "passwordLowercase": "La contraseña debe contener al menos una letra minúscula.",
+      "passwordNumber": "La contraseña debe contener al menos un número.",
+      "confirmPasswordRequired": "Debes confirmar tu contraseña.",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden.",
+      "acceptTerms": "Debes aceptar los términos y condiciones."
+    },
+    "acceptInvitation": {
+      "title": "Completa tu registro",
+      "subtitle": "Has sido invitado a administrar {companyName}",
+      "validating": "Validando invitación...",
+      "yourEmail": "Tu correo electrónico",
+      "setPassword": "Crea una contraseña para acceder a tu cuenta",
+      "submit": "Completar registro",
+      "success": "Registro completado exitosamente",
+      "invalidTitle": "Invitación no válida",
+      "expiredTitle": "Invitación expirada",
+      "expiredDescription": "La invitación para administrar {companyName} ha expirado.",
+      "expiredContact": "Contacta a {email} para solicitar una nueva invitación.",
+      "goToSignIn": "Ir a iniciar sesión",
+      "goToHome": "Ir al inicio",
+      "errors": {
+        "noToken": "No se proporcionó un token de invitación.",
+        "invalid": "Esta invitación no es válida o ya ha sido utilizada.",
+        "unknown": "Ocurrió un error al validar la invitación.",
+        "firebaseCreateFailed": "Error al crear la cuenta. Por favor intenta de nuevo."
+      }
     }
   },
   "validation": {
     "models": {
       "users": {
         "phoneCountryCode": {
+          "required": "El código de área es requerido.",
           "max": "El código de país no puede exceder 10 caracteres."
         },
         "phoneNumber": {
+          "required": "El número de teléfono es requerido.",
           "max": "El número de teléfono no puede exceder 50 caracteres."
         }
       },
@@ -286,6 +316,49 @@
         },
         "acceptTerms": {
           "required": "Debes aceptar los términos y condiciones."
+        }
+      },
+      "managementCompanies": {
+        "name": {
+          "required": "El nombre comercial es requerido.",
+          "max": "El nombre comercial no puede exceder 255 caracteres."
+        },
+        "legalName": {
+          "required": "La razón social es requerida.",
+          "max": "La razón social no puede exceder 255 caracteres."
+        },
+        "taxIdType": {
+          "required": "El tipo de RIF es requerido.",
+          "invalid": "El tipo de RIF no es válido."
+        },
+        "taxIdNumber": {
+          "required": "El número de RIF es requerido.",
+          "max": "El número de RIF no puede exceder 50 caracteres."
+        },
+        "email": {
+          "required": "El correo electrónico es requerido.",
+          "invalid": "El correo electrónico no es válido.",
+          "max": "El correo electrónico no puede exceder 255 caracteres."
+        },
+        "phoneCountryCode": {
+          "required": "El código de área es requerido.",
+          "max": "El código de área no puede exceder 10 caracteres."
+        },
+        "phone": {
+          "required": "El teléfono es requerido.",
+          "max": "El teléfono no puede exceder 50 caracteres."
+        },
+        "website": {
+          "invalid": "El sitio web no es válido.",
+          "max": "El sitio web no puede exceder 255 caracteres."
+        },
+        "address": {
+          "required": "La dirección es requerida.",
+          "max": "La dirección no puede exceder 500 caracteres."
+        },
+        "locationId": {
+          "required": "La ubicación es requerida.",
+          "invalid": "La ubicación no es válida."
         }
       }
     }
@@ -349,7 +422,7 @@
       "dashboard": "Panel",
       "users": "Usuarios",
       "condominiums": "Condominios",
-      "administradoras": "Administradoras",
+      "admins": "Administradoras",
       "permissions": "Permisos",
       "billing": "Facturación",
       "activity": "Actividad",
@@ -415,28 +488,28 @@
       },
       "form": {
         "createTitle": "Crear Administradora de Condominio",
-        "createSubtitle": "Registra una nueva empresa administradora con su usuario administrador",
+        "createSubtitle": "Registra una nueva administradora con su usuario administrador",
         "editTitle": "Editar Administradora",
         "steps": {
-          "company": "Datos de la Empresa",
+          "company": "Datos de la Administradora",
           "admin": "Usuario Administrador",
           "confirmation": "Confirmación"
         },
         "companySection": {
-          "title": "Información de la Empresa",
-          "description": "Datos básicos de la administradora de condominios"
+          "title": "Información de la Administradora",
+          "description": "Ingresa los datos de identificación legal de la administradora, incluyendo su nombre comercial, razón social y número de RIF"
         },
         "contactSection": {
           "title": "Información de Contacto",
-          "description": "Datos de contacto de la empresa"
+          "description": "Ingresa los medios de contacto principales de la administradora, como correo electrónico, teléfono y sitio web"
         },
         "addressSection": {
           "title": "Ubicación",
-          "description": "Dirección de la empresa"
+          "description": "Indica la ubicación geográfica y dirección física de las oficinas de la administradora"
         },
         "adminSection": {
           "title": "Usuario Administrador",
-          "description": "Datos del usuario que administrará la empresa"
+          "description": "Datos del usuario que tendrá acceso para administrar esta administradora en la plataforma"
         },
         "adminMode": {
           "label": "Tipo de usuario administrador",
@@ -444,9 +517,9 @@
           "existing": "Usar usuario existente"
         },
         "adminSearch": {
-          "description": "Busca por email y selecciona el usuario administrador",
+          "description": "Busca por email y selecciona el usuario que administrará esta administradora",
           "email": "Email del usuario",
-          "emailPlaceholder": "usuario@empresa.com",
+          "emailPlaceholder": "usuario@correo.com",
           "button": "Buscar",
           "notFound": "No se encontró un usuario con ese email",
           "error": "Error buscando usuario",
@@ -455,47 +528,62 @@
         },
         "fields": {
           "name": "Nombre Comercial",
-          "namePlaceholder": "Nombre de la empresa",
-          "nameDescription": "El nombre comercial que identifica a la administradora",
+          "namePlaceholder": "Nombre de la administradora",
+          "nameDescription": "El nombre con el que se conoce públicamente a la administradora. Aparecerá en los documentos y comunicaciones con los residentes",
           "legalName": "Razón Social",
           "legalNamePlaceholder": "Razón social completa",
-          "legalNameDescription": "Nombre legal registrado de la empresa",
+          "legalNameDescription": "Nombre legal completo tal como aparece en el Registro Mercantil. Incluye la denominación de la sociedad (C.A., S.A., etc.)",
           "taxId": "RIF",
-          "taxIdPlaceholder": "J-12345678-9",
-          "taxIdDescription": "Registro de Información Fiscal",
-          "email": "Email de la Empresa",
-          "emailPlaceholder": "contacto@empresa.com",
-          "emailDescription": "Correo electrónico principal de la empresa",
+          "taxIdTypePlaceholder": "Tipo",
+          "taxIdNumberPlaceholder": "123456789",
+          "taxIdDescription": "Registro de Información Fiscal (RIF) de la administradora. Selecciona el tipo y luego ingresa el número sin guiones",
+          "email": "Email de la Administradora",
+          "emailPlaceholder": "contacto@administradora.com",
+          "emailDescription": "Correo electrónico principal para recibir comunicaciones oficiales y notificaciones del sistema",
           "phone": "Teléfono",
-          "phonePlaceholder": "212 123 4567",
-          "phoneDescription": "Número de contacto de la empresa",
+          "phonePlaceholder": "4121234567",
+          "phoneDescription": "Número de teléfono principal de la administradora. Los residentes podrán usar este número para contacto",
           "website": "Sitio Web",
-          "websitePlaceholder": "https://www.empresa.com",
-          "websiteDescription": "Página web de la empresa (opcional)",
+          "websitePlaceholder": "https://www.administradora.com",
+          "websiteDescription": "Página web de la administradora (opcional). Si no cuenta con sitio web, deja este campo vacío",
           "address": "Dirección",
-          "addressPlaceholder": "Calle, edificio, oficina...",
-          "addressDescription": "Dirección física de la empresa",
+          "addressPlaceholder": "Av. Principal, Edificio Torre Norte, Piso 5, Oficina 5-A",
+          "addressDescription": "Dirección física completa de las oficinas de la administradora, incluyendo referencias si es necesario",
+          "location": "Ubicación Geográfica",
+          "locationDescription": "Selecciona el país, estado y ciudad donde se encuentran las oficinas de la administradora",
+          "country": "País",
+          "countryPlaceholder": "Selecciona un país",
+          "province": "Estado/Provincia",
+          "provincePlaceholder": "Selecciona un estado",
+          "city": "Ciudad",
+          "cityPlaceholder": "Selecciona una ciudad",
           "adminFirstName": "Nombre",
           "adminFirstNamePlaceholder": "Nombre del administrador",
           "adminLastName": "Apellido",
           "adminLastNamePlaceholder": "Apellido del administrador",
           "adminEmail": "Email",
-          "adminEmailPlaceholder": "admin@empresa.com",
-          "adminEmailDescription": "Este será el correo de acceso del administrador",
+          "adminEmailPlaceholder": "admin@administradora.com",
+          "adminEmailDescription": "Este será el correo de acceso del administrador a la plataforma",
           "adminPhone": "Teléfono",
           "adminPhonePlaceholder": "412 123 4567"
         },
         "confirmation": {
           "title": "Confirmar Creación",
           "description": "Revisa los datos antes de crear la administradora",
-          "companyInfo": "Datos de la Empresa",
+          "companyInfo": "Datos de la Administradora",
           "adminInfo": "Datos del Administrador",
           "warning": "Se enviará un correo al administrador con las instrucciones de acceso"
         },
         "submit": "Crear Administradora",
         "submitting": "Creando...",
         "success": "Administradora creada exitosamente",
-        "error": "Error al crear la administradora"
+        "error": "Error al crear la administradora",
+        "emailNotSent": "La administradora fue creada pero el email de invitación no pudo ser enviado. Puedes reenviar la invitación desde la lista de administradoras.",
+        "adminValidation": {
+          "emailExists": "Este correo ya está registrado. Utiliza la opción 'Usar usuario existente' para seleccionar este usuario",
+          "userInactive": "Este usuario está inactivo y no puede ser utilizado como administrador",
+          "error": "Error al validar el correo electrónico"
+        }
       },
       "detail": {
         "title": "Detalle de Administradora",

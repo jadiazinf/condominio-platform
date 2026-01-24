@@ -29,5 +29,8 @@ export { UnitsEndpoint } from './units.endpoint'
 export { UserRolesEndpoint } from './user-roles.endpoint'
 export { UsersEndpoint } from './users.endpoint'
 
+// Admin Invitations
+export { AdminInvitationsEndpoint } from './admin-invitations.endpoint'
+
 // Routes
 export { ApiRoutes } from './routes'

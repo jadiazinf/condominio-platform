@@ -148,3 +148,14 @@ export const allocationStatusEnum = pgEnum('allocation_status', [
   'allocated',
   'refunded',
 ])
+
+// ============================================================================
+// ADMIN INVITATION ENUMS
+// ============================================================================
+
+export const adminInvitationStatusEnum = pgEnum('admin_invitation_status', [
+  'pending',
+  'accepted',
+  'expired',
+  'cancelled',
+])

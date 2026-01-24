@@ -21,3 +21,9 @@ export {
   getSuperadminPermissionsCookieName,
   clearAllSuperadminCookies,
 } from './superadmin-cookie'
+export {
+  setSessionCookie,
+  getSessionCookie,
+  waitForSessionCookie,
+  clearSessionCookie,
+} from './session-cookie'

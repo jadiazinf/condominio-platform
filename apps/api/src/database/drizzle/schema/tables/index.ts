@@ -40,3 +40,4 @@ export * from './notifications'
 // Admin
 export * from './superadmin'
 export * from './audit-logs'
+export * from './admin-invitations'
