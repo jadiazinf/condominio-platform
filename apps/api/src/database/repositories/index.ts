@@ -54,3 +54,12 @@ export { SuperadminUserPermissionsRepository } from './superadmin-user-permissio
 
 // Admin Invitations
 export { AdminInvitationsRepository } from './admin-invitations.repository'
+
+// Subscriptions & Members
+export { ManagementCompanySubscriptionsRepository } from './management-company-subscriptions.repository'
+export { SubscriptionInvoicesRepository } from './subscription-invoices.repository'
+export { ManagementCompanyMembersRepository } from './management-company-members.repository'
+
+// Support Tickets
+export { SupportTicketsRepository } from './support-tickets.repository'
+export { SupportTicketMessagesRepository } from './support-ticket-messages.repository'

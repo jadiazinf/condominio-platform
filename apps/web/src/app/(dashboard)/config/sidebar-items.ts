@@ -10,6 +10,7 @@ import {
   Building,
   Shield,
   CreditCard,
+  MessageSquare,
 } from 'lucide-react'
 
 type TSidebarItemConfig = Omit<TSidebarItem, 'icon'> & {
@@ -72,6 +73,12 @@ export const superadminSidebarItems: TSidebarItemConfig[] = [
     title: 'superadmin.nav.billing',
     icon: CreditCard,
     href: '/dashboard/billing',
+  },
+  {
+    key: 'tickets',
+    title: 'superadmin.nav.tickets',
+    icon: MessageSquare,
+    href: '/dashboard/tickets',
   },
   {
     key: 'settings',

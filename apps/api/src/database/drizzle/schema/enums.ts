@@ -159,3 +159,58 @@ export const adminInvitationStatusEnum = pgEnum('admin_invitation_status', [
   'expired',
   'cancelled',
 ])
+
+// ============================================================================
+// SUBSCRIPTION ENUMS
+// ============================================================================
+
+export const subscriptionStatusEnum = pgEnum('subscription_status', [
+  'trial',
+  'active',
+  'inactive',
+  'cancelled',
+  'suspended',
+])
+
+export const billingCycleEnum = pgEnum('billing_cycle', [
+  'monthly',
+  'quarterly',
+  'semi_annual',
+  'annual',
+  'custom',
+])
+
+export const invoiceStatusEnum = pgEnum('invoice_status', [
+  'draft',
+  'sent',
+  'pending',
+  'paid',
+  'overdue',
+  'cancelled',
+  'refunded',
+])
+
+export const memberRoleEnum = pgEnum('member_role', ['admin', 'accountant', 'support', 'viewer'])
+
+// ============================================================================
+// SUPPORT TICKET ENUMS
+// ============================================================================
+
+export const ticketPriorityEnum = pgEnum('ticket_priority', ['low', 'medium', 'high', 'urgent'])
+
+export const ticketStatusEnum = pgEnum('ticket_status', [
+  'open',
+  'in_progress',
+  'waiting_customer',
+  'resolved',
+  'closed',
+  'cancelled',
+])
+
+export const ticketCategoryEnum = pgEnum('ticket_category', [
+  'technical',
+  'billing',
+  'feature_request',
+  'general',
+  'bug',
+])

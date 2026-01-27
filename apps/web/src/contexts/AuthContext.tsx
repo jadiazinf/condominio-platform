@@ -65,6 +65,51 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => unsubscribe()
   }, [])
 
+  // Auto-refresh token every 50 minutes (before 1 hour expiry)
+  // TEMPORARILY DISABLED to debug infinite loop
+  // useEffect(() => {
+  //   if (!user) return
+
+  //   const REFRESH_INTERVAL = 50 * 60 * 1000 // 50 minutes in milliseconds
+
+  //   const refreshToken = async () => {
+  //     try {
+  //       // Force refresh to get a new token
+  //       await setSessionCookie(user, true)
+  //       console.log('[Auth] Token refreshed successfully')
+  //     } catch (err) {
+  //       console.error('[Auth] Failed to refresh token:', err)
+  //       // If refresh fails, sign out the user
+  //       clearSessionCookie()
+  //     }
+  //     }
+
+  //   // Set up interval to refresh token
+  //   const intervalId = setInterval(refreshToken, REFRESH_INTERVAL)
+
+  //   // Also refresh immediately if we're close to expiry
+  //   // This handles cases where the app was backgrounded
+  //   const checkAndRefresh = async () => {
+  //     try {
+  //       const tokenResult = await user.getIdTokenResult()
+  //       const expirationTime = new Date(tokenResult.expirationTime).getTime()
+  //       const now = Date.now()
+  //       const timeUntilExpiry = expirationTime - now
+
+  //       // If token expires in less than 10 minutes, refresh now
+  //       if (timeUntilExpiry < 10 * 60 * 1000) {
+  //         await refreshToken()
+  //       }
+  //     } catch (err) {
+  //       console.error('[Auth] Failed to check token expiry:', err)
+  //     }
+  //   }
+
+  //   checkAndRefresh()
+
+  //   return () => clearInterval(intervalId)
+  // }, [user])
+
   const signInWithEmail = useCallback(async (email: string, password: string) => {
     try {
       setError(null)

@@ -7,6 +7,8 @@ import type {
   AdminInvitationsRepository,
   UsersRepository,
   ManagementCompaniesRepository,
+  ManagementCompanyMembersRepository,
+  ManagementCompanySubscriptionsRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { HttpContext } from '../../context'
@@ -97,7 +99,9 @@ export class AdminInvitationsController {
     private readonly db: TDrizzleClient,
     private readonly invitationsRepository: AdminInvitationsRepository,
     private readonly usersRepository: UsersRepository,
-    private readonly managementCompaniesRepository: ManagementCompaniesRepository
+    private readonly managementCompaniesRepository: ManagementCompaniesRepository,
+    private readonly membersRepository: ManagementCompanyMembersRepository,
+    private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository
   ) {
     this.createCompanyWithAdminService = new CreateCompanyWithAdminService(
       invitationsRepository,
@@ -113,7 +117,9 @@ export class AdminInvitationsController {
       db,
       invitationsRepository,
       usersRepository,
-      managementCompaniesRepository
+      managementCompaniesRepository,
+      membersRepository,
+      subscriptionsRepository
     )
     this.cancelInvitationService = new CancelInvitationService(invitationsRepository)
     this.sendInvitationEmailService = new SendInvitationEmailService()

@@ -423,6 +423,7 @@
       "users": "Users",
       "condominiums": "Condominiums",
       "admins": "Property Managers",
+      "tickets": "Support Tickets",
       "permissions": "Permissions",
       "billing": "Billing",
       "activity": "Activity",
@@ -702,6 +703,84 @@
       "darkModeDescription": "Dark interface, reduces eye strain in low-light environments",
       "systemMode": "Automatic",
       "systemModeDescription": "Automatically adjusts based on your device settings"
+    }
+  },
+  "tickets": {
+    "title": "Support Tickets",
+    "subtitle": "Manage support requests from the property manager",
+    "create": "Create Ticket",
+    "empty": "No tickets",
+    "emptyDescription": "No tickets found with the selected filters",
+    "search": "Search by ticket number or subject...",
+    "filters": {
+      "status": "Status",
+      "priority": "Priority",
+      "allStatuses": "All",
+      "allPriorities": "All"
+    },
+    "status": {
+      "open": "Open",
+      "in_progress": "In Progress",
+      "waiting_customer": "Waiting Customer",
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "category": {
+      "technical": "Technical",
+      "billing": "Billing",
+      "feature_request": "Feature Request",
+      "general": "General",
+      "bug": "Bug"
+    },
+    "table": {
+      "ticket": "Ticket",
+      "company": "Company",
+      "subject": "Subject",
+      "category": "Category",
+      "priority": "Priority",
+      "status": "Status",
+      "created": "Created"
+    },
+    "detail": {
+      "title": "Ticket Details",
+      "description": "Description",
+      "messages": "Messages",
+      "noMessages": "No messages in this ticket",
+      "details": "Details",
+      "state": "Status",
+      "priority": "Priority",
+      "category": "Category",
+      "created": "Created",
+      "createdBy": "Created by",
+      "assignedTo": "Assigned to",
+      "notAssigned": "Not assigned to a user",
+      "assignUser": "Assign user",
+      "viewProfile": "View profile",
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "internalMessage": "Internal",
+      "attachments": "Attachments",
+      "loadingMessages": "Loading messages...",
+      "messagePlaceholder": "Write a message...",
+      "internalCheckbox": "Internal message (only visible to support team)",
+      "sendButton": "Send",
+      "sending": "Sending...",
+      "success": "Message sent successfully",
+      "error": "Error sending message"
+    },
+    "actions": {
+      "view": "View details",
+      "assign": "Assign",
+      "resolve": "Resolve",
+      "close": "Close",
+      "reopen": "Reopen"
     }
   }
 }

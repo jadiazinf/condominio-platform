@@ -16,6 +16,7 @@ import {
   UserProvider,
   CondominiumProvider,
   SuperadminProvider,
+  HttpClientProvider,
 } from '@/contexts'
 import { ToastProvider } from '@/ui/components/toast'
 import { NetworkStatusMonitor } from '@/ui/components/network-status'
@@ -48,18 +49,20 @@ export function Providers({
         <NextThemesProvider {...themeProps}>
           <I18nProvider initialLocale={locale}>
             <AuthProvider>
-              <UserProvider initialUser={initialUser}>
-                <CondominiumProvider
-                  initialCondominiums={initialCondominiums}
-                  initialSelectedCondominium={initialSelectedCondominium}
-                >
-                  <SuperadminProvider>
-                    {children}
-                    <ToastProvider position="top-center" />
-                    <NetworkStatusMonitor />
-                  </SuperadminProvider>
-                </CondominiumProvider>
-              </UserProvider>
+              <HttpClientProvider>
+                <UserProvider initialUser={initialUser}>
+                  <CondominiumProvider
+                    initialCondominiums={initialCondominiums}
+                    initialSelectedCondominium={initialSelectedCondominium}
+                  >
+                    <SuperadminProvider>
+                      {children}
+                      <ToastProvider position="top-center" />
+                      <NetworkStatusMonitor />
+                    </SuperadminProvider>
+                  </CondominiumProvider>
+                </UserProvider>
+              </HttpClientProvider>
             </AuthProvider>
           </I18nProvider>
         </NextThemesProvider>

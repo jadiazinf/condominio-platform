@@ -32,5 +32,17 @@ export { UsersEndpoint } from './users.endpoint'
 // Admin Invitations
 export { AdminInvitationsEndpoint } from './admin-invitations.endpoint'
 
+// Subscriptions & Members
+export { ManagementCompanySubscriptionsEndpoint } from './management-company-subscriptions.endpoint'
+export { SubscriptionInvoicesEndpoint } from './subscription-invoices.endpoint'
+export { ManagementCompanyMembersEndpoint } from './management-company-members.endpoint'
+
+// Support Tickets
+export { SupportTicketsEndpoint } from './support-tickets.endpoint'
+export { SupportTicketMessagesEndpoint } from './support-ticket-messages.endpoint'
+
+// WebSocket
+export { WebSocketEndpoint, websocket } from './websocket.endpoint'
+
 // Routes
 export { ApiRoutes } from './routes'

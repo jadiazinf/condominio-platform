@@ -754,6 +754,97 @@
         "deviceName": {
           "max": "El nombre del dispositivo debe tener como máximo 255 caracteres."
         }
+      },
+      "supportTickets": {
+        "ticketNumber": {
+          "required": "El número de ticket es requerido.",
+          "max": "El número de ticket debe tener como máximo 100 caracteres."
+        },
+        "managementCompanyId": {
+          "required": "El ID de la empresa administradora es requerido.",
+          "invalid": "El ID de la empresa administradora no es válido."
+        },
+        "createdByUserId": {
+          "invalid": "El ID del usuario creador no es válido."
+        },
+        "createdByMemberId": {
+          "invalid": "El ID del miembro creador no es válido."
+        },
+        "subject": {
+          "required": "El asunto es requerido.",
+          "min": "El asunto debe tener al menos 3 caracteres.",
+          "max": "El asunto debe tener como máximo 255 caracteres."
+        },
+        "description": {
+          "required": "La descripción es requerida.",
+          "min": "La descripción debe tener al menos 10 caracteres."
+        },
+        "priority": {
+          "required": "La prioridad es requerida.",
+          "invalid": "La prioridad no es válida. Debe ser: low, medium, high, urgent."
+        },
+        "status": {
+          "required": "El estado es requerido.",
+          "invalid": "El estado no es válido. Debe ser: open, in_progress, waiting_customer, resolved, closed, cancelled."
+        },
+        "category": {
+          "invalid": "La categoría no es válida. Debe ser: technical, billing, feature_request, general, bug."
+        },
+        "assignedTo": {
+          "invalid": "El ID del usuario asignado no es válido."
+        },
+        "assignedAt": {
+          "invalid": "La fecha de asignación no es válida."
+        },
+        "resolvedAt": {
+          "invalid": "La fecha de resolución no es válida."
+        },
+        "resolvedBy": {
+          "invalid": "El ID del usuario que resolvió no es válido."
+        },
+        "closedAt": {
+          "invalid": "La fecha de cierre no es válida."
+        },
+        "closedBy": {
+          "invalid": "El ID del usuario que cerró no es válido."
+        },
+        "tags": {
+          "invalid": "Las etiquetas deben ser un arreglo de cadenas."
+        }
+      },
+      "supportTicketMessages": {
+        "ticketId": {
+          "required": "El ID del ticket es requerido.",
+          "invalid": "El ID del ticket no es válido."
+        },
+        "userId": {
+          "required": "El ID del usuario es requerido.",
+          "invalid": "El ID del usuario no es válido."
+        },
+        "message": {
+          "required": "El mensaje es requerido.",
+          "min": "El mensaje debe tener al menos 1 carácter."
+        },
+        "isInternal": {
+          "invalid": "El campo de mensaje interno debe ser un valor booleano."
+        },
+        "attachments": {
+          "invalid": "Los archivos adjuntos deben ser un arreglo válido.",
+          "name": {
+            "required": "El nombre del archivo es requerido."
+          },
+          "url": {
+            "required": "La URL del archivo es requerida.",
+            "invalid": "La URL del archivo no es válida."
+          },
+          "size": {
+            "required": "El tamaño del archivo es requerido.",
+            "invalid": "El tamaño del archivo debe ser un número positivo."
+          },
+          "mimeType": {
+            "max": "El tipo MIME debe tener como máximo 100 caracteres."
+          }
+        }
       }
     }
   }

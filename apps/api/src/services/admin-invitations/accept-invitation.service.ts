@@ -1,8 +1,16 @@
-import type { TAdminInvitation, TUser, TManagementCompany } from '@packages/domain'
+import type {
+  TAdminInvitation,
+  TUser,
+  TManagementCompany,
+  TManagementCompanyMember,
+  TManagementCompanySubscription,
+} from '@packages/domain'
 import type {
   AdminInvitationsRepository,
   UsersRepository,
   ManagementCompaniesRepository,
+  ManagementCompanyMembersRepository,
+  ManagementCompanySubscriptionsRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
@@ -16,11 +24,14 @@ export interface IAcceptInvitationResult {
   invitation: TAdminInvitation
   user: TUser
   managementCompany: TManagementCompany
+  member: TManagementCompanyMember
+  subscription: TManagementCompanySubscription
 }
 
 /**
  * Service for accepting an invitation.
  * Updates the user with Firebase UID, activates user and company,
+ * creates member with primary admin role, creates trial subscription,
  * and marks the invitation as accepted.
  */
 export class AcceptInvitationService {
@@ -28,7 +39,9 @@ export class AcceptInvitationService {
     private readonly db: TDrizzleClient,
     private readonly invitationsRepository: AdminInvitationsRepository,
     private readonly usersRepository: UsersRepository,
-    private readonly managementCompaniesRepository: ManagementCompaniesRepository
+    private readonly managementCompaniesRepository: ManagementCompaniesRepository,
+    private readonly membersRepository: ManagementCompanyMembersRepository,
+    private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository
   ) {}
 
   async execute(
@@ -111,10 +124,68 @@ export class AcceptInvitationService {
       return failure('Failed to accept invitation', 'INTERNAL_ERROR')
     }
 
+    // Create member with primary admin role
+    const member = await this.membersRepository.create({
+      managementCompanyId: managementCompany.id,
+      userId: updatedUser.id,
+      roleName: 'admin',
+      permissions: {
+        can_change_subscription: true,
+        can_manage_members: true,
+        can_create_tickets: true,
+        can_view_invoices: true,
+      },
+      isPrimaryAdmin: true,
+      joinedAt: new Date(),
+      invitedAt: invitation.createdAt,
+      invitedBy: invitation.createdBy,
+      isActive: true,
+      deactivatedAt: null,
+      deactivatedBy: null,
+    })
+
+    if (!member) {
+      return failure('Failed to create member', 'INTERNAL_ERROR')
+    }
+
+    // Create trial subscription (30 days)
+    const trialEndsAt = new Date()
+    trialEndsAt.setDate(trialEndsAt.getDate() + 30)
+
+    const subscription = await this.subscriptionsRepository.create({
+      managementCompanyId: managementCompany.id,
+      subscriptionName: 'Trial Subscription',
+      billingCycle: 'monthly',
+      basePrice: 0, // Free during trial
+      currencyId: null,
+      maxCondominiums: null, // No limits during trial
+      maxUsers: null,
+      maxStorageGb: null,
+      customFeatures: null,
+      customRules: null,
+      status: 'trial',
+      startDate: new Date(),
+      endDate: null,
+      nextBillingDate: trialEndsAt,
+      trialEndsAt,
+      autoRenew: false,
+      notes: 'Automatically created trial subscription',
+      createdBy: null,
+      cancelledAt: null,
+      cancelledBy: null,
+      cancellationReason: null,
+    })
+
+    if (!subscription) {
+      return failure('Failed to create trial subscription', 'INTERNAL_ERROR')
+    }
+
     return success({
       invitation: acceptedInvitation,
       user: updatedUser,
       managementCompany: updatedCompany,
+      member,
+      subscription,
     })
   }
 }

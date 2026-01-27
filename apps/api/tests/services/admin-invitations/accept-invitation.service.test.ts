@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
-import type { TAdminInvitation, TUser, TManagementCompany } from '@packages/domain'
+import type {
+  TAdminInvitation,
+  TUser,
+  TManagementCompany,
+  TManagementCompanyMember,
+  TManagementCompanySubscription,
+} from '@packages/domain'
 import { AcceptInvitationService } from '@src/services/admin-invitations'
 
 type TMockInvitationsRepository = {
@@ -19,11 +25,21 @@ type TMockCompaniesRepository = {
   update: (id: string, data: Partial<TManagementCompany>) => Promise<TManagementCompany | null>
 }
 
+type TMockMembersRepository = {
+  create: (data: any) => Promise<TManagementCompanyMember>
+}
+
+type TMockSubscriptionsRepository = {
+  create: (data: any) => Promise<TManagementCompanySubscription>
+}
+
 describe('AcceptInvitationService', function () {
   let service: AcceptInvitationService
   let mockInvitationsRepository: TMockInvitationsRepository
   let mockUsersRepository: TMockUsersRepository
   let mockCompaniesRepository: TMockCompaniesRepository
+  let mockMembersRepository: TMockMembersRepository
+  let mockSubscriptionsRepository: TMockSubscriptionsRepository
   let existingUserWithFirebaseUid: TUser | null
 
   const testUser: TUser = {
@@ -173,11 +189,65 @@ describe('AcceptInvitationService', function () {
       },
     }
 
+    mockMembersRepository = {
+      create: async function (data: any) {
+        return {
+          id: '550e8400-e29b-41d4-a716-446655440010',
+          managementCompanyId: data.managementCompanyId,
+          userId: data.userId,
+          roleName: data.roleName,
+          permissions: data.permissions,
+          isPrimaryAdmin: data.isPrimaryAdmin,
+          joinedAt: new Date(),
+          invitedAt: null,
+          invitedBy: null,
+          isActive: true,
+          deactivatedAt: null,
+          deactivatedBy: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
+      },
+    }
+
+    mockSubscriptionsRepository = {
+      create: async function (data: any) {
+        return {
+          id: '550e8400-e29b-41d4-a716-446655440011',
+          managementCompanyId: data.managementCompanyId,
+          subscriptionName: data.subscriptionName,
+          billingCycle: data.billingCycle,
+          basePrice: data.basePrice,
+          currencyId: data.currencyId,
+          maxCondominiums: data.maxCondominiums,
+          maxUsers: data.maxUsers,
+          maxStorageGb: data.maxStorageGb,
+          customFeatures: data.customFeatures,
+          customRules: data.customRules,
+          status: data.status,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          nextBillingDate: data.nextBillingDate,
+          trialEndsAt: data.trialEndsAt,
+          autoRenew: data.autoRenew,
+          notes: data.notes,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          createdBy: data.createdBy,
+          cancelledAt: null,
+          cancelledBy: null,
+          cancellationReason: null,
+        }
+      },
+    }
+
     service = new AcceptInvitationService(
       {} as never, // db not used in mock tests
       mockInvitationsRepository as never,
       mockUsersRepository as never,
-      mockCompaniesRepository as never
+      mockCompaniesRepository as never,
+      mockMembersRepository as never,
+      mockSubscriptionsRepository as never
     )
   })
 

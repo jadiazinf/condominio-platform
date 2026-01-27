@@ -39,6 +39,11 @@ import {
 import { superadminUsers, superadminUserPermissions } from '../tables/superadmin'
 import { auditLogs } from '../tables/audit-logs'
 import { adminInvitations } from '../tables/admin-invitations'
+import { managementCompanySubscriptions } from '../tables/management-company-subscriptions'
+import { subscriptionInvoices } from '../tables/subscription-invoices'
+import { managementCompanyMembers } from '../tables/management-company-members'
+import { supportTickets } from '../tables/support-tickets'
+import { supportTicketMessages } from '../tables/support-ticket-messages'
 
 // ============================================================================
 // LOCATIONS RELATIONS
@@ -78,6 +83,8 @@ export const currenciesRelations = relations(currencies, ({ one, many }) => ({
   quotas: many(quotas),
   payments: many(payments),
   expenses: many(expenses),
+  managementCompanySubscriptions: many(managementCompanySubscriptions),
+  subscriptionInvoices: many(subscriptionInvoices),
 }))
 
 export const exchangeRatesRelations = relations(exchangeRates, ({ one }) => ({
@@ -203,6 +210,9 @@ export const managementCompaniesRelations = relations(managementCompanies, ({ on
   }),
   condominiums: many(condominiums),
   adminInvitations: many(adminInvitations),
+  subscriptions: many(managementCompanySubscriptions),
+  members: many(managementCompanyMembers),
+  supportTickets: many(supportTickets),
 }))
 
 export const condominiumsRelations = relations(condominiums, ({ one, many }) => ({
@@ -792,5 +802,125 @@ export const adminInvitationsRelations = relations(adminInvitations, ({ one }) =
     fields: [adminInvitations.createdBy],
     references: [users.id],
     relationName: 'invitationCreator',
+  }),
+}))
+
+// ============================================================================
+// SUBSCRIPTIONS & MEMBERS RELATIONS
+// ============================================================================
+
+export const managementCompanySubscriptionsRelations = relations(
+  managementCompanySubscriptions,
+  ({ one, many }) => ({
+    managementCompany: one(managementCompanies, {
+      fields: [managementCompanySubscriptions.managementCompanyId],
+      references: [managementCompanies.id],
+    }),
+    currency: one(currencies, {
+      fields: [managementCompanySubscriptions.currencyId],
+      references: [currencies.id],
+    }),
+    createdByUser: one(users, {
+      fields: [managementCompanySubscriptions.createdBy],
+      references: [users.id],
+      relationName: 'subscriptionCreator',
+    }),
+    cancelledByUser: one(users, {
+      fields: [managementCompanySubscriptions.cancelledBy],
+      references: [users.id],
+      relationName: 'subscriptionCanceller',
+    }),
+    invoices: many(subscriptionInvoices),
+  })
+)
+
+export const subscriptionInvoicesRelations = relations(subscriptionInvoices, ({ one }) => ({
+  subscription: one(managementCompanySubscriptions, {
+    fields: [subscriptionInvoices.subscriptionId],
+    references: [managementCompanySubscriptions.id],
+  }),
+  managementCompany: one(managementCompanies, {
+    fields: [subscriptionInvoices.managementCompanyId],
+    references: [managementCompanies.id],
+  }),
+  currency: one(currencies, {
+    fields: [subscriptionInvoices.currencyId],
+    references: [currencies.id],
+  }),
+  payment: one(payments, {
+    fields: [subscriptionInvoices.paymentId],
+    references: [payments.id],
+  }),
+}))
+
+export const managementCompanyMembersRelations = relations(
+  managementCompanyMembers,
+  ({ one, many }) => ({
+    managementCompany: one(managementCompanies, {
+      fields: [managementCompanyMembers.managementCompanyId],
+      references: [managementCompanies.id],
+    }),
+    user: one(users, {
+      fields: [managementCompanyMembers.userId],
+      references: [users.id],
+    }),
+    invitedByUser: one(users, {
+      fields: [managementCompanyMembers.invitedBy],
+      references: [users.id],
+      relationName: 'memberInviter',
+    }),
+    deactivatedByUser: one(users, {
+      fields: [managementCompanyMembers.deactivatedBy],
+      references: [users.id],
+      relationName: 'memberDeactivator',
+    }),
+    createdTickets: many(supportTickets),
+  })
+)
+
+// ============================================================================
+// SUPPORT TICKETS RELATIONS
+// ============================================================================
+
+export const supportTicketsRelations = relations(supportTickets, ({ one, many }) => ({
+  managementCompany: one(managementCompanies, {
+    fields: [supportTickets.managementCompanyId],
+    references: [managementCompanies.id],
+  }),
+  createdByUser: one(users, {
+    fields: [supportTickets.createdByUserId],
+    references: [users.id],
+    relationName: 'ticketCreator',
+  }),
+  createdByMember: one(managementCompanyMembers, {
+    fields: [supportTickets.createdByMemberId],
+    references: [managementCompanyMembers.id],
+  }),
+  assignedToUser: one(users, {
+    fields: [supportTickets.assignedTo],
+    references: [users.id],
+    relationName: 'ticketAssignee',
+  }),
+  resolvedByUser: one(users, {
+    fields: [supportTickets.resolvedBy],
+    references: [users.id],
+    relationName: 'ticketResolver',
+  }),
+  closedByUser: one(users, {
+    fields: [supportTickets.closedBy],
+    references: [users.id],
+    relationName: 'ticketCloser',
+  }),
+  messages: many(supportTicketMessages),
+}))
+
+export const supportTicketMessagesRelations = relations(supportTicketMessages, ({ one }) => ({
+  ticket: one(supportTickets, {
+    fields: [supportTicketMessages.ticketId],
+    references: [supportTickets.id],
+  }),
+  user: one(users, {
+    fields: [supportTicketMessages.userId],
+    references: [users.id],
   }),
 }))

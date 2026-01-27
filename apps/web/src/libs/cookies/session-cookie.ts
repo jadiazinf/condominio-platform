@@ -2,13 +2,16 @@ import type { User } from 'firebase/auth'
 import { clearUserCookie } from './user-cookie'
 
 const SESSION_COOKIE_NAME = '__session'
+// TEMPORARILY set back to 7 days while debugging
+const TOKEN_EXPIRY_SECONDS = 60 * 60 * 24 * 7 // 7 days
 
-export async function setSessionCookie(user: User): Promise<void> {
-  const idToken = await user.getIdToken()
+export async function setSessionCookie(user: User, forceRefresh = false): Promise<void> {
+  // Force refresh gets a new token, otherwise uses cached token if valid
+  const idToken = await user.getIdToken(forceRefresh)
   const isSecure = window.location.protocol === 'https:'
   const secureFlag = isSecure ? '; Secure' : ''
 
-  document.cookie = `${SESSION_COOKIE_NAME}=${idToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secureFlag}`
+  document.cookie = `${SESSION_COOKIE_NAME}=${idToken}; path=/; max-age=${TOKEN_EXPIRY_SECONDS}; SameSite=Lax${secureFlag}`
 }
 
 export function getSessionCookie(): string | undefined {

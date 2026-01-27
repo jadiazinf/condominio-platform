@@ -50,3 +50,12 @@ export { SuperadminUserPermissionsController } from './superadmin-user-permissio
 
 // Admin Invitations
 export { AdminInvitationsController } from './admin-invitations'
+
+// Subscriptions & Members
+export { ManagementCompanySubscriptionsController } from './management-company-subscriptions/subscriptions.controller'
+export { SubscriptionInvoicesController } from './subscription-invoices/invoices.controller'
+export { ManagementCompanyMembersController } from './management-company-members/members.controller'
+
+// Support Tickets
+export { SupportTicketsController } from './support-tickets/support-tickets.controller'
+export { SupportTicketMessagesController } from './support-ticket-messages/messages.controller'

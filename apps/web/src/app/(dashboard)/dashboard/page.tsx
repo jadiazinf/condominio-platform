@@ -11,6 +11,7 @@ import { DistributionChart } from '../components/DistributionChart'
 import { ActivityFeed, type TActivity } from '../components/ActivityFeed'
 import { SystemStatusCard } from '../components/SystemStatusCard'
 import { DashboardSkeleton, SuperadminDashboardSkeleton } from './components/DashboardSkeleton'
+import { RecentTicketsTable } from './components/RecentTicketsTable'
 import {
   AccountBalanceCard,
   UpcomingQuotas,
@@ -347,6 +348,9 @@ async function SuperadminDashboardContent() {
         />
         <SystemStatusCard services={services} title={t('superadmin.dashboard.systemStatus')} />
       </div>
+
+      {/* Recent Tickets */}
+      <RecentTicketsTable />
     </div>
   )
 }

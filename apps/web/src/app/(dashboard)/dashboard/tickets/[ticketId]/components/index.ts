@@ -1,0 +1,12 @@
+export { TicketHeader } from './TicketHeader'
+export { TicketDescription } from './TicketDescription'
+export { TicketMessages } from './TicketMessages'
+export { TicketDetails } from './TicketDetails'
+export { UserInfo } from './UserInfo'
+export * from './ticket-helpers'
+
+export type { ITicketHeaderProps } from './TicketHeader'
+export type { ITicketDescriptionProps } from './TicketDescription'
+export type { ITicketMessagesProps, ITicketMessagesTranslations } from './TicketMessages'
+export type { ITicketDetailsProps, ITicketDetailsTranslations } from './TicketDetails'
+export type { IUserInfoProps } from './UserInfo'

@@ -23,23 +23,30 @@ export function SignInForm() {
   const { signInWithEmail, signInWithGoogle, loading, signOut } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // TEMPORARILY DISABLED to debug infinite loop
   // Clear expired session cookies when redirected with expired=true
-  useEffect(
-    function () {
-      const expired = searchParams.get('expired')
+  // useEffect(
+  //   function () {
+  //     const expired = searchParams.get('expired')
 
-      if (expired === 'true') {
-        clearSessionCookie()
-        clearUserCookie()
-        signOut().catch(function () {
-          // Ignore signOut errors since we're already clearing cookies
-        })
-        // Clean URL
-        router.replace('/signin')
-      }
-    },
-    [searchParams, router, signOut]
-  )
+  //     if (expired === 'true') {
+  //       const clearExpiredSession = async function () {
+  //         clearSessionCookie()
+  //         clearUserCookie()
+  //         try {
+  //           await signOut()
+  //         } catch {
+  //           // Ignore signOut errors since we're already clearing cookies
+  //         }
+  //         // Clean URL only after signOut completes
+  //         router.replace('/signin')
+  //       }
+
+  //       clearExpiredSession()
+  //     }
+  //   },
+  //   [searchParams, router, signOut]
+  // )
 
   async function handleSubmit(data: TSignInSchema) {
     try {

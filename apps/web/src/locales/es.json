@@ -423,6 +423,7 @@
       "users": "Usuarios",
       "condominiums": "Condominios",
       "admins": "Administradoras",
+      "tickets": "Tickets de Soporte",
       "permissions": "Permisos",
       "billing": "Facturación",
       "activity": "Actividad",
@@ -702,6 +703,84 @@
       "darkModeDescription": "Interfaz oscura, reduce la fatiga visual en ambientes con poca luz",
       "systemMode": "Automático",
       "systemModeDescription": "Se ajusta automáticamente según la configuración de tu dispositivo"
+    }
+  },
+  "tickets": {
+    "title": "Tickets de Soporte",
+    "subtitle": "Gestiona las solicitudes de soporte de la administradora",
+    "create": "Crear Ticket",
+    "empty": "No hay tickets",
+    "emptyDescription": "No se encontraron tickets con los filtros seleccionados",
+    "search": "Buscar por número de ticket o asunto...",
+    "filters": {
+      "status": "Estado",
+      "priority": "Prioridad",
+      "allStatuses": "Todos",
+      "allPriorities": "Todas"
+    },
+    "status": {
+      "open": "Abierto",
+      "in_progress": "En Progreso",
+      "waiting_customer": "Esperando Cliente",
+      "resolved": "Resuelto",
+      "closed": "Cerrado",
+      "cancelled": "Cancelado"
+    },
+    "priority": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta",
+      "urgent": "Urgente"
+    },
+    "category": {
+      "technical": "Técnico",
+      "billing": "Facturación",
+      "feature_request": "Solicitud",
+      "general": "General",
+      "bug": "Error"
+    },
+    "table": {
+      "ticket": "Ticket",
+      "company": "Empresa",
+      "subject": "Asunto",
+      "category": "Categoría",
+      "priority": "Prioridad",
+      "status": "Estado",
+      "created": "Creado"
+    },
+    "detail": {
+      "title": "Detalle del Ticket",
+      "description": "Descripción",
+      "messages": "Mensajes",
+      "noMessages": "No hay mensajes en este ticket",
+      "details": "Detalles",
+      "state": "Estado",
+      "priority": "Prioridad",
+      "category": "Categoría",
+      "created": "Creado",
+      "createdBy": "Creado por",
+      "assignedTo": "Asignado a",
+      "notAssigned": "No se ha asignado a un usuario",
+      "assignUser": "Asignar usuario",
+      "viewProfile": "Ver perfil",
+      "resolved": "Resuelto",
+      "closed": "Cerrado",
+      "internalMessage": "Interno",
+      "attachments": "Archivos adjuntos",
+      "loadingMessages": "Cargando mensajes...",
+      "messagePlaceholder": "Escribe un mensaje...",
+      "internalCheckbox": "Mensaje interno (solo visible para el equipo de soporte)",
+      "sendButton": "Enviar",
+      "sending": "Enviando...",
+      "success": "Mensaje enviado correctamente",
+      "error": "Error al enviar el mensaje"
+    },
+    "actions": {
+      "view": "Ver detalles",
+      "assign": "Asignar",
+      "resolve": "Resolver",
+      "close": "Cerrar",
+      "reopen": "Reabrir"
     }
   }
 }

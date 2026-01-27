@@ -167,7 +167,9 @@ export function CompanyDetail({ id }: CompanyDetailProps) {
                     <Typography color="muted" variant="caption">
                       {t('superadmin.companies.table.phone')}
                     </Typography>
-                    <Typography variant="body2">{company.phone}</Typography>
+                    <Typography variant="body2">
+                      {company.phoneCountryCode ? `${company.phoneCountryCode} ${company.phone}` : company.phone}
+                    </Typography>
                   </div>
                 </div>
               )}

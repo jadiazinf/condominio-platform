@@ -3,6 +3,8 @@ import {
   AdminInvitationsRepository,
   UsersRepository,
   ManagementCompaniesRepository,
+  ManagementCompanyMembersRepository,
+  ManagementCompanySubscriptionsRepository,
 } from '@database/repositories'
 import { AdminInvitationsController } from '../controllers'
 import type { IEndpoint } from './types'
@@ -16,11 +18,15 @@ export class AdminInvitationsEndpoint implements IEndpoint {
     const invitationsRepository = new AdminInvitationsRepository(db)
     const usersRepository = new UsersRepository(db)
     const managementCompaniesRepository = new ManagementCompaniesRepository(db)
+    const membersRepository = new ManagementCompanyMembersRepository(db)
+    const subscriptionsRepository = new ManagementCompanySubscriptionsRepository(db)
     this.controller = new AdminInvitationsController(
       db,
       invitationsRepository,
       usersRepository,
-      managementCompaniesRepository
+      managementCompaniesRepository,
+      membersRepository,
+      subscriptionsRepository
     )
   }
 

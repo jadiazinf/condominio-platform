@@ -39,6 +39,12 @@ import { UserFcmTokensEndpoint } from './user-fcm-tokens.endpoint'
 import { SuperadminUsersEndpoint } from './superadmin-users.endpoint'
 import { SuperadminUserPermissionsEndpoint } from './superadmin-user-permissions.endpoint'
 import { AdminInvitationsEndpoint } from './admin-invitations.endpoint'
+import { ManagementCompanySubscriptionsEndpoint } from './management-company-subscriptions.endpoint'
+import { SubscriptionInvoicesEndpoint } from './subscription-invoices.endpoint'
+import { ManagementCompanyMembersEndpoint } from './management-company-members.endpoint'
+import { SupportTicketsEndpoint } from './support-tickets.endpoint'
+import { SupportTicketMessagesEndpoint } from './support-ticket-messages.endpoint'
+import { WebSocketEndpoint } from './websocket.endpoint'
 
 /**
  * Central class that manages all API routes.
@@ -116,6 +122,18 @@ export class ApiRoutes {
 
       // Admin Invitations
       new AdminInvitationsEndpoint(db),
+
+      // Subscriptions & Members
+      new ManagementCompanySubscriptionsEndpoint(db),
+      new SubscriptionInvoicesEndpoint(db),
+      new ManagementCompanyMembersEndpoint(db),
+
+      // Support Tickets
+      new SupportTicketsEndpoint(db),
+      new SupportTicketMessagesEndpoint(db),
+
+      // WebSocket
+      new WebSocketEndpoint(),
     ]
   }
 
