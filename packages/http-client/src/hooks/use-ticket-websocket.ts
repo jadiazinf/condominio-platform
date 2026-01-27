@@ -105,24 +105,34 @@ export function useTicketWebSocket({
 
           if (message.event === 'new_message') {
             const newMessage = message.data as TSupportTicketMessage
+            console.log('[WebSocket] New message received:', newMessage.id, newMessage.message.substring(0, 50))
 
             // Update React Query cache with optimistic update
             queryClient.setQueryData(supportTicketMessageKeys.list(ticketId), (old: any) => {
-              if (!old?.data?.data) return old
+              console.log('[WebSocket] Current cache state:', old)
+
+              if (!old?.data) {
+                console.warn('[WebSocket] Cache is empty or has wrong structure, cannot add message')
+                return old
+              }
 
               // Check if message already exists (avoid duplicates)
-              const exists = old.data.data.some(
+              const exists = old.data.some(
                 (msg: TSupportTicketMessage) => msg.id === newMessage.id
               )
-              if (exists) return old
 
-              return {
-                ...old,
-                data: {
-                  ...old.data,
-                  data: [...old.data.data, newMessage],
-                },
+              if (exists) {
+                console.log('[WebSocket] Message already exists in cache, skipping')
+                return old
               }
+
+              const updated = {
+                ...old,
+                data: [...old.data, newMessage],
+              }
+
+              console.log('[WebSocket] Cache updated with new message. Total messages:', updated.data.length)
+              return updated
             })
           } else if (message.event === 'connected') {
             console.log('[WebSocket] Connection confirmed:', message.data)

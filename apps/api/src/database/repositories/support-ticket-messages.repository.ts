@@ -5,7 +5,7 @@ import type {
   TSupportTicketMessageUpdate,
   TAttachment,
 } from '@packages/domain'
-import { supportTicketMessages } from '@database/drizzle/schema'
+import { supportTicketMessages, users } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -65,16 +65,30 @@ export class SupportTicketMessagesRepository
   }
 
   /**
-   * List all messages for a ticket
+   * List all messages for a ticket with user information
    */
   async listByTicketId(ticketId: string): Promise<TSupportTicketMessage[]> {
     const results = await this.db
-      .select()
+      .select({
+        message: supportTicketMessages,
+        user: users,
+      })
       .from(supportTicketMessages)
+      .leftJoin(users, eq(supportTicketMessages.userId, users.id))
       .where(eq(supportTicketMessages.ticketId, ticketId))
       .orderBy(desc(supportTicketMessages.createdAt))
 
-    return results.map(r => this.mapToEntity(r))
+    return results.map(({ message, user }) => ({
+      ...this.mapToEntity(message),
+      user: user ? {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        photoUrl: user.photoUrl,
+      } : null,
+    }))
   }
 
   /**

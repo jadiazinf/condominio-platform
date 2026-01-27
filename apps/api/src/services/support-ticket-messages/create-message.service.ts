@@ -30,14 +30,22 @@ export class CreateMessageService {
     }
 
     // Create message
-    const message = await this.messagesRepository.create(input)
+    const createdMessage = await this.messagesRepository.create(input)
 
     // Update ticket's updatedAt timestamp
     await this.ticketsRepository.update(input.ticketId, {})
 
-    // Broadcast new message to all connected clients in this ticket room
-    this.wsManager.broadcastToTicket(input.ticketId, 'new_message', message)
+    // Fetch the message again with user information for broadcasting
+    const messages = await this.messagesRepository.listByTicketId(input.ticketId)
+    const messageWithUser = messages.find(m => m.id === createdMessage.id)
 
-    return success(message)
+    if (!messageWithUser) {
+      return failure('Failed to retrieve created message', 'INTERNAL_ERROR')
+    }
+
+    // Broadcast new message with user info to all connected clients
+    this.wsManager.broadcastToTicket(input.ticketId, 'new_message', messageWithUser)
+
+    return success(messageWithUser)
   }
 }

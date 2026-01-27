@@ -1,16 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardHeader, CardBody } from '@heroui/card'
 import { Chip } from '@heroui/chip'
 import { Divider } from '@heroui/divider'
-import { MessageSquare, User, Wifi, WifiOff } from 'lucide-react'
+import { MessageSquare, Wifi, WifiOff } from 'lucide-react'
 import { useTicketMessages, useTicketWebSocket } from '@packages/http-client'
 
 import { Typography } from '@/ui/components/typography'
-import { formatDate } from './ticket-helpers'
 import { SendMessageForm } from './SendMessageForm'
 import { getSessionCookie } from '@/libs/cookies'
+import { useUser } from '@/contexts'
 
 export interface ITicketMessagesTranslations {
   title: string
@@ -24,6 +24,7 @@ export interface ITicketMessagesTranslations {
   sending: string
   success: string
   error: string
+  today: string
 }
 
 export interface ITicketMessagesProps {
@@ -34,26 +35,60 @@ export interface ITicketMessagesProps {
 
 export function TicketMessages({ ticketId, locale, translations }: ITicketMessagesProps) {
   const { data, isLoading } = useTicketMessages(ticketId)
-  const messages = data?.data.data
+  const messages = data?.data
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { user: currentUser } = useUser()
 
   // Connect to WebSocket for real-time updates
   const [token, setToken] = useState<string>('')
 
   useEffect(() => {
     const sessionToken = getSessionCookie()
-    console.log('[TicketMessages] Session token retrieved:', sessionToken ? `${sessionToken.substring(0, 20)}...` : 'NO TOKEN')
     setToken(sessionToken || '')
   }, [])
 
-  const { isConnected, error: wsError } = useTicketWebSocket({
+  const { isConnected } = useTicketWebSocket({
     ticketId,
     token,
     enabled: !!token,
   })
 
+  // Format message timestamp
+  const formatMessageTime = (dateString: string | Date) => {
+    const messageDate = new Date(dateString)
+    const today = new Date()
+
+    // Check if message is from today
+    const isToday = messageDate.toDateString() === today.toDateString()
+
+    if (isToday) {
+      return messageDate.toLocaleTimeString(locale, {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    }
+
+    // Show "Today" or "Hoy" with time
+    return `${messageDate.toLocaleDateString(locale, {
+      month: 'short',
+      day: 'numeric'
+    })} ${messageDate.toLocaleTimeString(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+    })}`
+  }
+
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
-    console.log('[TicketMessages] WebSocket status - connected:', isConnected, 'error:', wsError)
-  }, [isConnected, wsError])
+    if (messages && messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [messages])
+
+  // Sort messages by creation date (oldest first, newest last)
+  const sortedMessages = messages?.slice().sort((a, b) =>
+    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  )
 
   return (
     <Card>
@@ -95,60 +130,75 @@ export function TicketMessages({ ticketId, locale, translations }: ITicketMessag
               </Typography>
             </div>
           ) : (
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`rounded-lg border p-4 ${
-                    message.isInternal
-                      ? 'border-warning-200 bg-warning-50'
-                      : 'border-default-200 bg-default-50'
-                  }`}
-                >
-                  <div className="mb-2 flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <User className="text-default-400" size={16} />
-                      <Typography className="font-medium" variant="body2">
-                        {message.user?.firstName && message.user?.lastName
-                          ? `${message.user.firstName} ${message.user.lastName}`
-                          : message.user?.displayName || message.user?.email || 'Usuario'}
-                      </Typography>
+            <div className="max-h-[500px] space-y-2 overflow-y-auto px-2 py-4">
+              {sortedMessages?.map((message) => {
+                const isCurrentUser = currentUser?.id === message.userId
+                const userName = message.user?.firstName && message.user?.lastName
+                  ? `${message.user.firstName} ${message.user.lastName}`
+                  : message.user?.displayName || message.user?.email || 'Unknown User'
+
+                return (
+                  <div
+                    key={message.id}
+                    className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`group relative max-w-[75%] px-3 py-2 shadow-sm ${
+                        message.isInternal
+                          ? 'rounded-2xl border-2 border-warning-400 bg-warning-100'
+                          : isCurrentUser
+                          ? 'rounded-2xl rounded-br-md bg-[#4CAF50] text-white'
+                          : 'rounded-2xl rounded-bl-md bg-default-200 text-default-900'
+                      }`}
+                    >
+                      {!isCurrentUser && (
+                        <Typography className="mb-0.5 text-xs font-semibold text-primary-600">
+                          {userName}
+                        </Typography>
+                      )}
                       {message.isInternal && (
-                        <Chip color="warning" size="sm" variant="flat">
+                        <Chip className="mb-1" color="warning" size="sm" variant="flat">
                           {translations.internalMessage}
                         </Chip>
                       )}
-                    </div>
-                    <Typography color="muted" variant="caption">
-                      {formatDate(message.createdAt, locale)}
-                    </Typography>
-                  </div>
-                  <Typography className="whitespace-pre-wrap" variant="body2">
-                    {message.message}
-                  </Typography>
-                  {message.attachments && message.attachments.length > 0 && (
-                    <div className="mt-3 space-y-1">
-                      <Typography className="text-xs font-medium" color="muted">
-                        {translations.attachments}:
+                      <Typography className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                        {message.message}
                       </Typography>
-                      {message.attachments.map((attachment, idx) => (
-                        <a
-                          key={idx}
-                          className="flex items-center gap-2 text-sm text-primary hover:underline"
-                          href={attachment.url}
-                          rel="noopener noreferrer"
-                          target="_blank"
-                        >
-                          <span>{attachment.name}</span>
-                          <span className="text-xs text-default-400">
-                            ({(attachment.size / 1024).toFixed(2)} KB)
-                          </span>
-                        </a>
-                      ))}
+                      {message.attachments && message.attachments.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {message.attachments.map((attachment, idx) => (
+                            <a
+                              key={idx}
+                              className={`flex items-center gap-2 text-xs hover:underline ${
+                                isCurrentUser ? 'text-white' : 'text-primary'
+                              }`}
+                              href={attachment.url}
+                              rel="noopener noreferrer"
+                              target="_blank"
+                            >
+                              <span>{attachment.name}</span>
+                              <span className={isCurrentUser ? 'text-white/80' : 'text-default-400'}>
+                                ({(attachment.size / 1024).toFixed(2)} KB)
+                              </span>
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                      <div className="mt-1 flex items-center justify-end gap-1">
+                        <Typography className={`text-[10px] ${isCurrentUser ? 'text-white/80' : 'text-default-500'}`}>
+                          {formatMessageTime(message.createdAt)}
+                        </Typography>
+                        {isCurrentUser && (
+                          <svg className="h-4 w-4 text-white/80" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M12.354 4.354a.5.5 0 0 0-.708-.708L5 10.293 1.854 7.146a.5.5 0 1 0-.708.708l3.5 3.5a.5.5 0 0 0 .708 0l7-7zm-4.208 7-.896-.897.707-.707.543.543 6.646-6.647a.5.5 0 0 1 .708.708l-7 7a.5.5 0 0 1-.708 0z"/>
+                          </svg>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                )
+              })}
+              <div ref={messagesEndRef} />
             </div>
           )}
 

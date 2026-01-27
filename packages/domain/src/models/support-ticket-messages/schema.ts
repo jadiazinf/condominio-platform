@@ -21,8 +21,18 @@ export const supportTicketMessageSchema = baseModelSchema.extend({
   // Attachments
   attachments: z.array(attachmentSchema).nullable(),
 
-  // Relations
-  user: userSchema.optional(),
+  // Relations (populated by repository joins)
+  user: userSchema
+    .pick({
+      id: true,
+      email: true,
+      displayName: true,
+      firstName: true,
+      lastName: true,
+      photoUrl: true,
+    })
+    .nullable()
+    .optional(),
 })
 
 export type TAttachment = z.infer<typeof attachmentSchema>

@@ -60,18 +60,20 @@ export function SendMessageForm({ ticketId, translations }: ISendMessageFormProp
   }
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit}>
+    <form className="space-y-3" onSubmit={handleSubmit}>
       <Textarea
         ref={textareaRef}
         classNames={{
           input: 'resize-none overflow-hidden',
-          inputWrapper: 'min-h-[60px]',
+          inputWrapper: 'min-h-[60px] border-0 bg-default-100 shadow-none',
         }}
         disabled={isPending}
         maxRows={10}
         minRows={2}
         placeholder={translations.messagePlaceholder}
+        radius="lg"
         value={message}
+        variant="flat"
         onChange={(e) => setMessage(e.target.value)}
       />
 
@@ -81,7 +83,7 @@ export function SendMessageForm({ ticketId, translations }: ISendMessageFormProp
         </Checkbox>
 
         <Button
-          color="primary"
+          className="bg-[#25D366] text-white hover:bg-[#20BA5A]"
           isDisabled={!message.trim() || isPending}
           isLoading={isPending}
           startContent={!isPending ? <Send size={16} /> : null}
