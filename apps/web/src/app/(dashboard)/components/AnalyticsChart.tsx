@@ -1,9 +1,9 @@
 'use client'
 
-import type { CardProps } from '@heroui/card'
+import type { ICardProps } from '@/ui/components/card'
 
-import { Card, CardHeader, CardBody } from '@heroui/card'
-import { Button } from '@heroui/button'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Button } from '@/ui/components/button'
 import { cn } from '@heroui/theme'
 import {
   Area,
@@ -23,7 +23,7 @@ type TChartDataPoint = {
 
 type TTimePeriod = '1D' | '5D' | '1M' | '6M' | '1Y' | '5Y' | 'Max'
 
-interface AnalyticsChartProps extends Omit<CardProps, 'children'> {
+interface AnalyticsChartProps extends Omit<ICardProps, 'children'> {
   title: string
   data: TChartDataPoint[]
   selectedPeriod?: TTimePeriod
@@ -76,7 +76,6 @@ export function AnalyticsChart({
                   ? 'bg-default-200 text-default-900'
                   : 'bg-transparent text-default-500'
               )}
-              size="sm"
               variant="flat"
               onPress={() => onPeriodChange?.(period)}
             >

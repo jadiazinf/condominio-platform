@@ -98,7 +98,6 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: Notif
         <div className="flex items-center gap-1 mt-2">
           {!notification.isRead && onMarkAsRead && (
             <Button
-              size="sm"
               variant="flat"
               className="h-7 text-xs"
               startContent={<Check size={14} />}
@@ -109,7 +108,6 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: Notif
           )}
           {onDelete && (
             <Button
-              size="sm"
               variant="light"
               color="danger"
               className="h-7 text-xs"

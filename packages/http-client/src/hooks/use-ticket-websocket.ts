@@ -43,17 +43,15 @@ export function useTicketWebSocket({
   const RECONNECT_DELAY = 3000 // 3 seconds
 
   const connect = useCallback(() => {
-    console.log('[WebSocket] Connect attempt - enabled:', enabled, 'hasToken:', !!token, 'ticketId:', ticketId)
-
-    if (!enabled) {
-      console.log('[WebSocket] Connection disabled by enabled flag')
+    if (!enabled || !token) {
+      if (!token) setError('No authentication token')
       return
     }
 
-    if (!token) {
-      console.warn('[WebSocket] No authentication token available, skipping connection')
-      setError('No authentication token')
-      return
+    // Close existing connection before creating a new one
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.close(1000, 'Reconnecting')
+      wsRef.current = null
     }
 
     try {
@@ -61,38 +59,24 @@ export function useTicketWebSocket({
       let finalWsUrl: string
 
       if (wsUrl) {
-        // Use provided URL
         finalWsUrl = `${wsUrl}/tickets/${ticketId}?token=${token}`
       } else {
-        // Auto-detect based on environment
         const isClient = typeof window !== 'undefined'
         if (!isClient) {
-          console.log('[WebSocket] Server-side, skipping WebSocket connection')
           return // Don't connect on server
         }
 
-        // Get API base URL from config
         const config = getEnvConfig()
         const apiUrl = new URL(config.apiBaseUrl)
-
-        // Convert HTTP(S) protocol to WS(S)
         const wsProtocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:'
-
-        // Use the same host and port as the API
-        const wsHost = apiUrl.host // includes port if present
+        const wsHost = apiUrl.host
 
         finalWsUrl = `${wsProtocol}//${wsHost}/api/ws/tickets/${ticketId}?token=${token}`
-
-        console.log('[WebSocket] URL constructed from API base URL:', config.apiBaseUrl)
-        console.log('[WebSocket] WebSocket URL - protocol:', wsProtocol, 'host:', wsHost)
       }
-
-      console.log('[WebSocket] Connecting to:', finalWsUrl.replace(token, '***'))
 
       const ws = new WebSocket(finalWsUrl)
 
       ws.onopen = () => {
-        console.log('[WebSocket] Connected to ticket', ticketId)
         setIsConnected(true)
         setError(null)
         reconnectAttemptsRef.current = 0
@@ -101,18 +85,13 @@ export function useTicketWebSocket({
       ws.onmessage = (event) => {
         try {
           const message: IWebSocketMessage = JSON.parse(event.data)
-          console.log('[WebSocket] Message received:', message.event)
 
           if (message.event === 'new_message') {
             const newMessage = message.data as TSupportTicketMessage
-            console.log('[WebSocket] New message received:', newMessage.id, newMessage.message.substring(0, 50))
 
-            // Update React Query cache with optimistic update
+            // Update React Query cache
             queryClient.setQueryData(supportTicketMessageKeys.list(ticketId), (old: any) => {
-              console.log('[WebSocket] Current cache state:', old)
-
               if (!old?.data) {
-                console.warn('[WebSocket] Cache is empty or has wrong structure, cannot add message')
                 return old
               }
 
@@ -122,44 +101,32 @@ export function useTicketWebSocket({
               )
 
               if (exists) {
-                console.log('[WebSocket] Message already exists in cache, skipping')
                 return old
               }
 
-              const updated = {
+              return {
                 ...old,
                 data: [...old.data, newMessage],
               }
-
-              console.log('[WebSocket] Cache updated with new message. Total messages:', updated.data.length)
-              return updated
             })
-          } else if (message.event === 'connected') {
-            console.log('[WebSocket] Connection confirmed:', message.data)
           } else if (message.event === 'error') {
-            console.error('[WebSocket] Server error:', message.data)
             setError(message.data as string)
           }
-        } catch (err) {
-          console.error('[WebSocket] Error parsing message:', err)
+        } catch {
+          // Silently ignore parse errors
         }
       }
 
-      ws.onerror = (event) => {
-        console.error('[WebSocket] Error:', event)
+      ws.onerror = () => {
         setError('WebSocket connection error')
       }
 
       ws.onclose = (event) => {
-        console.log('[WebSocket] Connection closed:', event.code, event.reason)
         setIsConnected(false)
 
         // Attempt reconnection if not a normal closure and under max attempts
         if (event.code !== 1000 && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
           reconnectAttemptsRef.current++
-          console.log(
-            `[WebSocket] Reconnecting... (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS})`
-          )
 
           reconnectTimeoutRef.current = setTimeout(() => {
             connect()
@@ -170,8 +137,7 @@ export function useTicketWebSocket({
       }
 
       wsRef.current = ws
-    } catch (err) {
-      console.error('[WebSocket] Connection error:', err)
+    } catch {
       setError('Failed to connect to WebSocket')
     }
   }, [ticketId, token, enabled, wsUrl, queryClient])

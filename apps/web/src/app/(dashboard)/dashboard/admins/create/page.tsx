@@ -21,13 +21,7 @@ async function CreateCompanyContent() {
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header */}
       <div className="flex items-start gap-4">
-        <Button
-          className="mt-1"
-          href="/dashboard/admins"
-          isIconOnly
-          size="sm"
-          variant="flat"
-        >
+        <Button className="mt-1" href="/dashboard/admins" isIconOnly variant="flat">
           <ArrowLeft size={18} />
         </Button>
         <div>

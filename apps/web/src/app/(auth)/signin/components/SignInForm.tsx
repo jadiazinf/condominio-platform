@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { type TSignInSchema } from '@packages/domain'
 
@@ -9,11 +9,7 @@ import { SignInHeader } from './SignInHeader'
 
 import { useAuth, useTranslation, getFirebaseErrorKey } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
-import { clearUserCookie } from '@/libs/cookies'
-
-function clearSessionCookie(): void {
-  document.cookie = '__session=; path=/; max-age=0; SameSite=Lax; Secure'
-}
+import { clearUserCookie, clearSessionCookie } from '@/libs/cookies'
 
 export function SignInForm() {
   const router = useRouter()
@@ -22,31 +18,32 @@ export function SignInForm() {
   const { t } = useTranslation()
   const { signInWithEmail, signInWithGoogle, loading, signOut } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const hasCleanedExpiredSession = useRef(false)
 
-  // TEMPORARILY DISABLED to debug infinite loop
   // Clear expired session cookies when redirected with expired=true
-  // useEffect(
-  //   function () {
-  //     const expired = searchParams.get('expired')
+  useEffect(
+    function () {
+      const expired = searchParams.get('expired')
 
-  //     if (expired === 'true') {
-  //       const clearExpiredSession = async function () {
-  //         clearSessionCookie()
-  //         clearUserCookie()
-  //         try {
-  //           await signOut()
-  //         } catch {
-  //           // Ignore signOut errors since we're already clearing cookies
-  //         }
-  //         // Clean URL only after signOut completes
-  //         router.replace('/signin')
-  //       }
+      if (expired === 'true' && !hasCleanedExpiredSession.current) {
+        // Mark as cleaned immediately to prevent re-execution
+        hasCleanedExpiredSession.current = true
 
-  //       clearExpiredSession()
-  //     }
-  //   },
-  //   [searchParams, router, signOut]
-  // )
+        // Clear cookies FIRST (synchronously) to break the redirect loop
+        clearSessionCookie()
+        clearUserCookie()
+
+        // Then try to signOut from Firebase (async, but don't wait for it)
+        signOut().catch(() => {
+          // Ignore signOut errors since we've already cleared cookies
+        })
+
+        // Clean the URL by removing the expired parameter
+        router.replace('/signin')
+      }
+    },
+    [searchParams, router, signOut]
+  )
 
   async function handleSubmit(data: TSignInSchema) {
     try {

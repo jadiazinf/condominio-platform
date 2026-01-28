@@ -2,15 +2,14 @@
 
 import type { TUser } from '@packages/domain'
 
-import { Avatar } from '@heroui/avatar'
-import { Link } from '@heroui/link'
-import type { AvatarProps } from '@heroui/avatar'
+import { Avatar, type IAvatarProps } from '@/ui/components/avatar-base'
+import { Link } from '@/ui/components/link'
 
 import { useUser } from '@/contexts'
 
 export interface CurrentUserAvatarProps {
   /** Avatar size */
-  size?: AvatarProps['size']
+  size?: IAvatarProps['size']
   /** Whether clicking the avatar navigates to settings (default: false) */
   isClickable?: boolean
   /** Whether to show border */

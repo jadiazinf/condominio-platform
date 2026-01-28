@@ -1,9 +1,9 @@
 'use client'
 
 import React from 'react'
-import { Button } from '@heroui/button'
-import { Card, CardBody } from '@heroui/card'
-import { Link } from '@heroui/link'
+import { Button } from '@/ui/components/button'
+import { Card, CardBody } from '@/ui/components/card'
+import { Link } from '@/ui/components/link'
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'

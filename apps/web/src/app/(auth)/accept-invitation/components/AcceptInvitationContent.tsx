@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardBody } from '@heroui/card'
-import { Spinner } from '@heroui/spinner'
+import { Card, CardBody } from '@/ui/components/card'
+import { Spinner } from '@/ui/components/spinner'
 import {
   validateInvitationToken,
   type TValidateInvitationResult,

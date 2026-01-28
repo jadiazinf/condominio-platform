@@ -2,11 +2,11 @@
 
 import type { Tier } from './pricing-types'
 
-import { Button } from '@heroui/button'
-import { Card, CardBody, CardFooter, CardHeader } from '@heroui/card'
-import { Chip } from '@heroui/chip'
-import { Divider } from '@heroui/divider'
-import { Link } from '@heroui/link'
+import { Button } from '@/ui/components/button'
+import { Card, CardBody, CardFooter, CardHeader } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
+import { Divider } from '@/ui/components/divider'
+import { Link } from '@/ui/components/link'
 import { cn } from '@heroui/theme'
 
 interface PricingCardProps {
@@ -27,12 +27,7 @@ export function PricingCard({ tier }: PricingCardProps) {
       shadow="sm"
     >
       {tier.mostPopular && (
-        <Chip
-          className="absolute top-4 right-4 font-semibold"
-          color="primary"
-          size="sm"
-          variant="solid"
-        >
+        <Chip className="absolute top-4 right-4 font-semibold" color="primary" variant="solid">
           Más Popular
         </Chip>
       )}

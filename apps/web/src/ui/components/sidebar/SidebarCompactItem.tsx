@@ -1,4 +1,4 @@
-import { Tooltip } from '@heroui/tooltip'
+import { Tooltip } from '@/ui/components/tooltip'
 
 import { SidebarIcon } from './SidebarIcon'
 import type { TSidebarItem } from './types'

@@ -1,8 +1,8 @@
 'use client'
 
 import { NavbarContent, NavbarItem } from '@heroui/navbar'
-import { Button } from '@heroui/button'
-import { Link } from '@heroui/link'
+import { Button } from '@/ui/components/button'
+import { Link } from '@/ui/components/link'
 
 import { useTranslation, useAuth } from '@/contexts'
 import { ThemeSwitch } from '@/ui/components/themeSwitch/ThemeSwitch'

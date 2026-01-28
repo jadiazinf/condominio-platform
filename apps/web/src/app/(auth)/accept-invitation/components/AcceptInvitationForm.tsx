@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardBody, CardHeader } from '@heroui/card'
-import { Divider } from '@heroui/divider'
-import { Checkbox } from '@heroui/checkbox'
-import { Link } from '@heroui/link'
+import { Card, CardBody, CardHeader } from '@/ui/components/card'
+import { Divider } from '@/ui/components/divider'
+import { Checkbox } from '@/ui/components/checkbox'
+import { Link } from '@/ui/components/link'
 import { Eye, EyeOff, Lock, Building2, Mail, User } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -35,19 +35,16 @@ const acceptInvitationFormSchema = z
       .regex(/[a-z]/, 'auth.errors.passwordLowercase')
       .regex(/[0-9]/, 'auth.errors.passwordNumber'),
     confirmPassword: z.string().min(1, 'auth.errors.confirmPasswordRequired'),
-    acceptTerms: z.boolean().refine((val) => val === true, 'auth.errors.acceptTerms'),
+    acceptTerms: z.boolean().refine(val => val === true, 'auth.errors.acceptTerms'),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine(data => data.password === data.confirmPassword, {
     message: 'auth.errors.passwordsDoNotMatch',
     path: ['confirmPassword'],
   })
 
 type TAcceptInvitationFormSchema = z.infer<typeof acceptInvitationFormSchema>
 
-export function AcceptInvitationForm({
-  token,
-  invitationData,
-}: AcceptInvitationFormProps) {
+export function AcceptInvitationForm({ token, invitationData }: AcceptInvitationFormProps) {
   const { t } = useTranslation()
   const toast = useToast()
   const { setUser } = useUser()
@@ -120,9 +117,7 @@ export function AcceptInvitationForm({
         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
           <Building2 className="w-8 h-8 text-primary" />
         </div>
-        <h1 className="text-2xl font-bold text-center">
-          {t('auth.acceptInvitation.title')}
-        </h1>
+        <h1 className="text-2xl font-bold text-center">{t('auth.acceptInvitation.title')}</h1>
         <p className="text-default-500 text-center text-sm">
           {t('auth.acceptInvitation.subtitle', { companyName: managementCompany.name })}
         </p>
@@ -256,7 +251,7 @@ export function AcceptInvitationForm({
               control={control}
               name="acceptTerms"
               render={({ field }) => (
-                <Checkbox isSelected={field.value} size="sm" onValueChange={field.onChange}>
+                <Checkbox isSelected={field.value} onValueChange={field.onChange}>
                   <Typography variant="body2">
                     {t('auth.signUp.acceptTerms')}{' '}
                     <Link className="text-sm" href="/terms">

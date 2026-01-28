@@ -18,6 +18,8 @@ export interface IMessagesTranslations {
   sending: string
   success: string
   error: string
+  today?: string
+  ticketClosed?: string
 }
 
 export interface IDetailsTranslations {
@@ -64,6 +66,7 @@ export function TicketDetailClient({ ticket, locale, translations }: ITicketDeta
           <TicketDescription description={ticket.description} title={translations.description.title} />
           <TicketMessages
             ticketId={ticket.id}
+            ticketStatus={ticket.status}
             locale={locale}
             translations={translations.messages}
           />

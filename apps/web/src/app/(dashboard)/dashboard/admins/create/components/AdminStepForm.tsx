@@ -13,8 +13,8 @@ import {
 } from 'react-hook-form'
 import type { TCreateManagementCompanyWithAdminForm, TAdminStep, TUser } from '@packages/domain'
 import { getUserByEmail, HttpError } from '@packages/http-client'
-import { Tooltip } from '@heroui/tooltip'
-import { RadioGroup, Radio } from '@heroui/radio'
+import { Tooltip } from '@/ui/components/tooltip'
+import { RadioGroup, Radio } from '@/ui/components/radio'
 import { Info, Search, User } from 'lucide-react'
 
 import { useAuth, useTranslation } from '@/contexts'
@@ -235,7 +235,7 @@ export function AdminStepForm({
                       </Typography>
                     )}
                   </div>
-                  <Button size="sm" variant="light" onPress={handleClearSelection} type="button">
+                  <Button variant="light" onPress={handleClearSelection} type="button">
                     {t('superadmin.companies.form.adminSearch.clear')}
                   </Button>
                 </div>
@@ -252,7 +252,11 @@ export function AdminStepForm({
               render={({ field }) => (
                 <Input
                   isRequired
-                  errorMessage={shouldShowError('admin.firstName') ? translateError(errors?.firstName?.message) : undefined}
+                  errorMessage={
+                    shouldShowError('admin.firstName')
+                      ? translateError(errors?.firstName?.message)
+                      : undefined
+                  }
                   isInvalid={shouldShowError('admin.firstName') && !!errors?.firstName}
                   label={t('superadmin.companies.form.fields.adminFirstName')}
                   placeholder={t('superadmin.companies.form.fields.adminFirstNamePlaceholder')}
@@ -268,7 +272,11 @@ export function AdminStepForm({
               render={({ field }) => (
                 <Input
                   isRequired
-                  errorMessage={shouldShowError('admin.lastName') ? translateError(errors?.lastName?.message) : undefined}
+                  errorMessage={
+                    shouldShowError('admin.lastName')
+                      ? translateError(errors?.lastName?.message)
+                      : undefined
+                  }
                   isInvalid={shouldShowError('admin.lastName') && !!errors?.lastName}
                   label={t('superadmin.companies.form.fields.adminLastName')}
                   placeholder={t('superadmin.companies.form.fields.adminLastNamePlaceholder')}
@@ -285,7 +293,11 @@ export function AdminStepForm({
                 <Input
                   isRequired
                   tooltip={t('superadmin.companies.form.fields.adminEmailDescription')}
-                  errorMessage={shouldShowError('admin.email') ? translateError(errors?.email?.message) : undefined}
+                  errorMessage={
+                    shouldShowError('admin.email')
+                      ? translateError(errors?.email?.message)
+                      : undefined
+                  }
                   isInvalid={shouldShowError('admin.email') && !!errors?.email}
                   label={t('superadmin.companies.form.fields.adminEmail')}
                   placeholder={t('superadmin.companies.form.fields.adminEmailPlaceholder')}
@@ -306,10 +318,18 @@ export function AdminStepForm({
                   render={({ field: phoneNumberField }) => (
                     <PhoneInput
                       countryCode={countryCodeField.value || '+58'}
-                      countryCodeError={shouldShowError('admin.phoneCountryCode') ? translateError(errors?.phoneCountryCode?.message) : undefined}
+                      countryCodeError={
+                        shouldShowError('admin.phoneCountryCode')
+                          ? translateError(errors?.phoneCountryCode?.message)
+                          : undefined
+                      }
                       label={t('superadmin.companies.form.fields.adminPhone')}
                       phoneNumber={phoneNumberField.value || ''}
-                      phoneNumberError={shouldShowError('admin.phoneNumber') ? translateError(errors?.phoneNumber?.message) : undefined}
+                      phoneNumberError={
+                        shouldShowError('admin.phoneNumber')
+                          ? translateError(errors?.phoneNumber?.message)
+                          : undefined
+                      }
                       placeholder={t('superadmin.companies.form.fields.adminPhonePlaceholder')}
                       onCountryCodeChange={countryCodeField.onChange}
                       onPhoneNumberChange={phoneNumberField.onChange}

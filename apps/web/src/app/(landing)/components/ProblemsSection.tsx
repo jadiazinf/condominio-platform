@@ -1,4 +1,4 @@
-import { Card, CardBody } from '@heroui/card'
+import { Card, CardBody } from '@/ui/components/card'
 
 import { getTranslations } from '@/libs/i18n/server'
 import { Typography } from '@/ui/components/typography'

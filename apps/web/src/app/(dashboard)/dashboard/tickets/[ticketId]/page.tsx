@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import { getSupportTicket } from '@packages/http-client'
 
 import { getTranslations } from '@/libs/i18n/server'
+import { SESSION_COOKIE_NAME } from '@/libs/cookies'
 import { TicketDetailClient } from './TicketDetailClient'
 
 interface TicketDetailPageProps {
@@ -13,7 +14,7 @@ interface TicketDetailPageProps {
 export default async function TicketDetailPage({ params }: TicketDetailPageProps) {
   const { ticketId } = await params
   const cookieStore = await cookies()
-  const token = cookieStore.get('session')?.value || ''
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value || ''
 
   // Fetch ticket and translations on the server
   const [ticket, { t, locale }] = await Promise.all([
@@ -38,6 +39,7 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
       sending: t('tickets.detail.sending'),
       success: t('tickets.detail.success'),
       error: t('tickets.detail.error'),
+      ticketClosed: t('tickets.detail.ticketClosed'),
     },
     details: {
       title: t('tickets.detail.details'),
@@ -48,7 +50,9 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
       createdBy: t('tickets.detail.createdBy'),
       assignedTo: t('tickets.detail.assignedTo'),
       resolved: t('tickets.detail.resolved'),
+      resolvedBy: t('tickets.detail.resolvedBy'),
       closed: t('tickets.detail.closed'),
+      closedBy: t('tickets.detail.closedBy'),
       viewProfile: t('tickets.detail.viewProfile'),
       notAssigned: t('tickets.detail.notAssigned'),
       assignUser: t('tickets.detail.assignUser'),

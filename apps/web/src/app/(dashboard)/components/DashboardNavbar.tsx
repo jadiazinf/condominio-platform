@@ -3,8 +3,8 @@
 import type { TUser } from '@packages/domain'
 
 import { Navbar as HeroUINavbar, NavbarBrand, NavbarContent, NavbarItem } from '@heroui/navbar'
-import { Button } from '@heroui/button'
-import { Link } from '@heroui/link'
+import { Button } from '@/ui/components/button'
+import { Link } from '@/ui/components/link'
 import { Menu } from 'lucide-react'
 
 import { NotificationPanel } from '@/ui/components/notifications'
@@ -21,7 +21,7 @@ export function DashboardNavbar({ onToggleSidebar, initialUser }: DashboardNavba
     <HeroUINavbar isBordered classNames={{ wrapper: 'px-4' }} maxWidth="full">
       <NavbarContent justify="start">
         {onToggleSidebar && (
-          <Button isIconOnly size="sm" variant="light" onPress={onToggleSidebar}>
+          <Button isIconOnly variant="light" onPress={onToggleSidebar}>
             <Menu size={24} />
           </Button>
         )}

@@ -1,5 +1,5 @@
-import { Card, CardHeader, CardBody } from '@heroui/card'
-import { Chip } from '@heroui/chip'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
 import { Calendar, AlertCircle, CheckCircle2, Clock } from 'lucide-react'
 
 type TQuotaStatus = 'pending' | 'overdue' | 'paid'
@@ -27,7 +27,10 @@ interface UpcomingQuotasProps {
   }
 }
 
-const statusConfig: Record<TQuotaStatus, { color: 'warning' | 'danger' | 'success'; icon: typeof Clock }> = {
+const statusConfig: Record<
+  TQuotaStatus,
+  { color: 'warning' | 'danger' | 'success'; icon: typeof Clock }
+> = {
   pending: { color: 'warning', icon: Clock },
   overdue: { color: 'danger', icon: AlertCircle },
   paid: { color: 'success', icon: CheckCircle2 },
@@ -75,7 +78,7 @@ export function UpcomingQuotas({ quotas, translations: t }: UpcomingQuotasProps)
                       <p className="font-semibold">
                         {quota.currency} {quota.amount.toLocaleString()}
                       </p>
-                      <Chip color={config.color} size="sm" variant="flat">
+                      <Chip color={config.color} variant="flat">
                         {t.status[quota.status]}
                       </Chip>
                     </div>

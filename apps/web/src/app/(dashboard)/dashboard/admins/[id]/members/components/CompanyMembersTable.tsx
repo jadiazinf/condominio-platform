@@ -1,21 +1,26 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableColumn,
-  TableRow,
-  TableCell,
-} from '@heroui/table'
-import { Chip } from '@heroui/chip'
-import { Button } from '@heroui/button'
+import { useEffect, useState, useMemo, useCallback } from 'react'
+import { Table, type ITableColumn } from '@/ui/components/table'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
 import { User, Plus, Crown } from 'lucide-react'
-import { Avatar } from '@heroui/avatar'
+import { Avatar } from '@/ui/components/avatar-base'
 
 import { useManagementCompanyMembers } from '@packages/http-client'
 import { useAuth } from '@/contexts'
+
+interface TMemberRow {
+  id: string
+  roleName: string
+  isActive: boolean
+  isPrimaryAdmin: boolean
+  joinedAt: Date | string
+  user?: {
+    displayName?: string
+    email?: string
+  }
+}
 
 interface CompanyMembersTableProps {
   companyId: string
@@ -35,7 +40,18 @@ export function CompanyMembersTable({ companyId }: CompanyMembersTableProps) {
     enabled: !!token && !!companyId,
   })
 
-  const members = data?.data || []
+  const members = (data?.data || []) as TMemberRow[]
+
+  // Table columns
+  const tableColumns: ITableColumn<TMemberRow>[] = useMemo(
+    () => [
+      { key: 'member', label: 'MIEMBRO' },
+      { key: 'roleName', label: 'ROL' },
+      { key: 'joinedAt', label: 'FECHA DE INGRESO' },
+      { key: 'status', label: 'ESTADO' },
+    ],
+    []
+  )
 
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString('es-VE', {
@@ -68,6 +84,40 @@ export function CompanyMembersTable({ companyId }: CompanyMembersTableProps) {
     return labels[role.toLowerCase()] || role
   }
 
+  const renderCell = useCallback((member: TMemberRow, columnKey: keyof TMemberRow | string) => {
+    switch (columnKey) {
+      case 'member':
+        return (
+          <div className="flex items-center gap-3">
+            <Avatar name={member.user?.displayName || 'Usuario'} />
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium">{member.user?.displayName || 'Sin nombre'}</p>
+                {member.isPrimaryAdmin && <Crown className="text-warning" size={14} />}
+              </div>
+              <p className="text-xs text-default-500">{member.user?.email || 'Sin email'}</p>
+            </div>
+          </div>
+        )
+      case 'roleName':
+        return (
+          <Chip color={getRoleColor(member.roleName)} variant="flat">
+            {getRoleLabel(member.roleName)}
+          </Chip>
+        )
+      case 'joinedAt':
+        return <p className="text-sm text-default-600">{formatDate(member.joinedAt)}</p>
+      case 'status':
+        return (
+          <Chip color={member.isActive ? 'success' : 'default'} variant="dot">
+            {member.isActive ? 'Activo' : 'Inactivo'}
+          </Chip>
+        )
+      default:
+        return null
+    }
+  }, [])
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -84,12 +134,7 @@ export function CompanyMembersTable({ companyId }: CompanyMembersTableProps) {
         <p className="mt-1 text-sm text-default-500">
           Esta administradora aún no tiene miembros registrados
         </p>
-        <Button
-          className="mt-4"
-          color="primary"
-          size="sm"
-          startContent={<Plus size={16} />}
-        >
+        <Button className="mt-4" color="primary" startContent={<Plus size={16} />}>
           Agregar Miembro
         </Button>
       </div>
@@ -99,73 +144,17 @@ export function CompanyMembersTable({ companyId }: CompanyMembersTableProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button
-          color="primary"
-          size="sm"
-          startContent={<Plus size={16} />}
-        >
+        <Button color="primary" startContent={<Plus size={16} />}>
           Agregar Miembro
         </Button>
       </div>
 
-      <Table aria-label="Tabla de miembros">
-        <TableHeader>
-          <TableColumn>MIEMBRO</TableColumn>
-          <TableColumn>ROL</TableColumn>
-          <TableColumn>FECHA DE INGRESO</TableColumn>
-          <TableColumn>ESTADO</TableColumn>
-        </TableHeader>
-        <TableBody>
-          {members.map(member => (
-            <TableRow key={member.id}>
-              <TableCell>
-                <div className="flex items-center gap-3">
-                  <Avatar
-                    name={member.user?.displayName || 'Usuario'}
-                    size="sm"
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">
-                        {member.user?.displayName || 'Sin nombre'}
-                      </p>
-                      {member.isPrimaryAdmin && (
-                        <Crown className="text-warning" size={14} />
-                      )}
-                    </div>
-                    <p className="text-xs text-default-500">
-                      {member.user?.email || 'Sin email'}
-                    </p>
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <Chip
-                  color={getRoleColor(member.roleName)}
-                  size="sm"
-                  variant="flat"
-                >
-                  {getRoleLabel(member.roleName)}
-                </Chip>
-              </TableCell>
-              <TableCell>
-                <p className="text-sm text-default-600">
-                  {formatDate(member.joinedAt)}
-                </p>
-              </TableCell>
-              <TableCell>
-                <Chip
-                  color={member.isActive ? 'success' : 'default'}
-                  size="sm"
-                  variant="dot"
-                >
-                  {member.isActive ? 'Activo' : 'Inactivo'}
-                </Chip>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <Table<TMemberRow>
+        aria-label="Tabla de miembros"
+        columns={tableColumns}
+        rows={members}
+        renderCell={renderCell}
+      />
     </div>
   )
 }

@@ -1,18 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableColumn,
-  TableRow,
-  TableCell,
-} from '@heroui/table'
-import { Chip } from '@heroui/chip'
-import { Button } from '@heroui/button'
+import { useEffect, useState, useMemo, useCallback } from 'react'
+import { Table, type ITableColumn } from '@/ui/components/table'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
 import { Download, FileText, CheckCircle } from 'lucide-react'
-import { Select, SelectItem } from '@heroui/select'
+import { Select, type ISelectItem } from '@/ui/components/select'
 
 import {
   useSubscriptionInvoices,
@@ -23,6 +16,20 @@ import {
   useQueryClient,
 } from '@packages/http-client'
 import { useAuth } from '@/contexts'
+
+type TInvoiceStatus = 'pending' | 'paid' | 'overdue' | 'cancelled' | 'refunded' | 'sent' | 'draft'
+
+interface TInvoiceRow {
+  id: string
+  invoiceNumber: string
+  billingPeriodStart: Date | string
+  billingPeriodEnd: Date | string
+  issueDate: Date | string
+  dueDate: Date | string
+  totalAmount: number
+  taxAmount: number
+  status: string
+}
 
 interface CompanyInvoicesTableProps {
   companyId: string
@@ -39,17 +46,36 @@ export function CompanyInvoicesTable({ companyId }: CompanyInvoicesTableProps) {
     }
   }, [firebaseUser])
 
+  // Status filter items
+  const statusFilterItems: ISelectItem[] = useMemo(
+    () => [
+      { key: 'all', label: 'Todos' },
+      { key: 'pending', label: 'Pendiente' },
+      { key: 'paid', label: 'Pagada' },
+      { key: 'overdue', label: 'Vencida' },
+      { key: 'cancelled', label: 'Cancelada' },
+    ],
+    []
+  )
+
+  // Table columns
+  const tableColumns: ITableColumn<TInvoiceRow>[] = useMemo(
+    () => [
+      { key: 'invoiceNumber', label: 'NÚMERO' },
+      { key: 'billingPeriod', label: 'PERIODO' },
+      { key: 'issueDate', label: 'FECHA DE EMISIÓN' },
+      { key: 'dueDate', label: 'FECHA DE VENCIMIENTO' },
+      { key: 'totalAmount', label: 'MONTO' },
+      { key: 'status', label: 'ESTADO' },
+      { key: 'actions', label: 'ACCIONES' },
+    ],
+    []
+  )
+
   const filters =
     statusFilter !== 'all'
       ? {
-          status: statusFilter as
-            | 'pending'
-            | 'paid'
-            | 'overdue'
-            | 'cancelled'
-            | 'refunded'
-            | 'sent'
-            | 'draft',
+          status: statusFilter as TInvoiceStatus,
         }
       : undefined
 
@@ -139,9 +165,71 @@ export function CompanyInvoicesTable({ companyId }: CompanyInvoicesTableProps) {
     })
   }
 
-  const handleDownloadPDF = (invoiceId: string) => {
+  const handleDownloadPDF = useCallback((invoiceId: string) => {
     downloadInvoicePDF(invoiceId)
-  }
+  }, [])
+
+  const renderCell = useCallback(
+    (invoice: TInvoiceRow, columnKey: keyof TInvoiceRow | string) => {
+      switch (columnKey) {
+        case 'invoiceNumber':
+          return <p className="font-mono text-sm font-medium">{invoice.invoiceNumber}</p>
+        case 'billingPeriod':
+          return (
+            <div className="text-sm">
+              <p className="text-default-600">{formatDate(invoice.billingPeriodStart)}</p>
+              <p className="text-xs text-default-400">{formatDate(invoice.billingPeriodEnd)}</p>
+            </div>
+          )
+        case 'issueDate':
+          return <p className="text-sm text-default-600">{formatDate(invoice.issueDate)}</p>
+        case 'dueDate':
+          return <p className="text-sm text-default-600">{formatDate(invoice.dueDate)}</p>
+        case 'totalAmount':
+          return (
+            <div className="text-sm">
+              <p className="font-semibold text-default-900">
+                {formatCurrency(invoice.totalAmount)}
+              </p>
+              {invoice.taxAmount > 0 && (
+                <p className="text-xs text-default-400">
+                  + {formatCurrency(invoice.taxAmount)} impuestos
+                </p>
+              )}
+            </div>
+          )
+        case 'status':
+          return (
+            <Chip color={getStatusColor(invoice.status)} variant="flat">
+              {getStatusLabel(invoice.status)}
+            </Chip>
+          )
+        case 'actions':
+          return (
+            <div className="flex items-center gap-2">
+              <Button isIconOnly variant="light" onPress={() => handleDownloadPDF(invoice.id)}>
+                <Download size={16} />
+              </Button>
+              {invoice.status === 'pending' && (
+                <Button
+                  color="success"
+                  isIconOnly
+                  isLoading={markPaidMutation.isPending}
+                  variant="flat"
+                  onPress={() => handleMarkAsPaid(invoice.id)}
+                >
+                  <CheckCircle size={16} />
+                </Button>
+              )}
+            </div>
+          )
+        default:
+          return null
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [markPaidMutation.isPending]
+  )
 
   if (isLoading) {
     return (
@@ -155,9 +243,7 @@ export function CompanyInvoicesTable({ companyId }: CompanyInvoicesTableProps) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16">
         <FileText className="mb-4 text-default-400" size={48} />
-        <h3 className="text-lg font-semibold text-default-700">
-          No hay facturas
-        </h3>
+        <h3 className="text-lg font-semibold text-default-700">No hay facturas</h3>
         <p className="mt-1 text-sm text-default-500">
           Esta administradora aún no tiene facturas generadas
         </p>
@@ -172,108 +258,18 @@ export function CompanyInvoicesTable({ companyId }: CompanyInvoicesTableProps) {
           className="max-w-xs"
           label="Filtrar por estado"
           placeholder="Seleccionar estado"
-          selectedKeys={[statusFilter]}
-          size="sm"
-          onSelectionChange={(keys) => {
-            const value = Array.from(keys)[0] as string
-            setStatusFilter(value || 'all')
-          }}
-        >
-          <SelectItem key="all">Todos</SelectItem>
-          <SelectItem key="pending">Pendiente</SelectItem>
-          <SelectItem key="paid">Pagada</SelectItem>
-          <SelectItem key="overdue">Vencida</SelectItem>
-          <SelectItem key="cancelled">Cancelada</SelectItem>
-        </Select>
+          items={statusFilterItems}
+          value={statusFilter}
+          onChange={key => setStatusFilter(key || 'all')}
+        />
       </div>
 
-      <Table aria-label="Tabla de facturas">
-        <TableHeader>
-          <TableColumn>NÚMERO</TableColumn>
-          <TableColumn>PERIODO</TableColumn>
-          <TableColumn>FECHA DE EMISIÓN</TableColumn>
-          <TableColumn>FECHA DE VENCIMIENTO</TableColumn>
-          <TableColumn>MONTO</TableColumn>
-          <TableColumn>ESTADO</TableColumn>
-          <TableColumn>ACCIONES</TableColumn>
-        </TableHeader>
-        <TableBody>
-          {invoices.map((invoice) => (
-            <TableRow key={invoice.id}>
-              <TableCell>
-                <p className="font-mono text-sm font-medium">
-                  {invoice.invoiceNumber}
-                </p>
-              </TableCell>
-              <TableCell>
-                <div className="text-sm">
-                  <p className="text-default-600">
-                    {formatDate(invoice.billingPeriodStart)}
-                  </p>
-                  <p className="text-xs text-default-400">
-                    {formatDate(invoice.billingPeriodEnd)}
-                  </p>
-                </div>
-              </TableCell>
-              <TableCell>
-                <p className="text-sm text-default-600">
-                  {formatDate(invoice.issueDate)}
-                </p>
-              </TableCell>
-              <TableCell>
-                <p className="text-sm text-default-600">
-                  {formatDate(invoice.dueDate)}
-                </p>
-              </TableCell>
-              <TableCell>
-                <div className="text-sm">
-                  <p className="font-semibold text-default-900">
-                    {formatCurrency(invoice.totalAmount)}
-                  </p>
-                  {invoice.taxAmount > 0 && (
-                    <p className="text-xs text-default-400">
-                      + {formatCurrency(invoice.taxAmount)} impuestos
-                    </p>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
-                <Chip
-                  color={getStatusColor(invoice.status)}
-                  size="sm"
-                  variant="flat"
-                >
-                  {getStatusLabel(invoice.status)}
-                </Chip>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    onPress={() => handleDownloadPDF(invoice.id)}
-                  >
-                    <Download size={16} />
-                  </Button>
-                  {invoice.status === 'pending' && (
-                    <Button
-                      color="success"
-                      isIconOnly
-                      isLoading={markPaidMutation.isPending}
-                      size="sm"
-                      variant="flat"
-                      onPress={() => handleMarkAsPaid(invoice.id)}
-                    >
-                      <CheckCircle size={16} />
-                    </Button>
-                  )}
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <Table<TInvoiceRow>
+        aria-label="Tabla de facturas"
+        columns={tableColumns}
+        rows={invoices}
+        renderCell={renderCell}
+      />
     </div>
   )
 }

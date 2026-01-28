@@ -22,6 +22,7 @@ export {
   clearAllSuperadminCookies,
 } from './superadmin-cookie'
 export {
+  SESSION_COOKIE_NAME,
   setSessionCookie,
   getSessionCookie,
   waitForSessionCookie,

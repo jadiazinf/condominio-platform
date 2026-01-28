@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardBody, CardHeader } from '@heroui/card'
+import { Card, CardBody, CardHeader } from '@/ui/components/card'
 import { Building2, User, Mail, Phone, Globe, MapPin, AlertTriangle } from 'lucide-react'
 import type { TCreateManagementCompanyWithAdminForm } from '@packages/domain'
 

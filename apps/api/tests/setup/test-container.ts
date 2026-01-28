@@ -205,6 +205,26 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
+    DO $$ BEGIN
+      CREATE TYPE member_role AS ENUM ('admin', 'accountant', 'support', 'viewer');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE ticket_priority AS ENUM ('low', 'medium', 'high', 'urgent');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE ticket_status AS ENUM ('open', 'in_progress', 'waiting_customer', 'resolved', 'closed', 'cancelled');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE ticket_category AS ENUM ('technical', 'billing', 'feature_request', 'general', 'bug');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
     CREATE TABLE IF NOT EXISTS locations (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(200) NOT NULL,
@@ -762,6 +782,58 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       updated_at TIMESTAMP DEFAULT NOW(),
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
     );
+
+    CREATE TABLE IF NOT EXISTS management_company_members (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      management_company_id UUID NOT NULL REFERENCES management_companies(id) ON DELETE CASCADE,
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      role_name member_role NOT NULL,
+      permissions JSONB,
+      is_primary_admin BOOLEAN DEFAULT false,
+      joined_at TIMESTAMP DEFAULT NOW(),
+      invited_at TIMESTAMP,
+      invited_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      is_active BOOLEAN DEFAULT true,
+      deactivated_at TIMESTAMP,
+      deactivated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(management_company_id, user_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS support_tickets (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      ticket_number VARCHAR(50) NOT NULL UNIQUE,
+      management_company_id UUID NOT NULL REFERENCES management_companies(id) ON DELETE CASCADE,
+      created_by_user_id UUID NOT NULL REFERENCES users(id),
+      created_by_member_id UUID REFERENCES management_company_members(id),
+      subject VARCHAR(255) NOT NULL,
+      description TEXT NOT NULL,
+      priority ticket_priority NOT NULL DEFAULT 'medium',
+      status ticket_status NOT NULL DEFAULT 'open',
+      category ticket_category,
+      assigned_to UUID REFERENCES users(id),
+      assigned_at TIMESTAMP,
+      resolved_at TIMESTAMP,
+      resolved_by UUID REFERENCES users(id),
+      closed_at TIMESTAMP,
+      closed_by UUID REFERENCES users(id),
+      metadata JSONB,
+      tags TEXT[],
+      created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+      updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS support_ticket_messages (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      ticket_id UUID NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
+      user_id UUID NOT NULL REFERENCES users(id),
+      message TEXT NOT NULL,
+      is_internal BOOLEAN DEFAULT false NOT NULL,
+      attachments JSONB,
+      created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+      updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+    );
   `)
   const elapsed = performance.now() - start
   console.log(`[TestContainer] createSchema took ${elapsed.toFixed(1)}ms`)
@@ -810,6 +882,9 @@ export async function cleanDatabase(testDb: TTestDrizzleClient): Promise<void> {
   // Truncate all tables in one command for better performance
   await testDb.execute(sql`
     TRUNCATE TABLE
+      support_ticket_messages,
+      support_tickets,
+      management_company_members,
       audit_logs,
       messages,
       documents,

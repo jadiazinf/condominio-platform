@@ -1,8 +1,8 @@
 'use client'
 
 import { Component, type ReactNode, type ErrorInfo } from 'react'
-import { Button } from '@heroui/button'
-import { Card, CardBody, CardFooter, CardHeader } from '@heroui/card'
+import { Button } from '@/ui/components/button'
+import { Card, CardBody, CardFooter, CardHeader } from '@/ui/components/card'
 
 // ============================================================================
 // TYPES

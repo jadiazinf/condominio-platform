@@ -1,20 +1,11 @@
 'use client'
 
-import { Card, CardHeader, CardBody } from '@heroui/card'
-import { Chip } from '@heroui/chip'
-import { Button } from '@heroui/button'
-import { Spinner } from '@heroui/spinner'
-import { Divider } from '@heroui/divider'
-import {
-  Building2,
-  Mail,
-  Phone,
-  Globe,
-  MapPin,
-  FileText,
-  Calendar,
-  Power,
-} from 'lucide-react'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
+import { Spinner } from '@/ui/components/spinner'
+import { Divider } from '@/ui/components/divider'
+import { Building2, Mail, Phone, Globe, MapPin, FileText, Calendar, Power } from 'lucide-react'
 import { addToast } from '@heroui/toast'
 import { useState, useEffect } from 'react'
 
@@ -96,7 +87,7 @@ export function CompanyDetail({ id }: CompanyDetailProps) {
         <Typography color="danger" variant="body1">
           Error al cargar la administradora
         </Typography>
-        <Button className="mt-4" color="primary" size="sm" onPress={() => refetch()}>
+        <Button className="mt-4" color="primary" onPress={() => refetch()}>
           Reintentar
         </Button>
       </div>
@@ -122,11 +113,7 @@ export function CompanyDetail({ id }: CompanyDetailProps) {
                 )}
               </div>
             </div>
-            <Chip
-              color={company.isActive ? 'success' : 'default'}
-              size="md"
-              variant="flat"
-            >
+            <Chip color={company.isActive ? 'success' : 'default'} size="md" variant="flat">
               {company.isActive
                 ? t('superadmin.companies.status.active')
                 : t('superadmin.companies.status.inactive')}
@@ -144,7 +131,9 @@ export function CompanyDetail({ id }: CompanyDetailProps) {
                       {t('superadmin.companies.table.taxId')}
                     </Typography>
                     <Typography variant="body2">
-                      {company.taxIdType ? `${company.taxIdType}-${company.taxIdNumber || ''}` : company.taxIdNumber}
+                      {company.taxIdType
+                        ? `${company.taxIdType}-${company.taxIdNumber || ''}`
+                        : company.taxIdNumber}
                     </Typography>
                   </div>
                 </div>
@@ -168,7 +157,9 @@ export function CompanyDetail({ id }: CompanyDetailProps) {
                       {t('superadmin.companies.table.phone')}
                     </Typography>
                     <Typography variant="body2">
-                      {company.phoneCountryCode ? `${company.phoneCountryCode} ${company.phone}` : company.phone}
+                      {company.phoneCountryCode
+                        ? `${company.phoneCountryCode} ${company.phone}`
+                        : company.phone}
                     </Typography>
                   </div>
                 </div>

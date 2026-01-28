@@ -19,7 +19,8 @@
     "previous": "Anterior",
     "yes": "Sí",
     "no": "No",
-    "user": "Usuario"
+    "user": "Usuario",
+    "retry": "Reintentar"
   },
   "nav": {
     "home": "Inicio",
@@ -595,6 +596,45 @@
           "billing": "Facturación"
         }
       }
+    },
+    "condominiums": {
+      "title": "Condominios",
+      "subtitle": "Gestiona todos los condominios registrados en el sistema",
+      "create": "Agregar Condominio",
+      "empty": "No hay condominios registrados",
+      "emptyDescription": "Aún no se han registrado condominios en el sistema",
+      "noResults": "No se encontraron condominios",
+      "noResultsDescription": "Intenta ajustar los filtros de búsqueda",
+      "count": "{filtered} de {total} condominios",
+      "table": {
+        "name": "Condominio",
+        "code": "Código",
+        "company": "Administradora",
+        "address": "Dirección",
+        "contact": "Contacto",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "status": {
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "all": "Todos"
+      },
+      "filters": {
+        "searchPlaceholder": "Buscar por nombre, código, dirección...",
+        "status": "Estado",
+        "location": "Ubicación",
+        "clearFilters": "Limpiar filtros"
+      },
+      "actions": {
+        "view": "Ver detalles",
+        "activate": "Activar",
+        "deactivate": "Desactivar"
+      },
+      "noCompany": "Sin administradora",
+      "noContact": "Sin contacto",
+      "noAddress": "-",
+      "error": "Error al cargar los condominios"
     }
   },
   "notifications": {
@@ -764,7 +804,9 @@
       "assignUser": "Asignar usuario",
       "viewProfile": "Ver perfil",
       "resolved": "Resuelto",
+      "resolvedBy": "Resuelto por",
       "closed": "Cerrado",
+      "closedBy": "Cerrado por",
       "internalMessage": "Interno",
       "attachments": "Archivos adjuntos",
       "loadingMessages": "Cargando mensajes...",
@@ -773,7 +815,8 @@
       "sendButton": "Enviar",
       "sending": "Enviando...",
       "success": "Mensaje enviado correctamente",
-      "error": "Error al enviar el mensaje"
+      "error": "Error al enviar el mensaje",
+      "ticketClosed": "Este ticket está cerrado. No se pueden enviar más mensajes."
     },
     "actions": {
       "view": "Ver detalles",

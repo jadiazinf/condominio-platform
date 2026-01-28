@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardHeader, CardBody } from '@heroui/card'
-import { Chip } from '@heroui/chip'
-import { Button } from '@heroui/button'
-import { Divider } from '@heroui/divider'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
+import { Divider } from '@/ui/components/divider'
 import {
   ArrowLeft,
   Calendar,
@@ -154,7 +154,6 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
       <div className="flex items-center gap-3">
         <Button
           isIconOnly
-          size="sm"
           variant="light"
           onPress={() => router.push(`/dashboard/admins/${companyId}/tickets`)}
         >
@@ -178,22 +177,14 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
                 <div className="flex-1">
                   <Typography variant="h4">{ticket.subject}</Typography>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <Chip
-                      color={getStatusColor(ticket.status)}
-                      size="sm"
-                      variant="flat"
-                    >
+                    <Chip color={getStatusColor(ticket.status)} variant="flat">
                       {getStatusLabel(ticket.status)}
                     </Chip>
-                    <Chip
-                      color={getPriorityColor(ticket.priority)}
-                      size="sm"
-                      variant="flat"
-                    >
+                    <Chip color={getPriorityColor(ticket.priority)} variant="flat">
                       {getPriorityLabel(ticket.priority)}
                     </Chip>
                     {ticket.category && (
-                      <Chip color="default" size="sm" variant="bordered">
+                      <Chip color="default" variant="bordered">
                         {getCategoryLabel(ticket.category)}
                       </Chip>
                     )}
@@ -220,9 +211,7 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
                     <Typography color="muted" variant="caption">
                       Creado
                     </Typography>
-                    <Typography variant="body2">
-                      {formatDate(ticket.createdAt)}
-                    </Typography>
+                    <Typography variant="body2">{formatDate(ticket.createdAt)}</Typography>
                   </div>
                 </div>
 
@@ -233,9 +222,7 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
                       <Typography color="muted" variant="caption">
                         Última actualización
                       </Typography>
-                      <Typography variant="body2">
-                        {formatDate(ticket.updatedAt)}
-                      </Typography>
+                      <Typography variant="body2">{formatDate(ticket.updatedAt)}</Typography>
                     </div>
                   </div>
                 )}
@@ -247,9 +234,7 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
                       <Typography color="muted" variant="caption">
                         Resuelto
                       </Typography>
-                      <Typography variant="body2">
-                        {formatDate(ticket.resolvedAt)}
-                      </Typography>
+                      <Typography variant="body2">{formatDate(ticket.resolvedAt)}</Typography>
                     </div>
                   </div>
                 )}
@@ -261,9 +246,7 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
                       <Typography color="muted" variant="caption">
                         Cerrado
                       </Typography>
-                      <Typography variant="body2">
-                        {formatDate(ticket.closedAt)}
-                      </Typography>
+                      <Typography variant="body2">{formatDate(ticket.closedAt)}</Typography>
                     </div>
                   </div>
                 )}
@@ -279,8 +262,8 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
                         Etiquetas
                       </Typography>
                       <div className="mt-1 flex flex-wrap gap-2">
-                        {ticket.tags.map((tag) => (
-                          <Chip key={tag} size="sm" variant="flat">
+                        {ticket.tags.map(tag => (
+                          <Chip key={tag} variant="flat">
                             {tag}
                           </Chip>
                         ))}
@@ -293,7 +276,7 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
           </Card>
 
           {/* Messages */}
-          <TicketMessages ticketId={ticketId} />
+          <TicketMessages ticketId={ticketId} ticketStatus={ticket.status} />
         </div>
 
         {/* Sidebar - Actions */}
@@ -305,40 +288,20 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
             <CardBody className="space-y-2">
               {ticket.status !== 'resolved' && ticket.status !== 'closed' && (
                 <>
-                  <Button
-                    className="w-full"
-                    color="success"
-                    size="sm"
-                    variant="flat"
-                  >
+                  <Button className="w-full" color="success" variant="flat">
                     Marcar como Resuelto
                   </Button>
-                  <Button
-                    className="w-full"
-                    color="primary"
-                    size="sm"
-                    variant="flat"
-                  >
+                  <Button className="w-full" color="primary" variant="flat">
                     Cambiar Estado
                   </Button>
                 </>
               )}
               {ticket.status === 'resolved' && (
-                <Button
-                  className="w-full"
-                  color="default"
-                  size="sm"
-                  variant="flat"
-                >
+                <Button className="w-full" color="default" variant="flat">
                   Cerrar Ticket
                 </Button>
               )}
-              <Button
-                className="w-full"
-                color="danger"
-                size="sm"
-                variant="light"
-              >
+              <Button className="w-full" color="danger" variant="light">
                 Cancelar Ticket
               </Button>
             </CardBody>

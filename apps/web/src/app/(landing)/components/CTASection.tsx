@@ -1,5 +1,5 @@
-import { Button } from '@heroui/button'
-import { Link } from '@heroui/link'
+import { Button } from '@/ui/components/button'
+import { Link } from '@/ui/components/link'
 
 import { getTranslations } from '@/libs/i18n/server'
 import { Typography } from '@/ui/components/typography'

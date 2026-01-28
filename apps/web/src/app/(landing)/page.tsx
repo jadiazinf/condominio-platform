@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Divider } from '@heroui/divider'
+import { Divider } from '@/ui/components/divider'
 
 import { HeroSection } from './components/HeroSection'
 

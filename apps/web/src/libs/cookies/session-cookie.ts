@@ -1,7 +1,7 @@
 import type { User } from 'firebase/auth'
 import { clearUserCookie } from './user-cookie'
 
-const SESSION_COOKIE_NAME = '__session'
+export const SESSION_COOKIE_NAME = '__session'
 // TEMPORARILY set back to 7 days while debugging
 const TOKEN_EXPIRY_SECONDS = 60 * 60 * 24 * 7 // 7 days
 

@@ -1,4 +1,4 @@
-import { Link } from '@heroui/link'
+import { Link } from '@/ui/components/link'
 
 import { getTranslations } from '@/libs/i18n/server'
 import { Typography } from '@/ui/components/typography'
@@ -26,22 +26,17 @@ export async function Footer() {
           </Typography>
           <ul className="space-y-2">
             <li>
-              <Link className="hover:text-primary" color="foreground" href="#beneficios" size="sm">
+              <Link className="hover:text-primary" color="foreground" href="#beneficios">
                 {t('footer.benefits')}
               </Link>
             </li>
             <li>
-              <Link className="hover:text-primary" color="foreground" href="#pricing" size="sm">
+              <Link className="hover:text-primary" color="foreground" href="#pricing">
                 {t('footer.join')}
               </Link>
             </li>
             <li>
-              <Link
-                className="hover:text-primary"
-                color="foreground"
-                href="#como-funciona"
-                size="sm"
-              >
+              <Link className="hover:text-primary" color="foreground" href="#como-funciona">
                 {t('footer.howItWorks')}
               </Link>
             </li>
@@ -55,12 +50,12 @@ export async function Footer() {
           </Typography>
           <ul className="space-y-2">
             <li>
-              <Link className="hover:text-primary" color="foreground" href="/help" size="sm">
+              <Link className="hover:text-primary" color="foreground" href="/help">
                 {t('footer.helpCenter')}
               </Link>
             </li>
             <li>
-              <Link className="hover:text-primary" color="foreground" href="/contact" size="sm">
+              <Link className="hover:text-primary" color="foreground" href="/contact">
                 {t('footer.contact')}
               </Link>
             </li>
@@ -74,12 +69,12 @@ export async function Footer() {
           </Typography>
           <ul className="space-y-2">
             <li>
-              <Link className="hover:text-primary" color="foreground" href="/privacy" size="sm">
+              <Link className="hover:text-primary" color="foreground" href="/privacy">
                 {t('footer.privacy')}
               </Link>
             </li>
             <li>
-              <Link className="hover:text-primary" color="foreground" href="/terms" size="sm">
+              <Link className="hover:text-primary" color="foreground" href="/terms">
                 {t('footer.terms')}
               </Link>
             </li>

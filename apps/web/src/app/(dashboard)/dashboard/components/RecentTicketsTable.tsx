@@ -1,22 +1,28 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableColumn,
-  TableRow,
-  TableCell,
-} from '@heroui/table'
-import { Chip } from '@heroui/chip'
-import { Card, CardHeader, CardBody } from '@heroui/card'
+import { Table, type ITableColumn } from '@/ui/components/table'
+import { Chip } from '@/ui/components/chip'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { MessageSquare, AlertCircle, Building } from 'lucide-react'
 
 import { useAllSupportTickets } from '@packages/http-client'
 import { useAuth } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
+
+interface TTicketRow {
+  id: string
+  ticketNumber: string
+  subject: string
+  priority: string
+  status: string
+  createdAt: Date | string
+  managementCompanyId: string
+  managementCompany?: {
+    legalName?: string
+  }
+}
 
 export function RecentTicketsTable() {
   const router = useRouter()
@@ -37,7 +43,20 @@ export function RecentTicketsTable() {
     enabled: !!token,
   })
 
-  const tickets = data?.data?.slice(0, 5) || []
+  const tickets = (data?.data?.slice(0, 5) || []) as TTicketRow[]
+
+  // Table columns
+  const tableColumns: ITableColumn<TTicketRow>[] = useMemo(
+    () => [
+      { key: 'ticketNumber', label: 'TICKET' },
+      { key: 'company', label: 'EMPRESA' },
+      { key: 'subject', label: 'ASUNTO' },
+      { key: 'priority', label: 'PRIORIDAD' },
+      { key: 'status', label: 'ESTADO' },
+      { key: 'createdAt', label: 'CREADO' },
+    ],
+    []
+  )
 
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString('es-VE', {
@@ -95,9 +114,58 @@ export function RecentTicketsTable() {
     return labels[priority.toLowerCase()] || priority
   }
 
-  const handleViewTicket = (ticket: any) => {
-    router.push(`/dashboard/admins/${ticket.managementCompanyId}/tickets/${ticket.id}`)
-  }
+  const handleViewTicket = useCallback(
+    (ticket: TTicketRow) => {
+      router.push(`/dashboard/admins/${ticket.managementCompanyId}/tickets/${ticket.id}`)
+    },
+    [router]
+  )
+
+  const renderCell = useCallback((ticket: TTicketRow, columnKey: keyof TTicketRow | string) => {
+    switch (columnKey) {
+      case 'ticketNumber':
+        return (
+          <div className="flex items-center gap-2">
+            <AlertCircle
+              className={
+                ticket.priority === 'urgent' || ticket.priority === 'high'
+                  ? 'text-danger'
+                  : 'text-default-400'
+              }
+              size={16}
+            />
+            <p className="font-mono text-xs font-medium">{ticket.ticketNumber}</p>
+          </div>
+        )
+      case 'company':
+        return (
+          <div className="flex items-center gap-2">
+            <Building className="text-default-400" size={14} />
+            <p className="text-xs text-default-600">
+              {ticket.managementCompany?.legalName || 'N/A'}
+            </p>
+          </div>
+        )
+      case 'subject':
+        return <p className="max-w-xs truncate text-sm font-medium">{ticket.subject}</p>
+      case 'priority':
+        return (
+          <Chip color={getPriorityColor(ticket.priority)} variant="flat">
+            {getPriorityLabel(ticket.priority)}
+          </Chip>
+        )
+      case 'status':
+        return (
+          <Chip color={getStatusColor(ticket.status)} variant="flat">
+            {getStatusLabel(ticket.status)}
+          </Chip>
+        )
+      case 'createdAt':
+        return <p className="text-xs text-default-500">{formatDate(ticket.createdAt)}</p>
+      default:
+        return null
+    }
+  }, [])
 
   if (isLoading) {
     return (
@@ -125,10 +193,7 @@ export function RecentTicketsTable() {
             <MessageSquare className="text-default-400" size={20} />
             <Typography variant="subtitle1">Tickets Activos</Typography>
           </div>
-          <span
-            className="cursor-pointer"
-            onClick={() => router.push('/dashboard/tickets')}
-          >
+          <span className="cursor-pointer" onClick={() => router.push('/dashboard/tickets')}>
             <Typography className="hover:text-primary" color="primary" variant="body2">
               Ver todos
             </Typography>
@@ -144,77 +209,17 @@ export function RecentTicketsTable() {
             </Typography>
           </div>
         ) : (
-          <Table aria-label="Tabla de tickets recientes" removeWrapper>
-            <TableHeader>
-              <TableColumn>TICKET</TableColumn>
-              <TableColumn>EMPRESA</TableColumn>
-              <TableColumn>ASUNTO</TableColumn>
-              <TableColumn>PRIORIDAD</TableColumn>
-              <TableColumn>ESTADO</TableColumn>
-              <TableColumn>CREADO</TableColumn>
-            </TableHeader>
-            <TableBody>
-              {tickets.map((ticket: any) => (
-                <TableRow
-                  key={ticket.id}
-                  className="cursor-pointer transition-colors hover:bg-default-100"
-                  onClick={() => handleViewTicket(ticket)}
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <AlertCircle
-                        className={
-                          ticket.priority === 'urgent' || ticket.priority === 'high'
-                            ? 'text-danger'
-                            : 'text-default-400'
-                        }
-                        size={16}
-                      />
-                      <p className="font-mono text-xs font-medium">
-                        {ticket.ticketNumber}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Building className="text-default-400" size={14} />
-                      <p className="text-xs text-default-600">
-                        {ticket.managementCompany?.legalName || 'N/A'}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <p className="max-w-xs truncate text-sm font-medium">
-                      {ticket.subject}
-                    </p>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      color={getPriorityColor(ticket.priority)}
-                      size="sm"
-                      variant="flat"
-                    >
-                      {getPriorityLabel(ticket.priority)}
-                    </Chip>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      color={getStatusColor(ticket.status)}
-                      size="sm"
-                      variant="flat"
-                    >
-                      {getStatusLabel(ticket.status)}
-                    </Chip>
-                  </TableCell>
-                  <TableCell>
-                    <p className="text-xs text-default-500">
-                      {formatDate(ticket.createdAt)}
-                    </p>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <Table<TTicketRow>
+            aria-label="Tabla de tickets recientes"
+            removeWrapper
+            columns={tableColumns}
+            rows={tickets}
+            renderCell={renderCell}
+            onRowClick={handleViewTicket}
+            classNames={{
+              tr: 'cursor-pointer transition-colors hover:bg-default-100',
+            }}
+          />
         )}
       </CardBody>
     </Card>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { Progress } from '@heroui/progress'
+import { Progress } from '@/ui/components/progress'
 
 export function NavigationProgress() {
   const pathname = usePathname()
@@ -60,13 +60,7 @@ export function NavigationProgress() {
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-4 bg-background">
-      <Progress
-        aria-label="Loading..."
-        className="max-w-md"
-        color="primary"
-        isIndeterminate
-        size="sm"
-      />
+      <Progress aria-label="Loading..." className="max-w-md" color="primary" isIndeterminate />
     </div>
   )
 }

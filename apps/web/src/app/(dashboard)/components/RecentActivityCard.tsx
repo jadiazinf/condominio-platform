@@ -1,7 +1,7 @@
 'use client'
 
-import { Card, CardHeader, CardBody } from '@heroui/card'
-import { Chip } from '@heroui/chip'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
 import { User, Building2, CreditCard, AlertTriangle } from 'lucide-react'
 
 type ActivityType = 'user' | 'condominium' | 'payment' | 'alert'
@@ -54,7 +54,6 @@ export function RecentActivityCard({ title, activities }: RecentActivityCardProp
                   content: 'flex items-center justify-center p-0',
                 }}
                 color={activityColors[activity.type]}
-                size="sm"
                 variant="flat"
               >
                 {activityIcons[activity.type]}

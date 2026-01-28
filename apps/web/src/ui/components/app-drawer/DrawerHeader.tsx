@@ -1,9 +1,9 @@
 'use client'
 
 import { DrawerHeader as HeroUIDrawerHeader } from '@heroui/drawer'
-import { Button } from '@heroui/button'
-import { Chip } from '@heroui/chip'
-import { Avatar } from '@heroui/avatar'
+import { Button } from '@/ui/components/button'
+import { Chip } from '@/ui/components/chip'
+import { Avatar } from '@/ui/components/avatar-base'
 import { X } from 'lucide-react'
 
 import { useTranslation, useUser } from '@/contexts'
@@ -40,7 +40,6 @@ function CloseButton({ onClose }: { onClose: () => void }) {
         isIconOnly
         className="text-white/80 hover:text-white hover:bg-white/20"
         radius="full"
-        size="sm"
         variant="light"
         onPress={onClose}
       >
@@ -60,7 +59,6 @@ function Branding({ badge }: { badge?: IBadgeConfig }) {
             base: 'bg-white/20 border-none',
             content: 'text-white font-semibold text-xs',
           }}
-          size="sm"
           startContent={badge.icon}
           variant="bordered"
         >

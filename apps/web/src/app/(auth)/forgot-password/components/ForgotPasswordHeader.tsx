@@ -1,6 +1,6 @@
 'use client'
 
-import { Link } from '@heroui/link'
+import { Link } from '@/ui/components/link'
 import { KeyRound } from 'lucide-react'
 
 import { useTranslation } from '@/contexts'

@@ -3,9 +3,9 @@
 import type { TUser } from '@packages/domain'
 
 import { Navbar as HeroUINavbar, NavbarBrand, NavbarContent, NavbarItem } from '@heroui/navbar'
-import { Button } from '@heroui/button'
-import { Link } from '@heroui/link'
-import { Chip } from '@heroui/chip'
+import { Button } from '@/ui/components/button'
+import { Link } from '@/ui/components/link'
+import { Chip } from '@/ui/components/chip'
 import { Menu, Shield } from 'lucide-react'
 
 import { NotificationPanel } from '@/ui/components/notifications'
@@ -22,7 +22,7 @@ export function SuperadminNavbar({ onToggleSidebar, initialUser }: SuperadminNav
     <HeroUINavbar isBordered classNames={{ wrapper: 'px-4' }} maxWidth="full">
       <NavbarContent justify="start">
         {onToggleSidebar && (
-          <Button isIconOnly size="sm" variant="light" onPress={onToggleSidebar}>
+          <Button isIconOnly variant="light" onPress={onToggleSidebar}>
             <Menu size={24} />
           </Button>
         )}
@@ -32,7 +32,6 @@ export function SuperadminNavbar({ onToggleSidebar, initialUser }: SuperadminNav
           </Link>
           <Chip
             classNames={{ base: 'bg-danger/10', content: 'text-danger font-semibold text-xs' }}
-            size="sm"
             startContent={<Shield size={12} />}
             variant="flat"
           >

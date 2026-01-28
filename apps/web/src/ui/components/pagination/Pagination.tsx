@@ -1,8 +1,9 @@
 'use client'
 
 import { Pagination as HeroUIPagination } from '@heroui/pagination'
-import { Select, SelectItem } from '@heroui/select'
+import { Select, type ISelectItem } from '@/ui/components/select'
 import { cn } from '@heroui/theme'
+import { useMemo } from 'react'
 
 export interface PaginationProps {
   page: number
@@ -30,6 +31,11 @@ export function Pagination({
   const startItem = (page - 1) * limit + 1
   const endItem = Math.min(page * limit, total)
 
+  const limitItems: ISelectItem[] = useMemo(
+    () => limitOptions.map(option => ({ key: String(option), label: String(option) })),
+    [limitOptions]
+  )
+
   return (
     <div className={cn('flex flex-col sm:flex-row items-center justify-between gap-4', className)}>
       <div className="flex items-center gap-4">
@@ -39,18 +45,13 @@ export function Pagination({
             <Select
               aria-label="Items per page"
               className="w-20"
-              selectedKeys={[String(limit)]}
-              size="sm"
-              variant="bordered"
-              onSelectionChange={(keys) => {
-                const value = Array.from(keys)[0]
-                if (value) onLimitChange(Number(value))
+              items={limitItems}
+              value={String(limit)}
+              onChange={key => {
+                if (key) onLimitChange(Number(key))
               }}
-            >
-              {limitOptions.map((option) => (
-                <SelectItem key={String(option)}>{String(option)}</SelectItem>
-              ))}
-            </Select>
+              variant="bordered"
+            />
           </div>
         )}
         <span className="text-sm text-default-500">
@@ -63,7 +64,6 @@ export function Pagination({
         isDisabled={totalPages <= 1}
         page={page}
         showControls
-        size="sm"
         total={totalPages || 1}
         onChange={onPageChange}
       />

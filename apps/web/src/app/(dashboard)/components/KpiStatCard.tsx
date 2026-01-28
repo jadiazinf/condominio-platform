@@ -1,9 +1,9 @@
 'use client'
 
-import type { CardProps } from '@heroui/card'
+import type { ICardProps } from '@/ui/components/card'
 import type { ReactNode } from 'react'
 
-import { Card } from '@heroui/card'
+import { Card } from '@/ui/components/card'
 import { cn } from '@heroui/theme'
 import { tv, type VariantProps } from 'tailwind-variants'
 import { Area, AreaChart, ResponsiveContainer, YAxis } from 'recharts'
@@ -132,7 +132,7 @@ type TKpiStatCardProps = {
   }
   chartData?: TChartData[]
   chartIndex?: number
-} & Omit<CardProps, 'children'> &
+} & Omit<ICardProps, 'children'> &
   VariantProps<typeof kpiCard>
 
 export function KpiStatCard({

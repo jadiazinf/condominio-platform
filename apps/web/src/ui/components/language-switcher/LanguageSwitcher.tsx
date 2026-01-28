@@ -1,7 +1,7 @@
 'use client'
 
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/dropdown'
-import { Button } from '@heroui/button'
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
+import { Button } from '@/ui/components/button'
 import { Globe } from 'lucide-react'
 
 import { useI18n } from '@/contexts'

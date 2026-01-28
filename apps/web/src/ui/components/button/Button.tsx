@@ -3,7 +3,7 @@
 import { Button as HeroUIButton } from '@heroui/button'
 import { Link } from '@heroui/link'
 import { cn } from '@heroui/theme'
-import { ReactNode } from 'react'
+import { ElementType, ReactNode } from 'react'
 
 type TButtonColor = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
 
@@ -36,6 +36,7 @@ interface IButtonProps {
   target?: '_blank' | '_self' | '_parent' | '_top'
   onPress?: () => void
   type?: 'button' | 'submit' | 'reset'
+  as?: ElementType
 }
 
 export function Button({
@@ -59,6 +60,7 @@ export function Button({
   target,
   onPress,
   type = 'button',
+  as,
 }: IButtonProps) {
   const buttonProps = {
     color,
@@ -80,6 +82,16 @@ export function Button({
     type,
   }
 
+  // If 'as' prop is provided, use it directly
+  if (as) {
+    return (
+      <HeroUIButton as={as} href={href} target={target} {...buttonProps}>
+        {children}
+      </HeroUIButton>
+    )
+  }
+
+  // If href is provided, render as Link
   if (href) {
     return (
       <HeroUIButton as={Link} href={href} target={target} {...buttonProps}>

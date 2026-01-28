@@ -1,9 +1,9 @@
 'use client'
 
-import { Link } from '@heroui/link'
+import { Link } from '@/ui/components/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@heroui/theme'
-import { Building2, Users, CreditCard, Receipt, Headset } from 'lucide-react'
+import { Building2, Home, Users, CreditCard, Receipt, Headset } from 'lucide-react'
 
 interface CompanySidebarProps {
   companyId: string
@@ -15,6 +15,12 @@ const SIDEBAR_ITEMS = [
     href: (id: string) => `/dashboard/admins/${id}`,
     icon: Building2,
     label: 'General',
+  },
+  {
+    key: 'condominiums',
+    href: (id: string) => `/dashboard/admins/${id}/condominiums`,
+    icon: Home,
+    label: 'Condominios',
   },
   {
     key: 'members',

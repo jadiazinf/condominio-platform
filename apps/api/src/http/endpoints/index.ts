@@ -42,7 +42,7 @@ export { SupportTicketsEndpoint } from './support-tickets.endpoint'
 export { SupportTicketMessagesEndpoint } from './support-ticket-messages.endpoint'
 
 // WebSocket
-export { WebSocketEndpoint, websocket } from './websocket.endpoint'
+export { WebSocketEndpoint, websocket, handleWebSocketUpgrade } from './websocket.endpoint'
 
 // Routes
 export { ApiRoutes } from './routes'

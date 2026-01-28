@@ -1,8 +1,8 @@
 'use client'
 
 import { DrawerFooter as HeroUIDrawerFooter } from '@heroui/drawer'
-import { Button } from '@heroui/button'
-import { Divider } from '@heroui/divider'
+import { Button } from '@/ui/components/button'
+import { Divider } from '@/ui/components/divider'
 import { LogOut } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 

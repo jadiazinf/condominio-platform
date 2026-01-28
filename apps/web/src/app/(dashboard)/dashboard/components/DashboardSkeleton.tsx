@@ -1,4 +1,4 @@
-import { Skeleton } from '@heroui/skeleton'
+import { Skeleton } from '@/ui/components/skeleton'
 
 export function DashboardSkeleton() {
   return (

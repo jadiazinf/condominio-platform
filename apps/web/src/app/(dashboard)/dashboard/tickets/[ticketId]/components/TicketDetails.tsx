@@ -1,10 +1,10 @@
 'use client'
 
 import type { TSupportTicket } from '@packages/domain'
-import { Card, CardHeader, CardBody } from '@heroui/card'
-import { Chip } from '@heroui/chip'
-import { Divider } from '@heroui/divider'
-import { Button } from '@heroui/button'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
+import { Divider } from '@/ui/components/divider'
+import { Button } from '@/ui/components/button'
 import { Calendar, UserPlus } from 'lucide-react'
 
 import { Typography } from '@/ui/components/typography'
@@ -20,7 +20,9 @@ export interface ITicketDetailsTranslations {
   createdBy: string
   assignedTo: string
   resolved: string
+  resolvedBy: string
   closed: string
+  closedBy: string
   viewProfile: string
   notAssigned: string
   assignUser: string
@@ -61,7 +63,7 @@ export function TicketDetails({
             {translations.state}
           </Typography>
           <div className="mt-1">
-            <Chip color={getStatusColor(ticket.status)} size="sm" variant="flat">
+            <Chip color={getStatusColor(ticket.status)} variant="flat">
               {statusLabel}
             </Chip>
           </div>
@@ -72,7 +74,7 @@ export function TicketDetails({
             {translations.priority}
           </Typography>
           <div className="mt-1">
-            <Chip color={getPriorityColor(ticket.priority)} size="sm" variant="flat">
+            <Chip color={getPriorityColor(ticket.priority)} variant="flat">
               {priorityLabel}
             </Chip>
           </div>
@@ -133,12 +135,7 @@ export function TicketDetails({
               <Typography color="muted" variant="body2">
                 {translations.notAssigned}
               </Typography>
-              <Button
-                color="primary"
-                size="sm"
-                startContent={<UserPlus size={16} />}
-                variant="flat"
-              >
+              <Button color="primary" startContent={<UserPlus size={16} />} variant="flat">
                 {translations.assignUser}
               </Button>
             </div>
@@ -157,6 +154,21 @@ export function TicketDetails({
           </div>
         )}
 
+        {ticket.resolvedByUser && (
+          <div>
+            <Typography color="muted" variant="caption">
+              {translations.resolvedBy}
+            </Typography>
+            <div className="mt-1">
+              <UserInfo
+                user={ticket.resolvedByUser}
+                showViewProfile
+                viewProfileLabel={translations.viewProfile}
+              />
+            </div>
+          </div>
+        )}
+
         {ticket.closedAt && (
           <div>
             <Typography color="muted" variant="caption">
@@ -165,6 +177,21 @@ export function TicketDetails({
             <div className="mt-1 flex items-center gap-2">
               <Calendar className="text-default-400" size={16} />
               <Typography variant="body2">{formatDate(ticket.closedAt, locale)}</Typography>
+            </div>
+          </div>
+        )}
+
+        {ticket.closedByUser && (
+          <div>
+            <Typography color="muted" variant="caption">
+              {translations.closedBy}
+            </Typography>
+            <div className="mt-1">
+              <UserInfo
+                user={ticket.closedByUser}
+                showViewProfile
+                viewProfileLabel={translations.viewProfile}
+              />
             </div>
           </div>
         )}

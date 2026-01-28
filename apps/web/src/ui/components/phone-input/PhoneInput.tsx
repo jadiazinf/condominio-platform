@@ -1,11 +1,12 @@
 'use client'
 
 import { Input as HeroUIInput } from '@heroui/input'
-import { Select, SelectItem } from '@heroui/select'
-import { Tooltip } from '@heroui/tooltip'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Tooltip } from '@/ui/components/tooltip'
 import { cn } from '@heroui/theme'
 import { Info } from 'lucide-react'
 import { PHONE_COUNTRY_CODES, DEFAULT_PHONE_COUNTRY_CODE } from '@packages/domain'
+import { useMemo } from 'react'
 
 type TInputSize = 'sm' | 'md' | 'lg'
 type TInputVariant = 'flat' | 'bordered' | 'underlined' | 'faded'
@@ -51,6 +52,15 @@ export function PhoneInput({
   const selectedCountryCode = countryCode || DEFAULT_PHONE_COUNTRY_CODE
   const errorMessage = countryCodeError || phoneNumberError
 
+  const countryCodeItems: ISelectItem[] = useMemo(
+    () =>
+      PHONE_COUNTRY_CODES.map((item) => ({
+        key: item.code,
+        label: `${item.flag} ${item.code}`,
+      })),
+    []
+  )
+
   return (
     <div className={cn('flex flex-col gap-1', className)}>
       {label && (
@@ -75,11 +85,9 @@ export function PhoneInput({
         <Select
           aria-label="Country code"
           className="w-[140px] shrink-0"
-          selectedKeys={selectedCountryCode ? [selectedCountryCode] : []}
-          onSelectionChange={keys => {
-            const selected = Array.from(keys)[0] as string | undefined
-            onCountryCodeChange?.(selected || null)
-          }}
+          items={countryCodeItems}
+          value={selectedCountryCode}
+          onChange={(key) => onCountryCodeChange?.(key)}
           variant={variant}
           radius={radius}
           size={size}
@@ -88,16 +96,7 @@ export function PhoneInput({
           classNames={{
             trigger: 'min-h-unit-10',
           }}
-        >
-          {PHONE_COUNTRY_CODES.map(item => (
-            <SelectItem key={item.code} textValue={item.code}>
-              <span className="flex items-center gap-2">
-                <span>{item.flag}</span>
-                <span>{item.code}</span>
-              </span>
-            </SelectItem>
-          ))}
-        </Select>
+        />
         <HeroUIInput
           className="flex-1"
           type="tel"

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { sendPasswordResetEmail } from 'firebase/auth'
-import { Card, CardBody } from '@heroui/card'
+import { Card, CardBody } from '@/ui/components/card'
 
 import { ForgotPasswordFormFields } from './ForgotPasswordFormFields'
 import { ForgotPasswordHeader } from './ForgotPasswordHeader'

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Checkbox } from '@heroui/checkbox'
-import { Link } from '@heroui/link'
+import { Checkbox } from '@/ui/components/checkbox'
+import { Link } from '@/ui/components/link'
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -199,7 +199,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
             control={control}
             name="acceptTerms"
             render={({ field }) => (
-              <Checkbox isSelected={field.value} size="sm" onValueChange={field.onChange}>
+              <Checkbox isSelected={field.value} onValueChange={field.onChange}>
                 <Typography variant="body2">
                   {t('auth.signUp.acceptTerms')}{' '}
                   <Link className="text-sm" href="/terms">

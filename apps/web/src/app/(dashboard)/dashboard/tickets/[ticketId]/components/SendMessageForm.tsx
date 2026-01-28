@@ -1,16 +1,18 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Textarea } from '@heroui/input'
-import { Button } from '@heroui/button'
-import { Checkbox } from '@heroui/checkbox'
+import { Textarea } from '@/ui/components/textarea'
+import { Button } from '@/ui/components/button'
+import { Checkbox } from '@/ui/components/checkbox'
 import { Send } from 'lucide-react'
 import { useCreateTicketMessage } from '@packages/http-client'
 
 import { useToast } from '@/ui/components/toast'
+import { Typography } from '@/ui/components/typography'
 
 interface ISendMessageFormProps {
   ticketId: string
+  isTicketClosed?: boolean
   translations: {
     messagePlaceholder: string
     internalCheckbox: string
@@ -18,10 +20,11 @@ interface ISendMessageFormProps {
     sending: string
     success: string
     error: string
+    ticketClosed?: string
   }
 }
 
-export function SendMessageForm({ ticketId, translations }: ISendMessageFormProps) {
+export function SendMessageForm({ ticketId, isTicketClosed = false, translations }: ISendMessageFormProps) {
   const [message, setMessage] = useState('')
   const [isInternal, setIsInternal] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -59,6 +62,16 @@ export function SendMessageForm({ ticketId, translations }: ISendMessageFormProp
     })
   }
 
+  if (isTicketClosed) {
+    return (
+      <div className="rounded-lg bg-default-100 p-4 text-center">
+        <Typography color="muted" variant="body2">
+          {translations.ticketClosed || 'This ticket is closed. No more messages can be sent.'}
+        </Typography>
+      </div>
+    )
+  }
+
   return (
     <form className="space-y-3" onSubmit={handleSubmit}>
       <Textarea
@@ -67,7 +80,7 @@ export function SendMessageForm({ ticketId, translations }: ISendMessageFormProp
           input: 'resize-none overflow-hidden',
           inputWrapper: 'min-h-[60px] border-0 bg-default-100 shadow-none',
         }}
-        disabled={isPending}
+        isDisabled={isPending}
         maxRows={10}
         minRows={2}
         placeholder={translations.messagePlaceholder}

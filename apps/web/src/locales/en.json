@@ -19,7 +19,8 @@
     "previous": "Previous",
     "yes": "Yes",
     "no": "No",
-    "user": "User"
+    "user": "User",
+    "retry": "Retry"
   },
   "nav": {
     "home": "Home",
@@ -595,6 +596,45 @@
           "billing": "Billing"
         }
       }
+    },
+    "condominiums": {
+      "title": "Condominiums",
+      "subtitle": "Manage all registered condominiums in the system",
+      "create": "Add Condominium",
+      "empty": "No condominiums registered",
+      "emptyDescription": "No condominiums have been registered in the system yet",
+      "noResults": "No condominiums found",
+      "noResultsDescription": "Try adjusting the search filters",
+      "count": "{filtered} of {total} condominiums",
+      "table": {
+        "name": "Condominium",
+        "code": "Code",
+        "company": "Property Manager",
+        "address": "Address",
+        "contact": "Contact",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "all": "All"
+      },
+      "filters": {
+        "searchPlaceholder": "Search by name, code, address...",
+        "status": "Status",
+        "location": "Location",
+        "clearFilters": "Clear filters"
+      },
+      "actions": {
+        "view": "View details",
+        "activate": "Activate",
+        "deactivate": "Deactivate"
+      },
+      "noCompany": "No property manager",
+      "noContact": "No contact",
+      "noAddress": "-",
+      "error": "Error loading condominiums"
     }
   },
   "notifications": {
@@ -764,7 +804,9 @@
       "assignUser": "Assign user",
       "viewProfile": "View profile",
       "resolved": "Resolved",
+      "resolvedBy": "Resolved by",
       "closed": "Closed",
+      "closedBy": "Closed by",
       "internalMessage": "Internal",
       "attachments": "Attachments",
       "loadingMessages": "Loading messages...",
@@ -773,7 +815,8 @@
       "sendButton": "Send",
       "sending": "Sending...",
       "success": "Message sent successfully",
-      "error": "Error sending message"
+      "error": "Error sending message",
+      "ticketClosed": "This ticket is closed. No more messages can be sent."
     },
     "actions": {
       "view": "View details",

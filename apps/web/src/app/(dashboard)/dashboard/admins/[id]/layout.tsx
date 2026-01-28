@@ -32,18 +32,14 @@ export default async function CompanyDetailLayout({ children, params }: LayoutPr
     <div className="mx-auto max-w-7xl space-y-6">
       {/* Header with back button */}
       <div className="flex items-start gap-4">
-        <Button
-          className="mt-1"
-          href="/dashboard/admins"
-          isIconOnly
-          size="sm"
-          variant="flat"
-        >
+        <Button className="mt-1" href="/dashboard/admins" isIconOnly variant="flat">
           <ArrowLeft size={18} />
         </Button>
         <div className="flex-1">
           <Typography variant="h2">{t('superadmin.companies.detail.title')}</Typography>
-          <Suspense fallback={<div className="h-6 w-64 animate-pulse rounded bg-default-200 mt-1" />}>
+          <Suspense
+            fallback={<div className="h-6 w-64 animate-pulse rounded bg-default-200 mt-1" />}
+          >
             <CompanyHeader companyId={id} />
           </Suspense>
         </div>

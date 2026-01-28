@@ -1,6 +1,6 @@
-import { Card, CardBody } from '@heroui/card'
-import { Chip } from '@heroui/chip'
-import { Button } from '@heroui/button'
+import { Card, CardBody } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
 import { Wallet, TrendingUp, TrendingDown, CreditCard } from 'lucide-react'
 
 interface AccountBalanceCardProps {
@@ -44,7 +44,6 @@ export function AccountBalanceCard({
                     base: trend.isPositive ? 'bg-red-500/20' : 'bg-green-500/20',
                     content: 'text-white text-xs font-medium',
                   }}
-                  size="sm"
                   startContent={
                     trend.isPositive ? (
                       <TrendingUp className="text-white" size={12} />
@@ -77,14 +76,12 @@ export function AccountBalanceCard({
                   base: 'bg-white/20',
                   content: 'text-white font-medium',
                 }}
-                size="sm"
               >
                 {t.upToDate}
               </Chip>
             ) : (
               <Button
                 className="bg-white text-emerald-600 font-medium"
-                size="sm"
                 startContent={<CreditCard size={16} />}
               >
                 {t.payNow}

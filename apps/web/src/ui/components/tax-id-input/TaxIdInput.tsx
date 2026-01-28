@@ -1,11 +1,12 @@
 'use client'
 
 import { Input as HeroUIInput } from '@heroui/input'
-import { Select, SelectItem } from '@heroui/select'
-import { Tooltip } from '@heroui/tooltip'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Tooltip } from '@/ui/components/tooltip'
 import { cn } from '@heroui/theme'
 import { Info } from 'lucide-react'
 import { ETaxIdTypes, type TTaxIdType } from '@packages/domain'
+import { useMemo } from 'react'
 
 type TInputSize = 'sm' | 'md' | 'lg'
 type TInputVariant = 'flat' | 'bordered' | 'underlined' | 'faded'
@@ -60,6 +61,15 @@ export function TaxIdInput({
 }: ITaxIdInputProps) {
   const errorMessage = taxIdTypeError || taxIdNumberError
 
+  const taxIdTypeItems: ISelectItem[] = useMemo(
+    () =>
+      ETaxIdTypes.map((type) => ({
+        key: type,
+        label: TAX_ID_TYPE_LABELS[type],
+      })),
+    []
+  )
+
   return (
     <div className={cn('flex flex-col gap-1', className)}>
       {label && (
@@ -85,11 +95,9 @@ export function TaxIdInput({
           aria-label="Tax ID type"
           className="w-[160px] shrink-0"
           placeholder={typePlaceholder}
-          selectedKeys={taxIdType ? [taxIdType] : []}
-          onSelectionChange={keys => {
-            const selected = Array.from(keys)[0] as TTaxIdType | undefined
-            onTaxIdTypeChange?.(selected || null)
-          }}
+          items={taxIdTypeItems}
+          value={taxIdType}
+          onChange={(key) => onTaxIdTypeChange?.((key as TTaxIdType) || null)}
           variant={variant}
           radius={radius}
           size={size}
@@ -98,13 +106,7 @@ export function TaxIdInput({
           classNames={{
             trigger: 'min-h-unit-10',
           }}
-        >
-          {ETaxIdTypes.map(type => (
-            <SelectItem key={type} textValue={type}>
-              {TAX_ID_TYPE_LABELS[type]}
-            </SelectItem>
-          ))}
-        </Select>
+        />
         <HeroUIInput
           className="flex-1"
           placeholder={numberPlaceholder}

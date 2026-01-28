@@ -1,9 +1,10 @@
 'use client'
 
 import { Input as HeroUIInput } from '@heroui/input'
-import { Select, SelectItem } from '@heroui/select'
+import { Select, type ISelectItem } from '@/ui/components/select'
 import { cn } from '@heroui/theme'
 import { EIdDocumentTypes } from '@packages/domain'
+import { useMemo } from 'react'
 
 type TInputSize = 'sm' | 'md' | 'lg'
 type TInputVariant = 'flat' | 'bordered' | 'underlined' | 'faded'
@@ -53,6 +54,11 @@ export function DocumentInput({
   const isInvalid = !!documentTypeError || !!documentNumberError
   const errorMessage = documentTypeError || documentNumberError
 
+  const documentTypeItems: ISelectItem[] = useMemo(
+    () => EIdDocumentTypes.map((type) => ({ key: type, label: type })),
+    []
+  )
+
   return (
     <div className={cn('flex flex-col gap-1', className)}>
       {label && (
@@ -66,11 +72,9 @@ export function DocumentInput({
           aria-label="Document type"
           className="w-[140px] shrink-0"
           placeholder={typePlaceholder}
-          selectedKeys={documentType ? [documentType] : []}
-          onSelectionChange={keys => {
-            const selected = Array.from(keys)[0] as TIdDocumentType | undefined
-            onDocumentTypeChange?.(selected || null)
-          }}
+          items={documentTypeItems}
+          value={documentType}
+          onChange={(key) => onDocumentTypeChange?.((key as TIdDocumentType) || null)}
           variant={variant}
           radius={radius}
           size={size}
@@ -79,13 +83,7 @@ export function DocumentInput({
           classNames={{
             trigger: 'min-h-unit-10',
           }}
-        >
-          {EIdDocumentTypes.map(type => (
-            <SelectItem key={type} textValue={type}>
-              {type}
-            </SelectItem>
-          ))}
-        </Select>
+        />
         <HeroUIInput
           className="flex-1"
           placeholder={numberPlaceholder}

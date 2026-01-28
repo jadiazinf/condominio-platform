@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardBody } from '@heroui/card'
+import { Card, CardBody } from '@/ui/components/card'
 import { AlertCircle } from 'lucide-react'
 
 import { useTranslation } from '@/contexts'

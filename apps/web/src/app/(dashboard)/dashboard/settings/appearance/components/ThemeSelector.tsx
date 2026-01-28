@@ -1,6 +1,6 @@
 'use client'
 
-import { RadioGroup, Radio } from '@heroui/radio'
+import { RadioGroup, Radio } from '@/ui/components/radio'
 import { useTheme } from 'next-themes'
 import { Sun, Moon, Monitor } from 'lucide-react'
 

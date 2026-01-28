@@ -1,6 +1,6 @@
 'use client'
 
-import { RadioGroup, Radio } from '@heroui/radio'
+import { RadioGroup, Radio } from '@/ui/components/radio'
 
 import { useI18n } from '@/contexts'
 import { EAppLanguages, SUPPORTED_LANGUAGES, type TAppLanguages } from '@/locales'

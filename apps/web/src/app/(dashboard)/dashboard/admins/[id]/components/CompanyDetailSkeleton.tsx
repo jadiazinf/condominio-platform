@@ -1,5 +1,5 @@
-import { Card, CardHeader, CardBody } from '@heroui/card'
-import { Divider } from '@heroui/divider'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Divider } from '@/ui/components/divider'
 
 export function CompanyDetailSkeleton() {
   return (

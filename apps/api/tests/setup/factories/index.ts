@@ -37,3 +37,7 @@ export { SuperadminUserPermissionFactory } from './superadmin-user-permission.fa
 
 // Admin invitations
 export { AdminInvitationFactory } from './admin-invitation.factory'
+
+// Support tickets
+export { SupportTicketFactory } from './support-ticket.factory'
+export { SupportTicketMessageFactory } from './support-ticket-message.factory'

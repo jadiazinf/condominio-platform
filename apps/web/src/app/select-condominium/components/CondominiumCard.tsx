@@ -2,8 +2,8 @@
 
 import type { TUserCondominiumAccess } from '@packages/domain'
 
-import { Card, CardBody } from '@heroui/card'
-import { Chip } from '@heroui/chip'
+import { Card, CardBody } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
@@ -78,7 +78,6 @@ export function CondominiumCard({ condominium, onSelect }: CondominiumCardProps)
                 <Chip
                   key={role.id}
                   color={role.isSystemRole ? 'primary' : 'default'}
-                  size="sm"
                   variant="flat"
                 >
                   {role.name}
@@ -96,7 +95,7 @@ export function CondominiumCard({ condominium, onSelect }: CondominiumCardProps)
             </Typography>
             <div className="flex flex-wrap gap-2">
               {condominium.units.map(unitInfo => (
-                <Chip key={unitInfo.ownership.id} size="sm" variant="bordered">
+                <Chip key={unitInfo.ownership.id} variant="bordered">
                   {unitInfo.building.name} - {unitInfo.unit.unitNumber}
                   {unitInfo.ownership.isPrimaryResidence && ' ★'}
                 </Chip>

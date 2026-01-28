@@ -59,3 +59,29 @@ export const managementCompaniesQuerySchema = paginationQuerySchema.extend({
 })
 
 export type TManagementCompaniesQuerySchema = z.infer<typeof managementCompaniesQuerySchema>
+
+/**
+ * Query parameters for condominiums list with filters
+ */
+export type TCondominiumsQuery = TPaginationQuery & {
+  search?: string
+  isActive?: boolean
+  locationId?: string
+}
+
+/**
+ * Zod schema for condominiums query parameters
+ */
+export const condominiumsQuerySchema = paginationQuerySchema.extend({
+  search: z.string().optional(),
+  isActive: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (val === undefined || val === '') return undefined
+      return val === 'true'
+    }),
+  locationId: z.string().optional(),
+})
+
+export type TCondominiumsQuerySchema = z.infer<typeof condominiumsQuerySchema>

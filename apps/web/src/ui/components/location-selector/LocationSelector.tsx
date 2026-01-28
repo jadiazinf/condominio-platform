@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { Select, SelectItem } from '@heroui/select'
-import { Tooltip } from '@heroui/tooltip'
-import { Spinner } from '@heroui/spinner'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Tooltip } from '@/ui/components/tooltip'
 import { cn } from '@heroui/theme'
 import { Info } from 'lucide-react'
 import type { TLocation, TLocationType } from '@packages/domain'
@@ -114,6 +113,21 @@ export function LocationSelector({
   const provinces = provincesData?.data ?? []
   const cities = citiesData?.data ?? []
 
+  const countryItems: ISelectItem[] = useMemo(
+    () => countries.map((country: TLocation) => ({ key: country.id, label: country.name })),
+    [countries]
+  )
+
+  const provinceItems: ISelectItem[] = useMemo(
+    () => provinces.map((province: TLocation) => ({ key: province.id, label: province.name })),
+    [provinces]
+  )
+
+  const cityItems: ISelectItem[] = useMemo(
+    () => cities.map((city: TLocation) => ({ key: city.id, label: city.name })),
+    [cities]
+  )
+
   // Only return a location ID when all levels are selected (city is required)
   const getCompleteLocationId = useCallback((): string | null => {
     // Only return the city ID when all three levels are selected
@@ -132,24 +146,21 @@ export function LocationSelector({
   }, [getCompleteLocationId, onChange, isInitializing])
 
   // Handle country selection
-  const handleCountryChange = (keys: Set<string>) => {
-    const selected = Array.from(keys)[0] || null
-    setSelectedCountryId(selected)
+  const handleCountryChange = (key: string | null) => {
+    setSelectedCountryId(key)
     setSelectedProvinceId(null)
     setSelectedCityId(null)
   }
 
   // Handle province selection
-  const handleProvinceChange = (keys: Set<string>) => {
-    const selected = Array.from(keys)[0] || null
-    setSelectedProvinceId(selected)
+  const handleProvinceChange = (key: string | null) => {
+    setSelectedProvinceId(key)
     setSelectedCityId(null)
   }
 
   // Handle city selection
-  const handleCityChange = (keys: Set<string>) => {
-    const selected = Array.from(keys)[0] || null
-    setSelectedCityId(selected)
+  const handleCityChange = (key: string | null) => {
+    setSelectedCityId(key)
   }
 
   // Initialize from value prop by fetching location hierarchy
@@ -222,8 +233,9 @@ export function LocationSelector({
         <Select
           aria-label={countryLabel}
           placeholder={countryPlaceholder}
-          selectedKeys={selectedCountryId ? [selectedCountryId] : []}
-          onSelectionChange={keys => handleCountryChange(keys as Set<string>)}
+          items={countryItems}
+          value={selectedCountryId}
+          onChange={handleCountryChange}
           variant={variant}
           radius={radius}
           size={size}
@@ -235,20 +247,15 @@ export function LocationSelector({
           classNames={{
             trigger: 'min-h-unit-10',
           }}
-        >
-          {countries.map((country: TLocation) => (
-            <SelectItem key={country.id} textValue={country.name}>
-              {country.name}
-            </SelectItem>
-          ))}
-        </Select>
+        />
 
         {/* Province Select */}
         <Select
           aria-label={provinceLabel}
           placeholder={provincePlaceholder}
-          selectedKeys={selectedProvinceId ? [selectedProvinceId] : []}
-          onSelectionChange={keys => handleProvinceChange(keys as Set<string>)}
+          items={provinceItems}
+          value={selectedProvinceId}
+          onChange={handleProvinceChange}
           variant={variant}
           radius={radius}
           size={size}
@@ -260,20 +267,15 @@ export function LocationSelector({
           classNames={{
             trigger: 'min-h-unit-10',
           }}
-        >
-          {provinces.map((province: TLocation) => (
-            <SelectItem key={province.id} textValue={province.name}>
-              {province.name}
-            </SelectItem>
-          ))}
-        </Select>
+        />
 
         {/* City Select */}
         <Select
           aria-label={cityLabel}
           placeholder={cityPlaceholder}
-          selectedKeys={selectedCityId ? [selectedCityId] : []}
-          onSelectionChange={keys => handleCityChange(keys as Set<string>)}
+          items={cityItems}
+          value={selectedCityId}
+          onChange={handleCityChange}
           variant={variant}
           radius={radius}
           size={size}
@@ -285,18 +287,10 @@ export function LocationSelector({
           classNames={{
             trigger: 'min-h-unit-10',
           }}
-        >
-          {cities.map((city: TLocation) => (
-            <SelectItem key={city.id} textValue={city.name}>
-              {city.name}
-            </SelectItem>
-          ))}
-        </Select>
+        />
       </div>
 
-      {errorMessage && (
-        <p className="text-tiny text-danger mt-1">{errorMessage}</p>
-      )}
+      {errorMessage && <p className="text-tiny text-danger mt-1">{errorMessage}</p>}
     </div>
   )
 }

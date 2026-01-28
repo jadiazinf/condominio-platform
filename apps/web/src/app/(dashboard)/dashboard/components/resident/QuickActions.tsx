@@ -1,5 +1,5 @@
-import { Card, CardHeader, CardBody } from '@heroui/card'
-import { Button } from '@heroui/button'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Button } from '@/ui/components/button'
 import { CreditCard, FileText, History, Bell, Zap } from 'lucide-react'
 
 interface QuickActionsProps {

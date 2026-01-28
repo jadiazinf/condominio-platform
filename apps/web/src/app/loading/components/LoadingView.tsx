@@ -1,7 +1,7 @@
 'use client'
 
-import { Button } from '@heroui/button'
-import { Progress } from '@heroui/progress'
+import { Button } from '@/ui/components/button'
+import { Progress } from '@/ui/components/progress'
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
@@ -63,13 +63,7 @@ export function LoadingView({ error, onRetry, onLogout, step = 'auth' }: Loading
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-4 bg-background">
-      <Progress
-        aria-label="Loading..."
-        className="max-w-md"
-        color="primary"
-        isIndeterminate
-        size="sm"
-      />
+      <Progress aria-label="Loading..." className="max-w-md" color="primary" isIndeterminate />
     </div>
   )
 }

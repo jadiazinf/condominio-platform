@@ -1,7 +1,7 @@
 'use client'
 
 import { NavbarMenu, NavbarMenuItem } from '@heroui/navbar'
-import { Link } from '@heroui/link'
+import { Link } from '@/ui/components/link'
 
 import { NAV_ITEMS } from './NavbarLinks'
 import { useTranslation, useAuth } from '@/contexts'

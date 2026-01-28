@@ -2,7 +2,7 @@
 
 import type { TNotification } from '@packages/domain'
 
-import { Spinner } from '@heroui/spinner'
+import { Spinner } from '@/ui/components/spinner'
 import { Bell } from 'lucide-react'
 
 import { NotificationItem } from './NotificationItem'
@@ -26,7 +26,7 @@ export function NotificationList({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Spinner size="sm" />
+        <Spinner />
       </div>
     )
   }

@@ -1,9 +1,9 @@
 'use client'
 
-import { Popover, PopoverTrigger, PopoverContent } from '@heroui/popover'
-import { Button } from '@heroui/button'
-import { Divider } from '@heroui/divider'
-import { Link } from '@heroui/link'
+import { Popover, PopoverTrigger, PopoverContent } from '@/ui/components/popover'
+import { Button } from '@/ui/components/button'
+import { Divider } from '@/ui/components/divider'
+import { Link } from '@/ui/components/link'
 import { Bell, CheckCheck } from 'lucide-react'
 
 import { NotificationList } from './NotificationList'
@@ -43,7 +43,6 @@ export function NotificationPanel({ maxNotifications = 5 }: NotificationPanelPro
             <>
               <div className="flex justify-end px-3 py-2">
                 <Button
-                  size="sm"
                   variant="light"
                   className="h-7 text-xs"
                   startContent={<CheckCheck size={14} />}
@@ -65,7 +64,7 @@ export function NotificationPanel({ maxNotifications = 5 }: NotificationPanelPro
           </div>
           <Divider />
           <div className="p-3 text-center">
-            <Link href="/dashboard/notifications" size="sm" className="text-xs font-medium">
+            <Link href="/dashboard/notifications" className="text-xs font-medium">
               {t('notifications.viewAll')}
             </Link>
           </div>

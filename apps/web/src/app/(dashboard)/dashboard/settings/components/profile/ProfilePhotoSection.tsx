@@ -1,7 +1,7 @@
 'use client'
 
-import { Avatar } from '@heroui/avatar'
-import { Button } from '@heroui/button'
+import { Avatar } from '@/ui/components/avatar-base'
+import { Button } from '@/ui/components/button'
 import { Camera, Trash2 } from 'lucide-react'
 
 import { Section } from '../Section'
@@ -56,7 +56,6 @@ export function ProfilePhotoSection() {
               className="absolute bottom-0 right-0 bg-primary text-white shadow-md"
               isDisabled={isLoading}
               radius="full"
-              size="sm"
               onPress={openFilePicker}
             >
               <Camera size={14} />
@@ -68,7 +67,6 @@ export function ProfilePhotoSection() {
             <Button
               isDisabled={isLoading}
               isLoading={isUploading}
-              size="sm"
               variant="bordered"
               onPress={openFilePicker}
             >
@@ -79,7 +77,6 @@ export function ProfilePhotoSection() {
                 color="danger"
                 isDisabled={isLoading}
                 isLoading={isDeleting}
-                size="sm"
                 startContent={!isDeleting && <Trash2 size={14} />}
                 variant="light"
                 onPress={deletePhoto}

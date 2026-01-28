@@ -1,7 +1,7 @@
 'use client'
 
-import { Card, CardHeader, CardBody } from '@heroui/card'
-import { Chip } from '@heroui/chip'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
 import { CheckCircle, AlertCircle, XCircle } from 'lucide-react'
 
 type ServiceStatus = 'operational' | 'degraded' | 'down'
@@ -47,7 +47,6 @@ export function SystemStatusCard({ title, services }: SystemStatusCardProps) {
         <h3 className="text-lg font-semibold">{title}</h3>
         <Chip
           color={allOperational ? 'success' : 'warning'}
-          size="sm"
           startContent={allOperational ? <CheckCircle size={12} /> : <AlertCircle size={12} />}
           variant="flat"
         >
@@ -71,7 +70,7 @@ export function SystemStatusCard({ title, services }: SystemStatusCardProps) {
                 {service.latency !== undefined && (
                   <span className="text-xs text-default-400">{service.latency}ms</span>
                 )}
-                <Chip color={config.color} size="sm" variant="flat">
+                <Chip color={config.color} variant="flat">
                   {config.label}
                 </Chip>
               </div>

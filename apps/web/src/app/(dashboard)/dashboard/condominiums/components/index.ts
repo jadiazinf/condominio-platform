@@ -1,0 +1,1 @@
+export { CondominiumsTable } from './CondominiumsTable'

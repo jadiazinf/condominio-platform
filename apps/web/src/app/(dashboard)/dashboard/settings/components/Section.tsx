@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader } from '@heroui/card'
+import { Card, CardBody, CardHeader } from '@/ui/components/card'
 import { cn } from '@heroui/theme'
 
 import { Typography } from '@/ui/components/typography'

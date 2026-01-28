@@ -1,8 +1,7 @@
 'use client'
 
-import { Avatar } from '@heroui/avatar'
-import { Link } from '@heroui/link'
-import type { AvatarProps } from '@heroui/avatar'
+import { Avatar, type IAvatarProps } from '@/ui/components/avatar-base'
+import { Link } from '@/ui/components/link'
 
 export interface UserAvatarProps {
   /** User's display name or full name */
@@ -10,7 +9,7 @@ export interface UserAvatarProps {
   /** User's profile image URL */
   src?: string | null
   /** Avatar size */
-  size?: AvatarProps['size']
+  size?: IAvatarProps['size']
   /** Link to navigate when clicked */
   href?: string
   /** Whether the avatar is clickable */

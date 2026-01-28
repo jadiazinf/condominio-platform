@@ -37,9 +37,6 @@ export class WebSocketManager {
       this.rooms.set(ticketId, new Set())
     }
     this.rooms.get(ticketId)!.add(ws)
-
-    console.log(`[WebSocket] User ${user.email} joined ticket room ${ticketId}`)
-    console.log(`[WebSocket] Room ${ticketId} now has ${this.rooms.get(ticketId)!.size} clients`)
   }
 
   /**
@@ -49,7 +46,7 @@ export class WebSocketManager {
     const client = this.clients.get(ws)
     if (!client) return
 
-    const { ticketId, user } = client
+    const { ticketId } = client
 
     // Remove from room
     const room = this.rooms.get(ticketId)
@@ -57,15 +54,11 @@ export class WebSocketManager {
       room.delete(ws)
       if (room.size === 0) {
         this.rooms.delete(ticketId)
-        console.log(`[WebSocket] Room ${ticketId} deleted (empty)`)
-      } else {
-        console.log(`[WebSocket] Room ${ticketId} now has ${room.size} clients`)
       }
     }
 
     // Remove client
     this.clients.delete(ws)
-    console.log(`[WebSocket] User ${user.email} left ticket room ${ticketId}`)
   }
 
   /**
@@ -74,27 +67,19 @@ export class WebSocketManager {
   public broadcastToTicket(ticketId: string, event: string, data: unknown): void {
     const room = this.rooms.get(ticketId)
     if (!room || room.size === 0) {
-      console.log(`[WebSocket] No clients in room ${ticketId} to broadcast to`)
       return
     }
 
     const message = JSON.stringify({ event, data })
-    let successCount = 0
 
     for (const ws of room) {
       try {
         ws.send(message)
-        successCount++
-      } catch (error) {
-        console.error(`[WebSocket] Failed to send message to client:`, error)
+      } catch {
         // Remove broken connection
         this.removeClient(ws)
       }
     }
-
-    console.log(
-      `[WebSocket] Broadcasted ${event} to ${successCount}/${room.size} clients in room ${ticketId}`
-    )
   }
 
   /**

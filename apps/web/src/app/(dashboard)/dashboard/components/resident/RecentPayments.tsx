@@ -1,5 +1,5 @@
-import { Card, CardHeader, CardBody } from '@heroui/card'
-import { Chip } from '@heroui/chip'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
 import { Receipt, CheckCircle2, Clock, XCircle } from 'lucide-react'
 
 type TPaymentStatus = 'completed' | 'pending_verification' | 'rejected'
@@ -26,7 +26,10 @@ interface RecentPaymentsProps {
   }
 }
 
-const statusConfig: Record<TPaymentStatus, { color: 'success' | 'warning' | 'danger'; icon: typeof CheckCircle2 }> = {
+const statusConfig: Record<
+  TPaymentStatus,
+  { color: 'success' | 'warning' | 'danger'; icon: typeof CheckCircle2 }
+> = {
   completed: { color: 'success', icon: CheckCircle2 },
   pending_verification: { color: 'warning', icon: Clock },
   rejected: { color: 'danger', icon: XCircle },
@@ -71,7 +74,7 @@ export function RecentPayments({ payments, translations: t }: RecentPaymentsProp
                     <p className="font-semibold">
                       {payment.currency} {payment.amount.toLocaleString()}
                     </p>
-                    <Chip color={config.color} size="sm" variant="flat">
+                    <Chip color={config.color} variant="flat">
                       {t.status[payment.status]}
                     </Chip>
                   </div>

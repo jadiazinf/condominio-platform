@@ -1,6 +1,6 @@
 'use client'
 
-import { Link } from '@heroui/link'
+import { Link } from '@/ui/components/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@heroui/theme'
 import { User, Globe, Palette } from 'lucide-react'

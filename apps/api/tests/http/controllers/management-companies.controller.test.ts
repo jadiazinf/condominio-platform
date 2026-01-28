@@ -19,9 +19,20 @@ import {
 } from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
+// Paginated response type
+type TPaginatedResponse<T> = {
+  data: T[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
 // Mock repository type with custom methods
 type TMockManagementCompaniesRepository = {
-  listAll: () => Promise<TManagementCompany[]>
+  listPaginated: (query: unknown) => Promise<TPaginatedResponse<TManagementCompany>>
   getById: (id: string) => Promise<TManagementCompany | null>
   create: (data: TManagementCompanyCreate) => Promise<TManagementCompany>
   update: (id: string, data: TManagementCompanyUpdate) => Promise<TManagementCompany | null>
@@ -58,8 +69,16 @@ describe('ManagementCompaniesController', function () {
 
     // Create mock repository
     mockRepository = {
-      listAll: async function () {
-        return testCompanies
+      listPaginated: async function () {
+        return {
+          data: testCompanies,
+          pagination: {
+            page: 1,
+            limit: 20,
+            total: testCompanies.length,
+            totalPages: 1,
+          },
+        }
       },
       getById: async function (id: string) {
         return (
@@ -119,8 +138,16 @@ describe('ManagementCompaniesController', function () {
     })
 
     it('should return empty array when no companies exist', async function () {
-      mockRepository.listAll = async function () {
-        return []
+      mockRepository.listPaginated = async function () {
+        return {
+          data: [],
+          pagination: {
+            page: 1,
+            limit: 20,
+            total: 0,
+            totalPages: 0,
+          },
+        }
       }
 
       const res = await request('/management-companies')
@@ -317,7 +344,7 @@ describe('ManagementCompaniesController', function () {
 
   describe('Error handling', function () {
     it('should return 500 for unexpected errors', async function () {
-      mockRepository.listAll = async function () {
+      mockRepository.listPaginated = async function () {
         throw new Error('Unexpected database error')
       }
 

@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Card, CardHeader, CardBody } from '@heroui/card'
-import { Chip } from '@heroui/chip'
-import { Button } from '@heroui/button'
-import { Divider } from '@heroui/divider'
-import { Progress } from '@heroui/progress'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
+import { Divider } from '@/ui/components/divider'
+import { Progress } from '@/ui/components/progress'
 import {
   CreditCard,
   Calendar,
@@ -110,7 +110,7 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
         <p className="mt-1 text-sm text-default-500">
           Esta administradora no tiene una suscripción activa
         </p>
-        <Button className="mt-4" color="primary" size="sm">
+        <Button className="mt-4" color="primary">
           Crear Suscripción
         </Button>
       </div>
@@ -139,11 +139,7 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                 </Typography>
               </div>
             </div>
-            <Chip
-              color={getStatusColor(subscription.status)}
-              size="md"
-              variant="flat"
-            >
+            <Chip color={getStatusColor(subscription.status)} size="md" variant="flat">
               {getStatusLabel(subscription.status)}
             </Chip>
           </CardHeader>
@@ -172,9 +168,7 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                   <Typography color="muted" variant="caption">
                     Fecha de Inicio
                   </Typography>
-                  <Typography variant="body2">
-                    {formatDate(subscription.startDate)}
-                  </Typography>
+                  <Typography variant="body2">{formatDate(subscription.startDate)}</Typography>
                 </div>
               </div>
 
@@ -199,9 +193,7 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                     <Typography color="muted" variant="caption">
                       Fin del Trial
                     </Typography>
-                    <Typography variant="body2">
-                      {formatDate(subscription.trialEndsAt)}
-                    </Typography>
+                    <Typography variant="body2">{formatDate(subscription.trialEndsAt)}</Typography>
                   </div>
                 </div>
               )}
@@ -213,16 +205,16 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                     <Typography color="muted" variant="caption">
                       Fecha de Finalización
                     </Typography>
-                    <Typography variant="body2">
-                      {formatDate(subscription.endDate)}
-                    </Typography>
+                    <Typography variant="body2">{formatDate(subscription.endDate)}</Typography>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Limits & Usage */}
-            {(subscription.maxCondominiums || subscription.maxUsers || subscription.maxStorageGb) && (
+            {(subscription.maxCondominiums ||
+              subscription.maxUsers ||
+              subscription.maxStorageGb) && (
               <>
                 <Divider />
                 <div className="space-y-4">
@@ -239,12 +231,7 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                           0 / {subscription.maxCondominiums}
                         </Typography>
                       </div>
-                      <Progress
-                        size="sm"
-                        value={0}
-                        maxValue={subscription.maxCondominiums}
-                        color="primary"
-                      />
+                      <Progress value={0} maxValue={subscription.maxCondominiums} color="primary" />
                     </div>
                   )}
 
@@ -259,12 +246,7 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                           0 / {subscription.maxUsers}
                         </Typography>
                       </div>
-                      <Progress
-                        size="sm"
-                        value={0}
-                        maxValue={subscription.maxUsers}
-                        color="primary"
-                      />
+                      <Progress value={0} maxValue={subscription.maxUsers} color="primary" />
                     </div>
                   )}
 
@@ -279,12 +261,7 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                           0 GB / {subscription.maxStorageGb} GB
                         </Typography>
                       </div>
-                      <Progress
-                        size="sm"
-                        value={0}
-                        maxValue={subscription.maxStorageGb}
-                        color="primary"
-                      />
+                      <Progress value={0} maxValue={subscription.maxStorageGb} color="primary" />
                     </div>
                   )}
                 </div>
@@ -341,28 +318,16 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
           </CardHeader>
           <Divider />
           <CardBody className="space-y-3">
-            <Button
-              className="w-full justify-start"
-              color="primary"
-              variant="flat"
-            >
+            <Button className="w-full justify-start" color="primary" variant="flat">
               Editar Suscripción
             </Button>
             {subscription.status === 'active' && (
-              <Button
-                className="w-full justify-start"
-                color="warning"
-                variant="flat"
-              >
+              <Button className="w-full justify-start" color="warning" variant="flat">
                 Cancelar Suscripción
               </Button>
             )}
             {subscription.status === 'cancelled' && subscription.autoRenew === false && (
-              <Button
-                className="w-full justify-start"
-                color="success"
-                variant="flat"
-              >
+              <Button className="w-full justify-start" color="success" variant="flat">
                 Renovar Suscripción
               </Button>
             )}
@@ -376,11 +341,7 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
           </CardHeader>
           <Divider />
           <CardBody>
-            <Chip
-              color={subscription.autoRenew ? 'success' : 'default'}
-              size="sm"
-              variant="flat"
-            >
+            <Chip color={subscription.autoRenew ? 'success' : 'default'} variant="flat">
               {subscription.autoRenew ? 'Activada' : 'Desactivada'}
             </Chip>
           </CardBody>

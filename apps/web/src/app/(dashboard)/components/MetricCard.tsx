@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardBody } from '@heroui/card'
+import { Card, CardBody } from '@/ui/components/card'
 import { cn } from '@heroui/theme'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 

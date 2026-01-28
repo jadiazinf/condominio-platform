@@ -314,37 +314,71 @@ export class SupportTicketsRepository
   }
 
   /**
+   * Helper to map a user record to TUser
+   */
+  private mapUserToEntity(user: typeof users.$inferSelect | null): TUser | undefined {
+    if (!user) return undefined
+    return {
+      id: user.id,
+      firebaseUid: user.firebaseUid,
+      email: user.email,
+      displayName: user.displayName,
+      phoneCountryCode: user.phoneCountryCode,
+      phoneNumber: user.phoneNumber,
+      photoUrl: user.photoUrl,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      idDocumentType: user.idDocumentType,
+      idDocumentNumber: user.idDocumentNumber,
+      address: user.address,
+      locationId: user.locationId,
+      preferredLanguage: user.preferredLanguage,
+      preferredCurrencyId: user.preferredCurrencyId,
+      isActive: user.isActive,
+      isEmailVerified: user.isEmailVerified,
+      lastLogin: user.lastLogin,
+      metadata: user.metadata as Record<string, unknown> | null,
+      createdAt: user.createdAt ?? new Date(),
+      updatedAt: user.updatedAt ?? new Date(),
+    } as TUser
+  }
+
+  /**
+   * Helper to fetch a user by ID
+   */
+  private async getUserById(userId: string | null): Promise<typeof users.$inferSelect | null> {
+    if (!userId) return null
+    const result = await this.db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
+    return result[0] || null
+  }
+
+  /**
    * Get ticket by ID with user details and messages
    */
   async findByIdWithDetails(ticketId: string): Promise<TSupportTicket | null> {
-    // Get the ticket with assigned user and created by user details
+    // Get the ticket
     const ticketResult = await this.db
-      .select({
-        ticket: supportTickets,
-        assignedToUser: users,
-      })
+      .select()
       .from(supportTickets)
-      .leftJoin(users, eq(supportTickets.assignedTo, users.id))
       .where(eq(supportTickets.id, ticketId))
       .limit(1)
 
-    if (ticketResult.length === 0) {
+    const ticket = ticketResult[0]
+    if (!ticket) {
       return null
     }
 
-    const { ticket, assignedToUser } = ticketResult[0]
-
-    // Get created by user details separately
-    let createdByUser = null
-    if (ticket.createdByUserId) {
-      const createdByResult = await this.db
-        .select()
-        .from(users)
-        .where(eq(users.id, ticket.createdByUserId))
-        .limit(1)
-
-      createdByUser = createdByResult[0] || null
-    }
+    // Fetch all related users in parallel
+    const [createdByUser, assignedToUser, resolvedByUser, closedByUser] = await Promise.all([
+      this.getUserById(ticket.createdByUserId),
+      this.getUserById(ticket.assignedTo),
+      this.getUserById(ticket.resolvedBy),
+      this.getUserById(ticket.closedBy),
+    ])
 
     // Get ticket messages with user details
     const messagesResult = await this.db
@@ -367,86 +401,16 @@ export class SupportTicketsRepository
       attachments: message.attachments as any,
       createdAt: message.createdAt ?? new Date(),
       updatedAt: message.updatedAt ?? new Date(),
-      user: user
-        ? ({
-            id: user.id,
-            firebaseUid: user.firebaseUid,
-            email: user.email,
-            displayName: user.displayName,
-            phoneCountryCode: user.phoneCountryCode,
-            phoneNumber: user.phoneNumber,
-            photoUrl: user.photoUrl,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            idDocumentType: user.idDocumentType,
-            idDocumentNumber: user.idDocumentNumber,
-            address: user.address,
-            locationId: user.locationId,
-            preferredLanguage: user.preferredLanguage,
-            preferredCurrencyId: user.preferredCurrencyId,
-            isActive: user.isActive,
-            isEmailVerified: user.isEmailVerified,
-            lastLogin: user.lastLogin,
-            metadata: user.metadata as Record<string, unknown> | null,
-            createdAt: user.createdAt ?? new Date(),
-            updatedAt: user.updatedAt ?? new Date(),
-          } as TUser)
-        : undefined,
+      user: this.mapUserToEntity(user),
     }))
 
-    // Map ticket with user and messages
+    // Map ticket with users and messages
     return {
       ...this.mapToEntity(ticket),
-      createdByUser: createdByUser
-        ? ({
-            id: createdByUser.id,
-            firebaseUid: createdByUser.firebaseUid,
-            email: createdByUser.email,
-            displayName: createdByUser.displayName,
-            phoneCountryCode: createdByUser.phoneCountryCode,
-            phoneNumber: createdByUser.phoneNumber,
-            photoUrl: createdByUser.photoUrl,
-            firstName: createdByUser.firstName,
-            lastName: createdByUser.lastName,
-            idDocumentType: createdByUser.idDocumentType,
-            idDocumentNumber: createdByUser.idDocumentNumber,
-            address: createdByUser.address,
-            locationId: createdByUser.locationId,
-            preferredLanguage: createdByUser.preferredLanguage,
-            preferredCurrencyId: createdByUser.preferredCurrencyId,
-            isActive: createdByUser.isActive,
-            isEmailVerified: createdByUser.isEmailVerified,
-            lastLogin: createdByUser.lastLogin,
-            metadata: createdByUser.metadata as Record<string, unknown> | null,
-            createdAt: createdByUser.createdAt ?? new Date(),
-            updatedAt: createdByUser.updatedAt ?? new Date(),
-          } as TUser)
-        : undefined,
-      assignedToUser: assignedToUser
-        ? ({
-            id: assignedToUser.id,
-            firebaseUid: assignedToUser.firebaseUid,
-            email: assignedToUser.email,
-            displayName: assignedToUser.displayName,
-            phoneCountryCode: assignedToUser.phoneCountryCode,
-            phoneNumber: assignedToUser.phoneNumber,
-            photoUrl: assignedToUser.photoUrl,
-            firstName: assignedToUser.firstName,
-            lastName: assignedToUser.lastName,
-            idDocumentType: assignedToUser.idDocumentType,
-            idDocumentNumber: assignedToUser.idDocumentNumber,
-            address: assignedToUser.address,
-            locationId: assignedToUser.locationId,
-            preferredLanguage: assignedToUser.preferredLanguage,
-            preferredCurrencyId: assignedToUser.preferredCurrencyId,
-            isActive: assignedToUser.isActive,
-            isEmailVerified: assignedToUser.isEmailVerified,
-            lastLogin: assignedToUser.lastLogin,
-            metadata: assignedToUser.metadata as Record<string, unknown> | null,
-            createdAt: assignedToUser.createdAt ?? new Date(),
-            updatedAt: assignedToUser.updatedAt ?? new Date(),
-          } as TUser)
-        : undefined,
+      createdByUser: this.mapUserToEntity(createdByUser),
+      assignedToUser: this.mapUserToEntity(assignedToUser),
+      resolvedByUser: this.mapUserToEntity(resolvedByUser),
+      closedByUser: this.mapUserToEntity(closedByUser),
       messages,
     }
   }

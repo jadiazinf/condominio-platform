@@ -1,25 +1,20 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableColumn,
-  TableRow,
-  TableCell,
-} from '@heroui/table'
-import { Chip } from '@heroui/chip'
-import { Card, CardBody } from '@heroui/card'
+import { Table, type ITableColumn } from '@/ui/components/table'
+import { Chip } from '@/ui/components/chip'
+import { Card, CardBody } from '@/ui/components/card'
 import { MessageSquare, AlertCircle, Building } from 'lucide-react'
-import { Select, SelectItem } from '@heroui/select'
-import { Input } from '@heroui/input'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Input } from '@/ui/components/input'
 import { Search } from 'lucide-react'
 import type { TSupportTicket, TPaginationMeta } from '@packages/domain'
 
 import { Pagination } from '@/ui/components/pagination'
 import { useI18n } from '@/contexts'
+
+type TTicketRow = TSupportTicket & { id: string }
 
 interface AllTicketsTableProps {
   tickets: TSupportTicket[]
@@ -38,6 +33,45 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
   // Local state for search input with debounce
   const [searchInput, setSearchInput] = useState(searchTerm)
   const isFirstRender = useRef(true)
+
+  // Status filter items
+  const statusFilterItems: ISelectItem[] = useMemo(
+    () => [
+      { key: 'all', label: t('tickets.filters.allStatuses') },
+      { key: 'open', label: t('tickets.status.open') },
+      { key: 'in_progress', label: t('tickets.status.in_progress') },
+      { key: 'waiting_customer', label: t('tickets.status.waiting_customer') },
+      { key: 'resolved', label: t('tickets.status.resolved') },
+      { key: 'closed', label: t('tickets.status.closed') },
+    ],
+    [t]
+  )
+
+  // Priority filter items
+  const priorityFilterItems: ISelectItem[] = useMemo(
+    () => [
+      { key: 'all', label: t('tickets.filters.allPriorities') },
+      { key: 'urgent', label: t('tickets.priority.urgent') },
+      { key: 'high', label: t('tickets.priority.high') },
+      { key: 'medium', label: t('tickets.priority.medium') },
+      { key: 'low', label: t('tickets.priority.low') },
+    ],
+    [t]
+  )
+
+  // Table columns
+  const tableColumns: ITableColumn<TTicketRow>[] = useMemo(
+    () => [
+      { key: 'ticketNumber', label: t('tickets.table.ticket').toUpperCase() },
+      { key: 'company', label: t('tickets.table.company').toUpperCase() },
+      { key: 'subject', label: t('tickets.table.subject').toUpperCase() },
+      { key: 'category', label: t('tickets.table.category').toUpperCase() },
+      { key: 'priority', label: t('tickets.table.priority').toUpperCase() },
+      { key: 'status', label: t('tickets.table.status').toUpperCase() },
+      { key: 'createdAt', label: t('tickets.table.created').toUpperCase() },
+    ],
+    [t]
+  )
 
   // Sync local state with URL params when they change externally
   useEffect(() => {
@@ -60,24 +94,27 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchInput])
 
-  const updateFilters = (updates: Record<string, string | number | null>) => {
-    const params = new URLSearchParams(searchParams.toString())
+  const updateFilters = useCallback(
+    (updates: Record<string, string | number | null>) => {
+      const params = new URLSearchParams(searchParams.toString())
 
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === '' || value === 'all') {
-        params.delete(key)
-      } else {
-        params.set(key, String(value))
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === '' || value === 'all') {
+          params.delete(key)
+        } else {
+          params.set(key, String(value))
+        }
+      })
+
+      // Reset to page 1 when filters change (except when changing page or limit)
+      if (!('page' in updates) && !('limit' in updates)) {
+        params.delete('page')
       }
-    })
 
-    // Reset to page 1 when filters change (except when changing page or limit)
-    if (!('page' in updates) && !('limit' in updates)) {
-      params.delete('page')
-    }
-
-    router.push(`?${params.toString()}`)
-  }
+      router.push(`?${params.toString()}`)
+    },
+    [router, searchParams]
+  )
 
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString('es-VE', {
@@ -136,9 +173,78 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
     return t(`tickets.category.${category.toLowerCase()}` as any) || category
   }
 
-  const handleViewTicket = (ticketId: string) => {
-    router.push(`/dashboard/tickets/${ticketId}`)
-  }
+  const handleViewTicket = useCallback(
+    (ticketId: string) => {
+      router.push(`/dashboard/tickets/${ticketId}`)
+    },
+    [router]
+  )
+
+  const renderCell = useCallback(
+    (ticket: TTicketRow, columnKey: keyof TTicketRow | string) => {
+      switch (columnKey) {
+        case 'ticketNumber':
+          return (
+            <div className="flex items-center gap-2">
+              <AlertCircle
+                className={
+                  ticket.priority === 'urgent' || ticket.priority === 'high'
+                    ? 'text-danger'
+                    : 'text-default-400'
+                }
+                size={18}
+              />
+              <p className="font-mono text-sm font-medium">{ticket.ticketNumber}</p>
+            </div>
+          )
+        case 'company':
+          return (
+            <div className="flex items-center gap-2">
+              <Building className="text-default-400" size={16} />
+              <div>
+                <p className="text-sm font-medium text-default-900">
+                  {ticket.managementCompany?.legalName || 'N/A'}
+                </p>
+                <p className="text-xs text-default-400">
+                  {ticket.managementCompany?.tradeName || ''}
+                </p>
+              </div>
+            </div>
+          )
+        case 'subject':
+          return (
+            <div>
+              <p className="text-sm font-medium text-default-900">{ticket.subject}</p>
+              <p className="text-xs text-default-400">
+                {ticket.description.length > 60
+                  ? `${ticket.description.substring(0, 60)}...`
+                  : ticket.description}
+              </p>
+            </div>
+          )
+        case 'category':
+          return <p className="text-sm text-default-600">{getCategoryLabel(ticket.category)}</p>
+        case 'priority':
+          return (
+            <Chip color={getPriorityColor(ticket.priority)} variant="flat">
+              {getPriorityLabel(ticket.priority)}
+            </Chip>
+          )
+        case 'status':
+          return (
+            <Chip color={getStatusColor(ticket.status)} variant="flat">
+              {getStatusLabel(ticket.status)}
+            </Chip>
+          )
+        case 'createdAt':
+          return <p className="text-sm text-default-600">{formatDate(ticket.createdAt)}</p>
+        default:
+          return null
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t]
+  )
 
   return (
     <div className="space-y-4">
@@ -146,7 +252,6 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
         <Input
           className="max-w-md"
           placeholder={t('tickets.search')}
-          size="sm"
           startContent={<Search size={18} />}
           value={searchInput}
           onValueChange={setSearchInput}
@@ -156,50 +261,27 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
             className="w-48"
             label={t('tickets.filters.status')}
             placeholder={t('tickets.filters.status')}
-            selectedKeys={[statusFilter]}
-            size="sm"
-            onSelectionChange={(keys) => {
-              const value = Array.from(keys)[0] as string
-              updateFilters({ status: value || 'all' })
-            }}
-          >
-            <SelectItem key="all">{t('tickets.filters.allStatuses')}</SelectItem>
-            <SelectItem key="open">{t('tickets.status.open')}</SelectItem>
-            <SelectItem key="in_progress">{t('tickets.status.in_progress')}</SelectItem>
-            <SelectItem key="waiting_customer">{t('tickets.status.waiting_customer')}</SelectItem>
-            <SelectItem key="resolved">{t('tickets.status.resolved')}</SelectItem>
-            <SelectItem key="closed">{t('tickets.status.closed')}</SelectItem>
-          </Select>
+            items={statusFilterItems}
+            value={statusFilter}
+            onChange={key => updateFilters({ status: key || 'all' })}
+          />
 
           <Select
             className="w-48"
             label={t('tickets.filters.priority')}
             placeholder={t('tickets.filters.priority')}
-            selectedKeys={[priorityFilter]}
-            size="sm"
-            onSelectionChange={(keys) => {
-              const value = Array.from(keys)[0] as string
-              updateFilters({ priority: value || 'all' })
-            }}
-          >
-            <SelectItem key="all">{t('tickets.filters.allPriorities')}</SelectItem>
-            <SelectItem key="urgent">{t('tickets.priority.urgent')}</SelectItem>
-            <SelectItem key="high">{t('tickets.priority.high')}</SelectItem>
-            <SelectItem key="medium">{t('tickets.priority.medium')}</SelectItem>
-            <SelectItem key="low">{t('tickets.priority.low')}</SelectItem>
-          </Select>
+            items={priorityFilterItems}
+            value={priorityFilter}
+            onChange={key => updateFilters({ priority: key || 'all' })}
+          />
         </div>
       </div>
 
       {tickets.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16">
           <MessageSquare className="mb-4 text-default-400" size={48} />
-          <h3 className="text-lg font-semibold text-default-700">
-            {t('tickets.empty')}
-          </h3>
-          <p className="mt-1 text-sm text-default-500">
-            {t('tickets.emptyDescription')}
-          </p>
+          <h3 className="text-lg font-semibold text-default-700">{t('tickets.empty')}</h3>
+          <p className="mt-1 text-sm text-default-500">{t('tickets.emptyDescription')}</p>
         </div>
       )}
 
@@ -207,7 +289,7 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
         <>
           {/* Mobile Cards View */}
           <div className="block space-y-3 md:hidden">
-            {tickets.map((ticket) => (
+            {tickets.map(ticket => (
               <Card
                 key={ticket.id}
                 className="cursor-pointer transition-all hover:shadow-md"
@@ -229,11 +311,7 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
                         {ticket.ticketNumber}
                       </p>
                     </div>
-                    <Chip
-                      color={getStatusColor(ticket.status)}
-                      size="sm"
-                      variant="flat"
-                    >
+                    <Chip color={getStatusColor(ticket.status)} variant="flat">
                       {getStatusLabel(ticket.status)}
                     </Chip>
                   </div>
@@ -253,16 +331,10 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
                   </div>
 
                   <div className="flex flex-wrap gap-2 items-center">
-                    <Chip
-                      color={getPriorityColor(ticket.priority)}
-                      size="sm"
-                      variant="dot"
-                    >
+                    <Chip color={getPriorityColor(ticket.priority)} variant="dot">
                       {getPriorityLabel(ticket.priority)}
                     </Chip>
-                    <Chip size="sm" variant="flat">
-                      {getCategoryLabel(ticket.category)}
-                    </Chip>
+                    <Chip variant="flat">{getCategoryLabel(ticket.category)}</Chip>
                     <span className="text-xs text-default-400 ml-auto">
                       {formatDate(ticket.createdAt)}
                     </span>
@@ -274,95 +346,16 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
 
           {/* Desktop Table View */}
           <div className="hidden md:block">
-            <Table aria-label="Tabla de todos los tickets de soporte">
-              <TableHeader>
-                <TableColumn>{t('tickets.table.ticket').toUpperCase()}</TableColumn>
-                <TableColumn>{t('tickets.table.company').toUpperCase()}</TableColumn>
-                <TableColumn>{t('tickets.table.subject').toUpperCase()}</TableColumn>
-                <TableColumn>{t('tickets.table.category').toUpperCase()}</TableColumn>
-                <TableColumn>{t('tickets.table.priority').toUpperCase()}</TableColumn>
-                <TableColumn>{t('tickets.table.status').toUpperCase()}</TableColumn>
-                <TableColumn>{t('tickets.table.created').toUpperCase()}</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {tickets.map((ticket) => (
-                  <TableRow
-                    key={ticket.id}
-                    className="cursor-pointer transition-colors hover:bg-default-100"
-                    onClick={() => handleViewTicket(ticket.id)}
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <AlertCircle
-                          className={
-                            ticket.priority === 'urgent' || ticket.priority === 'high'
-                              ? 'text-danger'
-                              : 'text-default-400'
-                          }
-                          size={18}
-                        />
-                        <p className="font-mono text-sm font-medium">
-                          {ticket.ticketNumber}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Building className="text-default-400" size={16} />
-                        <div>
-                          <p className="text-sm font-medium text-default-900">
-                            {ticket.managementCompany?.legalName || 'N/A'}
-                          </p>
-                          <p className="text-xs text-default-400">
-                            {ticket.managementCompany?.tradeName || ''}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="text-sm font-medium text-default-900">
-                          {ticket.subject}
-                        </p>
-                        <p className="text-xs text-default-400">
-                          {ticket.description.length > 60
-                            ? `${ticket.description.substring(0, 60)}...`
-                            : ticket.description}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-sm text-default-600">
-                        {getCategoryLabel(ticket.category)}
-                      </p>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        color={getPriorityColor(ticket.priority)}
-                        size="sm"
-                        variant="flat"
-                      >
-                        {getPriorityLabel(ticket.priority)}
-                      </Chip>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        color={getStatusColor(ticket.status)}
-                        size="sm"
-                        variant="flat"
-                      >
-                        {getStatusLabel(ticket.status)}
-                      </Chip>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-sm text-default-600">
-                        {formatDate(ticket.createdAt)}
-                      </p>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <Table<TTicketRow>
+              aria-label="Tabla de todos los tickets de soporte"
+              columns={tableColumns}
+              rows={tickets}
+              renderCell={renderCell}
+              onRowClick={ticket => handleViewTicket(ticket.id)}
+              classNames={{
+                tr: 'cursor-pointer transition-colors hover:bg-default-100',
+              }}
+            />
           </div>
 
           {/* Pagination */}
@@ -371,8 +364,8 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
             page={pagination.page}
             total={pagination.total}
             totalPages={pagination.totalPages}
-            onLimitChange={(limit) => updateFilters({ limit })}
-            onPageChange={(page) => updateFilters({ page })}
+            onLimitChange={limit => updateFilters({ limit })}
+            onPageChange={page => updateFilters({ page })}
           />
         </>
       )}

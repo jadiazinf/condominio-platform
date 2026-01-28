@@ -2,7 +2,7 @@
 
 import { Controller, type Control, type FieldErrors } from 'react-hook-form'
 import type { TCreateManagementCompanyWithAdminForm, TCompanyStep, TTaxIdType } from '@packages/domain'
-import { Tooltip } from '@heroui/tooltip'
+import { Tooltip } from '@/ui/components/tooltip'
 import { Info } from 'lucide-react'
 
 import { useTranslation } from '@/contexts'

@@ -1,20 +1,13 @@
 'use client'
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
-import {
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-} from '@heroui/table'
-import { Input } from '@heroui/input'
-import { Select, SelectItem } from '@heroui/select'
-import { Chip } from '@heroui/chip'
-import { Button } from '@heroui/button'
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/dropdown'
-import { Spinner } from '@heroui/spinner'
+import { Table, type ITableColumn } from '@/ui/components/table'
+import { Input } from '@/ui/components/input'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
+import { Spinner } from '@/ui/components/spinner'
 import { Building2, Search, MoreVertical, Eye, Power, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { TManagementCompany, TManagementCompaniesQuery } from '@packages/domain'
@@ -31,13 +24,7 @@ import { addToast } from '@heroui/toast'
 
 type TStatusFilter = 'all' | 'active' | 'inactive'
 
-const columns = [
-  { key: 'name', label: 'name' },
-  { key: 'taxId', label: 'taxId' },
-  { key: 'email', label: 'email' },
-  { key: 'status', label: 'status' },
-  { key: 'actions', label: 'actions' },
-]
+type TCompanyRow = TManagementCompany & { id: string }
 
 export function CompaniesTable() {
   const { t } = useTranslation()
@@ -81,16 +68,37 @@ export function CompaniesTable() {
   const companies = data?.data ?? []
   const pagination = data?.pagination ?? { page: 1, limit: 20, total: 0, totalPages: 0 }
 
+  // Status filter items
+  const statusFilterItems: ISelectItem[] = useMemo(
+    () => [
+      { key: 'all', label: t('superadmin.companies.status.all') },
+      { key: 'active', label: t('superadmin.companies.status.active') },
+      { key: 'inactive', label: t('superadmin.companies.status.inactive') },
+    ],
+    [t]
+  )
+
+  // Table columns
+  const tableColumns: ITableColumn<TCompanyRow>[] = useMemo(
+    () => [
+      { key: 'name', label: t('superadmin.companies.table.name') },
+      { key: 'taxId', label: t('superadmin.companies.table.taxId') },
+      { key: 'email', label: t('superadmin.companies.table.email') },
+      { key: 'status', label: t('superadmin.companies.table.status') },
+      { key: 'actions', label: t('superadmin.companies.table.actions') },
+    ],
+    [t]
+  )
+
   // Handlers
   const handleSearchChange = useCallback((value: string) => {
     setSearch(value)
     setPage(1) // Reset to first page on search
   }, [])
 
-  const handleStatusChange = useCallback((keys: Set<string>) => {
-    const value = Array.from(keys)[0] as TStatusFilter
-    if (value) {
-      setStatusFilter(value)
+  const handleStatusChange = useCallback((key: string | null) => {
+    if (key) {
+      setStatusFilter(key as TStatusFilter)
       setPage(1)
     }
   }, [])
@@ -147,16 +155,16 @@ export function CompaniesTable() {
             </div>
           )
         case 'taxId':
-          return <span className="text-sm">{company.taxIdType ? `${company.taxIdType}-${company.taxIdNumber || ''}` : '-'}</span>
+          return (
+            <span className="text-sm">
+              {company.taxIdType ? `${company.taxIdType}-${company.taxIdNumber || ''}` : '-'}
+            </span>
+          )
         case 'email':
           return <span className="text-sm">{company.email || '-'}</span>
         case 'status':
           return (
-            <Chip
-              color={company.isActive ? 'success' : 'default'}
-              size="sm"
-              variant="flat"
-            >
+            <Chip color={company.isActive ? 'success' : 'default'} variant="flat">
               {company.isActive
                 ? t('superadmin.companies.status.active')
                 : t('superadmin.companies.status.inactive')}
@@ -164,39 +172,35 @@ export function CompaniesTable() {
           )
         case 'actions':
           return (
-            <Dropdown>
-              <DropdownTrigger>
-                <Button isIconOnly size="sm" variant="light">
-                  <MoreVertical size={16} />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label="Actions">
-                <DropdownItem
-                  key="view"
-                  startContent={<Eye size={16} />}
-                  onPress={() => handleViewDetails(company.id)}
-                >
-                  {t('superadmin.companies.actions.view')}
-                </DropdownItem>
-                <DropdownItem
-                  key="toggle"
-                  color={company.isActive ? 'warning' : 'success'}
-                  isDisabled={isToggling === company.id}
-                  startContent={
-                    isToggling === company.id ? (
-                      <Spinner size="sm" />
-                    ) : (
-                      <Power size={16} />
-                    )
-                  }
-                  onPress={() => handleToggleActive(company)}
-                >
-                  {company.isActive
-                    ? t('superadmin.companies.actions.deactivate')
-                    : t('superadmin.companies.actions.activate')}
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
+            <div onClick={e => e.stopPropagation()}>
+              <Dropdown>
+                <DropdownTrigger>
+                  <Button isIconOnly variant="light">
+                    <MoreVertical size={16} />
+                  </Button>
+                </DropdownTrigger>
+                <DropdownMenu aria-label="Actions">
+                  <DropdownItem
+                    key="view"
+                    startContent={<Eye size={16} />}
+                    onPress={() => handleViewDetails(company.id)}
+                  >
+                    {t('superadmin.companies.actions.view')}
+                  </DropdownItem>
+                  <DropdownItem
+                    key="toggle"
+                    color={company.isActive ? 'warning' : 'success'}
+                    isDisabled={isToggling === company.id}
+                    startContent={isToggling === company.id ? <Spinner /> : <Power size={16} />}
+                    onPress={() => handleToggleActive(company)}
+                  >
+                    {company.isActive
+                      ? t('superadmin.companies.actions.deactivate')
+                      : t('superadmin.companies.actions.activate')}
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            </div>
           )
         default:
           return null
@@ -212,7 +216,7 @@ export function CompaniesTable() {
         <Typography color="danger" variant="body1">
           Error al cargar las administradoras
         </Typography>
-        <Button className="mt-4" color="primary" size="sm" onPress={() => refetch()}>
+        <Button className="mt-4" color="primary" onPress={() => refetch()}>
           Reintentar
         </Button>
       </div>
@@ -226,7 +230,6 @@ export function CompaniesTable() {
         <Input
           className="w-full sm:max-w-xs"
           placeholder={t('superadmin.companies.filters.searchPlaceholder')}
-          size="sm"
           startContent={<Search className="text-default-400" size={16} />}
           value={search}
           onValueChange={handleSearchChange}
@@ -234,22 +237,13 @@ export function CompaniesTable() {
         <Select
           aria-label={t('superadmin.companies.filters.status')}
           className="w-full sm:w-40"
-          selectedKeys={[statusFilter]}
-          size="sm"
+          items={statusFilterItems}
+          value={statusFilter}
+          onChange={handleStatusChange}
           variant="bordered"
-          onSelectionChange={(keys) => handleStatusChange(keys as Set<string>)}
-        >
-          <SelectItem key="all">{t('superadmin.companies.status.all')}</SelectItem>
-          <SelectItem key="active">{t('superadmin.companies.status.active')}</SelectItem>
-          <SelectItem key="inactive">{t('superadmin.companies.status.inactive')}</SelectItem>
-        </Select>
+        />
         {(search || statusFilter !== 'active') && (
-          <Button
-            size="sm"
-            startContent={<X size={14} />}
-            variant="flat"
-            onPress={handleClearFilters}
-          >
+          <Button startContent={<X size={14} />} variant="flat" onPress={handleClearFilters}>
             {t('superadmin.companies.filters.clearFilters')}
           </Button>
         )}
@@ -272,24 +266,16 @@ export function CompaniesTable() {
         </div>
       ) : (
         <>
-          <Table aria-label={t('superadmin.companies.title')}>
-            <TableHeader>
-              {columns.map((column) => (
-                <TableColumn key={column.key}>
-                  {t(`superadmin.companies.table.${column.label}`)}
-                </TableColumn>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {companies.map((company) => (
-                <TableRow key={company.id}>
-                  {columns.map((column) => (
-                    <TableCell key={column.key}>{renderCell(company, column.key)}</TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <Table<TCompanyRow>
+            aria-label={t('superadmin.companies.title')}
+            columns={tableColumns}
+            rows={companies}
+            renderCell={renderCell}
+            onRowClick={company => handleViewDetails(company.id)}
+            classNames={{
+              tr: 'cursor-pointer transition-colors hover:bg-default-100',
+            }}
+          />
 
           {/* Pagination */}
           <Pagination
@@ -299,7 +285,7 @@ export function CompaniesTable() {
             page={pagination.page}
             total={pagination.total}
             totalPages={pagination.totalPages}
-            onLimitChange={(newLimit) => {
+            onLimitChange={newLimit => {
               setLimit(newLimit)
               setPage(1)
             }}

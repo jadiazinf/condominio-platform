@@ -1,9 +1,9 @@
 'use client'
 
-import type { CardProps } from '@heroui/card'
+import type { ICardProps } from '@/ui/components/card'
 
-import { Card, CardHeader, CardBody } from '@heroui/card'
-import { Avatar } from '@heroui/avatar'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Avatar } from '@/ui/components/avatar-base'
 import { cn } from '@heroui/theme'
 
 type TActivityType = 'user' | 'payment' | 'condominium' | 'alert' | 'system'
@@ -18,7 +18,7 @@ type TActivity = {
   avatarColor?: 'primary' | 'success' | 'warning' | 'danger' | 'secondary' | 'default'
 }
 
-interface ActivityFeedProps extends Omit<CardProps, 'children'> {
+interface ActivityFeedProps extends Omit<ICardProps, 'children'> {
   title: string
   activities: TActivity[]
   emptyMessage?: string
@@ -72,7 +72,6 @@ export function ActivityFeed({
                   }}
                   name={activity.avatar || activityIcons[activity.type]}
                   showFallback
-                  size="sm"
                   src={activity.avatar}
                 />
                 <div className="flex-1 min-w-0">

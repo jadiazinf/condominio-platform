@@ -1,8 +1,8 @@
 'use client'
 
-import type { CardProps } from '@heroui/card'
+import type { ICardProps } from '@/ui/components/card'
 
-import { Card, CardHeader, CardBody } from '@heroui/card'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { cn } from '@heroui/theme'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 
@@ -12,7 +12,7 @@ type TDistributionDataPoint = {
   color: string
 }
 
-interface DistributionChartProps extends Omit<CardProps, 'children'> {
+interface DistributionChartProps extends Omit<ICardProps, 'children'> {
   title: string
   data: TDistributionDataPoint[]
   centerLabel?: string

@@ -1,7 +1,7 @@
 'use client'
 
-import { Card, CardBody } from '@heroui/card'
-import { Progress } from '@heroui/progress'
+import { Card, CardBody } from '@/ui/components/card'
+import { Progress } from '@/ui/components/progress'
 
 import { useTranslation } from '@/contexts'
 import { Button } from '@/ui/components/button'
@@ -79,7 +79,6 @@ export function CreateCompanyForm() {
               classNames={{
                 indicator: 'bg-primary',
               }}
-              size="sm"
               value={progressValue}
             />
             <StepIndicator currentStep={currentStep} onStepClick={goToStep} steps={steps} />
@@ -91,7 +90,11 @@ export function CreateCompanyForm() {
           {/* Navigation buttons */}
           <div className="flex justify-end gap-3 border-t border-default-200 pt-4">
             {!isFirstStep && (
-              <Button isDisabled={isSubmitting || isValidatingAdmin} variant="bordered" onPress={goToPreviousStep}>
+              <Button
+                isDisabled={isSubmitting || isValidatingAdmin}
+                variant="bordered"
+                onPress={goToPreviousStep}
+              >
                 {t('common.previous')}
               </Button>
             )}
