@@ -194,7 +194,6 @@ export function CondominiumsTable({
 
   const handleViewDetails = useCallback((id: string) => {
     // TODO: Navigate to condominium detail page when implemented
-    console.log('View condominium:', id)
   }, [])
 
   const hasActiveFilters = searchInput || statusFilter !== 'all' || locationFilter

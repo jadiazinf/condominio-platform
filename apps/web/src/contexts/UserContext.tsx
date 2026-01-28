@@ -38,11 +38,6 @@ export function UserProvider({ children, initialUser = null }: UserProviderProps
   useEffect(() => {
     const cookieUser = getUserCookie()
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[UserContext] Mount - current user:', user)
-      console.log('[UserContext] Mount - cookie user:', cookieUser)
-    }
-
     if (!user && cookieUser) {
       setUserState(cookieUser)
     }

@@ -116,7 +116,6 @@ export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTable
 
   const handleViewDetails = useCallback((id: string) => {
     // TODO: Navigate to condominium detail page when implemented
-    console.log('View condominium:', id)
   }, [])
 
   const renderCell = useCallback(

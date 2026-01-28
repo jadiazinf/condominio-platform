@@ -14,12 +14,9 @@ function initializeHttpClient() {
   if (isModuleInitialized) return
   isModuleInitialized = true
 
-  console.log('[HttpClientProvider] Initializing HTTP client (module level)...')
-
   // Set global auth token getter - this ensures even the default client has auth
   setGlobalAuthToken(() => {
     const token = getSessionCookie()
-    console.log('[HttpClientProvider] Getting token from cookie:', token ? `${token.substring(0, 20)}...` : 'null')
     return token || null
   })
 
@@ -27,7 +24,6 @@ function initializeHttpClient() {
   const client = createHttpClient({
     getAuthToken: async () => {
       const token = getSessionCookie()
-      console.log('[HttpClientProvider] Client getAuthToken:', token ? `${token.substring(0, 20)}...` : 'null')
       return token || null
     },
     onTokenRefresh: async () => {
@@ -36,18 +32,15 @@ function initializeHttpClient() {
       const user = auth.currentUser
 
       if (!user) {
-        console.error('[HttpClientProvider] No user logged in for token refresh')
         return
       }
 
       // Force refresh the token
       await setSessionCookie(user, true)
-      console.log('[HttpClientProvider] Token refreshed after 401')
     },
   })
 
   setHttpClient(client)
-  console.log('[HttpClientProvider] HTTP client initialized')
 }
 
 // Initialize immediately when module is imported

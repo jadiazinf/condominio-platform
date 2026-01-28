@@ -30,9 +30,6 @@ export function AvatarPreloader() {
 
     img.onload = () => {
       preloadedUrl.current = photoUrl
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[AvatarPreloader] Image preloaded:', photoUrl)
-      }
     }
 
     img.onerror = () => {

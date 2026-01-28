@@ -82,20 +82,9 @@ export function StoreHydration({
     // Read cookie directly to avoid race condition with UserContext hydration
     const cookieUser = getUserCookie()
 
-    // Debug: Log hydration data in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[StoreHydration] Server user:', user)
-      console.log('[StoreHydration] Cookie user:', cookieUser)
-      console.log('[StoreHydration] Was fetched from API:', wasFetched)
-    }
-
     // Merge server user with cookie user, preserving client-only data like photoUrl
     if (user) {
       const mergedUser = mergeUserData(user, cookieUser)
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[StoreHydration] Merged user:', mergedUser)
-      }
 
       setUser(mergedUser)
 
@@ -171,10 +160,6 @@ export function StoreHydration({
       try {
         // Get fresh URL from Firebase Storage
         const freshPhotoUrl = await getProfilePhotoUrl(user!.id)
-
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[StoreHydration] Fresh photo URL:', freshPhotoUrl)
-        }
 
         // Update user with fresh photo URL (or null if photo doesn't exist)
         const updatedUser = { ...user!, photoUrl: freshPhotoUrl }

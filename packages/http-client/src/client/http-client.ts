@@ -106,7 +106,6 @@ export function createHttpClient(config: HttpClientConfig = {}) {
 
     if (config.getAuthToken) {
       const token = await config.getAuthToken()
-      console.log('[HttpClient] Auth token retrieved:', token ? `${token.substring(0, 20)}...` : 'null')
       if (token) {
         headers['Authorization'] = `Bearer ${token}`
       } else {
@@ -137,14 +136,11 @@ export function createHttpClient(config: HttpClientConfig = {}) {
 
       // Handle 401 Unauthorized - attempt token refresh and retry once
       if (response.status === 401 && !isRetry && config.onTokenRefresh) {
-        console.log('[HttpClient] Received 401, attempting token refresh...')
         try {
           await config.onTokenRefresh()
-          console.log('[HttpClient] Token refreshed, retrying request...')
           // Retry the request with the new token
           return await request<T>(method, path, body, requestConfig, true)
         } catch (refreshError) {
-          console.error('[HttpClient] Token refresh failed:', refreshError)
           // If refresh fails, continue with the original error response
         }
       }
@@ -204,7 +200,9 @@ export function setGlobalLocale(localeGetter: () => string | null): void {
 // Global auth token getter (can be set by the app)
 let globalAuthTokenGetter: (() => string | null | Promise<string | null>) | null = null
 
-export function setGlobalAuthToken(tokenGetter: () => string | null | Promise<string | null>): void {
+export function setGlobalAuthToken(
+  tokenGetter: () => string | null | Promise<string | null>
+): void {
   globalAuthTokenGetter = tokenGetter
   // Reset the default client so it picks up the new auth getter
   if (defaultClient) {
@@ -217,7 +215,6 @@ let defaultClient: HttpClient | null = null
 
 export function getHttpClient(): HttpClient {
   if (!defaultClient) {
-    console.log('[HttpClient] Creating default client with auth getter:', !!globalAuthTokenGetter)
     defaultClient = createHttpClient({
       getLocale: globalLocaleGetter ?? undefined,
       getAuthToken: globalAuthTokenGetter ?? undefined,
@@ -227,6 +224,5 @@ export function getHttpClient(): HttpClient {
 }
 
 export function setHttpClient(client: HttpClient): void {
-  console.log('[HttpClient] Setting custom client')
   defaultClient = client
 }
