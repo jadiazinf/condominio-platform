@@ -81,7 +81,6 @@ export function useCreateTicketMessage(ticketId: string, options?: ICreateTicket
 
       // This will be handled by WebSocket, but we update cache as backup
       // The WebSocket handler will check for duplicates
-      console.log('[TicketMessages] Message created, cache will be updated by WebSocket or invalidation')
 
       options?.onSuccess?.(response, ...args)
     },
