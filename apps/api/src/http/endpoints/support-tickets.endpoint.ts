@@ -10,7 +10,7 @@ export class SupportTicketsEndpoint implements IEndpoint {
 
   constructor(db: TDrizzleClient) {
     const repository = new SupportTicketsRepository(db)
-    this.controller = new SupportTicketsController(repository)
+    this.controller = new SupportTicketsController(repository, db)
   }
 
   getRouter(): Hono {

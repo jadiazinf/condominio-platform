@@ -307,7 +307,7 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
             </CardBody>
           </Card>
 
-          {ticket.assignedTo && (
+          {ticket.currentAssignment?.assignedToUser && (
             <Card>
               <CardHeader>
                 <Typography variant="subtitle1">Asignado a</Typography>
@@ -315,7 +315,9 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
               <CardBody>
                 <div className="flex items-center gap-3">
                   <User className="text-default-400" size={18} />
-                  <Typography variant="body2">{ticket.assignedTo}</Typography>
+                  <Typography variant="body2">
+                    {ticket.currentAssignment.assignedToUser.displayName || ticket.currentAssignment.assignedToUser.email}
+                  </Typography>
                 </div>
               </CardBody>
             </Card>

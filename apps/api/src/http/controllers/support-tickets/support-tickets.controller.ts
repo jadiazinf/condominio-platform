@@ -8,6 +8,7 @@ import {
   type TSupportTicketUpdate,
 } from '@packages/domain'
 import type { SupportTicketsRepository } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BaseController } from '../base.controller'
 import {
   bodyValidator,
@@ -25,6 +26,7 @@ import {
   UpdateTicketStatusService,
 } from '../../../services/support-tickets'
 import { LocaleDictionary } from '../../../locales/dictionary'
+import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
 
 const CompanyIdParamSchema = z.object({
   companyId: z.string().uuid('Invalid company ID format'),
@@ -37,7 +39,6 @@ const TicketsQuerySchema = z.object({
     .enum(['open', 'in_progress', 'waiting_customer', 'resolved', 'closed', 'cancelled'])
     .optional(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
-  assignedTo: z.string().uuid().optional(),
   search: z.string().optional(),
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
@@ -94,10 +95,13 @@ export class SupportTicketsController extends BaseController<
   private readonly closeService: CloseTicketService
   private readonly updateStatusService: UpdateTicketStatusService
 
-  constructor(repository: SupportTicketsRepository) {
+  constructor(
+    repository: SupportTicketsRepository,
+    private readonly db: TDrizzleClient
+  ) {
     super(repository)
     this.createService = new CreateTicketService(repository)
-    this.assignService = new AssignTicketService(repository)
+    this.assignService = new AssignTicketService(repository, db)
     this.resolveService = new ResolveTicketService(repository)
     this.closeService = new CloseTicketService(repository)
     this.updateStatusService = new UpdateTicketStatusService(repository)
@@ -208,7 +212,6 @@ export class SupportTicketsController extends BaseController<
       const result = await repo.findAll({
         status: ctx.query.status,
         priority: ctx.query.priority,
-        assignedTo: ctx.query.assignedTo,
         search: ctx.query.search,
         page: ctx.query.page,
         limit: ctx.query.limit,
@@ -228,7 +231,6 @@ export class SupportTicketsController extends BaseController<
       const result = await repo.listByCompanyId(ctx.params.companyId, {
         status: ctx.query.status,
         priority: ctx.query.priority,
-        assignedTo: ctx.query.assignedTo,
         search: ctx.query.search,
         page: ctx.query.page,
         limit: ctx.query.limit,
@@ -261,11 +263,17 @@ export class SupportTicketsController extends BaseController<
 
   private async assignTicket(c: Context): Promise<Response> {
     const ctx = this.ctx<TAssignTicketBody, unknown, { id: string }>(c)
+    const user = c.get(AUTHENTICATED_USER_PROP)
+
+    if (!user) {
+      return ctx.unauthorized({ error: 'User not authenticated' })
+    }
 
     try {
       const result = await this.assignService.execute({
         ticketId: ctx.params.id,
         assignedTo: ctx.body.assignedTo,
+        assignedBy: user.id,
       })
 
       if (!result.success) {

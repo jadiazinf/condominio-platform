@@ -32,11 +32,42 @@ export interface IDetailsTranslations {
   assignedTo: string
   resolved: string
   resolvedBy: string
+  solution: string
+  solutionPlaceholder: string
   closed: string
   closedBy: string
   viewProfile: string
   notAssigned: string
   assignUser: string
+  reassignUser: string
+  noUsersAvailable: string
+  resolveTicket: string
+  closeTicket: string
+  closeTicketModal: {
+    trigger: string
+    title: string
+    solutionLabel: string
+    solutionPlaceholder: string
+    cancel: string
+    confirm: string
+    confirmClosing: string
+  }
+  changeStatus: string
+  changePriority: string
+  priorities: {
+    low: string
+    medium: string
+    high: string
+    urgent: string
+  }
+  statuses: {
+    open: string
+    in_progress: string
+    waiting_customer: string
+    resolved: string
+    closed: string
+    cancelled: string
+  }
 }
 
 export interface ITicketTranslations {

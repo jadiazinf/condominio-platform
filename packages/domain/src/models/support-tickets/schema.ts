@@ -39,13 +39,10 @@ export const supportTicketSchema = baseModelSchema.extend({
   status: z.enum(ETicketStatus).default('open'),
   category: z.enum(ETicketCategory).nullable(),
 
-  // Assignment (superadmin/support agent)
-  assignedTo: z.uuid().nullable(),
-  assignedAt: z.coerce.date().nullable(),
-
   // Tracking
   resolvedAt: z.coerce.date().nullable(),
   resolvedBy: z.uuid().nullable(),
+  solution: z.string().nullable(),
   closedAt: z.coerce.date().nullable(),
   closedBy: z.uuid().nullable(),
 
@@ -60,9 +57,19 @@ export const supportTicketSchema = baseModelSchema.extend({
   managementCompany: managementCompanySchema.optional(),
   createdByUser: userSchema.optional(),
   createdByMember: managementCompanyMemberSchema.optional(),
-  assignedToUser: userSchema.optional(),
   resolvedByUser: userSchema.optional(),
   closedByUser: userSchema.optional(),
+  // Assignment history is handled in a separate table
+  currentAssignment: z
+    .object({
+      assignedTo: z.uuid(),
+      assignedToUser: userSchema.optional(),
+      assignedAt: z.coerce.date(),
+      assignedBy: z.uuid(),
+      assignedByUser: userSchema.optional(),
+    })
+    .optional()
+    .nullable(),
   messages: z
     .lazy(() => {
       // Dynamic import to avoid circular dependency

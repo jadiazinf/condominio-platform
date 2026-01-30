@@ -9,7 +9,12 @@ import type {
   TPaginatedResponse,
   TUser,
 } from '@packages/domain'
-import { supportTickets, supportTicketMessages, users } from '@database/drizzle/schema'
+import {
+  supportTickets,
+  supportTicketMessages,
+  supportTicketAssignmentHistory,
+  users,
+} from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -18,7 +23,6 @@ type TTicketRecord = typeof supportTickets.$inferSelect
 export interface ITicketFilters {
   status?: TTicketStatus
   priority?: TTicketPriority
-  assignedTo?: string
   search?: string
   page?: number
   limit?: number
@@ -53,10 +57,9 @@ export class SupportTicketsRepository
       priority: r.priority,
       status: r.status,
       category: r.category,
-      assignedTo: r.assignedTo,
-      assignedAt: r.assignedAt,
       resolvedAt: r.resolvedAt,
       resolvedBy: r.resolvedBy,
+      solution: r.solution ?? null,
       closedAt: r.closedAt,
       closedBy: r.closedBy,
       metadata: r.metadata as Record<string, unknown> | null,
@@ -78,8 +81,6 @@ export class SupportTicketsRepository
       priority: dto.priority,
       status: dto.status,
       category: dto.category,
-      assignedTo: dto.assignedTo,
-      assignedAt: dto.assignedAt,
       resolvedAt: dto.resolvedAt,
       resolvedBy: dto.resolvedBy,
       closedAt: dto.closedAt,
@@ -97,8 +98,6 @@ export class SupportTicketsRepository
     if (dto.priority !== undefined) values.priority = dto.priority
     if (dto.status !== undefined) values.status = dto.status
     if (dto.category !== undefined) values.category = dto.category
-    if (dto.assignedTo !== undefined) values.assignedTo = dto.assignedTo
-    if (dto.assignedAt !== undefined) values.assignedAt = dto.assignedAt
     if (dto.resolvedAt !== undefined) values.resolvedAt = dto.resolvedAt
     if (dto.resolvedBy !== undefined) values.resolvedBy = dto.resolvedBy
     if (dto.closedAt !== undefined) values.closedAt = dto.closedAt
@@ -132,10 +131,6 @@ export class SupportTicketsRepository
       conditions.push(eq(supportTickets.priority, filters.priority))
     }
 
-    if (filters?.assignedTo) {
-      conditions.push(eq(supportTickets.assignedTo, filters.assignedTo))
-    }
-
     if (filters?.search) {
       const searchTerm = `%${filters.search}%`
       conditions.push(
@@ -154,10 +149,25 @@ export class SupportTicketsRepository
 
     const total = countResult[0]?.total ?? 0
 
-    // Get paginated results
+    // Get paginated results with current assignment
     const results = await this.db
-      .select()
+      .select({
+        ticket: supportTickets,
+        assignment: supportTicketAssignmentHistory,
+        assignedToUser: users,
+      })
       .from(supportTickets)
+      .leftJoin(
+        supportTicketAssignmentHistory,
+        and(
+          eq(supportTickets.id, supportTicketAssignmentHistory.ticketId),
+          eq(supportTicketAssignmentHistory.isActive, true)
+        )
+      )
+      .leftJoin(
+        users,
+        eq(supportTicketAssignmentHistory.assignedTo, users.id)
+      )
       .where(and(...conditions))
       .orderBy(asc(supportTickets.createdAt))
       .limit(limit)
@@ -165,8 +175,31 @@ export class SupportTicketsRepository
 
     const totalPages = Math.ceil(total / limit)
 
+    // Map results with current assignment
+    const data = await Promise.all(
+      results.map(async ({ ticket, assignment, assignedToUser }) => {
+        const ticketEntity = this.mapToEntity(ticket)
+
+        if (assignment) {
+          const assignedByUser = await this.getUserById(assignment.assignedBy)
+          return {
+            ...ticketEntity,
+            currentAssignment: {
+              assignedTo: assignment.assignedTo,
+              assignedToUser: this.mapUserToEntity(assignedToUser),
+              assignedAt: assignment.assignedAt,
+              assignedBy: assignment.assignedBy,
+              assignedByUser: this.mapUserToEntity(assignedByUser),
+            },
+          }
+        }
+
+        return ticketEntity
+      })
+    )
+
     return {
-      data: results.map(r => this.mapToEntity(r)),
+      data,
       pagination: {
         page,
         limit,
@@ -194,10 +227,6 @@ export class SupportTicketsRepository
       conditions.push(eq(supportTickets.priority, filters.priority))
     }
 
-    if (filters?.assignedTo) {
-      conditions.push(eq(supportTickets.assignedTo, filters.assignedTo))
-    }
-
     if (filters?.search) {
       const searchTerm = `%${filters.search}%`
       conditions.push(
@@ -216,8 +245,25 @@ export class SupportTicketsRepository
 
     const total = countResult[0]?.total ?? 0
 
-    // Get paginated results
-    const dataQuery = this.db.select().from(supportTickets)
+    // Get paginated results with current assignment
+    const dataQuery = this.db
+      .select({
+        ticket: supportTickets,
+        assignment: supportTicketAssignmentHistory,
+        assignedToUser: users,
+      })
+      .from(supportTickets)
+      .leftJoin(
+        supportTicketAssignmentHistory,
+        and(
+          eq(supportTickets.id, supportTicketAssignmentHistory.ticketId),
+          eq(supportTicketAssignmentHistory.isActive, true)
+        )
+      )
+      .leftJoin(
+        users,
+        eq(supportTicketAssignmentHistory.assignedTo, users.id)
+      )
 
     const results =
       conditions.length > 0
@@ -233,8 +279,31 @@ export class SupportTicketsRepository
 
     const totalPages = Math.ceil(total / limit)
 
+    // Map results with current assignment
+    const data = await Promise.all(
+      results.map(async ({ ticket, assignment, assignedToUser }) => {
+        const ticketEntity = this.mapToEntity(ticket)
+
+        if (assignment) {
+          const assignedByUser = await this.getUserById(assignment.assignedBy)
+          return {
+            ...ticketEntity,
+            currentAssignment: {
+              assignedTo: assignment.assignedTo,
+              assignedToUser: this.mapUserToEntity(assignedToUser),
+              assignedAt: assignment.assignedAt,
+              assignedBy: assignment.assignedBy,
+              assignedByUser: this.mapUserToEntity(assignedByUser),
+            },
+          }
+        }
+
+        return ticketEntity
+      })
+    )
+
     return {
-      data: results.map(r => this.mapToEntity(r)),
+      data,
       pagination: {
         page,
         limit,
@@ -257,15 +326,6 @@ export class SupportTicketsRepository
     return results.length === 0 ? null : this.mapToEntity(results[0])
   }
 
-  /**
-   * Assign ticket to a user
-   */
-  async assignTicket(ticketId: string, userId: string): Promise<TSupportTicket | null> {
-    return this.update(ticketId, {
-      assignedTo: userId,
-      assignedAt: new Date(),
-    })
-  }
 
   /**
    * Update ticket status
@@ -368,10 +428,35 @@ export class SupportTicketsRepository
       return null
     }
 
+    // Get current assignment from history table
+    const currentAssignmentResult = await this.db
+      .select({
+        assignment: supportTicketAssignmentHistory,
+        assignedToUser: users,
+      })
+      .from(supportTicketAssignmentHistory)
+      .innerJoin(
+        users,
+        eq(supportTicketAssignmentHistory.assignedTo, users.id)
+      )
+      .where(
+        and(
+          eq(supportTicketAssignmentHistory.ticketId, ticketId),
+          eq(supportTicketAssignmentHistory.isActive, true)
+        )
+      )
+      .limit(1)
+
+    const currentAssignment = currentAssignmentResult[0]
+
+    // Fetch assignedByUser if there's a current assignment
+    const assignedByUser = currentAssignment
+      ? await this.getUserById(currentAssignment.assignment.assignedBy)
+      : null
+
     // Fetch all related users in parallel
-    const [createdByUser, assignedToUser, resolvedByUser, closedByUser] = await Promise.all([
+    const [createdByUser, resolvedByUser, closedByUser] = await Promise.all([
       this.getUserById(ticket.createdByUserId),
-      this.getUserById(ticket.assignedTo),
       this.getUserById(ticket.resolvedBy),
       this.getUserById(ticket.closedBy),
     ])
@@ -402,13 +487,28 @@ export class SupportTicketsRepository
     }))
 
     // Map ticket with users and messages
-    return {
+    const ticketEntity = {
       ...this.mapToEntity(ticket),
       createdByUser: this.mapUserToEntity(createdByUser),
-      assignedToUser: this.mapUserToEntity(assignedToUser),
       resolvedByUser: this.mapUserToEntity(resolvedByUser),
       closedByUser: this.mapUserToEntity(closedByUser),
       messages,
     }
+
+    // Add current assignment if exists
+    if (currentAssignment) {
+      return {
+        ...ticketEntity,
+        currentAssignment: {
+          assignedTo: currentAssignment.assignment.assignedTo,
+          assignedToUser: this.mapUserToEntity(currentAssignment.assignedToUser),
+          assignedAt: currentAssignment.assignment.assignedAt,
+          assignedBy: currentAssignment.assignment.assignedBy,
+          assignedByUser: this.mapUserToEntity(assignedByUser),
+        },
+      }
+    }
+
+    return ticketEntity
   }
 }

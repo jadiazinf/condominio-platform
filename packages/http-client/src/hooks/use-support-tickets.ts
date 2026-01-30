@@ -85,6 +85,7 @@ export interface IResolveTicketData {
 
 export interface ICloseTicketData {
   closedBy: string
+  solution: string
 }
 
 export interface IUpdateTicketStatusData {

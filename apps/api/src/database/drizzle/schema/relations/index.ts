@@ -896,11 +896,6 @@ export const supportTicketsRelations = relations(supportTickets, ({ one, many })
     fields: [supportTickets.createdByMemberId],
     references: [managementCompanyMembers.id],
   }),
-  assignedToUser: one(users, {
-    fields: [supportTickets.assignedTo],
-    references: [users.id],
-    relationName: 'ticketAssignee',
-  }),
   resolvedByUser: one(users, {
     fields: [supportTickets.resolvedBy],
     references: [users.id],

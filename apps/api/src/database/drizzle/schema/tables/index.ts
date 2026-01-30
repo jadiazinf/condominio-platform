@@ -50,3 +50,4 @@ export * from './management-company-members'
 // Support Tickets
 export * from './support-tickets'
 export * from './support-ticket-messages'
+export * from './support-ticket-assignment-history'

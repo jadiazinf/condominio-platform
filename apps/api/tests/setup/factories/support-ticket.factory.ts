@@ -38,10 +38,9 @@ export class SupportTicketFactory {
       priority: 'medium',
       status: 'open',
       category: null,
-      assignedTo: null,
-      assignedAt: null,
       resolvedAt: null,
       resolvedBy: null,
+      solution: null,
       closedAt: null,
       closedBy: null,
       metadata: null,
@@ -68,19 +67,17 @@ export class SupportTicketFactory {
 
   /**
    * Creates an in-progress ticket.
+   * Note: Assignment is now handled via the assignment history table.
    */
   static inProgress(
     managementCompanyId: string,
     createdByUserId: string,
-    assignedTo: string,
     overrides: Partial<TSupportTicketCreate> = {}
   ): TSupportTicketCreate {
     return this.create({
       managementCompanyId,
       createdByUserId,
       status: 'in_progress',
-      assignedTo,
-      assignedAt: new Date(),
       ...overrides,
     })
   }

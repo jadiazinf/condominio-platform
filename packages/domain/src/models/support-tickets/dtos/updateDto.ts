@@ -14,9 +14,10 @@ export const supportTicketUpdateSchema = supportTicketSchema
     managementCompany: true,
     createdByUser: true,
     createdByMember: true,
-    assignedToUser: true,
     resolvedByUser: true,
     closedByUser: true,
+    currentAssignment: true,
+    messages: true,
   })
   .partial()
   .strict()

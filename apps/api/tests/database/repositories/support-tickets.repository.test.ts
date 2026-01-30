@@ -19,7 +19,7 @@ describe('SupportTicketsRepository', () => {
   let repository: SupportTicketsRepository
   let managementCompanyId: string
   let createdByUserId: string
-  let assignedUserId: string
+  let testUserId: string
 
   beforeAll(async () => {
     db = await startTestContainer()
@@ -41,7 +41,7 @@ describe('SupportTicketsRepository', () => {
 
     // Create test users
     const createdByUser = await usersRepository.create(UserFactory.create())
-    const assignedUser = await usersRepository.create(UserFactory.create())
+    const testUser = await usersRepository.create(UserFactory.create())
 
     // Create test management company
     const company = await managementCompaniesRepository.create(
@@ -49,7 +49,7 @@ describe('SupportTicketsRepository', () => {
     )
 
     createdByUserId = createdByUser.id
-    assignedUserId = assignedUser.id
+    testUserId = testUser.id
     managementCompanyId = company.id
   })
 
@@ -139,7 +139,7 @@ describe('SupportTicketsRepository', () => {
     it('should filter by status', async () => {
       await repository.create(SupportTicketFactory.open(managementCompanyId, createdByUserId))
       await repository.create(
-        SupportTicketFactory.inProgress(managementCompanyId, createdByUserId, assignedUserId)
+        SupportTicketFactory.inProgress(managementCompanyId, createdByUserId)
       )
 
       const result = await repository.listByCompanyId(managementCompanyId, { status: 'open' })
@@ -158,19 +158,20 @@ describe('SupportTicketsRepository', () => {
       expect(result.data[0]?.priority).toBe('urgent')
     })
 
-    it('should filter by assignedTo', async () => {
-      await repository.create(SupportTicketFactory.open(managementCompanyId, createdByUserId))
-      await repository.create(
-        SupportTicketFactory.inProgress(managementCompanyId, createdByUserId, assignedUserId)
-      )
-
-      const result = await repository.listByCompanyId(managementCompanyId, {
-        assignedTo: assignedUserId,
-      })
-
-      expect(result.data).toHaveLength(1)
-      expect(result.data[0]?.assignedTo).toBe(assignedUserId)
-    })
+    // Test removed: Assignment is now handled via the assignment history table
+    // it('should filter by assignedTo', async () => {
+    //   await repository.create(SupportTicketFactory.open(managementCompanyId, createdByUserId))
+    //   await repository.create(
+    //     SupportTicketFactory.inProgress(managementCompanyId, createdByUserId)
+    //   )
+    //
+    //   const result = await repository.listByCompanyId(managementCompanyId, {
+    //     assignedTo: testUserId,
+    //   })
+    //
+    //   expect(result.data).toHaveLength(1)
+    //   expect(result.data[0]?.assignedTo).toBe(testUserId)
+    // })
 
     it('should search by ticket number', async () => {
       const ticket = await repository.create(
@@ -215,7 +216,7 @@ describe('SupportTicketsRepository', () => {
     it('should filter by status', async () => {
       await repository.create(SupportTicketFactory.open(managementCompanyId, createdByUserId))
       await repository.create(
-        SupportTicketFactory.resolved(managementCompanyId, createdByUserId, assignedUserId)
+        SupportTicketFactory.resolved(managementCompanyId, createdByUserId, testUserId)
       )
 
       const result = await repository.findAll({ status: 'resolved' })
@@ -225,27 +226,28 @@ describe('SupportTicketsRepository', () => {
     })
   })
 
-  describe('assignTicket', () => {
-    it('should assign ticket to a user', async () => {
-      const ticket = await repository.create(
-        SupportTicketFactory.open(managementCompanyId, createdByUserId)
-      )
-
-      const result = await repository.assignTicket(ticket.id, assignedUserId)
-
-      expect(result).toBeDefined()
-      expect(result?.assignedTo).toBe(assignedUserId)
-      expect(result?.assignedAt).toBeInstanceOf(Date)
-    })
-
-    it('should return null for non-existent ticket', async () => {
-      const result = await repository.assignTicket(
-        '00000000-0000-0000-0000-000000000000',
-        assignedUserId
-      )
-      expect(result).toBeNull()
-    })
-  })
+  // Test removed: Assignment is now handled via the assignment history table
+  // describe('assignTicket', () => {
+  //   it('should assign ticket to a user', async () => {
+  //     const ticket = await repository.create(
+  //       SupportTicketFactory.open(managementCompanyId, createdByUserId)
+  //     )
+  //
+  //     const result = await repository.assignTicket(ticket.id, testUserId)
+  //
+  //     expect(result).toBeDefined()
+  //     expect(result?.assignedTo).toBe(testUserId)
+  //     expect(result?.assignedAt).toBeInstanceOf(Date)
+  //   })
+  //
+  //   it('should return null for non-existent ticket', async () => {
+  //     const result = await repository.assignTicket(
+  //       '00000000-0000-0000-0000-000000000000',
+  //       testUserId
+  //     )
+  //     expect(result).toBeNull()
+  //   })
+  // })
 
   describe('updateStatus', () => {
     it('should update ticket status', async () => {
@@ -266,11 +268,11 @@ describe('SupportTicketsRepository', () => {
         SupportTicketFactory.open(managementCompanyId, createdByUserId)
       )
 
-      const result = await repository.markAsResolved(ticket.id, assignedUserId)
+      const result = await repository.markAsResolved(ticket.id, testUserId)
 
       expect(result).toBeDefined()
       expect(result?.status).toBe('resolved')
-      expect(result?.resolvedBy).toBe(assignedUserId)
+      expect(result?.resolvedBy).toBe(testUserId)
       expect(result?.resolvedAt).toBeInstanceOf(Date)
     })
   })
@@ -281,11 +283,11 @@ describe('SupportTicketsRepository', () => {
         SupportTicketFactory.open(managementCompanyId, createdByUserId)
       )
 
-      const result = await repository.closeTicket(ticket.id, assignedUserId)
+      const result = await repository.closeTicket(ticket.id, testUserId)
 
       expect(result).toBeDefined()
       expect(result?.status).toBe('closed')
-      expect(result?.closedBy).toBe(assignedUserId)
+      expect(result?.closedBy).toBe(testUserId)
       expect(result?.closedAt).toBeInstanceOf(Date)
     })
   })
@@ -294,10 +296,10 @@ describe('SupportTicketsRepository', () => {
     it('should return count of open tickets', async () => {
       await repository.create(SupportTicketFactory.open(managementCompanyId, createdByUserId))
       await repository.create(
-        SupportTicketFactory.inProgress(managementCompanyId, createdByUserId, assignedUserId)
+        SupportTicketFactory.inProgress(managementCompanyId, createdByUserId)
       )
       await repository.create(
-        SupportTicketFactory.closed(managementCompanyId, createdByUserId, assignedUserId)
+        SupportTicketFactory.closed(managementCompanyId, createdByUserId, testUserId)
       )
 
       const count = await repository.getOpenTicketsCount(managementCompanyId)

@@ -116,7 +116,7 @@ export function RecentTicketsTable() {
 
   const handleViewTicket = useCallback(
     (ticket: TTicketRow) => {
-      router.push(`/dashboard/admins/${ticket.managementCompanyId}/tickets/${ticket.id}`)
+      router.push(`/dashboard/tickets/${ticket.id}`)
     },
     [router]
   )

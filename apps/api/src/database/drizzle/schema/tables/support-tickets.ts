@@ -26,13 +26,10 @@ export const supportTickets = pgTable(
     status: ticketStatusEnum('status').default('open').notNull(),
     category: ticketCategoryEnum('category'),
 
-    // Asignación (superadmin/support agent)
-    assignedTo: uuid('assigned_to').references(() => users.id),
-    assignedAt: timestamp('assigned_at'),
-
     // Seguimiento
     resolvedAt: timestamp('resolved_at'),
     resolvedBy: uuid('resolved_by').references(() => users.id),
+    solution: text('solution'),
     closedAt: timestamp('closed_at'),
     closedBy: uuid('closed_by').references(() => users.id),
 
@@ -52,7 +49,6 @@ export const supportTickets = pgTable(
     index('idx_tickets_created_by').on(table.createdByUserId),
     index('idx_tickets_status').on(table.status),
     index('idx_tickets_priority').on(table.priority),
-    index('idx_tickets_assigned_to').on(table.assignedTo),
     index('idx_tickets_number').on(table.ticketNumber),
     index('idx_tickets_created_at').on(table.createdAt),
   ]

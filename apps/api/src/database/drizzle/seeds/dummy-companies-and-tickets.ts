@@ -215,10 +215,6 @@ async function seedSupportTickets(companyIds: string[]): Promise<void> {
       const random = Math.floor(Math.random() * 1000)
       const ticketNumber = `TKT-${timestamp}-${random}`
 
-      // Random assignment (50% chance of being assigned)
-      const isAssigned = Math.random() > 0.5
-      const assignedAt = isAssigned ? new Date() : null
-
       // Calculate dates based on status
       const createdAt = new Date()
       createdAt.setDate(createdAt.getDate() - Math.floor(Math.random() * 30)) // Random date within last 30 days
@@ -233,8 +229,6 @@ async function seedSupportTickets(companyIds: string[]): Promise<void> {
         priority: template.priority,
         status: template.status,
         category: template.category,
-        assignedTo: isAssigned ? superadminUser.userId : null,
-        assignedAt,
         resolvedAt: template.status === 'resolved' ? new Date() : null,
         resolvedBy: template.status === 'resolved' ? superadminUser.userId : null,
         closedAt: null,
