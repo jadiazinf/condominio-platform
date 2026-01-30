@@ -8,7 +8,13 @@ import {
   DropdownSection as HeroUIDropdownSection,
 } from '@heroui/dropdown'
 import { cn } from '@heroui/theme'
-import { ReactNode, Key } from 'react'
+import { ReactNode } from 'react'
+
+// HeroUI compatible key type (excludes bigint to match @react-types/shared)
+type DropdownKey = string | number
+
+// Selection type compatible with HeroUI
+type Selection = 'all' | Set<DropdownKey>
 
 type TDropdownPlacement =
   | 'top'
@@ -25,7 +31,7 @@ type TDropdownPlacement =
   | 'right-end'
 
 interface IDropdownProps {
-  children: ReactNode
+  children: ReactNode[]
   placement?: TDropdownPlacement
   isDisabled?: boolean
   closeOnSelect?: boolean
@@ -43,10 +49,11 @@ interface IDropdownMenuProps {
   variant?: 'solid' | 'bordered' | 'light' | 'flat' | 'faded' | 'shadow'
   color?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
   selectionMode?: 'none' | 'single' | 'multiple'
-  selectedKeys?: Set<Key>
-  disabledKeys?: Set<Key>
-  onAction?: (key: Key) => void
-  onSelectionChange?: (keys: Set<Key>) => void
+  selectedKeys?: Selection
+  disabledKeys?: Selection
+  disallowEmptySelection?: boolean
+  onAction?: (key: DropdownKey) => void
+  onSelectionChange?: (keys: Selection) => void
 }
 
 interface IDropdownItemProps {
@@ -102,6 +109,7 @@ export function DropdownMenu({
   selectionMode = 'none',
   selectedKeys,
   disabledKeys,
+  disallowEmptySelection,
   onAction,
   onSelectionChange,
 }: IDropdownMenuProps) {
@@ -110,13 +118,14 @@ export function DropdownMenu({
       aria-label={ariaLabel}
       color={color}
       disabledKeys={disabledKeys}
+      disallowEmptySelection={disallowEmptySelection}
       selectedKeys={selectedKeys}
       selectionMode={selectionMode}
       variant={variant}
       onAction={onAction}
-      onSelectionChange={(keys) => onSelectionChange?.(keys as Set<Key>)}
+      onSelectionChange={(keys) => onSelectionChange?.(keys as Selection)}
     >
-      {children}
+      {children as any}
     </HeroUIDropdownMenu>
   )
 }
@@ -155,7 +164,7 @@ export function DropdownItem({
 export function DropdownSection({ children, title, showDivider }: IDropdownSectionProps) {
   return (
     <HeroUIDropdownSection showDivider={showDivider} title={title}>
-      {children}
+      {children as any}
     </HeroUIDropdownSection>
   )
 }

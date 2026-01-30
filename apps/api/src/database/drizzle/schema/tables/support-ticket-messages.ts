@@ -27,6 +27,9 @@ export const supportTicketMessages = pgTable(
       }>
     >(),
 
+    // Status
+    isActive: boolean('is_active').default(true).notNull(),
+
     // Timestamps
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),

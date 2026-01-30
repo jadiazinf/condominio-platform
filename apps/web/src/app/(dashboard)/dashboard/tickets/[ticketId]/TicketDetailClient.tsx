@@ -31,7 +31,9 @@ export interface IDetailsTranslations {
   createdBy: string
   assignedTo: string
   resolved: string
+  resolvedBy: string
   closed: string
+  closedBy: string
   viewProfile: string
   notAssigned: string
   assignUser: string

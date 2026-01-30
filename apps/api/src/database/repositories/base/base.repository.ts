@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import type { PgTable } from 'drizzle-orm/pg-core'
 import type { TDrizzleClient } from '../interfaces'
 
@@ -57,10 +57,23 @@ export abstract class BaseRepository<TTable extends PgTable, TEntity, TCreateDto
 
   /**
    * Retrieves a single record by ID.
+   * For tables with isActive field, only returns active records by default.
+   * @param includeInactive - If true, includes inactive records (default: false)
    */
-  async getById(id: string): Promise<TEntity | null> {
+  async getById(id: string, includeInactive = false): Promise<TEntity | null> {
     const tableAny = this.table as any
-    const results = await this.db.select().from(tableAny).where(eq(tableAny.id, id)).limit(1)
+    const hasIsActive = 'isActive' in tableAny
+
+    const conditions = [eq(tableAny.id, id)]
+    if (hasIsActive && !includeInactive) {
+      conditions.push(eq(tableAny.isActive, true))
+    }
+
+    const results = await this.db
+      .select()
+      .from(tableAny)
+      .where(conditions.length > 1 ? and(...conditions) : conditions[0])
+      .limit(1)
 
     const record = results[0]
     if (!record) {

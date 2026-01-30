@@ -820,6 +820,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       closed_by UUID REFERENCES users(id),
       metadata JSONB,
       tags TEXT[],
+      is_active BOOLEAN DEFAULT true NOT NULL,
       created_at TIMESTAMP DEFAULT NOW() NOT NULL,
       updated_at TIMESTAMP DEFAULT NOW() NOT NULL
     );
@@ -831,6 +832,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       message TEXT NOT NULL,
       is_internal BOOLEAN DEFAULT false NOT NULL,
       attachments JSONB,
+      is_active BOOLEAN DEFAULT true NOT NULL,
       created_at TIMESTAMP DEFAULT NOW() NOT NULL,
       updated_at TIMESTAMP DEFAULT NOW() NOT NULL
     );

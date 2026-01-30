@@ -42,7 +42,7 @@ interface IPopoverProps {
   shouldBlockScroll?: boolean
   shouldCloseOnInteractOutside?: (element: Element) => boolean
   className?: string
-  children: ReactNode
+  children: ReactNode[]
   onOpenChange?: (isOpen: boolean) => void
   onClose?: () => void
 }

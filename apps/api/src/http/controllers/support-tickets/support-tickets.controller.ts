@@ -1,4 +1,5 @@
 import type { Context } from 'hono'
+import { useTranslation } from '@intlify/hono'
 import {
   supportTicketCreateSchema,
   supportTicketUpdateSchema,
@@ -23,6 +24,7 @@ import {
   CloseTicketService,
   UpdateTicketStatusService,
 } from '../../../services/support-tickets'
+import { LocaleDictionary } from '../../../locales/dictionary'
 
 const CompanyIdParamSchema = z.object({
   companyId: z.string().uuid('Invalid company ID format'),
@@ -178,15 +180,18 @@ export class SupportTicketsController extends BaseController<
   /**
    * Override getById to include user details and messages
    */
-  protected getById = async (c: Context): Promise<Response> => {
+  protected override getById = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
     const repo = this.repository as SupportTicketsRepository
+    const t = useTranslation(c)
 
     try {
       const ticket = await repo.findByIdWithDetails(ctx.params.id)
 
       if (!ticket) {
-        return ctx.notFound({ error: 'Ticket not found' })
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.controllers.supportTickets.ticketNotFound),
+        })
       }
 
       return ctx.ok({ data: ticket })

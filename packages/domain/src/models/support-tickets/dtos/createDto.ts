@@ -7,6 +7,7 @@ export const supportTicketCreateSchema = supportTicketSchema
     id: true,
     createdAt: true,
     updatedAt: true,
+    isActive: true,
     managementCompany: true,
     createdByUser: true,
     createdByMember: true,

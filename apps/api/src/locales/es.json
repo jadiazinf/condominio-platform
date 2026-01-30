@@ -1,4 +1,32 @@
 {
+  "Invalid ID format": "Formato de ID inválido.",
+  "Invalid user ID format": "Formato de ID de usuario inválido.",
+  "Invalid ticket ID format": "Formato de ID de ticket inválido.",
+  "Invalid UUID": "Formato de UUID inválido.",
+  "Invalid building ID format": "Formato de ID de edificio inválido.",
+  "Invalid condominium ID format": "Formato de ID de condominio inválido.",
+  "Invalid email format": "Formato de correo electrónico inválido.",
+  "Invalid from currency ID format": "Formato de ID de moneda de origen inválido.",
+  "Invalid location ID format": "Formato de ID de ubicación inválido.",
+  "Invalid management company ID format": "Formato de ID de empresa administradora inválido.",
+  "Invalid parent ID format": "Formato de ID padre inválido.",
+  "Invalid role ID format": "Formato de ID de rol inválido.",
+  "Invalid to currency ID format": "Formato de ID de moneda de destino inválido.",
+  "Invalid input: expected string, received undefined": "Se esperaba un valor de tipo texto.",
+  "Invalid input: expected record, received undefined": "Se esperaba un valor de tipo objeto.",
+  "Invalid input: expected array, received undefined": "Se esperaba un valor de tipo arreglo.",
+  "Invalid input: expected date, received Date": "Valor de fecha inválido.",
+  "Invalid input: expected number, received NaN": "Se esperaba un número válido.",
+  "Invalid input: expected number, received undefined": "Se esperaba un valor de tipo número.",
+  "Invalid date format (YYYY-MM-DD)": "Formato de fecha inválido (YYYY-MM-DD).",
+  "Invalid option: expected one of \"Corriente\"|\"Ahorro\"": "Tipo de cuenta inválido. Se esperaba 'Corriente' o 'Ahorro'.",
+  "Invalid option: expected one of \"INSERT\"|\"UPDATE\"|\"DELETE\"": "Tipo de operación inválido. Se esperaba 'INSERT', 'UPDATE' o 'DELETE'.",
+  "Invalid option: expected one of \"country\"|\"province\"|\"city\"": "Tipo de ubicación inválido. Se esperaba 'país', 'provincia' o 'ciudad'.",
+  "Invalid option: expected one of \"discount\"|\"increase\"|\"correction\"|\"waiver\"": "Tipo de ajuste inválido.",
+  "Invalid option: expected one of \"pending\"|\"approved\"|\"rejected\"|\"paid\"": "Estado inválido.",
+  "Invalid option: expected one of \"pending\"|\"paid\"|\"overdue\"|\"cancelled\"": "Estado de pago inválido.",
+  "Invalid option: expected one of \"pending\"|\"pending_verification\"|\"completed\"|\"failed\"|\"refunded\"|\"rejected\"": "Estado de pago inválido.",
+  "Too small: expected string to have >=10 characters": "El texto debe tener al menos 10 caracteres.",
   "http": {
     "middlewares": {
       "utils": {
@@ -25,12 +53,37 @@
         "paymentReported": "Pago reportado exitosamente, pendiente de verificación.",
         "notPendingVerification": "El pago no está pendiente de verificación.",
         "invalidPaymentStatus": "Estado de pago inválido."
+      },
+      "supportTickets": {
+        "ticketNotFound": "Ticket de soporte no encontrado.",
+        "ticketClosed": "El ticket está cerrado.",
+        "messageNotFound": "Mensaje no encontrado.",
+        "cannotAddMessageToClosed": "No se pueden agregar mensajes a un ticket cerrado o cancelado.",
+        "failedToCreateMessage": "Error al crear el mensaje.",
+        "operationFailed": "La operación falló."
       }
     },
     "locales": {
       "unknownError": "Error desconocido, intente nuevamente.",
       "validationError": "Error de validación en los datos enviados.",
       "malformedBody": "El cuerpo de la solicitud no es válido."
+    },
+    "validation": {
+      "Invalid ID format": "Formato de ID inválido.",
+      "Invalid user ID format": "Formato de ID de usuario inválido.",
+      "Invalid ticket ID format": "Formato de ID de ticket inválido.",
+      "Invalid input: expected string, received undefined": "Se esperaba un valor de tipo texto.",
+      "Invalid input: expected record, received undefined": "Se esperaba un valor de tipo objeto.",
+      "Invalid input: expected array, received undefined": "Se esperaba un valor de tipo arreglo.",
+      "Invalid date format (YYYY-MM-DD)": "Formato de fecha inválido (YYYY-MM-DD).",
+      "invalidIdFormat": "Formato de ID inválido.",
+      "invalidUserIdFormat": "Formato de ID de usuario inválido.",
+      "invalidTicketIdFormat": "Formato de ID de ticket inválido.",
+      "expectedString": "Se esperaba un valor de tipo texto.",
+      "expectedRecord": "Se esperaba un valor de tipo objeto.",
+      "expectedArray": "Se esperaba un valor de tipo arreglo.",
+      "invalidDateFormat": "Formato de fecha inválido (YYYY-MM-DD).",
+      "invalidOption": "Opción inválida."
     },
     "unhandledResponses": {
       "internalError": "Error interno del servidor, por favor intente nuevamente más tarde."

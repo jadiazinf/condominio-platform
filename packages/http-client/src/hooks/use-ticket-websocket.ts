@@ -61,7 +61,8 @@ export function useTicketWebSocket({
       if (wsUrl) {
         finalWsUrl = `${wsUrl}/tickets/${ticketId}?token=${token}`
       } else {
-        const isClient = typeof window !== 'undefined'
+        // Check if running in browser environment
+        const isClient = typeof globalThis !== 'undefined' && 'window' in globalThis
         if (!isClient) {
           return // Don't connect on server
         }

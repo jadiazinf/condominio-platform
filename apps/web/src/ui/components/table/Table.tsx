@@ -9,7 +9,13 @@ import {
   TableCell as HeroUITableCell,
 } from '@heroui/table'
 import { cn } from '@heroui/theme'
-import { ReactNode, Key, useCallback } from 'react'
+import { ReactNode, useCallback } from 'react'
+
+// HeroUI compatible key type (excludes bigint to match @react-types/shared)
+type TableKey = string | number
+
+// Selection type compatible with HeroUI
+type Selection = 'all' | Set<TableKey>
 
 type TTableColor = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
 
@@ -44,8 +50,8 @@ interface ITableProps<T extends { id: string | number }> {
   removeWrapper?: boolean
   fullWidth?: boolean
   selectionMode?: TSelectionMode
-  selectedKeys?: Set<Key>
-  disabledKeys?: Set<Key>
+  selectedKeys?: Selection
+  disabledKeys?: Selection
   emptyContent?: ReactNode
   isLoading?: boolean
   loadingContent?: ReactNode
@@ -64,7 +70,7 @@ interface ITableProps<T extends { id: string | number }> {
     emptyWrapper?: string
     loadingWrapper?: string
   }
-  onSelectionChange?: (keys: Set<Key>) => void
+  onSelectionChange?: (keys: Selection) => void
   onRowClick?: (row: T) => void
 }
 
@@ -95,7 +101,7 @@ export function Table<T extends { id: string | number }>({
   onRowClick,
 }: ITableProps<T>) {
   const renderCellContent = useCallback(
-    (row: T, columnKey: Key) => {
+    (row: T, columnKey: TableKey) => {
       return renderCell(row, columnKey as keyof T | string)
     },
     [renderCell]
@@ -119,7 +125,7 @@ export function Table<T extends { id: string | number }>({
       selectedKeys={selectedKeys}
       selectionMode={selectionMode}
       shadow={shadow}
-      onSelectionChange={(keys) => onSelectionChange?.(keys as Set<Key>)}
+      onSelectionChange={(keys) => onSelectionChange?.(keys as Selection)}
     >
       <HeroUITableHeader columns={columns}>
         {(column) => (

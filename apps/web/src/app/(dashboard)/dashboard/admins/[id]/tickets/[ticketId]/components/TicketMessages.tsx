@@ -42,18 +42,8 @@ export function TicketMessages({ ticketId, ticketStatus }: TicketMessagesProps) 
   })
 
   const createMessageMutation = useMutation({
-    mutationFn: ({
-      ticketId,
-      userId,
-      message,
-    }: {
-      ticketId: string
-      userId: string
-      message: string
-    }) =>
+    mutationFn: ({ message }: { message: string }) =>
       createTicketMessage(ticketId, {
-        ticketId,
-        userId,
         message,
         isInternal: false,
         attachments: null,
@@ -106,11 +96,7 @@ export function TicketMessages({ ticketId, ticketStatus }: TicketMessagesProps) 
   const handleSendMessage = async () => {
     if (!message.trim() || !firebaseUser) return
 
-    const userId = firebaseUser.uid
-
     await createMessageMutation.mutateAsync({
-      ticketId,
-      userId,
       message: message.trim(),
     })
   }

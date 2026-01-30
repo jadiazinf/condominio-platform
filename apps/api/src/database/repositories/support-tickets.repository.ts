@@ -1,4 +1,4 @@
-import { eq, and, or, asc, desc, count, inArray, ilike } from 'drizzle-orm'
+import { eq, and, or, asc, count, inArray, ilike } from 'drizzle-orm'
 import type {
   TSupportTicket,
   TSupportTicketCreate,
@@ -61,6 +61,7 @@ export class SupportTicketsRepository
       closedBy: r.closedBy,
       metadata: r.metadata as Record<string, unknown> | null,
       tags: r.tags ?? null,
+      isActive: r.isActive ?? true,
       createdAt: r.createdAt ?? new Date(),
       updatedAt: r.updatedAt ?? new Date(),
     }
@@ -114,7 +115,10 @@ export class SupportTicketsRepository
   /**
    * List all tickets for a management company with optional filters
    */
-  async listByCompanyId(companyId: string, filters?: ITicketFilters): Promise<TPaginatedResponse<TSupportTicket>> {
+  async listByCompanyId(
+    companyId: string,
+    filters?: ITicketFilters
+  ): Promise<TPaginatedResponse<TSupportTicket>> {
     const page = filters?.page ?? 1
     const limit = filters?.limit ?? 20
 
@@ -205,31 +209,27 @@ export class SupportTicketsRepository
     }
 
     // Get total count
-    const countQuery = this.db
-      .select({ total: count() })
-      .from(supportTickets)
+    const countQuery = this.db.select({ total: count() }).from(supportTickets)
 
-    const countResult = conditions.length > 0
-      ? await countQuery.where(and(...conditions))
-      : await countQuery
+    const countResult =
+      conditions.length > 0 ? await countQuery.where(and(...conditions)) : await countQuery
 
     const total = countResult[0]?.total ?? 0
 
     // Get paginated results
-    const dataQuery = this.db
-      .select()
-      .from(supportTickets)
+    const dataQuery = this.db.select().from(supportTickets)
 
-    const results = conditions.length > 0
-      ? await dataQuery
-          .where(and(...conditions))
-          .orderBy(asc(supportTickets.createdAt))
-          .limit(limit)
-          .offset((page - 1) * limit)
-      : await dataQuery
-          .orderBy(asc(supportTickets.createdAt))
-          .limit(limit)
-          .offset((page - 1) * limit)
+    const results =
+      conditions.length > 0
+        ? await dataQuery
+            .where(and(...conditions))
+            .orderBy(asc(supportTickets.createdAt))
+            .limit(limit)
+            .offset((page - 1) * limit)
+        : await dataQuery
+            .orderBy(asc(supportTickets.createdAt))
+            .limit(limit)
+            .offset((page - 1) * limit)
 
     const totalPages = Math.ceil(total / limit)
 
@@ -348,11 +348,7 @@ export class SupportTicketsRepository
    */
   private async getUserById(userId: string | null): Promise<typeof users.$inferSelect | null> {
     if (!userId) return null
-    const result = await this.db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1)
+    const result = await this.db.select().from(users).where(eq(users.id, userId)).limit(1)
     return result[0] || null
   }
 
@@ -399,6 +395,7 @@ export class SupportTicketsRepository
       message: message.message,
       isInternal: message.isInternal,
       attachments: message.attachments as any,
+      isActive: message.isActive ?? true,
       createdAt: message.createdAt ?? new Date(),
       updatedAt: message.updatedAt ?? new Date(),
       user: this.mapUserToEntity(user),

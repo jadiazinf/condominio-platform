@@ -63,7 +63,7 @@ export function LanguageSwitcher({ variant = 'icon', size = 'sm' }: ILanguageSwi
       <DropdownMenu
         disallowEmptySelection
         aria-label={t('language.select')}
-        selectedKeys={[locale]}
+        selectedKeys={new Set([locale])}
         selectionMode="single"
         onAction={handleLanguageChange}
       >

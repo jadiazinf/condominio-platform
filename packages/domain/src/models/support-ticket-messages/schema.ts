@@ -21,6 +21,9 @@ export const supportTicketMessageSchema = baseModelSchema.extend({
   // Attachments
   attachments: z.array(attachmentSchema).nullable(),
 
+  // Status
+  isActive: z.boolean().default(true),
+
   // Relations (populated by repository joins)
   user: userSchema
     .pick({

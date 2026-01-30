@@ -21,6 +21,12 @@ export const supportTicketMessageKeys = {
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Type for creating a message from the client.
+ * Omits ticketId and userId as they are handled by the API automatically.
+ */
+export type TCreateTicketMessageInput = Omit<TSupportTicketMessageCreate, 'ticketId' | 'userId'>
+
 export interface IUseTicketMessagesOptions {
   enabled?: boolean
 }
@@ -68,21 +74,22 @@ export async function getTicketMessages(ticketId: string): Promise<TSupportTicke
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Hook to create a new message in a ticket
+ * Hook to create a new message in a ticket.
+ * Note: ticketId and userId are handled automatically by the API.
  */
 export function useCreateTicketMessage(ticketId: string, options?: ICreateTicketMessageOptions) {
-  return useApiMutation<TApiDataResponse<TSupportTicketMessage>, TSupportTicketMessageCreate>({
+  return useApiMutation<TApiDataResponse<TSupportTicketMessage>, TCreateTicketMessageInput>({
     path: `/support-tickets/${ticketId}/messages`,
     method: 'POST',
     config: {},
-    onSuccess: (response, ...args) => {
+    onSuccess: (response) => {
       // Optimistically update the cache with the new message
       const newMessage = response.data.data
 
       // This will be handled by WebSocket, but we update cache as backup
       // The WebSocket handler will check for duplicates
 
-      options?.onSuccess?.(response, ...args)
+      options?.onSuccess?.(response)
     },
     onError: options?.onError,
     invalidateKeys: [
@@ -93,11 +100,12 @@ export function useCreateTicketMessage(ticketId: string, options?: ICreateTicket
 }
 
 /**
- * Standalone function to create a ticket message
+ * Standalone function to create a ticket message.
+ * Note: ticketId and userId are handled automatically by the API.
  */
 export async function createTicketMessage(
   ticketId: string,
-  data: TSupportTicketMessageCreate
+  data: TCreateTicketMessageInput
 ): Promise<TSupportTicketMessage> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<TSupportTicketMessage>>(

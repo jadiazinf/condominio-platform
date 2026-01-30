@@ -203,10 +203,10 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
               <Building className="text-default-400" size={16} />
               <div>
                 <p className="text-sm font-medium text-default-900">
-                  {ticket.managementCompany?.legalName || 'N/A'}
+                  {ticket.managementCompany?.name || 'N/A'}
                 </p>
                 <p className="text-xs text-default-400">
-                  {ticket.managementCompany?.tradeName || ''}
+                  {ticket.managementCompany?.legalName || ''}
                 </p>
               </div>
             </div>

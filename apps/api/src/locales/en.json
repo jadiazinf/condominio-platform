@@ -1,4 +1,32 @@
 {
+  "Invalid ID format": "Invalid ID format.",
+  "Invalid user ID format": "Invalid user ID format.",
+  "Invalid ticket ID format": "Invalid ticket ID format.",
+  "Invalid UUID": "Invalid UUID format.",
+  "Invalid building ID format": "Invalid building ID format.",
+  "Invalid condominium ID format": "Invalid condominium ID format.",
+  "Invalid email format": "Invalid email format.",
+  "Invalid from currency ID format": "Invalid from currency ID format.",
+  "Invalid location ID format": "Invalid location ID format.",
+  "Invalid management company ID format": "Invalid management company ID format.",
+  "Invalid parent ID format": "Invalid parent ID format.",
+  "Invalid role ID format": "Invalid role ID format.",
+  "Invalid to currency ID format": "Invalid to currency ID format.",
+  "Invalid input: expected string, received undefined": "Expected string value.",
+  "Invalid input: expected record, received undefined": "Expected object value.",
+  "Invalid input: expected array, received undefined": "Expected array value.",
+  "Invalid input: expected date, received Date": "Invalid date value.",
+  "Invalid input: expected number, received NaN": "Expected a valid number.",
+  "Invalid input: expected number, received undefined": "Expected number value.",
+  "Invalid date format (YYYY-MM-DD)": "Invalid date format (YYYY-MM-DD).",
+  "Invalid option: expected one of \"Corriente\"|\"Ahorro\"": "Invalid account type. Expected 'Checking' or 'Savings'.",
+  "Invalid option: expected one of \"INSERT\"|\"UPDATE\"|\"DELETE\"": "Invalid operation type. Expected 'INSERT', 'UPDATE', or 'DELETE'.",
+  "Invalid option: expected one of \"country\"|\"province\"|\"city\"": "Invalid location type. Expected 'country', 'province', or 'city'.",
+  "Invalid option: expected one of \"discount\"|\"increase\"|\"correction\"|\"waiver\"": "Invalid adjustment type.",
+  "Invalid option: expected one of \"pending\"|\"approved\"|\"rejected\"|\"paid\"": "Invalid status.",
+  "Invalid option: expected one of \"pending\"|\"paid\"|\"overdue\"|\"cancelled\"": "Invalid payment status.",
+  "Invalid option: expected one of \"pending\"|\"pending_verification\"|\"completed\"|\"failed\"|\"refunded\"|\"rejected\"": "Invalid payment status.",
+  "Too small: expected string to have >=10 characters": "Text must have at least 10 characters.",
   "http": {
     "middlewares": {
       "utils": {
@@ -25,12 +53,37 @@
         "paymentReported": "Payment reported successfully, pending verification.",
         "notPendingVerification": "Payment is not pending verification.",
         "invalidPaymentStatus": "Invalid payment status."
+      },
+      "supportTickets": {
+        "ticketNotFound": "Support ticket not found.",
+        "ticketClosed": "The ticket is closed.",
+        "messageNotFound": "Message not found.",
+        "cannotAddMessageToClosed": "Cannot add messages to a closed or cancelled ticket.",
+        "failedToCreateMessage": "Failed to create message.",
+        "operationFailed": "Operation failed."
       }
     },
     "locales": {
       "unknownError": "Unknown error, contact support.",
       "validationError": "Validation error in the submitted data.",
       "malformedBody": "The request body is not valid."
+    },
+    "validation": {
+      "Invalid ID format": "Invalid ID format.",
+      "Invalid user ID format": "Invalid user ID format.",
+      "Invalid ticket ID format": "Invalid ticket ID format.",
+      "Invalid input: expected string, received undefined": "Expected string value.",
+      "Invalid input: expected record, received undefined": "Expected object value.",
+      "Invalid input: expected array, received undefined": "Expected array value.",
+      "Invalid date format (YYYY-MM-DD)": "Invalid date format (YYYY-MM-DD).",
+      "invalidIdFormat": "Invalid ID format.",
+      "invalidUserIdFormat": "Invalid user ID format.",
+      "invalidTicketIdFormat": "Invalid ticket ID format.",
+      "expectedString": "Expected string value.",
+      "expectedRecord": "Expected object value.",
+      "expectedArray": "Expected array value.",
+      "invalidDateFormat": "Invalid date format (YYYY-MM-DD).",
+      "invalidOption": "Invalid option."
     },
     "unhandledResponses": {
       "internalError": "Internal server error, please try again later."

@@ -42,7 +42,6 @@ interface ICardBodyProps {
 interface ICardFooterProps {
   children: ReactNode
   className?: string
-  isBlurred?: boolean
 }
 
 export function Card({
@@ -88,9 +87,9 @@ export function CardBody({ children, className }: ICardBodyProps) {
   return <HeroUICardBody className={cn(className)}>{children}</HeroUICardBody>
 }
 
-export function CardFooter({ children, className, isBlurred }: ICardFooterProps) {
+export function CardFooter({ children, className }: ICardFooterProps) {
   return (
-    <HeroUICardFooter className={cn(className)} isBlurred={isBlurred}>
+    <HeroUICardFooter className={cn(className)}>
       {children}
     </HeroUICardFooter>
   )

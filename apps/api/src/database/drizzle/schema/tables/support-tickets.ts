@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, timestamp, jsonb, index } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, text, timestamp, jsonb, boolean, index } from 'drizzle-orm/pg-core'
 import { managementCompanies } from './management-companies'
 import { managementCompanyMembers } from './management-company-members'
 import { users } from './users'
@@ -39,6 +39,9 @@ export const supportTickets = pgTable(
     // Metadata
     metadata: jsonb('metadata').$type<Record<string, unknown>>(),
     tags: text('tags').array(),
+
+    // Status
+    isActive: boolean('is_active').default(true).notNull(),
 
     // Timestamps
     createdAt: timestamp('created_at').defaultNow().notNull(),

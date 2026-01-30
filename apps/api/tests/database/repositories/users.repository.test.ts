@@ -171,8 +171,12 @@ describe('UsersRepository', () => {
 
       expect(result).toBe(true)
 
-      const found = await repository.getById(created.id)
+      const found = await repository.getById(created.id, true)
       expect(found?.isActive).toBe(false)
+
+      // Verify it's not returned without includeInactive flag
+      const notFound = await repository.getById(created.id)
+      expect(notFound).toBeNull()
     })
   })
 

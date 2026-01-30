@@ -7,11 +7,13 @@ type TSpinnerSize = 'sm' | 'md' | 'lg'
 
 type TSpinnerColor = 'current' | 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
 
+type TSpinnerLabelColor = 'foreground' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
+
 interface ISpinnerProps {
   size?: TSpinnerSize
   color?: TSpinnerColor
   label?: string
-  labelColor?: TSpinnerColor
+  labelColor?: TSpinnerLabelColor
   className?: string
 }
 
@@ -36,5 +38,6 @@ export function Spinner({
 export type {
   TSpinnerSize,
   TSpinnerColor,
+  TSpinnerLabelColor,
   ISpinnerProps,
 }

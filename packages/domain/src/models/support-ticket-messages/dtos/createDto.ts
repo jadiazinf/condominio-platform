@@ -7,6 +7,7 @@ export const supportTicketMessageCreateSchema = supportTicketMessageSchema
     id: true,
     createdAt: true,
     updatedAt: true,
+    isActive: true,
     user: true,
   })
   .strict()

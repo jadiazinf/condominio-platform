@@ -36,6 +36,7 @@ export class SupportTicketMessagesRepository
       message: r.message,
       isInternal: r.isInternal,
       attachments: r.attachments as TAttachment[] | null,
+      isActive: r.isActive ?? true,
       createdAt: r.createdAt ?? new Date(),
       updatedAt: r.updatedAt ?? new Date(),
     }

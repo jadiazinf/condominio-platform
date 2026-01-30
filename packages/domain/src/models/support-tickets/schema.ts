@@ -53,6 +53,9 @@ export const supportTicketSchema = baseModelSchema.extend({
   metadata: z.record(z.string(), z.unknown()).nullable(),
   tags: z.array(z.string()).nullable(),
 
+  // Status
+  isActive: z.boolean().default(true),
+
   // Relations
   managementCompany: managementCompanySchema.optional(),
   createdByUser: userSchema.optional(),
