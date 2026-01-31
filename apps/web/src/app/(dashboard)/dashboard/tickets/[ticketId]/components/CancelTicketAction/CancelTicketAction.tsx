@@ -1,31 +1,31 @@
 'use client'
 
 import { Button } from '@/ui/components/button'
-import { CheckCircle } from 'lucide-react'
+import { Ban } from 'lucide-react'
 
-interface ITicketResolveActionProps {
+interface ICancelTicketActionProps {
   label: string
-  onResolve: () => void
+  onCancel: () => void
   isLoading?: boolean
   className?: string
 }
 
-export function TicketResolveAction({
+export function CancelTicketAction({
   label,
-  onResolve,
+  onCancel,
   isLoading = false,
   className,
-}: ITicketResolveActionProps) {
+}: ICancelTicketActionProps) {
   return (
     <Button
       className={className}
-      color="success"
+      color="warning"
       isDisabled={isLoading}
       isLoading={isLoading}
       size="sm"
-      startContent={!isLoading && <CheckCircle size={16} />}
+      startContent={!isLoading && <Ban size={16} />}
       variant="flat"
-      onPress={onResolve}
+      onPress={onCancel}
     >
       {label}
     </Button>

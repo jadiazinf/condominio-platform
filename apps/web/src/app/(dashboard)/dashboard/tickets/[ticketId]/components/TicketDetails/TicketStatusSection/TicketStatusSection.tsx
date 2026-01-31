@@ -39,6 +39,7 @@ export function TicketStatusSection({
         {canManage && (
           <TicketStatusAction
             currentStatus={status}
+            iconOnly
             isLoading={isLoading}
             translations={{
               changeStatus: translations.changeStatus,

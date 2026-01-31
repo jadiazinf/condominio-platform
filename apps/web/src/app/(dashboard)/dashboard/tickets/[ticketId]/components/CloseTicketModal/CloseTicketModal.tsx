@@ -26,12 +26,14 @@ interface ICloseTicketModalProps {
   translations: ICloseTicketModalTranslations
   onConfirm: (solution: string) => void
   isLoading?: boolean
+  className?: string
 }
 
 export function CloseTicketModal({
   translations,
   onConfirm,
   isLoading = false,
+  className,
 }: ICloseTicketModalProps) {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure()
   const [solution, setSolution] = useState('')
@@ -49,6 +51,7 @@ export function CloseTicketModal({
   return (
     <>
       <Button
+        className={className}
         color="danger"
         isDisabled={isLoading}
         size="sm"

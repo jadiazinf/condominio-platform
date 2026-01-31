@@ -77,25 +77,52 @@ function registerRoute(router: Hono, route: TRouteDefinition): void {
     return
   }
 
-  // With 3+ middlewares (fallback for complex routes)
+  // With 3 middlewares
+  if (middlewares.length === 3) {
+    const m1 = middlewares[0]!
+    const m2 = middlewares[1]!
+    const m3 = middlewares[2]!
+    switch (method) {
+      case 'get':
+        router.get(path, m1, m2, m3, handler)
+        break
+      case 'post':
+        router.post(path, m1, m2, m3, handler)
+        break
+      case 'patch':
+        router.patch(path, m1, m2, m3, handler)
+        break
+      case 'put':
+        router.put(path, m1, m2, m3, handler)
+        break
+      case 'delete':
+        router.delete(path, m1, m2, m3, handler)
+        break
+    }
+    return
+  }
+
+  // With 4+ middlewares (fallback for complex routes)
   const m1 = middlewares[0]!
   const m2 = middlewares[1]!
   const m3 = middlewares[2]!
+  const m4 = middlewares[3]!
+  const remaining = middlewares.slice(4)
   switch (method) {
     case 'get':
-      router.get(path, m1, m2, m3, handler)
+      router.get(path, m1, m2, m3, m4, ...remaining, handler)
       break
     case 'post':
-      router.post(path, m1, m2, m3, handler)
+      router.post(path, m1, m2, m3, m4, ...remaining, handler)
       break
     case 'patch':
-      router.patch(path, m1, m2, m3, handler)
+      router.patch(path, m1, m2, m3, m4, ...remaining, handler)
       break
     case 'put':
-      router.put(path, m1, m2, m3, handler)
+      router.put(path, m1, m2, m3, m4, ...remaining, handler)
       break
     case 'delete':
-      router.delete(path, m1, m2, m3, handler)
+      router.delete(path, m1, m2, m3, m4, ...remaining, handler)
       break
   }
 }

@@ -20,6 +20,7 @@ interface ITicketActionsSectionProps {
     closeTicketModal: ICloseTicketModalTranslations
   }
   onClose: (solution: string) => void
+  showCloseButton?: boolean
 }
 
 export function TicketActionsSection({
@@ -30,6 +31,7 @@ export function TicketActionsSection({
   locale,
   translations,
   onClose,
+  showCloseButton = true,
 }: ITicketActionsSectionProps) {
   return (
     <>
@@ -60,7 +62,7 @@ export function TicketActionsSection({
         </div>
       )}
 
-      {!closedAt && canManage && (
+      {showCloseButton && !closedAt && canManage && (
         <div>
           <CloseTicketModal
             isLoading={isLoading}

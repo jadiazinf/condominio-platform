@@ -15,8 +15,6 @@ import {
   getUserCookieServer,
   getCondominiumsCookieServer,
   getSelectedCondominiumCookieServer,
-  getSuperadminCookieServer,
-  getSuperadminPermissionsCookieServer,
 } from '@/libs/cookies/server'
 
 const SESSION_COOKIE_NAME = '__session'
@@ -61,19 +59,12 @@ export async function getFullSession(): Promise<FullSession> {
     redirect('/signin?expired=true')
   }
 
-  // Try to get all data from cookies first
-  const [
-    cookieUser,
-    cookieCondominiums,
-    cookieSelectedCondominium,
-    cookieSuperadmin,
-    cookiePermissions,
-  ] = await Promise.all([
+  // Try to get user and condominium data from cookies first
+  // Note: We always fetch superadmin status from API to catch permission changes
+  const [cookieUser, cookieCondominiums, cookieSelectedCondominium] = await Promise.all([
     getUserCookieServer(),
     getCondominiumsCookieServer(),
     getSelectedCondominiumCookieServer(),
-    getSuperadminCookieServer(),
-    getSuperadminPermissionsCookieServer(),
   ])
 
   // Validate that cached user matches current session
@@ -81,14 +72,14 @@ export async function getFullSession(): Promise<FullSession> {
     cookieUser && cookieUser.firebaseUid === decodedToken.uid ? cookieUser : null
 
   // Determine what needs to be fetched
-  const needsFetch = !validCachedUser || cookieCondominiums === null
+  const needsUserFetch = !validCachedUser || cookieCondominiums === null
 
   let user: TUser
   let condominiums: TUserCondominiumAccess[]
-  let superadmin: TSuperadminUser | null = cookieSuperadmin
-  let superadminPermissions: TPermission[] = cookiePermissions ?? []
+  let superadmin: TSuperadminUser | null = null
+  let superadminPermissions: TPermission[] = []
 
-  if (needsFetch) {
+  if (needsUserFetch) {
     // Fetch user from API by Firebase UID
     let fetchedUser: TUser | null = null
 
@@ -130,6 +121,12 @@ export async function getFullSession(): Promise<FullSession> {
   } else {
     user = validCachedUser!
     condominiums = cookieCondominiums ?? []
+
+    // Always verify superadmin status from API to catch permission changes
+    // This ensures users get updated permissions even if they have valid cached user data
+    const superadminSession = await fetchSuperadminSession(user.id, sessionToken)
+    superadmin = superadminSession?.superadmin ?? null
+    superadminPermissions = superadminSession?.permissions ?? []
   }
 
   const selectedCondominium =
@@ -144,6 +141,6 @@ export async function getFullSession(): Promise<FullSession> {
     superadminPermissions,
     sessionToken,
     needsCondominiumSelection,
-    wasFetched: needsFetch,
+    wasFetched: needsUserFetch,
   }
 }

@@ -4,5 +4,6 @@ export {
   fetchSuperadminByUserId,
   fetchSuperadminPermissions,
   fetchSuperadminSession,
+  fetchActiveSuperadminUsers,
   type TSuperadminSession,
 } from './fetch-superadmin'

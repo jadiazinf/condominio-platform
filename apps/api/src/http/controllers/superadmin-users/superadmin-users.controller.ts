@@ -25,6 +25,7 @@ type TUserIdParam = z.infer<typeof UserIdParamSchema>
  *
  * Endpoints:
  * - GET    /              List all superadmin users
+ * - GET    /active-users  Get all active superadmin users (TUser objects)
  * - GET    /user/:userId  Get by user ID
  * - GET    /check/:userId Check if user is superadmin
  * - GET    /:id           Get by ID
@@ -41,11 +42,18 @@ export class SuperadminUsersController extends BaseController<
     super(repository)
     this.getByUserId = this.getByUserId.bind(this)
     this.checkIsSuperadmin = this.checkIsSuperadmin.bind(this)
+    this.getActiveSuperadminUsers = this.getActiveSuperadminUsers.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
       { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      {
+        method: 'get',
+        path: '/active-users',
+        handler: this.getActiveSuperadminUsers,
+        middlewares: [authMiddleware],
+      },
       {
         method: 'get',
         path: '/user/:userId',
@@ -113,6 +121,18 @@ export class SuperadminUsersController extends BaseController<
     try {
       const isSuperadmin = await repo.isUserSuperadmin(ctx.params.userId)
       return ctx.ok({ data: { isSuperadmin } })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private async getActiveSuperadminUsers(c: Context): Promise<Response> {
+    const ctx = this.ctx(c)
+    const repo = this.repository as SuperadminUsersRepository
+
+    try {
+      const users = await repo.getActiveSuperadminUsers()
+      return ctx.ok({ data: users })
     } catch (error) {
       return this.handleError(ctx, error)
     }

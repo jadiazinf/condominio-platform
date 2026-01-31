@@ -1,14 +1,16 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Divider } from '@/ui/components/divider'
-import { MessageSquare, Wifi, WifiOff } from 'lucide-react'
+import { MessageSquare, Wifi, WifiOff, FileText, Download, Play } from 'lucide-react'
 import { useTicketMessages, useTicketWebSocket } from '@packages/http-client'
+import { type TAttachment, getFileTypeCategory, formatFileSize } from '@packages/domain'
 
 import { Typography } from '@/ui/components/typography'
 import { SendMessageForm } from './SendMessageForm'
+import { AttachmentsGallery } from './AttachmentsGallery'
 import { getSessionCookie } from '@/libs/cookies'
 import { useUser } from '@/contexts'
 
@@ -26,6 +28,23 @@ export interface ITicketMessagesTranslations {
   error: string
   today?: string
   ticketClosed?: string
+  attachFiles?: string
+  dropFilesHere?: string
+  invalidFileType?: string
+  fileTooLarge?: string
+  uploading?: string
+  removeFile?: string
+  downloadFile?: string
+  openImage?: string
+  // Gallery translations
+  galleryTitle?: string
+  galleryNoAttachments?: string
+  galleryImages?: string
+  galleryVideos?: string
+  galleryDocuments?: string
+  galleryUploadedBy?: string
+  galleryShowAll?: string
+  galleryShowLess?: string
 }
 
 export interface ITicketMessagesProps {
@@ -33,6 +52,106 @@ export interface ITicketMessagesProps {
   ticketStatus: string
   locale: string
   translations: ITicketMessagesTranslations
+}
+
+// Attachment display component
+function AttachmentDisplay({
+  attachment,
+  isCurrentUser,
+  downloadLabel,
+}: {
+  attachment: TAttachment
+  isCurrentUser: boolean
+  downloadLabel?: string
+}) {
+  const category = getFileTypeCategory(attachment.mimeType)
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
+
+  if (category === 'image') {
+    return (
+      <div className="mt-2">
+        <button
+          className="block cursor-pointer overflow-hidden rounded-lg"
+          type="button"
+          onClick={() => setIsImageModalOpen(true)}
+        >
+          <img
+            alt={attachment.name}
+            className="max-h-48 max-w-full rounded-lg object-contain"
+            src={attachment.url}
+          />
+        </button>
+        {/* Simple image modal */}
+        {isImageModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            onClick={() => setIsImageModalOpen(false)}
+          >
+            <img
+              alt={attachment.name}
+              className="max-h-[90vh] max-w-[90vw] object-contain"
+              src={attachment.url}
+            />
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  if (category === 'video') {
+    return (
+      <div className="mt-2">
+        <video
+          className="max-h-64 max-w-full rounded-lg"
+          controls
+          preload="metadata"
+        >
+          <source src={attachment.url} type={attachment.mimeType} />
+          Your browser does not support video playback.
+        </video>
+        <Typography
+          className={`mt-1 text-xs ${isCurrentUser ? 'text-white/70' : 'text-default-400'}`}
+        >
+          {attachment.name} ({formatFileSize(attachment.size)})
+        </Typography>
+      </div>
+    )
+  }
+
+  // PDF and other files - show as download link
+  return (
+    <a
+      className={`mt-2 flex items-center gap-2 rounded-lg p-2 transition-colors ${
+        isCurrentUser
+          ? 'bg-white/10 hover:bg-white/20'
+          : 'bg-default-100 hover:bg-default-200'
+      }`}
+      href={attachment.url}
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      <FileText
+        className={isCurrentUser ? 'text-white' : 'text-red-500'}
+        size={24}
+      />
+      <div className="min-w-0 flex-1">
+        <Typography
+          className={`truncate text-sm ${isCurrentUser ? 'text-white' : 'text-default-900'}`}
+        >
+          {attachment.name}
+        </Typography>
+        <Typography
+          className={`text-xs ${isCurrentUser ? 'text-white/70' : 'text-default-400'}`}
+        >
+          {formatFileSize(attachment.size)}
+        </Typography>
+      </div>
+      <Download
+        className={isCurrentUser ? 'text-white/80' : 'text-default-400'}
+        size={16}
+      />
+    </a>
+  )
 }
 
 export function TicketMessages({
@@ -194,24 +313,14 @@ export function TicketMessages({
                         {message.message}
                       </Typography>
                       {message.attachments && message.attachments.length > 0 && (
-                        <div className="mt-2 space-y-1">
+                        <div className="mt-2 space-y-2">
                           {message.attachments.map((attachment, idx) => (
-                            <a
+                            <AttachmentDisplay
                               key={idx}
-                              className={`flex items-center gap-2 text-xs hover:underline ${
-                                isCurrentUser ? 'text-white' : 'text-primary'
-                              }`}
-                              href={attachment.url}
-                              rel="noopener noreferrer"
-                              target="_blank"
-                            >
-                              <span>{attachment.name}</span>
-                              <span
-                                className={isCurrentUser ? 'text-white/80' : 'text-default-400'}
-                              >
-                                ({(attachment.size / 1024).toFixed(2)} KB)
-                              </span>
-                            </a>
+                              attachment={attachment}
+                              downloadLabel={translations.downloadFile}
+                              isCurrentUser={isCurrentUser}
+                            />
                           ))}
                         </div>
                       )}
@@ -252,8 +361,32 @@ export function TicketMessages({
               success: translations.success,
               error: translations.error,
               ticketClosed: translations.ticketClosed,
+              attachFiles: translations.attachFiles,
+              dropFilesHere: translations.dropFilesHere,
+              invalidFileType: translations.invalidFileType,
+              fileTooLarge: translations.fileTooLarge,
+              uploading: translations.uploading,
+              removeFile: translations.removeFile,
             }}
           />
+
+          {/* Attachments Gallery - Accordion at the bottom */}
+          {messages && messages.length > 0 && (
+            <AttachmentsGallery
+              messages={messages}
+              locale={locale}
+              translations={{
+                title: translations.galleryTitle || translations.attachments,
+                noAttachments: translations.galleryNoAttachments || 'No attachments',
+                images: translations.galleryImages || 'Images',
+                videos: translations.galleryVideos || 'Videos',
+                documents: translations.galleryDocuments || 'Documents',
+                uploadedBy: translations.galleryUploadedBy || 'Uploaded by',
+                showAll: translations.galleryShowAll || 'Show all',
+                showLess: translations.galleryShowLess || 'Show less',
+              }}
+            />
+          )}
         </div>
       </CardBody>
     </Card>

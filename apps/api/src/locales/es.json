@@ -41,7 +41,8 @@
           "accessDenied": "No tiene permiso para acceder a la información de este usuario.",
           "notSuperadmin": "No tiene privilegios de superadministrador.",
           "superadminDisabled": "La cuenta de superadministrador está deshabilitada.",
-          "insufficientSuperadminPermissions": "No tiene los permisos de superadministrador necesarios para esta acción."
+          "insufficientSuperadminPermissions": "No tiene los permisos de superadministrador necesarios para esta acción.",
+          "noTicketAccess": "No tiene permiso para acceder a este ticket de soporte."
         }
       }
     },
@@ -60,7 +61,29 @@
         "messageNotFound": "Mensaje no encontrado.",
         "cannotAddMessageToClosed": "No se pueden agregar mensajes a un ticket cerrado o cancelado.",
         "failedToCreateMessage": "Error al crear el mensaje.",
-        "operationFailed": "La operación falló."
+        "operationFailed": "La operación falló.",
+        "invalidStatusTransition": "No se puede cambiar el estado del ticket.",
+        "invalidAttachmentType": "Tipo de archivo no permitido. Solo se permiten imágenes, videos y PDFs.",
+        "attachmentTooLarge": "El archivo es muy grande. Imágenes: máx 5MB, Videos: máx 50MB, PDFs: máx 10MB.",
+        "statusTransitions": {
+          "closedNoTransition": "El ticket está cerrado y no puede cambiar de estado.",
+          "cancelledNoTransition": "El ticket está cancelado y no puede cambiar de estado.",
+          "openTo": {
+            "resolved": "Un ticket abierto debe estar en progreso antes de ser resuelto.",
+            "closed": "Un ticket abierto debe ser resuelto antes de cerrarse."
+          },
+          "inProgressTo": {
+            "open": "Un ticket en progreso no puede volver a estado abierto."
+          },
+          "waitingCustomerTo": {
+            "open": "Un ticket esperando respuesta del cliente no puede volver a estado abierto."
+          },
+          "resolvedTo": {
+            "open": "Un ticket resuelto no puede volver a estado abierto.",
+            "waiting_customer": "Un ticket resuelto no puede cambiar a esperando respuesta.",
+            "cancelled": "Un ticket resuelto no puede ser cancelado."
+          }
+        }
       }
     },
     "locales": {

@@ -3,6 +3,7 @@ export { TicketDescription } from './TicketDescription'
 export { TicketMessages } from './TicketMessages'
 export { TicketDetails } from './TicketDetails'
 export { UserInfo } from './UserInfo'
+export { AttachmentsGallery } from './AttachmentsGallery'
 export * from './ticket-helpers'
 
 export type { ITicketHeaderProps } from './TicketHeader'

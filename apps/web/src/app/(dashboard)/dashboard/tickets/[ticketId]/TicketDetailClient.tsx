@@ -1,4 +1,4 @@
-import type { TSupportTicket } from '@packages/domain'
+import type { TSupportTicket, TUser } from '@packages/domain'
 
 import { TicketHeader, TicketDescription, TicketMessages, TicketDetails } from './components'
 
@@ -20,6 +20,22 @@ export interface IMessagesTranslations {
   error: string
   today?: string
   ticketClosed?: string
+  attachFiles?: string
+  dropFilesHere?: string
+  invalidFileType?: string
+  fileTooLarge?: string
+  uploading?: string
+  removeFile?: string
+  downloadFile?: string
+  openImage?: string
+  galleryTitle?: string
+  galleryNoAttachments?: string
+  galleryImages?: string
+  galleryVideos?: string
+  galleryDocuments?: string
+  galleryUploadedBy?: string
+  galleryShowAll?: string
+  galleryShowLess?: string
 }
 
 export interface IDetailsTranslations {
@@ -41,8 +57,21 @@ export interface IDetailsTranslations {
   assignUser: string
   reassignUser: string
   noUsersAvailable: string
+  assignSearchPlaceholder: string
+  assignTableColumns: {
+    name: string
+    email: string
+    document: string
+    actions: string
+  }
+  assignSelect: string
+  assignSelected: string
+  assignSelectedUser: string
+  assignCancel: string
+  assignConfirm: string
   resolveTicket: string
   closeTicket: string
+  cancelTicket: string
   closeTicketModal: {
     trigger: string
     title: string
@@ -68,6 +97,26 @@ export interface IDetailsTranslations {
     closed: string
     cancelled: string
   }
+  toast: {
+    assignLoading: string
+    assignSuccess: string
+    assignError: string
+    resolveLoading: string
+    resolveSuccess: string
+    resolveError: string
+    closeLoading: string
+    closeSuccess: string
+    closeError: string
+    cancelLoading: string
+    cancelSuccess: string
+    cancelError: string
+    statusLoading: string
+    statusSuccess: string
+    statusError: string
+    priorityLoading: string
+    prioritySuccess: string
+    priorityError: string
+  }
 }
 
 export interface ITicketTranslations {
@@ -83,9 +132,10 @@ export interface ITicketDetailClientProps {
   ticket: TSupportTicket
   locale: string
   translations: ITicketTranslations
+  availableUsers: TUser[]
 }
 
-export function TicketDetailClient({ ticket, locale, translations }: ITicketDetailClientProps) {
+export function TicketDetailClient({ ticket, locale, translations, availableUsers }: ITicketDetailClientProps) {
   return (
     <div className="space-y-6">
       <TicketHeader
@@ -113,6 +163,7 @@ export function TicketDetailClient({ ticket, locale, translations }: ITicketDeta
             statusLabels={translations.statusLabels}
             priorityLabels={translations.priorityLabels}
             categoryLabels={translations.categoryLabels}
+            availableUsers={availableUsers}
           />
         </div>
       </div>

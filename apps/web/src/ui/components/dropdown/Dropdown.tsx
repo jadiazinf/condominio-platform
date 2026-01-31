@@ -56,19 +56,8 @@ interface IDropdownMenuProps {
   onSelectionChange?: (keys: Selection) => void
 }
 
-interface IDropdownItemProps {
-  children: ReactNode
-  key: string
-  description?: string
-  startContent?: ReactNode
-  endContent?: ReactNode
-  shortcut?: string
-  color?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
-  isDisabled?: boolean
-  isReadOnly?: boolean
-  className?: string
-  onPress?: () => void
-}
+// IDropdownItemProps - use HeroUI's props directly since we re-export the component
+type IDropdownItemProps = React.ComponentProps<typeof HeroUIDropdownItem>
 
 interface IDropdownSectionProps {
   children: ReactNode
@@ -130,36 +119,9 @@ export function DropdownMenu({
   )
 }
 
-export function DropdownItem({
-  children,
-  key,
-  description,
-  startContent,
-  endContent,
-  shortcut,
-  color = 'default',
-  isDisabled = false,
-  isReadOnly = false,
-  className,
-  onPress,
-}: IDropdownItemProps) {
-  return (
-    <HeroUIDropdownItem
-      className={cn(className)}
-      color={color}
-      description={description}
-      endContent={endContent}
-      isDisabled={isDisabled}
-      isReadOnly={isReadOnly}
-      key={key}
-      shortcut={shortcut}
-      startContent={startContent}
-      onPress={onPress}
-    >
-      {children}
-    </HeroUIDropdownItem>
-  )
-}
+// Re-export HeroUI DropdownItem directly - wrapping it breaks React's key handling
+// which is essential for dropdown menu items to work correctly
+export const DropdownItem = HeroUIDropdownItem
 
 export function DropdownSection({ children, title, showDivider }: IDropdownSectionProps) {
   return (

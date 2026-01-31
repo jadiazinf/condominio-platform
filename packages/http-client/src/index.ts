@@ -389,5 +389,6 @@ export {
   fetchSuperadminByUserId,
   fetchSuperadminPermissions,
   fetchSuperadminSession,
+  fetchActiveSuperadminUsers,
 } from './server/index'
 export type { TSuperadminSession } from './server/index'

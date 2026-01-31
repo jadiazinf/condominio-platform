@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import { getSupportTickets } from '@packages/http-client'
 import type { TTicketStatus, TTicketPriority } from '@packages/domain'
 
+import { SESSION_COOKIE_NAME } from '@/libs/cookies'
 import { AdminTicketsPageClient } from './AdminTicketsPageClient'
 
 interface TicketsPageProps {
@@ -21,7 +22,7 @@ export default async function TicketsPage({ params, searchParams }: TicketsPageP
   const { id } = await params
   const queryParams = await searchParams
   const cookieStore = await cookies()
-  const token = cookieStore.get('session')?.value || ''
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value || ''
 
   const page = queryParams.page ? parseInt(queryParams.page, 10) : 1
   const limit = queryParams.limit ? parseInt(queryParams.limit, 10) : 10

@@ -7,24 +7,33 @@ export interface IUpdateTicketStatusInput {
   status: TTicketStatus
 }
 
+export interface IStatusTransitionError {
+  type: 'INVALID_TRANSITION'
+  from: TTicketStatus
+  to: TTicketStatus
+}
+
+// Union type for errors that can be either string or structured
+export type TUpdateStatusError = string | IStatusTransitionError
+
 /**
  * Service for updating ticket status.
  */
 export class UpdateTicketStatusService {
   constructor(private readonly ticketsRepository: SupportTicketsRepository) {}
 
-  async execute(input: IUpdateTicketStatusInput): Promise<TServiceResult<TSupportTicket>> {
+  async execute(input: IUpdateTicketStatusInput): Promise<TServiceResult<TSupportTicket, TUpdateStatusError>> {
     // Check if ticket exists
     const existing = await this.ticketsRepository.getById(input.ticketId)
 
     if (!existing) {
-      return failure('Ticket not found', 'NOT_FOUND')
+      return failure<TSupportTicket, TUpdateStatusError>('Ticket not found', 'NOT_FOUND')
     }
 
     // Validate status transition
     if (!this.isValidStatusTransition(existing.status, input.status)) {
-      return failure(
-        `Invalid status transition from ${existing.status} to ${input.status}`,
+      return failure<TSupportTicket, TUpdateStatusError>(
+        { type: 'INVALID_TRANSITION', from: existing.status, to: input.status },
         'BAD_REQUEST'
       )
     }
@@ -33,7 +42,7 @@ export class UpdateTicketStatusService {
     const updated = await this.ticketsRepository.updateStatus(input.ticketId, input.status)
 
     if (!updated) {
-      return failure('Failed to update ticket status', 'INTERNAL_ERROR')
+      return failure<TSupportTicket, TUpdateStatusError>('Failed to update ticket status', 'INTERNAL_ERROR')
     }
 
     return success(updated)

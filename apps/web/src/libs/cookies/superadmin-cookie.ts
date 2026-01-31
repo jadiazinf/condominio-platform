@@ -55,37 +55,39 @@ export function getSuperadminCookieName(): string {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Superadmin Permissions Cookie (Client-side)
+// Note: Permissions are now always fetched from API, so we don't store the full
+// permission objects in cookies (they exceed the 4KB cookie limit).
+// We only store a lightweight version for hydration hints.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function setSuperadminPermissionsCookie(permissions: TPermission[]): void {
-  const permissionsJson = JSON.stringify(permissions)
-  const encodedPermissions = encodeURIComponent(permissionsJson)
-
-  document.cookie = `${SUPERADMIN_PERMISSIONS_COOKIE_NAME}=${encodedPermissions}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${getSecureFlag()}`
+  // Don't store full permissions in cookies - they're too large (34 permissions > 4KB)
+  // Permissions are always fetched fresh from API now
+  // Just store a flag indicating the user has permissions
+  if (permissions.length > 0) {
+    document.cookie = `${SUPERADMIN_PERMISSIONS_COOKIE_NAME}=has_permissions; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${getSecureFlag()}`
+  } else {
+    clearSuperadminPermissionsCookie()
+  }
 }
 
 export function getSuperadminPermissionsCookie(): TPermission[] | null {
-  if (typeof document === 'undefined') {
-    return null
+  // Permissions are no longer stored in cookies (too large)
+  // They are always fetched fresh from API
+  // Clean up any old large permission cookies that might exist
+  if (typeof document !== 'undefined') {
+    const cookies = document.cookie.split(';')
+    const permissionsCookie = cookies.find(cookie =>
+      cookie.trim().startsWith(`${SUPERADMIN_PERMISSIONS_COOKIE_NAME}=`)
+    )
+
+    // If there's an old cookie with actual permission data, clear it
+    if (permissionsCookie && !permissionsCookie.includes('has_permissions')) {
+      clearSuperadminPermissionsCookie()
+    }
   }
 
-  const cookies = document.cookie.split(';')
-  const permissionsCookie = cookies.find(cookie =>
-    cookie.trim().startsWith(`${SUPERADMIN_PERMISSIONS_COOKIE_NAME}=`)
-  )
-
-  if (!permissionsCookie) {
-    return null
-  }
-
-  try {
-    const encodedValue = permissionsCookie.split('=')[1]
-    const decodedValue = decodeURIComponent(encodedValue)
-
-    return JSON.parse(decodedValue) as TPermission[]
-  } catch {
-    return null
-  }
+  return null
 }
 
 export function clearSuperadminPermissionsCookie(): void {

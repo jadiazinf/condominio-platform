@@ -22,6 +22,7 @@ interface ITicketResolutionSectionProps {
   }
   onResolve: () => void
   onSaveSolution: (solution: string) => void
+  showResolveButton?: boolean
 }
 
 export function TicketResolutionSection({
@@ -34,6 +35,7 @@ export function TicketResolutionSection({
   translations,
   onResolve,
   onSaveSolution,
+  showResolveButton = true,
 }: ITicketResolutionSectionProps) {
   return (
     <>
@@ -52,7 +54,7 @@ export function TicketResolutionSection({
         </div>
       )}
 
-      {!resolvedAt && canManage && status !== 'closed' && (
+      {showResolveButton && !resolvedAt && canManage && status !== 'closed' && (
         <div>
           <TicketResolveAction
             isLoading={isLoading}

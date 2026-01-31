@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { getSupportTicket } from '@packages/http-client'
+import { getSupportTicket, fetchActiveSuperadminUsers } from '@packages/http-client'
 
 import { getTranslations } from '@/libs/i18n/server'
 import { SESSION_COOKIE_NAME } from '@/libs/cookies'
@@ -16,9 +16,10 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
   const cookieStore = await cookies()
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value || ''
 
-  // Fetch ticket and translations on the server
-  const [ticket, { t, locale }] = await Promise.all([
+  // Fetch ticket, available users, and translations on the server
+  const [ticket, availableUsers, { t, locale }] = await Promise.all([
     getSupportTicket(ticketId, token),
+    fetchActiveSuperadminUsers(token),
     getTranslations(),
   ])
 
@@ -40,6 +41,22 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
       success: t('tickets.detail.success'),
       error: t('tickets.detail.error'),
       ticketClosed: t('tickets.detail.ticketClosed'),
+      attachFiles: t('tickets.detail.attachFiles'),
+      dropFilesHere: t('tickets.detail.dropFilesHere'),
+      invalidFileType: t('tickets.detail.invalidFileType'),
+      fileTooLarge: t('tickets.detail.fileTooLarge'),
+      uploading: t('tickets.detail.uploading'),
+      removeFile: t('tickets.detail.removeFile'),
+      downloadFile: t('tickets.detail.downloadFile'),
+      openImage: t('tickets.detail.openImage'),
+      galleryTitle: t('tickets.detail.galleryTitle'),
+      galleryNoAttachments: t('tickets.detail.galleryNoAttachments'),
+      galleryImages: t('tickets.detail.galleryImages'),
+      galleryVideos: t('tickets.detail.galleryVideos'),
+      galleryDocuments: t('tickets.detail.galleryDocuments'),
+      galleryUploadedBy: t('tickets.detail.galleryUploadedBy'),
+      galleryShowAll: t('tickets.detail.galleryShowAll'),
+      galleryShowLess: t('tickets.detail.galleryShowLess'),
     },
     details: {
       title: t('tickets.detail.details'),
@@ -60,8 +77,21 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
       assignUser: t('tickets.detail.assignUser'),
       reassignUser: t('tickets.detail.reassignUser'),
       noUsersAvailable: t('tickets.detail.noUsersAvailable'),
+      assignSearchPlaceholder: t('tickets.detail.assignSearchPlaceholder'),
+      assignTableColumns: {
+        name: t('tickets.detail.assignTableName'),
+        email: t('tickets.detail.assignTableEmail'),
+        document: t('tickets.detail.assignTableDocument'),
+        actions: t('tickets.detail.assignTableActions'),
+      },
+      assignSelect: t('tickets.detail.assignSelect'),
+      assignSelected: t('tickets.detail.assignSelected'),
+      assignSelectedUser: t('tickets.detail.assignSelectedUser'),
+      assignCancel: t('tickets.detail.assignCancel'),
+      assignConfirm: t('tickets.detail.assignConfirm'),
       resolveTicket: t('tickets.detail.resolveTicket'),
       closeTicket: t('tickets.detail.closeTicket'),
+      cancelTicket: t('tickets.detail.cancelTicket'),
       closeTicketModal: {
         trigger: t('tickets.detail.closeTicket'),
         title: t('tickets.detail.closeTicketModalTitle'),
@@ -87,6 +117,26 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
         closed: t('tickets.status.closed'),
         cancelled: t('tickets.status.cancelled'),
       },
+      toast: {
+        assignLoading: t('tickets.detail.toastAssignLoading'),
+        assignSuccess: t('tickets.detail.toastAssignSuccess'),
+        assignError: t('tickets.detail.toastAssignError'),
+        resolveLoading: t('tickets.detail.toastResolveLoading'),
+        resolveSuccess: t('tickets.detail.toastResolveSuccess'),
+        resolveError: t('tickets.detail.toastResolveError'),
+        closeLoading: t('tickets.detail.toastCloseLoading'),
+        closeSuccess: t('tickets.detail.toastCloseSuccess'),
+        closeError: t('tickets.detail.toastCloseError'),
+        cancelLoading: t('tickets.detail.toastCancelLoading'),
+        cancelSuccess: t('tickets.detail.toastCancelSuccess'),
+        cancelError: t('tickets.detail.toastCancelError'),
+        statusLoading: t('tickets.detail.toastStatusLoading'),
+        statusSuccess: t('tickets.detail.toastStatusSuccess'),
+        statusError: t('tickets.detail.toastStatusError'),
+        priorityLoading: t('tickets.detail.toastPriorityLoading'),
+        prioritySuccess: t('tickets.detail.toastPrioritySuccess'),
+        priorityError: t('tickets.detail.toastPriorityError'),
+      },
     },
     statusLabels: {
       open: t('tickets.status.open'),
@@ -111,5 +161,12 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
     },
   }
 
-  return <TicketDetailClient ticket={ticket} locale={locale} translations={translations} />
+  return (
+    <TicketDetailClient
+      ticket={ticket}
+      locale={locale}
+      translations={translations}
+      availableUsers={availableUsers}
+    />
+  )
 }

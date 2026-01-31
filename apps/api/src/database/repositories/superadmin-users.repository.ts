@@ -3,8 +3,9 @@ import type {
   TSuperadminUser,
   TSuperadminUserCreate,
   TSuperadminUserUpdate,
+  TUser,
 } from '@packages/domain'
-import { superadminUsers } from '@database/drizzle/schema'
+import { superadminUsers, users } from '@database/drizzle/schema'
 import type { TDrizzleClient } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -88,5 +89,66 @@ export class SuperadminUsersRepository extends BaseRepository<
       .update(superadminUsers)
       .set({ lastAccessAt: new Date(), updatedAt: new Date() })
       .where(eq(superadminUsers.id, id))
+  }
+
+  async getActiveSuperadminUsers(): Promise<TUser[]> {
+    try {
+      const results = await this.db
+        .select({
+          id: users.id,
+          firebaseUid: users.firebaseUid,
+          email: users.email,
+          displayName: users.displayName,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          phoneCountryCode: users.phoneCountryCode,
+          phoneNumber: users.phoneNumber,
+          photoUrl: users.photoUrl,
+          address: users.address,
+          locationId: users.locationId,
+          preferredLanguage: users.preferredLanguage,
+          preferredCurrencyId: users.preferredCurrencyId,
+          isActive: users.isActive,
+          isEmailVerified: users.isEmailVerified,
+          lastLogin: users.lastLogin,
+          idDocumentType: users.idDocumentType,
+          idDocumentNumber: users.idDocumentNumber,
+          metadata: users.metadata,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        })
+        .from(superadminUsers)
+        .innerJoin(users, eq(superadminUsers.userId, users.id))
+        .where(eq(superadminUsers.isActive, true))
+
+      console.log('🔍 Active superadmin users found:', results.length)
+
+      return results.map((r) => ({
+        id: r.id,
+        firebaseUid: r.firebaseUid,
+        email: r.email,
+        displayName: r.displayName,
+        firstName: r.firstName,
+        lastName: r.lastName,
+        phoneCountryCode: r.phoneCountryCode,
+        phoneNumber: r.phoneNumber,
+        photoUrl: r.photoUrl,
+        address: r.address,
+        locationId: r.locationId,
+        preferredLanguage: r.preferredLanguage ?? 'es',
+        preferredCurrencyId: r.preferredCurrencyId,
+        isActive: r.isActive ?? true,
+        isEmailVerified: r.isEmailVerified ?? false,
+        lastLogin: r.lastLogin,
+        idDocumentType: r.idDocumentType,
+        idDocumentNumber: r.idDocumentNumber,
+        metadata: r.metadata ?? null,
+        createdAt: r.createdAt ?? new Date(),
+        updatedAt: r.updatedAt ?? new Date(),
+      }))
+    } catch (error) {
+      console.error('🔍 Error fetching active superadmin users:', error)
+      throw error
+    }
   }
 }

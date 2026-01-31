@@ -151,36 +151,19 @@ export async function getSuperadminCookieServer(): Promise<TSuperadminUser | nul
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Superadmin Permissions Cookie (Server-side)
+// Note: Permissions are now always fetched from API, so we don't store the full
+// permission objects in cookies (they exceed the 4KB cookie limit).
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function setSuperadminPermissionsCookieServer(
-  permissions: TPermission[]
+  _permissions: TPermission[]
 ): Promise<void> {
-  const cookieStore = await cookies()
-  const permissionsJson = JSON.stringify(permissions)
-  const encodedPermissions = encodeURIComponent(permissionsJson)
-
-  cookieStore.set(SUPERADMIN_PERMISSIONS_COOKIE_NAME, encodedPermissions, {
-    path: '/',
-    maxAge: COOKIE_MAX_AGE,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-  })
+  // Don't store full permissions in cookies - they're too large (34 permissions > 4KB)
+  // Permissions are always fetched fresh from API now
 }
 
 export async function getSuperadminPermissionsCookieServer(): Promise<TPermission[] | null> {
-  const cookieStore = await cookies()
-  const permissionsCookie = cookieStore.get(SUPERADMIN_PERMISSIONS_COOKIE_NAME)
-
-  if (!permissionsCookie?.value) {
-    return null
-  }
-
-  try {
-    const decodedValue = decodeURIComponent(permissionsCookie.value)
-
-    return JSON.parse(decodedValue) as TPermission[]
-  } catch {
-    return null
-  }
+  // Permissions are no longer stored in cookies (too large)
+  // They are always fetched fresh from API
+  return null
 }

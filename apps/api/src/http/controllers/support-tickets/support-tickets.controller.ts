@@ -6,6 +6,7 @@ import {
   type TSupportTicket,
   type TSupportTicketCreate,
   type TSupportTicketUpdate,
+  type TTicketStatus,
 } from '@packages/domain'
 import type { SupportTicketsRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
@@ -24,9 +25,15 @@ import {
   ResolveTicketService,
   CloseTicketService,
   UpdateTicketStatusService,
+  type IStatusTransitionError,
 } from '../../../services/support-tickets'
 import { LocaleDictionary } from '../../../locales/dictionary'
-import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
+import {
+  isUserAuthenticated,
+  AUTHENTICATED_USER_PROP,
+} from '../../middlewares/utils/auth/is-user-authenticated'
+import { isSuperadmin } from '../../middlewares/utils/auth/is-superadmin'
+import { canAccessTicket } from '../../middlewares/utils/auth/can-access-ticket'
 
 const CompanyIdParamSchema = z.object({
   companyId: z.string().uuid('Invalid company ID format'),
@@ -117,62 +124,101 @@ export class SupportTicketsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
+      // Superadmin only: Get all tickets across all companies
       {
         method: 'get',
         path: '/support-tickets',
         handler: this.getAllTickets,
-        middlewares: [queryValidator(TicketsQuerySchema)],
+        middlewares: [isUserAuthenticated, isSuperadmin, queryValidator(TicketsQuerySchema)],
       },
+      // Authenticated: Get tickets by company (TODO: add company membership check)
       {
         method: 'get',
         path: '/management-companies/:companyId/tickets',
         handler: this.getTicketsByCompany,
-        middlewares: [paramsValidator(CompanyIdParamSchema), queryValidator(TicketsQuerySchema)],
+        middlewares: [
+          isUserAuthenticated,
+          paramsValidator(CompanyIdParamSchema),
+          queryValidator(TicketsQuerySchema),
+        ],
       },
+      // Authenticated: Get ticket by ID (superadmin or condominium user of the management company)
       {
         method: 'get',
         path: '/support-tickets/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [isUserAuthenticated, paramsValidator(IdParamSchema), canAccessTicket],
       },
+      // Authenticated: Create new ticket
       {
         method: 'post',
         path: '/management-companies/:companyId/tickets',
         handler: this.createTicket,
         middlewares: [
+          isUserAuthenticated,
           paramsValidator(CompanyIdParamSchema),
           bodyValidator(supportTicketCreateSchema),
         ],
       },
+      // Superadmin only: Update ticket
       {
         method: 'patch',
         path: '/support-tickets/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(supportTicketUpdateSchema)],
+        middlewares: [
+          isUserAuthenticated,
+          isSuperadmin,
+          paramsValidator(IdParamSchema),
+          bodyValidator(supportTicketUpdateSchema),
+        ],
       },
+      // Superadmin only: Assign ticket
       {
         method: 'patch',
         path: '/support-tickets/:id/assign',
         handler: this.assignTicket,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(AssignTicketBodySchema)],
+        middlewares: [
+          isUserAuthenticated,
+          isSuperadmin,
+          paramsValidator(IdParamSchema),
+          bodyValidator(AssignTicketBodySchema),
+        ],
       },
+      // Superadmin only: Resolve ticket
       {
         method: 'patch',
         path: '/support-tickets/:id/resolve',
         handler: this.resolveTicket,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(ResolveTicketBodySchema)],
+        middlewares: [
+          isUserAuthenticated,
+          isSuperadmin,
+          paramsValidator(IdParamSchema),
+          bodyValidator(ResolveTicketBodySchema),
+        ],
       },
+      // Superadmin only: Close ticket
       {
         method: 'patch',
         path: '/support-tickets/:id/close',
         handler: this.closeTicket,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(CloseTicketBodySchema)],
+        middlewares: [
+          isUserAuthenticated,
+          isSuperadmin,
+          paramsValidator(IdParamSchema),
+          bodyValidator(CloseTicketBodySchema),
+        ],
       },
+      // Superadmin only: Update ticket status
       {
         method: 'patch',
         path: '/support-tickets/:id/status',
         handler: this.updateTicketStatus,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(UpdateStatusBodySchema)],
+        middlewares: [
+          isUserAuthenticated,
+          isSuperadmin,
+          paramsValidator(IdParamSchema),
+          bodyValidator(UpdateStatusBodySchema),
+        ],
       },
     ]
   }
@@ -265,10 +311,6 @@ export class SupportTicketsController extends BaseController<
     const ctx = this.ctx<TAssignTicketBody, unknown, { id: string }>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 
-    if (!user) {
-      return ctx.unauthorized({ error: 'User not authenticated' })
-    }
-
     try {
       const result = await this.assignService.execute({
         ticketId: ctx.params.id,
@@ -326,6 +368,7 @@ export class SupportTicketsController extends BaseController<
 
   private async updateTicketStatus(c: Context): Promise<Response> {
     const ctx = this.ctx<TUpdateStatusBody, unknown, { id: string }>(c)
+    const t = useTranslation(c)
 
     try {
       const result = await this.updateStatusService.execute({
@@ -334,12 +377,77 @@ export class SupportTicketsController extends BaseController<
       })
 
       if (!result.success) {
-        return ctx.badRequest({ error: result.error })
+        // Check if it's a structured status transition error
+        const error = result.error
+        if (this.isStatusTransitionError(error)) {
+          const translatedError = this.getStatusTransitionError(t, error.from, error.to)
+          return ctx.badRequest({ error: translatedError })
+        }
+        // Fallback for string errors
+        return ctx.badRequest({ error: String(error) })
       }
 
       return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
+  }
+
+  /**
+   * Type guard for status transition errors
+   */
+  private isStatusTransitionError(error: unknown): error is IStatusTransitionError {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'type' in error &&
+      (error as IStatusTransitionError).type === 'INVALID_TRANSITION'
+    )
+  }
+
+  /**
+   * Get translated error message for invalid status transitions
+   */
+  private getStatusTransitionError(
+    t: (key: string) => string,
+    from: TTicketStatus,
+    to: TTicketStatus
+  ): string {
+    const dict = LocaleDictionary.http.controllers.supportTickets
+
+    // Check for terminal states first (closed/cancelled)
+    if (from === 'closed') {
+      return t(dict.statusTransitions.closedNoTransition)
+    }
+    if (from === 'cancelled') {
+      return t(dict.statusTransitions.cancelledNoTransition)
+    }
+
+    // Check specific transition errors
+    const transitionKeys: Record<string, Record<string, string>> = {
+      open: {
+        resolved: dict.statusTransitions.openToResolved,
+        closed: dict.statusTransitions.openToClosed,
+      },
+      in_progress: {
+        open: dict.statusTransitions.inProgressToOpen,
+      },
+      waiting_customer: {
+        open: dict.statusTransitions.waitingCustomerToOpen,
+      },
+      resolved: {
+        open: dict.statusTransitions.resolvedToOpen,
+        waiting_customer: dict.statusTransitions.resolvedToWaitingCustomer,
+        cancelled: dict.statusTransitions.resolvedToCancelled,
+      },
+    }
+
+    const transitionKey = transitionKeys[from]?.[to]
+    if (transitionKey) {
+      return t(transitionKey)
+    }
+
+    // Generic fallback
+    return t(dict.invalidStatusTransition)
   }
 }

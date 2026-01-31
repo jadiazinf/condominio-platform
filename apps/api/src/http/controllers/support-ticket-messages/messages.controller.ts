@@ -6,11 +6,16 @@ import {
   type TSupportTicketMessage,
   type TSupportTicketMessageCreate,
   type TSupportTicketMessageUpdate,
+  ALLOWED_MIME_TYPES,
+  validateFileSize,
+  type TAttachment,
 } from '@packages/domain'
 import type { SupportTicketMessagesRepository, SupportTicketsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { isUserAuthenticated } from '../../middlewares/utils/auth/is-user-authenticated'
+import { canAccessTicketByTicketId } from '../../middlewares/utils/auth/can-access-ticket'
+import { isSuperadmin } from '../../middlewares/utils/auth/is-superadmin'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -51,23 +56,35 @@ export class SupportTicketMessagesController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
+      // Get messages for a ticket (superadmin or condominium user of the management company)
       {
         method: 'get',
         path: '/support-tickets/:ticketId/messages',
         handler: this.getMessagesByTicket,
-        middlewares: [isUserAuthenticated, paramsValidator(TicketIdParamSchema)],
+        middlewares: [
+          isUserAuthenticated,
+          paramsValidator(TicketIdParamSchema),
+          canAccessTicketByTicketId,
+        ],
       },
+      // Create message (superadmin or condominium user of the management company)
       {
         method: 'post',
         path: '/support-tickets/:ticketId/messages',
         handler: this.createMessage,
-        middlewares: [isUserAuthenticated, paramsValidator(TicketIdParamSchema), bodyValidator(supportTicketMessageCreateSchema.omit({ ticketId: true, userId: true }))],
+        middlewares: [
+          isUserAuthenticated,
+          paramsValidator(TicketIdParamSchema),
+          canAccessTicketByTicketId,
+          bodyValidator(supportTicketMessageCreateSchema.omit({ ticketId: true, userId: true })),
+        ],
       },
+      // Delete message (superadmin only)
       {
         method: 'delete',
         path: '/support-ticket-messages/:id',
         handler: this.delete,
-        middlewares: [isUserAuthenticated, paramsValidator(IdParamSchema)],
+        middlewares: [isUserAuthenticated, isSuperadmin, paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -95,6 +112,25 @@ export class SupportTicketMessagesController extends BaseController<
     const t = useTranslation(c)
 
     try {
+      // Validate attachments if present
+      if (ctx.body.attachments && Array.isArray(ctx.body.attachments)) {
+        for (const attachment of ctx.body.attachments as TAttachment[]) {
+          // Validate MIME type
+          if (!ALLOWED_MIME_TYPES.includes(attachment.mimeType)) {
+            return ctx.badRequest({
+              error: t(LocaleDictionary.http.controllers.supportTickets.invalidAttachmentType),
+            })
+          }
+
+          // Validate file size
+          if (!validateFileSize(attachment.mimeType, attachment.size)) {
+            return ctx.badRequest({
+              error: t(LocaleDictionary.http.controllers.supportTickets.attachmentTooLarge),
+            })
+          }
+        }
+      }
+
       const result = await this.createService.execute({
         ...ctx.body,
         ticketId: ctx.params.ticketId,

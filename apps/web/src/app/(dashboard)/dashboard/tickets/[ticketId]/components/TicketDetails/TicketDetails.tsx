@@ -1,15 +1,24 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import type { TSupportTicket, TUser, TTicketStatus, TTicketPriority } from '@packages/domain'
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Divider } from '@/ui/components/divider'
 import { Typography } from '@/ui/components/typography'
 import { useSuperadmin, useUser } from '@/stores/session-store'
-import { useAssignTicket, useResolveTicket, useCloseTicket, useUpdateTicketStatus } from '@packages/http-client'
+import {
+  useAssignTicket,
+  useResolveTicket,
+  useCloseTicket,
+  useUpdateTicketStatus,
+  useUpdateTicket,
+} from '@packages/http-client'
 import { useToast } from '@/ui/components/toast'
 import type { ITicketPriorityActionTranslations } from '../TicketPriorityAction'
 import type { ITicketStatusActionTranslations } from '../TicketStatusAction'
-import type { ICloseTicketModalTranslations } from '../CloseTicketModal'
+import { CloseTicketModal, type ICloseTicketModalTranslations } from '../CloseTicketModal'
+import { TicketResolveAction } from '../TicketResolveAction'
+import { CancelTicketAction } from '../CancelTicketAction'
 import { TicketStatusSection } from './TicketStatusSection'
 import { TicketPrioritySection } from './TicketPrioritySection'
 import { TicketCategorySection } from './TicketCategorySection'
@@ -38,13 +47,46 @@ export interface ITicketDetailsTranslations {
   assignUser: string
   reassignUser: string
   noUsersAvailable: string
+  assignSearchPlaceholder: string
+  assignTableColumns: {
+    name: string
+    email: string
+    document: string
+    actions: string
+  }
+  assignSelect: string
+  assignSelected: string
+  assignSelectedUser: string
+  assignCancel: string
+  assignConfirm: string
   resolveTicket: string
   closeTicket: string
+  cancelTicket: string
   closeTicketModal: ICloseTicketModalTranslations
   changeStatus: string
   changePriority: string
   priorities: ITicketPriorityActionTranslations['priorities']
   statuses: ITicketStatusActionTranslations['statuses']
+  toast: {
+    assignLoading: string
+    assignSuccess: string
+    assignError: string
+    resolveLoading: string
+    resolveSuccess: string
+    resolveError: string
+    closeLoading: string
+    closeSuccess: string
+    closeError: string
+    cancelLoading: string
+    cancelSuccess: string
+    cancelError: string
+    statusLoading: string
+    statusSuccess: string
+    statusError: string
+    priorityLoading: string
+    prioritySuccess: string
+    priorityError: string
+  }
 }
 
 export interface ITicketDetailsProps {
@@ -66,6 +108,7 @@ export function TicketDetails({
   categoryLabels,
   availableUsers = [],
 }: ITicketDetailsProps) {
+  const router = useRouter()
   const { isSuperadmin } = useSuperadmin()
   const { user } = useUser()
   const toast = useToast()
@@ -78,48 +121,97 @@ export function TicketDetails({
 
   const canManageTicket = isSuperadmin
 
-  // Debug log
-  console.log('🔍 Ticket Management Access:', {
-    isSuperadmin,
-    canManageTicket,
-    user: user?.email,
-    ticket: ticket.id,
-  })
-
   // Mutation hooks
   const assignMutation = useAssignTicket(ticket.id, ticket.managementCompanyId)
   const resolveMutation = useResolveTicket(ticket.id, ticket.managementCompanyId)
   const closeMutation = useCloseTicket(ticket.id, ticket.managementCompanyId)
   const updateStatusMutation = useUpdateTicketStatus(ticket.id, ticket.managementCompanyId)
+  const updateTicketMutation = useUpdateTicket(ticket.id, ticket.managementCompanyId)
 
-  // Action handlers
+  // Helper to extract error message from API response
+  const getErrorMessage = (error: Error, fallback: string): string => {
+    return error.message || fallback
+  }
+
+  // Action handlers with toast.promise - refresh page after success
   const handleAssign = (userId: string) => {
     if (!user) return
-    assignMutation.mutate({ assignedTo: userId })
+    toast.promise(
+      assignMutation.mutateAsync({ assignedTo: userId }).then(() => router.refresh()),
+      {
+        loading: translations.toast.assignLoading,
+        success: translations.toast.assignSuccess,
+        error: (err: Error) => getErrorMessage(err, translations.toast.assignError),
+      }
+    )
   }
 
   const handleResolve = () => {
     if (!user) return
-    resolveMutation.mutate({ resolvedBy: user.id })
+    toast.promise(
+      resolveMutation.mutateAsync({ resolvedBy: user.id }).then(() => router.refresh()),
+      {
+        loading: translations.toast.resolveLoading,
+        success: translations.toast.resolveSuccess,
+        error: (err: Error) => getErrorMessage(err, translations.toast.resolveError),
+      }
+    )
   }
 
   const handleClose = (solution: string) => {
     if (!user) return
-    closeMutation.mutate({ closedBy: user.id, solution })
+    toast.promise(
+      closeMutation.mutateAsync({ closedBy: user.id, solution }).then(() => router.refresh()),
+      {
+        loading: translations.toast.closeLoading,
+        success: translations.toast.closeSuccess,
+        error: (err: Error) => getErrorMessage(err, translations.toast.closeError),
+      }
+    )
   }
 
   const handleStatusChange = (status: TTicketStatus) => {
-    updateStatusMutation.mutate({ status })
+    toast.promise(
+      updateStatusMutation.mutateAsync({ status }).then(() => router.refresh()),
+      {
+        loading: translations.toast.statusLoading,
+        success: translations.toast.statusSuccess,
+        error: (err: Error) => getErrorMessage(err, translations.toast.statusError),
+      }
+    )
+  }
+
+  const handleCancel = () => {
+    toast.promise(
+      updateStatusMutation.mutateAsync({ status: 'cancelled' }).then(() => router.refresh()),
+      {
+        loading: translations.toast.cancelLoading,
+        success: translations.toast.cancelSuccess,
+        error: (err: Error) => getErrorMessage(err, translations.toast.cancelError),
+      }
+    )
   }
 
   const handlePriorityChange = (priority: TTicketPriority) => {
-    // TODO: Implement priority change mutation
-    toast.show(`Priority change to ${priority} coming soon`)
+    toast.promise(
+      updateTicketMutation.mutateAsync({ priority }).then(() => router.refresh()),
+      {
+        loading: translations.toast.priorityLoading,
+        success: translations.toast.prioritySuccess,
+        error: (err: Error) => getErrorMessage(err, translations.toast.priorityError),
+      }
+    )
   }
 
   const handleSaveSolution = (solution: string) => {
-    // TODO: Implement solution update mutation
-    toast.show('Solution update coming soon')
+    toast.promise(
+      updateTicketMutation.mutateAsync({ solution }).then(() => router.refresh()),
+      {
+        loading: translations.toast.closeLoading,
+        success: translations.toast.closeSuccess,
+        error: (err: Error) => getErrorMessage(err, translations.toast.closeError),
+      }
+    )
   }
 
   return (
@@ -146,6 +238,7 @@ export function TicketDetails({
           priority={ticket.priority}
           priorityLabel={priorityLabel}
           canManage={canManageTicket}
+          isLoading={updateTicketMutation.isPending}
           translations={{
             priority: translations.priority,
             changePriority: translations.changePriority,
@@ -175,7 +268,7 @@ export function TicketDetails({
         />
 
         <TicketCreatedBySection
-          createdByUser={ticket.createdByUser}
+          createdByUser={ticket.createdByUser ?? null}
           translations={{
             createdBy: translations.createdBy,
             viewProfile: translations.viewProfile,
@@ -194,12 +287,19 @@ export function TicketDetails({
             assignUser: translations.assignUser,
             reassignUser: translations.reassignUser,
             noUsersAvailable: translations.noUsersAvailable,
+            searchPlaceholder: translations.assignSearchPlaceholder,
+            tableColumns: translations.assignTableColumns,
+            select: translations.assignSelect,
+            selected: translations.assignSelected,
+            selectedUser: translations.assignSelectedUser,
+            cancel: translations.assignCancel,
+            confirm: translations.assignConfirm,
           }}
           onAssign={handleAssign}
         />
 
         <TicketResolutionSection
-          resolvedByUser={ticket.resolvedByUser}
+          resolvedByUser={ticket.resolvedByUser ?? null}
           resolvedAt={ticket.resolvedAt}
           solution={ticket.solution}
           canManage={canManageTicket}
@@ -214,11 +314,12 @@ export function TicketDetails({
           }}
           onResolve={handleResolve}
           onSaveSolution={handleSaveSolution}
+          showResolveButton={false}
         />
 
         <TicketActionsSection
           closedAt={ticket.closedAt}
-          closedByUser={ticket.closedByUser}
+          closedByUser={ticket.closedByUser ?? null}
           canManage={canManageTicket}
           isLoading={closeMutation.isPending}
           locale={locale}
@@ -229,7 +330,47 @@ export function TicketDetails({
             closeTicketModal: translations.closeTicketModal,
           }}
           onClose={handleClose}
+          showCloseButton={false}
         />
+
+        {/* Action buttons grouped at the bottom */}
+        {canManageTicket && ticket.status !== 'closed' && ticket.status !== 'cancelled' && (
+          <>
+            <Divider />
+            <div className="flex flex-col gap-2">
+              {/* Top row: Resolve and Cancel */}
+              <div className="flex flex-col sm:flex-row items-stretch gap-2">
+                {!ticket.resolvedAt && (
+                  <div className="flex-1">
+                    <TicketResolveAction
+                      className="w-full"
+                      isLoading={resolveMutation.isPending}
+                      label={translations.resolveTicket}
+                      onResolve={handleResolve}
+                    />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <CancelTicketAction
+                    className="w-full"
+                    isLoading={updateStatusMutation.isPending}
+                    label={translations.cancelTicket}
+                    onCancel={handleCancel}
+                  />
+                </div>
+              </div>
+              {/* Bottom row: Close */}
+              {!ticket.closedAt && (
+                <CloseTicketModal
+                  className="w-full"
+                  isLoading={closeMutation.isPending}
+                  translations={translations.closeTicketModal}
+                  onConfirm={handleClose}
+                />
+              )}
+            </div>
+          </>
+        )}
       </CardBody>
     </Card>
   )

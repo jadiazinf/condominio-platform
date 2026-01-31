@@ -10,6 +10,7 @@ interface ITicketPrioritySectionProps {
   priority: TTicketPriority
   priorityLabel: string
   canManage: boolean
+  isLoading?: boolean
   translations: {
     priority: string
     changePriority: string
@@ -22,6 +23,7 @@ export function TicketPrioritySection({
   priority,
   priorityLabel,
   canManage,
+  isLoading = false,
   translations,
   onPriorityChange,
 }: ITicketPrioritySectionProps) {
@@ -37,6 +39,8 @@ export function TicketPrioritySection({
         {canManage && (
           <TicketPriorityAction
             currentPriority={priority}
+            iconOnly
+            isLoading={isLoading}
             translations={{
               changePriority: translations.changePriority,
               priorities: translations.priorities,

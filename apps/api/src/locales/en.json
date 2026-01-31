@@ -41,7 +41,8 @@
           "accessDenied": "You do not have permission to access this user's information.",
           "notSuperadmin": "You do not have superadmin privileges.",
           "superadminDisabled": "Superadmin account is disabled.",
-          "insufficientSuperadminPermissions": "You do not have the required superadmin permissions for this action."
+          "insufficientSuperadminPermissions": "You do not have the required superadmin permissions for this action.",
+          "noTicketAccess": "You do not have permission to access this support ticket."
         }
       }
     },
@@ -60,7 +61,29 @@
         "messageNotFound": "Message not found.",
         "cannotAddMessageToClosed": "Cannot add messages to a closed or cancelled ticket.",
         "failedToCreateMessage": "Failed to create message.",
-        "operationFailed": "Operation failed."
+        "operationFailed": "Operation failed.",
+        "invalidStatusTransition": "Cannot change ticket status.",
+        "invalidAttachmentType": "Invalid file type. Only images, videos and PDFs are allowed.",
+        "attachmentTooLarge": "File is too large. Images: max 5MB, Videos: max 50MB, PDFs: max 10MB.",
+        "statusTransitions": {
+          "closedNoTransition": "The ticket is closed and cannot change status.",
+          "cancelledNoTransition": "The ticket is cancelled and cannot change status.",
+          "openTo": {
+            "resolved": "An open ticket must be in progress before being resolved.",
+            "closed": "An open ticket must be resolved before closing."
+          },
+          "inProgressTo": {
+            "open": "A ticket in progress cannot return to open status."
+          },
+          "waitingCustomerTo": {
+            "open": "A ticket waiting for customer response cannot return to open status."
+          },
+          "resolvedTo": {
+            "open": "A resolved ticket cannot return to open status.",
+            "waiting_customer": "A resolved ticket cannot change to waiting for customer.",
+            "cancelled": "A resolved ticket cannot be cancelled."
+          }
+        }
       }
     },
     "locales": {

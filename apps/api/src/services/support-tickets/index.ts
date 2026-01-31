@@ -5,4 +5,6 @@ export { CloseTicketService, type ICloseTicketInput } from './close-ticket.servi
 export {
   UpdateTicketStatusService,
   type IUpdateTicketStatusInput,
+  type IStatusTransitionError,
+  type TUpdateStatusError,
 } from './update-ticket-status.service'

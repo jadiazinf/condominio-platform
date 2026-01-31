@@ -4,7 +4,7 @@ import type { TUser, TUserCondominiumAccess, TSuperadminUser, TPermission } from
 
 import { useEffect, useRef } from 'react'
 
-import { useUser, useCondominium, useSuperadmin } from '@/contexts'
+import { useUser, useCondominium, useSuperadmin } from '@/stores/session-store'
 import { getUserCookie, setUserCookie } from '@/libs/cookies/user-cookie'
 import {
   setCondominiumsCookie,
@@ -70,6 +70,7 @@ export function StoreHydration({
     permissions: currentPermissions,
     setSuperadmin,
     setPermissions,
+    clearSuperadmin,
   } = useSuperadmin()
 
   const hasHydrated = useRef(false)
@@ -114,23 +115,23 @@ export function StoreHydration({
       }
     }
 
-    // Hydrate superadmin data if store is empty
-    if (!currentSuperadmin && superadmin) {
+    // Always update superadmin data from server since we always fetch it fresh
+    // This ensures permission changes are reflected immediately
+    if (superadmin) {
       setSuperadmin(superadmin)
-      if (wasFetched) {
-        setSuperadminCookie(superadmin)
-      }
+      setSuperadminCookie(superadmin)
+    } else if (currentSuperadmin) {
+      // User is no longer a superadmin, clear the data
+      clearSuperadmin()
     }
 
-    if (
-      (!currentPermissions || currentPermissions.length === 0) &&
-      superadminPermissions &&
-      superadminPermissions.length > 0
-    ) {
+    if (superadminPermissions && superadminPermissions.length > 0) {
       setPermissions(superadminPermissions)
-      if (wasFetched) {
-        setSuperadminPermissionsCookie(superadminPermissions)
-      }
+      setSuperadminPermissionsCookie(superadminPermissions)
+    } else if (currentPermissions && currentPermissions.length > 0) {
+      // Permissions were removed, clear them
+      setPermissions([])
+      setSuperadminPermissionsCookie([])
     }
   }, [
     user,
@@ -148,6 +149,7 @@ export function StoreHydration({
     selectCondominium,
     setSuperadmin,
     setPermissions,
+    clearSuperadmin,
   ])
 
   // Refresh photo URL from Firebase Storage to ensure it has a valid token

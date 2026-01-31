@@ -8,10 +8,11 @@ export interface IService<TInput, TOutput> {
 
 /**
  * Service result wrapper for handling success/error states.
+ * TError defaults to string for backwards compatibility but can be any type.
  */
-export type TServiceResult<T> =
+export type TServiceResult<T, TError = string> =
   | { success: true; data: T }
-  | { success: false; error: string; code: TErrorCode }
+  | { success: false; error: TError; code: TErrorCode }
 
 export type TErrorCode = 'NOT_FOUND' | 'BAD_REQUEST' | 'CONFLICT' | 'INTERNAL_ERROR'
 
@@ -22,6 +23,6 @@ export function success<T>(data: T): TServiceResult<T> {
   return { success: true, data }
 }
 
-export function failure<T>(error: string, code: TErrorCode): TServiceResult<T> {
+export function failure<T, TError = string>(error: TError, code: TErrorCode): TServiceResult<T, TError> {
   return { success: false, error, code }
 }

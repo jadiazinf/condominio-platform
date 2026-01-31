@@ -7,3 +7,10 @@ export {
   requireSuperadminPermission,
   type ISuperadminPermissionOptions,
 } from './has-superadmin-permission'
+export {
+  canAccessTicket,
+  canAccessTicketByTicketId,
+  canModifyTicket,
+  createCanAccessTicket,
+  TICKET_PROP,
+} from './can-access-ticket'
