@@ -76,6 +76,7 @@ export class AuditLogsRepository implements IReadOnlyRepository<TAuditLog, TAudi
 
     const results = await this.db
       .insert(auditLogs)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mapToInsertValues returns Record<string, unknown> for flexibility
       .values(insertValues as any)
       .returning()
 

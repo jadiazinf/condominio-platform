@@ -816,6 +816,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       assigned_at TIMESTAMP,
       resolved_at TIMESTAMP,
       resolved_by UUID REFERENCES users(id),
+      solution TEXT,
       closed_at TIMESTAMP,
       closed_by UUID REFERENCES users(id),
       metadata JSONB,
@@ -835,6 +836,18 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       is_active BOOLEAN DEFAULT true NOT NULL,
       created_at TIMESTAMP DEFAULT NOW() NOT NULL,
       updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS support_ticket_assignment_history (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      ticket_id UUID NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
+      assigned_to UUID NOT NULL REFERENCES users(id),
+      assigned_by UUID NOT NULL REFERENCES users(id),
+      assigned_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      unassigned_at TIMESTAMP,
+      is_active BOOLEAN NOT NULL DEFAULT true,
+      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
     );
   `)
   const elapsed = performance.now() - start
@@ -884,6 +897,7 @@ export async function cleanDatabase(testDb: TTestDrizzleClient): Promise<void> {
   // Truncate all tables in one command for better performance
   await testDb.execute(sql`
     TRUNCATE TABLE
+      support_ticket_assignment_history,
       support_ticket_messages,
       support_tickets,
       management_company_members,

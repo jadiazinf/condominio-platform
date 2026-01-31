@@ -7,6 +7,7 @@ import {
   type FieldValues,
   type UseFormReturn,
   type DefaultValues,
+  type Resolver,
 } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, HttpError } from '@packages/http-client'
@@ -131,9 +132,8 @@ export function useFormMutation<TSchema extends z.ZodObject<z.ZodRawShape>, TRes
   const toast = useToast()
 
   // Initialize form with zod validation
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const form = useForm<TData>({
-    resolver: zodResolver(schema) as any,
+    resolver: zodResolver(schema) as Resolver<TData>,
     defaultValues,
     ...formOptions,
   })

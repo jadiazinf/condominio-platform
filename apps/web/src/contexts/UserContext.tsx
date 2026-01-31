@@ -9,13 +9,27 @@
  * The Zustand store is the single source of truth for all session data.
  */
 
-import { useUser as useStoreUser } from '@/stores/session-store'
+import { useEffect } from 'react'
+import type { TUser } from '@packages/domain'
+import { useUser as useStoreUser, useSessionStore } from '@/stores/session-store'
 
 // Re-export the hook from the store
 export const useUser = useStoreUser
 
-// Provider is no longer needed since Zustand manages its own state
-// Keep it as a pass-through for backwards compatibility
-export function UserProvider({ children }: { children: React.ReactNode }) {
+interface UserProviderProps {
+  children: React.ReactNode
+  initialUser?: TUser | null
+}
+
+// Provider initializes the store with server-side data
+export function UserProvider({ children, initialUser }: UserProviderProps) {
+  const setUser = useSessionStore((state) => state.setUser)
+
+  useEffect(() => {
+    if (initialUser) {
+      setUser(initialUser)
+    }
+  }, [initialUser, setUser])
+
   return <>{children}</>
 }

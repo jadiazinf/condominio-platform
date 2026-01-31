@@ -479,6 +479,7 @@ export class SupportTicketsRepository
       userId: message.userId,
       message: message.message,
       isInternal: message.isInternal,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSONB column returns unknown, needs cast to TAttachment[]
       attachments: message.attachments as any,
       isActive: message.isActive ?? true,
       createdAt: message.createdAt ?? new Date(),

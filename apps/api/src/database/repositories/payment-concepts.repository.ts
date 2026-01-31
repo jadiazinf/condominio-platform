@@ -148,6 +148,7 @@ export class PaymentConceptsRepository
     const results = await this.db
       .select()
       .from(paymentConcepts)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Drizzle schema column type differs from domain union type
       .where(eq(paymentConcepts.conceptType, conceptType as any))
 
     const mapped = results.map(record => this.mapToEntity(record))

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import {
@@ -41,9 +41,8 @@ export function useCreateCompanyForm(options: UseCreateCompanyFormOptions = {}) 
   // Track which steps have had validation triggered (user tried to advance)
   const [validatedSteps, setValidatedSteps] = useState<Set<TFormStep>>(new Set())
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const form = useForm<TCreateManagementCompanyWithAdminForm>({
-    resolver: zodResolver(createManagementCompanyWithAdminFormSchema) as any,
+    resolver: zodResolver(createManagementCompanyWithAdminFormSchema) as Resolver<TCreateManagementCompanyWithAdminForm>,
     defaultValues: {
       company: {
         name: '',

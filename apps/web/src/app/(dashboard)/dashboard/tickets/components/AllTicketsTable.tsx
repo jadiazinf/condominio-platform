@@ -146,7 +146,9 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
   }
 
   const getStatusLabel = (status: string) => {
-    return t(`tickets.status.${status.toLowerCase()}` as any) || status
+    const key = `tickets.status.${status.toLowerCase()}`
+    const translation = t(key)
+    return translation !== key ? translation : status
   }
 
   const getPriorityColor = (priority: string) => {
@@ -165,12 +167,16 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
   }
 
   const getPriorityLabel = (priority: string) => {
-    return t(`tickets.priority.${priority.toLowerCase()}` as any) || priority
+    const key = `tickets.priority.${priority.toLowerCase()}`
+    const translation = t(key)
+    return translation !== key ? translation : priority
   }
 
   const getCategoryLabel = (category: string | null) => {
     if (!category) return t('tickets.category.general')
-    return t(`tickets.category.${category.toLowerCase()}` as any) || category
+    const key = `tickets.category.${category.toLowerCase()}`
+    const translation = t(key)
+    return translation !== key ? translation : category
   }
 
   const handleViewTicket = useCallback(

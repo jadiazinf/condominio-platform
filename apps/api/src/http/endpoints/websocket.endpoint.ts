@@ -103,7 +103,8 @@ export class WebSocketEndpoint implements IEndpoint {
       const ticketId = c.req.param('ticketId')
       const token = c.req.query('token') || ''
 
-      const server = (c.env as any)?.server
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Bun-specific server property
+      const server = (c.env as Record<string, unknown>)?.server as { upgrade?: (req: Request, options: { data: IWebSocketData }) => boolean } | undefined
 
       if (!server?.upgrade) {
         return c.text('WebSocket not supported', 500)
@@ -114,7 +115,8 @@ export class WebSocketEndpoint implements IEndpoint {
       })
 
       if (success) {
-        return undefined as any
+        // WebSocket upgrade successful, return undefined to signal Hono to not send response
+        return undefined as unknown as Response
       }
 
       return c.text('WebSocket upgrade failed', 400)

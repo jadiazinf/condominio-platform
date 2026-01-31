@@ -136,7 +136,16 @@ const PRODUCTION_BLOCKLIST = [
 ]
 
 // Allowed patterns - URL must contain ONE of these to be considered safe
-const SAFE_PATTERNS = ['localhost', '127.0.0.1', 'dev', 'development', 'staging', 'test', 'local']
+const SAFE_PATTERNS = [
+  'localhost',
+  '127.0.0.1',
+  'dev',
+  'development',
+  'staging',
+  'test',
+  'local',
+  'rlwy.net', // Railway (staging/development)
+]
 
 function parseDbUrl(url: string): { host: string; database: string; user: string } {
   try {

@@ -42,6 +42,7 @@ export abstract class BaseRepository<TTable extends PgTable, TEntity, TCreateDto
    * Retrieves all records, optionally including inactive ones.
    */
   async listAll(includeInactive = false): Promise<TEntity[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic PgTable requires any for Drizzle operations
     const tableAny = this.table as any
     const hasIsActive = 'isActive' in tableAny
 
@@ -61,6 +62,7 @@ export abstract class BaseRepository<TTable extends PgTable, TEntity, TCreateDto
    * @param includeInactive - If true, includes inactive records (default: false)
    */
   async getById(id: string, includeInactive = false): Promise<TEntity | null> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic PgTable requires any for Drizzle operations
     const tableAny = this.table as any
     const hasIsActive = 'isActive' in tableAny
 
@@ -87,6 +89,7 @@ export abstract class BaseRepository<TTable extends PgTable, TEntity, TCreateDto
    * Creates a new record.
    */
   async create(data: TCreateDto): Promise<TEntity> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic PgTable requires any for Drizzle operations
     const tableAny = this.table as any
     const insertValues = this.mapToInsertValues(data)
 
@@ -104,6 +107,7 @@ export abstract class BaseRepository<TTable extends PgTable, TEntity, TCreateDto
    * Updates an existing record.
    */
   async update(id: string, data: TUpdateDto): Promise<TEntity | null> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic PgTable requires any for Drizzle operations
     const tableAny = this.table as any
     const updateValues = this.mapToUpdateValues(data)
 
@@ -129,6 +133,7 @@ export abstract class BaseRepository<TTable extends PgTable, TEntity, TCreateDto
    * Performs a soft delete by setting isActive to false.
    */
   async delete(id: string): Promise<boolean> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic PgTable requires any for Drizzle operations
     const tableAny = this.table as any
     const hasIsActive = 'isActive' in tableAny
 
@@ -150,6 +155,7 @@ export abstract class BaseRepository<TTable extends PgTable, TEntity, TCreateDto
    * Use with caution.
    */
   async hardDelete(id: string): Promise<boolean> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic PgTable requires any for Drizzle operations
     const tableAny = this.table as any
     const results = (await this.db
       .delete(tableAny)

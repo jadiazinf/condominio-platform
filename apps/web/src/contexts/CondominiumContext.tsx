@@ -9,13 +9,36 @@
  * The Zustand store is the single source of truth for all session data.
  */
 
-import { useCondominium as useStoreCondominium } from '@/stores/session-store'
+import { useEffect } from 'react'
+import type { TUserCondominiumAccess } from '@packages/domain'
+import { useCondominium as useStoreCondominium, useSessionStore } from '@/stores/session-store'
 
 // Re-export the hook from the store
 export const useCondominium = useStoreCondominium
 
-// Provider is no longer needed since Zustand manages its own state
-// Keep it as a pass-through for backwards compatibility
-export function CondominiumProvider({ children }: { children: React.ReactNode }) {
+interface CondominiumProviderProps {
+  children: React.ReactNode
+  initialCondominiums?: TUserCondominiumAccess[]
+  initialSelectedCondominium?: TUserCondominiumAccess | null
+}
+
+// Provider initializes the store with server-side data
+export function CondominiumProvider({
+  children,
+  initialCondominiums,
+  initialSelectedCondominium,
+}: CondominiumProviderProps) {
+  const setCondominiums = useSessionStore((state) => state.setCondominiums)
+  const selectCondominium = useSessionStore((state) => state.selectCondominium)
+
+  useEffect(() => {
+    if (initialCondominiums && initialCondominiums.length > 0) {
+      setCondominiums(initialCondominiums)
+    }
+    if (initialSelectedCondominium) {
+      selectCondominium(initialSelectedCondominium)
+    }
+  }, [initialCondominiums, initialSelectedCondominium, setCondominiums, selectCondominium])
+
   return <>{children}</>
 }

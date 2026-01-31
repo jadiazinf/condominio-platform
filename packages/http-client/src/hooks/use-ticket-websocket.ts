@@ -91,25 +91,26 @@ export function useTicketWebSocket({
             const newMessage = message.data as TSupportTicketMessage
 
             // Update React Query cache
-            queryClient.setQueryData(supportTicketMessageKeys.list(ticketId), (old: any) => {
-              if (!old?.data) {
-                return old
-              }
+            queryClient.setQueryData(
+              supportTicketMessageKeys.list(ticketId),
+              (old: { data: TSupportTicketMessage[] } | undefined) => {
+                if (!old?.data) {
+                  return old
+                }
 
-              // Check if message already exists (avoid duplicates)
-              const exists = old.data.some(
-                (msg: TSupportTicketMessage) => msg.id === newMessage.id
-              )
+                // Check if message already exists (avoid duplicates)
+                const exists = old.data.some((msg) => msg.id === newMessage.id)
 
-              if (exists) {
-                return old
-              }
+                if (exists) {
+                  return old
+                }
 
-              return {
-                ...old,
-                data: [...old.data, newMessage],
+                return {
+                  ...old,
+                  data: [...old.data, newMessage],
+                }
               }
-            })
+            )
           } else if (message.event === 'error') {
             setError(message.data as string)
           }
