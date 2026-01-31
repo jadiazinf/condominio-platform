@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "start": "bun run src/main.ts",
-    "dev": "bun run --watch src/main.ts",
+    "dev": "bun ./scripts/check-dev-db.ts",
     "build": "tsc --build --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",

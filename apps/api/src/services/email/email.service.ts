@@ -23,8 +23,17 @@ export class EmailService implements IService<ISendEmailInput, TServiceResult<IS
   private resend: Resend | null = null
 
   constructor() {
-    if (env.RESEND_API_KEY) {
-      this.resend = new Resend(env.RESEND_API_KEY)
+    // Use env.RESEND_API_KEY or fallback to Bun.env directly (Railway compatibility)
+    const apiKey = env.RESEND_API_KEY || Bun.env.RESEND_API_KEY
+
+    if (apiKey) {
+      this.resend = new Resend(apiKey)
+      logger.info('EmailService: Resend client initialized')
+    } else {
+      logger.warn(
+        { nodeEnv: env.NODE_ENV, hasEnvKey: !!env.RESEND_API_KEY },
+        'EmailService: RESEND_API_KEY not configured'
+      )
     }
   }
 
