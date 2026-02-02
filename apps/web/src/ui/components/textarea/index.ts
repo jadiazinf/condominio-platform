@@ -7,3 +7,5 @@ export type {
   TLabelPlacement,
   ITextareaProps,
 } from './Textarea'
+export { TextareaField } from './TextareaField'
+export type { ITextareaFieldProps } from './TextareaField'

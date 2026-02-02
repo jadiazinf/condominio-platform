@@ -3,10 +3,9 @@
 import { useState } from 'react'
 import { Card, CardBody, CardHeader } from '@/ui/components/card'
 import { Divider } from '@/ui/components/divider'
-import { Checkbox } from '@/ui/components/checkbox'
 import { Link } from '@/ui/components/link'
 import { Eye, EyeOff, Lock, Building2, Mail, User } from 'lucide-react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
@@ -15,9 +14,12 @@ import { acceptInvitation, type TValidateInvitationResult, HttpError } from '@pa
 import { useTranslation, useUser, getFirebaseErrorKey } from '@/contexts'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
+import { InputField } from '@/ui/components/input'
+import { CheckboxField } from '@/ui/components/checkbox'
 import { Typography } from '@/ui/components/typography'
 import { useToast } from '@/ui/components/toast'
 import { setUserCookie, setSessionCookie } from '@/libs/cookies'
+import { getErrorMessage } from '@/utils/formErrors'
 
 interface AcceptInvitationFormProps {
   token: string
@@ -54,11 +56,7 @@ export function AcceptInvitationForm({ token, invitationData }: AcceptInvitation
 
   const { user, managementCompany } = invitationData
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<TAcceptInvitationFormSchema>({
+  const methods = useForm<TAcceptInvitationFormSchema>({
     resolver: zodResolver(acceptInvitationFormSchema),
     defaultValues: {
       password: '',
@@ -169,44 +167,37 @@ export function AcceptInvitationForm({ token, invitationData }: AcceptInvitation
         <Divider className="my-6" />
 
         {/* Password Form */}
-        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-          <Typography className="text-default-500" variant="body2">
-            {t('auth.acceptInvitation.setPassword')}
-          </Typography>
+        <FormProvider {...methods}>
+          <form className="space-y-4" onSubmit={methods.handleSubmit(onSubmit)}>
+            <Typography className="text-default-500" variant="body2">
+              {t('auth.acceptInvitation.setPassword')}
+            </Typography>
 
           <div>
             <Typography className="mb-2" variant="body2">
               {t('auth.signUp.password')}
             </Typography>
-            <Controller
-              control={control}
+            <InputField
               name="password"
-              render={({ field }) => (
-                <Input
-                  isRequired
-                  endContent={
-                    <button
-                      className="focus:outline-none"
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-5 h-5 text-default-400" />
-                      ) : (
-                        <Eye className="w-5 h-5 text-default-400" />
-                      )}
-                    </button>
-                  }
-                  errorMessage={translateError(errors.password?.message)}
-                  isInvalid={!!errors.password}
-                  placeholder={t('auth.signUp.passwordPlaceholder')}
-                  size="lg"
-                  startContent={<Lock className="w-5 h-5 text-default-400" />}
-                  type={showPassword ? 'text' : 'password'}
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              )}
+              type={showPassword ? 'text' : 'password'}
+              placeholder={t('auth.signUp.passwordPlaceholder')}
+              size="lg"
+              startContent={<Lock className="w-5 h-5 text-default-400" />}
+              endContent={
+                <button
+                  className="focus:outline-none"
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5 text-default-400" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-default-400" />
+                  )}
+                </button>
+              }
+              isRequired
+              translateError={translateError}
             />
           </div>
 
@@ -214,60 +205,46 @@ export function AcceptInvitationForm({ token, invitationData }: AcceptInvitation
             <Typography className="mb-2" variant="body2">
               {t('auth.signUp.confirmPassword')}
             </Typography>
-            <Controller
-              control={control}
+            <InputField
               name="confirmPassword"
-              render={({ field }) => (
-                <Input
-                  isRequired
-                  endContent={
-                    <button
-                      className="focus:outline-none"
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="w-5 h-5 text-default-400" />
-                      ) : (
-                        <Eye className="w-5 h-5 text-default-400" />
-                      )}
-                    </button>
-                  }
-                  errorMessage={translateError(errors.confirmPassword?.message)}
-                  isInvalid={!!errors.confirmPassword}
-                  placeholder={t('auth.signUp.confirmPasswordPlaceholder')}
-                  size="lg"
-                  startContent={<Lock className="w-5 h-5 text-default-400" />}
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              )}
+              type={showConfirmPassword ? 'text' : 'password'}
+              placeholder={t('auth.signUp.confirmPasswordPlaceholder')}
+              size="lg"
+              startContent={<Lock className="w-5 h-5 text-default-400" />}
+              endContent={
+                <button
+                  className="focus:outline-none"
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5 text-default-400" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-default-400" />
+                  )}
+                </button>
+              }
+              isRequired
+              translateError={translateError}
             />
           </div>
 
           <div>
-            <Controller
-              control={control}
-              name="acceptTerms"
-              render={({ field }) => (
-                <Checkbox isSelected={field.value} onValueChange={field.onChange}>
-                  <Typography variant="body2">
-                    {t('auth.signUp.acceptTerms')}{' '}
-                    <Link className="text-sm" href="/terms">
-                      {t('auth.signUp.termsAndConditions')}
-                    </Link>{' '}
-                    {t('auth.signUp.and')}{' '}
-                    <Link className="text-sm" href="/privacy">
-                      {t('auth.signUp.privacyPolicy')}
-                    </Link>
-                  </Typography>
-                </Checkbox>
-              )}
-            />
-            {errors.acceptTerms && (
+            <CheckboxField name="acceptTerms">
+              <Typography variant="body2">
+                {t('auth.signUp.acceptTerms')}{' '}
+                <Link className="text-sm" href="/terms">
+                  {t('auth.signUp.termsAndConditions')}
+                </Link>{' '}
+                {t('auth.signUp.and')}{' '}
+                <Link className="text-sm" href="/privacy">
+                  {t('auth.signUp.privacyPolicy')}
+                </Link>
+              </Typography>
+            </CheckboxField>
+            {getErrorMessage(methods.formState.errors, 'acceptTerms') && (
               <Typography className="mt-1 text-danger text-xs" variant="body2">
-                {translateError(errors.acceptTerms.message)}
+                {translateError(getErrorMessage(methods.formState.errors, 'acceptTerms'))}
               </Typography>
             )}
           </div>
@@ -285,7 +262,8 @@ export function AcceptInvitationForm({ token, invitationData }: AcceptInvitation
               {t('auth.acceptInvitation.submit')}
             </Button>
           </div>
-        </form>
+          </form>
+        </FormProvider>
       </CardBody>
     </Card>
   )

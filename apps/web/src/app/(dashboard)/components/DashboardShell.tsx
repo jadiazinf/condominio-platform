@@ -2,7 +2,7 @@
 
 import type { TUser } from '@packages/domain'
 
-import { useDisclosure } from '@heroui/modal'
+import { useDisclosure } from '@/ui/components/modal'
 
 import { DashboardNavbar } from './DashboardNavbar'
 import { DashboardSidebar } from './DashboardSidebar'

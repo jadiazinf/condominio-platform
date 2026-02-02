@@ -214,6 +214,7 @@ export function SendMessageForm({ ticketId, isTicketClosed = false, translations
       <input
         ref={fileInputRef}
         accept={ACCEPT_STRING}
+        aria-label={translations.attachFiles || 'Attach files'}
         className="hidden"
         multiple
         type="file"

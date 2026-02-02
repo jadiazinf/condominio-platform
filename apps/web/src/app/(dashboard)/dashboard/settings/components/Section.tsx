@@ -1,5 +1,5 @@
 import { Card, CardBody, CardHeader } from '@/ui/components/card'
-import { cn } from '@heroui/theme'
+import { cn } from '@/ui/utils'
 
 import { Typography } from '@/ui/components/typography'
 

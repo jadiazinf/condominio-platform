@@ -2,7 +2,7 @@
 
 import type { TUser } from '@packages/domain'
 
-import { useDisclosure } from '@heroui/modal'
+import { useDisclosure } from '@/ui/components/modal'
 import { Shield } from 'lucide-react'
 
 import { SuperadminNavbar } from './SuperadminNavbar'

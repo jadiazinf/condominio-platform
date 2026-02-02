@@ -20,7 +20,7 @@ import {
   toggleManagementCompanyActive,
   useQueryClient,
 } from '@packages/http-client'
-import { addToast } from '@heroui/toast'
+import { useToast } from '@/ui/components/toast'
 
 type TStatusFilter = 'all' | 'active' | 'inactive'
 
@@ -31,6 +31,7 @@ export function CompaniesTable() {
   const router = useRouter()
   const { user: firebaseUser } = useAuth()
   const queryClient = useQueryClient()
+  const toast = useToast()
   const [token, setToken] = useState<string>('')
 
   // Get token on mount and when firebase user changes
@@ -117,17 +118,13 @@ export function CompaniesTable() {
       try {
         await toggleManagementCompanyActive(token, company.id, !company.isActive)
         queryClient.invalidateQueries({ queryKey: ['management-companies'] })
-        addToast({
-          title: company.isActive
+        toast.success(
+          company.isActive
             ? t('superadmin.companies.actions.deactivateSuccess')
-            : t('superadmin.companies.actions.activateSuccess'),
-          color: 'success',
-        })
+            : t('superadmin.companies.actions.activateSuccess')
+        )
       } catch {
-        addToast({
-          title: t('superadmin.companies.actions.toggleError'),
-          color: 'danger',
-        })
+        toast.error(t('superadmin.companies.actions.toggleError'))
       } finally {
         setIsToggling(null)
       }

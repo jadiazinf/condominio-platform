@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { eq, ne } from 'drizzle-orm'
 import type { TRole, TRoleCreate, TRoleUpdate } from '@packages/domain'
 import { roles } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
@@ -84,6 +84,16 @@ export class RolesRepository
    */
   async getSystemRoles(): Promise<TRole[]> {
     const results = await this.db.select().from(roles).where(eq(roles.isSystemRole, true))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Retrieves roles that can be assigned to condominium users.
+   * Returns all roles except SUPERADMIN.
+   */
+  async getAssignableRoles(): Promise<TRole[]> {
+    const results = await this.db.select().from(roles).where(ne(roles.name, 'SUPERADMIN'))
 
     return results.map(record => this.mapToEntity(record))
   }

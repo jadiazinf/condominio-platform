@@ -1,9 +1,14 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Accordion, AccordionItem } from '@heroui/accordion'
-import { Paperclip, Image as ImageIcon, Video, FileText, Download, X, Play } from 'lucide-react'
-import { type TAttachment, type TSupportTicketMessage, getFileTypeCategory, formatFileSize } from '@packages/domain'
+import { Accordion, AccordionItem } from '@/ui/components/accordion'
+import { Paperclip, FileText, Download, X, Play } from 'lucide-react'
+import {
+  type TAttachment,
+  type TSupportTicketMessage,
+  getFileTypeCategory,
+  formatFileSize,
+} from '@packages/domain'
 
 import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
@@ -31,13 +36,7 @@ interface IAttachmentsGalleryProps {
 }
 
 // Modal for viewing full content
-function MediaModal({
-  item,
-  onClose,
-}: {
-  item: IAttachmentWithMeta | null
-  onClose: () => void
-}) {
+function MediaModal({ item, onClose }: { item: IAttachmentWithMeta | null; onClose: () => void }) {
   if (!item) return null
 
   const category = getFileTypeCategory(item.attachment.mimeType)
@@ -48,6 +47,7 @@ function MediaModal({
       onClick={onClose}
     >
       <button
+        aria-label="Close modal"
         className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
         type="button"
         onClick={onClose}
@@ -55,10 +55,7 @@ function MediaModal({
         <X size={24} />
       </button>
 
-      <div
-        className="relative max-h-[90vh] max-w-[90vw]"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="relative max-h-[90vh] max-w-[90vw]" onClick={e => e.stopPropagation()}>
         {category === 'image' && (
           <img
             alt={item.attachment.name}
@@ -68,11 +65,7 @@ function MediaModal({
         )}
 
         {category === 'video' && (
-          <video
-            autoPlay
-            className="max-h-[85vh] max-w-[90vw] rounded-lg"
-            controls
-          >
+          <video autoPlay className="max-h-[85vh] max-w-[90vw] rounded-lg" controls>
             <source src={item.attachment.url} type={item.attachment.mimeType} />
           </video>
         )}
@@ -98,9 +91,10 @@ export function AttachmentsGallery({ messages, locale, translations }: IAttachme
 
     for (const message of messages) {
       if (message.attachments && message.attachments.length > 0) {
-        const userName = message.user?.firstName && message.user?.lastName
-          ? `${message.user.firstName} ${message.user.lastName}`
-          : message.user?.displayName || message.user?.email || 'Unknown'
+        const userName =
+          message.user?.firstName && message.user?.lastName
+            ? `${message.user.firstName} ${message.user.lastName}`
+            : message.user?.displayName || message.user?.email || 'Unknown'
 
         for (const attachment of message.attachments) {
           attachments.push({
@@ -152,12 +146,8 @@ export function AttachmentsGallery({ messages, locale, translations }: IAttachme
           />
           <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/30" />
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-            <Typography className="truncate text-xs text-white">
-              {item.attachment.name}
-            </Typography>
-            <Typography className="text-[10px] text-white/70">
-              {item.uploadedBy}
-            </Typography>
+            <Typography className="truncate text-xs text-white">{item.attachment.name}</Typography>
+            <Typography className="text-[10px] text-white/70">{item.uploadedBy}</Typography>
           </div>
         </button>
       )
@@ -171,11 +161,7 @@ export function AttachmentsGallery({ messages, locale, translations }: IAttachme
           type="button"
           onClick={() => setSelectedItem(item)}
         >
-          <video
-            className="h-full w-full object-cover"
-            muted
-            preload="metadata"
-          >
+          <video className="h-full w-full object-cover" muted preload="metadata">
             <source src={item.attachment.url} type={item.attachment.mimeType} />
           </video>
           <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-colors group-hover:bg-black/50">
@@ -184,9 +170,7 @@ export function AttachmentsGallery({ messages, locale, translations }: IAttachme
             </div>
           </div>
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-            <Typography className="truncate text-xs text-white">
-              {item.attachment.name}
-            </Typography>
+            <Typography className="truncate text-xs text-white">{item.attachment.name}</Typography>
             <Typography className="text-[10px] text-white/70">
               {formatFileSize(item.attachment.size)} • {item.uploadedBy}
             </Typography>
@@ -208,11 +192,10 @@ export function AttachmentsGallery({ messages, locale, translations }: IAttachme
           <FileText className="text-red-500" size={24} />
         </div>
         <div className="min-w-0 flex-1">
-          <Typography className="truncate text-sm font-medium">
-            {item.attachment.name}
-          </Typography>
+          <Typography className="truncate text-sm font-medium">{item.attachment.name}</Typography>
           <Typography className="text-xs text-default-500">
-            {formatFileSize(item.attachment.size)} • {item.uploadedBy} • {formatDate(item.uploadedAt)}
+            {formatFileSize(item.attachment.size)} • {item.uploadedBy} •{' '}
+            {formatDate(item.uploadedAt)}
           </Typography>
         </div>
         <Download className="flex-shrink-0 text-default-400" size={18} />
@@ -239,7 +222,9 @@ export function AttachmentsGallery({ messages, locale, translations }: IAttachme
           title={
             <div className="flex items-center gap-2">
               <span>{translations.title}</span>
-              <Chip size="sm" variant="flat">{totalCount}</Chip>
+              <Chip size="sm" variant="flat">
+                {totalCount}
+              </Chip>
             </div>
           }
         >

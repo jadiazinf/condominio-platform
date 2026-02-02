@@ -567,7 +567,11 @@
           "adminEmailPlaceholder": "admin@administradora.com",
           "adminEmailDescription": "Este será el correo de acceso del administrador a la plataforma",
           "adminPhone": "Teléfono",
-          "adminPhonePlaceholder": "412 123 4567"
+          "adminPhonePlaceholder": "412 123 4567",
+          "adminIdDocument": "Documento de Identidad",
+          "adminIdDocumentTypePlaceholder": "CI",
+          "adminIdDocumentNumberPlaceholder": "12345678",
+          "adminIdDocumentDescription": "Documento de identidad del administrador. Selecciona el tipo y luego ingresa el número"
         },
         "confirmation": {
           "title": "Confirmar Creación",
@@ -652,32 +656,129 @@
         "basicInfoDescription": "Datos de identificación del usuario",
         "contactInfo": "Información de Contacto",
         "contactInfoDescription": "Datos de contacto del usuario",
-        "roleAssignment": "Asignación de Rol",
+        "roleAssignmentTitle": "Asignación de Rol",
         "roleAssignmentDescription": "Selecciona el rol y condominio (si aplica) para el usuario",
+        "permissions": "Permisos",
+        "permissionsDescription": "Personaliza los permisos para este usuario (opcional)",
+        "noPermissions": "No hay permisos disponibles para este rol",
+        "steps": {
+          "basic": "Información Básica",
+          "userType": "Tipo de Usuario",
+          "condominium": "Condominio",
+          "role": "Asignación de Rol",
+          "permissions": "Permisos",
+          "confirmation": "Confirmación"
+        },
+        "userType": {
+          "title": "Tipo de Usuario",
+          "tooltip": "Selecciona el tipo de usuario que deseas crear",
+          "general": {
+            "label": "Usuario General",
+            "description": "Usuario con permisos básicos sin asignación a condominio"
+          },
+          "condominium": {
+            "label": "Usuario de Condominio",
+            "description": "Usuario asignado a un condominio específico con rol y permisos personalizados"
+          },
+          "superadmin": {
+            "label": "Superadministrador",
+            "description": "Usuario con acceso completo al sistema y permisos personalizables"
+          }
+        },
+        "condominium": {
+          "title": "Seleccionar Condominio",
+          "tooltip": "Selecciona el condominio al que pertenecerá el usuario",
+          "searchPlaceholder": "Buscar condominio por nombre, código, dirección o ciudad...",
+          "empty": "No se encontraron condominios",
+          "table": {
+            "name": "Nombre",
+            "code": "Código",
+            "address": "Dirección",
+            "city": "Ciudad"
+          }
+        },
+        "roleAssignment": {
+          "noRoles": "No hay roles disponibles para este condominio"
+        },
+        "permissionsHint": "Activa o desactiva permisos individuales. Por defecto están habilitados según la plantilla del rol.",
+        "permissionModules": {
+          "users": "Usuarios",
+          "condominiums": "Condominios",
+          "buildings": "Edificios",
+          "units": "Unidades",
+          "quotas": "Cuotas",
+          "payments": "Pagos",
+          "expenses": "Gastos",
+          "documents": "Documentos",
+          "reports": "Reportes",
+          "settings": "Configuración",
+          "platform_users": "Usuarios de Plataforma",
+          "platform_condominiums": "Condominios de Plataforma",
+          "platform_management_companies": "Administradoras",
+          "platform_subscriptions": "Suscripciones",
+          "platform_support_tickets": "Tickets de Soporte",
+          "platform_superadmins": "Superadministradores",
+          "platform_audit_logs": "Auditoría",
+          "platform_metrics": "Métricas",
+          "platform_payments": "Pagos de Plataforma",
+          "platform_settings": "Configuración de Plataforma",
+          "platform_tickets": "Tickets de Plataforma"
+        },
+        "permissionActions": {
+          "create": "Crear",
+          "read": "Ver",
+          "read_own": "Ver propios",
+          "update": "Actualizar",
+          "update_own": "Actualizar propios",
+          "delete": "Eliminar",
+          "delete_own": "Eliminar propios",
+          "approve": "Aprobar",
+          "manage": "Administrar",
+          "export": "Exportar",
+          "import": "Importar",
+          "view": "Visualizar",
+          "edit": "Editar",
+          "assign": "Asignar",
+          "unassign": "Desasignar",
+          "activate": "Activar",
+          "deactivate": "Desactivar"
+        },
+        "errors": {
+          "condominiumsFetch": "Error al cargar los condominios",
+          "rolesFetch": "Error al cargar los roles",
+          "permissionsFetch": "Error al cargar los permisos",
+          "userRoleNotFound": "No se pudo encontrar el rol de usuario general. Contacta al administrador."
+        },
         "fields": {
-          "email": "Correo electrónico",
+          "email": "Email",
           "emailPlaceholder": "usuario@correo.com",
-          "emailDescription": "El usuario recibirá una invitación a este correo",
+          "emailDescription": "El usuario recibirá una invitación a este correo para acceder a la plataforma. Este será el correo electrónico del usuario para ingresar a la plataforma",
           "firstName": "Nombre",
           "firstNamePlaceholder": "Juan",
+          "firstNameDescription": "Nombre legal del usuario tal como aparece en su documento de identidad",
           "lastName": "Apellido",
           "lastNamePlaceholder": "Pérez",
+          "lastNameDescription": "Apellido legal del usuario tal como aparece en su documento de identidad",
           "displayName": "Nombre para mostrar",
           "displayNamePlaceholder": "Juan Pérez",
           "displayNameDescription": "Nombre que se mostrará en la plataforma (opcional)",
           "phoneCountryCode": "Código de país",
           "phoneNumber": "Teléfono",
           "phoneNumberPlaceholder": "4121234567",
+          "phoneDescription": "Número de teléfono principal del usuario. Se utilizará para comunicaciones y notificaciones",
+          "phone": "Teléfono",
+          "idDocument": "Documento de Identidad",
           "idDocumentType": "Tipo de documento",
-          "idDocumentTypePlaceholder": "Selecciona un tipo",
+          "idDocumentTypePlaceholder": "Selecciona...",
           "idDocumentNumber": "Número de documento",
           "idDocumentNumberPlaceholder": "12345678",
+          "idDocumentDescription": "Documento de identidad del usuario. Selecciona el tipo y luego ingresa el número",
           "role": "Rol",
           "rolePlaceholder": "Selecciona un rol",
-          "roleDescription": "El rol determina los permisos del usuario",
+          "roleDescription": "El rol determina los permisos y nivel de acceso del usuario en la plataforma",
           "condominium": "Condominio",
           "condominiumPlaceholder": "Selecciona un condominio",
-          "condominiumDescription": "El condominio al que se asignará el usuario (requerido para roles no globales)"
+          "condominiumDescription": "El condominio al que se asignará el usuario. Este campo es requerido para roles no globales como Administrador o Residente"
         },
         "idDocumentTypes": {
           "CI": "Cédula de Identidad",
@@ -714,6 +815,7 @@
         "SUPERADMIN": "Superadmin",
         "ADMIN": "Administrador",
         "ADMINISTRADOR": "Administrador",
+        "USER": "Usuario",
         "RESIDENTE": "Residente",
         "PROPIETARIO": "Propietario",
         "INQUILINO": "Inquilino",
@@ -833,7 +935,18 @@
           "confirmActivateRole": "¿Estás seguro de que deseas activar este rol?",
           "success": "Estado actualizado correctamente",
           "error": "Error al actualizar el estado",
-          "updating": "Actualizando..."
+          "updating": "Actualizando...",
+          "promoteTitle": "Promover a Superadministrador",
+          "promoteDescription": "Otorga acceso de superadministrador a este usuario con permisos personalizados",
+          "demoteTitle": "Remover Rol de Superadministrador",
+          "demoteDescription": "Remueve el acceso de superadministrador y todos sus permisos asociados",
+          "promoteButton": "Convertir en Superadmin",
+          "demoteButton": "Remover Superadmin",
+          "modalTitle": "Seleccionar Permisos de Superadmin",
+          "modalDescription": "Seleccione los permisos que desea otorgar al nuevo superadministrador",
+          "selectAll": "Seleccionar Todos",
+          "promotionSuccess": "Usuario promocionado exitosamente",
+          "promotionError": "Error al promover usuario"
         }
       }
     }

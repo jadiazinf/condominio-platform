@@ -1,30 +1,29 @@
-'use client'
-
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { redirect } from 'next/navigation'
+import { getTranslations } from '@/libs/i18n/server'
 import { Building2 } from 'lucide-react'
 
-import { useTranslation } from '@/contexts'
+import { getUserFullDetails } from '@packages/http-client/hooks'
+import { getServerAuthToken } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
 import { Card } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
-import { useUserDetail } from '../context/UserDetailContext'
 
-export default function UserCondominiumsPage() {
-  const { t } = useTranslation()
-  const router = useRouter()
-  const { user } = useUserDetail()
+interface PageProps {
+  params: Promise<{ id: string }>
+}
 
-  // Redirect superadmins - they shouldn't see this page
-  useEffect(() => {
-    if (user.isSuperadmin) {
-      router.replace(`/dashboard/users/${user.id}`)
-    }
-  }, [user.isSuperadmin, user.id, router])
+export default async function UserCondominiumsPage({ params }: PageProps) {
+  const { id } = await params
+  const { t } = await getTranslations()
+  const token = await getServerAuthToken()
 
+  // Fetch user data server-side
+  const user = await getUserFullDetails(token, id)
+
+  // Server-side redirect for superadmins - they shouldn't see this page
   if (user.isSuperadmin) {
-    return null
+    redirect(`/dashboard/users/${id}`)
   }
 
   const condominiums = user.condominiums || []

@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardBody } from '@/ui/components/card'
-import { cn } from '@heroui/theme'
+import { cn } from '@/ui/utils'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
 interface MetricCardProps {

@@ -1,68 +1,35 @@
-'use client'
-
-import { useState, useEffect, useCallback } from 'react'
-import { Switch } from '@heroui/switch'
-
-import { useTranslation, useAuth } from '@/contexts'
+import { getTranslations } from '@/libs/i18n/server'
+import { getUserFullDetails, getAllPermissions } from '@packages/http-client/hooks'
+import { getServerAuthToken } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
 import { Card } from '@/ui/components/card'
-import { Chip } from '@/ui/components/chip'
-import { useToast } from '@/ui/components/toast'
-import { updateUserStatus, updateUserRoleStatus } from '@packages/http-client/hooks'
-import { useUserDetail } from '../context/UserDetailContext'
+import { StatusToggle } from './components/StatusToggle'
+import { RoleStatusToggle } from './components/RoleStatusToggle'
+import { CondominiumRoleToggle } from './components/CondominiumRoleToggle'
+import { SuperadminPromotionCard } from './components/SuperadminPromotionCard'
 
-export default function UserStatusPage() {
-  const { t } = useTranslation()
-  const toast = useToast()
-  const { user: firebaseUser } = useAuth()
-  const { user, refetch } = useUserDetail()
-  const [token, setToken] = useState<string>('')
-  const [isUpdatingUser, setIsUpdatingUser] = useState(false)
-  const [updatingRoleId, setUpdatingRoleId] = useState<string | null>(null)
+interface PageProps {
+  params: Promise<{ id: string }>
+}
 
-  useEffect(() => {
-    if (firebaseUser) {
-      firebaseUser.getIdToken().then(setToken)
-    }
-  }, [firebaseUser])
+export default async function UserStatusPage({ params }: PageProps) {
+  const { id } = await params
+  const { t } = await getTranslations()
+  const token = await getServerAuthToken()
 
-  const handleUserStatusChange = useCallback(
-    async (isActive: boolean) => {
-      if (!token) return
-
-      setIsUpdatingUser(true)
-      try {
-        await updateUserStatus(token, user.id, isActive)
-        toast.success(t('superadmin.users.detail.statusSection.success'))
-        refetch()
-      } catch {
-        toast.error(t('superadmin.users.detail.statusSection.error'))
-      } finally {
-        setIsUpdatingUser(false)
-      }
-    },
-    [token, user.id, refetch, t, toast]
-  )
-
-  const handleRoleStatusChange = useCallback(
-    async (userRoleId: string, isActive: boolean) => {
-      if (!token) return
-
-      setUpdatingRoleId(userRoleId)
-      try {
-        await updateUserRoleStatus(token, userRoleId, isActive)
-        toast.success(t('superadmin.users.detail.statusSection.success'))
-        refetch()
-      } catch {
-        toast.error(t('superadmin.users.detail.statusSection.error'))
-      } finally {
-        setUpdatingRoleId(null)
-      }
-    },
-    [token, refetch, t, toast]
-  )
-
+  // Fetch user data and permissions server-side
+  const user = await getUserFullDetails(token, id)
   const userRoles = user.userRoles || []
+
+  // Fetch all available permissions for superadmin promotion
+  const allPermissions = await getAllPermissions(token)
+
+  // Get current superadmin permissions if user is already a superadmin
+  const currentSuperadminPermissions = user.isSuperadmin
+    ? user.userRoles
+        ?.filter(role => role.roleId === 'SUPERADMIN' || role.roleName === 'SUPERADMIN')
+        .flatMap(role => role.permissions?.map(p => p.id) || []) || []
+    : []
 
   return (
     <div className="space-y-6">
@@ -75,37 +42,45 @@ export default function UserStatusPage() {
 
       {/* User Level Status */}
       <Card className="p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <Typography variant="h4">
-              {t('superadmin.users.detail.statusSection.userLevel')}
-            </Typography>
-            <Typography color="muted" variant="body2" className="mt-1">
-              {t('superadmin.users.detail.statusSection.userLevelDescription')}
-            </Typography>
-          </div>
-          <div className="flex items-center gap-4">
-            <Chip color={user.isActive ? 'success' : 'default'} variant="flat">
-              {user.isActive
-                ? t('superadmin.users.status.active')
-                : t('superadmin.users.status.inactive')}
-            </Chip>
-            <Switch
-              isSelected={user.isActive}
-              isDisabled={isUpdatingUser}
-              onValueChange={handleUserStatusChange}
-            />
-          </div>
-        </div>
+        <StatusToggle
+          userId={user.id}
+          initialStatus={user.isActive}
+          activeLabel={t('superadmin.users.status.active')}
+          inactiveLabel={t('superadmin.users.status.inactive')}
+          title={t('superadmin.users.detail.statusSection.userLevel')}
+          description={t('superadmin.users.detail.statusSection.userLevelDescription')}
+          successMessage={t('superadmin.users.detail.statusSection.success')}
+          errorMessage={t('superadmin.users.detail.statusSection.error')}
+        />
       </Card>
+
+      {/* Superadmin Promotion/Demotion */}
+      <SuperadminPromotionCard
+        userId={user.id}
+        userDisplayName={user.displayName || user.email}
+        isSuperadmin={user.isSuperadmin}
+        availablePermissions={allPermissions}
+        currentPermissionIds={currentSuperadminPermissions}
+        promoteTitle={t('superadmin.users.detail.statusSection.promoteTitle')}
+        promoteDescription={t('superadmin.users.detail.statusSection.promoteDescription')}
+        demoteTitle={t('superadmin.users.detail.statusSection.demoteTitle')}
+        demoteDescription={t('superadmin.users.detail.statusSection.demoteDescription')}
+        promoteButtonText={t('superadmin.users.detail.statusSection.promoteButton')}
+        demoteButtonText={t('superadmin.users.detail.statusSection.demoteButton')}
+        modalTitle={t('superadmin.users.detail.statusSection.modalTitle')}
+        modalDescription={t('superadmin.users.detail.statusSection.modalDescription')}
+        selectAllText={t('superadmin.users.detail.statusSection.selectAll')}
+        confirmButtonText={t('common.confirm')}
+        cancelButtonText={t('common.cancel')}
+        successMessage={t('superadmin.users.detail.statusSection.promotionSuccess')}
+        errorMessage={t('superadmin.users.detail.statusSection.promotionError')}
+      />
 
       {/* Role Level Status */}
       {userRoles.length > 0 && (
         <Card className="p-6">
           <div className="mb-4">
-            <Typography variant="h4">
-              {t('superadmin.users.detail.statusSection.roleLevel')}
-            </Typography>
+            <Typography variant="h4">{t('superadmin.users.detail.statusSection.roleLevel')}</Typography>
             <Typography color="muted" variant="body2" className="mt-1">
               {t('superadmin.users.detail.statusSection.roleLevelDescription')}
             </Typography>
@@ -113,36 +88,18 @@ export default function UserStatusPage() {
 
           <div className="space-y-4">
             {userRoles.map(role => (
-              <div
+              <RoleStatusToggle
                 key={role.id}
-                className="flex items-center justify-between py-3 border-b border-default-100 last:border-0"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <Typography variant="body1" className="font-medium">
-                      {role.roleName}
-                    </Typography>
-                    {role.condominiumName && (
-                      <Chip size="sm" variant="flat" color="default">
-                        {role.condominiumName}
-                      </Chip>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <Chip color={role.isActive ? 'success' : 'default'} size="sm" variant="flat">
-                    {role.isActive
-                      ? t('superadmin.users.status.active')
-                      : t('superadmin.users.status.inactive')}
-                  </Chip>
-                  <Switch
-                    isSelected={role.isActive}
-                    isDisabled={updatingRoleId === role.id}
-                    onValueChange={(isActive: boolean) => handleRoleStatusChange(role.id, isActive)}
-                    size="sm"
-                  />
-                </div>
-              </div>
+                userId={user.id}
+                userRoleId={role.id}
+                roleName={role.roleName}
+                condominiumName={role.condominiumName ?? undefined}
+                initialStatus={role.isActive}
+                activeLabel={t('superadmin.users.status.active')}
+                inactiveLabel={t('superadmin.users.status.inactive')}
+                successMessage={t('superadmin.users.detail.statusSection.success')}
+                errorMessage={t('superadmin.users.detail.statusSection.error')}
+              />
             ))}
           </div>
         </Card>
@@ -152,9 +109,7 @@ export default function UserStatusPage() {
       {!user.isSuperadmin && user.condominiums && user.condominiums.length > 0 && (
         <Card className="p-6">
           <div className="mb-4">
-            <Typography variant="h4">
-              {t('superadmin.users.detail.statusSection.condominiumLevel')}
-            </Typography>
+            <Typography variant="h4">{t('superadmin.users.detail.statusSection.condominiumLevel')}</Typography>
             <Typography color="muted" variant="body2" className="mt-1">
               {t('superadmin.users.detail.statusSection.condominiumLevelDescription')}
             </Typography>
@@ -170,23 +125,17 @@ export default function UserStatusPage() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {condo.roles.map((role, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <Chip
-                        size="sm"
-                        variant="flat"
-                        color={role.isActive ? 'primary' : 'default'}
-                      >
-                        {role.roleName}
-                      </Chip>
-                      <Switch
-                        isSelected={role.isActive}
-                        isDisabled={updatingRoleId === role.userRoleId}
-                        onValueChange={(isActive: boolean) =>
-                          handleRoleStatusChange(role.userRoleId, isActive)
-                        }
-                        size="sm"
-                      />
-                    </div>
+                    <CondominiumRoleToggle
+                      key={index}
+                      userId={user.id}
+                      userRoleId={role.userRoleId}
+                      roleName={role.roleName}
+                      initialStatus={role.isActive}
+                      activeLabel={t('superadmin.users.status.active')}
+                      inactiveLabel={t('superadmin.users.status.inactive')}
+                      successMessage={t('superadmin.users.detail.statusSection.success')}
+                      errorMessage={t('superadmin.users.detail.statusSection.error')}
+                    />
                   ))}
                 </div>
               </div>

@@ -4,7 +4,7 @@ import type { ICardProps } from '@/ui/components/card'
 
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Avatar } from '@/ui/components/avatar-base'
-import { cn } from '@heroui/theme'
+import { cn } from '@/ui/utils'
 
 type TActivityType = 'user' | 'payment' | 'condominium' | 'alert' | 'system'
 

@@ -10,6 +10,7 @@ import {
   useDisclosure,
 } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
+import { Textarea } from '@/ui/components/textarea'
 import { XCircle } from 'lucide-react'
 
 export interface ICloseTicketModalTranslations {
@@ -70,19 +71,16 @@ export function CloseTicketModal({
                 <h3 className="text-xl font-semibold">{translations.title}</h3>
               </ModalHeader>
               <ModalBody>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-default-700">
-                    {translations.solutionLabel}
-                  </label>
-                  <textarea
-                    className="w-full rounded-lg border border-default-200 bg-default-50 p-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    disabled={isLoading}
-                    placeholder={translations.solutionPlaceholder}
-                    rows={5}
-                    value={solution}
-                    onChange={(e) => setSolution(e.target.value)}
-                  />
-                </div>
+                <Textarea
+                  variant="bordered"
+                  size="md"
+                  minRows={5}
+                  isDisabled={isLoading}
+                  label={translations.solutionLabel}
+                  placeholder={translations.solutionPlaceholder}
+                  value={solution}
+                  onValueChange={setSolution}
+                />
               </ModalBody>
               <ModalFooter>
                 <Button color="default" isDisabled={isLoading} variant="light" onPress={handleCancel}>

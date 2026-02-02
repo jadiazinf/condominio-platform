@@ -4,7 +4,7 @@ import type { ICardProps } from '@/ui/components/card'
 
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
-import { cn } from '@heroui/theme'
+import { cn } from '@/ui/utils'
 import {
   Area,
   AreaChart,

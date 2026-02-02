@@ -9,8 +9,8 @@ export class CondominiumsEndpoint implements IEndpoint {
   private readonly controller: CondominiumsController
 
   constructor(db: TDrizzleClient) {
-    const repository = new CondominiumsRepository(db)
-    this.controller = new CondominiumsController(repository)
+    const condominiumsRepository = new CondominiumsRepository(db)
+    this.controller = new CondominiumsController(condominiumsRepository)
   }
 
   getRouter(): Hono {

@@ -1,16 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Checkbox } from '@/ui/components/checkbox'
-import { Link } from '@/ui/components/link'
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
-import { useForm, Controller } from 'react-hook-form'
+import { FormProvider, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signInSchema, type TSignInSchema } from '@packages/domain'
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 
 import { useTranslation } from '@/contexts'
 import { Button } from '@/ui/components/button'
-import { Input } from '@/ui/components/input'
+import { InputField } from '@/ui/components/input'
+import { CheckboxField } from '@/ui/components/checkbox'
+import { Link } from '@/ui/components/link'
 import { Typography } from '@/ui/components/typography'
 
 interface SignInFormFieldsProps {
@@ -23,11 +23,7 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn, isLoading }: SignIn
   const { t } = useTranslation()
   const [showPassword, setShowPassword] = useState(false)
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<TSignInSchema>({
+  const methods = useForm<TSignInSchema>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
       email: '',
@@ -37,36 +33,26 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn, isLoading }: SignIn
   })
 
   // Translate error messages from i18n keys
-  function translateError(message: string | undefined): string | undefined {
-    if (!message) return undefined
-
-    return t(message)
+  const translateError = (message: string | undefined): string | undefined => {
+    return message ? t(message) : undefined
   }
 
   return (
-    <>
+    <FormProvider {...methods}>
       {/* Form */}
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <form className="space-y-4" onSubmit={methods.handleSubmit(onSubmit)}>
         <div>
           <Typography className="mb-2" variant="body2">
             {t('auth.signIn.email')}
           </Typography>
-          <Controller
-            control={control}
+          <InputField
             name="email"
-            render={({ field }) => (
-              <Input
-                isRequired
-                errorMessage={translateError(errors.email?.message)}
-                isInvalid={!!errors.email}
-                placeholder={t('auth.signIn.emailPlaceholder')}
-                size="lg"
-                startContent={<Mail className="w-5 h-5 text-default-400" />}
-                type="email"
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
+            type="email"
+            placeholder={t('auth.signIn.emailPlaceholder')}
+            size="lg"
+            startContent={<Mail className="w-5 h-5 text-default-400" />}
+            isRequired
+            translateError={translateError}
           />
         </div>
 
@@ -74,48 +60,34 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn, isLoading }: SignIn
           <Typography className="mb-2" variant="body2">
             {t('auth.signIn.password')}
           </Typography>
-          <Controller
-            control={control}
+          <InputField
             name="password"
-            render={({ field }) => (
-              <Input
-                isRequired
-                endContent={
-                  <button
-                    className="focus:outline-none"
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5 text-default-400" />
-                    ) : (
-                      <Eye className="w-5 h-5 text-default-400" />
-                    )}
-                  </button>
-                }
-                errorMessage={translateError(errors.password?.message)}
-                isInvalid={!!errors.password}
-                placeholder={t('auth.signIn.passwordPlaceholder')}
-                size="lg"
-                startContent={<Lock className="w-5 h-5 text-default-400" />}
-                type={showPassword ? 'text' : 'password'}
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
+            type={showPassword ? 'text' : 'password'}
+            placeholder={t('auth.signIn.passwordPlaceholder')}
+            size="lg"
+            startContent={<Lock className="w-5 h-5 text-default-400" />}
+            endContent={
+              <button
+                className="focus:outline-none"
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5 text-default-400" />
+                ) : (
+                  <Eye className="w-5 h-5 text-default-400" />
+                )}
+              </button>
+            }
+            isRequired
+            translateError={translateError}
           />
         </div>
 
         <div className="flex items-center justify-between">
-          <Controller
-            control={control}
-            name="rememberMe"
-            render={({ field }) => (
-              <Checkbox isSelected={field.value} onValueChange={field.onChange}>
-                <Typography variant="body2">{t('auth.signIn.rememberMe')}</Typography>
-              </Checkbox>
-            )}
-          />
+          <CheckboxField name="rememberMe">
+            <Typography variant="body2">{t('auth.signIn.rememberMe')}</Typography>
+          </CheckboxField>
           <Link className="text-sm" href="/forgot-password">
             {t('auth.signIn.forgotPassword')}
           </Link>
@@ -176,6 +148,6 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn, isLoading }: SignIn
           {t('auth.signIn.continueWithGoogle')}
         </Button>
       </div>
-    </>
+    </FormProvider>
   )
 }

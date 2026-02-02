@@ -32,8 +32,12 @@ import * as schema from '../src/database/drizzle/schema'
 const DATABASE_URL = process.env.DATABASE_URL || ''
 
 // Superadmin configuration
-const SUPERADMIN_EMAIL = 'jadiaz.inf@gmail.com'
-const SUPERADMIN_FIREBASE_UID = 'du7YtYB3Xeet88oTLNHUX20DACt2'
+// const SUPERADMIN_EMAIL = 'jadiaz.inf@gmail.com'
+// const SUPERADMIN_FIREBASE_UID = 'du7YtYB3Xeet88oTLNHUX20DACt2'
+
+const SUPERADMIN_EMAIL = 'jesusdesk@gmail.com'
+const SUPERADMIN_FIREBASE_UID = 'mbh2opMCerYPGwLNFDSGhL372aN2'
+
 const SUPERADMIN_ROLE_NAME = 'SUPERADMIN'
 
 // Superadmin permission modules
@@ -218,8 +222,125 @@ function validateDatabaseUrl(url: string): boolean {
 // Seed Functions
 // ============================================================================
 
+async function seedLocations(db: Database): Promise<void> {
+  console.log('\n  Step 1: Creating locations...')
+
+  // Venezuela
+  const venezuelaData = {
+    name: 'Venezuela',
+    locationType: 'country' as const,
+    parentId: null,
+    code: 'VE',
+    isActive: true,
+  }
+
+  let venezuela = await db.query.locations.findFirst({
+    where: (l, { eq }) => eq(l.code, 'VE'),
+  })
+
+  if (!venezuela) {
+    const [inserted] = await db.insert(schema.locations).values(venezuelaData).returning()
+    venezuela = inserted
+  }
+
+  // Venezuelan states with their codes
+  const states = [
+    { name: 'Distrito Capital', code: 'DC' },
+    { name: 'Miranda', code: 'MI' },
+    { name: 'Carabobo', code: 'CA' },
+    { name: 'Zulia', code: 'ZU' },
+    { name: 'Aragua', code: 'AR' },
+    { name: 'Lara', code: 'LA' },
+    { name: 'Anzoátegui', code: 'AN' },
+    { name: 'Bolívar', code: 'BO' },
+    { name: 'Táchira', code: 'TA' },
+    { name: 'Mérida', code: 'ME' },
+  ]
+
+  const stateIds: Record<string, string> = {}
+
+  for (const state of states) {
+    let existing = await db.query.locations.findFirst({
+      where: (l, { and, eq }) => and(eq(l.code, state.code), eq(l.locationType, 'province')),
+    })
+
+    if (!existing) {
+      const [inserted] = await db
+        .insert(schema.locations)
+        .values({
+          name: state.name,
+          locationType: 'province',
+          parentId: venezuela.id,
+          code: state.code,
+          isActive: true,
+        })
+        .returning()
+      existing = inserted
+    }
+
+    stateIds[state.code] = existing.id
+  }
+
+  // Major cities for each state
+  const cities = [
+    // Distrito Capital
+    { name: 'Caracas', code: 'CCS', stateCode: 'DC' },
+    // Miranda
+    { name: 'Los Teques', code: 'LTQ', stateCode: 'MI' },
+    { name: 'Guarenas', code: 'GUA', stateCode: 'MI' },
+    { name: 'Guatire', code: 'GTI', stateCode: 'MI' },
+    // Carabobo
+    { name: 'Valencia', code: 'VLC', stateCode: 'CA' },
+    { name: 'Puerto Cabello', code: 'PCB', stateCode: 'CA' },
+    // Zulia
+    { name: 'Maracaibo', code: 'MAR', stateCode: 'ZU' },
+    { name: 'Cabimas', code: 'CAB', stateCode: 'ZU' },
+    // Aragua
+    { name: 'Maracay', code: 'MCY', stateCode: 'AR' },
+    { name: 'La Victoria', code: 'LVC', stateCode: 'AR' },
+    // Lara
+    { name: 'Barquisimeto', code: 'BRM', stateCode: 'LA' },
+    // Anzoátegui
+    { name: 'Barcelona', code: 'BLA', stateCode: 'AN' },
+    { name: 'Puerto La Cruz', code: 'PLC', stateCode: 'AN' },
+    // Bolívar
+    { name: 'Ciudad Bolívar', code: 'CBV', stateCode: 'BO' },
+    { name: 'Ciudad Guayana', code: 'CGY', stateCode: 'BO' },
+    // Táchira
+    { name: 'San Cristóbal', code: 'SCR', stateCode: 'TA' },
+    // Mérida
+    { name: 'Mérida', code: 'MER', stateCode: 'ME' },
+  ]
+
+  let cityCount = 0
+
+  for (const city of cities) {
+    const parentId = stateIds[city.stateCode]
+    if (!parentId) continue
+
+    const existing = await db.query.locations.findFirst({
+      where: (l, { and, eq }) => and(eq(l.code, city.code), eq(l.locationType, 'city')),
+    })
+
+    if (!existing) {
+      await db.insert(schema.locations).values({
+        name: city.name,
+        locationType: 'city',
+        parentId,
+        code: city.code,
+        isActive: true,
+      })
+      cityCount++
+    } else {
+      cityCount++
+    }
+  }
+
+  console.log(`    1 country, ${states.length} states, ${cityCount} cities ready.`)
+}
+
 async function seedPermissions(db: Database): Promise<string[]> {
-  console.log('\n  Step 1: Creating permissions...')
+  console.log('\n  Step 2: Creating permissions...')
 
   const permissionIds: string[] = []
 
@@ -293,11 +414,16 @@ async function seedPermissions(db: Database): Promise<string[]> {
 }
 
 async function seedRoles(db: Database): Promise<string> {
-  console.log('\n  Step 2: Creating roles...')
+  console.log('\n  Step 3: Creating roles...')
 
   const rolesList: Omit<RoleInsert, 'id'>[] = [
-    { name: SUPERADMIN_ROLE_NAME, description: 'Platform administrator with full access', isSystemRole: true },
+    {
+      name: SUPERADMIN_ROLE_NAME,
+      description: 'Platform administrator with full access',
+      isSystemRole: true,
+    },
     { name: 'ADMIN', description: 'Management company administrator', isSystemRole: true },
+    { name: 'USER', description: 'General user with basic platform access', isSystemRole: true },
     { name: 'ACCOUNTANT', description: 'Financial management access', isSystemRole: true },
     { name: 'SUPPORT', description: 'Customer support access', isSystemRole: true },
     { name: 'VIEWER', description: 'Read-only access', isSystemRole: true },
@@ -333,7 +459,7 @@ async function seedRolePermissions(
   superadminRoleId: string,
   permissionIds: string[]
 ): Promise<void> {
-  console.log('\n  Step 3: Assigning permissions to SUPERADMIN role...')
+  console.log('\n  Step 4: Assigning permissions to SUPERADMIN role...')
 
   let assigned = 0
 
@@ -361,7 +487,7 @@ async function seedRolePermissions(
 }
 
 async function seedSuperadmin(db: Database, superadminRoleId: string): Promise<string> {
-  console.log('\n  Step 4: Creating superadmin user...')
+  console.log('\n  Step 5: Creating superadmin user...')
 
   let user = await db.query.users.findFirst({
     where: (u, { eq }) => eq(u.email, SUPERADMIN_EMAIL),
@@ -424,7 +550,7 @@ async function seedSuperadmin(db: Database, superadminRoleId: string): Promise<s
 }
 
 async function seedUsers(db: Database, count: number = 20): Promise<string[]> {
-  console.log(`\n  Step 5: Creating ${count} dummy users...`)
+  console.log(`\n  Step 6: Creating ${count} dummy users...`)
 
   const userIds: string[] = []
 
@@ -467,7 +593,7 @@ async function seedUsers(db: Database, count: number = 20): Promise<string[]> {
 }
 
 async function seedManagementCompanies(db: Database, superadminId: string): Promise<string[]> {
-  console.log('\n  Step 6: Creating management companies...')
+  console.log('\n  Step 7: Creating management companies...')
 
   const companies: Omit<ManagementCompanyInsert, 'id'>[] = [
     {
@@ -549,7 +675,7 @@ async function seedCondominiums(
   companyIds: string[],
   superadminId: string
 ): Promise<string[]> {
-  console.log('\n  Step 7: Creating condominiums...')
+  console.log('\n  Step 8: Creating condominiums...')
 
   const condominiumNames = [
     'Residencias Vista al Parque',
@@ -602,7 +728,7 @@ async function seedBuildings(
   condominiumIds: string[],
   superadminId: string
 ): Promise<string[]> {
-  console.log('\n  Step 8: Creating buildings...')
+  console.log('\n  Step 9: Creating buildings...')
 
   const buildingIds: string[] = []
 
@@ -654,7 +780,7 @@ async function seedUnits(
   userIds: string[],
   superadminId: string
 ): Promise<void> {
-  console.log('\n  Step 9: Creating units and ownerships...')
+  console.log('\n  Step 10: Creating units and ownerships...')
 
   let unitCount = 0
   let ownershipCount = 0
@@ -727,7 +853,7 @@ async function seedSupportTickets(
   companyIds: string[],
   superadminId: string
 ): Promise<void> {
-  console.log('\n  Step 10: Creating support tickets...')
+  console.log('\n  Step 11: Creating support tickets...')
 
   const ticketTemplates = [
     {
@@ -857,6 +983,7 @@ async function seedDatabase(databaseUrl: string): Promise<void> {
     console.log('\n  Starting seed process...\n')
     console.log('='.repeat(60))
 
+    await seedLocations(db)
     const platformPermissionIds = await seedPermissions(db)
     const superadminRoleId = await seedRoles(db)
     await seedRolePermissions(db, superadminRoleId, platformPermissionIds)

@@ -1,36 +1,21 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import {
-  Controller,
-  type Control,
-  type FieldErrors,
-  type UseFormClearErrors,
-  type UseFormGetValues,
-  type UseFormSetError,
-  type UseFormSetValue,
-  useWatch,
-} from 'react-hook-form'
-import type { TCreateManagementCompanyWithAdminForm, TAdminStep, TUser } from '@packages/domain'
+import { useFormContext, Controller } from 'react-hook-form'
+import type { TCreateManagementCompanyWithAdminForm, TUser } from '@packages/domain'
 import { getUserByEmail, HttpError } from '@packages/http-client'
 import { Tooltip } from '@/ui/components/tooltip'
 import { RadioGroup, Radio } from '@/ui/components/radio'
 import { Info, Search, User } from 'lucide-react'
 
 import { useAuth, useTranslation } from '@/contexts'
-import { Input } from '@/ui/components/input'
-import { PhoneInput } from '@/ui/components/phone-input'
+import { InputField } from '@/ui/components/input'
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
 import { useToast } from '@/ui/components/toast'
+import { UserBasicInfoFields } from '@/ui/components/forms'
 
 interface AdminStepFormProps {
-  control: Control<TCreateManagementCompanyWithAdminForm, any, any>
-  errors: FieldErrors<TAdminStep> | undefined
-  getValues: UseFormGetValues<TCreateManagementCompanyWithAdminForm>
-  setValue: UseFormSetValue<TCreateManagementCompanyWithAdminForm>
-  setError: UseFormSetError<TCreateManagementCompanyWithAdminForm>
-  clearErrors: UseFormClearErrors<TCreateManagementCompanyWithAdminForm>
   translateError: (message: string | undefined) => string | undefined
   shouldShowError: (fieldPath: string) => boolean
 }
@@ -56,12 +41,6 @@ function SectionHeader({ title, tooltip }: { title: string; tooltip: string }) {
 }
 
 export function AdminStepForm({
-  control,
-  errors,
-  getValues,
-  setValue,
-  setError,
-  clearErrors,
   translateError,
   shouldShowError,
 }: AdminStepFormProps) {
@@ -71,18 +50,24 @@ export function AdminStepForm({
   const [isSearching, setIsSearching] = useState(false)
   const [selectedUser, setSelectedUser] = useState<TUser | null>(null)
 
-  const adminMode = useWatch({ control, name: 'admin.mode' })
-  const adminFirstName = useWatch({ control, name: 'admin.firstName' })
-  const adminLastName = useWatch({ control, name: 'admin.lastName' })
-  const adminEmail = useWatch({ control, name: 'admin.email' })
-  const adminPhoneCountryCode = useWatch({ control, name: 'admin.phoneCountryCode' })
-  const adminPhoneNumber = useWatch({ control, name: 'admin.phoneNumber' })
+  const { control, watch, getValues, setValue, setError, clearErrors, formState: { errors } } = useFormContext<TCreateManagementCompanyWithAdminForm>()
+
+  const adminMode = watch('admin.mode')
+  const adminFirstName = watch('admin.firstName')
+  const adminLastName = watch('admin.lastName')
+  const adminEmail = watch('admin.email')
+  const adminPhoneCountryCode = watch('admin.phoneCountryCode')
+  const adminPhoneNumber = watch('admin.phoneNumber')
+
+  const adminErrors = errors?.admin
 
   useEffect(() => {
     if (adminMode === 'new') {
       setSelectedUser(null)
       setValue('admin.existingUserId', null)
       setValue('admin.existingUserEmail', '')
+      // Set default document type to CI
+      setValue('admin.idDocumentType' as any, 'CI')
       clearErrors(['admin.existingUserId', 'admin.existingUserEmail'])
     } else if (adminMode === 'existing') {
       clearErrors(['admin.firstName', 'admin.lastName', 'admin.email'])
@@ -186,23 +171,16 @@ export function AdminStepForm({
         {adminMode === 'existing' && (
           <div className="space-y-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-              <Controller
-                control={control}
+              <InputField
                 name="admin.existingUserEmail"
-                render={({ field }) => (
-                  <Input
-                    isRequired
-                    tooltip={t('superadmin.companies.form.adminSearch.description')}
-                    errorMessage={translateError(
-                      errors?.existingUserEmail?.message || errors?.existingUserId?.message
-                    )}
-                    isInvalid={!!errors?.existingUserEmail || !!errors?.existingUserId}
-                    label={t('superadmin.companies.form.adminSearch.email')}
-                    placeholder={t('superadmin.companies.form.adminSearch.emailPlaceholder')}
-                    type="email"
-                    value={field.value || ''}
-                    onChange={field.onChange}
-                  />
+                type="email"
+                isRequired
+                tooltip={t('superadmin.companies.form.adminSearch.description')}
+                label={t('superadmin.companies.form.adminSearch.email')}
+                placeholder={t('superadmin.companies.form.adminSearch.emailPlaceholder')}
+                translateError={translateError}
+                errorMessage={translateError(
+                  adminErrors?.existingUserEmail?.message || adminErrors?.existingUserId?.message
                 )}
               />
               <Button
@@ -245,101 +223,26 @@ export function AdminStepForm({
         )}
 
         {adminMode !== 'existing' && (
-          <div className="flex flex-col gap-10 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-10">
-            <Controller
-              control={control}
-              name="admin.firstName"
-              render={({ field }) => (
-                <Input
-                  isRequired
-                  errorMessage={
-                    shouldShowError('admin.firstName')
-                      ? translateError(errors?.firstName?.message)
-                      : undefined
-                  }
-                  isInvalid={shouldShowError('admin.firstName') && !!errors?.firstName}
-                  label={t('superadmin.companies.form.fields.adminFirstName')}
-                  placeholder={t('superadmin.companies.form.fields.adminFirstNamePlaceholder')}
-                  value={field.value || ''}
-                  onChange={field.onChange}
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="admin.lastName"
-              render={({ field }) => (
-                <Input
-                  isRequired
-                  errorMessage={
-                    shouldShowError('admin.lastName')
-                      ? translateError(errors?.lastName?.message)
-                      : undefined
-                  }
-                  isInvalid={shouldShowError('admin.lastName') && !!errors?.lastName}
-                  label={t('superadmin.companies.form.fields.adminLastName')}
-                  placeholder={t('superadmin.companies.form.fields.adminLastNamePlaceholder')}
-                  value={field.value || ''}
-                  onChange={field.onChange}
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="admin.email"
-              render={({ field }) => (
-                <Input
-                  isRequired
-                  tooltip={t('superadmin.companies.form.fields.adminEmailDescription')}
-                  errorMessage={
-                    shouldShowError('admin.email')
-                      ? translateError(errors?.email?.message)
-                      : undefined
-                  }
-                  isInvalid={shouldShowError('admin.email') && !!errors?.email}
-                  label={t('superadmin.companies.form.fields.adminEmail')}
-                  placeholder={t('superadmin.companies.form.fields.adminEmailPlaceholder')}
-                  type="email"
-                  value={field.value || ''}
-                  onChange={field.onChange}
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="admin.phoneCountryCode"
-              render={({ field: countryCodeField }) => (
-                <Controller
-                  control={control}
-                  name="admin.phoneNumber"
-                  render={({ field: phoneNumberField }) => (
-                    <PhoneInput
-                      countryCode={countryCodeField.value || '+58'}
-                      countryCodeError={
-                        shouldShowError('admin.phoneCountryCode')
-                          ? translateError(errors?.phoneCountryCode?.message)
-                          : undefined
-                      }
-                      label={t('superadmin.companies.form.fields.adminPhone')}
-                      phoneNumber={phoneNumberField.value || ''}
-                      phoneNumberError={
-                        shouldShowError('admin.phoneNumber')
-                          ? translateError(errors?.phoneNumber?.message)
-                          : undefined
-                      }
-                      placeholder={t('superadmin.companies.form.fields.adminPhonePlaceholder')}
-                      onCountryCodeChange={countryCodeField.onChange}
-                      onPhoneNumberChange={phoneNumberField.onChange}
-                      isRequired
-                    />
-                  )}
-                />
-              )}
-            />
-          </div>
+          <UserBasicInfoFields
+            fieldPrefix="admin."
+            translateError={translateError}
+            showDocumentFields={true}
+            labels={{
+              email: t('superadmin.companies.form.fields.adminEmail'),
+              emailPlaceholder: t('superadmin.companies.form.fields.adminEmailPlaceholder'),
+              emailTooltip: t('superadmin.companies.form.fields.adminEmailDescription'),
+              firstName: t('superadmin.companies.form.fields.adminFirstName'),
+              firstNamePlaceholder: t('superadmin.companies.form.fields.adminFirstNamePlaceholder'),
+              lastName: t('superadmin.companies.form.fields.adminLastName'),
+              lastNamePlaceholder: t('superadmin.companies.form.fields.adminLastNamePlaceholder'),
+              phone: t('superadmin.companies.form.fields.adminPhone'),
+              phonePlaceholder: t('superadmin.companies.form.fields.adminPhonePlaceholder'),
+              idDocument: t('superadmin.companies.form.fields.adminIdDocument'),
+              idDocumentTypePlaceholder: t('superadmin.companies.form.fields.adminIdDocumentTypePlaceholder'),
+              idDocumentNumberPlaceholder: t('superadmin.companies.form.fields.adminIdDocumentNumberPlaceholder'),
+              idDocumentTooltip: t('superadmin.companies.form.fields.adminIdDocumentDescription'),
+            }}
+          />
         )}
       </div>
     </div>

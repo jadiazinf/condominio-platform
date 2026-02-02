@@ -4,6 +4,12 @@ export type {
   ICreateUserInvitationResult,
 } from './create-user-invitation.service'
 
+export { CreateUserWithInvitationService } from './create-user-with-invitation.service'
+export type {
+  ICreateUserWithInvitationInput,
+  ICreateUserWithInvitationResult,
+} from './create-user-with-invitation.service'
+
 export { ValidateUserInvitationTokenService } from './validate-user-invitation-token.service'
 export type {
   IValidateUserInvitationTokenInput,

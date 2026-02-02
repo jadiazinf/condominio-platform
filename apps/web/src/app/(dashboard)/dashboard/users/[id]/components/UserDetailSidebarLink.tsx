@@ -2,7 +2,7 @@
 
 import { Link } from '@/ui/components/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@heroui/theme'
+import { cn } from '@/ui/utils'
 import { User, Building2, Shield, ToggleLeft } from 'lucide-react'
 
 import type { TUserDetailIconName } from '../config/sidebar-items'

@@ -27,6 +27,13 @@ interface IRadioGroupProps {
   isDisabled?: boolean
   isInvalid?: boolean
   className?: string
+  classNames?: {
+    base?: string
+    wrapper?: string
+    label?: string
+    description?: string
+    errorMessage?: string
+  }
   children: ReactNode
   onValueChange?: (value: string) => void
 }
@@ -45,12 +52,14 @@ export function RadioGroup({
   isDisabled = false,
   isInvalid = false,
   className,
+  classNames,
   children,
   onValueChange,
 }: IRadioGroupProps) {
   return (
     <HeroUIRadioGroup
       className={cn(className)}
+      classNames={classNames}
       color={color}
       defaultValue={defaultValue}
       description={description}

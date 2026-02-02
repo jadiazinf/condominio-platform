@@ -2,7 +2,7 @@
 
 import { Link } from '@/ui/components/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@heroui/theme'
+import { cn } from '@/ui/utils'
 import { Building2, Home, Users, CreditCard, Receipt, Headset } from 'lucide-react'
 
 interface CompanySidebarProps {

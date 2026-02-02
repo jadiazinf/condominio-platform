@@ -2,7 +2,7 @@
 
 import type { TUser } from '@packages/domain'
 
-import { Navbar as HeroUINavbar, NavbarBrand, NavbarContent, NavbarItem } from '@heroui/navbar'
+import { HeroUINavbar, NavbarBrandPrimitive, NavbarContent, NavbarItem } from '@/ui/components/navbar'
 import { Button } from '@/ui/components/button'
 import { Link } from '@/ui/components/link'
 import { Menu } from 'lucide-react'
@@ -25,11 +25,11 @@ export function DashboardNavbar({ onToggleSidebar, initialUser }: DashboardNavba
             <Menu size={24} />
           </Button>
         )}
-        <NavbarBrand>
+        <NavbarBrandPrimitive>
           <Link className="font-bold text-inherit text-xl" href="/dashboard">
             CondominioApp
           </Link>
-        </NavbarBrand>
+        </NavbarBrandPrimitive>
       </NavbarContent>
 
       <NavbarContent className="items-center gap-2" justify="end">

@@ -6,7 +6,7 @@ import { Button } from '@/ui/components/button'
 import { Spinner } from '@/ui/components/spinner'
 import { Divider } from '@/ui/components/divider'
 import { Building2, Mail, Phone, Globe, MapPin, FileText, Calendar, Power } from 'lucide-react'
-import { addToast } from '@heroui/toast'
+import { useToast } from '@/ui/components/toast'
 import { useState, useEffect } from 'react'
 
 import { useTranslation, useAuth } from '@/contexts'
@@ -25,6 +25,7 @@ export function CompanyDetail({ id }: CompanyDetailProps) {
   const { t } = useTranslation()
   const { user: firebaseUser } = useAuth()
   const queryClient = useQueryClient()
+  const toast = useToast()
   const [isToggling, setIsToggling] = useState(false)
   const [token, setToken] = useState<string>('')
 
@@ -49,17 +50,13 @@ export function CompanyDetail({ id }: CompanyDetailProps) {
     try {
       await toggleManagementCompanyActive(token, company.id, !company.isActive)
       queryClient.invalidateQueries({ queryKey: ['management-companies'] })
-      addToast({
-        title: company.isActive
+      toast.success(
+        company.isActive
           ? t('superadmin.companies.actions.deactivateSuccess')
-          : t('superadmin.companies.actions.activateSuccess'),
-        color: 'success',
-      })
+          : t('superadmin.companies.actions.activateSuccess')
+      )
     } catch {
-      addToast({
-        title: t('superadmin.companies.actions.toggleError'),
-        color: 'danger',
-      })
+      toast.error(t('superadmin.companies.actions.toggleError'))
     } finally {
       setIsToggling(false)
     }

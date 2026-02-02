@@ -42,6 +42,13 @@ export const LocaleDictionary = {
           resolvedToCancelled: 'http.controllers.supportTickets.statusTransitions.resolvedTo.cancelled',
         },
       },
+      userInvitations: {
+        roleNotFound: 'http.controllers.userInvitations.roleNotFound',
+        condominiumNotFound: 'http.controllers.userInvitations.condominiumNotFound',
+        permissionNotFound: 'http.controllers.userInvitations.permissionNotFound',
+        pendingInvitationExists: 'http.controllers.userInvitations.pendingInvitationExists',
+        userActiveUseAssignRole: 'http.controllers.userInvitations.userActiveUseAssignRole',
+      },
     },
     locales: {
       unknownError: 'http.locales.unknownError',

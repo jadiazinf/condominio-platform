@@ -235,20 +235,57 @@ export {
 } from './use-users'
 export {
   createUserInvitation,
+  createUserWithInvitation,
   validateUserInvitationToken,
   acceptUserInvitation,
   resendUserInvitationEmail,
   cancelUserInvitation,
   type TCreateUserInvitationInput,
+  type TCreateUserWithInvitationInput,
   type TInvitationUser,
   type TUserInvitation,
   type TInvitationUserRole,
+  type TInvitationUserPermission,
   type TCreateUserInvitationResult,
+  type TCreateUserWithInvitationResult,
   type TValidationCondominium,
   type TValidationRole,
   type TValidateUserInvitationResult,
   type TAcceptUserInvitationResult,
 } from './use-user-invitations'
+export {
+  useRoleByName,
+  useAssignableRoles,
+  useAllRoles as useAllRolesQuery,
+  useSystemRoles,
+  getRoleByName,
+  getAssignableRoles,
+  getAllRoles as getAllRolesQuery,
+  getSystemRoles,
+  rolesKeys,
+  type UseRoleByNameOptions,
+  type UseAssignableRolesOptions,
+  type UseAllRolesOptions,
+  type UseSystemRolesOptions,
+} from './use-roles'
+export {
+  useAllPermissions,
+  useRolePermissions,
+  usePermissionsByModule,
+  getAllPermissions,
+  getRolePermissions,
+  getPermissionsByModule,
+  permissionsKeys,
+  type UseAllPermissionsOptions,
+  type UseRolePermissionsOptions,
+  type UsePermissionsByModuleOptions,
+  type TPermissionDetail,
+} from './use-permissions'
+export {
+  promoteUserToSuperadmin,
+  demoteUserFromSuperadmin,
+  type IPromoteToSuperadminPayload,
+} from './use-superadmin-promotion'
 
 // Re-export commonly used TanStack Query hooks
 export {

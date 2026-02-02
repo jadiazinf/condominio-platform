@@ -1,15 +1,16 @@
 'use client'
 
 import { Mail, ArrowLeft, CheckCircle2 } from 'lucide-react'
-import { useForm, Controller } from 'react-hook-form'
+import { FormProvider, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 
 import { useTranslation } from '@/contexts'
 import { Button } from '@/ui/components/button'
-import { Input } from '@/ui/components/input'
+import { InputField } from '@/ui/components/input'
 import { Typography } from '@/ui/components/typography'
 
+// TODO: Move to @packages/domain
 const forgotPasswordSchema = z.object({
   email: z.string().email('validation.email.invalid'),
 })
@@ -31,11 +32,7 @@ export function ForgotPasswordFormFields({
 }: ForgotPasswordFormFieldsProps) {
   const { t } = useTranslation()
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ForgotPasswordFormData>({
+  const methods = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
       email: '',
@@ -43,10 +40,8 @@ export function ForgotPasswordFormFields({
   })
 
   // Translate error messages from i18n keys
-  function translateError(message: string | undefined): string | undefined {
-    if (!message) return undefined
-
-    return t(message)
+  const translateError = (message: string | undefined): string | undefined => {
+    return message ? t(message) : undefined
   }
 
   if (emailSent) {
@@ -81,29 +76,21 @@ export function ForgotPasswordFormFields({
   }
 
   return (
-    <>
+    <FormProvider {...methods}>
       {/* Form */}
-      <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+      <form className="space-y-6" onSubmit={methods.handleSubmit(onSubmit)}>
         <div>
           <Typography className="mb-2" variant="body2">
             {t('auth.forgotPassword.email')}
           </Typography>
-          <Controller
-            control={control}
+          <InputField
             name="email"
-            render={({ field }) => (
-              <Input
-                isRequired
-                errorMessage={translateError(errors.email?.message)}
-                isInvalid={!!errors.email}
-                placeholder={t('auth.forgotPassword.emailPlaceholder')}
-                size="lg"
-                startContent={<Mail className="w-5 h-5 text-default-400" />}
-                type="email"
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
+            type="email"
+            placeholder={t('auth.forgotPassword.emailPlaceholder')}
+            size="lg"
+            startContent={<Mail className="w-5 h-5 text-default-400" />}
+            isRequired
+            translateError={translateError}
           />
         </div>
 
@@ -133,6 +120,6 @@ export function ForgotPasswordFormFields({
           {t('auth.forgotPassword.backToSignIn')}
         </Button>
       </div>
-    </>
+    </FormProvider>
   )
 }

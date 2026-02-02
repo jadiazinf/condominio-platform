@@ -84,6 +84,13 @@
             "cancelled": "A resolved ticket cannot be cancelled."
           }
         }
+      },
+      "userInvitations": {
+        "roleNotFound": "The specified role was not found.",
+        "condominiumNotFound": "The specified condominium was not found.",
+        "permissionNotFound": "The specified permission was not found.",
+        "pendingInvitationExists": "A pending invitation already exists for this user and condominium.",
+        "userActiveUseAssignRole": "User already exists and is active. Use the 'Assign Role' feature instead."
       }
     },
     "locales": {

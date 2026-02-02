@@ -25,7 +25,8 @@ interface ISelectItem {
 }
 
 interface ISelectProps {
-  items: ISelectItem[]
+  items?: ISelectItem[]
+  children?: ReactNode
   size?: TSelectSize
   color?: TSelectColor
   variant?: TSelectVariant
@@ -38,6 +39,8 @@ interface ISelectProps {
   errorMessage?: string
   value?: string | null
   defaultValue?: string
+  selectedKeys?: string[]
+  onSelectionChange?: (keys: any) => void
   isRequired?: boolean
   isInvalid?: boolean
   isDisabled?: boolean
@@ -64,6 +67,7 @@ interface ISelectProps {
 
 export function Select({
   items,
+  children,
   size = 'md',
   color = 'default',
   variant = 'bordered',
@@ -76,6 +80,8 @@ export function Select({
   errorMessage,
   value,
   defaultValue,
+  selectedKeys,
+  onSelectionChange,
   isRequired = false,
   isInvalid = false,
   isDisabled = false,
@@ -115,6 +121,36 @@ export function Select({
     onChange?.(selectedKey || null)
   }
 
+  // If children are provided, use them directly (HeroUI Select pattern)
+  if (children) {
+    return (
+      <HeroUISelect
+        aria-label={ariaLabel}
+        className={cn(className)}
+        classNames={classNames}
+        color={color}
+        defaultSelectedKeys={defaultValue ? [defaultValue] : undefined}
+        description={tooltip ? undefined : description}
+        errorMessage={errorMessage}
+        isDisabled={isDisabled}
+        isInvalid={isInvalid}
+        isLoading={isLoading}
+        isRequired={false}
+        label={labelContent}
+        labelPlacement={labelPlacement}
+        placeholder={placeholder}
+        radius={radius}
+        selectedKeys={selectedKeys}
+        size={size}
+        variant={variant}
+        onSelectionChange={onSelectionChange}
+      >
+        {children as any}
+      </HeroUISelect>
+    )
+  }
+
+  // Otherwise use the items prop pattern
   return (
     <HeroUISelect
       aria-label={ariaLabel}
@@ -137,7 +173,7 @@ export function Select({
       variant={variant}
       onSelectionChange={handleSelectionChange}
     >
-      {items.map((item) => (
+      {items?.map((item) => (
         <HeroUISelectItem
           key={item.key}
           description={item.description}
@@ -147,7 +183,7 @@ export function Select({
         >
           {item.label}
         </HeroUISelectItem>
-      ))}
+      )) as any}
     </HeroUISelect>
   )
 }

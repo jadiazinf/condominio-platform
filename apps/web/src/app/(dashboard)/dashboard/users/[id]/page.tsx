@@ -1,13 +1,20 @@
-'use client'
-
-import { useTranslation } from '@/contexts'
+import { getTranslations } from '@/libs/i18n/server'
+import { getUserFullDetails } from '@packages/http-client/hooks'
+import { getServerAuthToken } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
 import { Card } from '@/ui/components/card'
-import { useUserDetail } from './context/UserDetailContext'
 
-export default function UserGeneralPage() {
-  const { t } = useTranslation()
-  const { user } = useUserDetail()
+interface PageProps {
+  params: Promise<{ id: string }>
+}
+
+export default async function UserGeneralPage({ params }: PageProps) {
+  const { id } = await params
+  const { t } = await getTranslations()
+  const token = await getServerAuthToken()
+
+  // Fetch user data server-side
+  const user = await getUserFullDetails(token, id)
 
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return t('superadmin.users.detail.general.never')
@@ -19,6 +26,8 @@ export default function UserGeneralPage() {
       minute: '2-digit',
     })
   }
+
+  const noDataText = t('superadmin.users.detail.general.noData')
 
   return (
     <div className="space-y-6">
@@ -37,15 +46,15 @@ export default function UserGeneralPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoRow
             label={t('superadmin.users.detail.general.firstName')}
-            value={user.firstName || t('superadmin.users.detail.general.noData')}
+            value={user.firstName || noDataText}
           />
           <InfoRow
             label={t('superadmin.users.detail.general.lastName')}
-            value={user.lastName || t('superadmin.users.detail.general.noData')}
+            value={user.lastName || noDataText}
           />
           <InfoRow
             label={t('superadmin.users.detail.general.displayName')}
-            value={user.displayName || t('superadmin.users.detail.general.noData')}
+            value={user.displayName || noDataText}
           />
           <InfoRow
             label={t('superadmin.users.detail.general.email')}
@@ -56,7 +65,7 @@ export default function UserGeneralPage() {
             value={
               user.phoneCountryCode && user.phoneNumber
                 ? `${user.phoneCountryCode} ${user.phoneNumber}`
-                : t('superadmin.users.detail.general.noData')
+                : noDataText
             }
           />
           <InfoRow
@@ -64,12 +73,12 @@ export default function UserGeneralPage() {
             value={
               user.idDocumentType && user.idDocumentNumber
                 ? `${user.idDocumentType}-${user.idDocumentNumber}`
-                : t('superadmin.users.detail.general.noData')
+                : noDataText
             }
           />
           <InfoRow
             label={t('superadmin.users.detail.general.address')}
-            value={user.address || t('superadmin.users.detail.general.noData')}
+            value={user.address || noDataText}
             className="md:col-span-2"
           />
         </div>

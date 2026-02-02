@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
+import { Textarea } from '@/ui/components/textarea'
 import { Edit2, Save, X } from 'lucide-react'
 
 interface ITicketSolutionFieldProps {
@@ -86,13 +87,14 @@ export function TicketSolutionField({
         {label}
       </Typography>
       <div className="mt-2 space-y-2">
-        <textarea
-          className="w-full rounded-lg border border-default-200 bg-default-50 p-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          disabled={isLoading}
+        <Textarea
+          variant="bordered"
+          size="md"
+          minRows={4}
+          isDisabled={isLoading}
           placeholder={placeholder}
-          rows={4}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onValueChange={setValue}
         />
         <div className="flex gap-2">
           <Button

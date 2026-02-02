@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@heroui/button'
+import { Button } from '@/ui/components/button'
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'

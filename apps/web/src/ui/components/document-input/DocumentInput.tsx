@@ -2,8 +2,10 @@
 
 import { Input as HeroUIInput } from '@heroui/input'
 import { Select, type ISelectItem } from '@/ui/components/select'
+import { Tooltip } from '@/ui/components/tooltip'
 import { cn } from '@heroui/theme'
 import { EIdDocumentTypes } from '@packages/domain'
+import { Info } from 'lucide-react'
 import { useMemo } from 'react'
 
 type TInputSize = 'sm' | 'md' | 'lg'
@@ -21,6 +23,7 @@ interface IDocumentInputProps {
   typePlaceholder?: string
   numberPlaceholder?: string
   description?: string
+  tooltip?: string
   documentTypeError?: string
   documentNumberError?: string
   size?: TInputSize
@@ -41,6 +44,7 @@ export function DocumentInput({
   typePlaceholder,
   numberPlaceholder,
   description,
+  tooltip,
   documentTypeError,
   documentNumberError,
   size = 'md',
@@ -62,9 +66,21 @@ export function DocumentInput({
   return (
     <div className={cn('flex flex-col gap-1', className)}>
       {label && (
-        <label className="text-small text-foreground-500">
-          {label}
-          {isRequired && <span className="text-danger ml-1">*</span>}
+        <label className="text-small text-foreground-500 flex items-center gap-1">
+          {isRequired && <span className="text-danger">*</span>}
+          <span>{label}</span>
+          {tooltip && (
+            <Tooltip
+              content={tooltip}
+              placement="right"
+              showArrow
+              classNames={{
+                content: 'max-w-xs text-sm',
+              }}
+            >
+              <Info className="h-4 w-4 text-default-400 cursor-help" />
+            </Tooltip>
+          )}
         </label>
       )}
       <div className="flex gap-2">
@@ -73,7 +89,7 @@ export function DocumentInput({
           className="w-[140px] shrink-0"
           placeholder={typePlaceholder}
           items={documentTypeItems}
-          value={documentType}
+          value={documentType || typePlaceholder || undefined}
           onChange={(key) => onDocumentTypeChange?.((key as TIdDocumentType) || null)}
           variant={variant}
           radius={radius}

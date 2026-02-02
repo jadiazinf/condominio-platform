@@ -5,6 +5,7 @@ import { setGlobalAuthToken, createHttpClient, setHttpClient } from '@packages/h
 
 import { getFirebaseAuth } from '@/libs/firebase'
 import { setSessionCookie, getSessionCookie } from '@/libs/cookies'
+import { getLocaleCookie } from '@/libs/i18n/utils'
 
 // Initialize HTTP client synchronously on module load to avoid race conditions
 // This ensures the client is ready before any React Query hooks execute
@@ -20,11 +21,15 @@ function initializeHttpClient() {
     return token || null
   })
 
-  // Configure HTTP client with token refresh capability
+  // Configure HTTP client with token refresh capability and locale support
   const client = createHttpClient({
     getAuthToken: async () => {
       const token = getSessionCookie()
       return token || null
+    },
+    getLocale: () => {
+      const locale = getLocaleCookie()
+      return locale || 'es'
     },
     onTokenRefresh: async () => {
       // Get current user and refresh token

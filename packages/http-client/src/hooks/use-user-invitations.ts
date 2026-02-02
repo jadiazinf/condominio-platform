@@ -22,6 +22,14 @@ export interface TCreateUserInvitationInput {
 }
 
 /**
+ * Input for the unified user creation endpoint (with custom permissions support)
+ */
+export interface TCreateUserWithInvitationInput extends TCreateUserInvitationInput {
+  customPermissions?: string[] // Array of permission IDs
+  expirationDays?: number
+}
+
+/**
  * User in invitation response
  */
 export interface TInvitationUser {
@@ -69,6 +77,20 @@ export interface TInvitationUserRole {
 }
 
 /**
+ * User permission details
+ */
+export interface TInvitationUserPermission {
+  id: string
+  userId: string
+  permissionId: string
+  condominiumId: string | null
+  buildingId: string | null
+  isActive: boolean
+  grantedAt: string
+  grantedBy: string | null
+}
+
+/**
  * Result of creating a user invitation
  */
 export interface TCreateUserInvitationResult {
@@ -77,6 +99,13 @@ export interface TCreateUserInvitationResult {
   userRole: TInvitationUserRole
   emailSent: boolean
   invitationToken: string
+}
+
+/**
+ * Result of creating a user with invitation (unified endpoint)
+ */
+export interface TCreateUserWithInvitationResult extends TCreateUserInvitationResult {
+  userPermissions: TInvitationUserPermission[]
 }
 
 /**
@@ -135,12 +164,37 @@ export async function createUserInvitation(
 
   const response = await client.post<TApiDataResponse<TCreateUserInvitationResult>>(
     '/user-invitations',
+    input,
     {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      data: input,
+    }
+  )
+
+  return response.data.data
+}
+
+/**
+ * Create a new user with invitation (unified superadmin endpoint)
+ * Supports all user types: general, condominium, and superadmin
+ * with custom permissions support
+ */
+export async function createUserWithInvitation(
+  token: string,
+  input: TCreateUserWithInvitationInput
+): Promise<TCreateUserWithInvitationResult> {
+  const client = getHttpClient()
+
+  const response = await client.post<TApiDataResponse<TCreateUserWithInvitationResult>>(
+    '/user-invitations/create-user',
+    input,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
     }
   )
 

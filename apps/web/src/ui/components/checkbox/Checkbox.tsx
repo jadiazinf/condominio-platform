@@ -49,6 +49,14 @@ export function Checkbox({
   onChange,
   onValueChange,
 }: ICheckboxProps) {
+  // Create label content with required asterisk on the left
+  const labelContent = children && isRequired ? (
+    <span>
+      <span className="text-danger">*</span>
+      {children}
+    </span>
+  ) : children
+
   return (
     <HeroUICheckbox
       className={cn(className)}
@@ -58,7 +66,7 @@ export function Checkbox({
       isIndeterminate={isIndeterminate}
       isInvalid={isInvalid}
       isReadOnly={isReadOnly}
-      isRequired={isRequired}
+      isRequired={false}
       isSelected={isSelected}
       lineThrough={lineThrough}
       name={name}
@@ -68,7 +76,7 @@ export function Checkbox({
       onChange={(e) => onChange?.(e.target.checked)}
       onValueChange={onValueChange}
     >
-      {children}
+      {labelContent}
     </HeroUICheckbox>
   )
 }

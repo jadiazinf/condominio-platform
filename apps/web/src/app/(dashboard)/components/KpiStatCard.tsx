@@ -4,7 +4,7 @@ import type { ICardProps } from '@/ui/components/card'
 import type { ReactNode } from 'react'
 
 import { Card } from '@/ui/components/card'
-import { cn } from '@heroui/theme'
+import { cn } from '@/ui/utils'
 import { tv, type VariantProps } from 'tailwind-variants'
 import { Area, AreaChart, ResponsiveContainer, YAxis } from 'recharts'
 

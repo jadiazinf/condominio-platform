@@ -1,13 +1,13 @@
 'use client'
 
-import { Controller } from 'react-hook-form'
-import { EIdDocumentTypes } from '@packages/domain'
+import { FormProvider } from 'react-hook-form'
 
 import { useTranslation } from '@/contexts'
 import { Input } from '@/ui/components/input'
+import { InputField } from '@/ui/components/input'
 import { Button } from '@/ui/components/button'
-import { PhoneInput } from '@/ui/components/phone-input'
-import { DocumentInput } from '@/ui/components/document-input'
+import { PhoneInputField } from '@/ui/components/phone-input'
+import { DocumentInputField } from '@/ui/components/document-input'
 
 import { Section } from '../Section'
 import { FormField, FormFieldRow } from '../FormField'
@@ -16,9 +16,8 @@ import { useProfileForm } from '../../hooks'
 export function ProfileForm() {
   const { t } = useTranslation()
   const {
+    form,
     user,
-    control,
-    errors,
     isSubmitting,
     isDirty,
     handleSubmit,
@@ -27,7 +26,8 @@ export function ProfileForm() {
   } = useProfileForm()
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+    <FormProvider {...form}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-8">
       {/* Basic Info Section */}
       <Section
         title={t('settings.profile.basicInfo')}
@@ -36,33 +36,17 @@ export function ProfileForm() {
         {/* Name Fields */}
         <FormField>
           <FormFieldRow>
-            <Controller
-              control={control}
+            <InputField
               name="firstName"
-              render={({ field }) => (
-                <Input
-                  label={t('settings.profile.firstName')}
-                  placeholder={t('settings.profile.firstNamePlaceholder')}
-                  value={field.value || ''}
-                  onChange={field.onChange}
-                  isInvalid={!!errors.firstName}
-                  errorMessage={translateError(errors.firstName?.message)}
-                />
-              )}
+              label={t('settings.profile.firstName')}
+              placeholder={t('settings.profile.firstNamePlaceholder')}
+              translateError={translateError}
             />
-            <Controller
-              control={control}
+            <InputField
               name="lastName"
-              render={({ field }) => (
-                <Input
-                  label={t('settings.profile.lastName')}
-                  placeholder={t('settings.profile.lastNamePlaceholder')}
-                  value={field.value || ''}
-                  onChange={field.onChange}
-                  isInvalid={!!errors.lastName}
-                  errorMessage={translateError(errors.lastName?.message)}
-                />
-              )}
+              label={t('settings.profile.lastName')}
+              placeholder={t('settings.profile.lastNamePlaceholder')}
+              translateError={translateError}
             />
           </FormFieldRow>
         </FormField>
@@ -80,27 +64,12 @@ export function ProfileForm() {
 
         {/* Phone Field */}
         <FormField>
-          <Controller
-            control={control}
-            name="phoneCountryCode"
-            render={({ field: countryCodeField }) => (
-              <Controller
-                control={control}
-                name="phoneNumber"
-                render={({ field: phoneNumberField }) => (
-                  <PhoneInput
-                    label={t('settings.profile.phone')}
-                    placeholder={t('settings.profile.phonePlaceholder')}
-                    countryCode={countryCodeField.value}
-                    phoneNumber={phoneNumberField.value}
-                    onCountryCodeChange={countryCodeField.onChange}
-                    onPhoneNumberChange={phoneNumberField.onChange}
-                    countryCodeError={translateError(errors.phoneCountryCode?.message)}
-                    phoneNumberError={translateError(errors.phoneNumber?.message)}
-                  />
-                )}
-              />
-            )}
+          <PhoneInputField
+            countryCodeFieldName="phoneCountryCode"
+            phoneNumberFieldName="phoneNumber"
+            label={t('settings.profile.phone')}
+            placeholder={t('settings.profile.phonePlaceholder')}
+            translateError={translateError}
           />
         </FormField>
       </Section>
@@ -111,28 +80,13 @@ export function ProfileForm() {
         description={t('settings.profile.identityDocumentDescription')}
       >
         <FormField>
-          <Controller
-            control={control}
-            name="idDocumentType"
-            render={({ field: typeField }) => (
-              <Controller
-                control={control}
-                name="idDocumentNumber"
-                render={({ field: numberField }) => (
-                  <DocumentInput
-                    label={t('settings.profile.idDocument')}
-                    typePlaceholder={t('settings.profile.idDocumentTypePlaceholder')}
-                    numberPlaceholder={t('settings.profile.idDocumentNumberPlaceholder')}
-                    documentType={typeField.value as (typeof EIdDocumentTypes)[number] | null}
-                    documentNumber={numberField.value}
-                    onDocumentTypeChange={typeField.onChange}
-                    onDocumentNumberChange={numberField.onChange}
-                    documentTypeError={translateError(errors.idDocumentType?.message)}
-                    documentNumberError={translateError(errors.idDocumentNumber?.message)}
-                  />
-                )}
-              />
-            )}
+          <DocumentInputField
+            documentTypeFieldName="idDocumentType"
+            documentNumberFieldName="idDocumentNumber"
+            label={t('settings.profile.idDocument')}
+            typePlaceholder={t('settings.profile.idDocumentTypePlaceholder')}
+            numberPlaceholder={t('settings.profile.idDocumentNumberPlaceholder')}
+            translateError={translateError}
           />
         </FormField>
       </Section>
@@ -143,32 +97,25 @@ export function ProfileForm() {
         description={t('settings.profile.addressSectionDescription')}
       >
         <FormField>
-          <Controller
-            control={control}
+          <InputField
             name="address"
-            render={({ field }) => (
-              <Input
-                label={t('settings.profile.address')}
-                placeholder={t('settings.profile.addressPlaceholder')}
-                value={field.value || ''}
-                onChange={field.onChange}
-                isInvalid={!!errors.address}
-                errorMessage={translateError(errors.address?.message)}
-              />
-            )}
+            label={t('settings.profile.address')}
+            placeholder={t('settings.profile.addressPlaceholder')}
+            translateError={translateError}
           />
         </FormField>
       </Section>
 
-      {/* Form Actions */}
-      <div className="flex justify-end gap-3 pt-2">
-        <Button variant="bordered" onPress={handleCancel} isDisabled={!isDirty || isSubmitting}>
-          {t('common.cancel')}
-        </Button>
-        <Button color="primary" type="submit" isLoading={isSubmitting} isDisabled={!isDirty}>
-          {isSubmitting ? t('common.saving') : t('common.save')}
-        </Button>
-      </div>
-    </form>
+        {/* Form Actions */}
+        <div className="flex justify-end gap-3 pt-2">
+          <Button variant="bordered" onPress={handleCancel} isDisabled={!isDirty || isSubmitting}>
+            {t('common.cancel')}
+          </Button>
+          <Button color="primary" type="submit" isLoading={isSubmitting} isDisabled={!isDirty}>
+            {isSubmitting ? t('common.saving') : t('common.save')}
+          </Button>
+        </div>
+      </form>
+    </FormProvider>
   )
 }

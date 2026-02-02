@@ -2,7 +2,7 @@
 
 import { Link } from '@/ui/components/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@heroui/theme'
+import { cn } from '@/ui/utils'
 import { User, Globe, Palette } from 'lucide-react'
 
 import type { TSettingsIconName } from '../config/sidebar-items'

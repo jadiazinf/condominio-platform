@@ -7,8 +7,10 @@ import type {
   UserInvitationsRepository,
   UsersRepository,
   UserRolesRepository,
+  UserPermissionsRepository,
   RolesRepository,
   CondominiumsRepository,
+  PermissionsRepository,
 } from '@database/repositories'
 import { HttpContext } from '../../context'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
@@ -17,12 +19,15 @@ import type { TRouteDefinition } from '../types'
 import { AppError } from '@errors/index'
 import {
   CreateUserInvitationService,
+  CreateUserWithInvitationService,
   ValidateUserInvitationTokenService,
   AcceptUserInvitationService,
 } from '@src/services/user-invitations'
 import { SendUserInvitationEmailService } from '@src/services/email'
 import { LocaleDictionary } from '@locales/dictionary'
 import logger from '@utils/logger'
+import { isSuperadmin, SUPERADMIN_USER_PROP } from '@http/middlewares/utils/auth/is-superadmin'
+import { authMiddleware } from '@http/middlewares/auth'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Schemas
@@ -43,6 +48,27 @@ const CreateUserInvitationSchema = z.object({
 
 type TCreateUserInvitationBody = z.infer<typeof CreateUserInvitationSchema>
 
+/**
+ * Schema for the unified user creation endpoint (superadmin-only).
+ * Supports general users, condominium users, and superadmin users with custom permissions.
+ */
+const CreateUserWithInvitationSchema = z.object({
+  email: z.string().email(),
+  firstName: z.string().nullable().default(null),
+  lastName: z.string().nullable().default(null),
+  displayName: z.string().nullable().default(null),
+  phoneCountryCode: z.string().nullable().default(null),
+  phoneNumber: z.string().nullable().default(null),
+  idDocumentType: z.enum(EIdDocumentTypes).nullable().default(null),
+  idDocumentNumber: z.string().nullable().default(null),
+  condominiumId: z.string().uuid().nullable().default(null),
+  roleId: z.string().uuid(),
+  customPermissions: z.array(z.string().uuid()).optional().default([]),
+  expirationDays: z.number().int().positive().optional().default(7),
+})
+
+type TCreateUserWithInvitationBody = z.infer<typeof CreateUserWithInvitationSchema>
+
 const TokenParamSchema = z.object({
   token: z.string().min(1),
 })
@@ -60,6 +86,7 @@ type TIdParam = z.infer<typeof IdParamSchema>
  *
  * Endpoints:
  * - POST   /                     Create a new user invitation (admin/superadmin only)
+ * - POST   /create-user          Create user with invitation (superadmin-only, unified endpoint)
  * - POST   /:id/resend-email     Resend invitation email (admin/superadmin only)
  * - GET    /validate/:token      Validate invitation token (public)
  * - POST   /accept/:token        Accept invitation (public, requires Firebase token)
@@ -67,6 +94,7 @@ type TIdParam = z.infer<typeof IdParamSchema>
  */
 export class UserInvitationsController {
   private readonly createUserInvitationService: CreateUserInvitationService
+  private readonly createUserWithInvitationService: CreateUserWithInvitationService
   private readonly validateUserInvitationTokenService: ValidateUserInvitationTokenService
   private readonly acceptUserInvitationService: AcceptUserInvitationService
   private readonly sendUserInvitationEmailService: SendUserInvitationEmailService
@@ -75,8 +103,10 @@ export class UserInvitationsController {
     private readonly invitationsRepository: UserInvitationsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly userRolesRepository: UserRolesRepository,
+    private readonly userPermissionsRepository: UserPermissionsRepository,
     private readonly rolesRepository: RolesRepository,
-    private readonly condominiumsRepository: CondominiumsRepository
+    private readonly condominiumsRepository: CondominiumsRepository,
+    private readonly permissionsRepository: PermissionsRepository
   ) {
     this.createUserInvitationService = new CreateUserInvitationService(
       invitationsRepository,
@@ -84,6 +114,15 @@ export class UserInvitationsController {
       userRolesRepository,
       rolesRepository,
       condominiumsRepository
+    )
+    this.createUserWithInvitationService = new CreateUserWithInvitationService(
+      invitationsRepository,
+      usersRepository,
+      userRolesRepository,
+      userPermissionsRepository,
+      rolesRepository,
+      condominiumsRepository,
+      permissionsRepository
     )
     this.validateUserInvitationTokenService = new ValidateUserInvitationTokenService(
       invitationsRepository,
@@ -106,6 +145,12 @@ export class UserInvitationsController {
         path: '/',
         handler: this.createInvitation,
         middlewares: [bodyValidator(CreateUserInvitationSchema)],
+      },
+      {
+        method: 'post',
+        path: '/create-user',
+        handler: this.createUserWithInvitation,
+        middlewares: [authMiddleware, isSuperadmin, bodyValidator(CreateUserWithInvitationSchema)],
       },
       {
         method: 'post',
@@ -250,6 +295,130 @@ export class UserInvitationsController {
       })
     } catch (error) {
       logger.error(`Error creating user invitation: ${error}`)
+      if (error instanceof AppError) {
+        throw error
+      }
+      throw error
+    }
+  }
+
+  /**
+   * Create a user with invitation (unified endpoint).
+   * Superadmin-only endpoint that handles all user creation flows:
+   * - General users (with USER role)
+   * - Condominium users (with specific role and optional custom permissions)
+   * - Superadmin users (with custom permissions)
+   */
+  private createUserWithInvitation = async (c: Context): Promise<Response> => {
+    const ctx = new HttpContext<TCreateUserWithInvitationBody>(c)
+    const t = useTranslation(c)
+
+    // Get the superadmin user from context (set by isSuperadmin middleware)
+    const superadminUser = c.get(SUPERADMIN_USER_PROP)
+
+    if (!superadminUser) {
+      throw AppError.forbidden(t(LocaleDictionary.http.middlewares.utils.auth.notSuperadmin))
+    }
+
+    try {
+      // Execute the service
+      const result = await this.createUserWithInvitationService.execute({
+        email: ctx.body.email,
+        firstName: ctx.body.firstName,
+        lastName: ctx.body.lastName,
+        displayName: ctx.body.displayName,
+        phoneCountryCode: ctx.body.phoneCountryCode,
+        phoneNumber: ctx.body.phoneNumber,
+        idDocumentType: ctx.body.idDocumentType,
+        idDocumentNumber: ctx.body.idDocumentNumber,
+        condominiumId: ctx.body.condominiumId,
+        roleId: ctx.body.roleId,
+        customPermissions: ctx.body.customPermissions,
+        createdBy: superadminUser.userId,
+        expirationDays: ctx.body.expirationDays,
+      })
+
+      if (!result.success) {
+        if (result.code === 'NOT_FOUND') {
+          // Map service error messages to translated messages
+          let translatedError = result.error
+          if (result.error.includes('Role')) {
+            translatedError = t(LocaleDictionary.http.controllers.userInvitations.roleNotFound)
+          } else if (result.error.includes('Condominium')) {
+            translatedError = t(LocaleDictionary.http.controllers.userInvitations.condominiumNotFound)
+          } else if (result.error.includes('Permission')) {
+            translatedError = t(LocaleDictionary.http.controllers.userInvitations.permissionNotFound)
+          }
+          throw AppError.notFound(translatedError)
+        }
+        if (result.code === 'CONFLICT') {
+          // Map service error messages to translated messages
+          let translatedError = result.error
+          if (result.error.includes('pending invitation')) {
+            translatedError = t(LocaleDictionary.http.controllers.userInvitations.pendingInvitationExists)
+          } else if (result.error.includes('active')) {
+            translatedError = t(LocaleDictionary.http.controllers.userInvitations.userActiveUseAssignRole)
+          }
+          throw AppError.conflict(translatedError)
+        }
+        throw AppError.validation(result.error)
+      }
+
+      // Get the condominium and role names for the email
+      let condominiumName: string | null = null
+      if (ctx.body.condominiumId) {
+        const condominium = await this.condominiumsRepository.getById(ctx.body.condominiumId)
+        condominiumName = condominium?.name ?? null
+      }
+
+      const role = await this.rolesRepository.getById(ctx.body.roleId)
+      const roleName = role?.name ?? 'Usuario'
+
+      // Send invitation email
+      const recipientName =
+        result.data.user.displayName ||
+        `${result.data.user.firstName || ''} ${result.data.user.lastName || ''}`.trim() ||
+        result.data.user.email
+
+      const emailResult = await this.sendUserInvitationEmailService.execute({
+        to: result.data.user.email,
+        recipientName,
+        condominiumName,
+        roleName,
+        invitationToken: result.data.invitationToken,
+        expiresAt: result.data.invitation.expiresAt,
+      })
+
+      if (!emailResult.success) {
+        logger.error(
+          {
+            err: emailResult.error,
+            invitationId: result.data.invitation.id,
+            email: result.data.user.email,
+          },
+          'Failed to send user invitation email'
+        )
+
+        // Record the email error in the invitation
+        await this.invitationsRepository.recordEmailError(
+          result.data.invitation.id,
+          emailResult.error
+        )
+      }
+
+      return ctx.created({
+        data: {
+          user: result.data.user,
+          invitation: result.data.invitation,
+          userRole: result.data.userRole,
+          userPermissions: result.data.userPermissions,
+          emailSent: emailResult.success,
+          // Include the token for development/testing purposes
+          invitationToken: result.data.invitationToken,
+        },
+      })
+    } catch (error) {
+      logger.error(`Error creating user with invitation: ${error}`)
       if (error instanceof AppError) {
         throw error
       }

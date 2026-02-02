@@ -1,17 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { Checkbox } from '@/ui/components/checkbox'
-import { Link } from '@/ui/components/link'
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
-import { useForm, Controller } from 'react-hook-form'
+import { FormProvider, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signUpSchema, type TSignUpSchema } from '@packages/domain'
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 
 import { useTranslation } from '@/contexts'
 import { Button } from '@/ui/components/button'
-import { Input } from '@/ui/components/input'
+import { InputField } from '@/ui/components/input'
+import { CheckboxField } from '@/ui/components/checkbox'
+import { Link } from '@/ui/components/link'
 import { Typography } from '@/ui/components/typography'
+import { getErrorMessage } from '@/utils/formErrors'
 
 interface SignUpFormFieldsProps {
   onSubmit: (data: TSignUpSchema) => void
@@ -24,11 +25,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<TSignUpSchema>({
+  const methods = useForm<TSignUpSchema>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       firstName: '',
@@ -41,37 +38,26 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
   })
 
   // Translate error messages from i18n keys
-  function translateError(message: string | undefined): string | undefined {
-    if (!message) return undefined
-
-    return t(message)
+  const translateError = (message: string | undefined): string | undefined => {
+    return message ? t(message) : undefined
   }
 
   return (
-    <>
+    <FormProvider {...methods}>
       {/* Form */}
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <form className="space-y-4" onSubmit={methods.handleSubmit(onSubmit)}>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Typography className="mb-2" variant="body2">
               {t('auth.signUp.firstName')}
             </Typography>
-            <Controller
-              control={control}
+            <InputField
               name="firstName"
-              render={({ field }) => (
-                <Input
-                  isRequired
-                  errorMessage={translateError(errors.firstName?.message)}
-                  isInvalid={!!errors.firstName}
-                  placeholder={t('auth.signUp.firstNamePlaceholder')}
-                  size="lg"
-                  startContent={<User className="w-5 h-5 text-default-400" />}
-                  type="text"
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              )}
+              placeholder={t('auth.signUp.firstNamePlaceholder')}
+              size="lg"
+              startContent={<User className="w-5 h-5 text-default-400" />}
+              isRequired
+              translateError={translateError}
             />
           </div>
 
@@ -79,22 +65,13 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
             <Typography className="mb-2" variant="body2">
               {t('auth.signUp.lastName')}
             </Typography>
-            <Controller
-              control={control}
+            <InputField
               name="lastName"
-              render={({ field }) => (
-                <Input
-                  isRequired
-                  errorMessage={translateError(errors.lastName?.message)}
-                  isInvalid={!!errors.lastName}
-                  placeholder={t('auth.signUp.lastNamePlaceholder')}
-                  size="lg"
-                  startContent={<User className="w-5 h-5 text-default-400" />}
-                  type="text"
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              )}
+              placeholder={t('auth.signUp.lastNamePlaceholder')}
+              size="lg"
+              startContent={<User className="w-5 h-5 text-default-400" />}
+              isRequired
+              translateError={translateError}
             />
           </div>
         </div>
@@ -103,22 +80,14 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
           <Typography className="mb-2" variant="body2">
             {t('auth.signUp.email')}
           </Typography>
-          <Controller
-            control={control}
+          <InputField
             name="email"
-            render={({ field }) => (
-              <Input
-                isRequired
-                errorMessage={translateError(errors.email?.message)}
-                isInvalid={!!errors.email}
-                placeholder={t('auth.signUp.emailPlaceholder')}
-                size="lg"
-                startContent={<Mail className="w-5 h-5 text-default-400" />}
-                type="email"
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
+            type="email"
+            placeholder={t('auth.signUp.emailPlaceholder')}
+            size="lg"
+            startContent={<Mail className="w-5 h-5 text-default-400" />}
+            isRequired
+            translateError={translateError}
           />
         </div>
 
@@ -126,35 +95,27 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
           <Typography className="mb-2" variant="body2">
             {t('auth.signUp.password')}
           </Typography>
-          <Controller
-            control={control}
+          <InputField
             name="password"
-            render={({ field }) => (
-              <Input
-                isRequired
-                endContent={
-                  <button
-                    className="focus:outline-none"
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5 text-default-400" />
-                    ) : (
-                      <Eye className="w-5 h-5 text-default-400" />
-                    )}
-                  </button>
-                }
-                errorMessage={translateError(errors.password?.message)}
-                isInvalid={!!errors.password}
-                placeholder={t('auth.signUp.passwordPlaceholder')}
-                size="lg"
-                startContent={<Lock className="w-5 h-5 text-default-400" />}
-                type={showPassword ? 'text' : 'password'}
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
+            type={showPassword ? 'text' : 'password'}
+            placeholder={t('auth.signUp.passwordPlaceholder')}
+            size="lg"
+            startContent={<Lock className="w-5 h-5 text-default-400" />}
+            endContent={
+              <button
+                className="focus:outline-none"
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5 text-default-400" />
+                ) : (
+                  <Eye className="w-5 h-5 text-default-400" />
+                )}
+              </button>
+            }
+            isRequired
+            translateError={translateError}
           />
         </div>
 
@@ -162,60 +123,46 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
           <Typography className="mb-2" variant="body2">
             {t('auth.signUp.confirmPassword')}
           </Typography>
-          <Controller
-            control={control}
+          <InputField
             name="confirmPassword"
-            render={({ field }) => (
-              <Input
-                isRequired
-                endContent={
-                  <button
-                    className="focus:outline-none"
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-5 h-5 text-default-400" />
-                    ) : (
-                      <Eye className="w-5 h-5 text-default-400" />
-                    )}
-                  </button>
-                }
-                errorMessage={translateError(errors.confirmPassword?.message)}
-                isInvalid={!!errors.confirmPassword}
-                placeholder={t('auth.signUp.confirmPasswordPlaceholder')}
-                size="lg"
-                startContent={<Lock className="w-5 h-5 text-default-400" />}
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
+            type={showConfirmPassword ? 'text' : 'password'}
+            placeholder={t('auth.signUp.confirmPasswordPlaceholder')}
+            size="lg"
+            startContent={<Lock className="w-5 h-5 text-default-400" />}
+            endContent={
+              <button
+                className="focus:outline-none"
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="w-5 h-5 text-default-400" />
+                ) : (
+                  <Eye className="w-5 h-5 text-default-400" />
+                )}
+              </button>
+            }
+            isRequired
+            translateError={translateError}
           />
         </div>
 
         <div>
-          <Controller
-            control={control}
-            name="acceptTerms"
-            render={({ field }) => (
-              <Checkbox isSelected={field.value} onValueChange={field.onChange}>
-                <Typography variant="body2">
-                  {t('auth.signUp.acceptTerms')}{' '}
-                  <Link className="text-sm" href="/terms">
-                    {t('auth.signUp.termsAndConditions')}
-                  </Link>{' '}
-                  {t('auth.signUp.and')}{' '}
-                  <Link className="text-sm" href="/privacy">
-                    {t('auth.signUp.privacyPolicy')}
-                  </Link>
-                </Typography>
-              </Checkbox>
-            )}
-          />
-          {errors.acceptTerms && (
+          <CheckboxField name="acceptTerms">
+            <Typography variant="body2">
+              {t('auth.signUp.acceptTerms')}{' '}
+              <Link className="text-sm" href="/terms">
+                {t('auth.signUp.termsAndConditions')}
+              </Link>{' '}
+              {t('auth.signUp.and')}{' '}
+              <Link className="text-sm" href="/privacy">
+                {t('auth.signUp.privacyPolicy')}
+              </Link>
+            </Typography>
+          </CheckboxField>
+          {getErrorMessage(methods.formState.errors, 'acceptTerms') && (
             <Typography className="mt-1 text-danger text-xs" variant="body2">
-              {translateError(errors.acceptTerms.message)}
+              {translateError(getErrorMessage(methods.formState.errors, 'acceptTerms'))}
             </Typography>
           )}
         </div>
@@ -277,6 +224,6 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
           {t('auth.signUp.continueWithGoogle')}
         </Button>
       </div>
-    </>
+    </FormProvider>
   )
 }

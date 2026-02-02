@@ -12,6 +12,7 @@ import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-
 import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
+import { GetAssignableRolesService } from '@src/services/roles'
 import { z } from 'zod'
 
 const NameParamSchema = z.object({
@@ -26,6 +27,7 @@ type TNameParam = z.infer<typeof NameParamSchema>
  * Endpoints:
  * - GET    /              List all roles
  * - GET    /system        Get system roles
+ * - GET    /assignable    Get assignable roles (all except SUPERADMIN)
  * - GET    /name/:name    Get by name
  * - GET    /:id           Get by ID
  * - POST   /              Create role
@@ -33,10 +35,14 @@ type TNameParam = z.infer<typeof NameParamSchema>
  * - DELETE /:id           Delete role (hard delete)
  */
 export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpdate> {
+  private getAssignableRolesService: GetAssignableRolesService
+
   constructor(repository: RolesRepository) {
     super(repository)
+    this.getAssignableRolesService = new GetAssignableRolesService(repository)
     this.getByName = this.getByName.bind(this)
     this.getSystemRoles = this.getSystemRoles.bind(this)
+    this.getAssignableRoles = this.getAssignableRoles.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -46,6 +52,12 @@ export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpd
         method: 'get',
         path: '/system',
         handler: this.getSystemRoles,
+        middlewares: [authMiddleware],
+      },
+      {
+        method: 'get',
+        path: '/assignable',
+        handler: this.getAssignableRoles,
         middlewares: [authMiddleware],
       },
       {
@@ -113,6 +125,22 @@ export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpd
     try {
       const roles = await repo.getSystemRoles()
       return ctx.ok({ data: roles })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private async getAssignableRoles(c: Context): Promise<Response> {
+    const ctx = this.ctx(c)
+
+    try {
+      const result = await this.getAssignableRolesService.execute()
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }

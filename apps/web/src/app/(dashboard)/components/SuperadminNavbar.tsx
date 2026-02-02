@@ -2,7 +2,7 @@
 
 import type { TUser } from '@packages/domain'
 
-import { Navbar as HeroUINavbar, NavbarBrand, NavbarContent, NavbarItem } from '@heroui/navbar'
+import { HeroUINavbar, NavbarBrandPrimitive, NavbarContent, NavbarItem } from '@/ui/components/navbar'
 import { Button } from '@/ui/components/button'
 import { Link } from '@/ui/components/link'
 import { Chip } from '@/ui/components/chip'
@@ -26,7 +26,7 @@ export function SuperadminNavbar({ onToggleSidebar, initialUser }: SuperadminNav
             <Menu size={24} />
           </Button>
         )}
-        <NavbarBrand className="gap-3">
+        <NavbarBrandPrimitive className="gap-3">
           <Link className="font-bold text-inherit text-xl" href="/dashboard">
             CondominioApp
           </Link>
@@ -37,7 +37,7 @@ export function SuperadminNavbar({ onToggleSidebar, initialUser }: SuperadminNav
           >
             Superadmin
           </Chip>
-        </NavbarBrand>
+        </NavbarBrandPrimitive>
       </NavbarContent>
 
       <NavbarContent className="items-center gap-2" justify="end">
