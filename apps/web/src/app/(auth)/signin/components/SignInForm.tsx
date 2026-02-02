@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { type TSignInSchema } from '@packages/domain'
 
@@ -11,6 +11,32 @@ import { useAuth, useTranslation, getFirebaseErrorKey } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
 import { clearUserCookie, clearSessionCookie } from '@/libs/cookies'
 
+/**
+ * Validates that a redirect URL is safe (internal path only, no external URLs).
+ * Returns the validated path or '/dashboard' as fallback.
+ */
+function getValidRedirectUrl(redirectParam: string | null): string {
+  if (!redirectParam) return '/dashboard'
+
+  // Must start with / (relative path) and not // (protocol-relative URL)
+  if (!redirectParam.startsWith('/') || redirectParam.startsWith('//')) {
+    return '/dashboard'
+  }
+
+  // Ensure it's a valid internal path (no javascript:, data:, etc.)
+  try {
+    const url = new URL(redirectParam, 'http://localhost')
+    // Only allow paths within the app
+    if (url.pathname !== redirectParam.split('?')[0]) {
+      return '/dashboard'
+    }
+  } catch {
+    return '/dashboard'
+  }
+
+  return redirectParam
+}
+
 export function SignInForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -19,6 +45,12 @@ export function SignInForm() {
   const { signInWithEmail, signInWithGoogle, loading, signOut } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const hasCleanedExpiredSession = useRef(false)
+
+  // Get the validated redirect URL from search params
+  const redirectUrl = useMemo(
+    () => getValidRedirectUrl(searchParams.get('redirect')),
+    [searchParams]
+  )
 
   // Clear expired session cookies when redirected with expired=true
   useEffect(
@@ -51,7 +83,7 @@ export function SignInForm() {
       await signInWithEmail(data.email, data.password)
       // Use window.location for a full page reload to ensure the cookie is sent with the request
       // router.push() causes a client-side navigation that may not include the newly set cookie
-      window.location.href = '/dashboard'
+      window.location.href = redirectUrl
     } catch (err) {
       const errorKey = getFirebaseErrorKey(err)
 
@@ -66,7 +98,7 @@ export function SignInForm() {
       await signInWithGoogle()
       // Use window.location for a full page reload to ensure the cookie is sent with the request
       // router.push() causes a client-side navigation that may not include the newly set cookie
-      window.location.href = '/dashboard'
+      window.location.href = redirectUrl
     } catch (err) {
       const errorKey = getFirebaseErrorKey(err)
 

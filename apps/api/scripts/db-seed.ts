@@ -21,6 +21,7 @@
 import { Pool } from 'pg'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { faker } from '@faker-js/faker/locale/es_MX'
+import { eq, and, isNull } from 'drizzle-orm'
 import * as readline from 'readline'
 import * as schema from '../src/database/drizzle/schema'
 
@@ -32,7 +33,59 @@ const DATABASE_URL = process.env.DATABASE_URL || ''
 
 // Superadmin configuration
 const SUPERADMIN_EMAIL = 'jadiaz.inf@gmail.com'
-const SUPERADMIN_FIREBASE_UID = 'du7YtYB3Xeet88oTLNHUX20DACt2' // Replace with real UID if needed
+const SUPERADMIN_FIREBASE_UID = 'du7YtYB3Xeet88oTLNHUX20DACt2'
+const SUPERADMIN_ROLE_NAME = 'SUPERADMIN'
+
+// Superadmin permission modules
+const SUPERADMIN_PERMISSION_MODULES = [
+  'platform_users',
+  'platform_condominiums',
+  'platform_management_companies',
+  'platform_payments',
+  'platform_audit_logs',
+  'platform_settings',
+  'platform_metrics',
+  'platform_superadmins',
+  'platform_tickets',
+] as const
+
+// Define which actions are applicable for each superadmin module
+const MODULE_ACTIONS: Record<string, readonly string[]> = {
+  platform_users: ['create', 'read', 'update', 'delete', 'manage', 'export'],
+  platform_condominiums: ['create', 'read', 'update', 'delete', 'manage', 'export'],
+  platform_management_companies: ['create', 'read', 'update', 'delete', 'manage', 'export'],
+  platform_payments: ['read', 'approve', 'manage', 'export'],
+  platform_audit_logs: ['read', 'export'],
+  platform_settings: ['read', 'update', 'manage'],
+  platform_metrics: ['read', 'export'],
+  platform_superadmins: ['create', 'read', 'update', 'delete', 'manage'],
+  platform_tickets: ['create', 'read', 'update', 'delete', 'manage', 'assign'],
+}
+
+// Human-readable descriptions for each module
+const MODULE_DESCRIPTIONS: Record<string, string> = {
+  platform_users: 'Gestión de usuarios de la plataforma',
+  platform_condominiums: 'Gestión de condominios de la plataforma',
+  platform_management_companies: 'Gestión de empresas administradoras',
+  platform_payments: 'Gestión de pagos de la plataforma',
+  platform_audit_logs: 'Acceso a logs de auditoría',
+  platform_settings: 'Configuración de la plataforma',
+  platform_metrics: 'Métricas y reportes de la plataforma',
+  platform_superadmins: 'Gestión de superadministradores',
+  platform_tickets: 'Gestión de tickets de soporte',
+}
+
+// Human-readable action names
+const ACTION_NAMES: Record<string, string> = {
+  create: 'Crear',
+  read: 'Ver',
+  update: 'Actualizar',
+  delete: 'Eliminar',
+  approve: 'Aprobar',
+  manage: 'Administrar',
+  export: 'Exportar',
+  assign: 'Asignar',
+}
 
 // ============================================================================
 // Type Definitions
@@ -49,6 +102,8 @@ type SupportTicketInsert = typeof schema.supportTickets.$inferInsert
 type SupportTicketMessageInsert = typeof schema.supportTicketMessages.$inferInsert
 type PermissionInsert = typeof schema.permissions.$inferInsert
 type RoleInsert = typeof schema.roles.$inferInsert
+type RolePermissionInsert = typeof schema.rolePermissions.$inferInsert
+type UserRoleInsert = typeof schema.userRoles.$inferInsert
 
 // ============================================================================
 // Utilities
@@ -75,11 +130,20 @@ function printHeader() {
   console.log('  Existing data may be affected.\n')
 }
 
+function generatePermissionName(module: string, action: string): string {
+  const moduleName = module.replace('platform_', '').replace(/_/g, ' ')
+  return `${ACTION_NAMES[action] || action} ${moduleName}`
+}
+
+function generatePermissionDescription(module: string, action: string): string {
+  const baseDescription = MODULE_DESCRIPTIONS[module] || module
+  return `${ACTION_NAMES[action] || action}: ${baseDescription}`
+}
+
 // ============================================================================
 // Security Checks
 // ============================================================================
 
-// Production indicators - if ANY of these are found in the URL, it's blocked
 const PRODUCTION_BLOCKLIST = [
   'prod',
   'production',
@@ -90,7 +154,6 @@ const PRODUCTION_BLOCKLIST = [
   'supabase.co',
 ]
 
-// Allowed patterns - URL must contain ONE of these to be considered safe
 const SAFE_PATTERNS = [
   'localhost',
   '127.0.0.1',
@@ -99,7 +162,7 @@ const SAFE_PATTERNS = [
   'staging',
   'test',
   'local',
-  'rlwy.net', // Railway (staging/development)
+  'rlwy.net',
 ]
 
 function parseDbUrl(url: string): { host: string; database: string; user: string } {
@@ -117,14 +180,12 @@ function parseDbUrl(url: string): { host: string; database: string; user: string
 function isProductionDatabase(url: string): { blocked: boolean; reason?: string } {
   const urlLower = url.toLowerCase()
 
-  // Check blocklist
   for (const blocked of PRODUCTION_BLOCKLIST) {
     if (urlLower.includes(blocked.toLowerCase())) {
       return { blocked: true, reason: `URL contains blocked pattern: "${blocked}"` }
     }
   }
 
-  // Check if it has safe patterns
   const hasSafePattern = SAFE_PATTERNS.some(pattern => urlLower.includes(pattern.toLowerCase()))
 
   if (!hasSafePattern) {
@@ -157,70 +218,151 @@ function validateDatabaseUrl(url: string): boolean {
 // Seed Functions
 // ============================================================================
 
-async function seedPermissions(db: Database) {
+async function seedPermissions(db: Database): Promise<string[]> {
   console.log('\n  Step 1: Creating permissions...')
 
-  const permissionsList: Omit<PermissionInsert, 'id'>[] = [
-    // Superadmin permissions (module includes resource for unique constraint)
-    { name: 'superadmin.all', description: 'Full superadmin access', module: 'superadmin', action: 'all' },
-    { name: 'superadmin.users.read', description: 'View superadmin users', module: 'superadmin.users', action: 'read' },
-    { name: 'superadmin.users.write', description: 'Manage superadmin users', module: 'superadmin.users', action: 'write' },
-    { name: 'superadmin.companies.read', description: 'View management companies', module: 'superadmin.companies', action: 'read' },
-    { name: 'superadmin.companies.write', description: 'Manage management companies', module: 'superadmin.companies', action: 'write' },
-    { name: 'superadmin.tickets.read', description: 'View support tickets', module: 'superadmin.tickets', action: 'read' },
-    { name: 'superadmin.tickets.write', description: 'Manage support tickets', module: 'superadmin.tickets', action: 'write' },
-    // Admin permissions
-    { name: 'admin.condominiums.read', description: 'View condominiums', module: 'condominiums', action: 'read' },
-    { name: 'admin.condominiums.write', description: 'Manage condominiums', module: 'condominiums', action: 'write' },
+  const permissionIds: string[] = []
+
+  for (const module of SUPERADMIN_PERMISSION_MODULES) {
+    const actions = MODULE_ACTIONS[module] || []
+
+    for (const action of actions) {
+      const existing = await db.query.permissions.findFirst({
+        where: (p, { and, eq }) => and(eq(p.module, module), eq(p.action, action)),
+      })
+
+      if (existing) {
+        permissionIds.push(existing.id)
+        continue
+      }
+
+      const permissionData: Omit<PermissionInsert, 'id'> = {
+        name: generatePermissionName(module, action),
+        description: generatePermissionDescription(module, action),
+        module: module,
+        action: action,
+        registeredBy: null,
+      }
+
+      const [inserted] = await db.insert(schema.permissions).values(permissionData).returning()
+      permissionIds.push(inserted.id)
+    }
+  }
+
+  const adminPermissionsList: Omit<PermissionInsert, 'id'>[] = [
+    {
+      name: 'admin.condominiums.read',
+      description: 'View condominiums',
+      module: 'condominiums',
+      action: 'read',
+    },
+    {
+      name: 'admin.condominiums.write',
+      description: 'Manage condominiums',
+      module: 'condominiums',
+      action: 'write',
+    },
     { name: 'admin.units.read', description: 'View units', module: 'units', action: 'read' },
     { name: 'admin.units.write', description: 'Manage units', module: 'units', action: 'write' },
-    { name: 'admin.payments.read', description: 'View payments', module: 'payments', action: 'read' },
-    { name: 'admin.payments.write', description: 'Manage payments', module: 'payments', action: 'write' },
+    {
+      name: 'admin.payments.read',
+      description: 'View payments',
+      module: 'payments',
+      action: 'read',
+    },
+    {
+      name: 'admin.payments.write',
+      description: 'Manage payments',
+      module: 'payments',
+      action: 'write',
+    },
   ]
 
-  for (const permission of permissionsList) {
+  for (const permission of adminPermissionsList) {
     const existing = await db.query.permissions.findFirst({
       where: (p, { eq }) => eq(p.name, permission.name),
     })
 
     if (!existing) {
       await db.insert(schema.permissions).values(permission)
-      console.log(`    Created permission: ${permission.name}`)
     }
   }
 
-  console.log('    Permissions ready.')
+  console.log(`    ${permissionIds.length} platform permissions ready.`)
+  return permissionIds
 }
 
-async function seedRoles(db: Database) {
+async function seedRoles(db: Database): Promise<string> {
   console.log('\n  Step 2: Creating roles...')
 
   const rolesList: Omit<RoleInsert, 'id'>[] = [
-    { name: 'Superadmin', description: 'Full system administrator', isSystemRole: true },
-    { name: 'Admin', description: 'Management company administrator', isSystemRole: true },
-    { name: 'Accountant', description: 'Financial management access', isSystemRole: true },
-    { name: 'Support', description: 'Customer support access', isSystemRole: true },
-    { name: 'Viewer', description: 'Read-only access', isSystemRole: true },
+    { name: SUPERADMIN_ROLE_NAME, description: 'Platform administrator with full access', isSystemRole: true },
+    { name: 'ADMIN', description: 'Management company administrator', isSystemRole: true },
+    { name: 'ACCOUNTANT', description: 'Financial management access', isSystemRole: true },
+    { name: 'SUPPORT', description: 'Customer support access', isSystemRole: true },
+    { name: 'VIEWER', description: 'Read-only access', isSystemRole: true },
   ]
+
+  let superadminRoleId = ''
 
   for (const role of rolesList) {
     const existing = await db.query.roles.findFirst({
       where: (r, { eq }) => eq(r.name, role.name),
     })
 
-    if (!existing) {
-      await db.insert(schema.roles).values(role)
-      console.log(`    Created role: ${role.name}`)
+    if (existing) {
+      if (role.name === SUPERADMIN_ROLE_NAME) {
+        superadminRoleId = existing.id
+      }
+      continue
+    }
+
+    const [inserted] = await db.insert(schema.roles).values(role).returning()
+
+    if (role.name === SUPERADMIN_ROLE_NAME) {
+      superadminRoleId = inserted.id
     }
   }
 
-  console.log('    Roles ready.')
+  console.log(`    ${rolesList.length} roles ready.`)
+  return superadminRoleId
 }
 
-async function seedSuperadmin(db: Database): Promise<string> {
-  console.log('\n  Step 3: Creating superadmin user...')
+async function seedRolePermissions(
+  db: Database,
+  superadminRoleId: string,
+  permissionIds: string[]
+): Promise<void> {
+  console.log('\n  Step 3: Assigning permissions to SUPERADMIN role...')
 
-  // Check if user exists
+  let assigned = 0
+
+  for (const permissionId of permissionIds) {
+    const existing = await db.query.rolePermissions.findFirst({
+      where: (rp, { and, eq }) =>
+        and(eq(rp.roleId, superadminRoleId), eq(rp.permissionId, permissionId)),
+    })
+
+    if (existing) {
+      continue
+    }
+
+    const rolePermissionData: Omit<RolePermissionInsert, 'id'> = {
+      roleId: superadminRoleId,
+      permissionId: permissionId,
+      registeredBy: null,
+    }
+
+    await db.insert(schema.rolePermissions).values(rolePermissionData)
+    assigned++
+  }
+
+  console.log(`    ${assigned} permissions assigned.`)
+}
+
+async function seedSuperadmin(db: Database, superadminRoleId: string): Promise<string> {
+  console.log('\n  Step 4: Creating superadmin user...')
+
   let user = await db.query.users.findFirst({
     where: (u, { eq }) => eq(u.email, SUPERADMIN_EMAIL),
   })
@@ -241,31 +383,48 @@ async function seedSuperadmin(db: Database): Promise<string> {
 
     const [inserted] = await db.insert(schema.users).values(userData).returning()
     user = inserted
-    console.log(`    Created user: ${SUPERADMIN_EMAIL}`)
-  } else {
-    console.log(`    User already exists: ${SUPERADMIN_EMAIL}`)
   }
 
-  // Create superadmin record
-  const existingSuperadmin = await db.query.superadminUsers.findFirst({
-    where: (s, { eq }) => eq(s.userId, user!.id),
-  })
+  const existingUserRole = await db
+    .select()
+    .from(schema.userRoles)
+    .where(
+      and(
+        eq(schema.userRoles.userId, user.id),
+        eq(schema.userRoles.roleId, superadminRoleId),
+        isNull(schema.userRoles.condominiumId),
+        isNull(schema.userRoles.buildingId)
+      )
+    )
+    .limit(1)
 
-  if (!existingSuperadmin) {
-    await db.insert(schema.superadminUsers).values({
-      userId: user!.id,
-      notes: 'Primary superadmin account',
+  if (existingUserRole.length === 0) {
+    const userRoleData: Omit<UserRoleInsert, 'id'> = {
+      userId: user.id,
+      roleId: superadminRoleId,
+      condominiumId: null,
+      buildingId: null,
       isActive: true,
-    })
-    console.log('    Created superadmin record.')
+      notes: 'Primary superadmin account',
+      assignedBy: null,
+      registeredBy: null,
+      expiresAt: null,
+    }
+
+    await db.insert(schema.userRoles).values(userRoleData)
+  } else if (!existingUserRole[0].isActive) {
+    await db
+      .update(schema.userRoles)
+      .set({ isActive: true })
+      .where(eq(schema.userRoles.id, existingUserRole[0].id))
   }
 
   console.log(`    Superadmin ready: ${SUPERADMIN_EMAIL}`)
-  return user!.id
+  return user.id
 }
 
 async function seedUsers(db: Database, count: number = 20): Promise<string[]> {
-  console.log(`\n  Step 4: Creating ${count} dummy users...`)
+  console.log(`\n  Step 5: Creating ${count} dummy users...`)
 
   const userIds: string[] = []
 
@@ -303,12 +462,12 @@ async function seedUsers(db: Database, count: number = 20): Promise<string[]> {
     userIds.push(inserted.id)
   }
 
-  console.log(`    Created ${userIds.length} users.`)
+  console.log(`    ${userIds.length} users ready.`)
   return userIds
 }
 
 async function seedManagementCompanies(db: Database, superadminId: string): Promise<string[]> {
-  console.log('\n  Step 5: Creating management companies...')
+  console.log('\n  Step 6: Creating management companies...')
 
   const companies: Omit<ManagementCompanyInsert, 'id'>[] = [
     {
@@ -360,7 +519,7 @@ async function seedManagementCompanies(db: Database, superadminId: string): Prom
       phone: '4147778889',
       website: null,
       address: 'Av. Principal de El Hatillo, Centro Empresarial El Hatillo',
-      isActive: false, // Inactive company for testing
+      isActive: false,
       createdBy: superadminId,
     },
   ]
@@ -374,16 +533,14 @@ async function seedManagementCompanies(db: Database, superadminId: string): Prom
 
     if (existing) {
       companyIds.push(existing.id)
-      console.log(`    Company exists: ${company.name}`)
       continue
     }
 
     const [inserted] = await db.insert(schema.managementCompanies).values(company).returning()
     companyIds.push(inserted.id)
-    console.log(`    Created: ${company.name}`)
   }
 
-  console.log(`    Created ${companyIds.length} management companies.`)
+  console.log(`    ${companyIds.length} management companies ready.`)
   return companyIds
 }
 
@@ -392,7 +549,7 @@ async function seedCondominiums(
   companyIds: string[],
   superadminId: string
 ): Promise<string[]> {
-  console.log('\n  Step 6: Creating condominiums...')
+  console.log('\n  Step 7: Creating condominiums...')
 
   const condominiumNames = [
     'Residencias Vista al Parque',
@@ -434,10 +591,9 @@ async function seedCondominiums(
 
     const [inserted] = await db.insert(schema.condominiums).values(condominiumData).returning()
     condominiumIds.push(inserted.id)
-    console.log(`    Created: ${name}`)
   }
 
-  console.log(`    Created ${condominiumIds.length} condominiums.`)
+  console.log(`    ${condominiumIds.length} condominiums ready.`)
   return condominiumIds
 }
 
@@ -446,7 +602,7 @@ async function seedBuildings(
   condominiumIds: string[],
   superadminId: string
 ): Promise<string[]> {
-  console.log('\n  Step 7: Creating buildings...')
+  console.log('\n  Step 8: Creating buildings...')
 
   const buildingIds: string[] = []
 
@@ -454,7 +610,7 @@ async function seedBuildings(
     const numBuildings = faker.number.int({ min: 1, max: 3 })
 
     for (let i = 0; i < numBuildings; i++) {
-      const buildingCode = `TORRE-${String.fromCharCode(65 + i)}` // A, B, C...
+      const buildingCode = `TORRE-${String.fromCharCode(65 + i)}`
       const floorsCount = faker.number.int({ min: 5, max: 20 })
       const unitsPerFloor = faker.number.int({ min: 2, max: 8 })
 
@@ -488,7 +644,7 @@ async function seedBuildings(
     }
   }
 
-  console.log(`    Created ${buildingIds.length} buildings.`)
+  console.log(`    ${buildingIds.length} buildings ready.`)
   return buildingIds
 }
 
@@ -498,7 +654,7 @@ async function seedUnits(
   userIds: string[],
   superadminId: string
 ): Promise<void> {
-  console.log('\n  Step 8: Creating units and ownerships...')
+  console.log('\n  Step 9: Creating units and ownerships...')
 
   let unitCount = 0
   let ownershipCount = 0
@@ -543,7 +699,6 @@ async function seedUnits(
         const [insertedUnit] = await db.insert(schema.units).values(unitData).returning()
         unitCount++
 
-        // Create ownership for random user
         if (faker.datatype.boolean({ probability: 0.7 })) {
           const randomUserId = userIds[faker.number.int({ min: 0, max: userIds.length - 1 })]
 
@@ -564,7 +719,7 @@ async function seedUnits(
     }
   }
 
-  console.log(`    Created ${unitCount} units and ${ownershipCount} ownerships.`)
+  console.log(`    ${unitCount} units and ${ownershipCount} ownerships ready.`)
 }
 
 async function seedSupportTickets(
@@ -572,7 +727,7 @@ async function seedSupportTickets(
   companyIds: string[],
   superadminId: string
 ): Promise<void> {
-  console.log('\n  Step 9: Creating support tickets...')
+  console.log('\n  Step 10: Creating support tickets...')
 
   const ticketTemplates = [
     {
@@ -673,7 +828,6 @@ async function seedSupportTickets(
       const [insertedTicket] = await db.insert(schema.supportTickets).values(ticketData).returning()
       ticketCount++
 
-      // Add some messages to tickets
       if (faker.datatype.boolean({ probability: 0.6 })) {
         const messageData: SupportTicketMessageInsert = {
           ticketId: insertedTicket.id,
@@ -688,7 +842,7 @@ async function seedSupportTickets(
     }
   }
 
-  console.log(`    Created ${ticketCount} support tickets.`)
+  console.log(`    ${ticketCount} support tickets ready.`)
 }
 
 // ============================================================================
@@ -703,37 +857,22 @@ async function seedDatabase(databaseUrl: string): Promise<void> {
     console.log('\n  Starting seed process...\n')
     console.log('='.repeat(60))
 
-    // Step 1: Permissions
-    await seedPermissions(db)
-
-    // Step 2: Roles
-    await seedRoles(db)
-
-    // Step 3: Superadmin
-    const superadminId = await seedSuperadmin(db)
-
-    // Step 4: Users
+    const platformPermissionIds = await seedPermissions(db)
+    const superadminRoleId = await seedRoles(db)
+    await seedRolePermissions(db, superadminRoleId, platformPermissionIds)
+    const superadminId = await seedSuperadmin(db, superadminRoleId)
     const userIds = await seedUsers(db, 25)
-
-    // Step 5: Management Companies
     const companyIds = await seedManagementCompanies(db, superadminId)
-
-    // Step 6: Condominiums
     const condominiumIds = await seedCondominiums(db, companyIds, superadminId)
-
-    // Step 7: Buildings
     const buildingIds = await seedBuildings(db, condominiumIds, superadminId)
-
-    // Step 8: Units & Ownerships
     await seedUnits(db, buildingIds, userIds, superadminId)
-
-    // Step 9: Support Tickets
     await seedSupportTickets(db, companyIds, superadminId)
 
     console.log('\n' + '='.repeat(60))
     console.log('\n  Seed completed successfully!')
     console.log('\n  Superadmin account:')
     console.log(`    Email: ${SUPERADMIN_EMAIL}`)
+    console.log(`    Role: ${SUPERADMIN_ROLE_NAME}`)
     console.log('\n  You can now login to the application.\n')
   } finally {
     await pool.end()
@@ -743,23 +882,19 @@ async function seedDatabase(databaseUrl: string): Promise<void> {
 async function main() {
   printHeader()
 
-  // Check if DATABASE_URL is set
   if (!DATABASE_URL) {
     console.error('\n  DATABASE_URL environment variable is not configured.\n')
     rl.close()
     process.exit(1)
   }
 
-  // SECURITY: Validate database URL is not production
   if (!validateDatabaseUrl(DATABASE_URL)) {
     rl.close()
     process.exit(1)
   }
 
-  // Parse database info for confirmation
   const dbInfo = parseDbUrl(DATABASE_URL)
 
-  // Show confirmation with database details
   console.log('\n  ' + '-'.repeat(50))
   console.log(`  Host: ${dbInfo.host}`)
   console.log(`  Database: ${dbInfo.database}`)
@@ -769,7 +904,6 @@ async function main() {
   console.log('\n  To confirm, type the database name exactly:')
   console.log(`  >>> ${dbInfo.database} <<<\n`)
 
-  // First confirmation - must type the exact database name
   const confirmDb = await prompt('  Database name: ')
 
   if (confirmDb !== dbInfo.database) {
@@ -778,7 +912,6 @@ async function main() {
     process.exit(0)
   }
 
-  // Double confirmation
   const confirmSeed = await prompt('\n  Type "SEED" to confirm seeding: ')
 
   if (confirmSeed !== 'SEED') {
@@ -787,7 +920,6 @@ async function main() {
     process.exit(0)
   }
 
-  // Execute seed
   try {
     await seedDatabase(DATABASE_URL)
   } catch (error) {

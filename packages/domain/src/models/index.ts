@@ -3,6 +3,7 @@ export * from './users'
 export * from './roles'
 export * from './permissions'
 export * from './role-permissions'
+export * from './user-permissions'
 export * from './user-roles'
 
 // Locations
@@ -50,12 +51,11 @@ export * from './user-fcm-tokens'
 // Audit
 export * from './audit-logs'
 
-// Superadmin
-export * from './superadmin-users'
-export * from './superadmin-user-permissions'
-
 // Admin Invitations
 export * from './admin-invitations'
+
+// User Invitations
+export * from './user-invitations'
 
 // Subscriptions & Members
 export * from './management-company-subscriptions'

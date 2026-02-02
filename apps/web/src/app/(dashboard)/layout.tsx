@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 
 import { StoreHydration } from './components/StoreHydration'
 import { DashboardShell } from './components/DashboardShell'
@@ -10,8 +11,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Get full session data - validates token and fetches/caches user data
   const session = await getFullSession()
 
-  // If user needs to select a condominium, redirect
+  // If user needs to select a condominium, redirect with current path
   if (session.needsCondominiumSelection) {
+    const headersList = await headers()
+    const pathname = headersList.get('x-pathname') || '/dashboard'
+
+    // Pass the original destination as redirect parameter (only if not default dashboard)
+    if (pathname !== '/dashboard') {
+      redirect(`/select-condominium?redirect=${encodeURIComponent(pathname)}`)
+    }
     redirect('/select-condominium')
   }
 

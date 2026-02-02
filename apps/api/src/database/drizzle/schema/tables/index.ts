@@ -8,6 +8,7 @@ export * from './users'
 export * from './permissions'
 export * from './roles'
 export * from './role-permissions'
+export * from './user-permissions'
 
 // Organizations
 export * from './management-companies'
@@ -38,9 +39,9 @@ export * from './messages'
 export * from './notifications'
 
 // Admin
-export * from './superadmin'
 export * from './audit-logs'
 export * from './admin-invitations'
+export * from './user-invitations'
 
 // Subscriptions & Members
 export * from './management-company-subscriptions'

@@ -3,7 +3,7 @@
 import type {
   TUser,
   TUserCondominiumAccess,
-  TSuperadminUser,
+  TUserRole,
   TPermission,
   TAllPermissionModule,
   TPermissionAction,
@@ -53,9 +53,9 @@ interface CondominiumSlice {
 }
 
 interface SuperadminSlice {
-  superadmin: TSuperadminUser | null
+  superadmin: TUserRole | null
   permissions: TPermission[]
-  setSuperadmin: (superadmin: TSuperadminUser) => void
+  setSuperadmin: (superadmin: TUserRole) => void
   setPermissions: (permissions: TPermission[]) => void
   clearSuperadmin: () => void
 }
@@ -80,7 +80,7 @@ interface SessionActions {
     user?: TUser | null
     condominiums?: TUserCondominiumAccess[]
     selectedCondominium?: TUserCondominiumAccess | null
-    superadmin?: TSuperadminUser | null
+    superadmin?: TUserRole | null
     permissions?: TPermission[]
   }) => void
 }

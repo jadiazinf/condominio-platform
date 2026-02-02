@@ -12,6 +12,8 @@ export const userRoleSchema = z.object({
   roleId: z.uuid({ error: d.roleId.invalid }),
   condominiumId: z.uuid({ error: d.condominiumId.invalid }).nullable(),
   buildingId: z.uuid({ error: d.buildingId.invalid }).nullable(),
+  isActive: z.boolean().default(true),
+  notes: z.string().nullable(),
   assignedAt: timestampField,
   assignedBy: z.uuid({ error: d.assignedBy.invalid }).nullable(),
   registeredBy: z.uuid({ error: d.registeredBy.invalid }).nullable(),

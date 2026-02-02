@@ -46,6 +46,8 @@ function createUserRole(
     assignedBy: null,
     registeredBy: null,
     expiresAt: null,
+    isActive: true,
+    notes: null,
     ...overrides,
   }
 }

@@ -44,12 +44,11 @@ export { NotificationTemplatesController } from './notification-templates'
 export { UserNotificationPreferencesController } from './user-notification-preferences'
 export { UserFcmTokensController } from './user-fcm-tokens'
 
-// Superadmin
-export { SuperadminUsersController } from './superadmin-users'
-export { SuperadminUserPermissionsController } from './superadmin-user-permissions'
-
 // Admin Invitations
 export { AdminInvitationsController } from './admin-invitations'
+
+// User Invitations
+export { UserInvitationsController } from './user-invitations'
 
 // Subscriptions & Members
 export { ManagementCompanySubscriptionsController } from './management-company-subscriptions/subscriptions.controller'

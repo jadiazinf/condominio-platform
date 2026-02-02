@@ -40,3 +40,6 @@ export * from './email'
 
 // Admin Invitations
 export * from './admin-invitations'
+
+// User Invitations
+export * from './user-invitations'

@@ -8,6 +8,7 @@ import { users } from '../tables/users'
 import { permissions } from '../tables/permissions'
 import { roles } from '../tables/roles'
 import { rolePermissions } from '../tables/role-permissions'
+import { userPermissions } from '../tables/user-permissions'
 import { managementCompanies } from '../tables/management-companies'
 import { condominiums } from '../tables/condominiums'
 import { buildings } from '../tables/buildings'
@@ -36,7 +37,6 @@ import {
   userNotificationPreferences,
   userFcmTokens,
 } from '../tables/notifications'
-import { superadminUsers, superadminUserPermissions } from '../tables/superadmin'
 import { auditLogs } from '../tables/audit-logs'
 import { adminInvitations } from '../tables/admin-invitations'
 import { managementCompanySubscriptions } from '../tables/management-company-subscriptions'
@@ -122,6 +122,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [currencies.id],
   }),
   userRoles: many(userRoles),
+  userPermissions: many(userPermissions),
   unitOwnerships: many(unitOwnerships),
   payments: many(payments),
   messages: many(messages),
@@ -142,6 +143,7 @@ export const permissionsRelations = relations(permissions, ({ one, many }) => ({
     references: [users.id],
   }),
   rolePermissions: many(rolePermissions),
+  userPermissions: many(userPermissions),
 }))
 
 export const rolesRelations = relations(roles, ({ one, many }) => ({
@@ -164,6 +166,21 @@ export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => 
   }),
   registeredByUser: one(users, {
     fields: [rolePermissions.registeredBy],
+    references: [users.id],
+  }),
+}))
+
+export const userPermissionsRelations = relations(userPermissions, ({ one }) => ({
+  user: one(users, {
+    fields: [userPermissions.userId],
+    references: [users.id],
+  }),
+  permission: one(permissions, {
+    fields: [userPermissions.permissionId],
+    references: [permissions.id],
+  }),
+  assignedByUser: one(users, {
+    fields: [userPermissions.assignedBy],
     references: [users.id],
   }),
 }))
@@ -739,40 +756,6 @@ export const userFcmTokensRelations = relations(userFcmTokens, ({ one }) => ({
     references: [users.id],
   }),
 }))
-
-// ============================================================================
-// SUPERADMIN RELATIONS
-// ============================================================================
-
-export const superadminUsersRelations = relations(superadminUsers, ({ one, many }) => ({
-  user: one(users, {
-    fields: [superadminUsers.userId],
-    references: [users.id],
-  }),
-  createdByUser: one(users, {
-    fields: [superadminUsers.createdBy],
-    references: [users.id],
-  }),
-  permissions: many(superadminUserPermissions),
-}))
-
-export const superadminUserPermissionsRelations = relations(
-  superadminUserPermissions,
-  ({ one }) => ({
-    superadminUser: one(superadminUsers, {
-      fields: [superadminUserPermissions.superadminUserId],
-      references: [superadminUsers.id],
-    }),
-    permission: one(permissions, {
-      fields: [superadminUserPermissions.permissionId],
-      references: [permissions.id],
-    }),
-    createdByUser: one(users, {
-      fields: [superadminUserPermissions.createdBy],
-      references: [users.id],
-    }),
-  })
-)
 
 // ============================================================================
 // AUDIT LOGS RELATIONS

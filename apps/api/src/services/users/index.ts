@@ -12,3 +12,18 @@ export type { IGetUserCondominiumsInput } from './get-user-condominiums.service'
 
 export { SyncFirebaseUidService } from './sync-firebase-uid.service'
 export type { ISyncFirebaseUidInput } from './sync-firebase-uid.service'
+
+export { ListAllUsersPaginatedService } from './list-all-users-paginated.service'
+export type { IListAllUsersPaginatedInput } from './list-all-users-paginated.service'
+
+export { GetUserFullDetailsService } from './get-user-full-details.service'
+export type { IGetUserFullDetailsInput } from './get-user-full-details.service'
+
+export { UpdateUserStatusService } from './update-user-status.service'
+export type { IUpdateUserStatusInput } from './update-user-status.service'
+
+export { GetAllRolesService } from './get-all-roles.service'
+export type { IRoleOption } from './get-all-roles.service'
+
+export { ToggleUserPermissionService } from './toggle-user-permission.service'
+export type { IToggleUserPermissionInput } from './toggle-user-permission.service'

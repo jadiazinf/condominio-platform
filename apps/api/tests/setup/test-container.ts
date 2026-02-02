@@ -379,6 +379,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
       condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
       building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
+      is_active BOOLEAN DEFAULT true,
+      notes TEXT,
       assigned_at TIMESTAMP DEFAULT NOW(),
       assigned_by UUID REFERENCES users(id) ON DELETE SET NULL,
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -783,6 +785,34 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
     );
 
+    CREATE TABLE IF NOT EXISTS user_permissions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      permission_id UUID NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+      is_enabled BOOLEAN NOT NULL DEFAULT true,
+      assigned_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(user_id, permission_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS user_invitations (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
+      role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+      token VARCHAR(128) NOT NULL UNIQUE,
+      token_hash VARCHAR(64) NOT NULL,
+      status admin_invitation_status NOT NULL DEFAULT 'pending',
+      email VARCHAR(255) NOT NULL,
+      expires_at TIMESTAMP NOT NULL,
+      accepted_at TIMESTAMP,
+      email_error TEXT,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL
+    );
+
     CREATE TABLE IF NOT EXISTS management_company_members (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       management_company_id UUID NOT NULL REFERENCES management_companies(id) ON DELETE CASCADE,
@@ -925,6 +955,8 @@ export async function cleanDatabase(testDb: TTestDrizzleClient): Promise<void> {
       buildings,
       condominiums,
       admin_invitations,
+      user_invitations,
+      user_permissions,
       management_companies,
       role_permissions,
       roles,

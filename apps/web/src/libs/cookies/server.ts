@@ -1,4 +1,4 @@
-import type { TUser, TUserCondominiumAccess, TSuperadminUser, TPermission } from '@packages/domain'
+import type { TUser, TUserCondominiumAccess, TUserRole, TPermission } from '@packages/domain'
 
 import { cookies } from 'next/headers'
 
@@ -119,7 +119,7 @@ export async function getSelectedCondominiumCookieServer(): Promise<TUserCondomi
 // Superadmin Cookie (Server-side)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function setSuperadminCookieServer(superadmin: TSuperadminUser): Promise<void> {
+export async function setSuperadminCookieServer(superadmin: TUserRole): Promise<void> {
   const cookieStore = await cookies()
   const superadminJson = JSON.stringify(superadmin)
   const encodedSuperadmin = encodeURIComponent(superadminJson)
@@ -132,7 +132,7 @@ export async function setSuperadminCookieServer(superadmin: TSuperadminUser): Pr
   })
 }
 
-export async function getSuperadminCookieServer(): Promise<TSuperadminUser | null> {
+export async function getSuperadminCookieServer(): Promise<TUserRole | null> {
   const cookieStore = await cookies()
   const superadminCookie = cookieStore.get(SUPERADMIN_COOKIE_NAME)
 
@@ -143,7 +143,7 @@ export async function getSuperadminCookieServer(): Promise<TSuperadminUser | nul
   try {
     const decodedValue = decodeURIComponent(superadminCookie.value)
 
-    return JSON.parse(decodedValue) as TSuperadminUser
+    return JSON.parse(decodedValue) as TUserRole
   } catch {
     return null
   }

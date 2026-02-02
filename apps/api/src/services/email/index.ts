@@ -9,3 +9,8 @@ export {
   type ISendTicketAssignmentEmailInput,
   type ISendTicketAssignmentEmailResult,
 } from './send-ticket-assignment-email.service'
+export {
+  SendUserInvitationEmailService,
+  type ISendUserInvitationEmailInput,
+  type ISendUserInvitationEmailResult,
+} from './send-user-invitation-email.service'

@@ -203,6 +203,52 @@ export {
   type IDeleteTicketMessageOptions,
 } from './use-support-ticket-messages'
 export { useTicketWebSocket } from './use-ticket-websocket'
+export {
+  useSuperadminUsersPaginated,
+  getSuperadminUsersPaginated,
+  type UseSuperadminUsersPaginatedOptions,
+  type TSuperadminUserWithDetails,
+  type TSuperadminUsersQuery,
+} from './use-superadmin-users'
+export {
+  useUsersPaginated,
+  useUserFullDetails,
+  useRoles,
+  getUsersPaginated,
+  getUserFullDetails,
+  getAllRoles,
+  updateUserStatus,
+  updateUserRoleStatus,
+  toggleUserPermission,
+  usersKeys,
+  type TUsersQuery,
+  type TUserWithRoles,
+  type TUserRoleSummary,
+  type TUserFullDetails,
+  type TUserRoleDetail,
+  type TCondominiumWithRoles,
+  type TSuperadminPermissionDetail,
+  type TRoleOption,
+  type UseUsersPaginatedOptions,
+  type UseUserFullDetailsOptions,
+  type UseRolesOptions,
+} from './use-users'
+export {
+  createUserInvitation,
+  validateUserInvitationToken,
+  acceptUserInvitation,
+  resendUserInvitationEmail,
+  cancelUserInvitation,
+  type TCreateUserInvitationInput,
+  type TInvitationUser,
+  type TUserInvitation,
+  type TInvitationUserRole,
+  type TCreateUserInvitationResult,
+  type TValidationCondominium,
+  type TValidationRole,
+  type TValidateUserInvitationResult,
+  type TAcceptUserInvitationResult,
+} from './use-user-invitations'
 
 // Re-export commonly used TanStack Query hooks
 export {

@@ -32,6 +32,9 @@ export { UsersEndpoint } from './users.endpoint'
 // Admin Invitations
 export { AdminInvitationsEndpoint } from './admin-invitations.endpoint'
 
+// User Invitations
+export { UserInvitationsEndpoint } from './user-invitations.endpoint'
+
 // Subscriptions & Members
 export { ManagementCompanySubscriptionsEndpoint } from './management-company-subscriptions.endpoint'
 export { SubscriptionInvoicesEndpoint } from './subscription-invoices.endpoint'

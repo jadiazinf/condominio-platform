@@ -98,8 +98,11 @@ describe('UsersController', function () {
     // Create mock db client (not used in basic CRUD tests)
     const mockDb = {} as any
 
-    // Create controller with mock repository and db
-    const controller = new UsersController(mockRepository as unknown as UsersRepository, mockDb)
+    // Create mock user permissions repository
+    const mockUserPermissionsRepository = {} as any
+
+    // Create controller with mock repository, db, and user permissions repository
+    const controller = new UsersController(mockRepository as unknown as UsersRepository, mockDb, mockUserPermissionsRepository)
 
     // Create Hono app with i18n middleware and controller routes
     app = createTestApp()

@@ -40,6 +40,9 @@ function handleLocale(request: NextRequest): NextResponse {
   const response = NextResponse.next()
   const existingLocale = request.cookies.get(LOCALE_COOKIE)?.value
 
+  // Set x-pathname header for use in server components
+  response.headers.set('x-pathname', request.nextUrl.pathname)
+
   if (!existingLocale || !SUPPORTED_LOCALES.includes(existingLocale)) {
     const detectedLocale = getLocaleFromHeaders(request)
 

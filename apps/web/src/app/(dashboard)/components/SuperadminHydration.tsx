@@ -1,13 +1,13 @@
 'use client'
 
-import type { TSuperadminUser, TPermission } from '@packages/domain'
+import type { TUserRole, TPermission } from '@packages/domain'
 
 import { useEffect, useRef } from 'react'
 
 import { useSuperadmin } from '@/contexts'
 
 interface SuperadminHydrationProps {
-  superadmin: TSuperadminUser | null
+  superadmin: TUserRole | null
   permissions: TPermission[]
 }
 

@@ -592,6 +592,22 @@ export const DomainLocaleDictionary = {
           invalid: 'validation.models.rolePermissions.registeredBy.invalid',
         },
       },
+      userPermissions: {
+        userId: {
+          required: 'validation.models.userPermissions.userId.required',
+          invalid: 'validation.models.userPermissions.userId.invalid',
+        },
+        permissionId: {
+          required: 'validation.models.userPermissions.permissionId.required',
+          invalid: 'validation.models.userPermissions.permissionId.invalid',
+        },
+        isEnabled: {
+          invalid: 'validation.models.userPermissions.isEnabled.invalid',
+        },
+        assignedBy: {
+          invalid: 'validation.models.userPermissions.assignedBy.invalid',
+        },
+      },
       unitOwnerships: {
         unitId: {
           required: 'validation.models.unitOwnerships.unitId.required',

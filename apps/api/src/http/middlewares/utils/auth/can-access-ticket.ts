@@ -3,7 +3,7 @@ import { useTranslation } from '@intlify/hono'
 import { eq, and, isNotNull } from 'drizzle-orm'
 import { HttpContext } from '@http/context'
 import { DatabaseService } from '@database/service'
-import { SuperadminUsersRepository, SupportTicketsRepository } from '@database/repositories'
+import { UserRolesRepository, SupportTicketsRepository } from '@database/repositories'
 import { userRoles, condominiums } from '@database/drizzle/schema'
 import { AUTHENTICATED_USER_PROP } from './is-user-authenticated'
 import { LocaleDictionary } from '@locales/dictionary'
@@ -46,10 +46,10 @@ export function createCanAccessTicket(paramName: string = 'id'): MiddlewareHandl
     }
 
     // Check if user is a superadmin
-    const superadminUsersRepository = new SuperadminUsersRepository(db)
-    const superadminUser = await superadminUsersRepository.getByUserId(user.id)
+    const userRolesRepository = new UserRolesRepository(db)
+    const isSuperadmin = await userRolesRepository.isUserSuperadmin(user.id)
 
-    if (superadminUser?.isActive) {
+    if (isSuperadmin) {
       // Superadmin has full access
       c.set(TICKET_PROP, ticket)
       await next()
@@ -127,24 +127,15 @@ export const canModifyTicket: MiddlewareHandler = async (c, next) => {
   }
 
   const db = DatabaseService.getInstance().getDb()
-  const superadminUsersRepository = new SuperadminUsersRepository(db)
+  const userRolesRepository = new UserRolesRepository(db)
 
-  const superadminUser = await superadminUsersRepository.getByUserId(user.id)
+  const isSuperadmin = await userRolesRepository.isUserSuperadmin(user.id)
 
-  if (!superadminUser) {
+  if (!isSuperadmin) {
     return ctx.forbidden({
       error: t(LocaleDictionary.http.middlewares.utils.auth.notSuperadmin),
     })
   }
-
-  if (!superadminUser.isActive) {
-    return ctx.forbidden({
-      error: t(LocaleDictionary.http.middlewares.utils.auth.superadminDisabled),
-    })
-  }
-
-  // Update last access timestamp
-  await superadminUsersRepository.updateLastAccess(superadminUser.id)
 
   await next()
 }

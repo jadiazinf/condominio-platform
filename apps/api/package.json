@@ -17,11 +17,6 @@
     "drizzle:generate": "bun x drizzle-kit generate",
     "drizzle:migrate": "bun x drizzle-kit migrate",
     "drizzle:generate&migrate": "bun x drizzle-kit generate & bun x drizzle-kit migrate",
-    "drizzle:seed:location": "bun ./src/database/drizzle/seeds/location.ts",
-    "drizzle:seed:superadmin-permissions": "bun ./src/database/drizzle/seeds/superadmin-permissions.ts",
-    "drizzle:seed:setup-superadmin": "bun ./src/database/drizzle/seeds/setup-superadmin.ts",
-    "drizzle:seed:dummy-data": "bun ./src/database/drizzle/seeds/dummy-companies-and-tickets.ts",
-    "drizzle:seed:setup-superadmin-by-email": "bun ./src/database/drizzle/seeds/setup-superadmin-by-email.ts",
     "db:clean": "bun ./scripts/db-clean.ts",
     "db:seed": "bun ./scripts/db-seed.ts"
   },

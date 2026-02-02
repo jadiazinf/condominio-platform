@@ -24,6 +24,8 @@ describe('GetRolesByUserAndCondominiumService', function () {
       assignedBy: '550e8400-e29b-41d4-a716-446655440050',
       registeredBy: null,
       expiresAt: null,
+      isActive: true,
+      notes: null,
     },
     {
       id: '550e8400-e29b-41d4-a716-446655440002',
@@ -35,6 +37,8 @@ describe('GetRolesByUserAndCondominiumService', function () {
       assignedBy: '550e8400-e29b-41d4-a716-446655440050',
       registeredBy: null,
       expiresAt: null,
+      isActive: true,
+      notes: null,
     },
     {
       id: '550e8400-e29b-41d4-a716-446655440003',
@@ -46,6 +50,8 @@ describe('GetRolesByUserAndCondominiumService', function () {
       assignedBy: '550e8400-e29b-41d4-a716-446655440050',
       registeredBy: null,
       expiresAt: null,
+      isActive: true,
+      notes: null,
     },
   ]
 

@@ -1,6 +1,6 @@
 'use client'
 
-import type { TUser, TUserCondominiumAccess, TSuperadminUser, TPermission } from '@packages/domain'
+import type { TUser, TUserCondominiumAccess, TUserRole, TPermission } from '@packages/domain'
 
 import { useEffect, useRef } from 'react'
 
@@ -20,7 +20,7 @@ interface StoreHydrationProps {
   user: TUser | null
   condominiums: TUserCondominiumAccess[]
   selectedCondominium: TUserCondominiumAccess | null
-  superadmin?: TSuperadminUser | null
+  superadmin?: TUserRole | null
   superadminPermissions?: TPermission[]
   /** True if data was fetched from API (not from cookies) - should update cookies */
   wasFetched?: boolean

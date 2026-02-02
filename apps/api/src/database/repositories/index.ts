@@ -14,14 +14,31 @@ export { BaseRepository } from './base'
 export { LocationsRepository } from './locations.repository'
 export { CurrenciesRepository } from './currencies.repository'
 export { ExchangeRatesRepository } from './exchange-rates.repository'
-export { UsersRepository } from './users.repository'
+export {
+  UsersRepository,
+  type TAllUsersQuery,
+  type TUserWithRoles,
+  type TUserFullDetails,
+  type TUserRoleSummary,
+  type TUserRoleDetail,
+  type TCondominiumWithRoles,
+  type TSuperadminPermissionDetail,
+} from './users.repository'
 export { PermissionsRepository } from './permissions.repository'
 export { RolesRepository } from './roles.repository'
 export { RolePermissionsRepository } from './role-permissions.repository'
+export {
+  UserPermissionsRepository,
+  type TUserPermissionWithDetails,
+} from './user-permissions.repository'
 export { ManagementCompaniesRepository } from './management-companies.repository'
 export { CondominiumsRepository } from './condominiums.repository'
 export { BuildingsRepository } from './buildings.repository'
-export { UserRolesRepository } from './user-roles.repository'
+export {
+  UserRolesRepository,
+  type TSuperadminUserWithDetails,
+  type TSuperadminUsersQuery,
+} from './user-roles.repository'
 export { UnitsRepository } from './units.repository'
 export { UnitOwnershipsRepository } from './unit-ownerships.repository'
 export { PaymentConceptsRepository } from './payment-concepts.repository'
@@ -48,12 +65,11 @@ export { NotificationDeliveriesRepository } from './notification-deliveries.repo
 export { UserNotificationPreferencesRepository } from './user-notification-preferences.repository'
 export { UserFcmTokensRepository } from './user-fcm-tokens.repository'
 
-// Superadmin
-export { SuperadminUsersRepository } from './superadmin-users.repository'
-export { SuperadminUserPermissionsRepository } from './superadmin-user-permissions.repository'
-
 // Admin Invitations
 export { AdminInvitationsRepository } from './admin-invitations.repository'
+
+// User Invitations
+export { UserInvitationsRepository } from './user-invitations.repository'
 
 // Subscriptions & Members
 export { ManagementCompanySubscriptionsRepository } from './management-company-subscriptions.repository'

@@ -1,4 +1,4 @@
-import type { TUser, TUserCondominiumAccess, TSuperadminUser, TPermission } from '@packages/domain'
+import type { TUser, TUserCondominiumAccess, TUserRole, TPermission } from '@packages/domain'
 
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -23,7 +23,7 @@ export interface FullSession {
   user: TUser
   condominiums: TUserCondominiumAccess[]
   selectedCondominium: TUserCondominiumAccess | null
-  superadmin: TSuperadminUser | null
+  superadmin: TUserRole | null
   superadminPermissions: TPermission[]
   sessionToken: string
   needsCondominiumSelection: boolean
@@ -76,7 +76,7 @@ export async function getFullSession(): Promise<FullSession> {
 
   let user: TUser
   let condominiums: TUserCondominiumAccess[]
-  let superadmin: TSuperadminUser | null = null
+  let superadmin: TUserRole | null = null
   let superadminPermissions: TPermission[] = []
 
   if (needsUserFetch) {

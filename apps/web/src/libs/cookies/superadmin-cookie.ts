@@ -1,4 +1,4 @@
-import type { TSuperadminUser, TPermission } from '@packages/domain'
+import type { TUserRole, TPermission } from '@packages/domain'
 
 const SUPERADMIN_COOKIE_NAME = '__superadmin'
 const SUPERADMIN_PERMISSIONS_COOKIE_NAME = '__superadmin_permissions'
@@ -12,16 +12,17 @@ function getSecureFlag(): string {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Superadmin Cookie (Client-side)
+// Now stores TUserRole instead of TSuperadminUser (which was removed)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function setSuperadminCookie(superadmin: TSuperadminUser): void {
+export function setSuperadminCookie(superadmin: TUserRole): void {
   const superadminJson = JSON.stringify(superadmin)
   const encodedSuperadmin = encodeURIComponent(superadminJson)
 
   document.cookie = `${SUPERADMIN_COOKIE_NAME}=${encodedSuperadmin}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${getSecureFlag()}`
 }
 
-export function getSuperadminCookie(): TSuperadminUser | null {
+export function getSuperadminCookie(): TUserRole | null {
   if (typeof document === 'undefined') {
     return null
   }
@@ -39,7 +40,7 @@ export function getSuperadminCookie(): TSuperadminUser | null {
     const encodedValue = superadminCookie.split('=')[1]
     const decodedValue = decodeURIComponent(encodedValue)
 
-    return JSON.parse(decodedValue) as TSuperadminUser
+    return JSON.parse(decodedValue) as TUserRole
   } catch {
     return null
   }

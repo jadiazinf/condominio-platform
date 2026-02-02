@@ -1,0 +1,365 @@
+import { useApiQuery } from './use-api-query'
+import { getHttpClient } from '../client/http-client'
+import type { TApiPaginatedResponse, TApiDataResponse } from '../types/api-responses'
+
+// =============================================================================
+// Types
+// =============================================================================
+
+/**
+ * Query parameters for listing all users
+ */
+export interface TUsersQuery {
+  page?: number
+  limit?: number
+  search?: string
+  isActive?: boolean
+  roleId?: string
+}
+
+/**
+ * User role summary (for list view)
+ */
+export interface TUserRoleSummary {
+  id: string // userRole id
+  roleId: string
+  roleName: string
+  condominiumId: string | null
+  condominiumName: string | null
+  isActive: boolean
+}
+
+/**
+ * User with roles (for list view)
+ */
+export interface TUserWithRoles {
+  id: string
+  email: string
+  displayName: string | null
+  firstName: string | null
+  lastName: string | null
+  photoUrl: string | null
+  phoneCountryCode: string | null
+  phoneNumber: string | null
+  idDocumentType: 'CI' | 'RIF' | 'Pasaporte' | null
+  idDocumentNumber: string | null
+  isActive: boolean
+  lastLogin: Date | null
+  createdAt: Date
+  roles: TUserRoleSummary[]
+}
+
+/**
+ * User role detail (for detail view)
+ */
+export interface TUserRoleDetail {
+  id: string
+  roleId: string
+  roleName: string
+  roleDescription: string | null
+  isSystemRole: boolean
+  condominiumId: string | null
+  condominiumName: string | null
+  buildingId: string | null
+  isActive: boolean
+  assignedAt: Date
+  notes: string | null
+}
+
+/**
+ * Condominium with roles (for detail view)
+ */
+export interface TCondominiumWithRoles {
+  id: string
+  name: string
+  code: string | null
+  roles: Array<{
+    userRoleId: string
+    roleId: string
+    roleName: string
+    isActive: boolean
+  }>
+}
+
+/**
+ * Permission with enabled status for superadmin detail view
+ */
+export interface TSuperadminPermissionDetail {
+  id: string
+  permissionId: string
+  module: string
+  action: string
+  description: string | null
+  isEnabled: boolean
+}
+
+/**
+ * Full user details (for detail view)
+ */
+export interface TUserFullDetails {
+  id: string
+  email: string
+  displayName: string | null
+  firstName: string | null
+  lastName: string | null
+  photoUrl: string | null
+  phoneCountryCode: string | null
+  phoneNumber: string | null
+  address: string | null
+  idDocumentType: 'CI' | 'RIF' | 'Pasaporte' | null
+  idDocumentNumber: string | null
+  isActive: boolean
+  isEmailVerified: boolean
+  lastLogin: Date | null
+  createdAt: Date
+  updatedAt: Date
+  userRoles: TUserRoleDetail[]
+  isSuperadmin: boolean
+  superadminPermissions: TSuperadminPermissionDetail[] | null
+  condominiums: TCondominiumWithRoles[] | null
+}
+
+/**
+ * Role option (for filter dropdown)
+ */
+export interface TRoleOption {
+  id: string
+  name: string
+  isSystemRole: boolean
+}
+
+// =============================================================================
+// Hook Options
+// =============================================================================
+
+export interface UseUsersPaginatedOptions {
+  token: string
+  query: TUsersQuery
+  enabled?: boolean
+}
+
+export interface UseUserFullDetailsOptions {
+  token: string
+  userId: string
+  enabled?: boolean
+}
+
+export interface UseRolesOptions {
+  token: string
+  enabled?: boolean
+}
+
+// =============================================================================
+// Query Keys
+// =============================================================================
+
+export const usersKeys = {
+  all: ['users'] as const,
+  lists: () => [...usersKeys.all, 'list'] as const,
+  list: (query: TUsersQuery) => [...usersKeys.lists(), query] as const,
+  details: () => [...usersKeys.all, 'detail'] as const,
+  detail: (id: string) => [...usersKeys.details(), id] as const,
+  roles: () => [...usersKeys.all, 'roles'] as const,
+}
+
+// =============================================================================
+// Hooks
+// =============================================================================
+
+/**
+ * Hook to fetch all users with pagination and filtering.
+ */
+export function useUsersPaginated(options: UseUsersPaginatedOptions) {
+  const { token, query, enabled = true } = options
+
+  // Build query string
+  const params = new URLSearchParams()
+  if (query.page) params.set('page', String(query.page))
+  if (query.limit) params.set('limit', String(query.limit))
+  if (query.search) params.set('search', query.search)
+  if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
+  if (query.roleId) params.set('roleId', query.roleId)
+
+  const queryString = params.toString()
+  const path = `/users/paginated${queryString ? `?${queryString}` : ''}`
+
+  return useApiQuery<TApiPaginatedResponse<TUserWithRoles>>({
+    path,
+    queryKey: usersKeys.list(query),
+    config: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    enabled,
+  })
+}
+
+/**
+ * Hook to fetch full user details.
+ */
+export function useUserFullDetails(options: UseUserFullDetailsOptions) {
+  const { token, userId, enabled = true } = options
+
+  return useApiQuery<TApiDataResponse<TUserFullDetails>>({
+    path: `/users/${userId}/full`,
+    queryKey: usersKeys.detail(userId),
+    config: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    enabled: enabled && !!userId,
+  })
+}
+
+/**
+ * Hook to fetch all roles (for filter dropdown).
+ */
+export function useRoles(options: UseRolesOptions) {
+  const { token, enabled = true } = options
+
+  return useApiQuery<TApiDataResponse<TRoleOption[]>>({
+    path: '/users/roles',
+    queryKey: usersKeys.roles(),
+    config: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    enabled,
+  })
+}
+
+// =============================================================================
+// Functions
+// =============================================================================
+
+/**
+ * Function to fetch all users with pagination and filtering.
+ */
+export async function getUsersPaginated(
+  token: string,
+  query: TUsersQuery
+): Promise<TApiPaginatedResponse<TUserWithRoles>> {
+  const client = getHttpClient()
+
+  // Build query string
+  const params = new URLSearchParams()
+  if (query.page) params.set('page', String(query.page))
+  if (query.limit) params.set('limit', String(query.limit))
+  if (query.search) params.set('search', query.search)
+  if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
+  if (query.roleId) params.set('roleId', query.roleId)
+
+  const queryString = params.toString()
+  const path = `/users/paginated${queryString ? `?${queryString}` : ''}`
+
+  const response = await client.get<TApiPaginatedResponse<TUserWithRoles>>(path, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  return response.data
+}
+
+/**
+ * Function to fetch full user details.
+ */
+export async function getUserFullDetails(
+  token: string,
+  userId: string
+): Promise<TUserFullDetails> {
+  const client = getHttpClient()
+
+  const response = await client.get<TApiDataResponse<TUserFullDetails>>(`/users/${userId}/full`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  return response.data.data
+}
+
+/**
+ * Function to fetch all roles.
+ */
+export async function getAllRoles(token: string): Promise<TRoleOption[]> {
+  const client = getHttpClient()
+
+  const response = await client.get<TApiDataResponse<TRoleOption[]>>('/users/roles', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  return response.data.data
+}
+
+/**
+ * Function to update user status.
+ */
+export async function updateUserStatus(
+  token: string,
+  userId: string,
+  isActive: boolean
+): Promise<void> {
+  const client = getHttpClient()
+
+  await client.patch(
+    `/users/${userId}/status`,
+    { isActive },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+}
+
+/**
+ * Function to update user role status.
+ */
+export async function updateUserRoleStatus(
+  token: string,
+  userRoleId: string,
+  isActive: boolean
+): Promise<void> {
+  const client = getHttpClient()
+
+  await client.patch(
+    `/user-roles/${userRoleId}`,
+    { isActive },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+}
+
+/**
+ * Function to toggle a user's permission.
+ */
+export async function toggleUserPermission(
+  token: string,
+  userId: string,
+  permissionId: string,
+  isEnabled: boolean
+): Promise<void> {
+  const client = getHttpClient()
+
+  await client.patch(
+    `/users/${userId}/permissions`,
+    { permissionId, isEnabled },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+}

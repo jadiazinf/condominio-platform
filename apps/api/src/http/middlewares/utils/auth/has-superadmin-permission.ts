@@ -1,16 +1,16 @@
 import type { MiddlewareHandler } from 'hono'
 import { useTranslation } from '@intlify/hono'
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { HttpContext } from '@http/context'
 import { DatabaseService } from '@database/service'
-import { superadminUserPermissions, permissions } from '@database/drizzle/schema'
+import { rolePermissions, permissions } from '@database/drizzle/schema'
 import { SUPERADMIN_USER_PROP } from './is-superadmin'
 import { LocaleDictionary } from '@locales/dictionary'
-import type { TPermissionModule, TPermissionAction } from '@packages/domain'
+import type { TAllPermissionModule, TPermissionAction } from '@packages/domain'
 
 export interface ISuperadminPermissionOptions {
   permissions: Array<{
-    module: TPermissionModule
+    module: TAllPermissionModule
     action: TPermissionAction
   }>
   requireAll?: boolean
@@ -19,6 +19,8 @@ export interface ISuperadminPermissionOptions {
 /**
  * Middleware that verifies if the superadmin user has specific permissions.
  * Must be used after isSuperadmin middleware.
+ *
+ * Permissions are now obtained from role_permissions based on the SUPERADMIN role.
  *
  * @param options.permissions - Array of required permissions (module + action)
  * @param options.requireAll - If true, all permissions are required. If false (default), any one permission is sufficient.
@@ -37,15 +39,15 @@ export function hasSuperadminPermission(options: ISuperadminPermissionOptions) {
 
     const db = DatabaseService.getInstance().getDb()
 
-    // Get all permissions for this superadmin user
+    // Get all permissions for the superadmin's role from role_permissions
     const userPermissions = await db
       .select({
         module: permissions.module,
         action: permissions.action,
       })
-      .from(superadminUserPermissions)
-      .innerJoin(permissions, eq(superadminUserPermissions.permissionId, permissions.id))
-      .where(eq(superadminUserPermissions.superadminUserId, superadminUser.id))
+      .from(rolePermissions)
+      .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
+      .where(eq(rolePermissions.roleId, superadminUser.roleId))
 
     const { permissions: requiredPermissions, requireAll = false } = options
 
@@ -73,7 +75,7 @@ export function hasSuperadminPermission(options: ISuperadminPermissionOptions) {
  * Middleware that checks if superadmin has a specific permission by module and action.
  * Shorthand for hasSuperadminPermission with a single permission.
  */
-export function requireSuperadminPermission(module: TPermissionModule, action: TPermissionAction) {
+export function requireSuperadminPermission(module: TAllPermissionModule, action: TPermissionAction) {
   return hasSuperadminPermission({
     permissions: [{ module, action }],
     requireAll: true,

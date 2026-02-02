@@ -6,7 +6,7 @@ import {
   type TUserRoleCreate,
   type TUserRoleUpdate,
 } from '@packages/domain'
-import type { UserRolesRepository } from '@database/repositories'
+import type { UserRolesRepository, TSuperadminUsersQuery } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import {
   bodyValidator,
@@ -27,6 +27,16 @@ import {
 
 const UserIdParamSchema = z.object({
   userId: z.uuid('Invalid user ID format'),
+})
+
+const SuperadminUsersQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  search: z.string().optional(),
+  isActive: z
+    .string()
+    .optional()
+    .transform(val => (val === 'true' ? true : val === 'false' ? false : undefined)),
 })
 
 type TUserIdParam = z.infer<typeof UserIdParamSchema>
@@ -94,11 +104,42 @@ export class UserRolesController extends BaseController<
     this.getByUserAndCondominium = this.getByUserAndCondominium.bind(this)
     this.getByUserAndBuilding = this.getByUserAndBuilding.bind(this)
     this.checkUserHasRole = this.checkUserHasRole.bind(this)
+    // Superadmin methods
+    this.checkIsSuperadmin = this.checkIsSuperadmin.bind(this)
+    this.getSuperadminSession = this.getSuperadminSession.bind(this)
+    this.getActiveSuperadminUsers = this.getActiveSuperadminUsers.bind(this)
+    this.listSuperadminUsersPaginated = this.listSuperadminUsersPaginated.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
       { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      // Superadmin endpoints (must be before :id to avoid conflicts)
+      {
+        method: 'get',
+        path: '/superadmin/check/:userId',
+        handler: this.checkIsSuperadmin,
+        middlewares: [authMiddleware, paramsValidator(UserIdParamSchema)],
+      },
+      {
+        method: 'get',
+        path: '/superadmin/session/:userId',
+        handler: this.getSuperadminSession,
+        middlewares: [authMiddleware, paramsValidator(UserIdParamSchema)],
+      },
+      {
+        method: 'get',
+        path: '/superadmin/active-users',
+        handler: this.getActiveSuperadminUsers,
+        middlewares: [authMiddleware],
+      },
+      {
+        method: 'get',
+        path: '/superadmin/users',
+        handler: this.listSuperadminUsersPaginated,
+        middlewares: [authMiddleware, queryValidator(SuperadminUsersQuerySchema)],
+      },
+      // User role endpoints
       {
         method: 'get',
         path: '/user/:userId',
@@ -258,6 +299,87 @@ export class UserRolesController extends BaseController<
       }
 
       return ctx.ok({ data: result.data })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Superadmin Handlers
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Check if a user is an active superadmin.
+   * GET /superadmin/check/:userId
+   */
+  private async checkIsSuperadmin(c: Context): Promise<Response> {
+    const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
+    const repo = this.repository as UserRolesRepository
+
+    try {
+      const isSuperadmin = await repo.isUserSuperadmin(ctx.params.userId)
+      return ctx.ok({ data: { isSuperadmin } })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  /**
+   * Get full superadmin session (role + permissions).
+   * Returns null if user is not a superadmin.
+   * GET /superadmin/session/:userId
+   */
+  private async getSuperadminSession(c: Context): Promise<Response> {
+    const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
+    const repo = this.repository as UserRolesRepository
+
+    try {
+      const superadminRole = await repo.getSuperadminUserRole(ctx.params.userId)
+
+      if (!superadminRole || !superadminRole.isActive) {
+        return ctx.ok({ data: null })
+      }
+
+      const permissions = await repo.getSuperadminPermissions()
+
+      return ctx.ok({
+        data: {
+          superadmin: superadminRole,
+          permissions,
+        },
+      })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  /**
+   * Get all active superadmin users (TUser objects).
+   * GET /superadmin/active-users
+   */
+  private async getActiveSuperadminUsers(c: Context): Promise<Response> {
+    const ctx = this.ctx(c)
+    const repo = this.repository as UserRolesRepository
+
+    try {
+      const users = await repo.getActiveSuperadminUsers()
+      return ctx.ok({ data: users })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  /**
+   * List superadmin users with pagination.
+   * GET /superadmin/users
+   */
+  private async listSuperadminUsersPaginated(c: Context): Promise<Response> {
+    const ctx = this.ctx<unknown, TSuperadminUsersQuery>(c)
+    const repo = this.repository as UserRolesRepository
+
+    try {
+      const result = await repo.listSuperadminUsersPaginated(ctx.query)
+      return ctx.ok(result)
     } catch (error) {
       return this.handleError(ctx, error)
     }

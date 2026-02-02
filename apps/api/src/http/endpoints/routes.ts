@@ -36,9 +36,8 @@ import { NotificationsEndpoint } from './notifications.endpoint'
 import { NotificationTemplatesEndpoint } from './notification-templates.endpoint'
 import { UserNotificationPreferencesEndpoint } from './user-notification-preferences.endpoint'
 import { UserFcmTokensEndpoint } from './user-fcm-tokens.endpoint'
-import { SuperadminUsersEndpoint } from './superadmin-users.endpoint'
-import { SuperadminUserPermissionsEndpoint } from './superadmin-user-permissions.endpoint'
 import { AdminInvitationsEndpoint } from './admin-invitations.endpoint'
+import { UserInvitationsEndpoint } from './user-invitations.endpoint'
 import { ManagementCompanySubscriptionsEndpoint } from './management-company-subscriptions.endpoint'
 import { SubscriptionInvoicesEndpoint } from './subscription-invoices.endpoint'
 import { ManagementCompanyMembersEndpoint } from './management-company-members.endpoint'
@@ -116,12 +115,11 @@ export class ApiRoutes {
       // Audit
       new AuditLogsEndpoint(db),
 
-      // Superadmin
-      new SuperadminUsersEndpoint(db),
-      new SuperadminUserPermissionsEndpoint(db),
-
       // Admin Invitations
       new AdminInvitationsEndpoint(db),
+
+      // User Invitations
+      new UserInvitationsEndpoint(db),
 
       // Subscriptions & Members
       new ManagementCompanySubscriptionsEndpoint(db),
