@@ -47,6 +47,28 @@
       }
     },
     "controllers": {
+      "users": {
+        "userNotFound": "Usuario no encontrado.",
+        "cannotModifyOwnPermissions": "No puedes modificar tus propios permisos.",
+        "cannotPromoteSelf": "No puedes promocionarte a ti mismo como superadministrador.",
+        "cannotDemoteSelf": "No puedes degradarte a ti mismo como superadministrador.",
+        "superadminRoleNotFound": "Rol de superadministrador no encontrado en el sistema.",
+        "userAlreadySuperadmin": "El usuario ya es superadministrador.",
+        "userNotSuperadmin": "El usuario no es superadministrador.",
+        "failedToCreateSuperadminRole": "Error al crear la asignación del rol de superadministrador.",
+        "failedToPromote": "Error al promocionar al usuario a superadministrador.",
+        "failedToDemote": "Error al degradar al usuario de superadministrador.",
+        "statusUpdated": "Estado del usuario actualizado correctamente.",
+        "permissionUpdated": "Permiso actualizado correctamente.",
+        "promotedToSuperadmin": "Usuario promocionado a superadministrador correctamente.",
+        "demotedFromSuperadmin": "Usuario degradado de superadministrador correctamente.",
+        "profileUpdated": "Perfil actualizado correctamente.",
+        "firebaseUidSynced": "Firebase UID sincronizado correctamente."
+      },
+      "userRoles": {
+        "roleNotFound": "Rol de usuario no encontrado.",
+        "roleStatusUpdated": "Estado del rol actualizado correctamente."
+      },
       "payments": {
         "paymentNotFound": "Pago no encontrado.",
         "paymentVerified": "Pago verificado exitosamente.",

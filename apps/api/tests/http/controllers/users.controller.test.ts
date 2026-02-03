@@ -101,8 +101,11 @@ describe('UsersController', function () {
     // Create mock user permissions repository
     const mockUserPermissionsRepository = {} as any
 
+    // Create mock user roles repository
+    const mockUserRolesRepository = {} as any
+
     // Create controller with mock repository, db, and user permissions repository
-    const controller = new UsersController(mockRepository as unknown as UsersRepository, mockDb, mockUserPermissionsRepository)
+    const controller = new UsersController(mockRepository as unknown as UsersRepository, mockDb, mockUserPermissionsRepository, mockUserRolesRepository)
 
     // Create Hono app with i18n middleware and controller routes
     app = createTestApp()

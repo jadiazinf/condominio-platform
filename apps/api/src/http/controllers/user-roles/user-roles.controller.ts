@@ -1,4 +1,5 @@
 import type { Context } from 'hono'
+import { useTranslation } from '@intlify/hono'
 import {
   userRoleCreateSchema,
   userRoleUpdateSchema,
@@ -24,6 +25,8 @@ import {
   GetRolesByUserAndBuildingService,
   CheckUserHasRoleService,
 } from '@src/services/user-roles'
+import { AppError } from '@errors/index'
+import { LocaleDictionary } from '@src/locales/dictionary'
 
 const UserIdParamSchema = z.object({
   userId: z.uuid('Invalid user ID format'),
@@ -203,6 +206,22 @@ export class UserRolesController extends BaseController<
         middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
     ]
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Override update to include translated message
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override update = async (c: Context): Promise<Response> => {
+    const t = useTranslation(c)
+    const ctx = this.ctx<TUserRoleUpdate, unknown, { id: string }>(c)
+    const entity = await this.repository.update(ctx.params.id, ctx.body)
+
+    if (!entity) {
+      throw AppError.notFound(t(LocaleDictionary.http.controllers.userRoles.roleNotFound))
+    }
+
+    return ctx.ok({ data: entity, message: t(LocaleDictionary.http.controllers.userRoles.roleStatusUpdated) })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

@@ -1,23 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
 import { Typography } from '@/ui/components/typography'
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from '@/ui/components/modal'
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Checkbox } from '@/ui/components/checkbox'
 import { useToast } from '@/ui/components/toast'
-import { Shield, AlertTriangle } from 'lucide-react'
+import { Shield, AlertTriangle, Settings } from 'lucide-react'
+import { useTranslation } from '@/contexts'
 import {
-  promoteUserToSuperadminAction,
-  demoteUserFromSuperadminAction,
-} from '../../actions'
+  usePromoteToSuperadmin,
+  useDemoteFromSuperadmin,
+  useToggleUserPermission,
+} from '@packages/http-client/hooks'
+import { PermissionsStep } from '../../../new/components/PermissionsStep'
 
 interface IPermission {
   id: string
@@ -27,12 +25,22 @@ interface IPermission {
   description?: string | null
 }
 
-interface SuperadminPromotionCardProps {
+interface ISuperadminPermission {
+  id: string
+  permissionId: string
+  module: string
+  action: string
+  description: string | null
+  isEnabled: boolean
+}
+
+interface ISuperadminPromotionCardProps {
   userId: string
+  currentUserId?: string
   userDisplayName: string
   isSuperadmin: boolean
   availablePermissions: IPermission[]
-  currentPermissionIds: string[]
+  currentPermissions?: ISuperadminPermission[]
   promoteTitle: string
   promoteDescription: string
   demoteTitle: string
@@ -46,14 +54,17 @@ interface SuperadminPromotionCardProps {
   cancelButtonText: string
   successMessage: string
   errorMessage: string
+  noPermissionSelectedText: string
+  confirmDemoteText: string
 }
 
 export function SuperadminPromotionCard({
   userId,
+  currentUserId,
   userDisplayName,
   isSuperadmin,
   availablePermissions,
-  currentPermissionIds,
+  currentPermissions = [],
   promoteTitle,
   promoteDescription,
   demoteTitle,
@@ -67,22 +78,123 @@ export function SuperadminPromotionCard({
   cancelButtonText,
   successMessage,
   errorMessage,
-}: SuperadminPromotionCardProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  noPermissionSelectedText,
+  confirmDemoteText,
+}: ISuperadminPromotionCardProps) {
+  const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false)
+  const [isDemoteModalOpen, setIsDemoteModalOpen] = useState(false)
+  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false)
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(
-    new Set(currentPermissionIds)
+    new Set(currentPermissions.filter(p => p.isEnabled).map(p => p.permissionId))
   )
-  const [isLoading, setIsLoading] = useState(false)
-  const toast = useToast()
+  const [customPermissions, setCustomPermissions] = useState<Record<string, boolean>>({})
+  const [togglingPermissionId, setTogglingPermissionId] = useState<string | null>(null)
 
-  // Group permissions by module
-  const permissionsByModule = availablePermissions.reduce((acc, permission) => {
-    if (!acc[permission.module]) {
-      acc[permission.module] = []
+  const toast = useToast()
+  const router = useRouter()
+  const { t } = useTranslation()
+
+  const isOwnProfile = currentUserId === userId
+
+  // Mutation hooks
+  const promoteMutation = usePromoteToSuperadmin({
+    onSuccess: (response) => {
+      toast.success(response.data.message || successMessage)
+      setIsPromoteModalOpen(false)
+      router.refresh()
+    },
+    onError: (error) => {
+      toast.error(error.message || errorMessage)
+    },
+  })
+
+  const demoteMutation = useDemoteFromSuperadmin({
+    onSuccess: (response) => {
+      toast.success(response.data.message || successMessage)
+      setIsDemoteModalOpen(false)
+      router.refresh()
+    },
+    onError: (error) => {
+      toast.error(error.message || errorMessage)
+    },
+  })
+
+  const togglePermissionMutation = useToggleUserPermission({
+    onSuccess: (response) => {
+      toast.success(response.data.message || t('superadmin.users.detail.statusSection.permissionToggleSuccess'))
+      router.refresh()
+    },
+    onError: (error) => {
+      toast.error(error.message || t('superadmin.users.detail.statusSection.permissionToggleError'))
+    },
+  })
+
+  // Helper to get module display name with translation
+  const getModuleLabel = (module: string) => {
+    const translationKey = `superadmin.users.create.permissionModules.${module.toLowerCase()}`
+    const translated = t(translationKey)
+    if (translated && translated !== translationKey) {
+      return translated
     }
-    acc[permission.module].push(permission)
-    return acc
-  }, {} as Record<string, IPermission[]>)
+    return module
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+  }
+
+  // Helper to get action display name with translation
+  const getActionLabel = (action: string) => {
+    const translationKey = `superadmin.users.create.permissionActions.${action.toLowerCase()}`
+    const translated = t(translationKey)
+    if (translated && translated !== translationKey) {
+      return translated
+    }
+    return action
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+  }
+
+  // Helper to get translated permission description
+  const getPermissionDescription = (permission: IPermission) => {
+    const moduleLabel = getModuleLabel(permission.module)
+    const actionLabel = getActionLabel(permission.action)
+    return `${actionLabel} ${moduleLabel.toLowerCase()}`
+  }
+
+  // Group available permissions by module (for promotion)
+  const permissionsByModule = availablePermissions.reduce(
+    (acc, permission) => {
+      if (!acc[permission.module]) {
+        acc[permission.module] = []
+      }
+      acc[permission.module].push(permission)
+      return acc
+    },
+    {} as Record<string, IPermission[]>
+  )
+
+  // Transform current permissions to PermissionsStep format (for editing)
+  const rolePermissions = useMemo(() => {
+    const grouped: Record<string, ISuperadminPermission[]> = {}
+    currentPermissions.forEach(p => {
+      if (!grouped[p.module]) {
+        grouped[p.module] = []
+      }
+      grouped[p.module].push(p)
+    })
+
+    return Object.entries(grouped).map(([module, perms]) => ({
+      module,
+      permissions: perms.map(p => ({
+        id: p.permissionId,
+        action: p.action,
+        name: `admin.${module.toLowerCase()}.${p.action.toLowerCase()}`,
+        description: p.description || undefined,
+        granted: p.isEnabled,
+      })),
+    }))
+  }, [currentPermissions])
 
   const handleTogglePermission = (permissionId: string) => {
     const newSelected = new Set(selectedPermissions)
@@ -102,83 +214,179 @@ export function SuperadminPromotionCard({
     }
   }
 
-  const handlePromote = async () => {
+  const handlePromote = () => {
     if (selectedPermissions.size === 0) {
-      toast.error('Debe seleccionar al menos un permiso')
+      toast.error(noPermissionSelectedText)
       return
     }
+    promoteMutation.mutate({
+      userId,
+      permissionIds: Array.from(selectedPermissions),
+    })
+  }
 
-    setIsLoading(true)
-    try {
-      const result = await promoteUserToSuperadminAction(
-        userId,
-        Array.from(selectedPermissions)
+  const handleDemote = () => {
+    demoteMutation.mutate({ userId })
+  }
+
+  const handleToggleExistingPermission = useCallback(
+    (permissionId: string) => {
+      if (isOwnProfile) return
+
+      const permission = currentPermissions.find(p => p.permissionId === permissionId)
+      if (!permission) return
+
+      const currentState = customPermissions[permissionId] ?? permission.isEnabled
+      const newState = !currentState
+
+      setCustomPermissions(prev => ({ ...prev, [permissionId]: newState }))
+      setTogglingPermissionId(permissionId)
+
+      togglePermissionMutation.mutate(
+        { userId, permissionId, isEnabled: newState },
+        {
+          onError: () => {
+            setCustomPermissions(prev => ({ ...prev, [permissionId]: currentState }))
+          },
+          onSettled: () => {
+            setTogglingPermissionId(null)
+          },
+        }
       )
+    },
+    [userId, currentPermissions, customPermissions, isOwnProfile, togglePermissionMutation]
+  )
 
-      if (result.success) {
-        toast.success(successMessage)
-        setIsModalOpen(false)
-      } else {
-        toast.error(errorMessage)
-      }
-    } catch (error) {
-      toast.error(errorMessage)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleDemote = async () => {
-    setIsLoading(true)
-    try {
-      const result = await demoteUserFromSuperadminAction(userId)
-
-      if (result.success) {
-        toast.success(successMessage)
-      } else {
-        toast.error(errorMessage)
-      }
-    } catch (error) {
-      toast.error(errorMessage)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // Count enabled permissions
+  const enabledCount = currentPermissions.filter(p =>
+    customPermissions[p.permissionId] ?? p.isEnabled
+  ).length
 
   if (isSuperadmin) {
-    // Show demote option for superadmins
+    // Show superadmin management card
     return (
-      <Card className="p-6">
-        <div className="flex items-start gap-4">
-          <div className="rounded-full bg-warning-100 p-3">
-            <AlertTriangle className="h-6 w-6 text-warning-600" />
+      <>
+        <Card className="p-6">
+          <div className="flex items-start gap-4">
+            <div className="rounded-full bg-primary-100 p-3">
+              <Shield className="h-6 w-6 text-primary-600" />
+            </div>
+            <div className="flex-1">
+              <Typography variant="h4" className="mb-1">
+                {t('superadmin.users.detail.statusSection.superadminStatus') || 'Estado de Superadmin'}
+              </Typography>
+              <Typography color="muted" variant="body2" className="mb-4">
+                {t('superadmin.users.detail.statusSection.superadminDescription') || 'Este usuario tiene privilegios de superadministrador'}
+              </Typography>
+
+              {/* Permission count */}
+              {currentPermissions.length > 0 && (
+                <Typography variant="body2" color="muted" className="mb-4">
+                  {enabledCount} / {currentPermissions.length} {t('superadmin.users.detail.statusSection.permissionsEnabled') || 'permisos activos'}
+                </Typography>
+              )}
+
+              <div className="flex flex-wrap gap-3">
+                {/* Edit Permissions Button */}
+                {currentPermissions.length > 0 && (
+                  <Button
+                    color="primary"
+                    variant="flat"
+                    onPress={() => setIsPermissionsModalOpen(true)}
+                    startContent={<Settings className="h-4 w-4" />}
+                  >
+                    {t('superadmin.users.detail.statusSection.editPermissions') || 'Editar permisos'}
+                  </Button>
+                )}
+
+                {/* Demote Button */}
+                <Button
+                  color="warning"
+                  variant="flat"
+                  onPress={() => setIsDemoteModalOpen(true)}
+                  isLoading={demoteMutation.isPending}
+                  startContent={<AlertTriangle className="h-4 w-4" />}
+                >
+                  {demoteButtonText}
+                </Button>
+              </div>
+            </div>
           </div>
-          <div className="flex-1">
-            <Typography variant="h4" className="mb-1">
-              {demoteTitle}
-            </Typography>
-            <Typography color="muted" variant="body2" className="mb-4">
-              {demoteDescription}
-            </Typography>
-            <Button
-              color="warning"
-              variant="flat"
-              onPress={() => {
-                if (
-                  window.confirm(
-                    `¿Está seguro de remover el rol de Superadmin a ${userDisplayName}?`
-                  )
-                ) {
-                  handleDemote()
-                }
-              }}
-              isLoading={isLoading}
-            >
-              {demoteButtonText}
-            </Button>
-          </div>
-        </div>
-      </Card>
+        </Card>
+
+        {/* Edit Permissions Modal */}
+        <Modal
+          isOpen={isPermissionsModalOpen}
+          onClose={() => setIsPermissionsModalOpen(false)}
+          size="3xl"
+        >
+          <ModalContent>
+            <ModalHeader>
+              <Typography variant="h4">
+                {t('superadmin.users.detail.statusSection.editPermissionsTitle') || 'Editar permisos de Superadmin'}
+              </Typography>
+            </ModalHeader>
+            <ModalBody>
+              {isOwnProfile && (
+                <Card className="p-4 bg-warning-50 border border-warning-200 mb-4">
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle className="w-5 h-5 text-warning-600 shrink-0" />
+                    <Typography color="warning" variant="body2">
+                      {t('superadmin.users.detail.permissions.cannotModifyOwn') || 'No puedes modificar tus propios permisos'}
+                    </Typography>
+                  </div>
+                </Card>
+              )}
+              <PermissionsStep
+                rolePermissions={rolePermissions}
+                customPermissions={customPermissions}
+                onTogglePermission={handleToggleExistingPermission}
+                isLoading={togglingPermissionId !== null}
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="bordered" onPress={() => setIsPermissionsModalOpen(false)}>
+                {t('common.close') || 'Cerrar'}
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Demote Confirmation Modal */}
+        <Modal isOpen={isDemoteModalOpen} onClose={() => setIsDemoteModalOpen(false)} size="md">
+          <ModalContent>
+            <ModalHeader>
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-warning-100 p-2">
+                  <AlertTriangle className="h-5 w-5 text-warning-600" />
+                </div>
+                <Typography variant="h4">{demoteTitle}</Typography>
+              </div>
+            </ModalHeader>
+            <ModalBody>
+              <Typography color="muted" variant="body2">
+                {confirmDemoteText.replace('{name}', userDisplayName)}
+              </Typography>
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                variant="bordered"
+                onPress={() => setIsDemoteModalOpen(false)}
+                isDisabled={demoteMutation.isPending}
+              >
+                {cancelButtonText}
+              </Button>
+              <Button
+                color="warning"
+                onPress={handleDemote}
+                isLoading={demoteMutation.isPending}
+              >
+                {demoteButtonText}
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </>
     )
   }
 
@@ -197,14 +405,14 @@ export function SuperadminPromotionCard({
             <Typography color="muted" variant="body2" className="mb-4">
               {promoteDescription}
             </Typography>
-            <Button color="primary" onPress={() => setIsModalOpen(true)}>
+            <Button color="primary" onPress={() => setIsPromoteModalOpen(true)}>
               {promoteButtonText}
             </Button>
           </div>
         </div>
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} size="2xl">
+      <Modal isOpen={isPromoteModalOpen} onClose={() => setIsPromoteModalOpen(false)} size="2xl">
         <ModalContent>
           <ModalHeader>
             <Typography variant="h4">{modalTitle}</Typography>
@@ -235,8 +443,8 @@ export function SuperadminPromotionCard({
               <div className="max-h-96 overflow-y-auto space-y-4">
                 {Object.entries(permissionsByModule).map(([module, permissions]) => (
                   <div key={module} className="space-y-2">
-                    <Typography variant="subtitle2" className="font-semibold capitalize">
-                      {module.replace(/_/g, ' ')}
+                    <Typography variant="subtitle2" className="font-semibold">
+                      {getModuleLabel(module)}
                     </Typography>
                     <div className="space-y-2 pl-4">
                       {permissions.map(permission => (
@@ -246,12 +454,12 @@ export function SuperadminPromotionCard({
                           onValueChange={() => handleTogglePermission(permission.id)}
                         >
                           <div>
-                            <Typography variant="body2">{permission.name}</Typography>
-                            {permission.description && (
-                              <Typography color="muted" variant="caption">
-                                {permission.description}
-                              </Typography>
-                            )}
+                            <Typography variant="body2">
+                              {getActionLabel(permission.action)}
+                            </Typography>
+                            <Typography color="muted" variant="caption">
+                              {getPermissionDescription(permission)}
+                            </Typography>
                           </div>
                         </Checkbox>
                       ))}
@@ -262,13 +470,17 @@ export function SuperadminPromotionCard({
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button variant="bordered" onPress={() => setIsModalOpen(false)}>
+            <Button
+              variant="bordered"
+              onPress={() => setIsPromoteModalOpen(false)}
+              isDisabled={promoteMutation.isPending}
+            >
               {cancelButtonText}
             </Button>
             <Button
               color="primary"
               onPress={handlePromote}
-              isLoading={isLoading}
+              isLoading={promoteMutation.isPending}
               isDisabled={selectedPermissions.size === 0}
             >
               {confirmButtonText}

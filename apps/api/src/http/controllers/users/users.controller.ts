@@ -1,4 +1,5 @@
 import type { Context } from 'hono'
+import { useTranslation } from '@intlify/hono'
 import {
   userCreateSchema,
   userUpdateSchema,
@@ -8,7 +9,7 @@ import {
   type TUserUpdate,
   type TUserUpdateProfile,
 } from '@packages/domain'
-import type { UsersRepository, UserPermissionsRepository } from '@database/repositories'
+import type { UsersRepository, UserPermissionsRepository, UserRolesRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
@@ -27,9 +28,12 @@ import {
   UpdateUserStatusService,
   GetAllRolesService,
   ToggleUserPermissionService,
+  PromoteToSuperadminService,
+  DemoteFromSuperadminService,
 } from '@src/services/users'
 import { queryValidator } from '../../middlewares/utils/payload-validator'
 import { AppError } from '@errors/index'
+import { LocaleDictionary } from '@src/locales/dictionary'
 
 const EmailParamSchema = z.object({
   email: z.email('Invalid email format'),
@@ -55,6 +59,10 @@ const UpdateStatusSchema = z.object({
 const TogglePermissionSchema = z.object({
   permissionId: z.uuid(),
   isEnabled: z.boolean(),
+})
+
+const PromoteToSuperadminSchema = z.object({
+  permissionIds: z.array(z.uuid()).min(1, 'At least one permission is required'),
 })
 
 type TEmailParam = z.infer<typeof EmailParamSchema>
@@ -100,11 +108,14 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
   private readonly updateUserStatusService: UpdateUserStatusService
   private readonly getAllRolesService: GetAllRolesService
   private readonly toggleUserPermissionService: ToggleUserPermissionService
+  private readonly promoteToSuperadminService: PromoteToSuperadminService
+  private readonly demoteFromSuperadminService: DemoteFromSuperadminService
 
   constructor(
     repository: UsersRepository,
     db: TDrizzleClient,
-    userPermissionsRepository: UserPermissionsRepository
+    userPermissionsRepository: UserPermissionsRepository,
+    userRolesRepository: UserRolesRepository
   ) {
     super(repository)
 
@@ -119,6 +130,14 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
     this.updateUserStatusService = new UpdateUserStatusService(repository)
     this.getAllRolesService = new GetAllRolesService(repository)
     this.toggleUserPermissionService = new ToggleUserPermissionService(userPermissionsRepository)
+    this.promoteToSuperadminService = new PromoteToSuperadminService(
+      userRolesRepository,
+      userPermissionsRepository
+    )
+    this.demoteFromSuperadminService = new DemoteFromSuperadminService(
+      userRolesRepository,
+      userPermissionsRepository
+    )
   }
 
   get routes(): TRouteDefinition[] {
@@ -190,6 +209,19 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
         path: '/:id/permissions',
         handler: this.togglePermission,
         middlewares: [authMiddleware, paramsValidator(IdParamSchema), bodyValidator(TogglePermissionSchema)],
+      },
+      // Superadmin promotion/demotion endpoints
+      {
+        method: 'post',
+        path: '/:id/promote-to-superadmin',
+        handler: this.promoteToSuperadmin,
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema), bodyValidator(PromoteToSuperadminSchema)],
+      },
+      {
+        method: 'post',
+        path: '/:id/demote-from-superadmin',
+        handler: this.demoteFromSuperadmin,
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
       {
         method: 'get',
@@ -264,6 +296,7 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
    * (e.g., when testing across different environments).
    */
   private syncFirebaseUid = async (c: Context): Promise<Response> => {
+    const t = useTranslation(c)
     const ctx = this.ctx<TSyncFirebaseUidBody>(c)
     const { email, firebaseUid } = ctx.body
 
@@ -273,10 +306,10 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
     })
 
     if (!result.success) {
-      throw AppError.notFound('User', email)
+      throw AppError.notFound(t(LocaleDictionary.http.controllers.users.userNotFound))
     }
 
-    return ctx.ok({ data: result.data, message: 'Firebase UID synced successfully' })
+    return ctx.ok({ data: result.data, message: t(LocaleDictionary.http.controllers.users.firebaseUidSynced) })
   }
 
   private updateLastLogin = async (c: Context): Promise<Response> => {
@@ -307,6 +340,7 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
    * Only allows modifying fields defined in userUpdateProfileSchema.
    */
   private updateCurrentUser = async (c: Context): Promise<Response> => {
+    const t = useTranslation(c)
     const ctx = this.ctx<TUserUpdateProfile>(c)
     const user = ctx.getAuthenticatedUser()
     const data = ctx.body
@@ -314,10 +348,10 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
     const result = await this.repository.update(user.id, data)
 
     if (!result) {
-      throw AppError.notFound('User', user.id)
+      throw AppError.notFound(t(LocaleDictionary.http.controllers.users.userNotFound))
     }
 
-    return ctx.ok({ data: result, message: 'Profile updated successfully' })
+    return ctx.ok({ data: result, message: t(LocaleDictionary.http.controllers.users.profileUpdated) })
   }
 
   /**
@@ -399,6 +433,7 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
    * PATCH /users/:id/status
    */
   private updateStatus = async (c: Context): Promise<Response> => {
+    const t = useTranslation(c)
     const ctx = this.ctx<{ isActive: boolean }, unknown, TIdParam>(c)
 
     const result = await this.updateUserStatusService.execute({
@@ -408,12 +443,12 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
 
     if (!result.success) {
       if (result.code === 'NOT_FOUND') {
-        throw AppError.notFound('User', ctx.params.id)
+        throw AppError.notFound(t(LocaleDictionary.http.controllers.users.userNotFound))
       }
       throw AppError.internal(result.error)
     }
 
-    return ctx.ok({ data: result.data, message: 'User status updated successfully' })
+    return ctx.ok({ data: result.data, message: t(LocaleDictionary.http.controllers.users.statusUpdated) })
   }
 
   /**
@@ -422,12 +457,13 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
    * Note: Users cannot modify their own permissions.
    */
   private togglePermission = async (c: Context): Promise<Response> => {
+    const t = useTranslation(c)
     const ctx = this.ctx<{ permissionId: string; isEnabled: boolean }, unknown, TIdParam>(c)
     const currentUser = ctx.getAuthenticatedUser()
 
     // Prevent users from modifying their own permissions
     if (currentUser.id === ctx.params.id) {
-      throw AppError.forbidden('You cannot modify your own permissions')
+      throw AppError.forbidden(t(LocaleDictionary.http.controllers.users.cannotModifyOwnPermissions))
     }
 
     const result = await this.toggleUserPermissionService.execute({
@@ -441,6 +477,69 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
       throw AppError.internal(result.error)
     }
 
-    return ctx.ok({ data: result.data, message: 'Permission updated successfully' })
+    return ctx.ok({ data: result.data, message: t(LocaleDictionary.http.controllers.users.permissionUpdated) })
+  }
+
+  /**
+   * Promote a user to superadmin.
+   * POST /users/:id/promote-to-superadmin
+   * Note: Users cannot promote themselves.
+   */
+  private promoteToSuperadmin = async (c: Context): Promise<Response> => {
+    const t = useTranslation(c)
+    const ctx = this.ctx<{ permissionIds: string[] }, unknown, TIdParam>(c)
+    const currentUser = ctx.getAuthenticatedUser()
+
+    // Prevent users from promoting themselves
+    if (currentUser.id === ctx.params.id) {
+      throw AppError.forbidden(t(LocaleDictionary.http.controllers.users.cannotPromoteSelf))
+    }
+
+    const result = await this.promoteToSuperadminService.execute({
+      userId: ctx.params.id,
+      permissionIds: ctx.body.permissionIds,
+      assignedBy: currentUser.id,
+    })
+
+    if (!result.success) {
+      if (result.code === 'NOT_FOUND') {
+        throw AppError.notFound(t(LocaleDictionary.http.controllers.users.superadminRoleNotFound))
+      }
+      if (result.code === 'CONFLICT') {
+        throw AppError.conflict(t(LocaleDictionary.http.controllers.users.userAlreadySuperadmin))
+      }
+      throw AppError.internal(t(LocaleDictionary.http.controllers.users.failedToPromote))
+    }
+
+    return ctx.ok({ data: result.data, message: t(LocaleDictionary.http.controllers.users.promotedToSuperadmin) })
+  }
+
+  /**
+   * Demote a user from superadmin.
+   * POST /users/:id/demote-from-superadmin
+   * Note: Users cannot demote themselves.
+   */
+  private demoteFromSuperadmin = async (c: Context): Promise<Response> => {
+    const t = useTranslation(c)
+    const ctx = this.ctx<unknown, unknown, TIdParam>(c)
+    const currentUser = ctx.getAuthenticatedUser()
+
+    // Prevent users from demoting themselves
+    if (currentUser.id === ctx.params.id) {
+      throw AppError.forbidden(t(LocaleDictionary.http.controllers.users.cannotDemoteSelf))
+    }
+
+    const result = await this.demoteFromSuperadminService.execute({
+      userId: ctx.params.id,
+    })
+
+    if (!result.success) {
+      if (result.code === 'NOT_FOUND') {
+        throw AppError.notFound(t(LocaleDictionary.http.controllers.users.userNotSuperadmin))
+      }
+      throw AppError.internal(t(LocaleDictionary.http.controllers.users.failedToDemote))
+    }
+
+    return ctx.ok({ data: result.data, message: t(LocaleDictionary.http.controllers.users.demotedFromSuperadmin) })
   }
 }

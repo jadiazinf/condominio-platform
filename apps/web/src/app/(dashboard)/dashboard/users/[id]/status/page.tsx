@@ -1,6 +1,6 @@
 import { getTranslations } from '@/libs/i18n/server'
 import { getUserFullDetails, getAllPermissions } from '@packages/http-client/hooks'
-import { getServerAuthToken } from '@/libs/session'
+import { getServerAuthToken, getFullSession } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
 import { Card } from '@/ui/components/card'
 import { StatusToggle } from './components/StatusToggle'
@@ -14,8 +14,11 @@ interface PageProps {
 
 export default async function UserStatusPage({ params }: PageProps) {
   const { id } = await params
-  const { t } = await getTranslations()
-  const token = await getServerAuthToken()
+  const [{ t }, token, session] = await Promise.all([
+    getTranslations(),
+    getServerAuthToken(),
+    getFullSession(),
+  ])
 
   // Fetch user data and permissions server-side
   const user = await getUserFullDetails(token, id)
@@ -24,12 +27,13 @@ export default async function UserStatusPage({ params }: PageProps) {
   // Fetch all available permissions for superadmin promotion
   const allPermissions = await getAllPermissions(token)
 
-  // Get current superadmin permissions if user is already a superadmin
-  const currentSuperadminPermissions = user.isSuperadmin
-    ? user.userRoles
-        ?.filter(role => role.roleId === 'SUPERADMIN' || role.roleName === 'SUPERADMIN')
-        .flatMap(role => role.permissions?.map(p => p.id) || []) || []
-    : []
+  // Get current user ID to check if viewing own profile
+  const currentUserId = session?.user?.id
+
+  // Check if user has superadmin role (active or inactive) or has superadmin permissions
+  const hasSuperadminRole = userRoles.some(role => role.roleName.toUpperCase() === 'SUPERADMIN')
+  const hasSuperadminPermissions = (user.superadminPermissions?.length ?? 0) > 0
+  const isSuperadminUser = user.isSuperadmin || hasSuperadminRole || hasSuperadminPermissions
 
   return (
     <div className="space-y-6">
@@ -54,13 +58,14 @@ export default async function UserStatusPage({ params }: PageProps) {
         />
       </Card>
 
-      {/* Superadmin Promotion/Demotion */}
+      {/* Superadmin Promotion/Demotion/Permissions */}
       <SuperadminPromotionCard
         userId={user.id}
+        currentUserId={currentUserId}
         userDisplayName={user.displayName || user.email}
-        isSuperadmin={user.isSuperadmin}
+        isSuperadmin={isSuperadminUser}
         availablePermissions={allPermissions}
-        currentPermissionIds={currentSuperadminPermissions}
+        currentPermissions={user.superadminPermissions || undefined}
         promoteTitle={t('superadmin.users.detail.statusSection.promoteTitle')}
         promoteDescription={t('superadmin.users.detail.statusSection.promoteDescription')}
         demoteTitle={t('superadmin.users.detail.statusSection.demoteTitle')}
@@ -74,6 +79,8 @@ export default async function UserStatusPage({ params }: PageProps) {
         cancelButtonText={t('common.cancel')}
         successMessage={t('superadmin.users.detail.statusSection.promotionSuccess')}
         errorMessage={t('superadmin.users.detail.statusSection.promotionError')}
+        noPermissionSelectedText={t('superadmin.users.detail.statusSection.noPermissionSelected')}
+        confirmDemoteText={t('superadmin.users.detail.statusSection.confirmDemote')}
       />
 
       {/* Role Level Status */}
@@ -106,7 +113,7 @@ export default async function UserStatusPage({ params }: PageProps) {
       )}
 
       {/* Condominium Level Status - Only for regular users */}
-      {!user.isSuperadmin && user.condominiums && user.condominiums.length > 0 && (
+      {!isSuperadminUser && user.condominiums && user.condominiums.length > 0 && (
         <Card className="p-6">
           <div className="mb-4">
             <Typography variant="h4">{t('superadmin.users.detail.statusSection.condominiumLevel')}</Typography>

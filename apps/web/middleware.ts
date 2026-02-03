@@ -36,12 +36,24 @@ function getLocaleFromHeaders(request: NextRequest): string {
   return DEFAULT_LOCALE
 }
 
-function handleLocale(request: NextRequest): NextResponse {
-  const response = NextResponse.next()
-  const existingLocale = request.cookies.get(LOCALE_COOKIE)?.value
+function handleLocale(request: NextRequest, skipAuthRedirect = false): NextResponse {
+  // Create request headers to pass info to Server Components
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-pathname', request.nextUrl.pathname)
 
-  // Set x-pathname header for use in server components
-  response.headers.set('x-pathname', request.nextUrl.pathname)
+  // Set header to skip auth redirect when there's a session error
+  // (allows auth layout to know not to redirect to dashboard)
+  if (skipAuthRedirect) {
+    requestHeaders.set('x-skip-auth-redirect', 'true')
+  }
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
+
+  const existingLocale = request.cookies.get(LOCALE_COOKIE)?.value
 
   if (!existingLocale || !SUPPORTED_LOCALES.includes(existingLocale)) {
     const detectedLocale = getLocaleFromHeaders(request)
@@ -75,6 +87,16 @@ export function middleware(request: NextRequest) {
     return handleLocale(request)
   }
 
+  // Session recovery page - requires session, handles temporary API errors with retries
+  if (pathname === '/session-recovery') {
+    // If no session, redirect to signin
+    if (!hasSession) {
+      return NextResponse.redirect(new URL('/signin', request.url))
+    }
+    // Let the page handle the recovery logic
+    return handleLocale(request)
+  }
+
   const isProtectedRoute = protectedRoutes.some(function (route) {
     return pathname.startsWith(route)
   })
@@ -91,15 +113,22 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(signInUrl)
   }
 
-  // Don't redirect to dashboard if session is expired (let client clear cookies)
+  // Don't redirect to dashboard if session has issues that need client-side handling
+  // (let client clear cookies and show appropriate message)
   const isExpiredSession = request.nextUrl.searchParams.get('expired') === 'true'
+  const hasTemporaryError = request.nextUrl.searchParams.get('error') === 'temporary'
+  const isUserNotFound = request.nextUrl.searchParams.get('notfound') === 'true'
 
   // Redirect authenticated users away from auth routes
-  if (isAuthRoute && hasSession && !isExpiredSession) {
+  if (isAuthRoute && hasSession && !isExpiredSession && !hasTemporaryError && !isUserNotFound) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  return handleLocale(request)
+  // Pass skipAuthRedirect flag when session has issues
+  // This allows auth layout to skip its redirect logic
+  const skipAuthRedirect = isAuthRoute && (isExpiredSession || hasTemporaryError || isUserNotFound)
+
+  return handleLocale(request, skipAuthRedirect)
 }
 
 export const config = {

@@ -88,7 +88,7 @@ export async function getFullSession(): Promise<FullSession> {
     } catch (error) {
       // Handle retryable errors (429, 5xx) - redirect to signin with error
       if (error instanceof FetchUserError && error.isRetryable) {
-        redirect('/signin?error=temporary')
+        redirect('/session-recovery')
       }
       // For other errors, continue to try sync by email
     }
@@ -97,11 +97,22 @@ export async function getFullSession(): Promise<FullSession> {
     // This handles cases where the user exists with a different Firebase UID
     // (e.g., testing across different environments or Firebase projects)
     if (!fetchedUser && decodedToken.email) {
-      fetchedUser = await syncUserFirebaseUid(decodedToken.email, decodedToken.uid, sessionToken)
+      try {
+        fetchedUser = await syncUserFirebaseUid(decodedToken.email, decodedToken.uid, sessionToken)
+      } catch (error) {
+        // Handle retryable errors (429, 5xx) - redirect to signin with error
+        if (error instanceof FetchUserError && error.isRetryable) {
+          redirect('/session-recovery')
+        }
+        // For other errors, continue (fetchedUser will be null)
+      }
     }
 
     if (!fetchedUser) {
-      redirect('/signup')
+      // User has valid Firebase session but doesn't exist in our database
+      // This can happen if: user was deleted, registration was incomplete, or sync failed
+      // Redirect to signin with a flag to clear the invalid session
+      redirect('/signin?notfound=true')
     }
 
     user = fetchedUser

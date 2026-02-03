@@ -20,6 +20,28 @@ export const LocaleDictionary = {
       },
     },
     controllers: {
+      users: {
+        userNotFound: 'http.controllers.users.userNotFound',
+        cannotModifyOwnPermissions: 'http.controllers.users.cannotModifyOwnPermissions',
+        cannotPromoteSelf: 'http.controllers.users.cannotPromoteSelf',
+        cannotDemoteSelf: 'http.controllers.users.cannotDemoteSelf',
+        superadminRoleNotFound: 'http.controllers.users.superadminRoleNotFound',
+        userAlreadySuperadmin: 'http.controllers.users.userAlreadySuperadmin',
+        userNotSuperadmin: 'http.controllers.users.userNotSuperadmin',
+        failedToCreateSuperadminRole: 'http.controllers.users.failedToCreateSuperadminRole',
+        failedToPromote: 'http.controllers.users.failedToPromote',
+        failedToDemote: 'http.controllers.users.failedToDemote',
+        statusUpdated: 'http.controllers.users.statusUpdated',
+        permissionUpdated: 'http.controllers.users.permissionUpdated',
+        promotedToSuperadmin: 'http.controllers.users.promotedToSuperadmin',
+        demotedFromSuperadmin: 'http.controllers.users.demotedFromSuperadmin',
+        profileUpdated: 'http.controllers.users.profileUpdated',
+        firebaseUidSynced: 'http.controllers.users.firebaseUidSynced',
+      },
+      userRoles: {
+        roleNotFound: 'http.controllers.userRoles.roleNotFound',
+        roleStatusUpdated: 'http.controllers.userRoles.roleStatusUpdated',
+      },
       supportTickets: {
         ticketNotFound: 'http.controllers.supportTickets.ticketNotFound',
         ticketClosed: 'http.controllers.supportTickets.ticketClosed',

@@ -255,6 +255,7 @@
       "userDisabled": "Esta cuenta ha sido deshabilitada.",
       "popupClosed": "El proceso de autenticación fue cancelado.",
       "generic": "Ocurrió un error inesperado. Por favor intenta de nuevo.",
+      "temporaryError": "Error temporal del servidor. Por favor intenta iniciar sesión nuevamente.",
       "passwordMinLength": "La contraseña debe tener al menos 8 caracteres.",
       "passwordUppercase": "La contraseña debe contener al menos una letra mayúscula.",
       "passwordLowercase": "La contraseña debe contener al menos una letra minúscula.",
@@ -728,6 +729,7 @@
           "create": "Crear",
           "read": "Ver",
           "read_own": "Ver propios",
+          "write": "Gestionar",
           "update": "Actualizar",
           "update_own": "Actualizar propios",
           "delete": "Eliminar",
@@ -946,7 +948,19 @@
           "modalDescription": "Seleccione los permisos que desea otorgar al nuevo superadministrador",
           "selectAll": "Seleccionar Todos",
           "promotionSuccess": "Usuario promocionado exitosamente",
-          "promotionError": "Error al promover usuario"
+          "promotionError": "Error al promover usuario",
+          "noPermissionSelected": "Debe seleccionar al menos un permiso",
+          "confirmDemote": "¿Está seguro de remover el rol de Superadmin a {name}?",
+          "superadminStatus": "Estado de Superadmin",
+          "superadminDescription": "Este usuario tiene privilegios de superadministrador",
+          "permissionsEnabled": "permisos activos",
+          "editPermissions": "Editar permisos",
+          "editPermissionsTitle": "Editar permisos de Superadmin",
+          "permissionToggleSuccess": "Permiso actualizado correctamente",
+          "permissionToggleError": "Error al actualizar el permiso"
+        },
+        "permissions": {
+          "cannotModifyOwn": "No puedes modificar tus propios permisos"
         }
       }
     }
@@ -1199,5 +1213,15 @@
       "close": "Cerrar",
       "reopen": "Reabrir"
     }
+  },
+  "sessionRecovery": {
+    "title": "Reconectando...",
+    "subtitle": "Estamos restableciendo tu conexión con el servidor",
+    "attempt": "Intento {current} de {max}",
+    "errorTitle": "No se pudo restablecer la conexión",
+    "errorDescription": "El servidor no está disponible en este momento. Puedes intentar de nuevo o cerrar sesión.",
+    "retry": "Intentar de nuevo",
+    "logout": "Cerrar sesión",
+    "failed": "No se pudo restablecer la sesión"
   }
 }

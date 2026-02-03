@@ -255,6 +255,7 @@
       "userDisabled": "This account has been disabled.",
       "popupClosed": "The authentication process was cancelled.",
       "generic": "An unexpected error occurred. Please try again.",
+      "temporaryError": "Temporary server error. Please try signing in again.",
       "passwordMinLength": "Password must be at least 8 characters.",
       "passwordUppercase": "Password must contain at least one uppercase letter.",
       "passwordLowercase": "Password must contain at least one lowercase letter.",
@@ -724,6 +725,7 @@
           "create": "Create",
           "read": "View",
           "read_own": "View own",
+          "write": "Manage",
           "update": "Update",
           "update_own": "Update own",
           "delete": "Delete",
@@ -931,7 +933,30 @@
           "confirmActivateRole": "Are you sure you want to activate this role?",
           "success": "Status updated successfully",
           "error": "Error updating status",
-          "updating": "Updating..."
+          "updating": "Updating...",
+          "promoteTitle": "Promote to Superadmin",
+          "promoteDescription": "Grant superadmin access to this user with custom permissions",
+          "demoteTitle": "Remove Superadmin Role",
+          "demoteDescription": "Remove superadmin access and all associated permissions",
+          "promoteButton": "Make Superadmin",
+          "demoteButton": "Remove Superadmin",
+          "modalTitle": "Select Superadmin Permissions",
+          "modalDescription": "Select the permissions you want to grant to the new superadmin",
+          "selectAll": "Select All",
+          "promotionSuccess": "User promoted successfully",
+          "promotionError": "Error promoting user",
+          "noPermissionSelected": "You must select at least one permission",
+          "confirmDemote": "Are you sure you want to remove Superadmin role from {name}?",
+          "superadminStatus": "Superadmin Status",
+          "superadminDescription": "This user has superadministrator privileges",
+          "permissionsEnabled": "permissions enabled",
+          "editPermissions": "Edit permissions",
+          "editPermissionsTitle": "Edit Superadmin Permissions",
+          "permissionToggleSuccess": "Permission updated successfully",
+          "permissionToggleError": "Error updating permission"
+        },
+        "permissions": {
+          "cannotModifyOwn": "You cannot modify your own permissions"
         }
       }
     }
@@ -1184,5 +1209,15 @@
       "close": "Close",
       "reopen": "Reopen"
     }
+  },
+  "sessionRecovery": {
+    "title": "Reconnecting...",
+    "subtitle": "We're restoring your connection to the server",
+    "attempt": "Attempt {current} of {max}",
+    "errorTitle": "Could not restore connection",
+    "errorDescription": "The server is currently unavailable. You can try again or sign out.",
+    "retry": "Try again",
+    "logout": "Sign out",
+    "failed": "Could not restore session"
   }
 }

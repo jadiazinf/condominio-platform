@@ -45,6 +45,8 @@ export function SignInForm() {
   const { signInWithEmail, signInWithGoogle, loading, signOut } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const hasCleanedExpiredSession = useRef(false)
+  const hasHandledTemporaryError = useRef(false)
+  const hasHandledUserNotFound = useRef(false)
 
   // Get the validated redirect URL from search params
   const redirectUrl = useMemo(
@@ -75,6 +77,62 @@ export function SignInForm() {
       }
     },
     [searchParams, router, signOut]
+  )
+
+  // Handle temporary errors (API unavailable, rate limits, etc.)
+  useEffect(
+    function () {
+      const error = searchParams.get('error')
+
+      if (error === 'temporary' && !hasHandledTemporaryError.current) {
+        // Mark as handled immediately to prevent re-execution
+        hasHandledTemporaryError.current = true
+
+        // Clear cookies to break the redirect loop
+        clearSessionCookie()
+        clearUserCookie()
+
+        // Sign out from Firebase
+        signOut().catch(() => {
+          // Ignore signOut errors since we've already cleared cookies
+        })
+
+        // Show error message to user
+        toast.error(t('auth.errors.temporaryError'))
+
+        // Clean the URL by removing the error parameter
+        router.replace('/signin')
+      }
+    },
+    [searchParams, router, signOut, toast, t]
+  )
+
+  // Handle user not found (Firebase session exists but user not in database)
+  useEffect(
+    function () {
+      const notfound = searchParams.get('notfound')
+
+      if (notfound === 'true' && !hasHandledUserNotFound.current) {
+        // Mark as handled immediately to prevent re-execution
+        hasHandledUserNotFound.current = true
+
+        // Clear cookies to break the redirect loop
+        clearSessionCookie()
+        clearUserCookie()
+
+        // Sign out from Firebase
+        signOut().catch(() => {
+          // Ignore signOut errors since we've already cleared cookies
+        })
+
+        // Show error message to user
+        toast.error(t('auth.errors.userNotFound'))
+
+        // Clean the URL by removing the notfound parameter
+        router.replace('/signin')
+      }
+    },
+    [searchParams, router, signOut, toast, t]
   )
 
   async function handleSubmit(data: TSignInSchema) {

@@ -32,11 +32,11 @@ import * as schema from '../src/database/drizzle/schema'
 const DATABASE_URL = process.env.DATABASE_URL || ''
 
 // Superadmin configuration
-// const SUPERADMIN_EMAIL = 'jadiaz.inf@gmail.com'
-// const SUPERADMIN_FIREBASE_UID = 'du7YtYB3Xeet88oTLNHUX20DACt2'
+const SUPERADMIN_EMAIL = 'jadiaz.inf@gmail.com'
+const SUPERADMIN_FIREBASE_UID = 'du7YtYB3Xeet88oTLNHUX20DACt2'
 
-const SUPERADMIN_EMAIL = 'jesusdesk@gmail.com'
-const SUPERADMIN_FIREBASE_UID = 'mbh2opMCerYPGwLNFDSGhL372aN2'
+// const SUPERADMIN_EMAIL = 'jesusdesk@gmail.com'
+// const SUPERADMIN_FIREBASE_UID = 'mbh2opMCerYPGwLNFDSGhL372aN2'
 
 const SUPERADMIN_ROLE_NAME = 'SUPERADMIN'
 

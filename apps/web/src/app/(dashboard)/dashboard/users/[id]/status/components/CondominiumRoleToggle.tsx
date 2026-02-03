@@ -38,9 +38,9 @@ export function CondominiumRoleToggle({
 
       if (result.success) {
         setIsActive(checked)
-        toast.success(successMessage)
+        toast.success(result.message || successMessage)
       } else {
-        toast.error(errorMessage)
+        toast.error(result.error || errorMessage)
       }
     } catch (error) {
       toast.error(errorMessage)

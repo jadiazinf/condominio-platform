@@ -214,6 +214,7 @@ export {
   useUsersPaginated,
   useUserFullDetails,
   useRoles,
+  useToggleUserPermission,
   getUsersPaginated,
   getUserFullDetails,
   getAllRoles,
@@ -232,6 +233,8 @@ export {
   type UseUsersPaginatedOptions,
   type UseUserFullDetailsOptions,
   type UseRolesOptions,
+  type IToggleUserPermissionVariables,
+  type IUseToggleUserPermissionOptions,
 } from './use-users'
 export {
   createUserInvitation,
@@ -284,7 +287,13 @@ export {
 export {
   promoteUserToSuperadmin,
   demoteUserFromSuperadmin,
+  usePromoteToSuperadmin,
+  useDemoteFromSuperadmin,
   type IPromoteToSuperadminPayload,
+  type IPromoteToSuperadminVariables,
+  type IDemoteFromSuperadminVariables,
+  type IUsePromoteToSuperadminOptions,
+  type IUseDemoteFromSuperadminOptions,
 } from './use-superadmin-promotion'
 
 // Re-export commonly used TanStack Query hooks

@@ -69,6 +69,21 @@ export function PermissionsStep({
       .join(' ')
   }
 
+  // Helper to get translated permission name from permission.name (e.g., "admin.condominiums.read")
+  const getPermissionLabel = (permission: { name: string; action: string }) => {
+    // Try to extract module from permission name (e.g., "admin.condominiums.read" -> "condominiums")
+    const parts = permission.name.split('.')
+    if (parts.length >= 2) {
+      const module = parts[1] // e.g., "condominiums"
+      const moduleLabel = getModuleLabel(module)
+      const actionLabel = getActionLabel(permission.action)
+      return `${actionLabel} ${moduleLabel.toLowerCase()}`
+    }
+
+    // Fallback to just action label
+    return getActionLabel(permission.action)
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -152,15 +167,10 @@ export function PermissionsStep({
                   >
                     <div className="flex-1 min-w-0">
                       <Typography variant="subtitle2" className="font-medium">
-                        {permission.name || getActionLabel(permission.action)}
+                        {permission.name}
                       </Typography>
-                      {permission.description && (
-                        <Typography color="muted" variant="body2" className="mt-1">
-                          {permission.description}
-                        </Typography>
-                      )}
-                      <Typography color="muted" variant="caption" className="mt-1 block">
-                        {permission.action}
+                      <Typography color="muted" variant="body2" className="mt-1">
+                        {getPermissionLabel(permission)}
                       </Typography>
                     </div>
                     <Switch

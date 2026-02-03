@@ -187,9 +187,11 @@ export function createHttpClient(config: HttpClientConfig = {}) {
 export type HttpClient = ReturnType<typeof createHttpClient>
 
 // Global locale getter (can be set by the app)
-let globalLocaleGetter: (() => string | null) | null = null
+let globalLocaleGetter: (() => string | null | Promise<string | null>) | null = null
 
-export function setGlobalLocale(localeGetter: () => string | null): void {
+export function setGlobalLocale(
+  localeGetter: () => string | null | Promise<string | null>
+): void {
   globalLocaleGetter = localeGetter
   // Reset the default client so it picks up the new locale getter
   if (defaultClient) {

@@ -26,22 +26,6 @@ export default async function UserPermissionsPage({ params }: PageProps) {
   const session = await getFullSession()
   const currentUserId = session?.user?.id
 
-  // Helper to get translated module name
-  const getModuleLabel = (module: string) => {
-    return module
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ')
-  }
-
-  // Helper to get translated action name
-  const getActionLabel = (action: string) => {
-    return action
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ')
-  }
-
   return (
     <div className="space-y-6">
       <div>
@@ -55,18 +39,6 @@ export default async function UserPermissionsPage({ params }: PageProps) {
         userId={user.id}
         currentUserId={currentUserId}
         permissions={user.superadminPermissions || []}
-        translations={{
-          title: t('superadmin.users.detail.permissions.title'),
-          action: t('superadmin.users.detail.permissions.action'),
-          description: t('superadmin.users.detail.permissions.description'),
-          status: t('superadmin.users.detail.permissions.status'),
-          cannotModifyOwn: t('superadmin.users.detail.permissions.cannotModifyOwn'),
-          empty: t('superadmin.users.detail.permissions.empty'),
-          toggleSuccess: t('superadmin.users.detail.permissions.toggleSuccess'),
-          toggleError: t('superadmin.users.detail.permissions.toggleError'),
-        }}
-        getModuleLabel={getModuleLabel}
-        getActionLabel={getActionLabel}
       />
     </div>
   )

@@ -1,6 +1,7 @@
-import { useApiQuery } from './use-api-query'
+import { useApiQuery, useApiMutation } from './use-api-query'
 import { getHttpClient } from '../client/http-client'
-import type { TApiPaginatedResponse, TApiDataResponse } from '../types/api-responses'
+import type { TApiPaginatedResponse, TApiDataResponse, TApiMessageResponse } from '../types/api-responses'
+import type { ApiResponse } from '../types/http'
 
 // =============================================================================
 // Types
@@ -149,6 +150,17 @@ export interface UseRolesOptions {
   enabled?: boolean
 }
 
+export interface IToggleUserPermissionVariables {
+  userId: string
+  permissionId: string
+  isEnabled: boolean
+}
+
+export interface IUseToggleUserPermissionOptions {
+  onSuccess?: (data: ApiResponse<TApiMessageResponse>) => void
+  onError?: (error: Error) => void
+}
+
 // =============================================================================
 // Query Keys
 // =============================================================================
@@ -231,6 +243,19 @@ export function useRoles(options: UseRolesOptions) {
   })
 }
 
+/**
+ * Hook to toggle a user's permission.
+ */
+export function useToggleUserPermission(options?: IUseToggleUserPermissionOptions) {
+  return useApiMutation<TApiMessageResponse, IToggleUserPermissionVariables>({
+    path: (variables) => `/users/${variables.userId}/permissions`,
+    method: 'PATCH',
+    invalidateKeys: [usersKeys.all],
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+  })
+}
+
 // =============================================================================
 // Functions
 // =============================================================================
@@ -299,15 +324,16 @@ export async function getAllRoles(token: string): Promise<TRoleOption[]> {
 
 /**
  * Function to update user status.
+ * @returns The success message from the API
  */
 export async function updateUserStatus(
   token: string,
   userId: string,
   isActive: boolean
-): Promise<void> {
+): Promise<string> {
   const client = getHttpClient()
 
-  await client.patch(
+  const response = await client.patch<TApiMessageResponse>(
     `/users/${userId}/status`,
     { isActive },
     {
@@ -317,19 +343,22 @@ export async function updateUserStatus(
       },
     }
   )
+
+  return response.data.message
 }
 
 /**
  * Function to update user role status.
+ * @returns The success message from the API
  */
 export async function updateUserRoleStatus(
   token: string,
   userRoleId: string,
   isActive: boolean
-): Promise<void> {
+): Promise<string> {
   const client = getHttpClient()
 
-  await client.patch(
+  const response = await client.patch<TApiMessageResponse>(
     `/user-roles/${userRoleId}`,
     { isActive },
     {
@@ -339,20 +368,23 @@ export async function updateUserRoleStatus(
       },
     }
   )
+
+  return response.data.message
 }
 
 /**
  * Function to toggle a user's permission.
+ * @returns The success message from the API
  */
 export async function toggleUserPermission(
   token: string,
   userId: string,
   permissionId: string,
   isEnabled: boolean
-): Promise<void> {
+): Promise<string> {
   const client = getHttpClient()
 
-  await client.patch(
+  const response = await client.patch<TApiMessageResponse>(
     `/users/${userId}/permissions`,
     { permissionId, isEnabled },
     {
@@ -362,4 +394,6 @@ export async function toggleUserPermission(
       },
     }
   )
+
+  return response.data.message
 }

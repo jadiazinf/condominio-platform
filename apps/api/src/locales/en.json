@@ -47,6 +47,28 @@
       }
     },
     "controllers": {
+      "users": {
+        "userNotFound": "User not found.",
+        "cannotModifyOwnPermissions": "You cannot modify your own permissions.",
+        "cannotPromoteSelf": "You cannot promote yourself to superadmin.",
+        "cannotDemoteSelf": "You cannot demote yourself from superadmin.",
+        "superadminRoleNotFound": "SUPERADMIN role not found in the system.",
+        "userAlreadySuperadmin": "User is already a superadmin.",
+        "userNotSuperadmin": "User is not a superadmin.",
+        "failedToCreateSuperadminRole": "Failed to create superadmin role assignment.",
+        "failedToPromote": "Failed to promote user to superadmin.",
+        "failedToDemote": "Failed to demote user from superadmin.",
+        "statusUpdated": "User status updated successfully.",
+        "permissionUpdated": "Permission updated successfully.",
+        "promotedToSuperadmin": "User promoted to superadmin successfully.",
+        "demotedFromSuperadmin": "User demoted from superadmin successfully.",
+        "profileUpdated": "Profile updated successfully.",
+        "firebaseUidSynced": "Firebase UID synced successfully."
+      },
+      "userRoles": {
+        "roleNotFound": "User role not found.",
+        "roleStatusUpdated": "Role status updated successfully."
+      },
       "payments": {
         "paymentNotFound": "Payment not found.",
         "paymentVerified": "Payment verified successfully.",

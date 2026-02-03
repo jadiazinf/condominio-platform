@@ -86,12 +86,28 @@ export async function syncUserFirebaseUid(
       if (response.status === 404) {
         return null
       }
-      throw new Error(`Failed to sync Firebase UID: ${response.status}`)
+      // Rate limiting or server errors - throw retryable error
+      if (response.status === 429 || response.status >= 500) {
+        throw new FetchUserError(
+          `Failed to sync Firebase UID: ${response.status}`,
+          response.status,
+          true
+        )
+      }
+      throw new FetchUserError(
+        `Failed to sync Firebase UID: ${response.status}`,
+        response.status,
+        false
+      )
     }
 
     const data = (await response.json()) as TApiDataResponse<TUser>
     return data.data
   } catch (error) {
+    // Re-throw FetchUserError to be handled upstream
+    if (error instanceof FetchUserError) {
+      throw error
+    }
     console.error('Error syncing Firebase UID:', error)
     return null
   }

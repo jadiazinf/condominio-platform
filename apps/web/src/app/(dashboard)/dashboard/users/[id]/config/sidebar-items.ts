@@ -24,13 +24,6 @@ export const USER_DETAIL_MENU_ITEMS: IUserDetailMenuItem[] = [
     regularUserOnly: true,
   },
   {
-    key: 'permissions',
-    translationKey: 'superadmin.users.detail.nav.permissions',
-    path: '/permissions',
-    iconName: 'shield',
-    superadminOnly: true,
-  },
-  {
     key: 'status',
     translationKey: 'superadmin.users.detail.nav.status',
     path: '/status',

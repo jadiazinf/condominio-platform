@@ -1,14 +1,45 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { getServerAuthToken } from '@/libs/session'
+import { getServerAuthToken, configureServerLocale } from '@/libs/session'
 import {
   updateUserStatus,
   updateUserRoleStatus,
   toggleUserPermission,
-  promoteUserToSuperadmin,
-  demoteUserFromSuperadmin,
 } from '@packages/http-client/hooks'
+import { HttpError } from '@packages/http-client'
+
+// Configure server-side locale for API requests
+configureServerLocale()
+
+/**
+ * Extracts a meaningful error message from various error types
+ */
+function getErrorMessage(error: unknown, fallback: string): string {
+  // Check for HttpError (by name property to avoid instanceof issues across modules)
+  if (
+    error &&
+    typeof error === 'object' &&
+    'name' in error &&
+    error.name === 'HttpError' &&
+    'message' in error &&
+    'status' in error
+  ) {
+    const httpError = error as { message: string; status: number }
+    return httpError.message || `${fallback} (HTTP ${httpError.status})`
+  }
+
+  // Also try the static method if available
+  if (HttpError.isHttpError(error)) {
+    return error.message || `${fallback} (HTTP ${error.status})`
+  }
+
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return fallback
+}
 
 /**
  * Server Action to update user active status
@@ -16,12 +47,12 @@ import {
 export async function updateUserStatusAction(userId: string, isActive: boolean) {
   try {
     const token = await getServerAuthToken()
-    await updateUserStatus(token, userId, isActive)
+    const message = await updateUserStatus(token, userId, isActive)
     revalidatePath(`/dashboard/users/${userId}/status`)
-    return { success: true }
+    return { success: true, message }
   } catch (error) {
     console.error('Error updating user status:', error)
-    return { success: false, error: 'Failed to update user status' }
+    return { success: false, error: getErrorMessage(error, 'Failed to update user status') }
   }
 }
 
@@ -35,12 +66,12 @@ export async function updateUserRoleStatusAction(
 ) {
   try {
     const token = await getServerAuthToken()
-    await updateUserRoleStatus(token, userRoleId, isActive)
+    const message = await updateUserRoleStatus(token, userRoleId, isActive)
     revalidatePath(`/dashboard/users/${userId}/status`)
-    return { success: true }
+    return { success: true, message }
   } catch (error) {
     console.error('Error updating user role status:', error)
-    return { success: false, error: 'Failed to update role status' }
+    return { success: false, error: getErrorMessage(error, 'Failed to update role status') }
   }
 }
 
@@ -54,46 +85,11 @@ export async function toggleUserPermissionAction(
 ) {
   try {
     const token = await getServerAuthToken()
-    await toggleUserPermission(token, userId, permissionId, isEnabled)
+    const message = await toggleUserPermission(token, userId, permissionId, isEnabled)
     revalidatePath(`/dashboard/users/${userId}/permissions`)
-    return { success: true }
+    return { success: true, message }
   } catch (error) {
     console.error('Error toggling user permission:', error)
-    return { success: false, error: 'Failed to toggle permission' }
-  }
-}
-
-/**
- * Server Action to promote a user to superadmin
- */
-export async function promoteUserToSuperadminAction(
-  userId: string,
-  permissionIds: string[]
-) {
-  try {
-    const token = await getServerAuthToken()
-    await promoteUserToSuperadmin(token, userId, permissionIds)
-    revalidatePath(`/dashboard/users/${userId}/status`)
-    revalidatePath(`/dashboard/users/${userId}`)
-    return { success: true }
-  } catch (error) {
-    console.error('Error promoting user to superadmin:', error)
-    return { success: false, error: 'Failed to promote user to superadmin' }
-  }
-}
-
-/**
- * Server Action to demote a superadmin user
- */
-export async function demoteUserFromSuperadminAction(userId: string) {
-  try {
-    const token = await getServerAuthToken()
-    await demoteUserFromSuperadmin(token, userId)
-    revalidatePath(`/dashboard/users/${userId}/status`)
-    revalidatePath(`/dashboard/users/${userId}`)
-    return { success: true }
-  } catch (error) {
-    console.error('Error demoting user from superadmin:', error)
-    return { success: false, error: 'Failed to demote user from superadmin' }
+    return { success: false, error: getErrorMessage(error, 'Failed to toggle permission') }
   }
 }

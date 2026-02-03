@@ -27,3 +27,15 @@ export type { IRoleOption } from './get-all-roles.service'
 
 export { ToggleUserPermissionService } from './toggle-user-permission.service'
 export type { IToggleUserPermissionInput } from './toggle-user-permission.service'
+
+export { PromoteToSuperadminService } from './promote-to-superadmin.service'
+export type {
+  IPromoteToSuperadminInput,
+  IPromoteToSuperadminResult,
+} from './promote-to-superadmin.service'
+
+export { DemoteFromSuperadminService } from './demote-from-superadmin.service'
+export type {
+  IDemoteFromSuperadminInput,
+  IDemoteFromSuperadminResult,
+} from './demote-from-superadmin.service'
