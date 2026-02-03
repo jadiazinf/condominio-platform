@@ -2,13 +2,15 @@ import type { Context } from 'hono'
 import {
   condominiumCreateSchema,
   condominiumUpdateSchema,
+  condominiumsQuerySchema,
   type TCondominium,
   type TCondominiumCreate,
   type TCondominiumUpdate,
+  type TCondominiumsQuerySchema,
 } from '@packages/domain'
 import type { CondominiumsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
 import { authMiddleware } from '../../middlewares/auth'
 import { IdParamSchema, CodeParamSchema, type TCodeParam } from '../common'
 import type { TRouteDefinition } from '../types'
@@ -63,6 +65,7 @@ export class CondominiumsController extends BaseController<
     )
     this.getCondominiumsByLocationService = new GetCondominiumsByLocationService(repository)
 
+    this.listPaginated = this.listPaginated.bind(this)
     this.getByCode = this.getByCode.bind(this)
     this.getByManagementCompanyId = this.getByManagementCompanyId.bind(this)
     this.getByLocationId = this.getByLocationId.bind(this)
@@ -70,7 +73,12 @@ export class CondominiumsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.listPaginated,
+        middlewares: [authMiddleware, queryValidator(condominiumsQuerySchema)],
+      },
       {
         method: 'get',
         path: '/code/:code',
@@ -123,6 +131,13 @@ export class CondominiumsController extends BaseController<
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
+
+  private async listPaginated(c: Context): Promise<Response> {
+    const ctx = this.ctx<unknown, TCondominiumsQuerySchema>(c)
+    const repo = this.repository as CondominiumsRepository
+    const result = await repo.listPaginated(ctx.query)
+    return ctx.ok(result)
+  }
 
   private async getByCode(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TCodeParam>(c)

@@ -6,8 +6,7 @@ import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
 import { Card, CardBody } from '@/ui/components/card'
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
-import { Home, Search, MoreVertical, Eye, Power, X, MapPin, Plus, Building } from 'lucide-react'
+import { Home, Search, X, MapPin, Plus, Building } from 'lucide-react'
 import type { TCondominium, TCondominiumsQuery, TPaginationMeta } from '@packages/domain'
 
 import { useTranslation } from '@/contexts'
@@ -72,7 +71,6 @@ export function CondominiumsTable({
       { key: 'address', label: t('superadmin.condominiums.table.address') },
       { key: 'contact', label: t('superadmin.condominiums.table.contact') },
       { key: 'status', label: t('superadmin.condominiums.table.status') },
-      { key: 'actions', label: t('superadmin.condominiums.table.actions') },
     ],
     [t]
   )
@@ -107,7 +105,7 @@ export function CondominiumsTable({
         }
       }
 
-      if (updates.isActive !== undefined) {
+      if ('isActive' in updates) {
         if (updates.isActive === undefined) {
           params.delete('isActive')
         } else {
@@ -124,7 +122,9 @@ export function CondominiumsTable({
       }
 
       const queryString = params.toString()
-      router.push(`/dashboard/condominiums${queryString ? `?${queryString}` : ''}`)
+      const newUrl = `/dashboard/condominiums${queryString ? `?${queryString}` : ''}`
+      router.push(newUrl)
+      router.refresh()
     },
     [router, searchParams]
   )
@@ -192,9 +192,12 @@ export function CondominiumsTable({
     [updateUrl]
   )
 
-  const handleViewDetails = useCallback((id: string) => {
-    // TODO: Navigate to condominium detail page when implemented
-  }, [])
+  const handleViewDetails = useCallback(
+    (id: string) => {
+      router.push(`/dashboard/condominiums/${id}`)
+    },
+    [router]
+  )
 
   const hasActiveFilters = searchInput || statusFilter !== 'all' || locationFilter
 
@@ -261,36 +264,6 @@ export function CondominiumsTable({
                 : t('superadmin.condominiums.status.inactive')}
             </Chip>
           )
-        case 'actions':
-          return (
-            <div onClick={e => e.stopPropagation()}>
-              <Dropdown>
-                <DropdownTrigger>
-                  <Button isIconOnly variant="light">
-                    <MoreVertical size={16} />
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu aria-label={t('superadmin.condominiums.table.actions')}>
-                  <DropdownItem
-                    key="view"
-                    startContent={<Eye size={16} />}
-                    onPress={() => handleViewDetails(condominium.id)}
-                  >
-                    {t('superadmin.condominiums.actions.view')}
-                  </DropdownItem>
-                  <DropdownItem
-                    key="toggle"
-                    color={condominium.isActive ? 'warning' : 'success'}
-                    startContent={<Power size={16} />}
-                  >
-                    {condominium.isActive
-                      ? t('superadmin.condominiums.actions.deactivate')
-                      : t('superadmin.condominiums.actions.activate')}
-                  </DropdownItem>
-                </DropdownMenu>
-              </Dropdown>
-            </div>
-          )
         default:
           return null
       }
@@ -314,6 +287,7 @@ export function CondominiumsTable({
             />
             <Select
               aria-label={t('superadmin.condominiums.filters.status')}
+              placeholder={t('superadmin.condominiums.filters.status')}
               className="w-full sm:w-40"
               items={statusFilterItems}
               value={statusFilter}
@@ -344,8 +318,8 @@ export function CondominiumsTable({
       <div className="flex items-center justify-between">
         <Typography color="muted" variant="body2">
           {t('superadmin.condominiums.count', {
-            filtered: condominiums.length,
-            total: resolvedPagination.total,
+            filtered: resolvedPagination.total || condominiums.length,
+            total: resolvedPagination.total || condominiums.length,
           })}
         </Typography>
       </div>
@@ -372,15 +346,15 @@ export function CondominiumsTable({
             {condominiums.map(condominium => (
               <Card
                 key={condominium.id}
-                className="cursor-pointer transition-all hover:shadow-md"
+                className="w-full cursor-pointer transition-all hover:shadow-md"
                 isPressable
                 onPress={() => handleViewDetails(condominium.id)}
               >
-                <CardBody className="space-y-3">
-                  <div className="flex items-start justify-between gap-2">
+                <CardBody className="flex flex-col h-[160px]">
+                  <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <Home className="text-primary shrink-0" size={18} />
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="font-medium truncate">{condominium.name}</p>
                         {condominium.code && (
                           <p className="text-xs text-default-500">
@@ -389,26 +363,38 @@ export function CondominiumsTable({
                         )}
                       </div>
                     </div>
-                    <Chip color={condominium.isActive ? 'success' : 'default'} variant="flat">
+                    <Chip color={condominium.isActive ? 'success' : 'default'} variant="flat" size="sm">
                       {condominium.isActive
                         ? t('superadmin.condominiums.status.active')
                         : t('superadmin.condominiums.status.inactive')}
                     </Chip>
                   </div>
 
-                  {condominium.managementCompany && (
-                    <div className="flex items-center gap-2 text-xs text-default-500">
-                      <Building size={14} />
-                      <span>{condominium.managementCompany.name}</span>
-                    </div>
-                  )}
+                  <div className="flex-1 space-y-2 overflow-hidden">
+                    {condominium.managementCompany ? (
+                      <div className="flex items-center gap-2 text-xs text-default-500">
+                        <Building size={14} className="shrink-0" />
+                        <span className="truncate">{condominium.managementCompany.name}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-xs text-default-400">
+                        <Building size={14} className="shrink-0" />
+                        <span>{t('superadmin.condominiums.noCompany')}</span>
+                      </div>
+                    )}
 
-                  {condominium.address && (
-                    <div className="flex items-center gap-2 text-xs text-default-500">
-                      <MapPin size={14} />
-                      <span className="truncate">{condominium.address}</span>
-                    </div>
-                  )}
+                    {condominium.address ? (
+                      <div className="flex items-center gap-2 text-xs text-default-500">
+                        <MapPin size={14} className="shrink-0" />
+                        <span className="truncate">{condominium.address}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-xs text-default-400">
+                        <MapPin size={14} className="shrink-0" />
+                        <span>{t('superadmin.condominiums.noAddress')}</span>
+                      </div>
+                    )}
+                  </div>
                 </CardBody>
               </Card>
             ))}
@@ -429,18 +415,16 @@ export function CondominiumsTable({
           </div>
 
           {/* Pagination */}
-          {resolvedPagination.totalPages > 1 && (
-            <Pagination
-              className="mt-4"
-              limit={resolvedPagination.limit}
-              limitOptions={[10, 20, 50]}
-              page={resolvedPagination.page}
-              total={resolvedPagination.total}
-              totalPages={resolvedPagination.totalPages}
-              onLimitChange={handleLimitChange}
-              onPageChange={handlePageChange}
-            />
-          )}
+          <Pagination
+            className="mt-4"
+            limit={resolvedPagination.limit}
+            limitOptions={[10, 20, 50]}
+            page={resolvedPagination.page}
+            total={resolvedPagination.total}
+            totalPages={resolvedPagination.totalPages}
+            onLimitChange={handleLimitChange}
+            onPageChange={handlePageChange}
+          />
         </>
       )}
     </div>

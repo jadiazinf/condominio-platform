@@ -15,12 +15,19 @@
     "confirm": "Confirmar",
     "back": "Volver",
     "backToHome": "Ir a inicio",
+    "backToList": "Volver a la lista",
     "next": "Siguiente",
     "previous": "Anterior",
     "yes": "Sí",
     "no": "No",
     "user": "Usuario",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "country": "País",
+    "countryPlaceholder": "Selecciona un país",
+    "province": "Estado/Provincia",
+    "provincePlaceholder": "Selecciona un estado",
+    "city": "Ciudad",
+    "cityPlaceholder": "Selecciona una ciudad"
   },
   "nav": {
     "home": "Inicio",
@@ -598,8 +605,22 @@
         "tabs": {
           "general": "General",
           "condominiums": "Condominios",
-          "users": "Usuarios",
-          "billing": "Facturación"
+          "members": "Miembros",
+          "subscription": "Suscripción",
+          "invoices": "Historial de Pagos",
+          "tickets": "Tickets de Soporte",
+          "status": "Estado y Acciones"
+        },
+        "general": {
+          "basicInfo": "Información Básica",
+          "contactInfo": "Información de Contacto",
+          "metadata": "Información del Sistema",
+          "name": "Nombre",
+          "legalName": "Razón Social",
+          "status": "Estado",
+          "website": "Sitio Web",
+          "address": "Dirección",
+          "noData": "No especificado"
         }
       }
     },
@@ -640,7 +661,70 @@
       "noCompany": "Sin administradora",
       "noContact": "Sin contacto",
       "noAddress": "-",
-      "error": "Error al cargar los condominios"
+      "error": "Error al cargar los condominios",
+      "detail": {
+        "title": "Detalles del Condominio",
+        "backToList": "Volver a la lista",
+        "managedBy": "Administrado por",
+        "sidebar": {
+          "general": "Información General",
+          "buildings": "Edificios y Unidades",
+          "users": "Usuarios",
+          "configuration": "Configuración",
+          "status": "Estado y Acciones"
+        },
+        "general": {
+          "title": "Información General",
+          "subtitle": "Datos básicos y de contacto del condominio",
+          "basicInfo": "Información Básica",
+          "name": "Nombre",
+          "code": "Código",
+          "status": "Estado",
+          "currency": "Moneda",
+          "contactInfo": "Información de Contacto",
+          "address": "Dirección",
+          "email": "Correo electrónico",
+          "phone": "Teléfono",
+          "noAddress": "Sin dirección registrada",
+          "noEmail": "Sin correo electrónico",
+          "noPhone": "Sin teléfono",
+          "noData": "No especificado",
+          "managementCompany": "Empresa Administradora",
+          "companyName": "Nombre",
+          "companyEmail": "Email",
+          "noManagementCompany": "Sin empresa administradora asignada",
+          "metadata": "Información de Sistema",
+          "createdAt": "Fecha de creación",
+          "updatedAt": "Última actualización",
+          "createdBy": "Creado por"
+        },
+        "buildings": {
+          "title": "Edificios y Unidades",
+          "subtitle": "Gestiona los edificios y unidades del condominio",
+          "comingSoon": "Próximamente",
+          "comingSoonDescription": "Esta funcionalidad estará disponible pronto"
+        },
+        "users": {
+          "title": "Usuarios",
+          "subtitle": "Residentes y administradores del condominio",
+          "comingSoon": "Próximamente",
+          "comingSoonDescription": "Esta funcionalidad estará disponible pronto"
+        },
+        "configuration": {
+          "title": "Configuración",
+          "subtitle": "Configuración general del condominio",
+          "comingSoon": "Próximamente",
+          "comingSoonDescription": "Esta funcionalidad estará disponible pronto"
+        },
+        "statusSection": {
+          "title": "Estado y Acciones",
+          "subtitle": "Gestiona el estado del condominio",
+          "condominiumStatus": "Estado del Condominio",
+          "condominiumStatusDescription": "Activa o desactiva el condominio en la plataforma",
+          "success": "Estado actualizado correctamente",
+          "error": "Error al actualizar el estado"
+        }
+      }
     },
     "users": {
       "title": "Usuarios",
@@ -960,8 +1044,11 @@
           "permissionToggleSuccess": "Permiso actualizado correctamente",
           "permissionToggleError": "Error al actualizar el permiso",
           "pendingChanges": "cambio(s) pendiente(s)",
+          "permissionsSelected": "permiso(s) seleccionado(s)",
           "permissionsSaved": "Permisos actualizados correctamente",
-          "permissionsSaveError": "Error al actualizar los permisos"
+          "permissionsSaveError": "Error al actualizar los permisos",
+          "selectAllPermissions": "Seleccionar todos los permisos",
+          "deselectAllPermissions": "Deseleccionar todos los permisos"
         },
         "permissions": {
           "cannotModifyOwn": "No puedes modificar tus propios permisos"

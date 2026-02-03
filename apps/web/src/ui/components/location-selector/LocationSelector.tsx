@@ -5,22 +5,20 @@ import { Select, type ISelectItem } from '@/ui/components/select'
 import { Tooltip } from '@/ui/components/tooltip'
 import { cn } from '@heroui/theme'
 import { Info } from 'lucide-react'
-import type { TLocation, TLocationType } from '@packages/domain'
+import type { TLocation } from '@packages/domain'
 import {
   useLocationsByType,
   useLocationsByParent,
   getLocationHierarchy,
 } from '@packages/http-client'
 
-import { useAuth } from '@/contexts'
+import { useAuth, useTranslation } from '@/contexts'
 
 type TInputVariant = 'flat' | 'bordered' | 'underlined' | 'faded'
 type TInputRadius = 'none' | 'sm' | 'md' | 'lg' | 'full'
 type TInputSize = 'sm' | 'md' | 'lg'
 
 // Location types in hierarchical order
-const LOCATION_TYPES: TLocationType[] = ['country', 'province', 'city']
-
 interface ILocationSelectorProps {
   value?: string | null
   onChange?: (locationId: string | null) => void
@@ -41,26 +39,17 @@ interface ILocationSelectorProps {
   className?: string
 }
 
-interface ILocationLevel {
-  type: TLocationType
-  label: string
-  placeholder: string
-  selectedId: string | null
-  locations: TLocation[]
-  isLoading: boolean
-}
-
 export function LocationSelector({
   value,
   onChange,
   label,
   tooltip,
-  countryLabel = 'Country',
-  provinceLabel = 'State/Province',
-  cityLabel = 'City',
-  countryPlaceholder = 'Select a country',
-  provincePlaceholder = 'Select a state/province',
-  cityPlaceholder = 'Select a city',
+  countryLabel,
+  provinceLabel,
+  cityLabel,
+  countryPlaceholder,
+  provincePlaceholder,
+  cityPlaceholder,
   errorMessage,
   variant = 'bordered',
   radius = 'sm',
@@ -69,8 +58,17 @@ export function LocationSelector({
   isDisabled = false,
   className,
 }: ILocationSelectorProps) {
+  const { t } = useTranslation()
   const { user: firebaseUser } = useAuth()
   const [token, setToken] = useState<string>('')
+
+  // Use i18n translations as default values
+  const resolvedCountryLabel = countryLabel ?? t('common.country')
+  const resolvedProvinceLabel = provinceLabel ?? t('common.province')
+  const resolvedCityLabel = cityLabel ?? t('common.city')
+  const resolvedCountryPlaceholder = countryPlaceholder ?? t('common.countryPlaceholder')
+  const resolvedProvincePlaceholder = provincePlaceholder ?? t('common.provincePlaceholder')
+  const resolvedCityPlaceholder = cityPlaceholder ?? t('common.cityPlaceholder')
 
   // State for each location level
   const [selectedCountryId, setSelectedCountryId] = useState<string | null>(null)
@@ -231,8 +229,8 @@ export function LocationSelector({
       <div className="grid gap-4 sm:grid-cols-3">
         {/* Country Select */}
         <Select
-          aria-label={countryLabel}
-          placeholder={countryPlaceholder}
+          aria-label={resolvedCountryLabel}
+          placeholder={resolvedCountryPlaceholder}
           items={countryItems}
           value={selectedCountryId}
           onChange={handleCountryChange}
@@ -240,7 +238,7 @@ export function LocationSelector({
           radius={radius}
           size={size}
           isDisabled={isDisabled || countriesLoading}
-          label={renderSelectLabel(countryLabel)}
+          label={renderSelectLabel(resolvedCountryLabel)}
           labelPlacement="outside"
           isLoading={countriesLoading}
           isInvalid={isRequired && !!errorMessage && !selectedCountryId}
@@ -251,8 +249,8 @@ export function LocationSelector({
 
         {/* Province Select */}
         <Select
-          aria-label={provinceLabel}
-          placeholder={provincePlaceholder}
+          aria-label={resolvedProvinceLabel}
+          placeholder={resolvedProvincePlaceholder}
           items={provinceItems}
           value={selectedProvinceId}
           onChange={handleProvinceChange}
@@ -260,7 +258,7 @@ export function LocationSelector({
           radius={radius}
           size={size}
           isDisabled={isDisabled || !selectedCountryId || provincesLoading}
-          label={renderSelectLabel(provinceLabel)}
+          label={renderSelectLabel(resolvedProvinceLabel)}
           labelPlacement="outside"
           isLoading={provincesLoading}
           isInvalid={isRequired && !!errorMessage && !!selectedCountryId && !selectedProvinceId}
@@ -271,8 +269,8 @@ export function LocationSelector({
 
         {/* City Select */}
         <Select
-          aria-label={cityLabel}
-          placeholder={cityPlaceholder}
+          aria-label={resolvedCityLabel}
+          placeholder={resolvedCityPlaceholder}
           items={cityItems}
           value={selectedCityId}
           onChange={handleCityChange}
@@ -280,7 +278,7 @@ export function LocationSelector({
           radius={radius}
           size={size}
           isDisabled={isDisabled || !selectedProvinceId || citiesLoading}
-          label={renderSelectLabel(cityLabel)}
+          label={renderSelectLabel(resolvedCityLabel)}
           labelPlacement="outside"
           isLoading={citiesLoading}
           isInvalid={isRequired && !!errorMessage && !!selectedProvinceId && !selectedCityId}

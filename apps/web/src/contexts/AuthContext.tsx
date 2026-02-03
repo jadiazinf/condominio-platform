@@ -13,6 +13,7 @@ import {
 import {
   type User,
   onAuthStateChanged,
+  onIdTokenChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
@@ -69,12 +70,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => unsubscribe()
   }, [])
 
+  // Listen to token changes (including automatic Firebase refreshes)
+  useEffect(() => {
+    const auth = getFirebaseAuth()
+    const unsubscribe = onIdTokenChanged(auth, async firebaseUser => {
+      if (firebaseUser) {
+        // Token changed - update cookies
+        await setSessionCookie(firebaseUser)
+        console.log('[Auth] Token refreshed and saved to cookies')
+      }
+    })
+
+    return () => unsubscribe()
+  }, [])
+
   // Track last user activity for smart refresh
   const lastActivityRef = useRef<number>(Date.now())
 
-  // Set up the logout function for the token refresh manager
-  // This is called when the refresh token expires (long inactivity)
+  // Set up the refresh and logout functions for the token refresh manager
   useEffect(() => {
+    const auth = getFirebaseAuth()
+
+    // Refresh function: gets a fresh token from Firebase and saves to cookies
+    const handleRefresh = async () => {
+      const currentUser = auth.currentUser
+      if (!currentUser) {
+        throw new Error('No user available for token refresh')
+      }
+
+      console.log('[Auth] Refreshing token...')
+      // Force refresh the token
+      await currentUser.getIdToken(true)
+      // Save to cookies (onIdTokenChanged will also trigger, but this ensures it happens)
+      await setSessionCookie(currentUser, true)
+      console.log('[Auth] Token refreshed successfully')
+    }
+
+    // Logout function: called when the refresh token expires (long inactivity)
     const handleLogout = async (reason: 'inactivity' | 'error') => {
       console.log('[Auth] Token refresh manager triggered logout:', reason)
 
@@ -87,7 +119,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Sign out from Firebase
       try {
-        const auth = getFirebaseAuth()
         await firebaseSignOut(auth)
       } catch {
         // Ignore errors during forced logout
@@ -101,6 +132,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     }
 
+    tokenRefreshManager.setRefreshFunction(handleRefresh)
     tokenRefreshManager.setLogoutFunction(handleLogout)
   }, [])
 

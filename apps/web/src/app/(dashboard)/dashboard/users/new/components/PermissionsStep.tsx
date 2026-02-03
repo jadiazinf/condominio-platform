@@ -24,6 +24,7 @@ interface PermissionsStepProps {
   rolePermissions: IPermissionModule[]
   customPermissions: Record<string, boolean>
   onTogglePermission: (permissionId: string) => void
+  onToggleModule?: (permissionIds: string[]) => void
   isLoading: boolean
 }
 
@@ -31,6 +32,7 @@ export function PermissionsStep({
   rolePermissions,
   customPermissions,
   onTogglePermission,
+  onToggleModule,
   isLoading,
 }: PermissionsStepProps) {
   const { t } = useTranslation()
@@ -150,41 +152,67 @@ export function PermissionsStep({
 
       {/* Permissions by module */}
       <Accordion variant="splitted" defaultExpandedKeys={[rolePermissions[0]?.module]}>
-        {rolePermissions.map((module) => (
-          <AccordionItem
-            key={module.module}
-            aria-label={getModuleLabel(module.module)}
-            title={getModuleLabel(module.module)}
-          >
-            <div className="space-y-3">
-              {module.permissions.map((permission) => {
-                const isGranted = customPermissions[permission.id] ?? permission.granted
+        {rolePermissions.map((module) => {
+          // Calculate if all permissions in this module are selected
+          const allModulePermissionsSelected = module.permissions.every(
+            p => customPermissions[p.id] ?? p.granted
+          )
+          const someModulePermissionsSelected = module.permissions.some(
+            p => customPermissions[p.id] ?? p.granted
+          )
+          const modulePermissionIds = module.permissions.map(p => p.id)
 
-                return (
-                  <div
-                    key={permission.id}
-                    className="flex items-start justify-between gap-4 rounded-lg border border-default-200 p-4 hover:bg-default-50 transition-colors"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <Typography variant="subtitle2" className="font-medium">
-                        {getActionLabel(permission.action)}
-                      </Typography>
-                      <Typography color="muted" variant="body2" className="mt-1">
-                        {permission.description || getPermissionLabel(permission)}
-                      </Typography>
-                    </div>
+          return (
+            <AccordionItem
+              key={module.module}
+              aria-label={getModuleLabel(module.module)}
+              title={
+                <div className="flex items-center justify-between w-full pr-2">
+                  <Typography variant="subtitle1" className="font-semibold">
+                    {getModuleLabel(module.module)}
+                  </Typography>
+                  {onToggleModule && (
                     <Switch
-                      isSelected={isGranted}
-                      onValueChange={() => onTogglePermission(permission.id)}
+                      isSelected={allModulePermissionsSelected}
+                      onValueChange={() => onToggleModule(modulePermissionIds)}
                       color="primary"
-                      className="shrink-0"
+                      size="sm"
+                      onClick={(e) => e.stopPropagation()}
                     />
-                  </div>
-                )
-              })}
-            </div>
-          </AccordionItem>
-        ))}
+                  )}
+                </div>
+              }
+            >
+              <div className="space-y-3">
+                {module.permissions.map((permission) => {
+                  const isGranted = customPermissions[permission.id] ?? permission.granted
+
+                  return (
+                    <div
+                      key={permission.id}
+                      className="flex items-start justify-between gap-4 rounded-lg border border-default-200 p-4 hover:bg-default-50 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <Typography variant="subtitle2" className="font-medium">
+                          {getActionLabel(permission.action)}
+                        </Typography>
+                        <Typography color="muted" variant="body2" className="mt-1">
+                          {permission.description || getPermissionLabel(permission)}
+                        </Typography>
+                      </div>
+                      <Switch
+                        isSelected={isGranted}
+                        onValueChange={() => onTogglePermission(permission.id)}
+                        color="primary"
+                        className="shrink-0"
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+            </AccordionItem>
+          )
+        })}
       </Accordion>
     </div>
   )

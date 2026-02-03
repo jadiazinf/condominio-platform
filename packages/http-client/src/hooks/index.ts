@@ -34,6 +34,16 @@ export {
   type UseCondominiumsPaginatedOptions,
 } from './use-condominiums'
 export {
+  useCondominiumDetail,
+  getCondominiumDetail,
+  type UseCondominiumDetailOptions,
+} from './use-condominium-detail'
+export {
+  useToggleCondominiumStatus,
+  type UseToggleCondominiumStatusOptions,
+  type TToggleCondominiumStatusVariables,
+} from './use-toggle-condominium-status'
+export {
   useRegisterWithGoogle,
   registerWithGoogle,
   useRegisterUser,

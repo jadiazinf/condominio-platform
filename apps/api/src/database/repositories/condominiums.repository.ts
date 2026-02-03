@@ -1,5 +1,11 @@
-import { eq } from 'drizzle-orm'
-import type { TCondominium, TCondominiumCreate, TCondominiumUpdate } from '@packages/domain'
+import { eq, and, or, ilike, sql, desc } from 'drizzle-orm'
+import type {
+  TCondominium,
+  TCondominiumCreate,
+  TCondominiumUpdate,
+  TPaginatedResponse,
+  TCondominiumsQuerySchema,
+} from '@packages/domain'
 import { condominiums } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
@@ -126,5 +132,70 @@ export class CondominiumsRepository
     }
 
     return mapped.filter(c => c.isActive)
+  }
+
+  /**
+   * Retrieves condominiums with pagination, filtering, and ordering.
+   */
+  async listPaginated(query: TCondominiumsQuerySchema): Promise<TPaginatedResponse<TCondominium>> {
+    const { page = 1, limit = 20, search, isActive, locationId } = query
+    const offset = (page - 1) * limit
+
+    // Build conditions array
+    const conditions = []
+
+    // Filter by isActive if specified
+    if (isActive !== undefined) {
+      conditions.push(eq(condominiums.isActive, isActive))
+    }
+
+    // Filter by locationId if specified
+    if (locationId) {
+      conditions.push(eq(condominiums.locationId, locationId))
+    }
+
+    // Search filter (name, code, email, address)
+    if (search && search.trim()) {
+      const searchTerm = `%${search.trim()}%`
+      conditions.push(
+        or(
+          ilike(condominiums.name, searchTerm),
+          ilike(condominiums.code, searchTerm),
+          ilike(condominiums.email, searchTerm),
+          ilike(condominiums.address, searchTerm)
+        )
+      )
+    }
+
+    // Build where clause
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    // Get paginated data ordered by createdAt DESC
+    const results = await this.db
+      .select()
+      .from(condominiums)
+      .where(whereClause)
+      .orderBy(desc(condominiums.createdAt))
+      .limit(limit)
+      .offset(offset)
+
+    // Get total count
+    const countResult = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(condominiums)
+      .where(whereClause)
+
+    const total = countResult[0]?.count ?? 0
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data: results.map(record => this.mapToEntity(record)),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    }
   }
 }

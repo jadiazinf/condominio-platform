@@ -74,7 +74,6 @@ export default async function UserStatusPage({ params }: PageProps) {
         demoteButtonText={t('superadmin.users.detail.statusSection.demoteButton')}
         modalTitle={t('superadmin.users.detail.statusSection.modalTitle')}
         modalDescription={t('superadmin.users.detail.statusSection.modalDescription')}
-        selectAllText={t('superadmin.users.detail.statusSection.selectAll')}
         confirmButtonText={t('common.confirm')}
         cancelButtonText={t('common.cancel')}
         successMessage={t('superadmin.users.detail.statusSection.promotionSuccess')}

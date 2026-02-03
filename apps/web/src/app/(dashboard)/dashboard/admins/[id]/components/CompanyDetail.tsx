@@ -1,21 +1,13 @@
 'use client'
 
-import { Card, CardHeader, CardBody } from '@/ui/components/card'
-import { Chip } from '@/ui/components/chip'
+import { Card } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
 import { Spinner } from '@/ui/components/spinner'
-import { Divider } from '@/ui/components/divider'
-import { Building2, Mail, Phone, Globe, MapPin, FileText, Calendar, Power } from 'lucide-react'
-import { useToast } from '@/ui/components/toast'
 import { useState, useEffect } from 'react'
 
 import { useTranslation, useAuth } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
-import {
-  useManagementCompany,
-  toggleManagementCompanyActive,
-  useQueryClient,
-} from '@packages/http-client'
+import { useManagementCompany } from '@packages/http-client'
 
 interface CompanyDetailProps {
   id: string
@@ -24,9 +16,6 @@ interface CompanyDetailProps {
 export function CompanyDetail({ id }: CompanyDetailProps) {
   const { t } = useTranslation()
   const { user: firebaseUser } = useAuth()
-  const queryClient = useQueryClient()
-  const toast = useToast()
-  const [isToggling, setIsToggling] = useState(false)
   const [token, setToken] = useState<string>('')
 
   useEffect(() => {
@@ -43,32 +32,16 @@ export function CompanyDetail({ id }: CompanyDetailProps) {
 
   const company = data?.data
 
-  const handleToggleActive = async () => {
-    if (!token || !company) return
-
-    setIsToggling(true)
-    try {
-      await toggleManagementCompanyActive(token, company.id, !company.isActive)
-      queryClient.invalidateQueries({ queryKey: ['management-companies'] })
-      toast.success(
-        company.isActive
-          ? t('superadmin.companies.actions.deactivateSuccess')
-          : t('superadmin.companies.actions.activateSuccess')
-      )
-    } catch {
-      toast.error(t('superadmin.companies.actions.toggleError'))
-    } finally {
-      setIsToggling(false)
-    }
-  }
-
-  const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('es-VE', {
-      year: 'numeric',
+  const formatDate = (date: Date | string | null | undefined) => {
+    if (!date) return t('superadmin.companies.detail.general.noData')
+    return new Date(date).toLocaleDateString('es', {
+      day: '2-digit',
       month: 'long',
-      day: 'numeric',
+      year: 'numeric',
     })
   }
+
+  const noDataText = t('superadmin.companies.detail.general.noData')
 
   if (isLoading) {
     return (
@@ -85,155 +58,118 @@ export function CompanyDetail({ id }: CompanyDetailProps) {
           Error al cargar la administradora
         </Typography>
         <Button className="mt-4" color="primary" onPress={() => refetch()}>
-          Reintentar
+          {t('common.retry')}
         </Button>
       </div>
     )
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
-      {/* Main Info */}
-      <div className="lg:col-span-2 space-y-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-100">
-                <Building2 className="text-primary" size={24} />
-              </div>
-              <div>
-                <Typography variant="h4">{company.name}</Typography>
-                {company.legalName && (
-                  <Typography color="muted" variant="body2">
-                    {company.legalName}
-                  </Typography>
-                )}
-              </div>
-            </div>
-            <Chip color={company.isActive ? 'success' : 'default'} size="md" variant="flat">
-              {company.isActive
+    <div className="space-y-6">
+      <div>
+        <Typography variant="h3">{t('superadmin.companies.detail.tabs.general')}</Typography>
+        <Typography color="muted" variant="body2" className="mt-1">
+          Información básica y de contacto de la administradora
+        </Typography>
+      </div>
+
+      {/* Basic Information */}
+      <Card className="p-6">
+        <Typography variant="h4" className="mb-4">
+          {t('superadmin.companies.detail.general.basicInfo')}
+        </Typography>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InfoRow
+            label={t('superadmin.companies.detail.general.name')}
+            value={company.name}
+          />
+          <InfoRow
+            label={t('superadmin.companies.detail.general.legalName')}
+            value={company.legalName || noDataText}
+          />
+          <InfoRow
+            label={t('superadmin.companies.table.taxId')}
+            value={
+              company.taxIdType
+                ? `${company.taxIdType}-${company.taxIdNumber || ''}`
+                : company.taxIdNumber || noDataText
+            }
+          />
+          <InfoRow
+            label={t('superadmin.companies.detail.general.status')}
+            value={
+              company.isActive
                 ? t('superadmin.companies.status.active')
-                : t('superadmin.companies.status.inactive')}
-            </Chip>
-          </CardHeader>
-          <Divider />
-          <CardBody className="space-y-4">
-            {/* Contact Info */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              {(company.taxIdType || company.taxIdNumber) && (
-                <div className="flex items-center gap-3">
-                  <FileText className="text-default-400" size={18} />
-                  <div>
-                    <Typography color="muted" variant="caption">
-                      {t('superadmin.companies.table.taxId')}
-                    </Typography>
-                    <Typography variant="body2">
-                      {company.taxIdType
-                        ? `${company.taxIdType}-${company.taxIdNumber || ''}`
-                        : company.taxIdNumber}
-                    </Typography>
-                  </div>
-                </div>
-              )}
-              {company.email && (
-                <div className="flex items-center gap-3">
-                  <Mail className="text-default-400" size={18} />
-                  <div>
-                    <Typography color="muted" variant="caption">
-                      {t('superadmin.companies.table.email')}
-                    </Typography>
-                    <Typography variant="body2">{company.email}</Typography>
-                  </div>
-                </div>
-              )}
-              {company.phone && (
-                <div className="flex items-center gap-3">
-                  <Phone className="text-default-400" size={18} />
-                  <div>
-                    <Typography color="muted" variant="caption">
-                      {t('superadmin.companies.table.phone')}
-                    </Typography>
-                    <Typography variant="body2">
-                      {company.phoneCountryCode
-                        ? `${company.phoneCountryCode} ${company.phone}`
-                        : company.phone}
-                    </Typography>
-                  </div>
-                </div>
-              )}
-              {company.website && (
-                <div className="flex items-center gap-3">
-                  <Globe className="text-default-400" size={18} />
-                  <div>
-                    <Typography color="muted" variant="caption">
-                      Sitio Web
-                    </Typography>
-                    <a
-                      className="text-sm text-primary hover:underline"
-                      href={company.website}
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
-                      {company.website}
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
+                : t('superadmin.companies.status.inactive')
+            }
+            valueClassName={company.isActive ? 'text-success' : 'text-default'}
+          />
+        </div>
+      </Card>
 
-            {company.address && (
-              <>
-                <Divider />
-                <div className="flex items-start gap-3">
-                  <MapPin className="mt-0.5 text-default-400" size={18} />
-                  <div>
-                    <Typography color="muted" variant="caption">
-                      Dirección
-                    </Typography>
-                    <Typography variant="body2">{company.address}</Typography>
-                  </div>
-                </div>
-              </>
-            )}
+      {/* Contact Information */}
+      <Card className="p-6">
+        <Typography variant="h4" className="mb-4">
+          {t('superadmin.companies.detail.general.contactInfo')}
+        </Typography>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InfoRow
+            label={t('superadmin.companies.table.email')}
+            value={company.email || noDataText}
+          />
+          <InfoRow
+            label={t('superadmin.companies.table.phone')}
+            value={
+              company.phoneCountryCode
+                ? `${company.phoneCountryCode} ${company.phone}`
+                : company.phone || noDataText
+            }
+          />
+          <InfoRow
+            label={t('superadmin.companies.detail.general.website')}
+            value={company.website || noDataText}
+            className="md:col-span-2"
+          />
+          <InfoRow
+            label={t('superadmin.companies.detail.general.address')}
+            value={company.address || noDataText}
+            className="md:col-span-2"
+          />
+        </div>
+      </Card>
 
-            <Divider />
-            <div className="flex items-center gap-3">
-              <Calendar className="text-default-400" size={18} />
-              <div>
-                <Typography color="muted" variant="caption">
-                  {t('superadmin.companies.table.createdAt')}
-                </Typography>
-                <Typography variant="body2">{formatDate(company.createdAt)}</Typography>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-      </div>
+      {/* Metadata */}
+      <Card className="p-6">
+        <Typography variant="h4" className="mb-4">
+          {t('superadmin.companies.detail.general.metadata')}
+        </Typography>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InfoRow
+            label={t('superadmin.companies.table.createdAt')}
+            value={formatDate(company.createdAt)}
+          />
+        </div>
+      </Card>
+    </div>
+  )
+}
 
-      {/* Actions Sidebar */}
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <Typography variant="subtitle1">{t('superadmin.companies.table.actions')}</Typography>
-          </CardHeader>
-          <Divider />
-          <CardBody className="space-y-3">
-            <Button
-              className="w-full justify-start"
-              color={company.isActive ? 'warning' : 'success'}
-              isDisabled={isToggling}
-              isLoading={isToggling}
-              startContent={!isToggling && <Power size={16} />}
-              variant="flat"
-              onPress={handleToggleActive}
-            >
-              {company.isActive
-                ? t('superadmin.companies.actions.deactivate')
-                : t('superadmin.companies.actions.activate')}
-            </Button>
-          </CardBody>
-        </Card>
-      </div>
+interface IInfoRowProps {
+  label: string
+  value: string
+  valueClassName?: string
+  className?: string
+}
+
+function InfoRow({ label, value, valueClassName, className }: IInfoRowProps) {
+  return (
+    <div className={className}>
+      <Typography color="muted" variant="body2">
+        {label}
+      </Typography>
+      <Typography variant="body1" className={valueClassName}>
+        {value}
+      </Typography>
     </div>
   )
 }
