@@ -33,6 +33,7 @@ export const LocaleDictionary = {
         failedToDemote: 'http.controllers.users.failedToDemote',
         statusUpdated: 'http.controllers.users.statusUpdated',
         permissionUpdated: 'http.controllers.users.permissionUpdated',
+        permissionsUpdated: 'http.controllers.users.permissionsUpdated',
         promotedToSuperadmin: 'http.controllers.users.promotedToSuperadmin',
         demotedFromSuperadmin: 'http.controllers.users.demotedFromSuperadmin',
         profileUpdated: 'http.controllers.users.profileUpdated',

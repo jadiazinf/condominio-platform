@@ -167,10 +167,10 @@ export function PermissionsStep({
                   >
                     <div className="flex-1 min-w-0">
                       <Typography variant="subtitle2" className="font-medium">
-                        {permission.name}
+                        {getActionLabel(permission.action)}
                       </Typography>
                       <Typography color="muted" variant="body2" className="mt-1">
-                        {getPermissionLabel(permission)}
+                        {permission.description || getPermissionLabel(permission)}
                       </Typography>
                     </div>
                     <Switch

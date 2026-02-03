@@ -215,6 +215,7 @@ export {
   useUserFullDetails,
   useRoles,
   useToggleUserPermission,
+  useBatchToggleUserPermissions,
   getUsersPaginated,
   getUserFullDetails,
   getAllRoles,
@@ -235,6 +236,9 @@ export {
   type UseRolesOptions,
   type IToggleUserPermissionVariables,
   type IUseToggleUserPermissionOptions,
+  type IBatchToggleUserPermissionsVariables,
+  type IBatchToggleUserPermissionsResponse,
+  type IUseBatchToggleUserPermissionsOptions,
 } from './use-users'
 export {
   createUserInvitation,

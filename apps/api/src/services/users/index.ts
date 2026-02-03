@@ -39,3 +39,9 @@ export type {
   IDemoteFromSuperadminInput,
   IDemoteFromSuperadminResult,
 } from './demote-from-superadmin.service'
+
+export { BatchToggleUserPermissionsService } from './batch-toggle-user-permissions.service'
+export type {
+  IBatchToggleUserPermissionsInput,
+  IBatchToggleUserPermissionsOutput,
+} from './batch-toggle-user-permissions.service'

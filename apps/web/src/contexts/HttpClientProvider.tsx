@@ -6,14 +6,34 @@ import { setGlobalAuthToken, createHttpClient, setHttpClient } from '@packages/h
 import { getFirebaseAuth } from '@/libs/firebase'
 import { setSessionCookie, getSessionCookie } from '@/libs/cookies'
 import { getLocaleCookie } from '@/libs/i18n/utils'
+import { tokenRefreshManager } from '@/libs/auth'
 
 // Initialize HTTP client synchronously on module load to avoid race conditions
 // This ensures the client is ready before any React Query hooks execute
 let isModuleInitialized = false
 
+/**
+ * Perform the actual token refresh
+ * This is extracted so it can be used by both the HTTP client and the manager
+ */
+async function performTokenRefresh(): Promise<void> {
+  const auth = getFirebaseAuth()
+  const user = auth.currentUser
+
+  if (!user) {
+    throw new Error('No user available for token refresh')
+  }
+
+  // Force refresh the token
+  await setSessionCookie(user, true)
+}
+
 function initializeHttpClient() {
   if (isModuleInitialized) return
   isModuleInitialized = true
+
+  // Set up the token refresh manager with the refresh function
+  tokenRefreshManager.setRefreshFunction(performTokenRefresh)
 
   // Set global auth token getter - this ensures even the default client has auth
   setGlobalAuthToken(() => {
@@ -24,6 +44,8 @@ function initializeHttpClient() {
   // Configure HTTP client with token refresh capability and locale support
   const client = createHttpClient({
     getAuthToken: async () => {
+      // If a refresh is in progress, wait for it before returning the token
+      await tokenRefreshManager.waitForRefresh()
       const token = getSessionCookie()
       return token || null
     },
@@ -32,16 +54,8 @@ function initializeHttpClient() {
       return locale || 'es'
     },
     onTokenRefresh: async () => {
-      // Get current user and refresh token
-      const auth = getFirebaseAuth()
-      const user = auth.currentUser
-
-      if (!user) {
-        return
-      }
-
-      // Force refresh the token
-      await setSessionCookie(user, true)
+      // Use the manager to handle refresh with queuing
+      await tokenRefreshManager.handle401()
     },
   })
 

@@ -256,6 +256,7 @@
       "popupClosed": "El proceso de autenticación fue cancelado.",
       "generic": "Ocurrió un error inesperado. Por favor intenta de nuevo.",
       "temporaryError": "Error temporal del servidor. Por favor intenta iniciar sesión nuevamente.",
+      "sessionExpiredInactivity": "Tu sesión ha expirado por inactividad prolongada. Por favor inicia sesión nuevamente.",
       "passwordMinLength": "La contraseña debe tener al menos 8 caracteres.",
       "passwordUppercase": "La contraseña debe contener al menos una letra mayúscula.",
       "passwordLowercase": "La contraseña debe contener al menos una letra minúscula.",
@@ -957,7 +958,10 @@
           "editPermissions": "Editar permisos",
           "editPermissionsTitle": "Editar permisos de Superadmin",
           "permissionToggleSuccess": "Permiso actualizado correctamente",
-          "permissionToggleError": "Error al actualizar el permiso"
+          "permissionToggleError": "Error al actualizar el permiso",
+          "pendingChanges": "cambio(s) pendiente(s)",
+          "permissionsSaved": "Permisos actualizados correctamente",
+          "permissionsSaveError": "Error al actualizar los permisos"
         },
         "permissions": {
           "cannotModifyOwn": "No puedes modificar tus propios permisos"
@@ -1213,15 +1217,5 @@
       "close": "Cerrar",
       "reopen": "Reabrir"
     }
-  },
-  "sessionRecovery": {
-    "title": "Reconectando...",
-    "subtitle": "Estamos restableciendo tu conexión con el servidor",
-    "attempt": "Intento {current} de {max}",
-    "errorTitle": "No se pudo restablecer la conexión",
-    "errorDescription": "El servidor no está disponible en este momento. Puedes intentar de nuevo o cerrar sesión.",
-    "retry": "Intentar de nuevo",
-    "logout": "Cerrar sesión",
-    "failed": "No se pudo restablecer la sesión"
   }
 }

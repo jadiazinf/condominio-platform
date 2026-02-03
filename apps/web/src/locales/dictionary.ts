@@ -171,21 +171,12 @@ export const LocaleDictionary = {
       popupClosed: 'auth.errors.popupClosed',
       generic: 'auth.errors.generic',
       temporaryError: 'auth.errors.temporaryError',
+      sessionExpiredInactivity: 'auth.errors.sessionExpiredInactivity',
     },
   },
   language: {
     select: 'language.select',
     es: 'language.es',
     en: 'language.en',
-  },
-  sessionRecovery: {
-    title: 'sessionRecovery.title',
-    subtitle: 'sessionRecovery.subtitle',
-    attempt: 'sessionRecovery.attempt',
-    errorTitle: 'sessionRecovery.errorTitle',
-    errorDescription: 'sessionRecovery.errorDescription',
-    retry: 'sessionRecovery.retry',
-    logout: 'sessionRecovery.logout',
-    failed: 'sessionRecovery.failed',
   },
 }

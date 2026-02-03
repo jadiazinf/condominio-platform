@@ -161,6 +161,24 @@ export interface IUseToggleUserPermissionOptions {
   onError?: (error: Error) => void
 }
 
+export interface IBatchToggleUserPermissionsVariables {
+  userId: string
+  changes: Array<{ permissionId: string; isEnabled: boolean }>
+}
+
+export interface IBatchToggleUserPermissionsResponse {
+  data: {
+    updated: number
+    failed: number
+  }
+  message: string
+}
+
+export interface IUseBatchToggleUserPermissionsOptions {
+  onSuccess?: (data: ApiResponse<IBatchToggleUserPermissionsResponse>) => void
+  onError?: (error: Error) => void
+}
+
 // =============================================================================
 // Query Keys
 // =============================================================================
@@ -249,6 +267,19 @@ export function useRoles(options: UseRolesOptions) {
 export function useToggleUserPermission(options?: IUseToggleUserPermissionOptions) {
   return useApiMutation<TApiMessageResponse, IToggleUserPermissionVariables>({
     path: (variables) => `/users/${variables.userId}/permissions`,
+    method: 'PATCH',
+    invalidateKeys: [usersKeys.all],
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+  })
+}
+
+/**
+ * Hook to batch toggle multiple user permissions in a single request.
+ */
+export function useBatchToggleUserPermissions(options?: IUseBatchToggleUserPermissionsOptions) {
+  return useApiMutation<IBatchToggleUserPermissionsResponse, IBatchToggleUserPermissionsVariables>({
+    path: (variables) => `/users/${variables.userId}/permissions/batch`,
     method: 'PATCH',
     invalidateKeys: [usersKeys.all],
     onSuccess: options?.onSuccess,
@@ -396,4 +427,40 @@ export async function toggleUserPermission(
   )
 
   return response.data.message
+}
+
+/**
+ * Batch result from the API
+ */
+export interface IBatchTogglePermissionsResult {
+  updated: number
+  failed: number
+}
+
+/**
+ * Function to batch toggle multiple user permissions.
+ * @returns The success message and result from the API
+ */
+export async function batchToggleUserPermissions(
+  token: string,
+  userId: string,
+  changes: Array<{ permissionId: string; isEnabled: boolean }>
+): Promise<{ message: string; data: IBatchTogglePermissionsResult }> {
+  const client = getHttpClient()
+
+  const response = await client.patch<TApiDataResponse<IBatchTogglePermissionsResult> & { message: string }>(
+    `/users/${userId}/permissions/batch`,
+    { changes },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+
+  return {
+    message: response.data.message,
+    data: response.data.data,
+  }
 }

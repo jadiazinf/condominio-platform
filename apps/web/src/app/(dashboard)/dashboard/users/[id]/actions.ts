@@ -93,3 +93,4 @@ export async function toggleUserPermissionAction(
     return { success: false, error: getErrorMessage(error, 'Failed to toggle permission') }
   }
 }
+

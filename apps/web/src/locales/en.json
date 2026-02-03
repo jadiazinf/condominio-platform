@@ -256,6 +256,7 @@
       "popupClosed": "The authentication process was cancelled.",
       "generic": "An unexpected error occurred. Please try again.",
       "temporaryError": "Temporary server error. Please try signing in again.",
+      "sessionExpiredInactivity": "Your session has expired due to prolonged inactivity. Please sign in again.",
       "passwordMinLength": "Password must be at least 8 characters.",
       "passwordUppercase": "Password must contain at least one uppercase letter.",
       "passwordLowercase": "Password must contain at least one lowercase letter.",
@@ -953,7 +954,10 @@
           "editPermissions": "Edit permissions",
           "editPermissionsTitle": "Edit Superadmin Permissions",
           "permissionToggleSuccess": "Permission updated successfully",
-          "permissionToggleError": "Error updating permission"
+          "permissionToggleError": "Error updating permission",
+          "pendingChanges": "pending change(s)",
+          "permissionsSaved": "Permissions updated successfully",
+          "permissionsSaveError": "Error updating permissions"
         },
         "permissions": {
           "cannotModifyOwn": "You cannot modify your own permissions"
@@ -1209,15 +1213,5 @@
       "close": "Close",
       "reopen": "Reopen"
     }
-  },
-  "sessionRecovery": {
-    "title": "Reconnecting...",
-    "subtitle": "We're restoring your connection to the server",
-    "attempt": "Attempt {current} of {max}",
-    "errorTitle": "Could not restore connection",
-    "errorDescription": "The server is currently unavailable. You can try again or sign out.",
-    "retry": "Try again",
-    "logout": "Sign out",
-    "failed": "Could not restore session"
   }
 }

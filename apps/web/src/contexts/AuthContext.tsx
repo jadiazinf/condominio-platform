@@ -7,6 +7,7 @@ import {
   useState,
   useCallback,
   useMemo,
+  useRef,
   type ReactNode,
 } from 'react'
 import {
@@ -24,7 +25,9 @@ import {
   setSessionCookie,
   waitForSessionCookie,
   clearSessionCookie,
+  clearUserCookie,
 } from '@/libs/cookies'
+import { tokenRefreshManager } from '@/libs/auth'
 
 interface AuthContextType {
   user: User | null
@@ -34,6 +37,7 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string) => Promise<void>
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
+  signOutWithReason: (reason: 'inactivity' | 'manual') => Promise<void>
   deleteCurrentUser: () => Promise<void>
   clearError: () => void
 }
@@ -65,21 +69,86 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => unsubscribe()
   }, [])
 
-  // Auto-refresh token every 50 minutes (before 1 hour expiry)
+  // Track last user activity for smart refresh
+  const lastActivityRef = useRef<number>(Date.now())
+
+  // Set up the logout function for the token refresh manager
+  // This is called when the refresh token expires (long inactivity)
+  useEffect(() => {
+    const handleLogout = async (reason: 'inactivity' | 'error') => {
+      console.log('[Auth] Token refresh manager triggered logout:', reason)
+
+      // Reset the manager first
+      tokenRefreshManager.reset()
+
+      // Clear cookies
+      clearSessionCookie()
+      clearUserCookie()
+
+      // Sign out from Firebase
+      try {
+        const auth = getFirebaseAuth()
+        await firebaseSignOut(auth)
+      } catch {
+        // Ignore errors during forced logout
+      }
+
+      // Redirect to signin with inactivity flag
+      if (reason === 'inactivity') {
+        window.location.href = '/signin?inactivity=true'
+      } else {
+        window.location.href = '/signin?error=session'
+      }
+    }
+
+    tokenRefreshManager.setLogoutFunction(handleLogout)
+  }, [])
+
+  // Update activity timestamp on user interaction
+  useEffect(() => {
+    const updateActivity = () => {
+      lastActivityRef.current = Date.now()
+    }
+
+    // Track meaningful user activity
+    const events = ['mousedown', 'keydown', 'touchstart', 'scroll']
+    events.forEach(event => {
+      window.addEventListener(event, updateActivity, { passive: true })
+    })
+
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, updateActivity)
+      })
+    }
+  }, [])
+
+  // Auto-refresh token proactively (before expiry)
   useEffect(() => {
     if (!user) return
 
-    const REFRESH_INTERVAL = 50 * 60 * 1000 // 50 minutes in milliseconds
-    const EXPIRY_BUFFER = 10 * 60 * 1000 // 10 minutes buffer
+    const REFRESH_INTERVAL = 45 * 60 * 1000 // 45 minutes (more aggressive)
+    const EXPIRY_BUFFER = 15 * 60 * 1000 // 15 minutes buffer (more buffer)
+    const ACTIVITY_THRESHOLD = 30 * 60 * 1000 // 30 minutes - only refresh if user was active
 
     const refreshToken = async () => {
+      // Don't refresh if user has been inactive for too long
+      const timeSinceActivity = Date.now() - lastActivityRef.current
+      if (timeSinceActivity > ACTIVITY_THRESHOLD) {
+        return
+      }
+
+      // Don't refresh if a refresh just happened (via the manager)
+      if (tokenRefreshManager.getTimeSinceLastRefresh() < 60000) {
+        return
+      }
+
       try {
-        // Force refresh to get a new token
-        await setSessionCookie(user, true)
+        // Use the token refresh manager to coordinate
+        await tokenRefreshManager.refreshToken()
       } catch (err) {
         console.error('[Auth] Failed to refresh token:', err)
         // Don't clear session cookie here - let the server-side validation handle it
-        // This prevents accidental logout due to temporary network issues
       }
     }
 
@@ -91,7 +160,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const now = Date.now()
         const timeUntilExpiry = expirationTime - now
 
-        // If token expires in less than 10 minutes, refresh now
+        // If token expires within buffer, refresh now
         if (timeUntilExpiry < EXPIRY_BUFFER) {
           await refreshToken()
         }
@@ -109,14 +178,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Also refresh when window regains focus (handles backgrounded tabs)
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
+        // Update activity since user is back
+        lastActivityRef.current = Date.now()
         checkAndRefresh()
       }
     }
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
+    // Refresh on route changes (navigation)
+    const handleRouteChange = () => {
+      lastActivityRef.current = Date.now()
+      // Check token but don't force refresh on every navigation
+      checkAndRefresh()
+    }
+
+    // Listen to popstate for back/forward navigation
+    window.addEventListener('popstate', handleRouteChange)
+
     return () => {
       clearInterval(intervalId)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('popstate', handleRouteChange)
     }
   }, [user])
 
@@ -182,12 +264,50 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setError(null)
       const auth = getFirebaseAuth()
 
+      // Reset the token refresh manager
+      tokenRefreshManager.reset()
+
       await firebaseSignOut(auth)
       clearSessionCookie()
+      clearUserCookie()
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
       setError(errorMessage)
       throw err
+    }
+  }, [])
+
+  /**
+   * Sign out with a specific reason (for automatic logouts)
+   * This will redirect to signin with the appropriate message
+   */
+  const signOutWithReason = useCallback(async (reason: 'inactivity' | 'manual') => {
+    try {
+      setError(null)
+      const auth = getFirebaseAuth()
+
+      // Reset the token refresh manager
+      tokenRefreshManager.reset()
+
+      await firebaseSignOut(auth)
+      clearSessionCookie()
+      clearUserCookie()
+
+      // Redirect with the reason
+      if (reason === 'inactivity') {
+        window.location.href = '/signin?inactivity=true'
+      }
+    } catch (err) {
+      // Even if signout fails, still redirect for inactivity
+      if (reason === 'inactivity') {
+        clearSessionCookie()
+        clearUserCookie()
+        window.location.href = '/signin?inactivity=true'
+      } else {
+        const errorMessage = getFirebaseErrorMessage(err)
+        setError(errorMessage)
+        throw err
+      }
     }
   }, [])
 
@@ -221,6 +341,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       signUpWithEmail,
       signInWithGoogle,
       signOut,
+      signOutWithReason,
       deleteCurrentUser,
       clearError,
     }),
@@ -232,6 +353,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       signUpWithEmail,
       signInWithGoogle,
       signOut,
+      signOutWithReason,
       deleteCurrentUser,
       clearError,
     ]

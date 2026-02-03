@@ -87,16 +87,6 @@ export function middleware(request: NextRequest) {
     return handleLocale(request)
   }
 
-  // Session recovery page - requires session, handles temporary API errors with retries
-  if (pathname === '/session-recovery') {
-    // If no session, redirect to signin
-    if (!hasSession) {
-      return NextResponse.redirect(new URL('/signin', request.url))
-    }
-    // Let the page handle the recovery logic
-    return handleLocale(request)
-  }
-
   const isProtectedRoute = protectedRoutes.some(function (route) {
     return pathname.startsWith(route)
   })
@@ -118,15 +108,16 @@ export function middleware(request: NextRequest) {
   const isExpiredSession = request.nextUrl.searchParams.get('expired') === 'true'
   const hasTemporaryError = request.nextUrl.searchParams.get('error') === 'temporary'
   const isUserNotFound = request.nextUrl.searchParams.get('notfound') === 'true'
+  const isInactivityLogout = request.nextUrl.searchParams.get('inactivity') === 'true'
 
   // Redirect authenticated users away from auth routes
-  if (isAuthRoute && hasSession && !isExpiredSession && !hasTemporaryError && !isUserNotFound) {
+  if (isAuthRoute && hasSession && !isExpiredSession && !hasTemporaryError && !isUserNotFound && !isInactivityLogout) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   // Pass skipAuthRedirect flag when session has issues
   // This allows auth layout to skip its redirect logic
-  const skipAuthRedirect = isAuthRoute && (isExpiredSession || hasTemporaryError || isUserNotFound)
+  const skipAuthRedirect = isAuthRoute && (isExpiredSession || hasTemporaryError || isUserNotFound || isInactivityLogout)
 
   return handleLocale(request, skipAuthRedirect)
 }

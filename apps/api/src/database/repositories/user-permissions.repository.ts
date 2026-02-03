@@ -278,4 +278,37 @@ export class UserPermissionsRepository
 
     return results.length
   }
+
+  /**
+   * Batch toggle multiple permissions for a user.
+   * Updates all permissions in a single transaction.
+   */
+  async batchTogglePermissions(
+    userId: string,
+    changes: Array<{ permissionId: string; isEnabled: boolean }>,
+    assignedBy?: string
+  ): Promise<{ updated: number; failed: number }> {
+    let updated = 0
+    let failed = 0
+
+    for (const change of changes) {
+      try {
+        const result = await this.togglePermission(
+          userId,
+          change.permissionId,
+          change.isEnabled,
+          assignedBy
+        )
+        if (result) {
+          updated++
+        } else {
+          failed++
+        }
+      } catch {
+        failed++
+      }
+    }
+
+    return { updated, failed }
+  }
 }

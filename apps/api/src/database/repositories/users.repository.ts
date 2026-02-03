@@ -553,7 +553,7 @@ export class UsersRepository
           module: rp.module,
           action: rp.action,
           description: rp.description,
-          isEnabled: userPerm?.isEnabled ?? true, // Default to enabled if not in user_permissions
+          isEnabled: userPerm?.isEnabled ?? false, // Default to disabled if not in user_permissions
         }
       })
     }

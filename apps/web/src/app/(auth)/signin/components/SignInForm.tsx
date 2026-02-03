@@ -47,6 +47,7 @@ export function SignInForm() {
   const hasCleanedExpiredSession = useRef(false)
   const hasHandledTemporaryError = useRef(false)
   const hasHandledUserNotFound = useRef(false)
+  const hasHandledInactivity = useRef(false)
 
   // Get the validated redirect URL from search params
   const redirectUrl = useMemo(
@@ -129,6 +130,34 @@ export function SignInForm() {
         toast.error(t('auth.errors.userNotFound'))
 
         // Clean the URL by removing the notfound parameter
+        router.replace('/signin')
+      }
+    },
+    [searchParams, router, signOut, toast, t]
+  )
+
+  // Handle session expired due to inactivity
+  useEffect(
+    function () {
+      const inactivity = searchParams.get('inactivity')
+
+      if (inactivity === 'true' && !hasHandledInactivity.current) {
+        // Mark as handled immediately to prevent re-execution
+        hasHandledInactivity.current = true
+
+        // Clear cookies (should already be cleared, but just in case)
+        clearSessionCookie()
+        clearUserCookie()
+
+        // Sign out from Firebase (should already be signed out)
+        signOut().catch(() => {
+          // Ignore signOut errors since we've already cleared cookies
+        })
+
+        // Show info message to user (not error, since it's expected behavior)
+        toast.show(t('auth.errors.sessionExpiredInactivity'))
+
+        // Clean the URL by removing the inactivity parameter
         router.replace('/signin')
       }
     },

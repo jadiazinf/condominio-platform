@@ -18,6 +18,53 @@ import {
 } from '@/libs/cookies/server'
 
 const SESSION_COOKIE_NAME = '__session'
+const MAX_RETRIES = 3
+const INITIAL_DELAY_MS = 500
+
+/**
+ * Sleep for a given number of milliseconds
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+/**
+ * Retry a function with exponential backoff (silent retry)
+ * Returns the result on success, or throws on final failure
+ */
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  description: string,
+  maxRetries: number = MAX_RETRIES,
+  initialDelay: number = INITIAL_DELAY_MS
+): Promise<T> {
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error as Error
+
+      // Only retry for retryable errors (429, 5xx)
+      if (error instanceof FetchUserError && !error.isRetryable) {
+        throw error
+      }
+
+      // Don't wait after the last attempt
+      if (attempt < maxRetries - 1) {
+        // Exponential backoff: 500ms, 1000ms, 2000ms
+        const delay = initialDelay * Math.pow(2, attempt)
+        console.log(`[getFullSession] ${description} failed, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`)
+        await sleep(delay)
+      }
+    }
+  }
+
+  // All retries failed
+  console.error(`[getFullSession] ${description} failed after ${maxRetries} attempts:`, lastError)
+  throw lastError
+}
 
 export interface FullSession {
   user: TUser
@@ -44,6 +91,8 @@ export interface FullSession {
  * If user has multiple condominiums and none is selected, sets needsCondominiumSelection to true.
  * If session is invalid, redirects to signin.
  * If user doesn't exist, redirects to signup.
+ *
+ * Note: Temporary errors (429, 5xx) are retried silently with exponential backoff.
  */
 export async function getFullSession(): Promise<FullSession> {
   const cookieStore = await cookies()
@@ -80,17 +129,20 @@ export async function getFullSession(): Promise<FullSession> {
   let superadminPermissions: TPermission[] = []
 
   if (needsUserFetch) {
-    // Fetch user from API by Firebase UID
+    // Fetch user from API by Firebase UID with silent retry
     let fetchedUser: TUser | null = null
 
     try {
-      fetchedUser = await fetchUserByFirebaseUid(decodedToken.uid, sessionToken)
+      fetchedUser = await retryWithBackoff(
+        () => fetchUserByFirebaseUid(decodedToken.uid, sessionToken),
+        'fetchUserByFirebaseUid'
+      )
     } catch (error) {
-      // Handle retryable errors (429, 5xx) - redirect to signin with error
+      // If all retries failed with retryable errors, redirect to signin with temporary error
       if (error instanceof FetchUserError && error.isRetryable) {
-        redirect('/session-recovery')
+        redirect('/signin?error=temporary')
       }
-      // For other errors, continue to try sync by email
+      // For non-retryable errors (like 404), continue to try sync by email
     }
 
     // If user not found by Firebase UID, try to sync by email
@@ -98,11 +150,14 @@ export async function getFullSession(): Promise<FullSession> {
     // (e.g., testing across different environments or Firebase projects)
     if (!fetchedUser && decodedToken.email) {
       try {
-        fetchedUser = await syncUserFirebaseUid(decodedToken.email, decodedToken.uid, sessionToken)
+        fetchedUser = await retryWithBackoff(
+          () => syncUserFirebaseUid(decodedToken.email!, decodedToken.uid, sessionToken),
+          'syncUserFirebaseUid'
+        )
       } catch (error) {
-        // Handle retryable errors (429, 5xx) - redirect to signin with error
+        // If all retries failed with retryable errors, redirect to signin with temporary error
         if (error instanceof FetchUserError && error.isRetryable) {
-          redirect('/session-recovery')
+          redirect('/signin?error=temporary')
         }
         // For other errors, continue (fetchedUser will be null)
       }
@@ -117,10 +172,16 @@ export async function getFullSession(): Promise<FullSession> {
 
     user = fetchedUser
 
-    // Fetch condominiums and superadmin in parallel
+    // Fetch condominiums and superadmin in parallel (with silent retry)
     const [condominiumsResponse, superadminSession] = await Promise.all([
-      fetchUserCondominiums(sessionToken),
-      fetchSuperadminSession(fetchedUser.id, sessionToken),
+      retryWithBackoff(
+        () => fetchUserCondominiums(sessionToken),
+        'fetchUserCondominiums'
+      ).catch(() => null), // Non-critical - fall back to empty
+      retryWithBackoff(
+        () => fetchSuperadminSession(fetchedUser.id, sessionToken),
+        'fetchSuperadminSession'
+      ).catch(() => null), // Non-critical - fall back to null
     ])
 
     condominiums = condominiumsResponse?.condominiums ?? []
@@ -135,7 +196,12 @@ export async function getFullSession(): Promise<FullSession> {
 
     // Always verify superadmin status from API to catch permission changes
     // This ensures users get updated permissions even if they have valid cached user data
-    const superadminSession = await fetchSuperadminSession(user.id, sessionToken)
+    // Use silent retry for resilience
+    const superadminSession = await retryWithBackoff(
+      () => fetchSuperadminSession(user.id, sessionToken),
+      'fetchSuperadminSession'
+    ).catch(() => null) // Non-critical - fall back to cached or null
+
     superadmin = superadminSession?.superadmin ?? null
     superadminPermissions = superadminSession?.permissions ?? []
   }

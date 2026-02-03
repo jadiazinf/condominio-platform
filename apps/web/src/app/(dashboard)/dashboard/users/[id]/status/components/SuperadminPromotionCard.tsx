@@ -8,12 +8,12 @@ import { Typography } from '@/ui/components/typography'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Checkbox } from '@/ui/components/checkbox'
 import { useToast } from '@/ui/components/toast'
-import { Shield, AlertTriangle, Settings } from 'lucide-react'
+import { Shield, AlertTriangle, Settings, Save } from 'lucide-react'
 import { useTranslation } from '@/contexts'
 import {
   usePromoteToSuperadmin,
   useDemoteFromSuperadmin,
-  useToggleUserPermission,
+  useBatchToggleUserPermissions,
 } from '@packages/http-client/hooks'
 import { PermissionsStep } from '../../../new/components/PermissionsStep'
 
@@ -87,8 +87,14 @@ export function SuperadminPromotionCard({
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(
     new Set(currentPermissions.filter(p => p.isEnabled).map(p => p.permissionId))
   )
-  const [customPermissions, setCustomPermissions] = useState<Record<string, boolean>>({})
-  const [togglingPermissionId, setTogglingPermissionId] = useState<string | null>(null)
+  // Track current permission states for visual display (updates on toggle)
+  const [customPermissions, setCustomPermissions] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {}
+    currentPermissions.forEach(p => {
+      initial[p.permissionId] = p.isEnabled
+    })
+    return initial
+  })
 
   const toast = useToast()
   const router = useRouter()
@@ -119,13 +125,14 @@ export function SuperadminPromotionCard({
     },
   })
 
-  const togglePermissionMutation = useToggleUserPermission({
+  const batchToggleMutation = useBatchToggleUserPermissions({
     onSuccess: (response) => {
-      toast.success(response.data.message || t('superadmin.users.detail.statusSection.permissionToggleSuccess'))
+      toast.success(response.data.message || t('superadmin.users.detail.statusSection.permissionsSaved') || 'Permisos actualizados correctamente')
+      setIsPermissionsModalOpen(false)
       router.refresh()
     },
     onError: (error) => {
-      toast.error(error.message || t('superadmin.users.detail.statusSection.permissionToggleError'))
+      toast.error(error.message || t('superadmin.users.detail.statusSection.permissionsSaveError') || 'Error al actualizar permisos')
     },
   })
 
@@ -229,38 +236,56 @@ export function SuperadminPromotionCard({
     demoteMutation.mutate({ userId })
   }
 
+  // Toggle permission visually (updates local state, no API call)
   const handleToggleExistingPermission = useCallback(
     (permissionId: string) => {
       if (isOwnProfile) return
 
-      const permission = currentPermissions.find(p => p.permissionId === permissionId)
-      if (!permission) return
-
-      const currentState = customPermissions[permissionId] ?? permission.isEnabled
-      const newState = !currentState
-
-      setCustomPermissions(prev => ({ ...prev, [permissionId]: newState }))
-      setTogglingPermissionId(permissionId)
-
-      togglePermissionMutation.mutate(
-        { userId, permissionId, isEnabled: newState },
-        {
-          onError: () => {
-            setCustomPermissions(prev => ({ ...prev, [permissionId]: currentState }))
-          },
-          onSettled: () => {
-            setTogglingPermissionId(null)
-          },
-        }
-      )
+      setCustomPermissions(prev => ({
+        ...prev,
+        [permissionId]: !prev[permissionId],
+      }))
     },
-    [userId, currentPermissions, customPermissions, isOwnProfile, togglePermissionMutation]
+    [isOwnProfile]
   )
 
-  // Count enabled permissions
-  const enabledCount = currentPermissions.filter(p =>
-    customPermissions[p.permissionId] ?? p.isEnabled
-  ).length
+  // Calculate which permissions have changed from their original server state
+  const changedPermissions = useMemo(() => {
+    const changes: Array<{ permissionId: string; isEnabled: boolean }> = []
+    currentPermissions.forEach(p => {
+      const currentValue = customPermissions[p.permissionId]
+      if (currentValue !== undefined && currentValue !== p.isEnabled) {
+        changes.push({ permissionId: p.permissionId, isEnabled: currentValue })
+      }
+    })
+    return changes
+  }, [currentPermissions, customPermissions])
+
+  const hasChanges = changedPermissions.length > 0
+
+  // Save all permission changes in a single batch request
+  const handleSavePermissions = useCallback(() => {
+    if (!hasChanges || isOwnProfile) return
+
+    batchToggleMutation.mutate({
+      userId,
+      changes: changedPermissions,
+    })
+  }, [hasChanges, isOwnProfile, changedPermissions, userId, batchToggleMutation])
+
+  // Reset to original server state when modal closes
+  const handleClosePermissionsModal = useCallback(() => {
+    setIsPermissionsModalOpen(false)
+    // Reset customPermissions to original server state
+    const original: Record<string, boolean> = {}
+    currentPermissions.forEach(p => {
+      original[p.permissionId] = p.isEnabled
+    })
+    setCustomPermissions(original)
+  }, [currentPermissions])
+
+  // Count enabled permissions (always from server state)
+  const enabledCount = currentPermissions.filter(p => p.isEnabled).length
 
   if (isSuperadmin) {
     // Show superadmin management card
@@ -317,7 +342,7 @@ export function SuperadminPromotionCard({
         {/* Edit Permissions Modal */}
         <Modal
           isOpen={isPermissionsModalOpen}
-          onClose={() => setIsPermissionsModalOpen(false)}
+          onClose={handleClosePermissionsModal}
           size="3xl"
         >
           <ModalContent>
@@ -337,16 +362,33 @@ export function SuperadminPromotionCard({
                   </div>
                 </Card>
               )}
+              {/* Show pending changes count */}
+              {hasChanges && (
+                <div className="mb-4 p-3 bg-primary-50 border border-primary-200 rounded-lg">
+                  <Typography variant="body2" color="primary">
+                    {changedPermissions.length} {t('superadmin.users.detail.statusSection.pendingChanges') || 'cambios pendientes'}
+                  </Typography>
+                </div>
+              )}
               <PermissionsStep
                 rolePermissions={rolePermissions}
                 customPermissions={customPermissions}
                 onTogglePermission={handleToggleExistingPermission}
-                isLoading={togglingPermissionId !== null}
+                isLoading={batchToggleMutation.isPending}
               />
             </ModalBody>
             <ModalFooter>
-              <Button variant="bordered" onPress={() => setIsPermissionsModalOpen(false)}>
-                {t('common.close') || 'Cerrar'}
+              <Button variant="bordered" onPress={handleClosePermissionsModal} isDisabled={batchToggleMutation.isPending}>
+                {t('common.cancel') || 'Cancelar'}
+              </Button>
+              <Button
+                color="primary"
+                onPress={handleSavePermissions}
+                isLoading={batchToggleMutation.isPending}
+                isDisabled={!hasChanges || isOwnProfile}
+                startContent={!batchToggleMutation.isPending && <Save className="h-4 w-4" />}
+              >
+                {t('common.save') || 'Guardar'}
               </Button>
             </ModalFooter>
           </ModalContent>

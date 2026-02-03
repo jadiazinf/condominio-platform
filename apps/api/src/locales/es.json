@@ -60,6 +60,7 @@
         "failedToDemote": "Error al degradar al usuario de superadministrador.",
         "statusUpdated": "Estado del usuario actualizado correctamente.",
         "permissionUpdated": "Permiso actualizado correctamente.",
+        "permissionsUpdated": "Permisos actualizados correctamente.",
         "promotedToSuperadmin": "Usuario promocionado a superadministrador correctamente.",
         "demotedFromSuperadmin": "Usuario degradado de superadministrador correctamente.",
         "profileUpdated": "Perfil actualizado correctamente.",

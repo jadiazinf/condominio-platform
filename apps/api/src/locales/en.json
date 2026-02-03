@@ -60,6 +60,7 @@
         "failedToDemote": "Failed to demote user from superadmin.",
         "statusUpdated": "User status updated successfully.",
         "permissionUpdated": "Permission updated successfully.",
+        "permissionsUpdated": "Permissions updated successfully.",
         "promotedToSuperadmin": "User promoted to superadmin successfully.",
         "demotedFromSuperadmin": "User demoted from superadmin successfully.",
         "profileUpdated": "Profile updated successfully.",

@@ -28,6 +28,7 @@ import {
   UpdateUserStatusService,
   GetAllRolesService,
   ToggleUserPermissionService,
+  BatchToggleUserPermissionsService,
   PromoteToSuperadminService,
   DemoteFromSuperadminService,
 } from '@src/services/users'
@@ -59,6 +60,15 @@ const UpdateStatusSchema = z.object({
 const TogglePermissionSchema = z.object({
   permissionId: z.uuid(),
   isEnabled: z.boolean(),
+})
+
+const BatchTogglePermissionsSchema = z.object({
+  changes: z.array(
+    z.object({
+      permissionId: z.uuid(),
+      isEnabled: z.boolean(),
+    })
+  ).min(1, 'At least one change is required'),
 })
 
 const PromoteToSuperadminSchema = z.object({
@@ -108,6 +118,7 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
   private readonly updateUserStatusService: UpdateUserStatusService
   private readonly getAllRolesService: GetAllRolesService
   private readonly toggleUserPermissionService: ToggleUserPermissionService
+  private readonly batchToggleUserPermissionsService: BatchToggleUserPermissionsService
   private readonly promoteToSuperadminService: PromoteToSuperadminService
   private readonly demoteFromSuperadminService: DemoteFromSuperadminService
 
@@ -130,6 +141,7 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
     this.updateUserStatusService = new UpdateUserStatusService(repository)
     this.getAllRolesService = new GetAllRolesService(repository)
     this.toggleUserPermissionService = new ToggleUserPermissionService(userPermissionsRepository)
+    this.batchToggleUserPermissionsService = new BatchToggleUserPermissionsService(userPermissionsRepository)
     this.promoteToSuperadminService = new PromoteToSuperadminService(
       userRolesRepository,
       userPermissionsRepository
@@ -203,12 +215,19 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
         handler: this.updateStatus,
         middlewares: [authMiddleware, paramsValidator(IdParamSchema), bodyValidator(UpdateStatusSchema)],
       },
-      // Permission toggle endpoint
+      // Permission toggle endpoint (single)
       {
         method: 'patch',
         path: '/:id/permissions',
         handler: this.togglePermission,
         middlewares: [authMiddleware, paramsValidator(IdParamSchema), bodyValidator(TogglePermissionSchema)],
+      },
+      // Permission batch toggle endpoint (multiple)
+      {
+        method: 'patch',
+        path: '/:id/permissions/batch',
+        handler: this.batchTogglePermissions,
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema), bodyValidator(BatchTogglePermissionsSchema)],
       },
       // Superadmin promotion/demotion endpoints
       {
@@ -478,6 +497,37 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
     }
 
     return ctx.ok({ data: result.data, message: t(LocaleDictionary.http.controllers.users.permissionUpdated) })
+  }
+
+  /**
+   * Batch toggle multiple user permissions.
+   * PATCH /users/:id/permissions/batch
+   * Note: Users cannot modify their own permissions.
+   */
+  private batchTogglePermissions = async (c: Context): Promise<Response> => {
+    const t = useTranslation(c)
+    const ctx = this.ctx<{ changes: Array<{ permissionId: string; isEnabled: boolean }> }, unknown, TIdParam>(c)
+    const currentUser = ctx.getAuthenticatedUser()
+
+    // Prevent users from modifying their own permissions
+    if (currentUser.id === ctx.params.id) {
+      throw AppError.forbidden(t(LocaleDictionary.http.controllers.users.cannotModifyOwnPermissions))
+    }
+
+    const result = await this.batchToggleUserPermissionsService.execute({
+      userId: ctx.params.id,
+      changes: ctx.body.changes,
+      assignedBy: currentUser.id,
+    })
+
+    if (!result.success) {
+      throw AppError.internal(result.error)
+    }
+
+    return ctx.ok({
+      data: result.data,
+      message: t(LocaleDictionary.http.controllers.users.permissionsUpdated) || 'Permisos actualizados correctamente',
+    })
   }
 
   /**
