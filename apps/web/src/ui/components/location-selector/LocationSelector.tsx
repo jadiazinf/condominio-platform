@@ -135,11 +135,19 @@ export function LocationSelector({
     return null
   }, [selectedCountryId, selectedProvinceId, selectedCityId])
 
+  // Track the last notified value to avoid duplicate onChange calls
+  const lastNotifiedValueRef = useRef<string | null | undefined>(undefined)
+
   // Notify parent of changes - only when a complete location is selected
   // Skip during initialization to avoid resetting form values
   useEffect(() => {
     if (isInitializing) return
     const locationId = getCompleteLocationId()
+
+    // Only notify if the value actually changed
+    if (lastNotifiedValueRef.current === locationId) return
+    lastNotifiedValueRef.current = locationId
+
     onChange?.(locationId)
   }, [getCompleteLocationId, onChange, isInitializing])
 

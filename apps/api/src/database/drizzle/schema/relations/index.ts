@@ -11,6 +11,7 @@ import { rolePermissions } from '../tables/role-permissions'
 import { userPermissions } from '../tables/user-permissions'
 import { managementCompanies } from '../tables/management-companies'
 import { condominiums } from '../tables/condominiums'
+import { condominiumManagementCompanies } from '../tables/condominium-management-companies'
 import { buildings } from '../tables/buildings'
 import { userRoles } from '../tables/user-roles'
 import { units } from '../tables/units'
@@ -225,7 +226,8 @@ export const managementCompaniesRelations = relations(managementCompanies, ({ on
     fields: [managementCompanies.createdBy],
     references: [users.id],
   }),
-  condominiums: many(condominiums),
+  // Many-to-many via junction table
+  condominiumAssignments: many(condominiumManagementCompanies),
   adminInvitations: many(adminInvitations),
   subscriptions: many(managementCompanySubscriptions),
   members: many(managementCompanyMembers),
@@ -233,10 +235,8 @@ export const managementCompaniesRelations = relations(managementCompanies, ({ on
 }))
 
 export const condominiumsRelations = relations(condominiums, ({ one, many }) => ({
-  managementCompany: one(managementCompanies, {
-    fields: [condominiums.managementCompanyId],
-    references: [managementCompanies.id],
-  }),
+  // Many-to-many via junction table
+  managementCompanyAssignments: many(condominiumManagementCompanies),
   location: one(locations, {
     fields: [condominiums.locationId],
     references: [locations.id],
@@ -260,6 +260,25 @@ export const condominiumsRelations = relations(condominiums, ({ one, many }) => 
   quotaFormulas: many(quotaFormulas),
   quotaGenerationRules: many(quotaGenerationRules),
 }))
+
+// Junction table relations for condominium-management company many-to-many
+export const condominiumManagementCompaniesRelations = relations(
+  condominiumManagementCompanies,
+  ({ one }) => ({
+    condominium: one(condominiums, {
+      fields: [condominiumManagementCompanies.condominiumId],
+      references: [condominiums.id],
+    }),
+    managementCompany: one(managementCompanies, {
+      fields: [condominiumManagementCompanies.managementCompanyId],
+      references: [managementCompanies.id],
+    }),
+    assignedByUser: one(users, {
+      fields: [condominiumManagementCompanies.assignedBy],
+      references: [users.id],
+    }),
+  })
+)
 
 export const buildingsRelations = relations(buildings, ({ one, many }) => ({
   condominium: one(condominiums, {

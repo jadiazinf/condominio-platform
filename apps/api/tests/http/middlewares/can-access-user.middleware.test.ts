@@ -196,9 +196,7 @@ describe('Can Access User Middleware', () => {
       const managementCompany = await managementCompaniesRepo.create(managementCompanyData)
 
       // Create condominium under management company
-      const condominiumData = CondominiumFactory.create({
-        managementCompanyId: managementCompany.id,
-      })
+      const condominiumData = CondominiumFactory.withManagementCompanies([managementCompany.id])
       const condominium = await condominiumsRepo.create(condominiumData)
 
       // Create admin role
@@ -245,9 +243,7 @@ describe('Can Access User Middleware', () => {
       const managementCompany = await managementCompaniesRepo.create(managementCompanyData)
 
       // Create condominium under management company
-      const condominiumData = CondominiumFactory.create({
-        managementCompanyId: managementCompany.id,
-      })
+      const condominiumData = CondominiumFactory.withManagementCompanies([managementCompany.id])
       const condominium = await condominiumsRepo.create(condominiumData)
 
       // Create admin role and assign to admin user
@@ -285,17 +281,17 @@ describe('Can Access User Middleware', () => {
       const managementCompany2 = await managementCompaniesRepo.create(managementCompany2Data)
 
       // Admin is admin of company 1's condominium
-      const condominium1Data = CondominiumFactory.create({
-        managementCompanyId: managementCompany1.id,
-        code: 'CONDO-1',
-      })
+      const condominium1Data = CondominiumFactory.withManagementCompanies(
+        [managementCompany1.id],
+        { code: 'CONDO-1' }
+      )
       const condominium1 = await condominiumsRepo.create(condominium1Data)
 
       // Target user is in company 2's condominium
-      const condominium2Data = CondominiumFactory.create({
-        managementCompanyId: managementCompany2.id,
-        code: 'CONDO-2',
-      })
+      const condominium2Data = CondominiumFactory.withManagementCompanies(
+        [managementCompany2.id],
+        { code: 'CONDO-2' }
+      )
       const condominium2 = await condominiumsRepo.create(condominium2Data)
 
       // Create admin role
@@ -381,9 +377,7 @@ describe('Can Access User Middleware', () => {
       const managementCompanyData = ManagementCompanyFactory.create()
       const managementCompany = await managementCompaniesRepo.create(managementCompanyData)
 
-      const condominiumData = CondominiumFactory.create({
-        managementCompanyId: managementCompany.id,
-      })
+      const condominiumData = CondominiumFactory.withManagementCompanies([managementCompany.id])
       const condominium = await condominiumsRepo.create(condominiumData)
 
       // Create supervisor role (not admin)

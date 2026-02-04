@@ -104,15 +104,16 @@ export function createHttpClient(config: HttpClientConfig = {}) {
       ...requestConfig?.headers,
     }
 
-    if (config.getAuthToken) {
-      const token = await config.getAuthToken()
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-      } else {
-        console.warn('[HttpClient] No auth token available for request to:', path)
+    // Only handle auth token if not already provided in request headers
+    const hasManualAuth = requestConfig?.headers?.['Authorization'] || requestConfig?.headers?.['authorization']
+
+    if (!hasManualAuth) {
+      if (config.getAuthToken) {
+        const token = await config.getAuthToken()
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+        }
       }
-    } else {
-      console.warn('[HttpClient] No getAuthToken configured for request to:', path)
     }
 
     if (config.getLocale) {

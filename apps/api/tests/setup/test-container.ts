@@ -341,10 +341,10 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(255) NOT NULL,
       code VARCHAR(50) UNIQUE,
-      management_company_id UUID REFERENCES management_companies(id) ON DELETE SET NULL,
       address VARCHAR(500),
       location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
       email VARCHAR(255),
+      phone_country_code VARCHAR(10),
       phone VARCHAR(50),
       default_currency_id UUID REFERENCES currencies(id) ON DELETE SET NULL,
       is_active BOOLEAN DEFAULT true,
@@ -352,6 +352,16 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS condominium_management_companies (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      management_company_id UUID NOT NULL REFERENCES management_companies(id) ON DELETE CASCADE,
+      assigned_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      assigned_at TIMESTAMP DEFAULT NOW(),
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
     );
 
     CREATE TABLE IF NOT EXISTS buildings (
@@ -953,6 +963,7 @@ export async function cleanDatabase(testDb: TTestDrizzleClient): Promise<void> {
       units,
       user_roles,
       buildings,
+      condominium_management_companies,
       condominiums,
       admin_invitations,
       user_invitations,

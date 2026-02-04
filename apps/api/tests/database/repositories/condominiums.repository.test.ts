@@ -52,19 +52,20 @@ describe('CondominiumsRepository', () => {
       expect(result.isActive).toBe(true)
     })
 
-    it('should create condominium with management company', async () => {
+    it('should create condominium with management companies', async () => {
       const company = await managementCompaniesRepository.create(
         ManagementCompanyFactory.create({ name: 'Admin Co' })
       )
 
       const data = CondominiumFactory.create({
         name: 'Managed Condo',
-        managementCompanyId: company.id,
+        managementCompanyIds: [company.id],
       })
 
       const result = await repository.create(data)
 
-      expect(result.managementCompanyId).toBe(company.id)
+      expect(result.managementCompanyIds).toContain(company.id)
+      expect(result.managementCompanyIds).toHaveLength(1)
     })
 
     it('should create condominium with default currency', async () => {
@@ -175,22 +176,25 @@ describe('CondominiumsRepository', () => {
       const company = await managementCompaniesRepository.create(
         ManagementCompanyFactory.create({ name: 'Admin Co' })
       )
+      const otherCompany = await managementCompaniesRepository.create(
+        ManagementCompanyFactory.create({ name: 'Other Co' })
+      )
 
       await repository.create(
-        CondominiumFactory.create({ name: 'Condo 1', code: 'C1', managementCompanyId: company.id })
+        CondominiumFactory.create({ name: 'Condo 1', code: 'C1', managementCompanyIds: [company.id] })
       )
       await repository.create(
-        CondominiumFactory.create({ name: 'Condo 2', code: 'C2', managementCompanyId: company.id })
+        CondominiumFactory.create({ name: 'Condo 2', code: 'C2', managementCompanyIds: [company.id] })
       )
-      await repository.create(CondominiumFactory.create({ name: 'Other Condo', code: 'C3' }))
+      await repository.create(
+        CondominiumFactory.create({ name: 'Other Condo', code: 'C3', managementCompanyIds: [otherCompany.id] })
+      )
 
       const result = await repository.getByManagementCompanyId(company.id)
 
       expect(result).toHaveLength(2)
       expect(
-        result.every(
-          (c: { managementCompanyId: string | null }) => c.managementCompanyId === company.id
-        )
+        result.every((c: { managementCompanyIds: string[] }) => c.managementCompanyIds.includes(company.id))
       ).toBe(true)
     })
   })

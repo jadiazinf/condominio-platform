@@ -1,5 +1,6 @@
 import type { TUser, TUserCondominiumAccess, TUserRole, TPermission } from '@packages/domain'
 
+import { cache } from 'react'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import {
@@ -93,8 +94,12 @@ export interface FullSession {
  * If user doesn't exist, redirects to signup.
  *
  * Note: Temporary errors (429, 5xx) are retried silently with exponential backoff.
+ *
+ * This function is wrapped with React's cache() to deduplicate calls within
+ * the same request. Multiple components calling getFullSession() will share
+ * the same result, preventing duplicate API calls and rate limiting issues.
  */
-export async function getFullSession(): Promise<FullSession> {
+export const getFullSession = cache(async function getFullSession(): Promise<FullSession> {
   const cookieStore = await cookies()
   const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value
 
@@ -220,4 +225,4 @@ export async function getFullSession(): Promise<FullSession> {
     needsCondominiumSelection,
     wasFetched: needsUserFetch,
   }
-}
+})

@@ -18,6 +18,7 @@ import { ErrorCodes } from '@http/responses/types'
 // Mock repository type with custom methods
 type TMockCondominiumsRepository = {
   listAll: () => Promise<TCondominium[]>
+  listPaginated: (query: unknown) => Promise<{ data: TCondominium[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>
   getById: (id: string) => Promise<TCondominium | null>
   create: (data: TCondominiumCreate) => Promise<TCondominium>
   update: (id: string, data: TCondominiumUpdate) => Promise<TCondominium | null>
@@ -38,13 +39,13 @@ describe('CondominiumsController', function () {
     const condo1 = CondominiumFactory.create({
       name: 'Residencias El Sol',
       code: 'RES-001',
-      managementCompanyId: '550e8400-e29b-41d4-a716-446655440010',
+      managementCompanyIds: ['550e8400-e29b-41d4-a716-446655440010'],
       locationId: '550e8400-e29b-41d4-a716-446655440020',
     })
     const condo2 = CondominiumFactory.create({
       name: 'Torre Central',
       code: 'TOR-001',
-      managementCompanyId: '550e8400-e29b-41d4-a716-446655440010',
+      managementCompanyIds: ['550e8400-e29b-41d4-a716-446655440010'],
       locationId: '550e8400-e29b-41d4-a716-446655440020',
     })
 
@@ -57,6 +58,17 @@ describe('CondominiumsController', function () {
     mockRepository = {
       listAll: async function () {
         return testCondominiums
+      },
+      listPaginated: async function () {
+        return {
+          data: testCondominiums,
+          pagination: {
+            page: 1,
+            limit: 20,
+            total: testCondominiums.length,
+            totalPages: 1,
+          },
+        }
       },
       getById: async function (id: string) {
         return (
@@ -89,7 +101,7 @@ describe('CondominiumsController', function () {
       },
       getByManagementCompanyId: async function (managementCompanyId: string) {
         return testCondominiums.filter(function (c) {
-          return c.managementCompanyId === managementCompanyId
+          return c.managementCompanyIds?.includes(managementCompanyId)
         })
       },
       getByLocationId: async function (locationId: string) {
@@ -123,8 +135,16 @@ describe('CondominiumsController', function () {
     })
 
     it('should return empty array when no condominiums exist', async function () {
-      mockRepository.listAll = async function () {
-        return []
+      mockRepository.listPaginated = async function () {
+        return {
+          data: [],
+          pagination: {
+            page: 1,
+            limit: 20,
+            total: 0,
+            totalPages: 0,
+          },
+        }
       }
 
       const res = await request('/condominiums')
@@ -237,7 +257,10 @@ describe('CondominiumsController', function () {
 
   describe('POST / (create)', function () {
     it('should create a new condominium', async function () {
-      const newCondo = CondominiumFactory.create({ name: 'Nuevo Condominio', code: 'NEW-001' })
+      const newCondo = CondominiumFactory.withManagementCompanies(
+        ['550e8400-e29b-41d4-a716-446655440010'],
+        { name: 'Nuevo Condominio', code: 'NEW-001' }
+      )
 
       const res = await request('/condominiums', {
         method: 'POST',
@@ -275,7 +298,10 @@ describe('CondominiumsController', function () {
         throw new Error('duplicate key value violates unique constraint')
       }
 
-      const newCondo = CondominiumFactory.create({ code: 'RES-001' })
+      const newCondo = CondominiumFactory.withManagementCompanies(
+        ['550e8400-e29b-41d4-a716-446655440010'],
+        { code: 'RES-001' }
+      )
 
       const res = await request('/condominiums', {
         method: 'POST',
@@ -345,7 +371,7 @@ describe('CondominiumsController', function () {
 
   describe('Error handling', function () {
     it('should return 500 for unexpected errors', async function () {
-      mockRepository.listAll = async function () {
+      mockRepository.listPaginated = async function () {
         throw new Error('Unexpected database error')
       }
 

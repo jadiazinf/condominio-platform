@@ -1,4 +1,4 @@
-export type TCondominiumDetailIconName = 'info' | 'building' | 'users' | 'settings' | 'toggle'
+export type TCondominiumDetailIconName = 'info' | 'building' | 'users' | 'toggle'
 
 export interface ICondominiumDetailMenuItem {
   key: string
@@ -25,12 +25,6 @@ export const CONDOMINIUM_DETAIL_MENU_ITEMS: ICondominiumDetailMenuItem[] = [
     translationKey: 'superadmin.condominiums.detail.sidebar.users',
     path: '/users',
     iconName: 'users',
-  },
-  {
-    key: 'configuration',
-    translationKey: 'superadmin.condominiums.detail.sidebar.configuration',
-    path: '/configuration',
-    iconName: 'settings',
   },
   {
     key: 'status',

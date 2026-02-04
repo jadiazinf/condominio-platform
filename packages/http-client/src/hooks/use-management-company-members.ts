@@ -4,9 +4,18 @@ import type { TApiDataResponse } from '../types/api-responses'
 import type { ApiResponse } from '../types/http'
 import type {
   TManagementCompanyMember,
-  TManagementCompanyMemberCreate,
   TManagementCompanyMemberUpdate,
+  TMemberPermissions,
 } from '@packages/domain'
+
+// Request body type matching the API's AddMemberBodySchema
+export interface IAddMemberRequest {
+  userId: string
+  role: 'admin' | 'accountant' | 'support' | 'viewer'
+  permissions?: TMemberPermissions
+  isPrimary?: boolean
+  invitedBy?: string
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Query Keys
@@ -127,19 +136,17 @@ export async function getPrimaryAdmin(companyId: string): Promise<TManagementCom
  * Hook to add a new member to a management company
  */
 export function useAddMember(companyId: string, options?: IAddMemberOptions) {
-  return useApiMutation<TApiDataResponse<TManagementCompanyMember>, TManagementCompanyMemberCreate>(
-    {
-      path: `/management-companies/${companyId}/members`,
-      method: 'POST',
-      config: {},
-      onSuccess: options?.onSuccess,
-      onError: options?.onError,
-      invalidateKeys: [
-        managementCompanyMemberKeys.list(companyId),
-        managementCompanyMemberKeys.primaryAdmin(companyId),
-      ],
-    }
-  )
+  return useApiMutation<TApiDataResponse<TManagementCompanyMember>, IAddMemberRequest>({
+    path: `/management-companies/${companyId}/members`,
+    method: 'POST',
+    config: {},
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+    invalidateKeys: [
+      managementCompanyMemberKeys.list(companyId),
+      managementCompanyMemberKeys.primaryAdmin(companyId),
+    ],
+  })
 }
 
 /**
@@ -147,7 +154,7 @@ export function useAddMember(companyId: string, options?: IAddMemberOptions) {
  */
 export async function addMember(
   companyId: string,
-  data: TManagementCompanyMemberCreate
+  data: IAddMemberRequest
 ): Promise<TManagementCompanyMember> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<TManagementCompanyMember>>(

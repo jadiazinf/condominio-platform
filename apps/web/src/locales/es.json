@@ -7,6 +7,7 @@
     "save": "Guardar",
     "saving": "Guardando...",
     "delete": "Eliminar",
+    "deleting": "Eliminando...",
     "edit": "Editar",
     "create": "Crear",
     "search": "Buscar",
@@ -27,7 +28,11 @@
     "province": "Estado/Provincia",
     "provincePlaceholder": "Selecciona un estado",
     "city": "Ciudad",
-    "cityPlaceholder": "Selecciona una ciudad"
+    "cityPlaceholder": "Selecciona una ciudad",
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    }
   },
   "nav": {
     "home": "Inicio",
@@ -621,13 +626,75 @@
           "website": "Sitio Web",
           "address": "Dirección",
           "noData": "No especificado"
+        },
+        "members": {
+          "title": "Miembros del Equipo",
+          "subtitle": "Gestiona los miembros y permisos de esta administradora",
+          "addMember": "Agregar Miembro",
+          "noMembers": "No hay miembros",
+          "noMembersDescription": "Esta administradora aún no tiene miembros registrados",
+          "modal": {
+            "title": "Agregar Miembro",
+            "existingUser": "Usuario Existente",
+            "newUser": "Crear Usuario",
+            "searchPlaceholder": "Buscar por nombre o email...",
+            "searchMinChars": "Escribe al menos 2 caracteres para buscar",
+            "noResults": "No se encontraron usuarios",
+            "addAsAdmin": "Agregar como Admin",
+            "createAndAdd": "Crear y Agregar como Admin",
+            "adminNote": "El usuario será agregado con rol Administrador y todos los permisos de admin.",
+            "inviteNote": "El usuario recibirá un email de invitación y será agregado con rol Administrador."
+          },
+          "table": {
+            "member": "Miembro",
+            "role": "Rol",
+            "joinedAt": "Fecha de Ingreso",
+            "status": "Estado"
+          },
+          "roles": {
+            "admin": "Administrador",
+            "accountant": "Contador",
+            "support": "Soporte",
+            "viewer": "Visualizador"
+          },
+          "status": {
+            "active": "Activo",
+            "inactive": "Inactivo"
+          },
+          "success": {
+            "added": "Miembro agregado exitosamente",
+            "created": "Usuario creado y agregado como miembro"
+          },
+          "error": {
+            "add": "Error al agregar miembro",
+            "create": "Error al crear usuario",
+            "config": "Error de configuración. Por favor recarga la página."
+          },
+          "form": {
+            "email": "Email",
+            "emailPlaceholder": "correo@ejemplo.com",
+            "firstName": "Nombre",
+            "firstNamePlaceholder": "Juan",
+            "lastName": "Apellido",
+            "lastNamePlaceholder": "Pérez",
+            "phoneCountryCode": "Código País",
+            "phone": "Teléfono",
+            "phonePlaceholder": "4121234567",
+            "documentType": "Tipo Documento",
+            "documentNumber": "Nº Documento",
+            "documentTypes": {
+              "CI": "Cédula",
+              "RIF": "RIF",
+              "Pasaporte": "Pasaporte"
+            }
+          }
         }
       }
     },
     "condominiums": {
       "title": "Condominios",
       "subtitle": "Gestiona todos los condominios registrados en el sistema",
-      "create": "Agregar Condominio",
+      "create": "Crear Condominio",
       "empty": "No hay condominios registrados",
       "emptyDescription": "Aún no se han registrado condominios en el sistema",
       "noResults": "No se encontraron condominios",
@@ -662,6 +729,81 @@
       "noContact": "Sin contacto",
       "noAddress": "-",
       "error": "Error al cargar los condominios",
+      "form": {
+        "createTitle": "Crear Condominio",
+        "createSubtitle": "Registra un nuevo condominio en el sistema",
+        "submit": "Crear Condominio",
+        "submitting": "Creando...",
+        "success": "Condominio creado exitosamente",
+        "error": "Error al crear el condominio",
+        "codeGenerated": "Código generado exitosamente",
+        "codeGenerateError": "Error al generar el código",
+        "basicSection": {
+          "title": "Información Básica",
+          "description": "Datos de identificación del condominio"
+        },
+        "contactSection": {
+          "title": "Información de Contacto",
+          "description": "Datos de contacto del condominio"
+        },
+        "locationSection": {
+          "title": "Ubicación",
+          "description": "Ubicación geográfica y dirección del condominio"
+        },
+        "fields": {
+          "name": "Nombre del Condominio",
+          "namePlaceholder": "Ej: Residencias El Parque",
+          "nameDescription": "Nombre con el que se identifica el condominio",
+          "code": "Código",
+          "codePlaceholder": "Ej: CONDO-001",
+          "codeDescription": "Código único para identificar el condominio",
+          "generateCode": "Generar código único",
+          "managementCompany": "Empresa Administradora",
+          "managementCompanies": "Administradoras",
+          "managementCompanyPlaceholder": "Buscar administradora...",
+          "managementCompanyDescription": "Empresa que administra este condominio",
+          "managementCompaniesDescription": "Empresas que administran este condominio",
+          "noCompaniesFound": "No se encontraron administradoras",
+          "email": "Correo Electrónico",
+          "emailPlaceholder": "contacto@condominio.com",
+          "emailDescription": "Correo de contacto del condominio",
+          "phone": "Teléfono",
+          "phonePlaceholder": "4121234567",
+          "phoneDescription": "Teléfono de contacto del condominio",
+          "location": "Ubicación Geográfica",
+          "locationDescription": "Selecciona el país, estado y ciudad donde se encuentra el condominio",
+          "address": "Dirección",
+          "addressPlaceholder": "Av. Principal, Sector Centro",
+          "addressDescription": "Dirección física del condominio"
+        },
+        "validation": {
+          "name": {
+            "required": "El nombre del condominio es requerido"
+          },
+          "code": {
+            "required": "El código del condominio es requerido"
+          },
+          "managementCompany": {
+            "required": "La administradora es requerida"
+          },
+          "email": {
+            "required": "El correo electrónico es requerido",
+            "invalid": "El correo electrónico no es válido"
+          },
+          "phone": {
+            "required": "El teléfono es requerido"
+          },
+          "phoneCountryCode": {
+            "required": "El código de país es requerido"
+          },
+          "location": {
+            "required": "La ubicación es requerida"
+          },
+          "address": {
+            "required": "La dirección es requerida"
+          }
+        }
+      },
       "detail": {
         "title": "Detalles del Condominio",
         "backToList": "Volver a la lista",
@@ -690,9 +832,11 @@
           "noPhone": "Sin teléfono",
           "noData": "No especificado",
           "managementCompany": "Empresa Administradora",
+          "managementCompanies": "Administradoras",
           "companyName": "Nombre",
           "companyEmail": "Email",
           "noManagementCompany": "Sin empresa administradora asignada",
+          "noManagementCompanies": "Sin administradoras asignadas",
           "metadata": "Información de Sistema",
           "createdAt": "Fecha de creación",
           "updatedAt": "Última actualización",
@@ -701,20 +845,180 @@
         "buildings": {
           "title": "Edificios y Unidades",
           "subtitle": "Gestiona los edificios y unidades del condominio",
-          "comingSoon": "Próximamente",
-          "comingSoonDescription": "Esta funcionalidad estará disponible pronto"
+          "addBuilding": "Agregar Edificio",
+          "noBuildings": "No hay edificios registrados",
+          "noBuildingsDescription": "Agrega el primer edificio a este condominio",
+          "table": {
+            "name": "Nombre",
+            "code": "Código",
+            "floors": "Pisos",
+            "units": "Unidades",
+            "status": "Estado",
+            "actions": "Acciones"
+          },
+          "form": {
+            "createTitle": "Crear Edificio",
+            "editTitle": "Editar Edificio",
+            "name": "Nombre del Edificio",
+            "namePlaceholder": "Ej: Torre A",
+            "code": "Código",
+            "codePlaceholder": "Ej: TA",
+            "address": "Dirección",
+            "addressPlaceholder": "Dirección del edificio",
+            "floors": "Número de Pisos",
+            "bankInfo": "Información Bancaria",
+            "bankAccountHolder": "Titular de la Cuenta",
+            "bankName": "Nombre del Banco",
+            "bankAccountNumber": "Número de Cuenta",
+            "bankAccountType": "Tipo de Cuenta",
+            "accountTypes": {
+              "corriente": "Corriente",
+              "ahorro": "Ahorro"
+            }
+          },
+          "delete": {
+            "title": "Eliminar Edificio",
+            "confirm": "¿Está seguro que desea eliminar el edificio",
+            "warning": "Esta acción no se puede deshacer. Todas las unidades asociadas también serán eliminadas."
+          },
+          "success": {
+            "created": "Edificio creado exitosamente",
+            "updated": "Edificio actualizado exitosamente",
+            "deleted": "Edificio eliminado exitosamente",
+            "statusChanged": "Estado del edificio actualizado"
+          },
+          "error": {
+            "create": "Error al crear el edificio",
+            "update": "Error al actualizar el edificio",
+            "delete": "Error al eliminar el edificio",
+            "statusChange": "Error al cambiar el estado del edificio"
+          }
+        },
+        "units": {
+          "title": "Unidades",
+          "addUnit": "Agregar Unidad",
+          "noUnits": "No hay unidades en este edificio",
+          "table": {
+            "number": "Número",
+            "floor": "Piso",
+            "area": "Área (m²)",
+            "bedrooms": "Habitaciones",
+            "bathrooms": "Baños",
+            "parking": "Estacionamientos",
+            "status": "Estado",
+            "actions": "Acciones"
+          },
+          "form": {
+            "createTitle": "Crear Unidad",
+            "editTitle": "Editar Unidad",
+            "unitNumber": "Número de Unidad",
+            "unitNumberPlaceholder": "Ej: 101",
+            "floor": "Piso",
+            "area": "Área (m²)",
+            "bedrooms": "Habitaciones",
+            "bathrooms": "Baños",
+            "parkingSpaces": "Estacionamientos",
+            "parkingIdentifiers": "Identificadores de Estacionamiento",
+            "parkingIdentifiersPlaceholder": "Ej: P1, P2 (separados por coma)",
+            "storageIdentifier": "Identificador de Depósito",
+            "aliquotPercentage": "Porcentaje de Alícuota"
+          },
+          "delete": {
+            "title": "Eliminar Unidad",
+            "confirm": "¿Está seguro que desea eliminar la unidad"
+          },
+          "success": {
+            "created": "Unidad creada exitosamente",
+            "updated": "Unidad actualizada exitosamente",
+            "deleted": "Unidad eliminada exitosamente"
+          },
+          "error": {
+            "create": "Error al crear la unidad",
+            "update": "Error al actualizar la unidad",
+            "delete": "Error al eliminar la unidad"
+          }
         },
         "users": {
           "title": "Usuarios",
           "subtitle": "Residentes y administradores del condominio",
-          "comingSoon": "Próximamente",
-          "comingSoonDescription": "Esta funcionalidad estará disponible pronto"
+          "addUser": "Agregar Usuario",
+          "noUsers": "No hay usuarios en este condominio",
+          "noUsersDescription": "Agrega usuarios para gestionar este condominio",
+          "table": {
+            "user": "Usuario",
+            "roles": "Roles",
+            "units": "Unidades",
+            "status": "Estado",
+            "actions": "Acciones"
+          },
+          "roles": {
+            "administrator": "Administrador",
+            "resident": "Residente",
+            "boardMember": "Miembro de Junta",
+            "owner": "Propietario",
+            "tenant": "Inquilino"
+          },
+          "addModal": {
+            "title": "Agregar Usuario al Condominio",
+            "searchPlaceholder": "Buscar por correo electrónico",
+            "selectRole": "Seleccionar Rol",
+            "selectUnit": "Asignar Unidad (opcional)"
+          },
+          "removeModal": {
+            "title": "Remover Usuario",
+            "confirm": "¿Está seguro que desea remover a {name} de este condominio?",
+            "warning": "El usuario perderá acceso a todas las funcionalidades de este condominio.",
+            "remove": "Remover",
+            "removing": "Removiendo...",
+            "success": "Usuario removido exitosamente",
+            "error": "Error al remover el usuario"
+          },
+          "success": {
+            "added": "Usuario agregado exitosamente",
+            "removed": "Usuario removido exitosamente",
+            "roleUpdated": "Rol actualizado exitosamente"
+          },
+          "error": {
+            "add": "Error al agregar el usuario",
+            "remove": "Error al remover el usuario",
+            "roleUpdate": "Error al actualizar el rol"
+          }
         },
         "configuration": {
           "title": "Configuración",
           "subtitle": "Configuración general del condominio",
-          "comingSoon": "Próximamente",
-          "comingSoonDescription": "Esta funcionalidad estará disponible pronto"
+          "generalSettings": {
+            "title": "Configuración General",
+            "description": "Información básica del condominio"
+          },
+          "currencySettings": {
+            "title": "Moneda y Pagos",
+            "subtitle": "Configura las opciones de pago",
+            "defaultCurrency": "Moneda Predeterminada"
+          },
+          "notificationSettings": {
+            "title": "Notificaciones",
+            "subtitle": "Configura las preferencias de notificación",
+            "emailNotifications": "Notificaciones por Email",
+            "smsNotifications": "Notificaciones por SMS"
+          },
+          "dangerZone": {
+            "title": "Zona de Peligro",
+            "description": "Acciones irreversibles",
+            "deactivateTitle": "Desactivar/Activar Condominio",
+            "deactivateDescription": "Desactivar el condominio impedirá que los usuarios accedan a él.",
+            "deactivateButton": "Desactivar Condominio",
+            "activateButton": "Activar Condominio",
+            "confirmTitle": "Confirmar Acción",
+            "confirmDeactivate": "¿Está seguro que desea desactivar el condominio {name}? Los usuarios no podrán acceder hasta que sea reactivado.",
+            "confirmActivate": "¿Está seguro que desea activar el condominio {name}?"
+          },
+          "success": {
+            "updated": "Configuración actualizada exitosamente"
+          },
+          "error": {
+            "update": "Error al actualizar la configuración"
+          }
         },
         "statusSection": {
           "title": "Estado y Acciones",

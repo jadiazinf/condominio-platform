@@ -52,6 +52,7 @@ describe('CreateQuotaGenerationRuleService', function () {
     address: null,
     email: null,
     phone: null,
+    phoneCountryCode: null,
     defaultCurrencyId: null,
     isActive: true,
     metadata: null,

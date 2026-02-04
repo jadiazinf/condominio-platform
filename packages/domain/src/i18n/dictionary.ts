@@ -97,8 +97,10 @@ export const DomainLocaleDictionary = {
         code: {
           max: 'validation.models.condominiums.code.max',
         },
-        managementCompanyId: {
-          invalid: 'validation.models.condominiums.managementCompanyId.invalid',
+        managementCompanyIds: {
+          required: 'validation.models.condominiums.managementCompanyIds.required',
+          invalid: 'validation.models.condominiums.managementCompanyIds.invalid',
+          minLength: 'validation.models.condominiums.managementCompanyIds.minLength',
         },
         address: {
           max: 'validation.models.condominiums.address.max',
@@ -112,6 +114,9 @@ export const DomainLocaleDictionary = {
         },
         phone: {
           max: 'validation.models.condominiums.phone.max',
+        },
+        phoneCountryCode: {
+          max: 'validation.models.condominiums.phoneCountryCode.max',
         },
         defaultCurrencyId: {
           invalid: 'validation.models.condominiums.defaultCurrencyId.invalid',

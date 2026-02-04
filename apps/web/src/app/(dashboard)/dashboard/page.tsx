@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import { Users, Building2, Building as BuildingIcon, CreditCard } from 'lucide-react'
 
 import { Typography } from '@/ui/components/typography'
-import { getFullSession } from '@/libs/session'
+import { getFullSession, type FullSession } from '@/libs/session'
 import { getTranslations } from '@/libs/i18n/server'
 
 import { KpiStatCard } from '../components/KpiStatCard'
@@ -22,9 +22,8 @@ import {
 } from './components/resident'
 
 // Regular user dashboard content
-async function RegularDashboardContent() {
-  // Fetch translations and session in parallel
-  const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
+async function RegularDashboardContent({ session }: { session: FullSession }) {
+  const { t } = await getTranslations()
 
   const displayName =
     session.user?.displayName || session.user?.firstName || session.user?.email || ''
@@ -162,9 +161,8 @@ async function RegularDashboardContent() {
 }
 
 // Superadmin dashboard content
-async function SuperadminDashboardContent() {
-  // Fetch translations and session in parallel
-  const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
+async function SuperadminDashboardContent({ session }: { session: FullSession }) {
+  const { t } = await getTranslations()
 
   const displayName = session.user?.displayName || session.user?.firstName || 'Admin'
 
@@ -356,22 +354,22 @@ async function SuperadminDashboardContent() {
 }
 
 export default async function DashboardPage() {
-  // Use getFullSession to get superadmin data - it's cached so this is efficient
-  // We can't rely on cookies alone because they may not be set yet on first login
+  // Get session once and pass to children - cached via React's cache() so
+  // this shares the result with the layout's getFullSession() call
   const session = await getFullSession()
   const isSuperadmin = session.superadmin?.isActive === true
 
   if (isSuperadmin) {
     return (
       <Suspense fallback={<SuperadminDashboardSkeleton />}>
-        <SuperadminDashboardContent />
+        <SuperadminDashboardContent session={session} />
       </Suspense>
     )
   }
 
   return (
     <Suspense fallback={<DashboardSkeleton />}>
-      <RegularDashboardContent />
+      <RegularDashboardContent session={session} />
     </Suspense>
   )
 }

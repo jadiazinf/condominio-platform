@@ -1,7 +1,7 @@
-import type { TCondominium, TCondominiumsQuery } from '@packages/domain'
-import type { TApiDataResponse, TApiPaginatedResponse } from '../types'
+import type { TCondominium, TCondominiumCreate, TCondominiumsQuery } from '@packages/domain'
+import type { TApiDataResponse, TApiPaginatedResponse, ApiResponse } from '../types'
 
-import { useApiQuery } from './use-api-query'
+import { useApiQuery, useApiMutation } from './use-api-query'
 import { getHttpClient } from '../client'
 
 export interface UseCondominiumsOptions {
@@ -109,4 +109,110 @@ export async function getCondominiumsPaginated(
   })
 
   return response.data
+}
+
+// ============================================
+// CREATE CONDOMINIUM
+// ============================================
+
+export interface UseCreateCondominiumOptions {
+  token: string
+  onSuccess?: (data: TCondominium) => void
+  onError?: (error: Error) => void
+}
+
+/**
+ * Hook to create a new condominium.
+ */
+export function useCreateCondominium(options: UseCreateCondominiumOptions) {
+  const { token, onSuccess, onError } = options
+
+  return useApiMutation<TApiDataResponse<TCondominium>, TCondominiumCreate>({
+    path: '/condominiums',
+    method: 'POST',
+    config: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    invalidateKeys: [condominiumsKeys.all],
+    onSuccess: (response: ApiResponse<TApiDataResponse<TCondominium>>) => {
+      onSuccess?.(response.data.data)
+    },
+    onError,
+  })
+}
+
+/**
+ * Server-side function to create a condominium.
+ */
+export async function createCondominium(
+  token: string,
+  data: TCondominiumCreate
+): Promise<TCondominium> {
+  const client = getHttpClient()
+
+  const response = await client.post<TApiDataResponse<TCondominium>>('/condominiums', data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  return response.data.data
+}
+
+// ============================================
+// GENERATE CONDOMINIUM CODE
+// ============================================
+
+export interface TGenerateCondominiumCodeResponse {
+  code: string
+}
+
+export interface UseGenerateCondominiumCodeOptions {
+  token: string
+  onSuccess?: (data: TGenerateCondominiumCodeResponse) => void
+  onError?: (error: Error) => void
+}
+
+/**
+ * Hook to generate a unique condominium code.
+ */
+export function useGenerateCondominiumCode(options: UseGenerateCondominiumCodeOptions) {
+  const { token, onSuccess, onError } = options
+
+  return useApiMutation<TApiDataResponse<TGenerateCondominiumCodeResponse>, void>({
+    path: '/condominiums/generate-code',
+    method: 'POST',
+    config: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    onSuccess: (response: ApiResponse<TApiDataResponse<TGenerateCondominiumCodeResponse>>) => {
+      onSuccess?.(response.data.data)
+    },
+    onError,
+  })
+}
+
+/**
+ * Server-side function to generate a unique condominium code.
+ */
+export async function generateCondominiumCode(
+  token: string
+): Promise<TGenerateCondominiumCodeResponse> {
+  const client = getHttpClient()
+
+  const response = await client.post<TApiDataResponse<TGenerateCondominiumCodeResponse>>(
+    '/condominiums/generate-code',
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  return response.data.data
 }

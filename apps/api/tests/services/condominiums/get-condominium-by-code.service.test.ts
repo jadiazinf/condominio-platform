@@ -19,6 +19,7 @@ describe('GetCondominiumByCodeService', function () {
     locationId: '550e8400-e29b-41d4-a716-446655440020',
     email: 'admin@testcondo.com',
     phone: '+1234567890',
+    phoneCountryCode: '+1',
     defaultCurrencyId: '550e8400-e29b-41d4-a716-446655440030',
     isActive: true,
     metadata: null,

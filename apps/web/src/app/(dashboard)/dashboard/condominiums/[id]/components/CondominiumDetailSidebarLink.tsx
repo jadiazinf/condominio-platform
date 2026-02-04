@@ -3,7 +3,7 @@
 import { Link } from '@/ui/components/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/ui/utils'
-import { Info, Building2, Users, Settings, ToggleLeft } from 'lucide-react'
+import { Info, Building2, Users, ToggleLeft } from 'lucide-react'
 
 import type { TCondominiumDetailIconName } from '../config/sidebar-items'
 
@@ -11,7 +11,6 @@ const ICONS = {
   info: Info,
   building: Building2,
   users: Users,
-  settings: Settings,
   toggle: ToggleLeft,
 } as const
 

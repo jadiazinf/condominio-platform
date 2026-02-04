@@ -124,7 +124,6 @@ export function CondominiumsTable({
       const queryString = params.toString()
       const newUrl = `/dashboard/condominiums${queryString ? `?${queryString}` : ''}`
       router.push(newUrl)
-      router.refresh()
     },
     [router, searchParams]
   )
@@ -219,10 +218,14 @@ export function CondominiumsTable({
             </div>
           )
         case 'company':
-          return condominium.managementCompany ? (
-            <div className="flex items-center gap-2">
-              <Building className="text-default-400" size={14} />
-              <span className="text-sm text-default-700">{condominium.managementCompany.name}</span>
+          return condominium.managementCompanies && condominium.managementCompanies.length > 0 ? (
+            <div className="flex flex-col gap-1">
+              {condominium.managementCompanies.map((company) => (
+                <div key={company.id} className="flex items-center gap-2">
+                  <Building className="text-default-400" size={14} />
+                  <span className="text-sm text-default-700">{company.name}</span>
+                </div>
+              ))}
             </div>
           ) : (
             <span className="text-sm text-default-400">
@@ -295,7 +298,11 @@ export function CondominiumsTable({
               variant="bordered"
             />
           </div>
-          <Button color="primary" startContent={<Plus size={16} />}>
+          <Button
+            color="primary"
+            startContent={<Plus size={16} />}
+            onPress={() => router.push('/dashboard/condominiums/new')}
+          >
             {t('superadmin.condominiums.create')}
           </Button>
         </div>
@@ -371,10 +378,14 @@ export function CondominiumsTable({
                   </div>
 
                   <div className="flex-1 space-y-2 overflow-hidden">
-                    {condominium.managementCompany ? (
-                      <div className="flex items-center gap-2 text-xs text-default-500">
-                        <Building size={14} className="shrink-0" />
-                        <span className="truncate">{condominium.managementCompany.name}</span>
+                    {condominium.managementCompanies && condominium.managementCompanies.length > 0 ? (
+                      <div className="flex flex-col gap-1">
+                        {condominium.managementCompanies.map((company) => (
+                          <div key={company.id} className="flex items-center gap-2 text-xs text-default-500">
+                            <Building size={14} className="shrink-0" />
+                            <span className="truncate">{company.name}</span>
+                          </div>
+                        ))}
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 text-xs text-default-400">

@@ -105,6 +105,28 @@ export class ManagementCompanyMembersRepository
   }
 
   /**
+   * Get a member by company ID and user ID
+   */
+  async getByCompanyAndUser(companyId: string, userId: string): Promise<TManagementCompanyMember | null> {
+    const results = await this.db
+      .select()
+      .from(managementCompanyMembers)
+      .where(
+        and(
+          eq(managementCompanyMembers.managementCompanyId, companyId),
+          eq(managementCompanyMembers.userId, userId)
+        )
+      )
+      .limit(1)
+
+    if (results.length === 0) {
+      return null
+    }
+
+    return this.mapToEntity(results[0])
+  }
+
+  /**
    * Get the primary admin of a management company
    */
   async getPrimaryAdmin(companyId: string): Promise<TManagementCompanyMember | null> {

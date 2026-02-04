@@ -1,6 +1,6 @@
 import type { MiddlewareHandler } from 'hono'
 import { useTranslation } from '@intlify/hono'
-import { eq, and, isNull, or, gt } from 'drizzle-orm'
+import { eq, and, isNull, or, gt, inArray } from 'drizzle-orm'
 import { HttpContext } from '@http/context'
 import { DatabaseService } from '@database/service'
 import {
@@ -10,6 +10,7 @@ import {
   units,
   buildings,
   condominiums,
+  condominiumManagementCompanies,
 } from '@database/drizzle/schema'
 import { AUTHENTICATED_USER_PROP } from './is-user-authenticated'
 import { LocaleDictionary } from '@locales/dictionary'
@@ -88,7 +89,7 @@ export function canAccessUser(options: ICanAccessUserOptions = {}) {
  *
  * The check verifies if:
  * 1. The authenticated user has an admin role in any condominium
- * 2. That condominium belongs to a management company
+ * 2. That condominium belongs to a management company (via junction table)
  * 3. The target user has a unit ownership in any condominium managed by that same company
  */
 async function checkManagementCompanyAdminAccess(
@@ -99,15 +100,13 @@ async function checkManagementCompanyAdminAccess(
   const db = DatabaseService.getInstance().getDb()
   const now = new Date()
 
-  // Find management companies where the authenticated user is an admin
-  // (has an admin role in a condominium that belongs to a management company)
-  const adminManagementCompanies = await db
+  // Step 1: Find condominiums where the authenticated user has an admin role
+  const adminCondominiums = await db
     .selectDistinct({
-      managementCompanyId: condominiums.managementCompanyId,
+      condominiumId: userRoles.condominiumId,
     })
     .from(userRoles)
     .innerJoin(roles, eq(userRoles.roleId, roles.id))
-    .innerJoin(condominiums, eq(userRoles.condominiumId, condominiums.id))
     .where(
       and(
         eq(userRoles.userId, authenticatedUserId),
@@ -116,34 +115,61 @@ async function checkManagementCompanyAdminAccess(
       )
     )
 
+  if (adminCondominiums.length === 0) {
+    return false
+  }
+
+  const adminCondominiumIds = adminCondominiums
+    .map(c => c.condominiumId)
+    .filter((id): id is string => id !== null)
+
+  if (adminCondominiumIds.length === 0) {
+    return false
+  }
+
+  // Step 2: Find management companies that manage those condominiums (via junction table)
+  const adminManagementCompanies = await db
+    .selectDistinct({
+      managementCompanyId: condominiumManagementCompanies.managementCompanyId,
+    })
+    .from(condominiumManagementCompanies)
+    .where(inArray(condominiumManagementCompanies.condominiumId, adminCondominiumIds))
+
   if (adminManagementCompanies.length === 0) {
     return false
   }
 
-  const managementCompanyIds = adminManagementCompanies
-    .map(mc => mc.managementCompanyId)
-    .filter((id): id is string => id !== null)
+  const managementCompanyIds = adminManagementCompanies.map(mc => mc.managementCompanyId)
 
-  if (managementCompanyIds.length === 0) {
+  // Step 3: Find all condominiums managed by those companies (via junction table)
+  const managedCondominiums = await db
+    .selectDistinct({
+      condominiumId: condominiumManagementCompanies.condominiumId,
+    })
+    .from(condominiumManagementCompanies)
+    .where(inArray(condominiumManagementCompanies.managementCompanyId, managementCompanyIds))
+
+  if (managedCondominiums.length === 0) {
     return false
   }
 
-  // Check if target user has a unit in any condominium managed by these companies
-  const targetUserCondominiums = await db
+  const managedCondominiumIds = managedCondominiums.map(c => c.condominiumId)
+
+  // Step 4: Check if target user has a unit in any of those condominiums
+  const targetUserUnits = await db
     .selectDistinct({
-      managementCompanyId: condominiums.managementCompanyId,
+      condominiumId: buildings.condominiumId,
     })
     .from(unitOwnerships)
     .innerJoin(units, eq(unitOwnerships.unitId, units.id))
     .innerJoin(buildings, eq(units.buildingId, buildings.id))
-    .innerJoin(condominiums, eq(buildings.condominiumId, condominiums.id))
     .where(
       and(
         eq(unitOwnerships.userId, targetUserId),
         eq(unitOwnerships.isActive, true),
-        or(...managementCompanyIds.map(id => eq(condominiums.managementCompanyId, id)))
+        inArray(buildings.condominiumId, managedCondominiumIds)
       )
     )
 
-  return targetUserCondominiums.length > 0
+  return targetUserUnits.length > 0
 }

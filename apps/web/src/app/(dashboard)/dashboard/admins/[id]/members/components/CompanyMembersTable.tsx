@@ -9,6 +9,7 @@ import { Avatar } from '@/ui/components/avatar-base'
 
 import { useManagementCompanyMembers } from '@packages/http-client'
 import { useAuth } from '@/contexts'
+import { AddMemberModal } from './AddMemberModal'
 
 interface TMemberRow {
   id: string
@@ -29,6 +30,7 @@ interface CompanyMembersTableProps {
 export function CompanyMembersTable({ companyId }: CompanyMembersTableProps) {
   const { user: firebaseUser } = useAuth()
   const [token, setToken] = useState<string>('')
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
   useEffect(() => {
     if (firebaseUser) {
@@ -36,11 +38,15 @@ export function CompanyMembersTable({ companyId }: CompanyMembersTableProps) {
     }
   }, [firebaseUser])
 
-  const { data, isLoading } = useManagementCompanyMembers(companyId, {
+  const { data, isLoading, refetch } = useManagementCompanyMembers(companyId, {
     enabled: !!token && !!companyId,
   })
 
   const members = (data?.data || []) as TMemberRow[]
+
+  const handleAddMemberSuccess = useCallback(() => {
+    refetch()
+  }, [refetch])
 
   // Table columns
   const tableColumns: ITableColumn<TMemberRow>[] = useMemo(
@@ -128,33 +134,60 @@ export function CompanyMembersTable({ companyId }: CompanyMembersTableProps) {
 
   if (members.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16">
-        <User className="mb-4 text-default-400" size={48} />
-        <h3 className="text-lg font-semibold text-default-700">No hay miembros</h3>
-        <p className="mt-1 text-sm text-default-500">
-          Esta administradora aún no tiene miembros registrados
-        </p>
-        <Button className="mt-4" color="primary" startContent={<Plus size={16} />}>
-          Agregar Miembro
-        </Button>
-      </div>
+      <>
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16">
+          <User className="mb-4 text-default-400" size={48} />
+          <h3 className="text-lg font-semibold text-default-700">No hay miembros</h3>
+          <p className="mt-1 text-sm text-default-500">
+            Esta administradora aún no tiene miembros registrados
+          </p>
+          <Button
+            className="mt-4"
+            color="primary"
+            startContent={<Plus size={16} />}
+            onPress={() => setIsAddModalOpen(true)}
+          >
+            Agregar Miembro
+          </Button>
+        </div>
+
+        <AddMemberModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          companyId={companyId}
+          onSuccess={handleAddMemberSuccess}
+        />
+      </>
     )
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button color="primary" startContent={<Plus size={16} />}>
-          Agregar Miembro
-        </Button>
+    <>
+      <div className="space-y-4">
+        <div className="flex justify-end">
+          <Button
+            color="primary"
+            startContent={<Plus size={16} />}
+            onPress={() => setIsAddModalOpen(true)}
+          >
+            Agregar Miembro
+          </Button>
+        </div>
+
+        <Table<TMemberRow>
+          aria-label="Tabla de miembros"
+          columns={tableColumns}
+          rows={members}
+          renderCell={renderCell}
+        />
       </div>
 
-      <Table<TMemberRow>
-        aria-label="Tabla de miembros"
-        columns={tableColumns}
-        rows={members}
-        renderCell={renderCell}
+      <AddMemberModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        companyId={companyId}
+        onSuccess={handleAddMemberSuccess}
       />
-    </div>
+    </>
   )
 }

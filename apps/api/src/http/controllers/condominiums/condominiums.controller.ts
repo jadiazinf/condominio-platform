@@ -19,6 +19,7 @@ import {
   GetCondominiumByCodeService,
   GetCondominiumsByManagementCompanyService,
   GetCondominiumsByLocationService,
+  GenerateCondominiumCodeService,
 } from '@src/services/condominiums'
 
 const ManagementCompanyIdParamSchema = z.object({
@@ -54,6 +55,7 @@ export class CondominiumsController extends BaseController<
   private readonly getCondominiumByCodeService: GetCondominiumByCodeService
   private readonly getCondominiumsByManagementCompanyService: GetCondominiumsByManagementCompanyService
   private readonly getCondominiumsByLocationService: GetCondominiumsByLocationService
+  private readonly generateCondominiumCodeService: GenerateCondominiumCodeService
 
   constructor(repository: CondominiumsRepository) {
     super(repository)
@@ -64,11 +66,13 @@ export class CondominiumsController extends BaseController<
       repository
     )
     this.getCondominiumsByLocationService = new GetCondominiumsByLocationService(repository)
+    this.generateCondominiumCodeService = new GenerateCondominiumCodeService(repository)
 
     this.listPaginated = this.listPaginated.bind(this)
     this.getByCode = this.getByCode.bind(this)
     this.getByManagementCompanyId = this.getByManagementCompanyId.bind(this)
     this.getByLocationId = this.getByLocationId.bind(this)
+    this.generateCode = this.generateCode.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -102,6 +106,12 @@ export class CondominiumsController extends BaseController<
         path: '/:id',
         handler: this.getById,
         middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+      },
+      {
+        method: 'post',
+        path: '/generate-code',
+        handler: this.generateCode,
+        middlewares: [authMiddleware],
       },
       {
         method: 'post',
@@ -182,6 +192,22 @@ export class CondominiumsController extends BaseController<
       const result = await this.getCondominiumsByLocationService.execute({
         locationId: ctx.params.locationId,
       })
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private async generateCode(c: Context): Promise<Response> {
+    const ctx = this.ctx(c)
+
+    try {
+      const result = await this.generateCondominiumCodeService.execute()
 
       if (!result.success) {
         return ctx.internalError({ error: result.error })

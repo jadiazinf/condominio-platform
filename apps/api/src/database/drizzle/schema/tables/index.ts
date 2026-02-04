@@ -13,6 +13,7 @@ export * from './user-permissions'
 // Organizations
 export * from './management-companies'
 export * from './condominiums'
+export * from './condominium-management-companies'
 export * from './buildings'
 export * from './user-roles'
 

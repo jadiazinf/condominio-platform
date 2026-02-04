@@ -1,4 +1,5 @@
 import type { TApiMessageResponse } from '../types'
+import type { ApiResponse } from '../types/http'
 import { useApiMutation } from './use-api-query'
 import { condominiumsKeys } from './use-condominiums'
 
@@ -19,16 +20,16 @@ export function useToggleCondominiumStatus(options: UseToggleCondominiumStatusOp
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiMessageResponse, TToggleCondominiumStatusVariables>({
-    mutationFn: async ({ condominiumId, isActive }) => ({
-      method: 'PATCH',
-      path: `/condominiums/${condominiumId}/status`,
-      body: { isActive },
-    }),
+    path: (variables: TToggleCondominiumStatusVariables) =>
+      `/condominiums/${variables.condominiumId}/status`,
+    method: 'PATCH',
     invalidateKeys: [
       condominiumsKeys.all,
       condominiumsKeys.detail('' as string), // This will invalidate all detail queries
     ],
-    onSuccess,
+    onSuccess: (response: ApiResponse<TApiMessageResponse>) => {
+      onSuccess?.(response.data)
+    },
     onError,
   })
 }

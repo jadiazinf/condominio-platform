@@ -27,13 +27,15 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
 
   const formatLocation = () => {
     if (!condominium.location) return ''
-    return [
-      condominium.location.cityName,
-      condominium.location.stateName,
-      condominium.location.countryName,
-    ]
-      .filter(Boolean)
-      .join(', ')
+    // Build location hierarchy from city -> province -> country
+    const names: string[] = []
+    type TLocation = typeof condominium.location
+    let current: TLocation | undefined = condominium.location
+    while (current) {
+      names.push(current.name)
+      current = current.parent as TLocation | undefined
+    }
+    return names.join(', ')
   }
 
   const fullAddress = [condominium.address, formatLocation()].filter(Boolean).join(', ')
@@ -95,26 +97,42 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
           />
           <InfoRow
             label={t('superadmin.condominiums.detail.general.phone')}
-            value={condominium.phone || noDataText}
+            value={
+              condominium.phone
+                ? condominium.phoneCountryCode
+                  ? `${condominium.phoneCountryCode} ${condominium.phone}`
+                  : condominium.phone
+                : noDataText
+            }
           />
         </div>
       </Card>
 
-      {/* Management Company */}
+      {/* Management Companies */}
       <Card className="p-6">
         <Typography variant="h4" className="mb-4">
-          {t('superadmin.condominiums.detail.general.managementCompany')}
+          {t('superadmin.condominiums.detail.general.managementCompanies')}
         </Typography>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoRow
-            label={t('superadmin.condominiums.detail.general.companyName')}
-            value={condominium.managementCompany?.name || noDataText}
-          />
-          <InfoRow
-            label={t('superadmin.condominiums.detail.general.companyEmail')}
-            value={condominium.managementCompany?.email || noDataText}
-          />
-        </div>
+        {condominium.managementCompanies && condominium.managementCompanies.length > 0 ? (
+          <div className="space-y-4">
+            {condominium.managementCompanies.map((company) => (
+              <div key={company.id} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-default-50 rounded-lg">
+                <InfoRow
+                  label={t('superadmin.condominiums.detail.general.companyName')}
+                  value={company.name}
+                />
+                <InfoRow
+                  label={t('superadmin.condominiums.detail.general.companyEmail')}
+                  value={company.email || noDataText}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Typography color="muted" variant="body2">
+            {noDataText}
+          </Typography>
+        )}
       </Card>
 
       {/* Metadata */}

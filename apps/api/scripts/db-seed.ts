@@ -99,6 +99,7 @@ type Database = ReturnType<typeof drizzle<typeof schema>>
 type UserInsert = typeof schema.users.$inferInsert
 type ManagementCompanyInsert = typeof schema.managementCompanies.$inferInsert
 type CondominiumInsert = typeof schema.condominiums.$inferInsert
+type CondominiumManagementCompanyInsert = typeof schema.condominiumManagementCompanies.$inferInsert
 type BuildingInsert = typeof schema.buildings.$inferInsert
 type UnitInsert = typeof schema.units.$inferInsert
 type UnitOwnershipInsert = typeof schema.unitOwnerships.$inferInsert
@@ -691,7 +692,6 @@ async function seedCondominiums(
   const condominiumIds: string[] = []
 
   for (let i = 0; i < condominiumNames.length; i++) {
-    const companyId = companyIds[i % companyIds.length]
     const name = condominiumNames[i]
     const code = `COND-${String(i + 1).padStart(3, '0')}`
 
@@ -707,16 +707,38 @@ async function seedCondominiums(
     const condominiumData: CondominiumInsert = {
       name,
       code,
-      managementCompanyId: companyId,
       address: faker.location.streetAddress(),
       email: faker.internet.email({ firstName: name.split(' ')[0] }).toLowerCase(),
       phone: faker.string.numeric(10),
+      phoneCountryCode: '+58',
       isActive: true,
       createdBy: superadminId,
     }
 
     const [inserted] = await db.insert(schema.condominiums).values(condominiumData).returning()
     condominiumIds.push(inserted.id)
+
+    // Assign management companies via junction table (many-to-many)
+    // Each condominium gets 1-2 management companies
+    const numCompanies = faker.number.int({ min: 1, max: Math.min(2, companyIds.length) })
+    const shuffledCompanyIds = faker.helpers.shuffle([...companyIds])
+    const assignedCompanyIds = shuffledCompanyIds.slice(0, numCompanies)
+
+    for (const companyId of assignedCompanyIds) {
+      // Check if assignment already exists
+      const existingAssignment = await db.query.condominiumManagementCompanies.findFirst({
+        where: (cmc, { and, eq }) =>
+          and(eq(cmc.condominiumId, inserted.id), eq(cmc.managementCompanyId, companyId)),
+      })
+
+      if (!existingAssignment) {
+        await db.insert(schema.condominiumManagementCompanies).values({
+          condominiumId: inserted.id,
+          managementCompanyId: companyId,
+          assignedBy: superadminId,
+        })
+      }
+    }
   }
 
   console.log(`    ${condominiumIds.length} condominiums ready.`)
