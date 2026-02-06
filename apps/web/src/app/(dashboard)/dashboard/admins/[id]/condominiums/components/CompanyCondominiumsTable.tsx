@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
 import { Spinner } from '@/ui/components/spinner'
-import { Home, Search, MoreVertical, Eye, Power, X, MapPin, Plus } from 'lucide-react'
+import { Tooltip } from '@/ui/components/tooltip'
+import { ClearFiltersButton } from '@/ui/components/filters'
+import { Home, Search, MoreVertical, Eye, Power, MapPin, Plus, Info } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { TCondominium, TCondominiumsQuery } from '@packages/domain'
 
@@ -22,7 +24,10 @@ import {
   HttpError,
   useQueryClient,
   companyCondominiumsKeys,
+  useCanCreateResource,
 } from '@packages/http-client'
+import { useUser, useAuth } from '@/contexts'
+import { CreateCondominiumForm } from './CreateCondominiumForm'
 
 type TStatusFilter = 'all' | 'active' | 'inactive'
 
@@ -30,29 +35,85 @@ type TCondominiumRow = TCondominium & { id: string }
 
 interface CompanyCondominiumsTableProps {
   companyId: string
+  isCompanyActive: boolean
 }
 
-export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTableProps) {
+export function CompanyCondominiumsTable({ companyId, isCompanyActive }: CompanyCondominiumsTableProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const toast = useToast()
   const queryClient = useQueryClient()
+  const { user } = useUser()
+  const { user: firebaseUser } = useAuth()
+
   // Filter state
-  const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<TStatusFilter>('active')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [isToggling, setIsToggling] = useState<string | null>(null)
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [token, setToken] = useState<string>('')
+
+  const isFirstRender = useRef(true)
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null)
+
+  // Get Firebase token
+  useEffect(() => {
+    if (firebaseUser) {
+      firebaseUser.getIdToken().then(setToken)
+    }
+  }, [firebaseUser])
+
+  // Check if can create condominium
+  const {
+    data: canCreateData,
+    isLoading: isCheckingLimit,
+    error: canCreateError,
+  } = useCanCreateResource({
+    token,
+    managementCompanyId: companyId,
+    resourceType: 'condominium',
+    enabled: !!token && !!companyId,
+  })
+
+  const canCreate = canCreateData?.data?.canCreate ?? false
+  const limitInfo = canCreateData?.data
+  const hasNoSubscription = !!canCreateError
+
+  // Debounce search input
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current)
+    }
+
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedSearch(searchInput)
+      setPage(1) // Reset to first page on search
+    }, 500)
+
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current)
+      }
+    }
+  }, [searchInput])
 
   // Build query for API
   const query: TCondominiumsQuery = useMemo(
     () => ({
       page,
       limit,
-      search: search || undefined,
+      search: debouncedSearch || undefined,
       isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
     }),
-    [page, limit, search, statusFilter]
+    [page, limit, debouncedSearch, statusFilter]
   )
 
   // Status filter items
@@ -90,8 +151,7 @@ export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTable
 
   // Handlers
   const handleSearchChange = useCallback((value: string) => {
-    setSearch(value)
-    setPage(1) // Reset to first page on search
+    setSearchInput(value)
   }, [])
 
   const handleStatusChange = useCallback((key: string | null) => {
@@ -102,10 +162,25 @@ export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTable
   }, [])
 
   const handleClearFilters = useCallback(() => {
-    setSearch('')
+    setSearchInput('')
+    setDebouncedSearch('')
     setStatusFilter('all')
     setPage(1)
   }, [])
+
+  const handleCreateClick = useCallback(() => {
+    if (!canCreate && limitInfo) {
+      toast.error(
+        t('superadmin.condominiums.errors.limitReached', {
+          current: limitInfo.currentCount,
+          max: limitInfo.maxAllowed ?? t('superadmin.condominiums.unlimited'),
+        })
+      )
+      return
+    }
+
+    setIsFormOpen(true)
+  }, [canCreate, limitInfo, toast, t])
 
   const handleViewDetails = useCallback(
     (id: string) => {
@@ -208,7 +283,9 @@ export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTable
                     key="toggle"
                     color={condominium.isActive ? 'warning' : 'success'}
                     isDisabled={isToggling === condominium.id}
-                    startContent={isToggling === condominium.id ? <Spinner size="sm" /> : <Power size={16} />}
+                    startContent={
+                      isToggling === condominium.id ? <Spinner size="sm" /> : <Power size={16} />
+                    }
                     onPress={() => handleToggleStatus(condominium)}
                   >
                     {condominium.isActive
@@ -242,33 +319,65 @@ export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTable
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
+      {/* Filters and create button */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:flex-1">
           <Input
-            className="w-full sm:max-w-xs"
+            className="w-full sm:max-w-md"
             placeholder={t('superadmin.condominiums.filters.searchPlaceholder')}
             startContent={<Search className="text-default-400" size={16} />}
-            value={search}
+            value={searchInput}
             onValueChange={handleSearchChange}
           />
           <Select
             aria-label={t('superadmin.condominiums.filters.status')}
-            className="w-full sm:w-40"
+            className="w-full sm:w-48"
             items={statusFilterItems}
             value={statusFilter}
             onChange={handleStatusChange}
             variant="bordered"
           />
-          {(search || statusFilter !== 'all') && (
-            <Button startContent={<X size={14} />} variant="flat" onPress={handleClearFilters}>
-              {t('superadmin.condominiums.filters.clearFilters')}
-            </Button>
+          {(debouncedSearch || statusFilter !== 'all') && (
+            <ClearFiltersButton onClear={handleClearFilters} />
           )}
         </div>
-        <Button color="primary" startContent={<Plus size={16} />}>
-          {t('superadmin.condominiums.create')}
-        </Button>
+        {isCompanyActive && (
+          <div className="flex items-center gap-2">
+            <Button
+              color="primary"
+              startContent={<Plus size={16} />}
+              onPress={handleCreateClick}
+              isLoading={isCheckingLimit}
+              isDisabled={isCheckingLimit || !canCreate || hasNoSubscription}
+            >
+              {t('superadmin.condominiums.create')}
+            </Button>
+            {(isCheckingLimit || !canCreate || hasNoSubscription) && (
+              <Tooltip
+                content={
+                  <div className="max-w-xs">
+                    {isCheckingLimit
+                      ? t('superadmin.condominiums.checkingLimit')
+                      : hasNoSubscription
+                        ? t('superadmin.condominiums.errors.noActiveSubscription')
+                        : !canCreate && limitInfo?.limitReached
+                          ? t('superadmin.condominiums.errors.limitReachedTooltip', {
+                              current: limitInfo.currentCount,
+                              max: limitInfo.maxAllowed ?? t('superadmin.condominiums.unlimited'),
+                            })
+                          : t('superadmin.condominiums.errors.cannotCreate')}
+                  </div>
+                }
+                placement="top"
+                showArrow
+              >
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-default-100 hover:bg-default-200 transition-colors cursor-help">
+                  <Info className="text-default-500" size={18} />
+                </div>
+              </Tooltip>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Table */}
@@ -280,12 +389,12 @@ export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTable
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16">
           <Home className="mb-4 text-default-300" size={48} />
           <Typography color="muted" variant="body1">
-            {search || statusFilter !== 'all'
+            {debouncedSearch || statusFilter !== 'all'
               ? t('superadmin.condominiums.noResults')
               : t('superadmin.condominiums.empty')}
           </Typography>
           <Typography className="mt-1" color="muted" variant="body2">
-            {search || statusFilter !== 'all'
+            {debouncedSearch || statusFilter !== 'all'
               ? t('superadmin.condominiums.noResultsDescription')
               : t('superadmin.condominiums.emptyDescription')}
           </Typography>
@@ -318,6 +427,17 @@ export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTable
             onPageChange={setPage}
           />
         </>
+      )}
+
+      {/* Create Condominium Modal */}
+      {user && token && (
+        <CreateCondominiumForm
+          isOpen={isFormOpen}
+          onClose={() => setIsFormOpen(false)}
+          managementCompanyId={companyId}
+          createdBy={user.id}
+          token={token}
+        />
       )}
     </div>
   )

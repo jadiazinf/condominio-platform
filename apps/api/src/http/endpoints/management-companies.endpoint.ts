@@ -1,5 +1,10 @@
 import type { Hono } from 'hono'
-import { ManagementCompaniesRepository } from '@database/repositories'
+import {
+  ManagementCompaniesRepository,
+  ManagementCompanySubscriptionsRepository,
+  LocationsRepository,
+  UsersRepository,
+} from '@database/repositories'
 import { ManagementCompaniesController } from '../controllers'
 import type { IEndpoint } from './types'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
@@ -10,7 +15,15 @@ export class ManagementCompaniesEndpoint implements IEndpoint {
 
   constructor(db: TDrizzleClient) {
     const repository = new ManagementCompaniesRepository(db)
-    this.controller = new ManagementCompaniesController(repository)
+    const subscriptionsRepository = new ManagementCompanySubscriptionsRepository(db)
+    const locationsRepository = new LocationsRepository(db)
+    const usersRepository = new UsersRepository(db)
+    this.controller = new ManagementCompaniesController(
+      repository,
+      subscriptionsRepository,
+      locationsRepository,
+      usersRepository
+    )
   }
 
   getRouter(): Hono {

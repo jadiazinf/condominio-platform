@@ -1,175 +1,92 @@
-'use client'
-
-import { Card } from '@/ui/components/card'
-import { Button } from '@/ui/components/button'
-import { Spinner } from '@/ui/components/spinner'
-import { useState, useEffect } from 'react'
-
-import { useTranslation, useAuth } from '@/contexts'
-import { Typography } from '@/ui/components/typography'
-import { useManagementCompany } from '@packages/http-client'
+import { cookies } from 'next/headers'
+import { getManagementCompanyById, HttpError } from '@packages/http-client'
+import { SESSION_COOKIE_NAME } from '@/libs/cookies'
+import { getTranslations } from '@/libs/i18n/server'
+import { CompanyDetailClient } from './CompanyDetailClient'
+import { CompanyDetailError } from './CompanyDetailError'
+import type { TLocation } from '@packages/domain'
 
 interface CompanyDetailProps {
   id: string
 }
 
-export function CompanyDetail({ id }: CompanyDetailProps) {
-  const { t } = useTranslation()
-  const { user: firebaseUser } = useAuth()
-  const [token, setToken] = useState<string>('')
+export async function CompanyDetail({ id }: CompanyDetailProps) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value || ''
+  const { t } = await getTranslations()
 
-  useEffect(() => {
-    if (firebaseUser) {
-      firebaseUser.getIdToken().then(setToken)
+  try {
+    // Fetch company data on the server
+    const company = await getManagementCompanyById(token, id)
+
+    const noDataText = t('superadmin.companies.detail.general.noData')
+
+    // Helper to get location parts
+    const getLocationParts = () => {
+      if (!company.location) return { city: '', state: '', country: '' }
+
+      const parts: string[] = []
+      type TLocationWithParent = TLocation & { parent?: TLocationWithParent }
+      let current: TLocationWithParent | undefined = company.location as TLocationWithParent
+
+      while (current) {
+        parts.push(current.name)
+        current = current.parent
+      }
+
+      // parts = [city, state, country]
+      return {
+        city: parts[0] || '',
+        state: parts[1] || '',
+        country: parts[2] || '',
+      }
     }
-  }, [firebaseUser])
 
-  const { data, isLoading, error, refetch } = useManagementCompany({
-    token,
-    id,
-    enabled: !!token && !!id,
-  })
+    // Helper to get created by display
+    const getCreatedByDisplay = () => {
+      if (!company.createdByUser) {
+        return noDataText
+      }
 
-  const company = data?.data
+      if (company.createdByUser.isSuperadmin) {
+        return 'Superadmin'
+      }
 
-  const formatDate = (date: Date | string | null | undefined) => {
-    if (!date) return t('superadmin.companies.detail.general.noData')
-    return new Date(date).toLocaleDateString('es', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    })
-  }
+      return company.createdByUser.displayName || company.createdByUser.email
+    }
 
-  const noDataText = t('superadmin.companies.detail.general.noData')
+    const locationParts = getLocationParts()
+    const createdByDisplay = getCreatedByDisplay()
 
-  if (isLoading) {
+    // Format dates on the server
+    const formattedCreatedAt = company.createdAt
+      ? new Date(company.createdAt).toLocaleDateString('es', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+        })
+      : noDataText
+
     return (
-      <div className="flex items-center justify-center py-16">
-        <Spinner size="lg" />
-      </div>
+      <CompanyDetailClient
+        company={company}
+        noDataText={noDataText}
+        locationParts={locationParts}
+        createdByDisplay={createdByDisplay}
+        formattedCreatedAt={formattedCreatedAt}
+      />
     )
+  } catch (error) {
+    console.error('[CompanyDetail] Error loading company:', error)
+
+    // Extract error message if available
+    let errorMessage: string | undefined
+    if (HttpError.isHttpError(error)) {
+      errorMessage = error.message
+    } else if (error instanceof Error) {
+      errorMessage = error.message
+    }
+
+    return <CompanyDetailError error={errorMessage} />
   }
-
-  if (error || !company) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-danger-300 py-16">
-        <Typography color="danger" variant="body1">
-          Error al cargar la administradora
-        </Typography>
-        <Button className="mt-4" color="primary" onPress={() => refetch()}>
-          {t('common.retry')}
-        </Button>
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <Typography variant="h3">{t('superadmin.companies.detail.tabs.general')}</Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
-          Información básica y de contacto de la administradora
-        </Typography>
-      </div>
-
-      {/* Basic Information */}
-      <Card className="p-6">
-        <Typography variant="h4" className="mb-4">
-          {t('superadmin.companies.detail.general.basicInfo')}
-        </Typography>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoRow
-            label={t('superadmin.companies.detail.general.name')}
-            value={company.name}
-          />
-          <InfoRow
-            label={t('superadmin.companies.detail.general.legalName')}
-            value={company.legalName || noDataText}
-          />
-          <InfoRow
-            label={t('superadmin.companies.table.taxId')}
-            value={
-              company.taxIdType
-                ? `${company.taxIdType}-${company.taxIdNumber || ''}`
-                : company.taxIdNumber || noDataText
-            }
-          />
-          <InfoRow
-            label={t('superadmin.companies.detail.general.status')}
-            value={
-              company.isActive
-                ? t('superadmin.companies.status.active')
-                : t('superadmin.companies.status.inactive')
-            }
-            valueClassName={company.isActive ? 'text-success' : 'text-default'}
-          />
-        </div>
-      </Card>
-
-      {/* Contact Information */}
-      <Card className="p-6">
-        <Typography variant="h4" className="mb-4">
-          {t('superadmin.companies.detail.general.contactInfo')}
-        </Typography>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoRow
-            label={t('superadmin.companies.table.email')}
-            value={company.email || noDataText}
-          />
-          <InfoRow
-            label={t('superadmin.companies.table.phone')}
-            value={
-              company.phoneCountryCode
-                ? `${company.phoneCountryCode} ${company.phone}`
-                : company.phone || noDataText
-            }
-          />
-          <InfoRow
-            label={t('superadmin.companies.detail.general.website')}
-            value={company.website || noDataText}
-            className="md:col-span-2"
-          />
-          <InfoRow
-            label={t('superadmin.companies.detail.general.address')}
-            value={company.address || noDataText}
-            className="md:col-span-2"
-          />
-        </div>
-      </Card>
-
-      {/* Metadata */}
-      <Card className="p-6">
-        <Typography variant="h4" className="mb-4">
-          {t('superadmin.companies.detail.general.metadata')}
-        </Typography>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoRow
-            label={t('superadmin.companies.table.createdAt')}
-            value={formatDate(company.createdAt)}
-          />
-        </div>
-      </Card>
-    </div>
-  )
-}
-
-interface IInfoRowProps {
-  label: string
-  value: string
-  valueClassName?: string
-  className?: string
-}
-
-function InfoRow({ label, value, valueClassName, className }: IInfoRowProps) {
-  return (
-    <div className={className}>
-      <Typography color="muted" variant="body2">
-        {label}
-      </Typography>
-      <Typography variant="body1" className={valueClassName}>
-        {value}
-      </Typography>
-    </div>
-  )
 }

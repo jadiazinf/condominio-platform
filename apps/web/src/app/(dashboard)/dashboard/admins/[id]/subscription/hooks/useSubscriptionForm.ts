@@ -41,10 +41,13 @@ export interface ISubscriptionFormData {
   pricingNotes: string
   pricingCondominiumCount: number | null
   pricingUnitCount: number | null
+  pricingUserCount: number | null
   pricingCondominiumRate: number
   pricingUnitRate: number
+  pricingUserRate: number
   calculatedPrice: number | null
   discountAmount: number | null
+  annualDiscountAmount: number | null
   // Rate tracking
   rateId: string | null
   // Pricing validation (set by PricingStepForm)
@@ -59,17 +62,6 @@ interface UseSubscriptionFormProps {
 }
 
 const STEPS: TSubscriptionStep[] = ['basic', 'limits', 'pricing', 'confirmation']
-
-const defaultFeatureKeys = [
-  'reportes_avanzados',
-  'notificaciones_push',
-  'soporte_prioritario',
-  'api_access',
-  'backup_automatico',
-  'multi_moneda',
-  'integracion_bancaria',
-  'facturacion_electronica',
-]
 
 export function useSubscriptionForm({
   companyId,
@@ -105,18 +97,10 @@ export function useSubscriptionForm({
     return null
   }, [activeSubscriptionData])
 
-  const getInitialFeatures = (): Record<string, boolean> => {
-    const features: Record<string, boolean> = {}
-    defaultFeatureKeys.forEach((key) => {
-      features[key] = false
-    })
-    return features
-  }
-
   const form = useForm<ISubscriptionFormData>({
     mode: 'onBlur',
     defaultValues: {
-      subscriptionName: '',
+      subscriptionName: t('superadmin.companies.subscription.form.fields.subscriptionNameOptions.basic'),
       billingCycle: 'monthly',
       basePrice: '',
       status: 'inactive',
@@ -124,11 +108,11 @@ export function useSubscriptionForm({
       endDate: '',
       trialEndsAt: '',
       autoRenew: true,
-      maxCondominiums: '',
-      maxUnits: '',
-      maxUsers: '',
-      maxStorageGb: '',
-      customFeatures: getInitialFeatures(),
+      maxCondominiums: '1', // Default to 1 condominium
+      maxUnits: '10', // Default to 10 units
+      maxUsers: '6', // Default to 6 users (admin + staff)
+      maxStorageGb: '50', // Default 50GB for document storage
+      customFeatures: {},
       notes: '',
       // Pricing defaults (no hardcoded rates - must come from database)
       discountType: 'none',
@@ -136,10 +120,13 @@ export function useSubscriptionForm({
       pricingNotes: '',
       pricingCondominiumCount: null,
       pricingUnitCount: null,
+      pricingUserCount: null,
       pricingCondominiumRate: 0,
       pricingUnitRate: 0,
+      pricingUserRate: 0,
       calculatedPrice: null,
       discountAmount: null,
+      annualDiscountAmount: null,
       rateId: null,
       pricingError: false,
     },
@@ -390,7 +377,6 @@ export function useSubscriptionForm({
     watch,
     errors,
     steps,
-    defaultFeatureKeys,
     // Replacement modal state
     showReplaceModal,
     activeSubscription,

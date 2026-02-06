@@ -41,6 +41,7 @@ interface TMemberRow {
 
 interface CompanyMembersTableProps {
   companyId: string
+  isCompanyActive: boolean
 }
 
 function getMemberDisplayName(user: TMemberRow['user']): string {
@@ -52,7 +53,7 @@ function getMemberDisplayName(user: TMemberRow['user']): string {
   return 'Sin nombre'
 }
 
-export function CompanyMembersTable({ companyId }: CompanyMembersTableProps) {
+export function CompanyMembersTable({ companyId, isCompanyActive }: CompanyMembersTableProps) {
   const queryClient = useQueryClient()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
@@ -278,13 +279,15 @@ export function CompanyMembersTable({ companyId }: CompanyMembersTableProps) {
               </Button>
             )}
           </div>
-          <Button
-            color="primary"
-            startContent={<Plus size={16} />}
-            onPress={() => setIsAddModalOpen(true)}
-          >
-            Agregar Miembro
-          </Button>
+          {isCompanyActive && (
+            <Button
+              color="primary"
+              startContent={<Plus size={16} />}
+              onPress={() => setIsAddModalOpen(true)}
+            >
+              Agregar Miembro
+            </Button>
+          )}
         </div>
 
         {/* Table */}

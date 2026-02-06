@@ -31,6 +31,8 @@ export const userSchema = baseModelSchema.extend({
   isEmailVerified: z.boolean().default(false),
   lastLogin: timestampField.nullable(),
   metadata: z.record(z.string(), z.unknown()).nullable(),
+  // Computed fields (not stored in DB, populated on demand)
+  isSuperadmin: z.boolean().optional(),
   // Relations
   location: locationSchema.optional(),
   preferredCurrency: currencySchema.optional(),

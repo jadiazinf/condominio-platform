@@ -17,6 +17,8 @@ type TTextareaRadius = 'none' | 'sm' | 'md' | 'lg' | 'full'
 type TLabelPlacement = 'inside' | 'outside' | 'outside-left'
 
 interface ITextareaProps {
+  id?: string
+  name?: string
   size?: TTextareaSize
   color?: TTextareaColor
   variant?: TTextareaVariant
@@ -27,8 +29,10 @@ interface ITextareaProps {
   description?: string
   tooltip?: string
   errorMessage?: string
+  error?: string
   value?: string
   defaultValue?: string
+  rows?: number
   minRows?: number
   maxRows?: number
   minLength?: number
@@ -52,12 +56,15 @@ interface ITextareaProps {
     errorMessage?: string
     helperWrapper?: string
   }
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
   onValueChange?: (value: string) => void
+  onBlur?: (e: React.FocusEvent<HTMLTextAreaElement>) => void
   onKeyPress?: (e: React.KeyboardEvent) => void
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, ITextareaProps>(function Textarea({
+  id,
+  name,
   size = 'md',
   color = 'default',
   variant = 'bordered',
@@ -68,8 +75,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, ITextareaProps>(function
   description,
   tooltip,
   errorMessage,
+  error,
   value,
   defaultValue,
+  rows,
   minRows = 3,
   maxRows = 8,
   minLength,
@@ -86,6 +95,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, ITextareaProps>(function
   classNames,
   onChange,
   onValueChange,
+  onBlur,
   onKeyPress,
 }, ref) {
   // Create label with tooltip and required asterisk
@@ -111,6 +121,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, ITextareaProps>(function
   return (
     <HeroUITextarea
       ref={ref}
+      id={id}
+      name={name}
       className={cn(className)}
       classNames={classNames}
       color={color}
@@ -118,25 +130,26 @@ export const Textarea = forwardRef<HTMLTextAreaElement, ITextareaProps>(function
       description={tooltip ? undefined : description}
       disableAutosize={disableAutosize}
       endContent={endContent}
-      errorMessage={errorMessage}
+      errorMessage={error || errorMessage}
       fullWidth={fullWidth}
       isDisabled={isDisabled}
-      isInvalid={isInvalid}
+      isInvalid={isInvalid || !!error}
       isReadOnly={isReadOnly}
       isRequired={false}
       label={labelContent}
       labelPlacement={labelPlacement}
       maxLength={maxLength}
-      maxRows={maxRows}
+      maxRows={rows || maxRows}
       minLength={minLength}
-      minRows={minRows}
+      minRows={rows || minRows}
       placeholder={placeholder}
       radius={radius}
       size={size}
       startContent={startContent}
       value={value}
       variant={variant}
-      onChange={onChange}
+      onChange={onChange as any}
+      onBlur={onBlur as any}
       onKeyPress={onKeyPress}
       onValueChange={onValueChange}
     />

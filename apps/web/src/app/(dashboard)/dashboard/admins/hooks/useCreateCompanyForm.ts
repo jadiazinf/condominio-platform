@@ -187,16 +187,13 @@ export function useCreateCompanyForm(options: UseCreateCompanyFormOptions = {}) 
           isActive: true,
           logoUrl: null,
           metadata: null,
-          createdBy: null,
+          createdBy: null, // Backend will set from authenticated user
         }
 
         if (data.admin.mode === 'existing' && data.admin.existingUserId) {
           // For existing users, create company with isActive=true
-          await createManagementCompany(token, {
-            ...companyData,
-            isActive: true,
-            createdBy: data.admin.existingUserId,
-          })
+          // Backend will set createdBy from authenticated user
+          await createManagementCompany(token, companyData)
         } else {
           // For new users, use the invitation flow
           // This creates: user (inactive), company (inactive), and invitation

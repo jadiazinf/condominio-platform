@@ -5,6 +5,7 @@ import type {
   TManagementCompaniesQuery,
   TUser,
   TUserCreate,
+  TSubscriptionLimitValidation,
 } from '@packages/domain'
 
 import { useApiQuery, useApiMutation } from './use-api-query'
@@ -61,6 +62,28 @@ export type TCreateManagementCompanyWithAdminResult = {
 export type TToggleActiveInput = {
   id: string
   isActive: boolean
+}
+
+export type TManagementCompanyUsageStats = {
+  condominiumsCount: number
+  unitsCount: number
+  usersCount: number
+  storageGb: number
+}
+
+export interface UseManagementCompanyUsageStatsOptions {
+  token: string
+  id: string
+  enabled?: boolean
+}
+
+export type TResourceType = 'condominium' | 'unit' | 'user'
+
+export interface UseCanCreateResourceOptions {
+  token: string
+  managementCompanyId: string
+  resourceType: TResourceType
+  enabled?: boolean
 }
 
 // =============================================================================
@@ -133,6 +156,43 @@ export function useManagementCompany(options: UseManagementCompanyOptions) {
 }
 
 /**
+ * Hook to fetch usage statistics for a management company.
+ */
+export function useManagementCompanyUsageStats(options: UseManagementCompanyUsageStatsOptions) {
+  const { token, id, enabled = true } = options
+
+  return useApiQuery<TApiDataResponse<TManagementCompanyUsageStats>>({
+    path: `/management-companies/${id}/usage-stats`,
+    queryKey: ['management-companies', id, 'usage-stats'],
+    config: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    enabled: enabled && !!id,
+  })
+}
+
+/**
+ * Hook to check if a management company can create a resource
+ * based on their subscription limits.
+ */
+export function useCanCreateResource(options: UseCanCreateResourceOptions) {
+  const { token, managementCompanyId, resourceType, enabled = true } = options
+
+  return useApiQuery<TApiDataResponse<TSubscriptionLimitValidation>>({
+    path: `/management-companies/${managementCompanyId}/subscription/can-create/${resourceType}`,
+    queryKey: ['management-companies', managementCompanyId, 'can-create', resourceType],
+    config: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    enabled: enabled && !!token && !!managementCompanyId && !!resourceType,
+  })
+}
+
+/**
  * Hook to create a management company.
  */
 export function useCreateManagementCompany(options: UseCreateManagementCompanyOptions) {
@@ -157,14 +217,18 @@ export function useUpdateManagementCompany(options: UseUpdateManagementCompanyOp
   const { token } = options
 
   return useApiMutation<TApiDataResponse<TManagementCompany>, TManagementCompanyUpdate & { id: string }>({
-    path: '/management-companies',
+    path: (data) => `/management-companies/${data.id}`,
     method: 'PATCH',
     config: {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     },
-    invalidateKeys: [['management-companies']],
+    invalidateKeys: (data) => [
+      ['management-companies'],
+      ['management-companies', data.id],
+      ['management-companies', 'paginated'],
+    ],
   })
 }
 
@@ -364,6 +428,26 @@ export async function updateManagementCompany(
   const response = await client.patch<TApiDataResponse<TManagementCompany>>(
     `/management-companies/${id}`,
     data,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  return response.data.data
+}
+
+/**
+ * Function to fetch usage statistics for a management company.
+ */
+export async function getManagementCompanyUsageStats(
+  token: string,
+  id: string
+): Promise<TManagementCompanyUsageStats> {
+  const client = getHttpClient()
+  const response = await client.get<TApiDataResponse<TManagementCompanyUsageStats>>(
+    `/management-companies/${id}/usage-stats`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

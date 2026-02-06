@@ -91,7 +91,10 @@ export const managementCompanySubscriptions = pgTable(
     index('idx_subscriptions_next_billing').on(table.nextBillingDate),
     index('idx_subscriptions_created_by').on(table.createdBy),
     index('idx_subscriptions_rate').on(table.rateId),
-    // Solo puede haber una suscripción activa o trial por company
-    uniqueIndex('idx_subscriptions_active_unique').on(table.managementCompanyId, table.status),
+    // Note: There is a partial unique index in the database (idx_subscriptions_active_unique)
+    // that ensures only one active or trial subscription per company.
+    // It's defined as: WHERE status IN ('active', 'trial')
+    // This allows multiple cancelled/expired subscriptions per company.
+    // Drizzle ORM doesn't support partial indexes in its DSL, so it's managed via migration.
   ]
 )

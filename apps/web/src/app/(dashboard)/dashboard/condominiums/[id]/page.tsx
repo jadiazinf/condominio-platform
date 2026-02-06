@@ -3,6 +3,9 @@ import { getCondominiumDetail } from '@packages/http-client/hooks'
 import { getServerAuthToken } from '@/libs/session'
 import { Card } from '@/ui/components/card'
 import { Typography } from '@/ui/components/typography'
+import Link from 'next/link'
+import { Button } from '@/ui/components/button'
+import { Eye } from 'lucide-react'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -25,20 +28,38 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
 
   const noDataText = t('superadmin.condominiums.detail.general.noData')
 
-  const formatLocation = () => {
-    if (!condominium.location) return ''
-    // Build location hierarchy from city -> province -> country
-    const names: string[] = []
+  const getLocationParts = () => {
+    if (!condominium.location) return { city: '', state: '', country: '' }
+
+    const parts: string[] = []
     type TLocation = typeof condominium.location
     let current: TLocation | undefined = condominium.location
+
     while (current) {
-      names.push(current.name)
+      parts.push(current.name)
       current = current.parent as TLocation | undefined
     }
-    return names.join(', ')
+
+    // parts = [city, state, country]
+    return {
+      city: parts[0] || '',
+      state: parts[1] || '',
+      country: parts[2] || '',
+    }
   }
 
-  const fullAddress = [condominium.address, formatLocation()].filter(Boolean).join(', ')
+  const locationParts = getLocationParts()
+  const locationString = [locationParts.city, locationParts.state, locationParts.country].filter(Boolean).join(', ')
+
+  const getCreatedByDisplay = () => {
+    if (!condominium.createdByUser) return noDataText
+
+    if (condominium.createdByUser.isSuperadmin) {
+      return 'Superadmin'
+    }
+
+    return condominium.createdByUser.displayName || condominium.createdByUser.email
+  }
 
   return (
     <div className="space-y-6">
@@ -88,8 +109,20 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoRow
             label={t('superadmin.condominiums.detail.general.address')}
-            value={fullAddress || noDataText}
+            value={condominium.address || noDataText}
             className="md:col-span-2"
+          />
+          <InfoRow
+            label={t('common.country')}
+            value={locationParts.country || noDataText}
+          />
+          <InfoRow
+            label={t('common.province')}
+            value={locationParts.state || noDataText}
+          />
+          <InfoRow
+            label={t('common.city')}
+            value={locationParts.city || noDataText}
           />
           <InfoRow
             label={t('superadmin.condominiums.detail.general.email')}
@@ -116,15 +149,26 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
         {condominium.managementCompanies && condominium.managementCompanies.length > 0 ? (
           <div className="space-y-4">
             {condominium.managementCompanies.map((company) => (
-              <div key={company.id} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-default-50 rounded-lg">
-                <InfoRow
-                  label={t('superadmin.condominiums.detail.general.companyName')}
-                  value={company.name}
-                />
-                <InfoRow
-                  label={t('superadmin.condominiums.detail.general.companyEmail')}
-                  value={company.email || noDataText}
-                />
+              <div key={company.id} className="flex items-center gap-4 p-4 bg-default-50 rounded-lg">
+                <div className="flex-1">
+                  <InfoRow
+                    label={t('superadmin.condominiums.detail.general.companyName')}
+                    value={company.name}
+                  />
+                </div>
+                <div className="flex-1">
+                  <InfoRow
+                    label={t('superadmin.condominiums.detail.general.companyEmail')}
+                    value={company.email || noDataText}
+                  />
+                </div>
+                <div className="flex-shrink-0">
+                  <Link href={`/dashboard/admins/${company.id}`}>
+                    <Button size="sm" variant="flat" color="primary" startContent={<Eye className="h-4 w-4" />}>
+                      {t('superadmin.condominiums.actions.view')}
+                    </Button>
+                  </Link>
+                </div>
               </div>
             ))}
           </div>
@@ -151,11 +195,7 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
           />
           <InfoRow
             label={t('superadmin.condominiums.detail.general.createdBy')}
-            value={
-              condominium.createdByUser
-                ? condominium.createdByUser.displayName || condominium.createdByUser.email
-                : noDataText
-            }
+            value={getCreatedByDisplay()}
           />
         </div>
       </Card>

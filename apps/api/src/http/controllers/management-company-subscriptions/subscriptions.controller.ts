@@ -39,7 +39,10 @@ type TCompanyIdParam = z.infer<typeof CompanyIdParamSchema>
 
 const CancelSubscriptionBodySchema = z.object({
   cancelledBy: z.string().uuid(),
-  cancellationReason: z.string().optional(),
+  cancellationReason: z
+    .string()
+    .optional()
+    .transform(val => (val === '' ? undefined : val)),
 })
 
 type TCancelSubscriptionBody = z.infer<typeof CancelSubscriptionBodySchema>
@@ -62,10 +65,17 @@ const SubscriptionHistoryQuerySchema = z.object({
 type TSubscriptionHistoryQuery = z.infer<typeof SubscriptionHistoryQuerySchema>
 
 const CalculatePricingQuerySchema = z.object({
+  rateId: z.string().uuid().optional(),
   condominiumRate: z.coerce.number().positive().optional(),
   unitRate: z.coerce.number().positive().optional(),
+  userRate: z.coerce.number().positive().optional(),
+  billingCycle: z.enum(['monthly', 'quarterly', 'semi_annual', 'annual', 'custom']).optional(),
   discountType: z.enum(['percentage', 'fixed']).optional(),
   discountValue: z.coerce.number().nonnegative().optional(),
+  // Subscription limits (for calculating based on max allowed, not current usage)
+  condominiumCount: z.coerce.number().int().nonnegative().optional(),
+  unitCount: z.coerce.number().int().nonnegative().optional(),
+  userCount: z.coerce.number().int().nonnegative().optional(),
 })
 
 type TCalculatePricingQuery = z.infer<typeof CalculatePricingQuerySchema>
@@ -262,10 +272,16 @@ export class ManagementCompanySubscriptionsController extends BaseController<
     try {
       const result = await this.pricingService.execute({
         managementCompanyId: ctx.params.companyId,
+        rateId: ctx.query.rateId,
         condominiumRate: ctx.query.condominiumRate,
         unitRate: ctx.query.unitRate,
+        userRate: ctx.query.userRate,
+        billingCycle: ctx.query.billingCycle,
         discountType: ctx.query.discountType,
         discountValue: ctx.query.discountValue,
+        condominiumCount: ctx.query.condominiumCount,
+        unitCount: ctx.query.unitCount,
+        userCount: ctx.query.userCount,
       })
 
       if (!result.success) {

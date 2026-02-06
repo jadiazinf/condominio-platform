@@ -7,6 +7,10 @@ export const subscriptionRateSchema = z.object({
   description: z.string().nullable(),
   condominiumRate: z.number().nonnegative(),
   unitRate: z.number().nonnegative(),
+  userRate: z.number().nonnegative().default(0),
+
+  // Annual subscription discount (percentage)
+  annualDiscountPercentage: z.number().nonnegative().default(15), // 15% default discount for annual subscriptions
 
   // Tiered pricing (volume-based)
   minCondominiums: z.number().int().nonnegative().default(1),

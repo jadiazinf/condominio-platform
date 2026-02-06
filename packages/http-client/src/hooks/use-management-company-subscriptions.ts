@@ -80,23 +80,37 @@ export interface ICancelSubscriptionData {
 }
 
 export interface IPricingQuery {
+  rateId?: string
   condominiumRate?: number
   unitRate?: number
+  userRate?: number
+  billingCycle?: 'monthly' | 'quarterly' | 'semi_annual' | 'annual' | 'custom'
   discountType?: 'percentage' | 'fixed'
   discountValue?: number
+  // Subscription limits (for pricing based on max allowed, not current usage)
+  condominiumCount?: number
+  unitCount?: number
+  userCount?: number
 }
 
 export interface IPricingCalculationResult {
   condominiumCount: number
   unitCount: number
+  userCount: number
   condominiumRate: number
   unitRate: number
+  userRate: number
   condominiumSubtotal: number
   unitSubtotal: number
-  calculatedPrice: number
+  userSubtotal: number
+  monthlyBasePrice: number // Price for 1 month (before multiplying by billing months)
+  billingMonths: number // 1 for monthly, 12 for annual
+  calculatedPrice: number // monthlyBasePrice × billingMonths
   discountType: 'percentage' | 'fixed' | null
   discountValue: number | null
   discountAmount: number
+  annualDiscountPercentage: number
+  annualDiscountAmount: number
   finalPrice: number
   // Rate info (from database)
   rateId: string | null
@@ -418,10 +432,17 @@ export function useSubscriptionPricing(
 
   // Build query string
   const params = new URLSearchParams()
+  if (query.rateId) params.set('rateId', query.rateId)
   if (query.condominiumRate !== undefined) params.set('condominiumRate', String(query.condominiumRate))
   if (query.unitRate !== undefined) params.set('unitRate', String(query.unitRate))
+  if (query.userRate !== undefined) params.set('userRate', String(query.userRate))
+  if (query.billingCycle) params.set('billingCycle', query.billingCycle)
   if (query.discountType) params.set('discountType', query.discountType)
   if (query.discountValue !== undefined) params.set('discountValue', String(query.discountValue))
+  // Subscription limits
+  if (query.condominiumCount !== undefined) params.set('condominiumCount', String(query.condominiumCount))
+  if (query.unitCount !== undefined) params.set('unitCount', String(query.unitCount))
+  if (query.userCount !== undefined) params.set('userCount', String(query.userCount))
 
   const queryString = params.toString()
   const path = `/management-companies/${companyId}/subscription/pricing${queryString ? `?${queryString}` : ''}`
@@ -447,10 +468,17 @@ export async function getSubscriptionPricing(
 
   // Build query string
   const params = new URLSearchParams()
+  if (query.rateId) params.set('rateId', query.rateId)
   if (query.condominiumRate !== undefined) params.set('condominiumRate', String(query.condominiumRate))
   if (query.unitRate !== undefined) params.set('unitRate', String(query.unitRate))
+  if (query.userRate !== undefined) params.set('userRate', String(query.userRate))
+  if (query.billingCycle) params.set('billingCycle', query.billingCycle)
   if (query.discountType) params.set('discountType', query.discountType)
   if (query.discountValue !== undefined) params.set('discountValue', String(query.discountValue))
+  // Subscription limits
+  if (query.condominiumCount !== undefined) params.set('condominiumCount', String(query.condominiumCount))
+  if (query.unitCount !== undefined) params.set('unitCount', String(query.unitCount))
+  if (query.userCount !== undefined) params.set('userCount', String(query.userCount))
 
   const queryString = params.toString()
   const path = `/management-companies/${companyId}/subscription/pricing${queryString ? `?${queryString}` : ''}`

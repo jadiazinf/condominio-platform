@@ -17,9 +17,10 @@ export interface IRepository<TEntity, TCreateDto, TUpdateDto> {
   /**
    * Retrieves a single entity by its ID.
    * @param id - The unique identifier of the entity
+   * @param includeInactive - If true, includes inactive entities (default: false)
    * @returns Promise resolving to the entity or null if not found
    */
-  getById(id: string): Promise<TEntity | null>
+  getById(id: string, includeInactive?: boolean): Promise<TEntity | null>
 
   /**
    * Creates a new entity.

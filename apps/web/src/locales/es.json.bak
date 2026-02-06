@@ -1,0 +1,2077 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Exitoso",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "delete": "Eliminar",
+    "deleting": "Eliminando...",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "clearFilters": "Limpiar filtros",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "back": "Volver",
+    "backToHome": "Ir a inicio",
+    "backToList": "Volver a la lista",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "yes": "Sí",
+    "no": "No",
+    "user": "Usuario",
+    "retry": "Reintentar",
+    "country": "País",
+    "countryPlaceholder": "Selecciona un país",
+    "province": "Estado/Provincia",
+    "provincePlaceholder": "Selecciona un estado",
+    "city": "Ciudad",
+    "cityPlaceholder": "Selecciona una ciudad",
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "goHome": "Ir al Inicio",
+    "login": "Iniciar Sesión"
+  },
+  "nav": {
+    "home": "Inicio",
+    "benefits": "Beneficios",
+    "howItWorks": "Cómo funciona",
+    "join": "Únete",
+    "features": "Características",
+    "pricing": "Precios",
+    "contact": "Contacto",
+    "signIn": "Iniciar Sesión",
+    "signUp": "Registrarse",
+    "dashboard": "Panel",
+    "profile": "Perfil",
+    "settings": "Configuración",
+    "logout": "Cerrar Sesión",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Cerrar menu"
+  },
+  "landing": {
+    "hero": {
+      "title": "Administrar tu condominio",
+      "titleHighlight": "ya no tiene que ser un dolor de cabeza",
+      "subtitle": "La herramienta que te ayuda a cobrar cuotas, mantener informados a los vecinos y tener las cuentas en orden. Simple, como debería ser.",
+      "cta": "Pruébalo gratis",
+      "howItWorks": "¿Cómo funciona?",
+      "noCreditCard": "Sin tarjeta de crédito · Cancela cuando quieras"
+    },
+    "problems": {
+      "title": "Sabemos lo difícil que es",
+      "subtitle": "Administrar un condominio puede ser agotador. Nosotros lo hacemos más fácil.",
+      "items": {
+        "payments": {
+          "problem": "¿Cansado de perseguir pagos?",
+          "solution": "Los vecinos pagan en línea y tú ves todo al instante"
+        },
+        "meetings": {
+          "problem": "¿Reuniones interminables?",
+          "solution": "Envía comunicados y recibe respuestas sin salir de casa"
+        },
+        "communication": {
+          "problem": "¿Vecinos que no se enteran?",
+          "solution": "Notificaciones automáticas que sí llegan y sí se leen"
+        },
+        "spreadsheets": {
+          "problem": "¿Excel con mil pestañas?",
+          "solution": "Un sistema simple que hace los cálculos por ti"
+        }
+      }
+    },
+    "benefits": {
+      "label": "Beneficios",
+      "title": "Todo lo que necesitas, nada que no",
+      "items": {
+        "paperwork": {
+          "title": "Olvídate del papeleo",
+          "description": "Todo en un solo lugar: cuotas, pagos, comunicados. Sin hojas de Excel ni carpetas perdidas.",
+          "highlight": "Ahorra tiempo"
+        },
+        "collections": {
+          "title": "Cobra sin perseguir a nadie",
+          "description": "Los vecinos reciben recordatorios automáticos y pueden pagar desde su celular.",
+          "highlight": "Menos estrés"
+        },
+        "informed": {
+          "title": "Todos informados",
+          "description": "Comunicados, avisos y documentos llegan directo al celular de cada residente.",
+          "highlight": "Sin malentendidos"
+        },
+        "transparency": {
+          "title": "Cuentas claras",
+          "description": "Cada vecino ve sus pagos, recibos y estado de cuenta cuando quiera, sin llamarte.",
+          "highlight": "Transparencia total"
+        }
+      }
+    },
+    "howItWorks": {
+      "label": "Así de simple",
+      "title": "Empieza en 3 pasos",
+      "steps": {
+        "register": {
+          "step": "1",
+          "title": "Registra tu condominio",
+          "description": "En menos de 5 minutos tienes todo listo"
+        },
+        "invite": {
+          "step": "2",
+          "title": "Invita a los vecinos",
+          "description": "Les llega un link y listo, ya están dentro"
+        },
+        "manage": {
+          "step": "3",
+          "title": "Empieza a administrar",
+          "description": "Genera cuotas, recibe pagos, envía avisos"
+        }
+      }
+    },
+    "cta": {
+      "title": "¿Listo para simplificar tu vida?",
+      "subtitle": "Únete a los administradores que ya dejaron de sufrir con el papeleo y los pagos atrasados.",
+      "button": "Comenzar gratis",
+      "note": "Configuración en minutos · Soporte incluido"
+    },
+    "pricing": {
+      "label": "Para administradoras de condominios",
+      "title": "Comienza a administrar con nuestra plataforma",
+      "subtitle": "Diseñamos soluciones personalizadas para cada administradora. Agenda una reunión para conocer tu negocio y crear un plan que se ajuste a tus necesidades.",
+      "processTitle": "Proceso de registro",
+      "steps": {
+        "schedule": {
+          "title": "Agenda una reunión",
+          "description": "Conversemos sobre tu administradora y necesidades específicas"
+        },
+        "negotiate": {
+          "title": "Negociamos el precio",
+          "description": "Creamos un plan personalizado según el tamaño de tu operación"
+        },
+        "start": {
+          "title": "Comienza a operar",
+          "description": "Una vez acordado, te damos acceso completo a la plataforma"
+        }
+      },
+      "ctaButton": "Agendar reunión",
+      "ctaNote": "Respuesta en menos de 24 horas",
+      "questions": "¿Tienes preguntas?",
+      "writeUs": "Escríbenos",
+      "helpText": "y te ayudamos a entender cómo funciona"
+    }
+  },
+  "footer": {
+    "description": "La forma más fácil de administrar tu condominio.",
+    "product": "Producto",
+    "benefits": "Beneficios",
+    "join": "Únete",
+    "howItWorks": "Cómo funciona",
+    "support": "Soporte",
+    "helpCenter": "Centro de ayuda",
+    "contact": "Contacto",
+    "legal": "Legal",
+    "privacy": "Privacidad",
+    "terms": "Términos de uso",
+    "copyright": "© {year} CondominioApp. Todos los derechos reservados.",
+    "madeWith": "Hecho con ❤️ para administradores de condominios"
+  },
+  "auth": {
+    "signIn": {
+      "title": "Bienvenido de vuelta",
+      "subtitle": "Inicia sesión para continuar",
+      "email": "Email",
+      "emailPlaceholder": "Ingresa tu email",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Ingresa tu contraseña",
+      "rememberMe": "Recuérdame",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "submit": "Iniciar Sesión",
+      "orContinueWith": "O inicia con",
+      "continueWithGoogle": "Continuar con Google",
+      "noAccount": "¿No tienes cuenta?",
+      "signUpLink": "Regístrate",
+      "success": "Inicio de sesión exitoso",
+      "googleSuccess": "Inicio de sesión con Google exitoso",
+      "error": "Error al iniciar sesión",
+      "googleError": "Error al iniciar sesión con Google"
+    },
+    "signUpCTA": {
+      "title": "¿No tienes una cuenta?",
+      "subtitle": "Regístrate para que puedas comenzar a disfrutar de tu primera experiencia de administración de condominios.",
+      "button": "Registrarse"
+    },
+    "signInCTA": {
+      "title": "¿Ya tienes una cuenta?",
+      "subtitle": "Inicia sesión para continuar gestionando tu condominio y acceder a todas tus funcionalidades.",
+      "button": "Iniciar sesión"
+    },
+    "signUp": {
+      "title": "Crea tu cuenta",
+      "subtitle": "Comienza a administrar tu condominio hoy",
+      "firstName": "Nombre",
+      "firstNamePlaceholder": "Tu nombre",
+      "lastName": "Apellido",
+      "lastNamePlaceholder": "Tu apellido",
+      "email": "Email",
+      "emailPlaceholder": "Ingresa tu email",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Crea una contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "confirmPasswordPlaceholder": "Confirma tu contraseña",
+      "acceptTerms": "Acepto los",
+      "termsAndConditions": "términos y condiciones",
+      "and": "y la",
+      "privacyPolicy": "política de privacidad",
+      "submit": "Crear cuenta",
+      "orContinueWith": "O regístrate con",
+      "continueWithGoogle": "Continuar con Google",
+      "hasAccount": "¿Ya tienes cuenta?",
+      "signInLink": "Inicia sesión",
+      "success": "Cuenta creada exitosamente",
+      "googleSuccess": "Registro con Google exitoso",
+      "error": "Error al crear la cuenta",
+      "googleError": "Error al registrarse con Google",
+      "alreadyRegistered": "Ya tienes una cuenta registrada"
+    },
+    "forgotPassword": {
+      "title": "¿Olvidaste tu contraseña?",
+      "subtitle": "No te preocupes, te enviaremos instrucciones para restablecerla",
+      "email": "Email",
+      "emailPlaceholder": "Ingresa tu email",
+      "submit": "Enviar instrucciones",
+      "backToSignIn": "Volver a iniciar sesión",
+      "success": "Email enviado exitosamente",
+      "successMessage": "Revisa tu correo electrónico para las instrucciones de recuperación",
+      "error": "Error al enviar el email",
+      "invalidEmail": "El email ingresado no está registrado",
+      "contactSupport": "Este correo ya está registrado con otra cuenta. Por favor contacta a soporte."
+    },
+    "loading": {
+      "title": "Preparando todo...",
+      "subtitle": "Estamos cargando tu información",
+      "error": "Error al cargar tu información",
+      "retry": "Reintentar",
+      "logout": "Cerrar sesión",
+      "notRegistered": "No tienes una cuenta registrada. Por favor regístrate primero.",
+      "accountDisabled": "Tu cuenta ha sido desactivada. Por favor contacta a soporte.",
+      "noPendingData": "No se encontraron datos de registro. Por favor intenta registrarte nuevamente."
+    },
+    "errors": {
+      "invalidCredentials": "Credenciales inválidas. Por favor verifica tu email y contraseña.",
+      "emailInUse": "Este correo electrónico ya está en uso.",
+      "weakPassword": "La contraseña es muy débil. Usa al menos 8 caracteres.",
+      "networkError": "Error de conexión. Por favor verifica tu conexión a internet.",
+      "tooManyRequests": "Demasiados intentos fallidos. Por favor intenta más tarde.",
+      "userNotFound": "No existe una cuenta con este correo electrónico.",
+      "userDisabled": "Esta cuenta ha sido deshabilitada.",
+      "popupClosed": "El proceso de autenticación fue cancelado.",
+      "generic": "Ocurrió un error inesperado. Por favor intenta de nuevo.",
+      "temporaryError": "Error temporal del servidor. Por favor intenta iniciar sesión nuevamente.",
+      "sessionExpiredInactivity": "Tu sesión ha expirado por inactividad prolongada. Por favor inicia sesión nuevamente.",
+      "passwordMinLength": "La contraseña debe tener al menos 8 caracteres.",
+      "passwordUppercase": "La contraseña debe contener al menos una letra mayúscula.",
+      "passwordLowercase": "La contraseña debe contener al menos una letra minúscula.",
+      "passwordNumber": "La contraseña debe contener al menos un número.",
+      "confirmPasswordRequired": "Debes confirmar tu contraseña.",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden.",
+      "acceptTerms": "Debes aceptar los términos y condiciones."
+    },
+    "acceptInvitation": {
+      "title": "Completa tu registro",
+      "subtitle": "Has sido invitado a administrar {companyName}",
+      "validating": "Validando invitación...",
+      "yourEmail": "Tu correo electrónico",
+      "setPassword": "Crea una contraseña para acceder a tu cuenta",
+      "submit": "Completar registro",
+      "success": "Registro completado exitosamente",
+      "invalidTitle": "Invitación no válida",
+      "expiredTitle": "Invitación expirada",
+      "expiredDescription": "La invitación para administrar {companyName} ha expirado.",
+      "expiredContact": "Contacta a {email} para solicitar una nueva invitación.",
+      "goToSignIn": "Ir a iniciar sesión",
+      "goToHome": "Ir al inicio",
+      "errors": {
+        "noToken": "No se proporcionó un token de invitación.",
+        "invalid": "Esta invitación no es válida o ya ha sido utilizada.",
+        "unknown": "Ocurrió un error al validar la invitación.",
+        "firebaseCreateFailed": "Error al crear la cuenta. Por favor intenta de nuevo."
+      }
+    }
+  },
+  "validation": {
+    "models": {
+      "users": {
+        "phoneCountryCode": {
+          "required": "El código de área es requerido.",
+          "max": "El código de país no puede exceder 10 caracteres."
+        },
+        "phoneNumber": {
+          "required": "El número de teléfono es requerido.",
+          "max": "El número de teléfono no puede exceder 50 caracteres."
+        }
+      },
+      "auth": {
+        "email": {
+          "required": "El correo electrónico es requerido.",
+          "invalid": "El correo electrónico no es válido."
+        },
+        "password": {
+          "required": "La contraseña es requerida.",
+          "min": "La contraseña debe tener al menos 8 caracteres."
+        },
+        "firstName": {
+          "required": "El nombre es requerido."
+        },
+        "lastName": {
+          "required": "El apellido es requerido."
+        },
+        "confirmPassword": {
+          "mismatch": "Las contraseñas no coinciden."
+        },
+        "acceptTerms": {
+          "required": "Debes aceptar los términos y condiciones."
+        }
+      },
+      "managementCompanies": {
+        "name": {
+          "required": "El nombre comercial es requerido.",
+          "max": "El nombre comercial no puede exceder 255 caracteres."
+        },
+        "legalName": {
+          "required": "La razón social es requerida.",
+          "max": "La razón social no puede exceder 255 caracteres."
+        },
+        "taxIdType": {
+          "required": "El tipo de RIF es requerido.",
+          "invalid": "El tipo de RIF no es válido."
+        },
+        "taxIdNumber": {
+          "required": "El número de RIF es requerido.",
+          "max": "El número de RIF no puede exceder 50 caracteres."
+        },
+        "email": {
+          "required": "El correo electrónico es requerido.",
+          "invalid": "El correo electrónico no es válido.",
+          "max": "El correo electrónico no puede exceder 255 caracteres."
+        },
+        "phoneCountryCode": {
+          "required": "El código de área es requerido.",
+          "max": "El código de área no puede exceder 10 caracteres."
+        },
+        "phone": {
+          "required": "El teléfono es requerido.",
+          "max": "El teléfono no puede exceder 50 caracteres."
+        },
+        "website": {
+          "invalid": "El sitio web no es válido.",
+          "max": "El sitio web no puede exceder 255 caracteres."
+        },
+        "address": {
+          "required": "La dirección es requerida.",
+          "max": "La dirección no puede exceder 500 caracteres."
+        },
+        "locationId": {
+          "required": "La ubicación es requerida.",
+          "invalid": "La ubicación no es válida."
+        }
+      }
+    }
+  },
+  "language": {
+    "select": "Idioma",
+    "es": "Español",
+    "en": "English"
+  },
+  "dashboard": {
+    "welcome": "Bienvenido, {name}",
+    "title": "Panel de Control"
+  },
+  "resident": {
+    "dashboard": {
+      "subtitle": "Aquí puedes ver el resumen de tu cuenta y cuotas pendientes",
+      "totalPending": "Total pendiente",
+      "dueThisMonth": "Vence este mes",
+      "upToDate": "Al día",
+      "payNow": "Pagar ahora",
+      "upcomingQuotas": "Cuotas próximas",
+      "noUpcomingQuotas": "No tienes cuotas pendientes",
+      "dueDate": "Vence",
+      "status": {
+        "pending": "Pendiente",
+        "overdue": "Vencida",
+        "paid": "Pagada"
+      },
+      "recentPayments": "Pagos recientes",
+      "noRecentPayments": "No hay pagos recientes",
+      "paymentStatus": {
+        "completed": "Completado",
+        "pending_verification": "En verificación",
+        "rejected": "Rechazado"
+      },
+      "quickActions": "Acciones rápidas",
+      "payQuota": "Pagar cuota",
+      "viewStatement": "Estado de cuenta",
+      "paymentHistory": "Historial",
+      "notifications": "Notificaciones",
+      "unit": "Unidad",
+      "building": "Edificio"
+    }
+  },
+  "condominium": {
+    "selection": {
+      "title": "Selecciona tu condominio",
+      "subtitle": "Tienes acceso a múltiples condominios. Selecciona con cuál deseas trabajar en esta sesión.",
+      "roles": "Roles",
+      "units": "Unidades",
+      "noCondominiums": "No tienes condominios asignados",
+      "noCondominiumsDescription": "Aún no tienes acceso a ningún condominio. Contacta a tu administrador para que te asigne a un condominio.",
+      "contactSupport": "Contactar soporte"
+    },
+    "loading": {
+      "fetchingCondominiums": "Cargando tus condominios..."
+    }
+  },
+  "superadmin": {
+    "nav": {
+      "dashboard": "Panel",
+      "users": "Usuarios",
+      "condominiums": "Condominios",
+      "admins": "Administradoras",
+      "tickets": "Tickets de Soporte",
+      "permissions": "Permisos",
+      "billing": "Facturación",
+      "activity": "Actividad",
+      "auditLogs": "Logs de Auditoría",
+      "settings": "Configuración"
+    },
+    "dashboard": {
+      "title": "Panel de Superadmin",
+      "welcome": "¡Bienvenido, {name}!",
+      "subtitle": "Vista general del rendimiento y métricas de la plataforma",
+      "recentActivity": "Actividad Reciente",
+      "systemStatus": "Estado del Sistema",
+      "revenueAnalytics": "Análisis de Ingresos",
+      "userDistribution": "Distribución de Usuarios"
+    },
+    "metrics": {
+      "totalUsers": "Total Usuarios",
+      "activeCondominiums": "Condominios Activos",
+      "managementCompanies": "Administradoras",
+      "monthlyRevenue": "Ingresos del Mes",
+      "monthlyTransactions": "Transacciones del Mes",
+      "pendingAlerts": "Alertas Pendientes",
+      "activeUsers24h": "Usuarios Activos (24h)"
+    },
+    "companies": {
+      "title": "Administradoras de Condominio",
+      "subtitle": "Gestiona las empresas administradoras de condominios",
+      "create": "Nueva Administradora",
+      "empty": "No hay administradoras registradas",
+      "emptyDescription": "Crea la primera administradora de condominio para comenzar",
+      "search": "Buscar administradora...",
+      "table": {
+        "name": "Nombre",
+        "legalName": "Razón Social",
+        "taxId": "RIF",
+        "email": "Email",
+        "phone": "Teléfono",
+        "status": "Estado",
+        "condominiums": "Condominios",
+        "createdAt": "Fecha de Registro",
+        "actions": "Acciones"
+      },
+      "status": {
+        "active": "Activa",
+        "inactive": "Inactiva",
+        "all": "Todos"
+      },
+      "filters": {
+        "searchPlaceholder": "Buscar por nombre, email o RIF...",
+        "status": "Estado",
+        "clearFilters": "Limpiar filtros"
+      },
+      "actions": {
+        "view": "Ver detalles",
+        "edit": "Editar",
+        "activate": "Activar",
+        "deactivate": "Desactivar",
+        "activateConfirm": "¿Deseas activar esta administradora?",
+        "deactivateConfirm": "¿Deseas desactivar esta administradora?",
+        "activateSuccess": "Administradora activada correctamente",
+        "deactivateSuccess": "Administradora desactivada correctamente",
+        "toggleError": "Error al cambiar el estado"
+      },
+      "form": {
+        "createTitle": "Crear Administradora de Condominio",
+        "createSubtitle": "Registra una nueva administradora con su usuario administrador",
+        "editTitle": "Editar Administradora",
+        "steps": {
+          "company": "Datos de la Administradora",
+          "admin": "Usuario Administrador",
+          "confirmation": "Confirmación"
+        },
+        "companySection": {
+          "title": "Información de la Administradora",
+          "description": "Ingresa los datos de identificación legal de la administradora, incluyendo su nombre comercial, razón social y número de RIF"
+        },
+        "contactSection": {
+          "title": "Información de Contacto",
+          "description": "Ingresa los medios de contacto principales de la administradora, como correo electrónico, teléfono y sitio web"
+        },
+        "addressSection": {
+          "title": "Ubicación",
+          "description": "Indica la ubicación geográfica y dirección física de las oficinas de la administradora"
+        },
+        "adminSection": {
+          "title": "Usuario Administrador",
+          "description": "Datos del usuario que tendrá acceso para administrar esta administradora en la plataforma"
+        },
+        "adminMode": {
+          "label": "Tipo de usuario administrador",
+          "new": "Crear nuevo usuario",
+          "existing": "Usar usuario existente"
+        },
+        "adminSearch": {
+          "description": "Busca por email y selecciona el usuario que administrará esta administradora",
+          "email": "Email del usuario",
+          "emailPlaceholder": "usuario@correo.com",
+          "button": "Buscar",
+          "notFound": "No se encontró un usuario con ese email",
+          "error": "Error buscando usuario",
+          "selectedTitle": "Usuario seleccionado",
+          "clear": "Limpiar selección"
+        },
+        "fields": {
+          "name": "Nombre Comercial",
+          "namePlaceholder": "Nombre de la administradora",
+          "nameDescription": "El nombre con el que se conoce públicamente a la administradora. Aparecerá en los documentos y comunicaciones con los residentes",
+          "legalName": "Razón Social",
+          "legalNamePlaceholder": "Razón social completa",
+          "legalNameDescription": "Nombre legal completo tal como aparece en el Registro Mercantil. Incluye la denominación de la sociedad (C.A., S.A., etc.)",
+          "taxId": "RIF",
+          "taxIdTypePlaceholder": "Tipo",
+          "taxIdNumberPlaceholder": "123456789",
+          "taxIdDescription": "Registro de Información Fiscal (RIF) de la administradora. Selecciona el tipo y luego ingresa el número sin guiones",
+          "email": "Email de la Administradora",
+          "emailPlaceholder": "contacto@administradora.com",
+          "emailDescription": "Correo electrónico principal para recibir comunicaciones oficiales y notificaciones del sistema",
+          "phone": "Teléfono",
+          "phonePlaceholder": "4121234567",
+          "phoneDescription": "Número de teléfono principal de la administradora. Los residentes podrán usar este número para contacto",
+          "website": "Sitio Web",
+          "websitePlaceholder": "https://www.administradora.com",
+          "websiteDescription": "Página web de la administradora (opcional). Si no cuenta con sitio web, deja este campo vacío",
+          "address": "Dirección",
+          "addressPlaceholder": "Av. Principal, Edificio Torre Norte, Piso 5, Oficina 5-A",
+          "addressDescription": "Dirección física completa de las oficinas de la administradora, incluyendo referencias si es necesario",
+          "location": "Ubicación Geográfica",
+          "locationDescription": "Selecciona el país, estado y ciudad donde se encuentran las oficinas de la administradora",
+          "country": "País",
+          "countryPlaceholder": "Selecciona un país",
+          "province": "Estado/Provincia",
+          "provincePlaceholder": "Selecciona un estado",
+          "city": "Ciudad",
+          "cityPlaceholder": "Selecciona una ciudad",
+          "adminFirstName": "Nombre",
+          "adminFirstNamePlaceholder": "Nombre del administrador",
+          "adminLastName": "Apellido",
+          "adminLastNamePlaceholder": "Apellido del administrador",
+          "adminEmail": "Email",
+          "adminEmailPlaceholder": "admin@administradora.com",
+          "adminEmailDescription": "Este será el correo de acceso del administrador a la plataforma",
+          "adminPhone": "Teléfono",
+          "adminPhonePlaceholder": "412 123 4567",
+          "adminIdDocument": "Documento de Identidad",
+          "adminIdDocumentTypePlaceholder": "CI",
+          "adminIdDocumentNumberPlaceholder": "12345678",
+          "adminIdDocumentDescription": "Documento de identidad del administrador. Selecciona el tipo y luego ingresa el número"
+        },
+        "confirmation": {
+          "title": "Confirmar Creación",
+          "description": "Revisa los datos antes de crear la administradora",
+          "companyInfo": "Datos de la Administradora",
+          "adminInfo": "Datos del Administrador",
+          "warning": "Se enviará un correo al administrador con las instrucciones de acceso"
+        },
+        "submit": "Crear Administradora",
+        "submitting": "Creando...",
+        "success": "Administradora creada exitosamente",
+        "error": "Error al crear la administradora",
+        "emailNotSent": "La administradora fue creada pero el email de invitación no pudo ser enviado. Puedes reenviar la invitación desde la lista de administradoras.",
+        "adminValidation": {
+          "emailExists": "Este correo ya está registrado. Utiliza la opción 'Usar usuario existente' para seleccionar este usuario",
+          "userInactive": "Este usuario está inactivo y no puede ser utilizado como administrador",
+          "error": "Error al validar el correo electrónico"
+        }
+      },
+      "subscription": {
+        "title": "Suscripción",
+        "actions": "Acciones",
+        "createButton": "Crear Suscripción",
+        "cancelButton": "Cancelar Suscripción",
+        "renewButton": "Renovar Suscripción",
+        "viewHistory": "Ver Historial",
+        "noActiveSubscription": "Sin Suscripción Activa",
+        "noActiveSubscriptionDescription": "Esta administradora no tiene una suscripción activa. Crea una nueva suscripción para habilitar el acceso a la plataforma.",
+        "noHistory": "No hay historial de suscripciones",
+        "cancelSuccess": "Suscripción cancelada exitosamente",
+        "cancelError": "Error al cancelar la suscripción",
+        "createSuccess": "Suscripción creada exitosamente",
+        "createError": "Error al crear la suscripción",
+        "defaultName": "Plan Personalizado",
+        "form": {
+          "createTitle": "Crear Suscripción",
+          "steps": {
+            "basic": "Información Básica",
+            "limits": "Límites y Características",
+            "pricing": "Precio",
+            "confirmation": "Confirmación"
+          },
+          "sections": {
+            "pricing": "Calculadora de Precio",
+            "pricingDescription": "El precio sugerido se calcula automáticamente basado en los condominios y unidades de la administradora",
+            "basicInfo": "Información Básica",
+            "basicInfoDescription": "Configura el nombre y ciclo de facturación de la suscripción",
+            "dates": "Fechas",
+            "datesDescription": "Define las fechas de inicio, finalización y renovación",
+            "limits": "Límites",
+            "limitsDescription": "Establece los límites de uso para esta suscripción (dejar vacío = ilimitado)",
+            "features": "Características Incluidas",
+            "featuresDescription": "Selecciona las características que incluirá esta suscripción",
+            "notes": "Notas",
+            "notesDescription": "Información adicional sobre la suscripción",
+            "finalPrice": "Precio Final",
+            "finalPriceDescription": "Define el precio de la suscripción. Puedes usar el valor sugerido o establecer un monto diferente",
+            "pricingNotes": "Notas del Precio",
+            "pricingNotesDescription": "Información adicional sobre el precio o descuentos aplicados"
+          },
+          "pricing": {
+            "condominiums": "Condominios",
+            "condominiumsDescription": "Número de condominios activos registrados en la administradora",
+            "units": "Unidades totales",
+            "unitsDescription": "Suma de todas las unidades (apartamentos, casas, locales) de todos los condominios",
+            "users": "Usuarios activos",
+            "usersDescription": "Cantidad de usuarios del staff de la administradora (gerentes, contadores, asistentes). No incluye residentes.",
+            "breakdown": "Desglose del precio",
+            "subtotal": "Subtotal",
+            "discount": "Descuento",
+            "annualDiscount": "Descuento anual",
+            "suggestedPrice": "Precio sugerido",
+            "error": "No se pudo calcular el precio. Intenta de nuevo.",
+            "noRateConfigured": {
+              "title": "No hay tarifas de suscripción configuradas",
+              "description": "Para crear suscripciones, primero debe existir al menos una tarifa activa en el sistema.",
+              "instruction": "Ve a Configuración → Tarifas de Suscripción para crear una tarifa antes de continuar."
+            },
+            "noData": "Sin datos de precio disponibles",
+            "monthlyBasePrice": "Precio base mensual",
+            "billingMonths": "Meses de facturación",
+            "billingMonthsMonthly": "1 mes (mensual)",
+            "billingMonthsAnnual": "12 meses (anual)",
+            "formula": "Fórmula de cálculo",
+            "formulaDescription": "El precio se calcula sumando el costo por condominios, unidades y usuarios activos, multiplicado por los meses del ciclo de facturación:",
+            "formulaDetail": "[(Condominios × Tarifa) + (Unidades × Tarifa) + (Usuarios × Tarifa)] × Meses - Descuentos = Precio Final",
+            "formulaTooltip": {
+              "title": "Explicación de la fórmula",
+              "condominiums": "Condominios",
+              "condominiumsDesc": "Cantidad de condominios activos asignados a esta administradora",
+              "condominiumRate": "TarifaCondo",
+              "condominiumRateDesc": "Monto mensual cobrado por cada condominio administrado",
+              "units": "Unidades",
+              "unitsDesc": "Total de unidades (apartamentos, casas, locales) de todos los edificios de todos los condominios",
+              "unitRate": "TarifaUnidad",
+              "unitRateDesc": "Monto mensual cobrado por cada unidad registrada",
+              "users": "Usuarios",
+              "usersDesc": "Usuarios activos del staff de la administradora (gerentes, contadores, asistentes)",
+              "userRate": "TarifaUsuario",
+              "userRateDesc": "Monto mensual cobrado por cada usuario activo del staff",
+              "months": "Meses",
+              "monthsDesc": "Cantidad de meses del ciclo de facturación (1 para mensual, 12 para anual). El precio base mensual se multiplica por este número",
+              "discount": "Descuento",
+              "discountDesc": "Reducción aplicada al precio total (porcentaje o monto fijo). Los descuentos se aplican después de multiplicar por los meses"
+            },
+            "rateApplied": "Tarifa aplicada",
+            "rateVersion": "Versión",
+            "condominiumRate": "Tarifa por condominio",
+            "unitRate": "Tarifa por unidad",
+            "userRate": "Tarifa por usuario",
+            "rateDescription": "Las tarifas se obtienen del sistema de tarifas activo",
+            "resetNoRates": "Primero debes configurar las tarifas de suscripción antes de poder calcular el precio"
+          },
+          "discount": {
+            "none": "Sin descuento",
+            "percentage": "Porcentaje",
+            "fixed": "Monto fijo",
+            "type": "Tipo de descuento",
+            "value": "Valor del descuento",
+            "percentagePlaceholder": "Ej: 10",
+            "fixedPlaceholder": "Ej: 50"
+          },
+          "fields": {
+            "subscriptionName": "Nombre de la Suscripción",
+            "subscriptionNamePlaceholder": "Ej: Plan Premium",
+            "subscriptionNameDescription": "Nombre descriptivo para identificar esta suscripción",
+            "subscriptionNameOptions": {
+              "basic": "Plan Básico",
+              "standard": "Plan Estándar",
+              "professional": "Plan Profesional",
+              "enterprise": "Plan Empresarial",
+              "custom": "Personalizado"
+            },
+            "customSubscriptionNamePlaceholder": "Ingresa un nombre personalizado",
+            "billingCycle": "Ciclo de Facturación",
+            "billingCyclePlaceholder": "Selecciona un ciclo",
+            "billingCycleDescription": "Frecuencia con la que se facturará la suscripción",
+            "basePrice": "Precio Base",
+            "basePricePlaceholder": "0.00",
+            "basePriceDescription": "Monto a cobrar por cada ciclo de facturación",
+            "basePriceModified": "Has modificado el precio sugerido",
+            "resetToCalculated": "Restablecer precio calculado",
+            "pricingNotesPlaceholder": "Ej: Descuento especial por ser cliente frecuente, promoción de lanzamiento...",
+            "status": "Estado Inicial",
+            "statusPlaceholder": "Selecciona un estado",
+            "statusDescription": "Estado con el que se creará la suscripción",
+            "startDate": "Fecha de Inicio",
+            "startDateDescription": "Fecha en que comienza la suscripción",
+            "endDate": "Fecha de Finalización",
+            "endDateDescription": "Fecha en que termina la suscripción",
+            "endDateCalculatedDescription": "La fecha de finalización se calcula automáticamente según el ciclo de facturación seleccionado",
+            "endDateAutoCalculated": "Calculada automáticamente según el ciclo de facturación",
+            "trialEndsAt": "Fin del Período de Prueba",
+            "trialEndsAtDescription": "Fecha en que termina el período de prueba",
+            "autoRenew": "Renovación Automática",
+            "autoRenewDescription": "La suscripción se renovará automáticamente al finalizar el período",
+            "maxCondominiums": "Máx. Condominios",
+            "maxCondominiumsPlaceholder": "Ilimitado",
+            "maxCondominiumsDescription": "Número máximo de condominios permitidos",
+            "maxUnits": "Máx. Unidades",
+            "maxUnitsPlaceholder": "Ilimitado",
+            "maxUnitsDescription": "Número máximo de unidades (apartamentos, casas, locales) en todos los condominios",
+            "maxUsers": "Máx. Usuarios",
+            "maxUsersPlaceholder": "Ilimitado",
+            "maxUsersDescription": "Número máximo de usuarios del staff de la administradora (gerentes, contadores, asistentes, etc.). No incluye residentes.",
+            "maxStorageGb": "Máx. Almacenamiento (GB)",
+            "maxStorageGbPlaceholder": "Ilimitado",
+            "maxStorageGbDescription": "Espacio de almacenamiento máximo en gigabytes",
+            "notes": "Notas",
+            "notesPlaceholder": "Notas adicionales sobre la suscripción...",
+            "notesDescription": "Información adicional o comentarios sobre esta suscripción",
+            "newFeature": "Nueva característica...",
+            "addFeature": "Agregar",
+            "selectAll": "Seleccionar todas"
+          },
+          "billingCycles": {
+            "monthly": "Mensual",
+            "quarterly": "Trimestral",
+            "semi_annual": "Semestral",
+            "annual": "Anual",
+            "custom": "Personalizado"
+          },
+          "statuses": {
+            "trial": "Prueba",
+            "active": "Activa",
+            "inactive": "Inactiva",
+            "cancelled": "Cancelada",
+            "suspended": "Suspendida"
+          },
+          "features": {
+            "reportes_avanzados": "Reportes Avanzados",
+            "notificaciones_push": "Notificaciones Push",
+            "soporte_prioritario": "Soporte Prioritario",
+            "api_access": "Acceso a API",
+            "backup_automatico": "Backup Automático",
+            "multi_moneda": "Multi-Moneda",
+            "integracion_bancaria": "Integración Bancaria",
+            "facturacion_electronica": "Facturación Electrónica"
+          },
+          "confirmation": {
+            "title": "Confirmar Suscripción",
+            "description": "Revisa los datos antes de crear la suscripción",
+            "subscriptionInfo": "Datos de la Suscripción",
+            "limitsInfo": "Límites",
+            "featuresInfo": "Características",
+            "unlimited": "Ilimitado",
+            "enabled": "habilitadas"
+          },
+          "validation": {
+            "subscriptionName": {
+              "required": "El nombre de la suscripción es requerido."
+            },
+            "billingCycle": {
+              "required": "El ciclo de facturación es requerido."
+            },
+            "basePrice": {
+              "required": "El precio base es requerido.",
+              "min": "El precio base debe ser mayor a 0."
+            },
+            "status": {
+              "required": "El estado es requerido."
+            },
+            "startDate": {
+              "required": "La fecha de inicio es requerida."
+            },
+            "trialEndsAt": {
+              "required": "La fecha de fin de prueba es requerida cuando el estado es Prueba."
+            },
+            "maxCondominiums": {
+              "required": "El máximo de condominios es requerido.",
+              "min": "El máximo de condominios debe ser mayor a 0."
+            },
+            "maxUnits": {
+              "required": "El máximo de unidades es requerido.",
+              "min": "El máximo de unidades debe ser mayor a 0."
+            },
+            "maxUsers": {
+              "required": "El máximo de usuarios es requerido.",
+              "min": "El máximo de usuarios debe ser mayor a 0."
+            },
+            "maxStorageGb": {
+              "required": "El máximo de almacenamiento es requerido.",
+              "min": "El máximo de almacenamiento debe ser mayor a 0."
+            },
+            "discount": {
+              "maxPercentage": "El descuento en porcentaje no puede ser mayor a 100%.",
+              "maxFixed": "El descuento fijo no puede ser mayor al precio calculado."
+            },
+            "integer": "Este campo solo acepta números enteros positivos."
+          },
+          "submit": "Crear Suscripción",
+          "submitting": "Creando...",
+          "update": "Guardar Cambios",
+          "updating": "Guardando..."
+        },
+        "cancel": {
+          "title": "Cancelar Suscripción",
+          "warning": "Estás a punto de cancelar la suscripción {name}. Esta acción desactivará la renovación automática y marcará la suscripción como cancelada.",
+          "emailNotice": "Se enviará una notificación por correo electrónico al superusuario principal, al correo de la administradora y a los administradores principales.",
+          "reasonLabel": "Motivo de cancelación",
+          "reasonPlaceholder": "Describe el motivo de la cancelación (opcional)...",
+          "passwordTitle": "Verificación de Seguridad",
+          "passwordDescription": "Para confirmar esta acción sensible, ingresa tu contraseña actual.",
+          "passwordLabel": "Contraseña",
+          "passwordPlaceholder": "Ingresa tu contraseña",
+          "passwordRequired": "La contraseña es requerida para continuar",
+          "passwordInvalid": "La contraseña es incorrecta",
+          "passwordError": "Error al verificar la contraseña",
+          "verifying": "Verificando...",
+          "confirmButton": "Confirmar Cancelación",
+          "backButton": "Volver"
+        },
+        "replace": {
+          "title": "Reemplazar Suscripción Activa",
+          "warning": "Esta empresa administradora ya tiene una suscripción activa. Si continúas, la suscripción actual será cancelada y reemplazada por la nueva.",
+          "currentSubscription": "Suscripción Actual",
+          "emailNotice": "Se enviarán notificaciones por correo electrónico sobre la cancelación de la suscripción actual y la creación de la nueva suscripción.",
+          "passwordDescription": "Para confirmar el reemplazo de la suscripción, ingresa tu contraseña actual.",
+          "confirmButton": "Confirmar Reemplazo",
+          "autoReason": "Suscripción reemplazada por una nueva"
+        },
+        "history": {
+          "title": "Historial de Suscripciones",
+          "startDate": "Inicio",
+          "endDate": "Fin",
+          "cancelledAt": "Cancelada",
+          "nextBilling": "Próx. facturación",
+          "reason": "Motivo",
+          "searchPlaceholder": "Buscar por nombre...",
+          "fromDate": "Desde",
+          "toDate": "Hasta",
+          "clearFilters": "Limpiar filtros",
+          "resultCountSingular": "1 suscripción encontrada",
+          "resultCountPlural": "{count} suscripciones encontradas",
+          "noResults": "No se encontraron suscripciones con los filtros aplicados"
+        }
+      },
+      "detail": {
+        "title": "Detalle de Administradora",
+        "tabs": {
+          "general": "General",
+          "condominiums": "Condominios",
+          "members": "Miembros",
+          "subscription": "Suscripción",
+          "invoices": "Historial de Pagos",
+          "tickets": "Tickets de Soporte",
+          "status": "Estado y Acciones"
+        },
+        "general": {
+          "basicInfo": "Información Básica",
+          "contactInfo": "Información de Contacto",
+          "metadata": "Información del Sistema",
+          "name": "Nombre",
+          "legalName": "Razón Social",
+          "status": "Estado",
+          "website": "Sitio Web",
+          "address": "Dirección",
+          "noData": "No especificado"
+        },
+        "members": {
+          "title": "Miembros del Equipo",
+          "subtitle": "Gestiona los miembros y permisos de esta administradora",
+          "addMember": "Agregar Miembro",
+          "noMembers": "No hay miembros",
+          "noMembersDescription": "Esta administradora aún no tiene miembros registrados",
+          "modal": {
+            "title": "Agregar Miembro",
+            "existingUser": "Usuario Existente",
+            "newUser": "Crear Usuario",
+            "searchLabel": "Buscar usuario",
+            "searchPlaceholder": "Escribe el nombre o email (mínimo 2 caracteres)...",
+            "searchMinChars": "Escribe al menos 2 caracteres para buscar",
+            "noResults": "No se encontraron usuarios",
+            "addAsAdmin": "Agregar como Admin",
+            "createAndAdd": "Crear y Agregar como Admin",
+            "adminNote": "El usuario será agregado con rol Administrador y todos los permisos de admin.",
+            "inviteNote": "El usuario recibirá un email de invitación y será agregado con rol Administrador."
+          },
+          "table": {
+            "member": "Miembro",
+            "role": "Rol",
+            "joinedAt": "Fecha de Ingreso",
+            "status": "Estado"
+          },
+          "roles": {
+            "admin": "Administrador",
+            "accountant": "Contador",
+            "support": "Soporte",
+            "viewer": "Visualizador"
+          },
+          "status": {
+            "active": "Activo",
+            "inactive": "Inactivo"
+          },
+          "success": {
+            "added": "Miembro agregado exitosamente",
+            "created": "Usuario creado y agregado como miembro"
+          },
+          "error": {
+            "add": "Error al agregar miembro",
+            "create": "Error al crear usuario",
+            "config": "Error de configuración. Por favor recarga la página."
+          },
+          "form": {
+            "email": "Email",
+            "emailPlaceholder": "correo@ejemplo.com",
+            "firstName": "Nombre",
+            "firstNamePlaceholder": "Juan",
+            "lastName": "Apellido",
+            "lastNamePlaceholder": "Pérez",
+            "phoneCountryCode": "Código País",
+            "phone": "Teléfono",
+            "phonePlaceholder": "4121234567",
+            "documentType": "Tipo Documento",
+            "documentNumber": "Nº Documento",
+            "documentTypes": {
+              "CI": "Cédula",
+              "RIF": "RIF",
+              "Pasaporte": "Pasaporte"
+            }
+          }
+        }
+      }
+    },
+    "condominiums": {
+      "title": "Condominios",
+      "subtitle": "Gestiona todos los condominios registrados en el sistema",
+      "create": "Crear Condominio",
+      "empty": "No hay condominios registrados",
+      "emptyDescription": "Aún no se han registrado condominios en el sistema",
+      "noResults": "No se encontraron condominios",
+      "noResultsDescription": "Intenta ajustar los filtros de búsqueda",
+      "count": "{filtered} de {total} condominios",
+      "table": {
+        "name": "Condominio",
+        "code": "Código",
+        "company": "Administradora",
+        "address": "Dirección",
+        "contact": "Contacto",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "status": {
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "all": "Todos"
+      },
+      "filters": {
+        "searchPlaceholder": "Buscar por nombre, código, dirección...",
+        "status": "Estado",
+        "location": "Ubicación",
+        "clearFilters": "Limpiar filtros"
+      },
+      "actions": {
+        "view": "Ver detalles",
+        "activate": "Activar",
+        "deactivate": "Desactivar",
+        "statusUpdated": "Estado del condominio actualizado",
+        "statusUpdateError": "Error al actualizar el estado del condominio",
+        "create": "Crear Condominio",
+        "next": "Siguiente",
+        "previous": "Anterior",
+        "submit": "Crear Condominio",
+        "cancel": "Cancelar",
+        "edit": "Editar"
+      },
+      "confirmation": {
+        "title": "Confirme la información del condominio",
+        "sections": {
+          "basic": "Información Básica",
+          "location": "Ubicación",
+          "contact": "Contacto"
+        }
+      },
+      "noCompany": "Sin administradora",
+      "noContact": "Sin contacto",
+      "noAddress": "-",
+      "error": "Error al cargar los condominios",
+      "success": {
+        "created": "Condominio creado exitosamente",
+        "activateSuccess": "Condominio activado exitosamente",
+        "deactivateSuccess": "Condominio desactivado exitosamente"
+      },
+      "errors": {
+        "createError": "Error al crear el condominio",
+        "limitReached": "No puede crear más condominios. Su plan permite {max} condominios y actualmente tiene {current}.",
+        "limitReachedTooltip": "⚠️ Límite alcanzado: Actualmente tienes {current} de {max} condominios permitidos en tu plan. Para crear más condominios, necesitas actualizar tu suscripción a un plan superior.",
+        "noActiveSubscription": "❌ No tienes una suscripción activa. Para crear condominios, necesitas activar o contratar un plan de suscripción.",
+        "cannotCreate": "⚠️ No se puede crear un condominio en este momento. Por favor, contacta con soporte."
+      },
+      "checkingLimit": "⏳ Verificando el límite de condominios de tu suscripción actual...",
+      "unlimited": "ilimitado",
+      "form": {
+        "title": "Crear Condominio",
+        "createTitle": "Crear Condominio",
+        "createSubtitle": "Registra un nuevo condominio en el sistema",
+        "submit": "Crear Condominio",
+        "submitting": "Creando...",
+        "success": "Condominio creado exitosamente",
+        "error": "Error al crear el condominio",
+        "steps": {
+          "basic": "Información Básica",
+          "location": "Ubicación",
+          "contact": "Contacto",
+          "confirmation": "Confirmación"
+        },
+        "codeGenerated": "Código generado exitosamente",
+        "codeGenerateError": "Error al generar el código",
+        "basicSection": {
+          "title": "Información Básica",
+          "description": "Datos de identificación del condominio"
+        },
+        "contactSection": {
+          "title": "Información de Contacto",
+          "description": "Datos de contacto del condominio"
+        },
+        "locationSection": {
+          "title": "Ubicación",
+          "description": "Ubicación geográfica y dirección del condominio"
+        },
+        "fields": {
+          "name": {
+            "label": "Nombre del Condominio",
+            "placeholder": "Ej: Residencial Vista Hermosa",
+            "error": "El nombre es requerido"
+          },
+          "code": {
+            "label": "Código",
+            "placeholder": "Auto-generado si se deja vacío"
+          },
+          "status": {
+            "label": "Estado",
+            "active": "Activo",
+            "inactive": "Inactivo"
+          },
+          "address": {
+            "label": "Dirección",
+            "placeholder": "Av. Principal, Sector Centro",
+            "error": "La dirección es requerida"
+          },
+          "location": {
+            "label": "Ubicación",
+            "placeholder": "ID de ubicación (opcional)"
+          },
+          "email": {
+            "label": "Correo Electrónico",
+            "placeholder": "contacto@condominio.com",
+            "error": "Debe ser un correo válido"
+          },
+          "phoneNumber": {
+            "label": "Teléfono",
+            "placeholder": "+1 (809) 000-0000"
+          },
+          "phoneCountryCode": {
+            "label": "Código"
+          },
+          "managementCompany": "Empresa Administradora",
+          "managementCompanies": "Administradoras",
+          "managementCompanyPlaceholder": "Buscar administradora...",
+          "managementCompanyDescription": "Empresa que administra este condominio",
+          "managementCompaniesDescription": "Empresas que administran este condominio",
+          "noCompaniesFound": "No se encontraron administradoras"
+        },
+        "validation": {
+          "name": {
+            "required": "El nombre del condominio es requerido"
+          },
+          "code": {
+            "required": "El código del condominio es requerido"
+          },
+          "managementCompany": {
+            "required": "La administradora es requerida"
+          },
+          "email": {
+            "required": "El correo electrónico es requerido",
+            "invalid": "El correo electrónico no es válido"
+          },
+          "phone": {
+            "required": "El teléfono es requerido"
+          },
+          "phoneCountryCode": {
+            "required": "El código de país es requerido"
+          },
+          "location": {
+            "required": "La ubicación es requerida"
+          },
+          "address": {
+            "required": "La dirección es requerida"
+          }
+        }
+      },
+      "detail": {
+        "title": "Detalles del Condominio",
+        "backToList": "Volver a la lista",
+        "managedBy": "Administrado por",
+        "sidebar": {
+          "general": "Información General",
+          "buildings": "Edificios y Unidades",
+          "users": "Usuarios",
+          "configuration": "Configuración",
+          "status": "Estado y Acciones"
+        },
+        "general": {
+          "title": "Información General",
+          "subtitle": "Datos básicos y de contacto del condominio",
+          "basicInfo": "Información Básica",
+          "name": "Nombre",
+          "code": "Código",
+          "status": "Estado",
+          "currency": "Moneda",
+          "contactInfo": "Información de Contacto",
+          "address": "Dirección",
+          "email": "Correo electrónico",
+          "phone": "Teléfono",
+          "noAddress": "Sin dirección registrada",
+          "noEmail": "Sin correo electrónico",
+          "noPhone": "Sin teléfono",
+          "noData": "No especificado",
+          "managementCompany": "Empresa Administradora",
+          "managementCompanies": "Administradoras",
+          "companyName": "Nombre",
+          "companyEmail": "Email",
+          "noManagementCompany": "Sin empresa administradora asignada",
+          "noManagementCompanies": "Sin administradoras asignadas",
+          "metadata": "Información de Sistema",
+          "createdAt": "Fecha de creación",
+          "updatedAt": "Última actualización",
+          "createdBy": "Creado por"
+        },
+        "buildings": {
+          "title": "Edificios y Unidades",
+          "subtitle": "Gestiona los edificios y unidades del condominio",
+          "addBuilding": "Agregar Edificio",
+          "noBuildings": "No hay edificios registrados",
+          "noBuildingsDescription": "Agrega el primer edificio a este condominio",
+          "table": {
+            "name": "Nombre",
+            "code": "Código",
+            "floors": "Pisos",
+            "units": "Unidades",
+            "status": "Estado",
+            "actions": "Acciones"
+          },
+          "form": {
+            "createTitle": "Crear Edificio",
+            "editTitle": "Editar Edificio",
+            "name": "Nombre del Edificio",
+            "namePlaceholder": "Ej: Torre A",
+            "code": "Código",
+            "codePlaceholder": "Ej: TA",
+            "address": "Dirección",
+            "addressPlaceholder": "Dirección del edificio",
+            "floors": "Número de Pisos",
+            "bankInfo": "Información Bancaria",
+            "bankAccountHolder": "Titular de la Cuenta",
+            "bankName": "Nombre del Banco",
+            "bankAccountNumber": "Número de Cuenta",
+            "bankAccountType": "Tipo de Cuenta",
+            "accountTypes": {
+              "corriente": "Corriente",
+              "ahorro": "Ahorro"
+            }
+          },
+          "delete": {
+            "title": "Eliminar Edificio",
+            "confirm": "¿Está seguro que desea eliminar el edificio",
+            "warning": "Esta acción no se puede deshacer. Todas las unidades asociadas también serán eliminadas."
+          },
+          "success": {
+            "created": "Edificio creado exitosamente",
+            "updated": "Edificio actualizado exitosamente",
+            "deleted": "Edificio eliminado exitosamente",
+            "statusChanged": "Estado del edificio actualizado"
+          },
+          "error": {
+            "create": "Error al crear el edificio",
+            "update": "Error al actualizar el edificio",
+            "delete": "Error al eliminar el edificio",
+            "statusChange": "Error al cambiar el estado del edificio"
+          }
+        },
+        "units": {
+          "title": "Unidades",
+          "addUnit": "Agregar Unidad",
+          "noUnits": "No hay unidades en este edificio",
+          "table": {
+            "number": "Número",
+            "floor": "Piso",
+            "area": "Área (m²)",
+            "bedrooms": "Habitaciones",
+            "bathrooms": "Baños",
+            "parking": "Estacionamientos",
+            "status": "Estado",
+            "actions": "Acciones"
+          },
+          "form": {
+            "createTitle": "Crear Unidad",
+            "editTitle": "Editar Unidad",
+            "unitNumber": "Número de Unidad",
+            "unitNumberPlaceholder": "Ej: 101",
+            "floor": "Piso",
+            "area": "Área (m²)",
+            "bedrooms": "Habitaciones",
+            "bathrooms": "Baños",
+            "parkingSpaces": "Estacionamientos",
+            "parkingIdentifiers": "Identificadores de Estacionamiento",
+            "parkingIdentifiersPlaceholder": "Ej: P1, P2 (separados por coma)",
+            "storageIdentifier": "Identificador de Depósito",
+            "aliquotPercentage": "Porcentaje de Alícuota"
+          },
+          "delete": {
+            "title": "Eliminar Unidad",
+            "confirm": "¿Está seguro que desea eliminar la unidad"
+          },
+          "success": {
+            "created": "Unidad creada exitosamente",
+            "updated": "Unidad actualizada exitosamente",
+            "deleted": "Unidad eliminada exitosamente"
+          },
+          "error": {
+            "create": "Error al crear la unidad",
+            "update": "Error al actualizar la unidad",
+            "delete": "Error al eliminar la unidad"
+          }
+        },
+        "users": {
+          "title": "Usuarios",
+          "subtitle": "Residentes y administradores del condominio",
+          "addUser": "Agregar Usuario",
+          "noUsers": "No hay usuarios en este condominio",
+          "noUsersDescription": "Agrega usuarios para gestionar este condominio",
+          "table": {
+            "user": "Usuario",
+            "roles": "Roles",
+            "units": "Unidades",
+            "status": "Estado",
+            "actions": "Acciones"
+          },
+          "roles": {
+            "administrator": "Administrador",
+            "resident": "Residente",
+            "boardMember": "Miembro de Junta",
+            "owner": "Propietario",
+            "tenant": "Inquilino"
+          },
+          "addModal": {
+            "title": "Agregar Usuario al Condominio",
+            "searchPlaceholder": "Buscar por correo electrónico",
+            "selectRole": "Seleccionar Rol",
+            "selectUnit": "Asignar Unidad (opcional)"
+          },
+          "removeModal": {
+            "title": "Remover Usuario",
+            "confirm": "¿Está seguro que desea remover a {name} de este condominio?",
+            "warning": "El usuario perderá acceso a todas las funcionalidades de este condominio.",
+            "remove": "Remover",
+            "removing": "Removiendo...",
+            "success": "Usuario removido exitosamente",
+            "error": "Error al remover el usuario"
+          },
+          "success": {
+            "added": "Usuario agregado exitosamente",
+            "removed": "Usuario removido exitosamente",
+            "roleUpdated": "Rol actualizado exitosamente"
+          },
+          "error": {
+            "add": "Error al agregar el usuario",
+            "remove": "Error al remover el usuario",
+            "roleUpdate": "Error al actualizar el rol"
+          }
+        },
+        "configuration": {
+          "title": "Configuración",
+          "subtitle": "Configuración general del condominio",
+          "generalSettings": {
+            "title": "Configuración General",
+            "description": "Información básica del condominio"
+          },
+          "currencySettings": {
+            "title": "Moneda y Pagos",
+            "subtitle": "Configura las opciones de pago",
+            "defaultCurrency": "Moneda Predeterminada"
+          },
+          "notificationSettings": {
+            "title": "Notificaciones",
+            "subtitle": "Configura las preferencias de notificación",
+            "emailNotifications": "Notificaciones por Email",
+            "smsNotifications": "Notificaciones por SMS"
+          },
+          "dangerZone": {
+            "title": "Zona de Peligro",
+            "description": "Acciones irreversibles",
+            "deactivateTitle": "Desactivar/Activar Condominio",
+            "deactivateDescription": "Desactivar el condominio impedirá que los usuarios accedan a él.",
+            "deactivateButton": "Desactivar Condominio",
+            "activateButton": "Activar Condominio",
+            "confirmTitle": "Confirmar Acción",
+            "confirmDeactivate": "¿Está seguro que desea desactivar el condominio {name}? Los usuarios no podrán acceder hasta que sea reactivado.",
+            "confirmActivate": "¿Está seguro que desea activar el condominio {name}?"
+          },
+          "success": {
+            "updated": "Configuración actualizada exitosamente"
+          },
+          "error": {
+            "update": "Error al actualizar la configuración"
+          }
+        },
+        "statusSection": {
+          "title": "Estado y Acciones",
+          "subtitle": "Gestiona el estado del condominio",
+          "condominiumStatus": "Estado del Condominio",
+          "condominiumStatusDescription": "Activa o desactiva el condominio en la plataforma",
+          "success": "Estado actualizado correctamente",
+          "error": "Error al actualizar el estado"
+        }
+      }
+    },
+    "users": {
+      "title": "Usuarios",
+      "subtitle": "Gestiona todos los usuarios de la plataforma",
+      "createUser": "Crear nuevo usuario",
+      "empty": "No hay usuarios registrados",
+      "emptyDescription": "No se encontraron usuarios en la plataforma",
+      "error": "Error al cargar los usuarios",
+      "primarySuperadminNote": "Cuenta de superadministrador principal",
+      "create": {
+        "title": "Crear Nuevo Usuario",
+        "subtitle": "Invita a un nuevo usuario a la plataforma",
+        "backToList": "Volver a la lista",
+        "basicInfo": "Información Básica",
+        "basicInfoDescription": "Datos de identificación del usuario",
+        "contactInfo": "Información de Contacto",
+        "contactInfoDescription": "Datos de contacto del usuario",
+        "roleAssignmentTitle": "Asignación de Rol",
+        "roleAssignmentDescription": "Selecciona el rol y condominio (si aplica) para el usuario",
+        "permissions": "Permisos",
+        "permissionsDescription": "Personaliza los permisos para este usuario (opcional)",
+        "noPermissions": "No hay permisos disponibles para este rol",
+        "steps": {
+          "basic": "Información Básica",
+          "userType": "Tipo de Usuario",
+          "condominium": "Condominio",
+          "role": "Asignación de Rol",
+          "permissions": "Permisos",
+          "confirmation": "Confirmación"
+        },
+        "userType": {
+          "title": "Tipo de Usuario",
+          "tooltip": "Selecciona el tipo de usuario que deseas crear",
+          "general": {
+            "label": "Usuario General",
+            "description": "Usuario con permisos básicos sin asignación a condominio"
+          },
+          "condominium": {
+            "label": "Usuario de Condominio",
+            "description": "Usuario asignado a un condominio específico con rol y permisos personalizados"
+          },
+          "superadmin": {
+            "label": "Superadministrador",
+            "description": "Usuario con acceso completo al sistema y permisos personalizables"
+          }
+        },
+        "condominium": {
+          "title": "Seleccionar Condominio",
+          "tooltip": "Selecciona el condominio al que pertenecerá el usuario",
+          "searchPlaceholder": "Buscar condominio por nombre, código, dirección o ciudad...",
+          "empty": "No se encontraron condominios",
+          "table": {
+            "name": "Nombre",
+            "code": "Código",
+            "address": "Dirección",
+            "city": "Ciudad"
+          }
+        },
+        "roleAssignment": {
+          "noRoles": "No hay roles disponibles para este condominio"
+        },
+        "permissionsHint": "Activa o desactiva permisos individuales. Por defecto están habilitados según la plantilla del rol.",
+        "permissionModules": {
+          "users": "Usuarios",
+          "condominiums": "Condominios",
+          "buildings": "Edificios",
+          "units": "Unidades",
+          "quotas": "Cuotas",
+          "payments": "Pagos",
+          "expenses": "Gastos",
+          "documents": "Documentos",
+          "reports": "Reportes",
+          "settings": "Configuración",
+          "platform_users": "Usuarios de Plataforma",
+          "platform_condominiums": "Condominios de Plataforma",
+          "platform_management_companies": "Administradoras",
+          "platform_subscriptions": "Suscripciones",
+          "platform_support_tickets": "Tickets de Soporte",
+          "platform_superadmins": "Superadministradores",
+          "platform_audit_logs": "Auditoría",
+          "platform_metrics": "Métricas",
+          "platform_payments": "Pagos de Plataforma",
+          "platform_settings": "Configuración de Plataforma",
+          "platform_tickets": "Tickets de Plataforma"
+        },
+        "permissionActions": {
+          "create": "Crear",
+          "read": "Ver",
+          "read_own": "Ver propios",
+          "write": "Gestionar",
+          "update": "Actualizar",
+          "update_own": "Actualizar propios",
+          "delete": "Eliminar",
+          "delete_own": "Eliminar propios",
+          "approve": "Aprobar",
+          "manage": "Administrar",
+          "export": "Exportar",
+          "import": "Importar",
+          "view": "Visualizar",
+          "edit": "Editar",
+          "assign": "Asignar",
+          "unassign": "Desasignar",
+          "activate": "Activar",
+          "deactivate": "Desactivar"
+        },
+        "errors": {
+          "condominiumsFetch": "Error al cargar los condominios",
+          "rolesFetch": "Error al cargar los roles",
+          "permissionsFetch": "Error al cargar los permisos",
+          "userRoleNotFound": "No se pudo encontrar el rol de usuario general. Contacta al administrador."
+        },
+        "fields": {
+          "email": "Email",
+          "emailPlaceholder": "usuario@correo.com",
+          "emailDescription": "El usuario recibirá una invitación a este correo para acceder a la plataforma. Este será el correo electrónico del usuario para ingresar a la plataforma",
+          "firstName": "Nombre",
+          "firstNamePlaceholder": "Juan",
+          "firstNameDescription": "Nombre legal del usuario tal como aparece en su documento de identidad",
+          "lastName": "Apellido",
+          "lastNamePlaceholder": "Pérez",
+          "lastNameDescription": "Apellido legal del usuario tal como aparece en su documento de identidad",
+          "displayName": "Nombre para mostrar",
+          "displayNamePlaceholder": "Juan Pérez",
+          "displayNameDescription": "Nombre que se mostrará en la plataforma (opcional)",
+          "phoneCountryCode": "Código de país",
+          "phoneNumber": "Teléfono",
+          "phoneNumberPlaceholder": "4121234567",
+          "phoneDescription": "Número de teléfono principal del usuario. Se utilizará para comunicaciones y notificaciones",
+          "phone": "Teléfono",
+          "idDocument": "Documento de Identidad",
+          "idDocumentType": "Tipo de documento",
+          "idDocumentTypePlaceholder": "Selecciona...",
+          "idDocumentNumber": "Número de documento",
+          "idDocumentNumberPlaceholder": "12345678",
+          "idDocumentDescription": "Documento de identidad del usuario. Selecciona el tipo y luego ingresa el número",
+          "role": "Rol",
+          "rolePlaceholder": "Selecciona un rol",
+          "roleDescription": "El rol determina los permisos y nivel de acceso del usuario en la plataforma",
+          "condominium": "Condominio",
+          "condominiumPlaceholder": "Selecciona un condominio",
+          "condominiumDescription": "El condominio al que se asignará el usuario. Este campo es requerido para roles no globales como Administrador o Residente"
+        },
+        "idDocumentTypes": {
+          "CI": "Cédula de Identidad",
+          "RIF": "RIF",
+          "Pasaporte": "Pasaporte"
+        },
+        "submit": "Enviar Invitación",
+        "submitting": "Enviando...",
+        "success": "Invitación enviada exitosamente",
+        "error": "Error al enviar la invitación",
+        "emailNotSent": "El usuario fue creado pero el correo de invitación no pudo ser enviado",
+        "validation": {
+          "email": {
+            "required": "El correo electrónico es requerido.",
+            "invalid": "El correo electrónico no es válido."
+          },
+          "firstName": {
+            "required": "El nombre es requerido."
+          },
+          "lastName": {
+            "required": "El apellido es requerido."
+          },
+          "phoneCountryCode": {
+            "required": "El código de país es requerido."
+          },
+          "phoneNumber": {
+            "required": "El número de teléfono es requerido."
+          },
+          "idDocumentType": {
+            "required": "El tipo de documento es requerido."
+          },
+          "idDocumentNumber": {
+            "required": "El número de documento es requerido."
+          }
+        }
+      },
+      "table": {
+        "user": "Usuario",
+        "email": "Correo electrónico",
+        "document": "Documento",
+        "roles": "Roles",
+        "status": "Estado",
+        "lastAccess": "Último acceso"
+      },
+      "status": {
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "all": "Todos"
+      },
+      "filters": {
+        "searchPlaceholder": "Buscar por nombre, email o documento...",
+        "status": "Estado",
+        "role": "Rol",
+        "allRoles": "Todos los roles",
+        "clearFilters": "Limpiar filtros"
+      },
+      "roles": {
+        "SUPERADMIN": "Superadmin",
+        "ADMIN": "Administrador",
+        "ADMINISTRADOR": "Administrador",
+        "USER": "Usuario",
+        "RESIDENTE": "Residente",
+        "PROPIETARIO": "Propietario",
+        "INQUILINO": "Inquilino",
+        "ACCOUNTANT": "Contador",
+        "SUPPORT": "Soporte",
+        "VIEWER": "Visualizador"
+      },
+      "detail": {
+        "title": "Detalle de Usuario",
+        "backToList": "Volver a la lista",
+        "loadError": "Error al cargar los detalles del usuario",
+        "nav": {
+          "general": "Información General",
+          "condominiums": "Condominios",
+          "permissions": "Permisos Superadmin",
+          "status": "Estado y Acciones"
+        },
+        "general": {
+          "title": "Información General",
+          "subtitle": "Datos básicos del usuario",
+          "basicInfo": "Información Básica",
+          "firstName": "Nombre",
+          "lastName": "Apellido",
+          "displayName": "Nombre para mostrar",
+          "email": "Correo electrónico",
+          "phone": "Teléfono",
+          "document": "Documento de identidad",
+          "address": "Dirección",
+          "accountInfo": "Información de la Cuenta",
+          "status": "Estado",
+          "emailVerified": "Email verificado",
+          "lastLogin": "Último acceso",
+          "createdAt": "Fecha de registro",
+          "yes": "Sí",
+          "no": "No",
+          "never": "Nunca",
+          "noData": "No especificado"
+        },
+        "condominiums": {
+          "title": "Condominios",
+          "subtitle": "Condominios a los que pertenece el usuario",
+          "empty": "Este usuario no pertenece a ningún condominio",
+          "roles": "Roles",
+          "viewPermissions": "Ver permisos",
+          "editPermissions": "Editar permisos"
+        },
+        "permissions": {
+          "title": "Permisos Superadmin",
+          "subtitle": "Permisos asignados al rol de superadministrador",
+          "module": "Módulo",
+          "action": "Acción",
+          "description": "Descripción",
+          "status": "Estado",
+          "empty": "No hay permisos asignados",
+          "toggleSuccess": "Permiso actualizado correctamente",
+          "toggleError": "Error al actualizar el permiso",
+          "cannotModifyOwn": "No puedes modificar tus propios permisos. Otro superadministrador debe hacerlo.",
+          "modules": {
+            "platform_users": "Usuarios",
+            "platform_condominiums": "Condominios",
+            "platform_management_companies": "Administradoras",
+            "platform_subscriptions": "Suscripciones",
+            "platform_support_tickets": "Tickets de Soporte",
+            "platform_superadmins": "Superadmins",
+            "platform_audit_logs": "Auditoría",
+            "platform_metrics": "Métricas",
+            "platform_payments": "Pagos",
+            "platform_settings": "Configuración",
+            "platform_tickets": "Tickets",
+            "users": "Usuarios",
+            "condominiums": "Condominios",
+            "buildings": "Edificios",
+            "units": "Unidades",
+            "quotas": "Cuotas",
+            "payments": "Pagos",
+            "expenses": "Gastos",
+            "documents": "Documentos",
+            "reports": "Reportes",
+            "settings": "Configuración"
+          },
+          "actions": {
+            "create": "Crear",
+            "read": "Ver",
+            "read_own": "Ver propios",
+            "update": "Actualizar",
+            "delete": "Eliminar",
+            "approve": "Aprobar",
+            "manage": "Administrar",
+            "export": "Exportar"
+          }
+        },
+        "permissionsModal": {
+          "title": "Permisos en {condominium}",
+          "subtitle": "Gestiona los permisos del usuario en este condominio",
+          "save": "Guardar cambios",
+          "cancel": "Cancelar",
+          "saving": "Guardando...",
+          "success": "Permisos actualizados correctamente",
+          "error": "Error al actualizar los permisos"
+        },
+        "statusSection": {
+          "title": "Estado y Acciones",
+          "subtitle": "Gestiona el estado del usuario a diferentes niveles",
+          "userLevel": "Estado a nivel de usuario",
+          "userLevelDescription": "Desactivar al usuario a este nivel lo inhabilita completamente en toda la plataforma",
+          "roleLevel": "Estado por rol",
+          "roleLevelDescription": "Desactiva roles específicos sin afectar otros accesos",
+          "condominiumLevel": "Estado por condominio",
+          "condominiumLevelDescription": "Desactiva el acceso a condominios específicos",
+          "deactivate": "Desactivar",
+          "activate": "Activar",
+          "deactivateUser": "Desactivar usuario",
+          "activateUser": "Activar usuario",
+          "confirmDeactivateUser": "¿Estás seguro de que deseas desactivar a este usuario? No podrá acceder a la plataforma.",
+          "confirmActivateUser": "¿Estás seguro de que deseas activar a este usuario?",
+          "confirmDeactivateRole": "¿Estás seguro de que deseas desactivar este rol?",
+          "confirmActivateRole": "¿Estás seguro de que deseas activar este rol?",
+          "success": "Estado actualizado correctamente",
+          "error": "Error al actualizar el estado",
+          "updating": "Actualizando...",
+          "promoteTitle": "Promover a Superadministrador",
+          "promoteDescription": "Otorga acceso de superadministrador a este usuario con permisos personalizados",
+          "demoteTitle": "Remover Rol de Superadministrador",
+          "demoteDescription": "Remueve el acceso de superadministrador y todos sus permisos asociados",
+          "promoteButton": "Convertir en Superadmin",
+          "demoteButton": "Remover Superadmin",
+          "modalTitle": "Seleccionar Permisos de Superadmin",
+          "modalDescription": "Seleccione los permisos que desea otorgar al nuevo superadministrador",
+          "selectAll": "Seleccionar Todos",
+          "promotionSuccess": "Usuario promocionado exitosamente",
+          "promotionError": "Error al promover usuario",
+          "noPermissionSelected": "Debe seleccionar al menos un permiso",
+          "confirmDemote": "¿Está seguro de remover el rol de Superadmin a {name}?",
+          "superadminStatus": "Estado de Superadmin",
+          "superadminDescription": "Este usuario tiene privilegios de superadministrador",
+          "permissionsEnabled": "permisos activos",
+          "editPermissions": "Editar permisos",
+          "editPermissionsTitle": "Editar permisos de Superadmin",
+          "permissionToggleSuccess": "Permiso actualizado correctamente",
+          "permissionToggleError": "Error al actualizar el permiso",
+          "pendingChanges": "cambio(s) pendiente(s)",
+          "permissionsSelected": "permiso(s) seleccionado(s)",
+          "permissionsSaved": "Permisos actualizados correctamente",
+          "permissionsSaveError": "Error al actualizar los permisos",
+          "selectAllPermissions": "Seleccionar todos los permisos",
+          "deselectAllPermissions": "Deseleccionar todos los permisos"
+        },
+        "permissions": {
+          "cannotModifyOwn": "No puedes modificar tus propios permisos"
+        }
+      }
+    }
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "empty": "No tienes notificaciones",
+    "markAsRead": "Marcar como leída",
+    "markAllAsRead": "Marcar todas como leídas",
+    "viewAll": "Ver todas",
+    "delete": "Eliminar",
+    "time": {
+      "justNow": "Ahora mismo",
+      "minutesAgo": "Hace {count} min",
+      "hoursAgo": "Hace {count} h",
+      "daysAgo": "Hace {count} días"
+    },
+    "categories": {
+      "payment": "Pago",
+      "quota": "Cuota",
+      "announcement": "Anuncio",
+      "reminder": "Recordatorio",
+      "alert": "Alerta",
+      "system": "Sistema"
+    }
+  },
+  "network": {
+    "offline": "Sin conexión a internet",
+    "online": "Conexión restablecida"
+  },
+  "errors": {
+    "error": {
+      "title": "Un disturbio en la Fuerza",
+      "description": "Algo oscuro ha perturbado nuestros servidores. Nuestros mejores magos ya fueron convocados. Puedes intentar de nuevo o emprender el camino de regreso.",
+      "retry": "Intentar de nuevo",
+      "backToHome": "Volver a casa",
+      "code": "Pergamino de error: {code}"
+    },
+    "notFound": {
+      "title": "El mapa no muestra este camino",
+      "description": "Parece que te has aventurado más allá de los mapas conocidos. Esta página no existe en ningún reino. Pero no temas, el camino a casa siempre está abierto.",
+      "backToHome": "Volver a casa"
+    }
+  },
+  "settings": {
+    "nav": {
+      "profile": "Perfil público",
+      "profileDescription": "Información visible para otros usuarios",
+      "language": "Idioma",
+      "languageDescription": "Preferencias de idioma de la aplicación",
+      "appearance": "Apariencia",
+      "appearanceDescription": "Personaliza el tema visual"
+    },
+    "profile": {
+      "title": "Perfil público",
+      "subtitle": "Esta información será visible para otros usuarios de tu condominio",
+      "photo": "Foto de perfil",
+      "photoDescription": "Tu foto aparecerá en tu perfil y en tus comentarios",
+      "uploadPhoto": "Subir foto",
+      "removePhoto": "Eliminar foto",
+      "photoUploadSuccess": "Foto actualizada exitosamente",
+      "photoUploadError": "Error al subir la foto",
+      "photoDeleteSuccess": "Foto eliminada exitosamente",
+      "photoDeleteError": "Error al eliminar la foto",
+      "photoInvalidType": "El archivo debe ser una imagen",
+      "photoTooLarge": "La imagen no puede superar los 5MB",
+      "basicInfo": "Información básica",
+      "basicInfoDescription": "Tu información personal",
+      "firstName": "Nombre",
+      "firstNamePlaceholder": "Tu nombre",
+      "lastName": "Apellido",
+      "lastNamePlaceholder": "Tu apellido",
+      "displayName": "Nombre para mostrar",
+      "displayNamePlaceholder": "Cómo quieres que te llamen",
+      "displayNameDescription": "Este es el nombre que verán los demás usuarios",
+      "email": "Correo electrónico",
+      "emailDescription": "Tu correo electrónico no puede ser modificado",
+      "phone": "Teléfono",
+      "phonePlaceholder": "412 123 4567",
+      "identityDocument": "Documento de identidad",
+      "identityDocumentDescription": "Información de tu documento de identificación",
+      "idDocument": "Documento de identidad",
+      "idDocumentType": "Tipo de documento",
+      "idDocumentTypePlaceholder": "Tipo",
+      "idDocumentNumber": "Número de documento",
+      "idDocumentNumberPlaceholder": "Número de documento",
+      "addressSection": "Dirección",
+      "addressSectionDescription": "Tu dirección de residencia",
+      "address": "Dirección completa",
+      "addressPlaceholder": "Calle, número, ciudad, país",
+      "updateSuccess": "Perfil actualizado exitosamente",
+      "updateError": "Error al actualizar el perfil"
+    },
+    "language": {
+      "title": "Idioma",
+      "subtitle": "Selecciona el idioma de la aplicación",
+      "selectLanguage": "Seleccionar idioma",
+      "selectLanguageDescription": "El cambio se aplicará inmediatamente en toda la aplicación"
+    },
+    "appearance": {
+      "title": "Apariencia",
+      "subtitle": "Personaliza cómo se ve la aplicación",
+      "theme": "Tema",
+      "themeDescription": "Selecciona el tema que prefieras para la interfaz",
+      "lightMode": "Modo claro",
+      "lightModeDescription": "Interfaz clara, ideal para uso durante el día",
+      "darkMode": "Modo oscuro",
+      "darkModeDescription": "Interfaz oscura, reduce la fatiga visual en ambientes con poca luz",
+      "systemMode": "Automático",
+      "systemModeDescription": "Se ajusta automáticamente según la configuración de tu dispositivo"
+    }
+  },
+  "tickets": {
+    "title": "Tickets de Soporte",
+    "subtitle": "Gestiona las solicitudes de soporte de la administradora",
+    "create": "Crear Ticket",
+    "empty": "No hay tickets",
+    "emptyDescription": "No se encontraron tickets con los filtros seleccionados",
+    "search": "Buscar por número de ticket o asunto...",
+    "filters": {
+      "status": "Estado",
+      "priority": "Prioridad",
+      "allStatuses": "Todos",
+      "allPriorities": "Todas"
+    },
+    "status": {
+      "open": "Abierto",
+      "in_progress": "En Progreso",
+      "waiting_customer": "Esperando Cliente",
+      "resolved": "Resuelto",
+      "closed": "Cerrado",
+      "cancelled": "Cancelado"
+    },
+    "priority": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta",
+      "urgent": "Urgente"
+    },
+    "category": {
+      "technical": "Técnico",
+      "billing": "Facturación",
+      "feature_request": "Solicitud",
+      "general": "General",
+      "bug": "Error",
+      "other": "Otro"
+    },
+    "table": {
+      "ticket": "Ticket",
+      "company": "Empresa",
+      "subject": "Asunto",
+      "category": "Categoría",
+      "priority": "Prioridad",
+      "status": "Estado",
+      "created": "Creado"
+    },
+    "detail": {
+      "title": "Detalle del Ticket",
+      "description": "Descripción",
+      "messages": "Mensajes",
+      "noMessages": "No hay mensajes en este ticket",
+      "details": "Detalles",
+      "state": "Estado",
+      "priority": "Prioridad",
+      "category": "Categoría",
+      "created": "Creado",
+      "createdBy": "Creado por",
+      "assignedTo": "Asignado a",
+      "notAssigned": "No se ha asignado a un usuario",
+      "assignUser": "Asignar usuario",
+      "reassignUser": "Reasignar usuario",
+      "noUsersAvailable": "No hay usuarios disponibles",
+      "assignSearchPlaceholder": "Buscar por nombre, apellido, correo o documento...",
+      "assignTableName": "Nombre",
+      "assignTableEmail": "Correo",
+      "assignTableDocument": "Documento",
+      "assignTableActions": "Acciones",
+      "assignSelect": "Seleccionar",
+      "assignSelected": "Seleccionado",
+      "assignSelectedUser": "Usuario seleccionado",
+      "assignCancel": "Cancelar",
+      "assignConfirm": "Confirmar",
+      "viewProfile": "Ver perfil",
+      "resolved": "Resuelto",
+      "resolvedBy": "Resuelto por",
+      "solution": "Solución implementada",
+      "solutionPlaceholder": "Describe la solución que se implementó para resolver este ticket...",
+      "closed": "Cerrado",
+      "closedBy": "Cerrado por",
+      "internalMessage": "Interno",
+      "attachments": "Archivos adjuntos",
+      "loadingMessages": "Cargando mensajes...",
+      "messagePlaceholder": "Escribe un mensaje...",
+      "internalCheckbox": "Mensaje interno (solo visible para el equipo de soporte)",
+      "sendButton": "Enviar",
+      "sending": "Enviando...",
+      "success": "Mensaje enviado correctamente",
+      "error": "Error al enviar el mensaje",
+      "ticketClosed": "Este ticket está cerrado. No se pueden enviar más mensajes.",
+      "attachFiles": "Adjuntar archivos",
+      "dropFilesHere": "Arrastra los archivos aquí",
+      "invalidFileType": "Tipo de archivo no válido. Solo se permiten imágenes, videos y PDFs.",
+      "fileTooLarge": "Archivo muy grande. Imágenes: máx 5MB, Videos: máx 50MB, PDFs: máx 10MB.",
+      "uploading": "Subiendo...",
+      "removeFile": "Eliminar archivo",
+      "downloadFile": "Descargar archivo",
+      "openImage": "Ver imagen",
+      "galleryTitle": "Archivos adjuntos",
+      "galleryNoAttachments": "No hay archivos adjuntos",
+      "galleryImages": "Imágenes",
+      "galleryVideos": "Videos",
+      "galleryDocuments": "Documentos",
+      "galleryUploadedBy": "Subido por",
+      "galleryShowAll": "Ver todos",
+      "galleryShowLess": "Ver menos",
+      "resolveTicket": "Marcar como resuelto",
+      "closeTicket": "Cerrar ticket",
+      "cancelTicket": "Cancelar ticket",
+      "closeTicketModalTitle": "Cerrar Ticket",
+      "closeTicketModalSolutionLabel": "Solución implementada",
+      "closeTicketModalSolutionPlaceholder": "Describe la solución que se implementó para resolver este ticket antes de cerrarlo...",
+      "closeTicketModalCancel": "Cancelar",
+      "closeTicketModalConfirm": "Cerrar Ticket",
+      "closeTicketModalConfirmClosing": "Cerrando...",
+      "changeStatus": "Cambiar estado",
+      "changePriority": "Cambiar prioridad",
+      "toastAssignLoading": "Asignando usuario...",
+      "toastAssignSuccess": "Usuario asignado correctamente",
+      "toastAssignError": "Error al asignar usuario",
+      "toastResolveLoading": "Marcando como resuelto...",
+      "toastResolveSuccess": "Ticket marcado como resuelto",
+      "toastResolveError": "Error al marcar como resuelto",
+      "toastCloseLoading": "Cerrando ticket...",
+      "toastCloseSuccess": "Ticket cerrado correctamente",
+      "toastCloseError": "Error al cerrar ticket",
+      "toastCancelLoading": "Cancelando ticket...",
+      "toastCancelSuccess": "Ticket cancelado correctamente",
+      "toastCancelError": "Error al cancelar ticket",
+      "toastStatusLoading": "Actualizando estado...",
+      "toastStatusSuccess": "Estado actualizado correctamente",
+      "toastStatusError": "Error al actualizar estado",
+      "toastPriorityLoading": "Actualizando prioridad...",
+      "toastPrioritySuccess": "Prioridad actualizada correctamente",
+      "toastPriorityError": "Error al actualizar prioridad"
+    },
+    "actions": {
+      "view": "Ver detalles",
+      "assign": "Asignar",
+      "resolve": "Resolver",
+      "close": "Cerrar",
+      "reopen": "Reabrir"
+    }
+  },
+  "condominiums": {
+    "form": {
+      "title": "Crear Condominio",
+      "steps": {
+        "basic": "Información Básica",
+        "location": "Ubicación",
+        "contact": "Contacto",
+        "confirmation": "Confirmación"
+      },
+      "fields": {
+        "name": {
+          "label": "Nombre del Condominio",
+          "placeholder": "Ej: Residencial Vista Hermosa",
+          "error": "El nombre es requerido",
+          "maxLengthError": "El nombre debe tener máximo 255 caracteres"
+        },
+        "code": {
+          "label": "Código",
+          "placeholder": "Auto-generado si se deja vacío",
+          "maxLengthError": "El código debe tener máximo 50 caracteres"
+        },
+        "status": {
+          "label": "Estado",
+          "active": "Activo",
+          "inactive": "Inactivo"
+        },
+        "address": {
+          "label": "Dirección",
+          "placeholder": "Calle, número, apartamento, etc.",
+          "error": "La dirección es requerida",
+          "maxLengthError": "La dirección debe tener máximo 500 caracteres"
+        },
+        "location": {
+          "label": "Ubicación",
+          "placeholder": "Seleccione país, estado y ciudad",
+          "description": "Seleccione el país, estado/provincia y ciudad donde se encuentra el condominio"
+        },
+        "phoneCountryCode": {
+          "label": "Código",
+          "placeholder": "+1",
+          "maxLengthError": "El código de país debe tener máximo 10 caracteres"
+        },
+        "phoneNumber": {
+          "label": "Teléfono",
+          "placeholder": "(809) 000-0000",
+          "maxLengthError": "El teléfono debe tener máximo 50 caracteres"
+        },
+        "email": {
+          "label": "Correo Electrónico",
+          "placeholder": "contacto@condominio.com",
+          "error": "Debe ser un correo válido",
+          "maxLengthError": "El correo debe tener máximo 255 caracteres"
+        }
+      }
+    },
+    "actions": {
+      "create": "Crear Condominio",
+      "edit": "Editar",
+      "next": "Siguiente",
+      "previous": "Anterior",
+      "submit": "Crear Condominio",
+      "cancel": "Cancelar"
+    },
+    "errors": {
+      "limitReached": "No puede crear más condominios. Su plan permite {max} condominios y actualmente tiene {current}.",
+      "createError": "Error al crear el condominio"
+    },
+    "success": {
+      "created": "Condominio creado exitosamente"
+    },
+    "confirmation": {
+      "title": "Confirme la información del condominio",
+      "sections": {
+        "basic": "Información Básica",
+        "location": "Ubicación",
+        "contact": "Contacto"
+      }
+    }
+  },
+  "subscription": {
+    "accept": {
+      "validating": "Validando enlace de aceptación...",
+      "title": "Aceptar Suscripción",
+      "description": "Al aceptar, confirmas que has leído y estás de acuerdo con los términos y condiciones de la suscripción.",
+      "loginRequired": "Debes iniciar sesión para aceptar esta suscripción.",
+      "loggedInAs": "Conectado como",
+      "termsCheckbox": "He leído y acepto los términos y condiciones de la suscripción",
+      "acceptButton": "Aceptar y Activar Suscripción",
+      "loginToAccept": "Iniciar Sesión para Aceptar",
+      "success": "Suscripción aceptada y activada exitosamente",
+      "invalidTitle": "Enlace Inválido",
+      "expiredTitle": "Enlace Expirado",
+      "expiredDescription": "El enlace de aceptación ha expirado.",
+      "expiredHelp": "Contacta al administrador para solicitar un nuevo enlace de aceptación.",
+      "errors": {
+        "noToken": "No se proporcionó un token de aceptación.",
+        "invalid": "El enlace de aceptación no es válido o ya ha sido utilizado.",
+        "expired": "El enlace de aceptación ha expirado.",
+        "failed": "Error al aceptar la suscripción. Intenta de nuevo.",
+        "mustAcceptTerms": "Debes aceptar los términos y condiciones para continuar.",
+        "mustBeLoggedIn": "Debes iniciar sesión para aceptar esta suscripción.",
+        "unknown": "Ocurrió un error inesperado. Intenta de nuevo."
+      }
+    }
+  }
+}

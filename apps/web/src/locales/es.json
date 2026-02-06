@@ -12,6 +12,7 @@
     "create": "Crear",
     "search": "Buscar",
     "filter": "Filtrar",
+    "clearFilters": "Limpiar filtros",
     "close": "Cerrar",
     "confirm": "Confirmar",
     "back": "Volver",
@@ -502,7 +503,9 @@
         "deactivateConfirm": "¿Deseas desactivar esta administradora?",
         "activateSuccess": "Administradora activada correctamente",
         "deactivateSuccess": "Administradora desactivada correctamente",
-        "toggleError": "Error al cambiar el estado"
+        "toggleError": "Error al cambiar el estado",
+        "updateSuccess": "Administradora actualizada exitosamente",
+        "updateError": "Error al actualizar la administradora"
       },
       "form": {
         "createTitle": "Crear Administradora de Condominio",
@@ -558,6 +561,10 @@
           "email": "Email de la Administradora",
           "emailPlaceholder": "contacto@administradora.com",
           "emailDescription": "Correo electrónico principal para recibir comunicaciones oficiales y notificaciones del sistema",
+          "phoneCountryCode": {
+            "label": "Código de País",
+            "placeholder": "+58"
+          },
           "phone": "Teléfono",
           "phonePlaceholder": "4121234567",
           "phoneDescription": "Número de teléfono principal de la administradora. Los residentes podrán usar este número para contacto",
@@ -653,9 +660,12 @@
             "condominiumsDescription": "Número de condominios activos registrados en la administradora",
             "units": "Unidades totales",
             "unitsDescription": "Suma de todas las unidades (apartamentos, casas, locales) de todos los condominios",
+            "users": "Usuarios activos",
+            "usersDescription": "Cantidad de usuarios del staff de la administradora (gerentes, contadores, asistentes). No incluye residentes.",
             "breakdown": "Desglose del precio",
             "subtotal": "Subtotal",
             "discount": "Descuento",
+            "annualDiscount": "Descuento anual",
             "suggestedPrice": "Precio sugerido",
             "error": "No se pudo calcular el precio. Intenta de nuevo.",
             "noRateConfigured": {
@@ -664,26 +674,37 @@
               "instruction": "Ve a Configuración → Tarifas de Suscripción para crear una tarifa antes de continuar."
             },
             "noData": "Sin datos de precio disponibles",
+            "monthlyBasePrice": "Precio base mensual",
+            "billingMonths": "Meses de facturación",
+            "billingMonthsMonthly": "1 mes (mensual)",
+            "billingMonthsAnnual": "12 meses (anual)",
             "formula": "Fórmula de cálculo",
-            "formulaDescription": "El precio se calcula sumando el costo por condominios más el costo por unidades:",
-            "formulaDetail": "(Condominios × Tarifa) + (Unidades × Tarifa) - Descuento = Precio Final",
+            "formulaDescription": "El precio se calcula sumando el costo por condominios, unidades y usuarios activos, multiplicado por los meses del ciclo de facturación:",
+            "formulaDetail": "[(Condominios × Tarifa) + (Unidades × Tarifa) + (Usuarios × Tarifa)] × Meses - Descuentos = Precio Final",
             "formulaTooltip": {
               "title": "Explicación de la fórmula",
               "condominiums": "Condominios",
               "condominiumsDesc": "Cantidad de condominios activos asignados a esta administradora",
               "condominiumRate": "TarifaCondo",
-              "condominiumRateDesc": "Monto cobrado por cada condominio administrado (tarifa fija por condominio)",
+              "condominiumRateDesc": "Monto mensual cobrado por cada condominio administrado",
               "units": "Unidades",
               "unitsDesc": "Total de unidades (apartamentos, casas, locales) de todos los edificios de todos los condominios",
               "unitRate": "TarifaUnidad",
-              "unitRateDesc": "Monto cobrado por cada unidad registrada",
+              "unitRateDesc": "Monto mensual cobrado por cada unidad registrada",
+              "users": "Usuarios",
+              "usersDesc": "Usuarios activos del staff de la administradora (gerentes, contadores, asistentes)",
+              "userRate": "TarifaUsuario",
+              "userRateDesc": "Monto mensual cobrado por cada usuario activo del staff",
+              "months": "Meses",
+              "monthsDesc": "Cantidad de meses del ciclo de facturación (1 para mensual, 12 para anual). El precio base mensual se multiplica por este número",
               "discount": "Descuento",
-              "discountDesc": "Reducción aplicada al subtotal (porcentaje o monto fijo)"
+              "discountDesc": "Reducción aplicada al precio total (porcentaje o monto fijo). Los descuentos se aplican después de multiplicar por los meses"
             },
             "rateApplied": "Tarifa aplicada",
             "rateVersion": "Versión",
             "condominiumRate": "Tarifa por condominio",
             "unitRate": "Tarifa por unidad",
+            "userRate": "Tarifa por usuario",
             "rateDescription": "Las tarifas se obtienen del sistema de tarifas activo",
             "resetNoRates": "Primero debes configurar las tarifas de suscripción antes de poder calcular el precio"
           },
@@ -700,6 +721,20 @@
             "subscriptionName": "Nombre de la Suscripción",
             "subscriptionNamePlaceholder": "Ej: Plan Premium",
             "subscriptionNameDescription": "Nombre descriptivo para identificar esta suscripción",
+            "subscriptionNameOptions": {
+              "basic": "Plan Básico",
+              "standard": "Plan Estándar",
+              "professional": "Plan Profesional",
+              "enterprise": "Plan Empresarial",
+              "custom": "Personalizado"
+            },
+            "customSubscriptionNamePlaceholder": "Ingresa un nombre personalizado",
+            "rate": {
+              "label": "Tarifa de Suscripción",
+              "placeholder": "Selecciona una tarifa",
+              "description": "Tarifa específica seleccionada para calcular el precio",
+              "descriptionDefault": "Sin selección - se usará la tarifa por niveles según cantidad de condominios"
+            },
             "billingCycle": "Ciclo de Facturación",
             "billingCyclePlaceholder": "Selecciona un ciclo",
             "billingCycleDescription": "Frecuencia con la que se facturará la suscripción",
@@ -730,7 +765,7 @@
             "maxUnitsDescription": "Número máximo de unidades (apartamentos, casas, locales) en todos los condominios",
             "maxUsers": "Máx. Usuarios",
             "maxUsersPlaceholder": "Ilimitado",
-            "maxUsersDescription": "Número máximo de usuarios permitidos",
+            "maxUsersDescription": "Número máximo de usuarios del staff de la administradora (gerentes, contadores, asistentes, etc.). No incluye residentes.",
             "maxStorageGb": "Máx. Almacenamiento (GB)",
             "maxStorageGbPlaceholder": "Ilimitado",
             "maxStorageGbDescription": "Espacio de almacenamiento máximo en gigabytes",
@@ -883,6 +918,7 @@
           "status": "Estado",
           "website": "Sitio Web",
           "address": "Dirección",
+          "createdBy": "Creado por",
           "noData": "No especificado"
         },
         "members": {
@@ -984,19 +1020,54 @@
         "activate": "Activar",
         "deactivate": "Desactivar",
         "statusUpdated": "Estado del condominio actualizado",
-        "statusUpdateError": "Error al actualizar el estado del condominio"
+        "statusUpdateError": "Error al actualizar el estado del condominio",
+        "create": "Crear Condominio",
+        "next": "Siguiente",
+        "previous": "Anterior",
+        "submit": "Crear Condominio",
+        "cancel": "Cancelar",
+        "edit": "Editar"
+      },
+      "confirmation": {
+        "title": "Confirme la información del condominio",
+        "sections": {
+          "basic": "Información Básica",
+          "location": "Ubicación",
+          "contact": "Contacto"
+        }
       },
       "noCompany": "Sin administradora",
       "noContact": "Sin contacto",
       "noAddress": "-",
       "error": "Error al cargar los condominios",
+      "success": {
+        "created": "Condominio creado exitosamente",
+        "activateSuccess": "Condominio activado exitosamente",
+        "deactivateSuccess": "Condominio desactivado exitosamente"
+      },
+      "errors": {
+        "createError": "Error al crear el condominio",
+        "limitReached": "No puede crear más condominios. Su plan permite {max} condominios y actualmente tiene {current}.",
+        "limitReachedTooltip": "⚠️ Límite alcanzado: Actualmente tienes {current} de {max} condominios permitidos en tu plan. Para crear más condominios, necesitas actualizar tu suscripción a un plan superior.",
+        "noActiveSubscription": "❌ No tienes una suscripción activa. Para crear condominios, necesitas activar o contratar un plan de suscripción.",
+        "cannotCreate": "⚠️ No se puede crear un condominio en este momento. Por favor, contacta con soporte."
+      },
+      "checkingLimit": "⏳ Verificando el límite de condominios de tu suscripción actual...",
+      "unlimited": "ilimitado",
       "form": {
+        "title": "Crear Condominio",
         "createTitle": "Crear Condominio",
         "createSubtitle": "Registra un nuevo condominio en el sistema",
         "submit": "Crear Condominio",
         "submitting": "Creando...",
         "success": "Condominio creado exitosamente",
         "error": "Error al crear el condominio",
+        "steps": {
+          "basic": "Información Básica",
+          "location": "Ubicación",
+          "contact": "Contacto",
+          "confirmation": "Confirmación"
+        },
         "codeGenerated": "Código generado exitosamente",
         "codeGenerateError": "Error al generar el código",
         "basicSection": {
@@ -1012,30 +1083,47 @@
           "description": "Ubicación geográfica y dirección del condominio"
         },
         "fields": {
-          "name": "Nombre del Condominio",
-          "namePlaceholder": "Ej: Residencias El Parque",
-          "nameDescription": "Nombre con el que se identifica el condominio",
-          "code": "Código",
-          "codePlaceholder": "Ej: CONDO-001",
-          "codeDescription": "Código único para identificar el condominio",
-          "generateCode": "Generar código único",
+          "name": {
+            "label": "Nombre del Condominio",
+            "placeholder": "Ej: Residencial Vista Hermosa",
+            "error": "El nombre es requerido"
+          },
+          "code": {
+            "label": "Código",
+            "placeholder": "Auto-generado si se deja vacío"
+          },
+          "status": {
+            "label": "Estado",
+            "active": "Activo",
+            "inactive": "Inactivo"
+          },
+          "address": {
+            "label": "Dirección",
+            "placeholder": "Av. Principal, Sector Centro",
+            "error": "La dirección es requerida"
+          },
+          "location": {
+            "label": "Ubicación",
+            "placeholder": "ID de ubicación (opcional)"
+          },
+          "email": {
+            "label": "Correo Electrónico",
+            "placeholder": "contacto@condominio.com",
+            "error": "Debe ser un correo válido"
+          },
+          "phoneNumber": {
+            "label": "Teléfono",
+            "placeholder": "+1 (809) 000-0000"
+          },
+          "phoneCountryCode": {
+            "label": "Código"
+          },
           "managementCompany": "Empresa Administradora",
           "managementCompanies": "Administradoras",
           "managementCompanyPlaceholder": "Buscar administradora...",
           "managementCompanyDescription": "Empresa que administra este condominio",
           "managementCompaniesDescription": "Empresas que administran este condominio",
-          "noCompaniesFound": "No se encontraron administradoras",
-          "email": "Correo Electrónico",
-          "emailPlaceholder": "contacto@condominio.com",
-          "emailDescription": "Correo de contacto del condominio",
-          "phone": "Teléfono",
-          "phonePlaceholder": "4121234567",
-          "phoneDescription": "Teléfono de contacto del condominio",
-          "location": "Ubicación Geográfica",
-          "locationDescription": "Selecciona el país, estado y ciudad donde se encuentra el condominio",
-          "address": "Dirección",
-          "addressPlaceholder": "Av. Principal, Sector Centro",
-          "addressDescription": "Dirección física del condominio"
+          "noCompaniesFound": "No se encontraron administradoras"
         },
         "validation": {
           "name": {
@@ -1069,6 +1157,7 @@
         "title": "Detalles del Condominio",
         "backToList": "Volver a la lista",
         "managedBy": "Administrado por",
+        "managedByCount": "Administrado por {count, plural, one {# administradora} other {# administradoras}}",
         "sidebar": {
           "general": "Información General",
           "buildings": "Edificios y Unidades",
@@ -1539,49 +1628,7 @@
           "editPermissions": "Editar permisos"
         },
         "permissions": {
-          "title": "Permisos Superadmin",
-          "subtitle": "Permisos asignados al rol de superadministrador",
-          "module": "Módulo",
-          "action": "Acción",
-          "description": "Descripción",
-          "status": "Estado",
-          "empty": "No hay permisos asignados",
-          "toggleSuccess": "Permiso actualizado correctamente",
-          "toggleError": "Error al actualizar el permiso",
-          "cannotModifyOwn": "No puedes modificar tus propios permisos. Otro superadministrador debe hacerlo.",
-          "modules": {
-            "platform_users": "Usuarios",
-            "platform_condominiums": "Condominios",
-            "platform_management_companies": "Administradoras",
-            "platform_subscriptions": "Suscripciones",
-            "platform_support_tickets": "Tickets de Soporte",
-            "platform_superadmins": "Superadmins",
-            "platform_audit_logs": "Auditoría",
-            "platform_metrics": "Métricas",
-            "platform_payments": "Pagos",
-            "platform_settings": "Configuración",
-            "platform_tickets": "Tickets",
-            "users": "Usuarios",
-            "condominiums": "Condominios",
-            "buildings": "Edificios",
-            "units": "Unidades",
-            "quotas": "Cuotas",
-            "payments": "Pagos",
-            "expenses": "Gastos",
-            "documents": "Documentos",
-            "reports": "Reportes",
-            "settings": "Configuración"
-          },
-          "actions": {
-            "create": "Crear",
-            "read": "Ver",
-            "read_own": "Ver propios",
-            "update": "Actualizar",
-            "delete": "Eliminar",
-            "approve": "Aprobar",
-            "manage": "Administrar",
-            "export": "Exportar"
-          }
+          "cannotModifyOwn": "No puedes modificar tus propios permisos"
         },
         "permissionsModal": {
           "title": "Permisos en {condominium}",
@@ -1638,9 +1685,6 @@
           "permissionsSaveError": "Error al actualizar los permisos",
           "selectAllPermissions": "Seleccionar todos los permisos",
           "deselectAllPermissions": "Deseleccionar todos los permisos"
-        },
-        "permissions": {
-          "cannotModifyOwn": "No puedes modificar tus propios permisos"
         }
       }
     }
@@ -1892,6 +1936,87 @@
       "resolve": "Resolver",
       "close": "Cerrar",
       "reopen": "Reabrir"
+    }
+  },
+  "condominiums": {
+    "form": {
+      "title": "Crear Condominio",
+      "steps": {
+        "basic": "Información Básica",
+        "location": "Ubicación",
+        "contact": "Contacto",
+        "confirmation": "Confirmación"
+      },
+      "fields": {
+        "name": {
+          "label": "Nombre del Condominio",
+          "placeholder": "Ej: Residencial Vista Hermosa",
+          "error": "El nombre es requerido",
+          "maxLengthError": "El nombre debe tener máximo 255 caracteres"
+        },
+        "code": {
+          "label": "Código",
+          "placeholder": "Auto-generado si se deja vacío",
+          "maxLengthError": "El código debe tener máximo 50 caracteres"
+        },
+        "status": {
+          "label": "Estado",
+          "active": "Activo",
+          "inactive": "Inactivo"
+        },
+        "address": {
+          "label": "Dirección exacta",
+          "placeholder": "Ejemplo: Parroquia, Municipio, Urbanización, Código Postal, Calle",
+          "error": "La dirección es requerida",
+          "maxLengthError": "La dirección debe tener máximo 500 caracteres"
+        },
+        "location": {
+          "label": "Ubicación",
+          "placeholder": "Seleccione país, estado y ciudad",
+          "description": "Seleccione el país, estado/provincia y ciudad donde se encuentra el condominio"
+        },
+        "phoneCountryCode": {
+          "label": "Código",
+          "placeholder": "+1",
+          "maxLengthError": "El código de país debe tener máximo 10 caracteres"
+        },
+        "phoneNumber": {
+          "label": "Teléfono",
+          "placeholder": "(809) 000-0000",
+          "maxLengthError": "El teléfono debe tener máximo 50 caracteres",
+          "required": "El teléfono es requerido"
+        },
+        "email": {
+          "label": "Correo Electrónico",
+          "placeholder": "contacto@condominio.com",
+          "error": "Debe ser un correo válido",
+          "maxLengthError": "El correo debe tener máximo 255 caracteres",
+          "required": "El correo electrónico es requerido"
+        }
+      }
+    },
+    "actions": {
+      "create": "Crear Condominio",
+      "edit": "Editar",
+      "next": "Siguiente",
+      "previous": "Anterior",
+      "submit": "Crear Condominio",
+      "cancel": "Cancelar"
+    },
+    "errors": {
+      "limitReached": "No puede crear más condominios. Su plan permite {max} condominios y actualmente tiene {current}.",
+      "createError": "Error al crear el condominio"
+    },
+    "success": {
+      "created": "Condominio creado exitosamente"
+    },
+    "confirmation": {
+      "title": "Confirme la información del condominio",
+      "sections": {
+        "basic": "Información Básica",
+        "location": "Ubicación",
+        "contact": "Contacto"
+      }
     }
   },
   "subscription": {

@@ -9,3 +9,11 @@ export type { IGetCondominiumsByLocationInput } from './get-condominiums-by-loca
 
 export { GenerateCondominiumCodeService } from './generate-condominium-code.service'
 export type { IGenerateCondominiumCodeOutput } from './generate-condominium-code.service'
+
+export { GetCondominiumUsersService } from './get-condominium-users.service'
+export type {
+  IGetCondominiumUsersInput,
+  ICondominiumUser,
+  ICondominiumUserRole,
+  ICondominiumUserUnit,
+} from './get-condominium-users.service'

@@ -42,7 +42,6 @@ export function SubscriptionFormModal({
     translateError,
     getValues,
     steps,
-    defaultFeatureKeys,
     // Replacement modal
     showReplaceModal,
     activeSubscription,
@@ -72,7 +71,6 @@ export function SubscriptionFormModal({
           <LimitsStepForm
             shouldShowError={shouldShowError}
             translateError={translateError}
-            defaultFeatureKeys={defaultFeatureKeys}
           />
         )
       case 'pricing':

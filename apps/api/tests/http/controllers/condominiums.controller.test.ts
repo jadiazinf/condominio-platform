@@ -120,9 +120,31 @@ describe('CondominiumsController', function () {
       },
     }
 
+    // Create mock repositories for other dependencies
+    const mockSubscriptionsRepository = {} as any
+    const mockCompaniesRepository = {
+      getById: async () => null,
+    } as any
+    const mockLocationsRepository = {
+      getById: async () => null,
+    } as any
+    const mockCurrenciesRepository = {
+      getById: async () => null,
+    } as any
+    const mockUsersRepository = {
+      getById: async () => null,
+    } as any
+    const mockDb = {} as any
+
     // Create controller with mock repository
     const controller = new CondominiumsController(
-      mockRepository as unknown as CondominiumsRepository
+      mockRepository as unknown as CondominiumsRepository,
+      mockSubscriptionsRepository,
+      mockCompaniesRepository,
+      mockLocationsRepository,
+      mockCurrenciesRepository,
+      mockUsersRepository,
+      mockDb
     )
 
     // Create Hono app with controller routes

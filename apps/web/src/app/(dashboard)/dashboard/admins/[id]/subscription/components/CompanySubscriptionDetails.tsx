@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
@@ -25,10 +25,11 @@ import {
   History,
 } from 'lucide-react'
 import { useToast } from '@/ui/components/toast'
-import { useUser, useTranslation } from '@/contexts'
+import { useUser, useTranslation, useAuth } from '@/contexts'
 import {
   useManagementCompanySubscription,
   useManagementCompanySubscriptionsPaginated,
+  useManagementCompanyUsageStats,
   useRenewSubscription,
   managementCompanySubscriptionKeys,
   useQueryClient,
@@ -47,10 +48,18 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
   const toast = useToast()
   const queryClient = useQueryClient()
   const { user } = useUser()
+  const { user: firebaseUser } = useAuth()
 
+  const [token, setToken] = useState<string>('')
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
+
+  useEffect(() => {
+    if (firebaseUser) {
+      firebaseUser.getIdToken().then(setToken)
+    }
+  }, [firebaseUser])
 
   // Fetch active subscription (trial or active status)
   const { data: activeData, isLoading: isLoadingActive } = useManagementCompanySubscription(companyId, {
@@ -63,7 +72,14 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
     enabled: !!companyId,
   })
 
-  const isLoading = isLoadingActive || isLoadingHistory
+  // Fetch usage statistics
+  const { data: usageStatsData, isLoading: isLoadingStats } = useManagementCompanyUsageStats({
+    token,
+    id: companyId,
+    enabled: !!token && !!companyId,
+  })
+
+  const isLoading = isLoadingActive || isLoadingHistory || isLoadingStats
 
   const { mutate: renewSubscription, isPending: isRenewing } = useRenewSubscription(companyId, {
     onSuccess: () => {
@@ -148,6 +164,14 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
   const canCancel = isActiveSubscription
   const canRenew = subscription?.status === 'cancelled' || subscription?.status === 'inactive'
   const canCreateNew = !isActiveSubscription && hasAnySubscriptions
+
+  // Extract usage stats
+  const usageStats = usageStatsData?.data || {
+    condominiumsCount: 0,
+    unitsCount: 0,
+    usersCount: 0,
+    storageGb: 0,
+  }
 
   return (
     <>
@@ -298,11 +322,11 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                                 <Typography variant="body2">Condominios</Typography>
                               </div>
                               <Typography variant="caption" color="muted">
-                                0 / {subscription.maxCondominiums}
+                                {usageStats.condominiumsCount} / {subscription.maxCondominiums}
                               </Typography>
                             </div>
                             <Progress
-                              value={0}
+                              value={usageStats.condominiumsCount}
                               maxValue={subscription.maxCondominiums}
                               color="primary"
                             />
@@ -317,11 +341,11 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                                 <Typography variant="body2">Unidades</Typography>
                               </div>
                               <Typography variant="caption" color="muted">
-                                0 / {subscription.maxUnits}
+                                {usageStats.unitsCount} / {subscription.maxUnits}
                               </Typography>
                             </div>
                             <Progress
-                              value={0}
+                              value={usageStats.unitsCount}
                               maxValue={subscription.maxUnits}
                               color="secondary"
                             />
@@ -336,10 +360,10 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                                 <Typography variant="body2">Usuarios</Typography>
                               </div>
                               <Typography variant="caption" color="muted">
-                                0 / {subscription.maxUsers}
+                                {usageStats.usersCount} / {subscription.maxUsers}
                               </Typography>
                             </div>
-                            <Progress value={0} maxValue={subscription.maxUsers} color="primary" />
+                            <Progress value={usageStats.usersCount} maxValue={subscription.maxUsers} color="primary" />
                           </div>
                         )}
 
@@ -351,11 +375,11 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                                 <Typography variant="body2">Almacenamiento</Typography>
                               </div>
                               <Typography variant="caption" color="muted">
-                                0 GB / {subscription.maxStorageGb} GB
+                                {usageStats.storageGb} GB / {subscription.maxStorageGb} GB
                               </Typography>
                             </div>
                             <Progress
-                              value={0}
+                              value={usageStats.storageGb}
                               maxValue={subscription.maxStorageGb}
                               color="primary"
                             />

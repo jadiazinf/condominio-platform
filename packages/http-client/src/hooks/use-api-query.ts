@@ -35,27 +35,27 @@ export function useApiQuery<T>({ path, queryKey, config, ...options }: UseApiQue
   })
 }
 
-export interface UseApiMutationOptions<TData, TVariables> extends Omit<
-  UseMutationOptions<ApiResponse<TData>, QueryError, TVariables>,
+export interface UseApiMutationOptions<TData, TVariables, TContext = unknown> extends Omit<
+  UseMutationOptions<ApiResponse<TData>, QueryError, TVariables, TContext>,
   'mutationFn'
 > {
   path: string | ((variables: TVariables) => string)
   method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   config?: RequestConfig
-  invalidateKeys?: QueryKey[]
+  invalidateKeys?: QueryKey[] | ((variables: TVariables) => QueryKey[])
 }
 
-export function useApiMutation<TData, TVariables = unknown>({
+export function useApiMutation<TData, TVariables = unknown, TContext = unknown>({
   path,
   method = 'POST',
   config,
   invalidateKeys,
   ...options
-}: UseApiMutationOptions<TData, TVariables>) {
+}: UseApiMutationOptions<TData, TVariables, TContext>) {
   const client = getHttpClient()
   const queryClient = useQueryClient()
 
-  return useMutation<ApiResponse<TData>, QueryError, TVariables>({
+  return useMutation<ApiResponse<TData>, QueryError, TVariables, TContext>({
     ...options,
     mutationFn: async variables => {
       const resolvedPath = typeof path === 'function' ? path(variables) : path
@@ -73,13 +73,14 @@ export function useApiMutation<TData, TVariables = unknown>({
           throw new Error(`Unsupported method: ${method}`)
       }
     },
-    onSuccess: async (...args) => {
+    onSuccess: async (data, variables, context, ...rest) => {
       if (invalidateKeys) {
+        const keys = typeof invalidateKeys === 'function' ? invalidateKeys(variables) : invalidateKeys
         await Promise.all(
-          invalidateKeys.map(key => queryClient.invalidateQueries({ queryKey: key }))
+          keys.map(key => queryClient.invalidateQueries({ queryKey: key }))
         )
       }
-      return options.onSuccess?.(...args)
+      return options.onSuccess?.(data, variables, context, ...rest)
     },
   })
 }

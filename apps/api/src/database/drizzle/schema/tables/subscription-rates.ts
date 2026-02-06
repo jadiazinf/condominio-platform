@@ -24,6 +24,10 @@ export const subscriptionRates = pgTable(
     // Pricing rates
     condominiumRate: decimal('condominium_rate', { precision: 10, scale: 2 }).notNull(),
     unitRate: decimal('unit_rate', { precision: 10, scale: 4 }).notNull(),
+    userRate: decimal('user_rate', { precision: 10, scale: 2 }).notNull().default('0'),
+
+    // Annual subscription discount (percentage)
+    annualDiscountPercentage: decimal('annual_discount_percentage', { precision: 5, scale: 2 }).default('15').notNull(), // 15% default discount for annual subscriptions
 
     // Tiered pricing (volume-based)
     minCondominiums: integer('min_condominiums').default(1).notNull(),
@@ -46,7 +50,7 @@ export const subscriptionRates = pgTable(
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
-    uniqueIndex('idx_rates_version_unique').on(table.version),
+    index('idx_rates_version').on(table.version), // Changed from uniqueIndex to regular index
     index('idx_rates_active').on(table.isActive),
     index('idx_rates_effective_from').on(table.effectiveFrom),
     index('idx_rates_name').on(table.name),

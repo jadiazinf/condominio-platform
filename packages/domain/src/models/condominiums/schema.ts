@@ -15,11 +15,11 @@ export const condominiumSchema = baseModelSchema.extend({
   managementCompanyIds: z
     .array(z.uuid({ error: d.managementCompanyIds.invalid }), { error: d.managementCompanyIds.required })
     .min(1, { error: d.managementCompanyIds.minLength }),
-  address: z.string().max(500, { error: d.address.max }).nullable(),
+  address: z.string({ error: d.address.required }).max(500, { error: d.address.max }).nullable(),
   locationId: z.uuid({ error: d.locationId.invalid }).nullable(),
-  email: z.email({ error: d.email.invalid }).max(255, { error: d.email.max }).nullable(),
-  phone: z.string().max(50, { error: d.phone.max }).nullable(),
-  phoneCountryCode: z.string().max(10, { error: d.phoneCountryCode.max }).nullable(),
+  email: z.string({ error: d.email.required }).email({ error: d.email.invalid }).max(255, { error: d.email.max }).nullable(),
+  phone: z.string({ error: d.phone.required }).max(50, { error: d.phone.max }).nullable(),
+  phoneCountryCode: z.string({ error: d.phoneCountryCode.required }).max(10, { error: d.phoneCountryCode.max }).nullable(),
   defaultCurrencyId: z.uuid({ error: d.defaultCurrencyId.invalid }).nullable(),
   isActive: z.boolean().default(true),
   metadata: z.record(z.string(), z.unknown()).nullable(),

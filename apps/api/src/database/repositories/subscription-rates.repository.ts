@@ -47,6 +47,8 @@ export class SubscriptionRatesRepository
       description: r.description,
       condominiumRate: parseFloat(r.condominiumRate),
       unitRate: parseFloat(r.unitRate),
+      userRate: parseFloat(r.userRate),
+      annualDiscountPercentage: parseFloat(r.annualDiscountPercentage),
       minCondominiums: r.minCondominiums,
       maxCondominiums: r.maxCondominiums,
       version: r.version,
@@ -66,6 +68,8 @@ export class SubscriptionRatesRepository
       description: dto.description,
       condominiumRate: dto.condominiumRate.toString(),
       unitRate: dto.unitRate.toString(),
+      userRate: dto.userRate.toString(),
+      annualDiscountPercentage: dto.annualDiscountPercentage ?? 15,
       minCondominiums: dto.minCondominiums ?? 1,
       maxCondominiums: dto.maxCondominiums,
       version: dto.version,
@@ -84,6 +88,8 @@ export class SubscriptionRatesRepository
     if (dto.description !== undefined) values.description = dto.description
     if (dto.condominiumRate !== undefined) values.condominiumRate = dto.condominiumRate.toString()
     if (dto.unitRate !== undefined) values.unitRate = dto.unitRate.toString()
+    if (dto.userRate !== undefined) values.userRate = dto.userRate.toString()
+    if (dto.annualDiscountPercentage !== undefined) values.annualDiscountPercentage = dto.annualDiscountPercentage
     if (dto.minCondominiums !== undefined) values.minCondominiums = dto.minCondominiums
     if (dto.maxCondominiums !== undefined) values.maxCondominiums = dto.maxCondominiums
     if (dto.isActive !== undefined) values.isActive = dto.isActive
@@ -186,16 +192,10 @@ export class SubscriptionRatesRepository
   }
 
   /**
-   * Activate a rate (deactivates all other rates)
+   * Activate a rate (allows multiple active rates)
    */
   async activate(id: string, updatedBy: string): Promise<TSubscriptionRate | null> {
-    // Deactivate all other rates first
-    await this.db
-      .update(subscriptionRates)
-      .set({ isActive: false, updatedAt: new Date(), updatedBy })
-      .where(ne(subscriptionRates.id, id))
-
-    // Activate the specified rate
+    // Activate the specified rate (no longer deactivates others)
     const results = await this.db
       .update(subscriptionRates)
       .set({ isActive: true, updatedAt: new Date(), updatedBy })

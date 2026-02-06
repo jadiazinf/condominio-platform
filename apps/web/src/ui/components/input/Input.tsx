@@ -3,7 +3,7 @@
 import { Input as HeroUIInput } from '@heroui/input'
 import { Tooltip } from '@heroui/tooltip'
 import { cn } from '@heroui/theme'
-import { ReactNode, KeyboardEvent, ClipboardEvent } from 'react'
+import { ReactNode, KeyboardEvent, ClipboardEvent, forwardRef } from 'react'
 import { Info } from 'lucide-react'
 
 type TInputType = 'text' | 'email' | 'password' | 'tel' | 'url' | 'search' | 'number'
@@ -21,6 +21,8 @@ type TInputRadius = 'none' | 'sm' | 'md' | 'lg' | 'full'
 type TLabelPlacement = 'inside' | 'outside' | 'outside-left'
 
 interface IInputProps {
+  id?: string
+  name?: string
   type?: TInputType
   size?: TInputSize
   color?: TInputColor
@@ -33,6 +35,7 @@ interface IInputProps {
   /** Tooltip text shown on hover of info icon next to label */
   tooltip?: string
   errorMessage?: string
+  error?: string
   value?: string
   defaultValue?: string
   isRequired?: boolean
@@ -50,12 +53,15 @@ interface IInputProps {
   inputMode?: TInputMode
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   onValueChange?: (value: string) => void
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
   onClear?: () => void
   onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void
   onPaste?: (e: ClipboardEvent<HTMLInputElement>) => void
 }
 
-export function Input({
+export const Input = forwardRef<HTMLInputElement, IInputProps>(({
+  id,
+  name,
   type = 'text',
   size = 'md',
   color = 'default',
@@ -67,6 +73,7 @@ export function Input({
   description,
   tooltip,
   errorMessage,
+  error,
   value,
   defaultValue,
   isRequired = false,
@@ -84,10 +91,11 @@ export function Input({
   inputMode,
   onChange,
   onValueChange,
+  onBlur,
   onClear,
   onKeyDown,
   onPaste,
-}: IInputProps) {
+}, ref) => {
   // Create label with tooltip and required asterisk (always on the left)
   const labelContent = label ? (
     <span className="flex items-center gap-1.5">
@@ -110,16 +118,19 @@ export function Input({
 
   return (
     <HeroUIInput
+      ref={ref}
+      id={id}
+      name={name}
       className={cn(className)}
       color={color}
       defaultValue={defaultValue}
       description={tooltip ? undefined : description}
       endContent={endContent}
-      errorMessage={errorMessage}
+      errorMessage={error || errorMessage}
       fullWidth={fullWidth}
       isClearable={isClearable}
       isDisabled={isDisabled}
-      isInvalid={isInvalid}
+      isInvalid={isInvalid || !!error}
       isReadOnly={isReadOnly}
       isRequired={false}
       label={labelContent}
@@ -136,13 +147,16 @@ export function Input({
       variant={variant}
       inputMode={inputMode}
       onChange={onChange}
+      onBlur={onBlur}
       onClear={onClear}
       onKeyDown={onKeyDown}
       onPaste={onPaste}
       onValueChange={onValueChange}
     />
   )
-}
+})
+
+Input.displayName = 'Input'
 
 // Export types for external use
 export type {

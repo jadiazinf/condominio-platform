@@ -116,9 +116,21 @@ describe('ManagementCompaniesController', function () {
       },
     }
 
+    // Create mock repositories for other dependencies
+    const mockSubscriptionsRepository = {} as any
+    const mockLocationsRepository = {
+      getById: async () => null,
+    } as any
+    const mockUsersRepository = {
+      getById: async () => null,
+    } as any
+
     // Create controller with mock repository
     const controller = new ManagementCompaniesController(
-      mockRepository as unknown as ManagementCompaniesRepository
+      mockRepository as unknown as ManagementCompaniesRepository,
+      mockSubscriptionsRepository,
+      mockLocationsRepository,
+      mockUsersRepository
     )
 
     // Create Hono app with controller routes

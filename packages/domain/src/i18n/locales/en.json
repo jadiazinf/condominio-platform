@@ -74,20 +74,32 @@
           "invalid": "Management company ID is not valid."
         },
         "address": {
-          "max": "Address must have at most 500 characters."
+          "max": "Address must have at most 500 characters.",
+          "required": "Address is required."
         },
         "locationId": {
           "invalid": "Location ID is not valid."
         },
         "email": {
           "invalid": "Email is not valid.",
-          "max": "Email must have at most 255 characters."
+          "max": "Email must have at most 255 characters.",
+          "required": "Email is required."
         },
         "phone": {
-          "max": "Phone must have at most 50 characters."
+          "max": "Phone must have at most 50 characters.",
+          "required": "Phone number is required."
         },
         "defaultCurrencyId": {
           "invalid": "Default currency ID is not valid."
+        },
+        "phoneCountryCode": {
+          "required": "Country code is required.",
+          "max": "Country code must be at most 10 characters."
+        },
+        "managementCompanyIds": {
+          "required": "At least one management company must be specified.",
+          "invalid": "Management company ID is invalid.",
+          "minLength": "At least one management company must be specified."
         }
       },
       "buildings": {

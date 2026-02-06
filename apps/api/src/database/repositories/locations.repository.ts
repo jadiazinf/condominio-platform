@@ -89,4 +89,28 @@ export class LocationsRepository
 
     return mapped.filter(location => location.isActive)
   }
+
+  /**
+   * Retrieves a location with its complete hierarchy (parent chain).
+   * Returns the location with nested parent objects all the way to the root (country).
+   */
+  async getByIdWithHierarchy(id: string): Promise<TLocation | null> {
+    const location = await this.getById(id)
+    if (!location) {
+      return null
+    }
+
+    // If location has no parent, return it as is
+    if (!location.parentId) {
+      return location
+    }
+
+    // Recursively load parent hierarchy
+    const parent = await this.getByIdWithHierarchy(location.parentId)
+
+    return {
+      ...location,
+      parent: parent ?? undefined,
+    }
+  }
 }

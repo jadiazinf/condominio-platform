@@ -1,7 +1,7 @@
 export { AuthProvider, useAuth } from './AuthContext'
 export { getFirebaseErrorKey } from '@/libs/firebase'
 export { I18nProvider, useI18n, useTranslation } from './I18nContext'
-export { UserProvider, useUser } from './UserContext'
-export { CondominiumProvider, useCondominium } from './CondominiumContext'
-export { SuperadminProvider, useSuperadmin } from './SuperadminContext'
 export { HttpClientProvider } from './HttpClientProvider'
+
+// Re-export session hooks from Zustand store (single source of truth)
+export { useUser, useCondominium, useSuperadmin } from '@/stores/session-store'

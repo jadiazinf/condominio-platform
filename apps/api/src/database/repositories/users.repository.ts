@@ -1,4 +1,4 @@
-import { eq, and, or, ilike, sql, desc, inArray } from 'drizzle-orm'
+import { eq, and, or, ilike, sql, desc, inArray, isNull } from 'drizzle-orm'
 import type { TUser, TUserCreate, TUserUpdate, TPaginatedResponse, TPermission } from '@packages/domain'
 import {
   users,
@@ -282,6 +282,28 @@ export class UsersRepository
     }
 
     return this.mapToEntity(record)
+  }
+
+  /**
+   * Checks if a user is a superadmin (has SUPERADMIN role with no scope).
+   */
+  async checkIsSuperadmin(userId: string): Promise<boolean> {
+    const result = await this.db
+      .select({ roleId: userRoles.roleId })
+      .from(userRoles)
+      .innerJoin(roles, eq(userRoles.roleId, roles.id))
+      .where(
+        and(
+          eq(userRoles.userId, userId),
+          eq(roles.name, SUPERADMIN_ROLE_NAME),
+          isNull(userRoles.condominiumId),
+          isNull(userRoles.buildingId),
+          or(eq(userRoles.isActive, true), isNull(userRoles.isActive))
+        )
+      )
+      .limit(1)
+
+    return result.length > 0
   }
 
   /**

@@ -8,7 +8,8 @@ import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
 import { Spinner } from '@/ui/components/spinner'
-import { Building2, Search, MoreVertical, Eye, Power, X } from 'lucide-react'
+import { ClearFiltersButton } from '@/ui/components/filters'
+import { Building2, Search, MoreVertical, Eye, Power } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { TManagementCompany, TManagementCompaniesQuery } from '@packages/domain'
 
@@ -240,9 +241,7 @@ export function CompaniesTable() {
           variant="bordered"
         />
         {(search || statusFilter !== 'active') && (
-          <Button startContent={<X size={14} />} variant="flat" onPress={handleClearFilters}>
-            {t('superadmin.companies.filters.clearFilters')}
-          </Button>
+          <ClearFiltersButton onClear={handleClearFilters} />
         )}
       </div>
 

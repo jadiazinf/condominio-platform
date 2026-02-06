@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useFormContext, Controller } from 'react-hook-form'
 import { Input } from '@/ui/components/input'
 import { Select, type ISelectItem } from '@/ui/components/select'
@@ -24,29 +24,53 @@ export function BasicStepForm({ shouldShowError, translateError }: BasicStepForm
   const billingCycle = watch('billingCycle')
   const startDate = watch('startDate')
 
+  // State for custom subscription name
+  const [nameOption, setNameOption] = useState<string>('basic')
+
   // Auto-calculate end date based on billing cycle
   useEffect(() => {
     if (startDate && billingCycle) {
       const start = new Date(startDate)
-      let end: Date
+      const end = new Date(start)
 
-      if (billingCycle === 'monthly') {
-        end = new Date(start)
-        end.setMonth(end.getMonth() + 1)
-      } else if (billingCycle === 'annual') {
-        end = new Date(start)
-        end.setFullYear(end.getFullYear() + 1)
-      } else {
-        return
+      switch (billingCycle) {
+        case 'monthly':
+          end.setMonth(end.getMonth() + 1)
+          break
+        case 'quarterly':
+          end.setMonth(end.getMonth() + 3)
+          break
+        case 'semi_annual':
+          end.setMonth(end.getMonth() + 6)
+          break
+        case 'annual':
+          end.setFullYear(end.getFullYear() + 1)
+          break
+        case 'custom':
+          end.setMonth(end.getMonth() + 1)
+          break
+        default:
+          return
       }
 
       setValue('endDate', end.toISOString().split('T')[0])
     }
   }, [startDate, billingCycle, setValue])
 
+  const subscriptionNameItems: ISelectItem[] = [
+    { key: 'basic', label: t('superadmin.companies.subscription.form.fields.subscriptionNameOptions.basic') },
+    { key: 'standard', label: t('superadmin.companies.subscription.form.fields.subscriptionNameOptions.standard') },
+    { key: 'professional', label: t('superadmin.companies.subscription.form.fields.subscriptionNameOptions.professional') },
+    { key: 'enterprise', label: t('superadmin.companies.subscription.form.fields.subscriptionNameOptions.enterprise') },
+    { key: 'custom', label: t('superadmin.companies.subscription.form.fields.subscriptionNameOptions.custom') },
+  ]
+
   const billingCycleItems: ISelectItem[] = [
     { key: 'monthly', label: t('superadmin.companies.subscription.form.billingCycles.monthly') },
+    { key: 'quarterly', label: t('superadmin.companies.subscription.form.billingCycles.quarterly') },
+    { key: 'semi_annual', label: t('superadmin.companies.subscription.form.billingCycles.semi_annual') },
     { key: 'annual', label: t('superadmin.companies.subscription.form.billingCycles.annual') },
+    { key: 'custom', label: t('superadmin.companies.subscription.form.billingCycles.custom') },
   ]
 
   const statusItems: ISelectItem[] = [
@@ -75,25 +99,53 @@ export function BasicStepForm({ shouldShowError, translateError }: BasicStepForm
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
-          <Controller
-            name="subscriptionName"
-            control={control}
-            rules={{
-              required: t('superadmin.companies.subscription.form.validation.subscriptionName.required'),
-            }}
-            render={({ field }) => (
-              <Input
-                label={t('superadmin.companies.subscription.form.fields.subscriptionName')}
-                tooltip={t('superadmin.companies.subscription.form.fields.subscriptionNameDescription')}
-                placeholder={t('superadmin.companies.subscription.form.fields.subscriptionNamePlaceholder')}
-                value={field.value}
-                onValueChange={field.onChange}
-                isRequired
-                isInvalid={shouldShowError('subscriptionName')}
-                errorMessage={translateError('subscriptionName')}
+          <div className="space-y-4">
+            <Select
+              aria-label={t('superadmin.companies.subscription.form.fields.subscriptionName')}
+              label={
+                <span className="flex items-center gap-1">
+                  {t('superadmin.companies.subscription.form.fields.subscriptionName')}
+                  <Tooltip content={t('superadmin.companies.subscription.form.fields.subscriptionNameDescription')}>
+                    <HelpCircle size={14} className="text-default-400 cursor-help" />
+                  </Tooltip>
+                </span>
+              }
+              items={subscriptionNameItems}
+              value={nameOption}
+              onChange={(key) => {
+                if (key) {
+                  setNameOption(key)
+                  // If not custom, set the translated name
+                  if (key !== 'custom') {
+                    setValue('subscriptionName', t(`superadmin.companies.subscription.form.fields.subscriptionNameOptions.${key}`))
+                  } else {
+                    setValue('subscriptionName', '')
+                  }
+                }
+              }}
+              isRequired
+            />
+
+            {nameOption === 'custom' && (
+              <Controller
+                name="subscriptionName"
+                control={control}
+                rules={{
+                  required: t('superadmin.companies.subscription.form.validation.subscriptionName.required'),
+                }}
+                render={({ field }) => (
+                  <Input
+                    placeholder={t('superadmin.companies.subscription.form.fields.customSubscriptionNamePlaceholder')}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    isRequired
+                    isInvalid={shouldShowError('subscriptionName')}
+                    errorMessage={translateError('subscriptionName')}
+                  />
+                )}
               />
             )}
-          />
+          </div>
 
           <Controller
             name="billingCycle"
@@ -173,7 +225,7 @@ export function BasicStepForm({ shouldShowError, translateError }: BasicStepForm
             }}
             render={({ field }) => (
               <div className="space-y-3">
-                <label className="flex items-center gap-1 text-sm font-medium">
+                <label htmlFor="startDate" className="flex items-center gap-1 text-sm font-medium">
                   <span className="text-danger">* </span>
                   {t('superadmin.companies.subscription.form.fields.startDate')}
                   <Tooltip content={t('superadmin.companies.subscription.form.fields.startDateDescription')}>
@@ -181,12 +233,14 @@ export function BasicStepForm({ shouldShowError, translateError }: BasicStepForm
                   </Tooltip>
                 </label>
                 <input
+                  id="startDate"
                   type="date"
                   value={field.value}
                   onChange={(e) => field.onChange(e.target.value)}
                   onBlur={field.onBlur}
                   className={`${dateInputClass} ${shouldShowError('startDate') ? 'border-danger' : ''}`}
                   required
+                  aria-label={t('superadmin.companies.subscription.form.fields.startDate')}
                 />
                 {shouldShowError('startDate') && (
                   <p className="text-xs text-danger">{translateError('startDate')}</p>
@@ -200,7 +254,7 @@ export function BasicStepForm({ shouldShowError, translateError }: BasicStepForm
             control={control}
             render={({ field }) => (
               <div className="space-y-3">
-                <label className="flex items-center gap-1 text-sm font-medium">
+                <label htmlFor="endDate" className="flex items-center gap-1 text-sm font-medium">
                   <span className="text-danger">* </span>
                   {t('superadmin.companies.subscription.form.fields.endDate')}
                   <Tooltip content={t('superadmin.companies.subscription.form.fields.endDateCalculatedDescription')}>
@@ -208,11 +262,13 @@ export function BasicStepForm({ shouldShowError, translateError }: BasicStepForm
                   </Tooltip>
                 </label>
                 <input
+                  id="endDate"
                   type="date"
                   value={field.value}
                   className={dateInputDisabledClass}
                   disabled
                   readOnly
+                  aria-label={t('superadmin.companies.subscription.form.fields.endDate')}
                 />
                 <p className="text-xs text-default-400">
                   {t('superadmin.companies.subscription.form.fields.endDateAutoCalculated')}
@@ -233,7 +289,7 @@ export function BasicStepForm({ shouldShowError, translateError }: BasicStepForm
               }}
               render={({ field }) => (
                 <div className="space-y-3">
-                  <label className="flex items-center gap-1 text-sm font-medium">
+                  <label htmlFor="trialEndsAt" className="flex items-center gap-1 text-sm font-medium">
                     <span className="text-danger">* </span>
                     {t('superadmin.companies.subscription.form.fields.trialEndsAt')}
                     <Tooltip content={t('superadmin.companies.subscription.form.fields.trialEndsAtDescription')}>
@@ -241,12 +297,14 @@ export function BasicStepForm({ shouldShowError, translateError }: BasicStepForm
                     </Tooltip>
                   </label>
                   <input
+                    id="trialEndsAt"
                     type="date"
                     value={field.value}
                     onChange={(e) => field.onChange(e.target.value)}
                     onBlur={field.onBlur}
                     className={`${dateInputClass} ${shouldShowError('trialEndsAt') ? 'border-danger' : ''}`}
                     required
+                    aria-label={t('superadmin.companies.subscription.form.fields.trialEndsAt')}
                   />
                   {shouldShowError('trialEndsAt') && (
                     <p className="text-xs text-danger">{translateError('trialEndsAt')}</p>

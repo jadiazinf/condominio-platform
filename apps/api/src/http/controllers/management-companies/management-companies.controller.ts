@@ -8,12 +8,18 @@ import {
   type TManagementCompanyUpdate,
   type TManagementCompaniesQuerySchema,
 } from '@packages/domain'
-import type { ManagementCompaniesRepository } from '@database/repositories'
+import type {
+  ManagementCompaniesRepository,
+  ManagementCompanySubscriptionsRepository,
+  LocationsRepository,
+  UsersRepository,
+} from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
+import { ValidateSubscriptionLimitsService, type TResourceType } from '@src/services/subscriptions'
 
 const TaxIdNumberParamSchema = z.object({
   taxIdNumber: z.string().min(1),
@@ -33,6 +39,13 @@ const ToggleActiveBodySchema = z.object({
 
 type TToggleActiveBody = z.infer<typeof ToggleActiveBodySchema>
 
+const CheckLimitParamSchema = z.object({
+  id: z.string().uuid('Invalid management company ID format'),
+  resourceType: z.enum(['condominium', 'unit', 'user']),
+})
+
+type TCheckLimitParam = z.infer<typeof CheckLimitParamSchema>
+
 /**
  * Controller for managing management company resources.
  *
@@ -50,12 +63,29 @@ export class ManagementCompaniesController extends BaseController<
   TManagementCompanyCreate,
   TManagementCompanyUpdate
 > {
-  constructor(repository: ManagementCompaniesRepository) {
+  private readonly validateLimitsService: ValidateSubscriptionLimitsService
+  private readonly locationsRepository: LocationsRepository
+  private readonly usersRepository: UsersRepository
+
+  constructor(
+    repository: ManagementCompaniesRepository,
+    subscriptionsRepository: ManagementCompanySubscriptionsRepository,
+    locationsRepository: LocationsRepository,
+    usersRepository: UsersRepository
+  ) {
     super(repository)
+    this.locationsRepository = locationsRepository
+    this.usersRepository = usersRepository
+    this.validateLimitsService = new ValidateSubscriptionLimitsService(
+      subscriptionsRepository,
+      repository
+    )
     this.listPaginated = this.listPaginated.bind(this)
     this.getByTaxIdNumber = this.getByTaxIdNumber.bind(this)
     this.getByLocationId = this.getByLocationId.bind(this)
     this.toggleActive = this.toggleActive.bind(this)
+    this.getUsageStats = this.getUsageStats.bind(this)
+    this.checkCanCreateResource = this.checkCanCreateResource.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -85,6 +115,18 @@ export class ManagementCompaniesController extends BaseController<
         middlewares: [paramsValidator(IdParamSchema)],
       },
       {
+        method: 'get',
+        path: '/:id/usage-stats',
+        handler: this.getUsageStats,
+        middlewares: [paramsValidator(IdParamSchema)],
+      },
+      {
+        method: 'get',
+        path: '/:id/subscription/can-create/:resourceType',
+        handler: this.checkCanCreateResource,
+        middlewares: [paramsValidator(CheckLimitParamSchema)],
+      },
+      {
         method: 'post',
         path: '/',
         handler: this.create,
@@ -109,6 +151,67 @@ export class ManagementCompaniesController extends BaseController<
         middlewares: [paramsValidator(IdParamSchema)],
       },
     ]
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Override getById to populate relations
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override getById = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, { id: string }>(c)
+
+    try {
+      // Include inactive companies for viewing purposes
+      const company = await this.repository.getById(ctx.params.id, true)
+
+      if (!company) {
+        return ctx.notFound({ error: 'Management company not found' })
+      }
+
+      // Populate relations
+      const [location, createdByUser] = await Promise.all([
+        // Get location with full hierarchy (country -> province -> city)
+        company.locationId ? this.locationsRepository.getByIdWithHierarchy(company.locationId) : Promise.resolve(null),
+        // Get created by user (include inactive users to show who created it)
+        company.createdBy ? this.usersRepository.getById(company.createdBy, true) : Promise.resolve(null),
+      ])
+
+      // Check if created by user is superadmin
+      let enrichedCreatedByUser = createdByUser
+      if (createdByUser) {
+        const isSuperadmin = await this.usersRepository.checkIsSuperadmin(createdByUser.id)
+        enrichedCreatedByUser = {
+          ...createdByUser,
+          isSuperadmin,
+        }
+      }
+
+      const populated: TManagementCompany = {
+        ...company,
+        location: location ?? undefined,
+        createdByUser: enrichedCreatedByUser ?? undefined,
+      }
+
+      return ctx.ok({ data: populated })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Override create to inject createdBy from authenticated user
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override create = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TManagementCompanyCreate>(c)
+    const user = ctx.getAuthenticatedUser()
+
+    const entity = await this.repository.create({
+      ...ctx.body,
+      createdBy: user.id,
+    })
+
+    return ctx.created({ data: entity })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -158,6 +261,37 @@ export class ManagementCompaniesController extends BaseController<
     try {
       const companies = await repo.getByLocationId(ctx.params.locationId)
       return ctx.ok({ data: companies })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private async getUsageStats(c: Context): Promise<Response> {
+    const ctx = this.ctx<unknown, unknown, { id: string }>(c)
+    const repo = this.repository as ManagementCompaniesRepository
+
+    try {
+      const stats = await repo.getUsageStats(ctx.params.id)
+      return ctx.ok({ data: stats })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private async checkCanCreateResource(c: Context): Promise<Response> {
+    const ctx = this.ctx<unknown, unknown, TCheckLimitParam>(c)
+
+    try {
+      const result = await this.validateLimitsService.execute({
+        managementCompanyId: ctx.params.id,
+        resourceType: ctx.params.resourceType as TResourceType,
+      })
+
+      if (!result.success) {
+        return ctx.notFound({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }

@@ -6,7 +6,14 @@ import type {
   TPaginatedResponse,
   TManagementCompaniesQuerySchema,
 } from '@packages/domain'
-import { managementCompanies } from '@database/drizzle/schema'
+import {
+  managementCompanies,
+  condominiumManagementCompanies,
+  condominiums,
+  buildings,
+  units,
+  managementCompanyMembers,
+} from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -127,13 +134,13 @@ export class ManagementCompaniesRepository
   async listPaginated(
     query: TManagementCompaniesQuerySchema
   ): Promise<TPaginatedResponse<TManagementCompany>> {
-    const { page = 1, limit = 20, search, isActive = true } = query
+    const { page = 1, limit = 20, search, isActive } = query
     const offset = (page - 1) * limit
 
     // Build conditions array
     const conditions = []
 
-    // Filter by isActive (default to true)
+    // Filter by isActive (only when explicitly provided)
     if (isActive !== undefined) {
       conditions.push(eq(managementCompanies.isActive, isActive))
     }
@@ -197,5 +204,52 @@ export class ManagementCompaniesRepository
     }
 
     return this.mapToEntity(results[0])
+  }
+
+  /**
+   * Retrieves usage statistics for a management company.
+   * Returns counts for condominiums, units, users (members), and storage.
+   */
+  async getUsageStats(managementCompanyId: string): Promise<{
+    condominiumsCount: number
+    unitsCount: number
+    usersCount: number
+    storageGb: number
+  }> {
+    // Get condominiums count
+    const condominiumsResult = await this.db
+      .select({ count: sql<number>`count(distinct ${condominiumManagementCompanies.condominiumId})::int` })
+      .from(condominiumManagementCompanies)
+      .where(eq(condominiumManagementCompanies.managementCompanyId, managementCompanyId))
+
+    // Get units count
+    const unitsResult = await this.db
+      .select({ count: sql<number>`count(distinct ${units.id})::int` })
+      .from(units)
+      .innerJoin(buildings, eq(units.buildingId, buildings.id))
+      .innerJoin(condominiums, eq(buildings.condominiumId, condominiums.id))
+      .innerJoin(
+        condominiumManagementCompanies,
+        eq(condominiums.id, condominiumManagementCompanies.condominiumId)
+      )
+      .where(eq(condominiumManagementCompanies.managementCompanyId, managementCompanyId))
+
+    // Get users count (active members)
+    const usersResult = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(managementCompanyMembers)
+      .where(
+        and(
+          eq(managementCompanyMembers.managementCompanyId, managementCompanyId),
+          eq(managementCompanyMembers.isActive, true)
+        )
+      )
+
+    return {
+      condominiumsCount: condominiumsResult[0]?.count ?? 0,
+      unitsCount: unitsResult[0]?.count ?? 0,
+      usersCount: usersResult[0]?.count ?? 0,
+      storageGb: 0, // TODO: Implement storage calculation when file storage is implemented
+    }
   }
 }

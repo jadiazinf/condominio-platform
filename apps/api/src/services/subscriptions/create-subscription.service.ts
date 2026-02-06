@@ -16,6 +16,18 @@ import { AcceptSubscriptionService } from './accept-subscription.service'
 import type { SubscriptionAuditService } from './subscription-audit.service'
 import type { SendSubscriptionAcceptanceEmailService } from '../email'
 
+// Default features that all subscriptions should have enabled
+const DEFAULT_FEATURES = {
+  reportes_avanzados: true,
+  notificaciones_push: true,
+  soporte_prioritario: true,
+  api_access: true,
+  backup_automatico: true,
+  multi_moneda: true,
+  integracion_bancaria: true,
+  facturacion_electronica: true,
+}
+
 export interface ICreateSubscriptionInput extends Omit<TManagementCompanySubscriptionCreate, 'status'> {
   status?: TManagementCompanySubscriptionCreate['status']
 }
@@ -163,6 +175,11 @@ export class CreateSubscriptionService {
     const subscriptionData: TManagementCompanySubscriptionCreate = {
       ...input,
       status: 'inactive', // Always starts inactive until accepted
+      // Ensure all default features are enabled
+      customFeatures: {
+        ...DEFAULT_FEATURES,
+        ...(input.customFeatures || {}),
+      },
     }
 
     const subscription = await this.subscriptionsRepository.create(subscriptionData)
@@ -270,6 +287,11 @@ export class CreateSubscriptionService {
     const subscriptionData: TManagementCompanySubscriptionCreate = {
       ...input,
       status: input.status ?? 'inactive',
+      // Ensure all default features are enabled
+      customFeatures: {
+        ...DEFAULT_FEATURES,
+        ...(input.customFeatures || {}),
+      },
     }
 
     const subscription = await this.subscriptionsRepository.create(subscriptionData)

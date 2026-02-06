@@ -80,7 +80,7 @@ export class CreateCompanyWithAdminService {
     // Create management company with isActive=false
     const companyData: TManagementCompanyCreate = {
       ...input.company,
-      createdBy: admin.id,
+      createdBy: input.createdBy, // Use authenticated user (superadmin), not the admin
       isActive: false,
     }
 

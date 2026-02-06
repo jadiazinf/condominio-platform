@@ -74,20 +74,32 @@
           "invalid": "El ID de la empresa administradora no es válido."
         },
         "address": {
-          "max": "La dirección debe tener como máximo 500 caracteres."
+          "max": "La dirección debe tener como máximo 500 caracteres.",
+          "required": "La dirección es requerida."
         },
         "locationId": {
           "invalid": "El ID de ubicación no es válido."
         },
         "email": {
           "invalid": "El correo electrónico no es válido.",
-          "max": "El correo electrónico debe tener como máximo 255 caracteres."
+          "max": "El correo electrónico debe tener como máximo 255 caracteres.",
+          "required": "El correo electrónico es requerido."
         },
         "phone": {
-          "max": "El teléfono debe tener como máximo 50 caracteres."
+          "max": "El teléfono debe tener como máximo 50 caracteres.",
+          "required": "El teléfono es requerido."
         },
         "defaultCurrencyId": {
           "invalid": "El ID de moneda por defecto no es válido."
+        },
+        "phoneCountryCode": {
+          "required": "El código de país es requerido.",
+          "max": "El código de país debe tener como máximo 10 caracteres."
+        },
+        "managementCompanyIds": {
+          "required": "Debe especificar al menos una empresa administradora.",
+          "invalid": "El ID de la empresa administradora no es válido.",
+          "minLength": "Debe especificar al menos una empresa administradora."
         }
       },
       "buildings": {

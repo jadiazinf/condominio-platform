@@ -13,11 +13,9 @@ import { Analytics } from '@vercel/analytics/next'
 import {
   AuthProvider,
   I18nProvider,
-  UserProvider,
-  CondominiumProvider,
-  SuperadminProvider,
   HttpClientProvider,
 } from '@/contexts'
+import { SessionInitializer } from '@/contexts/SessionInitializer'
 import { ToastProvider } from '@/ui/components/toast'
 import { NetworkStatusMonitor } from '@/ui/components/network-status'
 import { type TAppLanguages } from '@/locales'
@@ -50,18 +48,15 @@ export function Providers({
           <I18nProvider initialLocale={locale}>
             <AuthProvider>
               <HttpClientProvider>
-                <UserProvider initialUser={initialUser}>
-                  <CondominiumProvider
-                    initialCondominiums={initialCondominiums}
-                    initialSelectedCondominium={initialSelectedCondominium}
-                  >
-                    <SuperadminProvider>
-                      {children}
-                      <ToastProvider position="top-center" />
-                      <NetworkStatusMonitor />
-                    </SuperadminProvider>
-                  </CondominiumProvider>
-                </UserProvider>
+                <SessionInitializer
+                  initialUser={initialUser}
+                  initialCondominiums={initialCondominiums}
+                  initialSelectedCondominium={initialSelectedCondominium}
+                >
+                  {children}
+                  <ToastProvider position="top-center" />
+                  <NetworkStatusMonitor />
+                </SessionInitializer>
               </HttpClientProvider>
             </AuthProvider>
           </I18nProvider>

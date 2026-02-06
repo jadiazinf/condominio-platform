@@ -103,19 +103,23 @@ export const DomainLocaleDictionary = {
           minLength: 'validation.models.condominiums.managementCompanyIds.minLength',
         },
         address: {
+          required: 'validation.models.condominiums.address.required',
           max: 'validation.models.condominiums.address.max',
         },
         locationId: {
           invalid: 'validation.models.condominiums.locationId.invalid',
         },
         email: {
+          required: 'validation.models.condominiums.email.required',
           invalid: 'validation.models.condominiums.email.invalid',
           max: 'validation.models.condominiums.email.max',
         },
         phone: {
+          required: 'validation.models.condominiums.phone.required',
           max: 'validation.models.condominiums.phone.max',
         },
         phoneCountryCode: {
+          required: 'validation.models.condominiums.phoneCountryCode.required',
           max: 'validation.models.condominiums.phoneCountryCode.max',
         },
         defaultCurrencyId: {

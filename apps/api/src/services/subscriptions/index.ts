@@ -17,3 +17,9 @@ export {
   type IAcceptSubscriptionInput,
   type IAcceptSubscriptionResult,
 } from './accept-subscription.service'
+export {
+  ValidateSubscriptionLimitsService,
+  type IValidateLimitsInput,
+  type IValidateLimitsResult,
+  type TResourceType,
+} from './validate-subscription-limits.service'

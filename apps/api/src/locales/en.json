@@ -136,7 +136,46 @@
       "expectedRecord": "Expected object value.",
       "expectedArray": "Expected array value.",
       "invalidDateFormat": "Invalid date format (YYYY-MM-DD).",
-      "invalidOption": "Invalid option."
+      "invalidOption": "Invalid option.",
+      "models": {
+        "condominiums": {
+          "name": {
+            "required": "Condominium name is required.",
+            "max": "Condominium name cannot exceed 255 characters."
+          },
+          "code": {
+            "max": "Condominium code cannot exceed 50 characters."
+          },
+          "managementCompanyIds": {
+            "required": "At least one management company must be specified.",
+            "invalid": "Invalid management company ID.",
+            "minLength": "Condominium must belong to at least one management company."
+          },
+          "address": {
+            "required": "Address is required.",
+            "max": "Address cannot exceed 500 characters."
+          },
+          "locationId": {
+            "invalid": "Invalid location ID."
+          },
+          "email": {
+            "required": "Email address is required.",
+            "invalid": "Invalid email format.",
+            "max": "Email address cannot exceed 255 characters."
+          },
+          "phone": {
+            "required": "Phone number is required.",
+            "max": "Phone number cannot exceed 50 characters."
+          },
+          "phoneCountryCode": {
+            "required": "Phone country code is required.",
+            "max": "Phone country code cannot exceed 10 characters."
+          },
+          "defaultCurrencyId": {
+            "invalid": "Invalid currency ID."
+          }
+        }
+      }
     },
     "unhandledResponses": {
       "internalError": "Internal server error, please try again later."

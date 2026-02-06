@@ -12,6 +12,7 @@
     "create": "Create",
     "search": "Search",
     "filter": "Filter",
+    "clearFilters": "Clear filters",
     "close": "Close",
     "confirm": "Confirm",
     "back": "Back",
@@ -493,7 +494,9 @@
         "deactivateConfirm": "Do you want to deactivate this company?",
         "activateSuccess": "Company activated successfully",
         "deactivateSuccess": "Company deactivated successfully",
-        "toggleError": "Error changing status"
+        "toggleError": "Error changing status",
+        "updateSuccess": "Company updated successfully",
+        "updateError": "Error updating company"
       },
       "form": {
         "createTitle": "Create Management Company",
@@ -549,6 +552,10 @@
           "email": "Company Email",
           "emailPlaceholder": "contact@company.com",
           "emailDescription": "Main email address for receiving official communications and system notifications",
+          "phoneCountryCode": {
+            "label": "Country Code",
+            "placeholder": "+1"
+          },
           "phone": "Phone",
           "phonePlaceholder": "4121234567",
           "phoneDescription": "Main phone number of the management company. Residents will be able to use this number for contact",
@@ -640,9 +647,12 @@
             "condominiumsDescription": "Number of active condominiums registered in the management company",
             "units": "Total units",
             "unitsDescription": "Sum of all units (apartments, houses, stores) from all condominiums",
+            "users": "Active users",
+            "usersDescription": "Number of management company staff users (managers, accountants, assistants). Does not include residents.",
             "breakdown": "Price breakdown",
             "subtotal": "Subtotal",
             "discount": "Discount",
+            "annualDiscount": "Annual discount",
             "suggestedPrice": "Suggested price",
             "error": "Could not calculate price. Please try again.",
             "noRateConfigured": {
@@ -651,26 +661,37 @@
               "instruction": "Go to Settings → Subscription Rates to create a rate before continuing."
             },
             "noData": "No pricing data available",
+            "monthlyBasePrice": "Monthly base price",
+            "billingMonths": "Billing months",
+            "billingMonthsMonthly": "1 month (monthly)",
+            "billingMonthsAnnual": "12 months (annual)",
             "formula": "Calculation formula",
-            "formulaDescription": "The price is calculated by adding the cost per condominiums plus the cost per units:",
-            "formulaDetail": "(Condominiums × Rate) + (Units × Rate) - Discount = Final Price",
+            "formulaDescription": "The price is calculated by adding the cost per condominiums, units, and active users, multiplied by the billing cycle months:",
+            "formulaDetail": "[(Condominiums × Rate) + (Units × Rate) + (Users × Rate)] × Months - Discounts = Final Price",
             "formulaTooltip": {
               "title": "Formula explanation",
               "condominiums": "Condominiums",
               "condominiumsDesc": "Number of active condominiums assigned to this management company",
               "condominiumRate": "CondoRate",
-              "condominiumRateDesc": "Amount charged per managed condominium (fixed rate per condominium)",
+              "condominiumRateDesc": "Monthly amount charged per managed condominium",
               "units": "Units",
               "unitsDesc": "Total units (apartments, houses, stores) from all buildings of all condominiums",
               "unitRate": "UnitRate",
-              "unitRateDesc": "Amount charged per registered unit",
+              "unitRateDesc": "Monthly amount charged per registered unit",
+              "users": "Users",
+              "usersDesc": "Active management company staff users (managers, accountants, assistants)",
+              "userRate": "UserRate",
+              "userRateDesc": "Monthly amount charged per active staff user",
+              "months": "Months",
+              "monthsDesc": "Number of months in the billing cycle (1 for monthly, 12 for annual). The monthly base price is multiplied by this number",
               "discount": "Discount",
-              "discountDesc": "Reduction applied to the subtotal (percentage or fixed amount)"
+              "discountDesc": "Reduction applied to the total price (percentage or fixed amount). Discounts are applied after multiplying by months"
             },
             "rateApplied": "Applied rate",
             "rateVersion": "Version",
             "condominiumRate": "Rate per condominium",
             "unitRate": "Rate per unit",
+            "userRate": "Rate per user",
             "rateDescription": "Rates are obtained from the active rate system",
             "resetNoRates": "You must first configure subscription rates before calculating the price"
           },
@@ -687,6 +708,20 @@
             "subscriptionName": "Subscription Name",
             "subscriptionNamePlaceholder": "e.g. Premium Plan",
             "subscriptionNameDescription": "Descriptive name to identify this subscription",
+            "subscriptionNameOptions": {
+              "basic": "Basic Plan",
+              "standard": "Standard Plan",
+              "professional": "Professional Plan",
+              "enterprise": "Enterprise Plan",
+              "custom": "Custom"
+            },
+            "customSubscriptionNamePlaceholder": "Enter a custom name",
+            "rate": {
+              "label": "Subscription Rate",
+              "placeholder": "Select a rate",
+              "description": "Specific rate selected to calculate the price",
+              "descriptionDefault": "No selection - tiered pricing based on condominium count will be used"
+            },
             "billingCycle": "Billing Cycle",
             "billingCyclePlaceholder": "Select a cycle",
             "billingCycleDescription": "Frequency at which the subscription will be billed",
@@ -717,7 +752,7 @@
             "maxUnitsDescription": "Maximum number of units (apartments, houses, premises) across all condominiums",
             "maxUsers": "Max Users",
             "maxUsersPlaceholder": "Unlimited",
-            "maxUsersDescription": "Maximum number of users allowed",
+            "maxUsersDescription": "Maximum number of management company staff users (managers, accountants, assistants, etc.). Does not include residents.",
             "maxStorageGb": "Max Storage (GB)",
             "maxStorageGbPlaceholder": "Unlimited",
             "maxStorageGbDescription": "Maximum storage space in gigabytes",
@@ -861,6 +896,18 @@
           "tickets": "Support Tickets",
           "status": "Status & Actions"
         },
+        "general": {
+          "basicInfo": "Basic Information",
+          "contactInfo": "Contact Information",
+          "metadata": "System Information",
+          "name": "Name",
+          "legalName": "Legal Name",
+          "status": "Status",
+          "website": "Website",
+          "address": "Address",
+          "createdBy": "Created by",
+          "noData": "Not specified"
+        },
         "members": {
           "title": "Team Members",
           "subtitle": "Manage the members and permissions of this company",
@@ -960,19 +1007,54 @@
         "activate": "Activate",
         "deactivate": "Deactivate",
         "statusUpdated": "Condominium status updated",
-        "statusUpdateError": "Error updating condominium status"
+        "statusUpdateError": "Error updating condominium status",
+        "create": "Create Condominium",
+        "next": "Next",
+        "previous": "Previous",
+        "submit": "Create Condominium",
+        "cancel": "Cancel",
+        "edit": "Edit"
+      },
+      "confirmation": {
+        "title": "Confirm condominium information",
+        "sections": {
+          "basic": "Basic Information",
+          "location": "Location",
+          "contact": "Contact"
+        }
       },
       "noCompany": "No property manager",
       "noContact": "No contact",
       "noAddress": "-",
       "error": "Error loading condominiums",
+      "success": {
+        "created": "Condominium created successfully",
+        "activateSuccess": "Condominium activated successfully",
+        "deactivateSuccess": "Condominium deactivated successfully"
+      },
+      "errors": {
+        "createError": "Error creating condominium",
+        "limitReached": "Cannot create more condominiums. Your plan allows {max} condominiums and you currently have {current}.",
+        "limitReachedTooltip": "⚠️ Limit reached: You currently have {current} of {max} allowed condominiums on your plan. To create more condominiums, you need to upgrade your subscription to a higher plan.",
+        "noActiveSubscription": "❌ You don't have an active subscription. To create condominiums, you need to activate or purchase a subscription plan.",
+        "cannotCreate": "⚠️ Cannot create a condominium at this time. Please contact support."
+      },
+      "checkingLimit": "⏳ Checking your subscription's condominium limit...",
+      "unlimited": "unlimited",
       "form": {
+        "title": "Create Condominium",
         "createTitle": "Create Condominium",
         "createSubtitle": "Register a new condominium in the system",
         "submit": "Create Condominium",
         "submitting": "Creating...",
         "success": "Condominium created successfully",
         "error": "Error creating condominium",
+        "steps": {
+          "basic": "Basic Information",
+          "location": "Location",
+          "contact": "Contact",
+          "confirmation": "Confirmation"
+        },
         "codeGenerated": "Code generated successfully",
         "codeGenerateError": "Error generating code",
         "basicSection": {
@@ -988,30 +1070,48 @@
           "description": "Geographic location and address of the condominium"
         },
         "fields": {
-          "name": "Condominium Name",
-          "namePlaceholder": "e.g. Park Residences",
-          "nameDescription": "Name used to identify the condominium",
-          "code": "Code",
-          "codePlaceholder": "e.g. CONDO-001",
-          "codeDescription": "Unique code to identify the condominium",
-          "generateCode": "Generate unique code",
+          "name": {
+            "label": "Condominium Name",
+            "placeholder": "e.g. Beautiful View Residences",
+            "error": "Name is required"
+          },
+          "code": {
+            "label": "Code",
+            "placeholder": "Auto-generated if left empty"
+          },
+          "status": {
+            "label": "Status",
+            "active": "Active",
+            "inactive": "Inactive"
+          },
+          "address": {
+            "label": "Exact address",
+            "placeholder": "Example: Parish, Municipality, Urbanization, Postal Code, Street",
+            "error": "Exact address is required",
+            "maxLengthError": "The address must be a maximum of 500 characters"
+          },
+          "location": {
+            "label": "Location",
+            "placeholder": "Location ID (optional)"
+          },
+          "email": {
+            "label": "Email",
+            "placeholder": "contact@condominium.com",
+            "error": "Must be a valid email"
+          },
+          "phoneNumber": {
+            "label": "Phone Number",
+            "placeholder": "+1 (809) 000-0000"
+          },
+          "phoneCountryCode": {
+            "label": "Code"
+          },
           "managementCompany": "Management Company",
           "managementCompanies": "Management Companies",
           "managementCompanyPlaceholder": "Search management company...",
           "managementCompanyDescription": "Company that manages this condominium",
           "managementCompaniesDescription": "Companies that manage this condominium",
-          "noCompaniesFound": "No management companies found",
-          "email": "Email",
-          "emailPlaceholder": "contact@condominium.com",
-          "emailDescription": "Contact email for the condominium",
-          "phone": "Phone",
-          "phonePlaceholder": "4121234567",
-          "phoneDescription": "Contact phone for the condominium",
-          "location": "Geographic Location",
-          "locationDescription": "Select the country, state, and city where the condominium is located",
-          "address": "Address",
-          "addressPlaceholder": "Main Ave, Downtown",
-          "addressDescription": "Physical address of the condominium"
+          "noCompaniesFound": "No management companies found"
         },
         "validation": {
           "name": {
@@ -1045,6 +1145,7 @@
         "title": "Condominium Details",
         "backToList": "Back to list",
         "managedBy": "Managed by",
+        "managedByCount": "Managed by {count, plural, one {# company} other {# companies}}",
         "nav": {
           "overview": "Overview",
           "buildings": "Buildings",
@@ -1508,49 +1609,7 @@
           "editPermissions": "Edit permissions"
         },
         "permissions": {
-          "title": "Superadmin Permissions",
-          "subtitle": "Permissions assigned to the superadmin role",
-          "module": "Module",
-          "action": "Action",
-          "description": "Description",
-          "status": "Status",
-          "empty": "No permissions assigned",
-          "toggleSuccess": "Permission updated successfully",
-          "toggleError": "Error updating permission",
-          "cannotModifyOwn": "You cannot modify your own permissions. Another superadmin must do this.",
-          "modules": {
-            "platform_users": "Users",
-            "platform_condominiums": "Condominiums",
-            "platform_management_companies": "Companies",
-            "platform_subscriptions": "Subscriptions",
-            "platform_support_tickets": "Support Tickets",
-            "platform_superadmins": "Superadmins",
-            "platform_audit_logs": "Audit Logs",
-            "platform_metrics": "Metrics",
-            "platform_payments": "Payments",
-            "platform_settings": "Settings",
-            "platform_tickets": "Tickets",
-            "users": "Users",
-            "condominiums": "Condominiums",
-            "buildings": "Buildings",
-            "units": "Units",
-            "quotas": "Quotas",
-            "payments": "Payments",
-            "expenses": "Expenses",
-            "documents": "Documents",
-            "reports": "Reports",
-            "settings": "Settings"
-          },
-          "actions": {
-            "create": "Create",
-            "read": "View",
-            "read_own": "View own",
-            "update": "Update",
-            "delete": "Delete",
-            "approve": "Approve",
-            "manage": "Manage",
-            "export": "Export"
-          }
+          "cannotModifyOwn": "You cannot modify your own permissions"
         },
         "permissionsModal": {
           "title": "Permissions in {condominium}",
@@ -1604,9 +1663,6 @@
           "pendingChanges": "pending change(s)",
           "permissionsSaved": "Permissions updated successfully",
           "permissionsSaveError": "Error updating permissions"
-        },
-        "permissions": {
-          "cannotModifyOwn": "You cannot modify your own permissions"
         }
       }
     }
@@ -1858,6 +1914,87 @@
       "resolve": "Resolve",
       "close": "Close",
       "reopen": "Reopen"
+    }
+  },
+  "condominiums": {
+    "form": {
+      "title": "Create Condominium",
+      "steps": {
+        "basic": "Basic Information",
+        "location": "Location",
+        "contact": "Contact",
+        "confirmation": "Confirmation"
+      },
+      "fields": {
+        "name": {
+          "label": "Condominium Name",
+          "placeholder": "e.g.: Beautiful View Residential",
+          "error": "Name is required",
+          "maxLengthError": "Name must be 255 characters or less"
+        },
+        "code": {
+          "label": "Code",
+          "placeholder": "Auto-generated if left empty",
+          "maxLengthError": "Code must be 50 characters or less"
+        },
+        "status": {
+          "label": "Status",
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "address": {
+          "label": "Address",
+          "placeholder": "E.g.: Parish La Guairita, Libertador Municipality, Las Mercedes Urbanization, Main St. with 5th Ave., Blue Tower Building, Apt 3-B",
+          "error": "Address is required",
+          "maxLengthError": "Address must be 500 characters or less"
+        },
+        "location": {
+          "label": "Location",
+          "placeholder": "Select country, state and city",
+          "description": "Select the country, state/province and city where the condominium is located"
+        },
+        "phoneCountryCode": {
+          "label": "Code",
+          "placeholder": "+1",
+          "maxLengthError": "Country code must be 10 characters or less"
+        },
+        "phoneNumber": {
+          "label": "Phone",
+          "placeholder": "(809) 000-0000",
+          "maxLengthError": "Phone number must be 50 characters or less",
+          "required": "Phone number is required"
+        },
+        "email": {
+          "label": "Email",
+          "placeholder": "contact@condominium.com",
+          "error": "Must be a valid email",
+          "maxLengthError": "Email must be 255 characters or less",
+          "required": "Email is required"
+        }
+      }
+    },
+    "actions": {
+      "create": "Create Condominium",
+      "edit": "Edit",
+      "next": "Next",
+      "previous": "Previous",
+      "submit": "Create Condominium",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "limitReached": "Cannot create more condominiums. Your plan allows {max} condominiums and you currently have {current}.",
+      "createError": "Error creating condominium"
+    },
+    "success": {
+      "created": "Condominium created successfully"
+    },
+    "confirmation": {
+      "title": "Confirm condominium information",
+      "sections": {
+        "basic": "Basic Information",
+        "location": "Location",
+        "contact": "Contact"
+      }
     }
   }
 }
