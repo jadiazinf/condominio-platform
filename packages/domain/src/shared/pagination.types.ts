@@ -85,3 +85,29 @@ export const condominiumsQuerySchema = paginationQuerySchema.extend({
 })
 
 export type TCondominiumsQuerySchema = z.infer<typeof condominiumsQuerySchema>
+
+/**
+ * Query parameters for management company members list with filters
+ */
+export type TManagementCompanyMembersQuery = TPaginationQuery & {
+  search?: string
+  roleName?: string
+  isActive?: boolean
+}
+
+/**
+ * Zod schema for management company members query parameters
+ */
+export const managementCompanyMembersQuerySchema = paginationQuerySchema.extend({
+  search: z.string().optional(),
+  roleName: z.enum(['admin', 'accountant', 'support', 'viewer']).optional(),
+  isActive: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (val === undefined || val === '') return undefined
+      return val === 'true'
+    }),
+})
+
+export type TManagementCompanyMembersQuerySchema = z.infer<typeof managementCompanyMembersQuerySchema>

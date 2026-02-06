@@ -1,8 +1,9 @@
-import type { TCondominium, TCondominiumCreate, TCondominiumsQuery } from '@packages/domain'
+import type { TCondominium, TCondominiumCreate, TCondominiumUpdate, TCondominiumsQuery } from '@packages/domain'
 import type { TApiDataResponse, TApiPaginatedResponse, ApiResponse } from '../types'
 
 import { useApiQuery, useApiMutation } from './use-api-query'
 import { getHttpClient } from '../client'
+import { companyCondominiumsKeys } from './use-company-condominiums'
 
 export interface UseCondominiumsOptions {
   enabled?: boolean
@@ -213,6 +214,53 @@ export async function generateCondominiumCode(
       },
     }
   )
+
+  return response.data.data
+}
+
+// ============================================
+// UPDATE CONDOMINIUM
+// ============================================
+
+export interface UseUpdateCondominiumOptions {
+  token: string
+  onSuccess?: (data: TCondominium) => void
+  onError?: (error: Error) => void
+}
+
+/**
+ * Hook to update a condominium.
+ */
+export function useUpdateCondominium(options: UseUpdateCondominiumOptions) {
+  const { token, onSuccess, onError } = options
+
+  return useApiMutation<TApiDataResponse<TCondominium>, TCondominiumUpdate & { id: string }>({
+    path: (variables) => `/condominiums/${variables.id}`,
+    method: 'PATCH',
+    config: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    invalidateKeys: [condominiumsKeys.all, companyCondominiumsKeys.all],
+    onSuccess: (response: ApiResponse<TApiDataResponse<TCondominium>>) => {
+      onSuccess?.(response.data.data)
+    },
+    onError,
+  })
+}
+
+/**
+ * Function to update a condominium.
+ * Uses the global auth token from the HTTP client.
+ */
+export async function updateCondominium(
+  id: string,
+  data: TCondominiumUpdate
+): Promise<TCondominium> {
+  const client = getHttpClient()
+
+  const response = await client.patch<TApiDataResponse<TCondominium>>(`/condominiums/${id}`, data)
 
   return response.data.data
 }

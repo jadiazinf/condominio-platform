@@ -19,6 +19,8 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
 } from 'firebase/auth'
 
 import { getFirebaseAuth, getFirebaseErrorMessage } from '@/libs/firebase'
@@ -40,6 +42,7 @@ interface AuthContextType {
   signOut: () => Promise<void>
   signOutWithReason: (reason: 'inactivity' | 'manual') => Promise<void>
   deleteCurrentUser: () => Promise<void>
+  verifyPassword: (password: string) => Promise<boolean>
   clearError: () => void
 }
 
@@ -360,6 +363,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [user])
 
+  /**
+   * Verify the current user's password using Firebase reauthentication.
+   * Useful for sensitive operations that require password confirmation.
+   */
+  const verifyPassword = useCallback(async (password: string): Promise<boolean> => {
+    try {
+      setError(null)
+
+      if (!user || !user.email) {
+        throw new Error('No user available for password verification')
+      }
+
+      const credential = EmailAuthProvider.credential(user.email, password)
+      await reauthenticateWithCredential(user, credential)
+      return true
+    } catch (err) {
+      const errorMessage = getFirebaseErrorMessage(err)
+      setError(errorMessage)
+      return false
+    }
+  }, [user])
+
   const clearError = useCallback(() => {
     setError(null)
   }, [])
@@ -375,6 +400,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       signOut,
       signOutWithReason,
       deleteCurrentUser,
+      verifyPassword,
       clearError,
     }),
     [
@@ -387,6 +413,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       signOut,
       signOutWithReason,
       deleteCurrentUser,
+      verifyPassword,
       clearError,
     ]
   )

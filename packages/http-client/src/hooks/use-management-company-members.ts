@@ -6,7 +6,9 @@ import type {
   TManagementCompanyMember,
   TManagementCompanyMemberUpdate,
   TMemberPermissions,
+  TManagementCompanyMembersQuery,
 } from '@packages/domain'
+import type { TApiPaginatedResponse } from '../types/api-responses'
 
 // Request body type matching the API's AddMemberBodySchema
 export interface IAddMemberRequest {
@@ -25,6 +27,8 @@ export const managementCompanyMemberKeys = {
   all: ['management-company-members'] as const,
   lists: () => [...managementCompanyMemberKeys.all, 'list'] as const,
   list: (companyId: string) => [...managementCompanyMemberKeys.lists(), companyId] as const,
+  paginated: (companyId: string, query: TManagementCompanyMembersQuery) =>
+    [...managementCompanyMemberKeys.all, 'paginated', companyId, query] as const,
   details: () => [...managementCompanyMemberKeys.all, 'detail'] as const,
   detail: (id: string) => [...managementCompanyMemberKeys.details(), id] as const,
   primaryAdmin: (companyId: string) =>
@@ -36,6 +40,12 @@ export const managementCompanyMemberKeys = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface IUseManagementCompanyMembersOptions {
+  enabled?: boolean
+}
+
+export interface IUseManagementCompanyMembersPaginatedOptions {
+  companyId: string
+  query: TManagementCompanyMembersQuery
   enabled?: boolean
 }
 
@@ -73,6 +83,7 @@ export interface IUpdateMemberPermissionsData {
 
 /**
  * Hook to fetch all members of a management company
+ * @deprecated Use useManagementCompanyMembersPaginated instead
  */
 export function useManagementCompanyMembers(
   companyId: string,
@@ -83,6 +94,32 @@ export function useManagementCompanyMembers(
     queryKey: managementCompanyMemberKeys.list(companyId),
     config: {},
     enabled: options?.enabled !== false && !!companyId,
+  })
+}
+
+/**
+ * Hook to fetch members of a management company with pagination and filtering
+ */
+export function useManagementCompanyMembersPaginated(
+  options: IUseManagementCompanyMembersPaginatedOptions
+) {
+  const { companyId, query, enabled = true } = options
+
+  // Build query string
+  const params = new URLSearchParams()
+  if (query.page) params.set('page', String(query.page))
+  if (query.limit) params.set('limit', String(query.limit))
+  if (query.search) params.set('search', query.search)
+  if (query.roleName) params.set('roleName', query.roleName)
+  if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
+
+  const queryString = params.toString()
+  const path = `/management-companies/${companyId}/members${queryString ? `?${queryString}` : ''}`
+
+  return useApiQuery<TApiPaginatedResponse<TManagementCompanyMember>>({
+    path,
+    queryKey: managementCompanyMemberKeys.paginated(companyId, query),
+    enabled: enabled && !!companyId,
   })
 }
 
@@ -98,6 +135,30 @@ export async function getManagementCompanyMembers(
   )
 
   return response.data.data
+}
+
+/**
+ * Standalone function to fetch members with pagination
+ */
+export async function getManagementCompanyMembersPaginated(
+  companyId: string,
+  query: TManagementCompanyMembersQuery
+): Promise<TApiPaginatedResponse<TManagementCompanyMember>> {
+  const client = getHttpClient()
+
+  const params = new URLSearchParams()
+  if (query.page) params.set('page', String(query.page))
+  if (query.limit) params.set('limit', String(query.limit))
+  if (query.search) params.set('search', query.search)
+  if (query.roleName) params.set('roleName', query.roleName)
+  if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
+
+  const queryString = params.toString()
+  const path = `/management-companies/${companyId}/members${queryString ? `?${queryString}` : ''}`
+
+  const response = await client.get<TApiPaginatedResponse<TManagementCompanyMember>>(path)
+
+  return response.data
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

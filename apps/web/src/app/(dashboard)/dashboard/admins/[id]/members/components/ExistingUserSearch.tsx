@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Autocomplete, type IAutocompleteItem } from '@/ui/components/autocomplete'
 import { Button } from '@/ui/components/button'
 import { Avatar } from '@/ui/components/avatar-base'
-import { useAuth } from '@/contexts'
+import { useAuth, useTranslation } from '@/contexts'
 import { useUsersPaginated, useAddMember } from '@packages/http-client/hooks'
 import { useToast } from '@/ui/components/toast'
 
@@ -22,6 +22,7 @@ const ADMIN_PERMISSIONS = {
 }
 
 export function ExistingUserSearch({ companyId, onSuccess, onClose }: ExistingUserSearchProps) {
+  const { t } = useTranslation()
   const { user: firebaseUser } = useAuth()
   const toast = useToast()
   const [token, setToken] = useState('')
@@ -56,11 +57,11 @@ export function ExistingUserSearch({ companyId, onSuccess, onClose }: ExistingUs
 
   const { mutateAsync: addMember, isPending } = useAddMember(companyId, {
     onSuccess: () => {
-      toast.success('Miembro agregado exitosamente')
+      toast.success(t('superadmin.companies.detail.members.success.added'))
       onSuccess()
     },
     onError: (error) => {
-      toast.error(error.message || 'Error al agregar miembro')
+      toast.error(error.message || t('superadmin.companies.detail.members.error.add'))
     },
   })
 
@@ -69,31 +70,31 @@ export function ExistingUserSearch({ companyId, onSuccess, onClose }: ExistingUs
 
     await addMember({
       userId: selectedUserId,
-      roleName: 'admin',
+      role: 'admin',
       permissions: ADMIN_PERMISSIONS,
-      isPrimaryAdmin: false,
+      isPrimary: false,
     })
   }
 
   return (
     <div className="space-y-4 pt-4">
       <Autocomplete
-        label="Buscar usuario"
-        placeholder="Escribe el nombre o email (mínimo 2 caracteres)..."
+        label={t('superadmin.companies.detail.members.modal.searchLabel')}
+        placeholder={t('superadmin.companies.detail.members.modal.searchPlaceholder')}
         isLoading={isLoading}
         items={autocompleteItems}
         onInputChange={setSearch}
         onSelectionChange={(key) => setSelectedUserId(key as string | null)}
-        emptyContent={search.length < 2 ? 'Escribe al menos 2 caracteres para buscar' : 'No se encontraron usuarios'}
+        emptyContent={search.length < 2 ? t('superadmin.companies.detail.members.modal.searchMinChars') : t('superadmin.companies.detail.members.modal.noResults')}
       />
 
       <p className="text-sm text-default-500">
-        El usuario será agregado con rol <span className="font-medium text-primary">Administrador</span> y todos los permisos de admin.
+        {t('superadmin.companies.detail.members.modal.adminNote')}
       </p>
 
       <div className="flex justify-end gap-2">
         <Button variant="flat" onPress={onClose}>
-          Cancelar
+          {t('common.cancel')}
         </Button>
         <Button
           color="primary"
@@ -101,7 +102,7 @@ export function ExistingUserSearch({ companyId, onSuccess, onClose }: ExistingUs
           isLoading={isPending}
           onPress={handleSubmit}
         >
-          Agregar como Admin
+          {t('superadmin.companies.detail.members.modal.addAsAdmin')}
         </Button>
       </div>
     </div>

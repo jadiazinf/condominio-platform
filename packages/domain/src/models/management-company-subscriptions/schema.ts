@@ -3,12 +3,16 @@ import { baseModelSchema } from '../../shared/base-model.schema'
 import { managementCompanySchema } from '../management-companies/schema'
 import { currencySchema } from '../currencies/schema'
 import { userSchema } from '../users/schema'
+import { subscriptionRateSchema } from '../subscription-rates/schema'
 
 // Subscription status options
 export const ESubscriptionStatus = ['trial', 'active', 'inactive', 'cancelled', 'suspended'] as const
 
 // Billing cycle options
 export const EBillingCycle = ['monthly', 'quarterly', 'semi_annual', 'annual', 'custom'] as const
+
+// Discount type options
+export const EDiscountType = ['percentage', 'fixed'] as const
 
 export const managementCompanySubscriptionSchema = baseModelSchema.extend({
   managementCompanyId: z.uuid(),
@@ -19,8 +23,25 @@ export const managementCompanySubscriptionSchema = baseModelSchema.extend({
   basePrice: z.number().positive(),
   currencyId: z.uuid().nullable(),
 
+  // Pricing calculation data (stored for historical reference)
+  pricingCondominiumCount: z.number().int().nonnegative().nullable(),
+  pricingUnitCount: z.number().int().nonnegative().nullable(),
+  pricingCondominiumRate: z.number().nonnegative().nullable(),
+  pricingUnitRate: z.number().nonnegative().nullable(),
+  calculatedPrice: z.number().nonnegative().nullable(),
+
+  // Discount
+  discountType: z.enum(EDiscountType).nullable(),
+  discountValue: z.number().nonnegative().nullable(),
+  discountAmount: z.number().nonnegative().nullable(),
+  pricingNotes: z.string().nullable(),
+
+  // Reference to the rate used for this subscription
+  rateId: z.uuid().nullable(),
+
   // Límites personalizados (null = sin límite)
   maxCondominiums: z.number().int().positive().nullable(),
+  maxUnits: z.number().int().positive().nullable(),
   maxUsers: z.number().int().positive().nullable(),
   maxStorageGb: z.number().int().positive().nullable(),
 

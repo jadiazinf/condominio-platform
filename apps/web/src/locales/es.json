@@ -32,7 +32,9 @@
     "status": {
       "active": "Activo",
       "inactive": "Inactivo"
-    }
+    },
+    "goHome": "Ir al Inicio",
+    "login": "Iniciar Sesión"
   },
   "nav": {
     "home": "Inicio",
@@ -605,6 +607,262 @@
           "error": "Error al validar el correo electrónico"
         }
       },
+      "subscription": {
+        "title": "Suscripción",
+        "actions": "Acciones",
+        "createButton": "Crear Suscripción",
+        "cancelButton": "Cancelar Suscripción",
+        "renewButton": "Renovar Suscripción",
+        "viewHistory": "Ver Historial",
+        "noActiveSubscription": "Sin Suscripción Activa",
+        "noActiveSubscriptionDescription": "Esta administradora no tiene una suscripción activa. Crea una nueva suscripción para habilitar el acceso a la plataforma.",
+        "noHistory": "No hay historial de suscripciones",
+        "cancelSuccess": "Suscripción cancelada exitosamente",
+        "cancelError": "Error al cancelar la suscripción",
+        "createSuccess": "Suscripción creada exitosamente",
+        "createError": "Error al crear la suscripción",
+        "defaultName": "Plan Personalizado",
+        "form": {
+          "createTitle": "Crear Suscripción",
+          "steps": {
+            "basic": "Información Básica",
+            "limits": "Límites y Características",
+            "pricing": "Precio",
+            "confirmation": "Confirmación"
+          },
+          "sections": {
+            "pricing": "Calculadora de Precio",
+            "pricingDescription": "El precio sugerido se calcula automáticamente basado en los condominios y unidades de la administradora",
+            "basicInfo": "Información Básica",
+            "basicInfoDescription": "Configura el nombre y ciclo de facturación de la suscripción",
+            "dates": "Fechas",
+            "datesDescription": "Define las fechas de inicio, finalización y renovación",
+            "limits": "Límites",
+            "limitsDescription": "Establece los límites de uso para esta suscripción (dejar vacío = ilimitado)",
+            "features": "Características Incluidas",
+            "featuresDescription": "Selecciona las características que incluirá esta suscripción",
+            "notes": "Notas",
+            "notesDescription": "Información adicional sobre la suscripción",
+            "finalPrice": "Precio Final",
+            "finalPriceDescription": "Define el precio de la suscripción. Puedes usar el valor sugerido o establecer un monto diferente",
+            "pricingNotes": "Notas del Precio",
+            "pricingNotesDescription": "Información adicional sobre el precio o descuentos aplicados"
+          },
+          "pricing": {
+            "condominiums": "Condominios",
+            "condominiumsDescription": "Número de condominios activos registrados en la administradora",
+            "units": "Unidades totales",
+            "unitsDescription": "Suma de todas las unidades (apartamentos, casas, locales) de todos los condominios",
+            "breakdown": "Desglose del precio",
+            "subtotal": "Subtotal",
+            "discount": "Descuento",
+            "suggestedPrice": "Precio sugerido",
+            "error": "No se pudo calcular el precio. Intenta de nuevo.",
+            "noRateConfigured": {
+              "title": "No hay tarifas de suscripción configuradas",
+              "description": "Para crear suscripciones, primero debe existir al menos una tarifa activa en el sistema.",
+              "instruction": "Ve a Configuración → Tarifas de Suscripción para crear una tarifa antes de continuar."
+            },
+            "noData": "Sin datos de precio disponibles",
+            "formula": "Fórmula de cálculo",
+            "formulaDescription": "El precio se calcula sumando el costo por condominios más el costo por unidades:",
+            "formulaDetail": "(Condominios × Tarifa) + (Unidades × Tarifa) - Descuento = Precio Final",
+            "formulaTooltip": {
+              "title": "Explicación de la fórmula",
+              "condominiums": "Condominios",
+              "condominiumsDesc": "Cantidad de condominios activos asignados a esta administradora",
+              "condominiumRate": "TarifaCondo",
+              "condominiumRateDesc": "Monto cobrado por cada condominio administrado (tarifa fija por condominio)",
+              "units": "Unidades",
+              "unitsDesc": "Total de unidades (apartamentos, casas, locales) de todos los edificios de todos los condominios",
+              "unitRate": "TarifaUnidad",
+              "unitRateDesc": "Monto cobrado por cada unidad registrada",
+              "discount": "Descuento",
+              "discountDesc": "Reducción aplicada al subtotal (porcentaje o monto fijo)"
+            },
+            "rateApplied": "Tarifa aplicada",
+            "rateVersion": "Versión",
+            "condominiumRate": "Tarifa por condominio",
+            "unitRate": "Tarifa por unidad",
+            "rateDescription": "Las tarifas se obtienen del sistema de tarifas activo",
+            "resetNoRates": "Primero debes configurar las tarifas de suscripción antes de poder calcular el precio"
+          },
+          "discount": {
+            "none": "Sin descuento",
+            "percentage": "Porcentaje",
+            "fixed": "Monto fijo",
+            "type": "Tipo de descuento",
+            "value": "Valor del descuento",
+            "percentagePlaceholder": "Ej: 10",
+            "fixedPlaceholder": "Ej: 50"
+          },
+          "fields": {
+            "subscriptionName": "Nombre de la Suscripción",
+            "subscriptionNamePlaceholder": "Ej: Plan Premium",
+            "subscriptionNameDescription": "Nombre descriptivo para identificar esta suscripción",
+            "billingCycle": "Ciclo de Facturación",
+            "billingCyclePlaceholder": "Selecciona un ciclo",
+            "billingCycleDescription": "Frecuencia con la que se facturará la suscripción",
+            "basePrice": "Precio Base",
+            "basePricePlaceholder": "0.00",
+            "basePriceDescription": "Monto a cobrar por cada ciclo de facturación",
+            "basePriceModified": "Has modificado el precio sugerido",
+            "resetToCalculated": "Restablecer precio calculado",
+            "pricingNotesPlaceholder": "Ej: Descuento especial por ser cliente frecuente, promoción de lanzamiento...",
+            "status": "Estado Inicial",
+            "statusPlaceholder": "Selecciona un estado",
+            "statusDescription": "Estado con el que se creará la suscripción",
+            "startDate": "Fecha de Inicio",
+            "startDateDescription": "Fecha en que comienza la suscripción",
+            "endDate": "Fecha de Finalización",
+            "endDateDescription": "Fecha en que termina la suscripción",
+            "endDateCalculatedDescription": "La fecha de finalización se calcula automáticamente según el ciclo de facturación seleccionado",
+            "endDateAutoCalculated": "Calculada automáticamente según el ciclo de facturación",
+            "trialEndsAt": "Fin del Período de Prueba",
+            "trialEndsAtDescription": "Fecha en que termina el período de prueba",
+            "autoRenew": "Renovación Automática",
+            "autoRenewDescription": "La suscripción se renovará automáticamente al finalizar el período",
+            "maxCondominiums": "Máx. Condominios",
+            "maxCondominiumsPlaceholder": "Ilimitado",
+            "maxCondominiumsDescription": "Número máximo de condominios permitidos",
+            "maxUnits": "Máx. Unidades",
+            "maxUnitsPlaceholder": "Ilimitado",
+            "maxUnitsDescription": "Número máximo de unidades (apartamentos, casas, locales) en todos los condominios",
+            "maxUsers": "Máx. Usuarios",
+            "maxUsersPlaceholder": "Ilimitado",
+            "maxUsersDescription": "Número máximo de usuarios permitidos",
+            "maxStorageGb": "Máx. Almacenamiento (GB)",
+            "maxStorageGbPlaceholder": "Ilimitado",
+            "maxStorageGbDescription": "Espacio de almacenamiento máximo en gigabytes",
+            "notes": "Notas",
+            "notesPlaceholder": "Notas adicionales sobre la suscripción...",
+            "notesDescription": "Información adicional o comentarios sobre esta suscripción",
+            "newFeature": "Nueva característica...",
+            "addFeature": "Agregar",
+            "selectAll": "Seleccionar todas"
+          },
+          "billingCycles": {
+            "monthly": "Mensual",
+            "quarterly": "Trimestral",
+            "semi_annual": "Semestral",
+            "annual": "Anual",
+            "custom": "Personalizado"
+          },
+          "statuses": {
+            "trial": "Prueba",
+            "active": "Activa",
+            "inactive": "Inactiva",
+            "cancelled": "Cancelada",
+            "suspended": "Suspendida"
+          },
+          "features": {
+            "reportes_avanzados": "Reportes Avanzados",
+            "notificaciones_push": "Notificaciones Push",
+            "soporte_prioritario": "Soporte Prioritario",
+            "api_access": "Acceso a API",
+            "backup_automatico": "Backup Automático",
+            "multi_moneda": "Multi-Moneda",
+            "integracion_bancaria": "Integración Bancaria",
+            "facturacion_electronica": "Facturación Electrónica"
+          },
+          "confirmation": {
+            "title": "Confirmar Suscripción",
+            "description": "Revisa los datos antes de crear la suscripción",
+            "subscriptionInfo": "Datos de la Suscripción",
+            "limitsInfo": "Límites",
+            "featuresInfo": "Características",
+            "unlimited": "Ilimitado",
+            "enabled": "habilitadas"
+          },
+          "validation": {
+            "subscriptionName": {
+              "required": "El nombre de la suscripción es requerido."
+            },
+            "billingCycle": {
+              "required": "El ciclo de facturación es requerido."
+            },
+            "basePrice": {
+              "required": "El precio base es requerido.",
+              "min": "El precio base debe ser mayor a 0."
+            },
+            "status": {
+              "required": "El estado es requerido."
+            },
+            "startDate": {
+              "required": "La fecha de inicio es requerida."
+            },
+            "trialEndsAt": {
+              "required": "La fecha de fin de prueba es requerida cuando el estado es Prueba."
+            },
+            "maxCondominiums": {
+              "required": "El máximo de condominios es requerido.",
+              "min": "El máximo de condominios debe ser mayor a 0."
+            },
+            "maxUnits": {
+              "required": "El máximo de unidades es requerido.",
+              "min": "El máximo de unidades debe ser mayor a 0."
+            },
+            "maxUsers": {
+              "required": "El máximo de usuarios es requerido.",
+              "min": "El máximo de usuarios debe ser mayor a 0."
+            },
+            "maxStorageGb": {
+              "required": "El máximo de almacenamiento es requerido.",
+              "min": "El máximo de almacenamiento debe ser mayor a 0."
+            },
+            "discount": {
+              "maxPercentage": "El descuento en porcentaje no puede ser mayor a 100%.",
+              "maxFixed": "El descuento fijo no puede ser mayor al precio calculado."
+            },
+            "integer": "Este campo solo acepta números enteros positivos."
+          },
+          "submit": "Crear Suscripción",
+          "submitting": "Creando...",
+          "update": "Guardar Cambios",
+          "updating": "Guardando..."
+        },
+        "cancel": {
+          "title": "Cancelar Suscripción",
+          "warning": "Estás a punto de cancelar la suscripción {name}. Esta acción desactivará la renovación automática y marcará la suscripción como cancelada.",
+          "emailNotice": "Se enviará una notificación por correo electrónico al superusuario principal, al correo de la administradora y a los administradores principales.",
+          "reasonLabel": "Motivo de cancelación",
+          "reasonPlaceholder": "Describe el motivo de la cancelación (opcional)...",
+          "passwordTitle": "Verificación de Seguridad",
+          "passwordDescription": "Para confirmar esta acción sensible, ingresa tu contraseña actual.",
+          "passwordLabel": "Contraseña",
+          "passwordPlaceholder": "Ingresa tu contraseña",
+          "passwordRequired": "La contraseña es requerida para continuar",
+          "passwordInvalid": "La contraseña es incorrecta",
+          "passwordError": "Error al verificar la contraseña",
+          "verifying": "Verificando...",
+          "confirmButton": "Confirmar Cancelación",
+          "backButton": "Volver"
+        },
+        "replace": {
+          "title": "Reemplazar Suscripción Activa",
+          "warning": "Esta empresa administradora ya tiene una suscripción activa. Si continúas, la suscripción actual será cancelada y reemplazada por la nueva.",
+          "currentSubscription": "Suscripción Actual",
+          "emailNotice": "Se enviarán notificaciones por correo electrónico sobre la cancelación de la suscripción actual y la creación de la nueva suscripción.",
+          "passwordDescription": "Para confirmar el reemplazo de la suscripción, ingresa tu contraseña actual.",
+          "confirmButton": "Confirmar Reemplazo",
+          "autoReason": "Suscripción reemplazada por una nueva"
+        },
+        "history": {
+          "title": "Historial de Suscripciones",
+          "startDate": "Inicio",
+          "endDate": "Fin",
+          "cancelledAt": "Cancelada",
+          "nextBilling": "Próx. facturación",
+          "reason": "Motivo",
+          "searchPlaceholder": "Buscar por nombre...",
+          "fromDate": "Desde",
+          "toDate": "Hasta",
+          "clearFilters": "Limpiar filtros",
+          "resultCountSingular": "1 suscripción encontrada",
+          "resultCountPlural": "{count} suscripciones encontradas",
+          "noResults": "No se encontraron suscripciones con los filtros aplicados"
+        }
+      },
       "detail": {
         "title": "Detalle de Administradora",
         "tabs": {
@@ -637,7 +895,8 @@
             "title": "Agregar Miembro",
             "existingUser": "Usuario Existente",
             "newUser": "Crear Usuario",
-            "searchPlaceholder": "Buscar por nombre o email...",
+            "searchLabel": "Buscar usuario",
+            "searchPlaceholder": "Escribe el nombre o email (mínimo 2 caracteres)...",
             "searchMinChars": "Escribe al menos 2 caracteres para buscar",
             "noResults": "No se encontraron usuarios",
             "addAsAdmin": "Agregar como Admin",
@@ -723,7 +982,9 @@
       "actions": {
         "view": "Ver detalles",
         "activate": "Activar",
-        "deactivate": "Desactivar"
+        "deactivate": "Desactivar",
+        "statusUpdated": "Estado del condominio actualizado",
+        "statusUpdateError": "Error al actualizar el estado del condominio"
       },
       "noCompany": "Sin administradora",
       "noContact": "Sin contacto",
@@ -1180,7 +1441,31 @@
         "submitting": "Enviando...",
         "success": "Invitación enviada exitosamente",
         "error": "Error al enviar la invitación",
-        "emailNotSent": "El usuario fue creado pero el correo de invitación no pudo ser enviado"
+        "emailNotSent": "El usuario fue creado pero el correo de invitación no pudo ser enviado",
+        "validation": {
+          "email": {
+            "required": "El correo electrónico es requerido.",
+            "invalid": "El correo electrónico no es válido."
+          },
+          "firstName": {
+            "required": "El nombre es requerido."
+          },
+          "lastName": {
+            "required": "El apellido es requerido."
+          },
+          "phoneCountryCode": {
+            "required": "El código de país es requerido."
+          },
+          "phoneNumber": {
+            "required": "El número de teléfono es requerido."
+          },
+          "idDocumentType": {
+            "required": "El tipo de documento es requerido."
+          },
+          "idDocumentNumber": {
+            "required": "El número de documento es requerido."
+          }
+        }
       },
       "table": {
         "user": "Usuario",
@@ -1607,6 +1892,32 @@
       "resolve": "Resolver",
       "close": "Cerrar",
       "reopen": "Reabrir"
+    }
+  },
+  "subscription": {
+    "accept": {
+      "validating": "Validando enlace de aceptación...",
+      "title": "Aceptar Suscripción",
+      "description": "Al aceptar, confirmas que has leído y estás de acuerdo con los términos y condiciones de la suscripción.",
+      "loginRequired": "Debes iniciar sesión para aceptar esta suscripción.",
+      "loggedInAs": "Conectado como",
+      "termsCheckbox": "He leído y acepto los términos y condiciones de la suscripción",
+      "acceptButton": "Aceptar y Activar Suscripción",
+      "loginToAccept": "Iniciar Sesión para Aceptar",
+      "success": "Suscripción aceptada y activada exitosamente",
+      "invalidTitle": "Enlace Inválido",
+      "expiredTitle": "Enlace Expirado",
+      "expiredDescription": "El enlace de aceptación ha expirado.",
+      "expiredHelp": "Contacta al administrador para solicitar un nuevo enlace de aceptación.",
+      "errors": {
+        "noToken": "No se proporcionó un token de aceptación.",
+        "invalid": "El enlace de aceptación no es válido o ya ha sido utilizado.",
+        "expired": "El enlace de aceptación ha expirado.",
+        "failed": "Error al aceptar la suscripción. Intenta de nuevo.",
+        "mustAcceptTerms": "Debes aceptar los términos y condiciones para continuar.",
+        "mustBeLoggedIn": "Debes iniciar sesión para aceptar esta suscripción.",
+        "unknown": "Ocurrió un error inesperado. Intenta de nuevo."
+      }
     }
   }
 }

@@ -8,14 +8,21 @@ import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/comp
 import { Spinner } from '@/ui/components/spinner'
 import { Home, Search, MoreVertical, Eye, Power, X, MapPin, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import type { TCondominium } from '@packages/domain'
+import type { TCondominium, TCondominiumsQuery } from '@packages/domain'
 
 import { useTranslation } from '@/contexts'
+import { useToast } from '@/ui/components/toast'
 import { Typography } from '@/ui/components/typography'
 import { Pagination } from '@/ui/components/pagination'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
-import { useCompanyCondominiums, useQueryClient } from '@packages/http-client'
+import {
+  useCompanyCondominiumsPaginated,
+  updateCondominium,
+  HttpError,
+  useQueryClient,
+  companyCondominiumsKeys,
+} from '@packages/http-client'
 
 type TStatusFilter = 'all' | 'active' | 'inactive'
 
@@ -28,13 +35,25 @@ interface CompanyCondominiumsTableProps {
 export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTableProps) {
   const { t } = useTranslation()
   const router = useRouter()
+  const toast = useToast()
   const queryClient = useQueryClient()
-
   // Filter state
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<TStatusFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<TStatusFilter>('active')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
+  const [isToggling, setIsToggling] = useState<string | null>(null)
+
+  // Build query for API
+  const query: TCondominiumsQuery = useMemo(
+    () => ({
+      page,
+      limit,
+      search: search || undefined,
+      isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
+    }),
+    [page, limit, search, statusFilter]
+  )
 
   // Status filter items
   const statusFilterItems: ISelectItem[] = useMemo(
@@ -59,46 +78,20 @@ export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTable
     [t]
   )
 
-  // Fetch data from API
-  const { data, isLoading, error, refetch } = useCompanyCondominiums(companyId, {
+  // Fetch data from API with pagination
+  const { data, isLoading, error, refetch } = useCompanyCondominiumsPaginated({
+    companyId,
+    query,
     enabled: !!companyId,
   })
 
-  const allCondominiums = data?.data ?? []
-
-  // Client-side filtering
-  const filteredCondominiums = useMemo(() => {
-    return allCondominiums.filter(condo => {
-      // Search filter
-      const matchesSearch =
-        !search ||
-        condo.name.toLowerCase().includes(search.toLowerCase()) ||
-        condo.code?.toLowerCase().includes(search.toLowerCase()) ||
-        condo.address?.toLowerCase().includes(search.toLowerCase()) ||
-        condo.email?.toLowerCase().includes(search.toLowerCase())
-
-      // Status filter
-      const matchesStatus =
-        statusFilter === 'all' ||
-        (statusFilter === 'active' && condo.isActive) ||
-        (statusFilter === 'inactive' && !condo.isActive)
-
-      return matchesSearch && matchesStatus
-    })
-  }, [allCondominiums, search, statusFilter])
-
-  // Client-side pagination
-  const paginatedCondominiums = useMemo(() => {
-    const startIndex = (page - 1) * limit
-    return filteredCondominiums.slice(startIndex, startIndex + limit)
-  }, [filteredCondominiums, page, limit])
-
-  const totalPages = Math.ceil(filteredCondominiums.length / limit)
+  const condominiums = data?.data ?? []
+  const pagination = data?.pagination ?? { page: 1, limit: 10, total: 0, totalPages: 0 }
 
   // Handlers
   const handleSearchChange = useCallback((value: string) => {
     setSearch(value)
-    setPage(1)
+    setPage(1) // Reset to first page on search
   }, [])
 
   const handleStatusChange = useCallback((key: string | null) => {
@@ -114,9 +107,38 @@ export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTable
     setPage(1)
   }, [])
 
-  const handleViewDetails = useCallback((id: string) => {
-    // TODO: Navigate to condominium detail page when implemented
-  }, [])
+  const handleViewDetails = useCallback(
+    (id: string) => {
+      router.push(`/dashboard/condominiums/${id}`)
+    },
+    [router]
+  )
+
+  const handleToggleStatus = useCallback(
+    async (condominium: TCondominium) => {
+      setIsToggling(condominium.id)
+      try {
+        await updateCondominium(condominium.id, {
+          isActive: !condominium.isActive,
+        })
+        toast.success(
+          condominium.isActive
+            ? t('superadmin.condominiums.actions.deactivateSuccess')
+            : t('superadmin.condominiums.actions.activateSuccess')
+        )
+        queryClient.invalidateQueries({ queryKey: companyCondominiumsKeys.all })
+      } catch (err) {
+        if (HttpError.isHttpError(err)) {
+          toast.error(err.message)
+        } else {
+          toast.error(t('superadmin.condominiums.actions.statusUpdateError'))
+        }
+      } finally {
+        setIsToggling(null)
+      }
+    },
+    [t, toast, queryClient]
+  )
 
   const renderCell = useCallback(
     (condominium: TCondominium, columnKey: string) => {
@@ -185,7 +207,9 @@ export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTable
                   <DropdownItem
                     key="toggle"
                     color={condominium.isActive ? 'warning' : 'success'}
-                    startContent={<Power size={16} />}
+                    isDisabled={isToggling === condominium.id}
+                    startContent={isToggling === condominium.id ? <Spinner size="sm" /> : <Power size={16} />}
+                    onPress={() => handleToggleStatus(condominium)}
                   >
                     {condominium.isActive
                       ? t('superadmin.condominiums.actions.deactivate')
@@ -199,7 +223,7 @@ export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTable
           return null
       }
     },
-    [t, handleViewDetails]
+    [t, handleViewDetails, handleToggleStatus, isToggling]
   )
 
   // Show error state
@@ -252,18 +276,18 @@ export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTable
         <div className="flex items-center justify-center py-16">
           <Spinner size="lg" />
         </div>
-      ) : filteredCondominiums.length === 0 ? (
+      ) : condominiums.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16">
           <Home className="mb-4 text-default-300" size={48} />
           <Typography color="muted" variant="body1">
-            {allCondominiums.length === 0
-              ? t('superadmin.condominiums.empty')
-              : t('superadmin.condominiums.noResults')}
+            {search || statusFilter !== 'all'
+              ? t('superadmin.condominiums.noResults')
+              : t('superadmin.condominiums.empty')}
           </Typography>
           <Typography className="mt-1" color="muted" variant="body2">
-            {allCondominiums.length === 0
-              ? t('superadmin.condominiums.emptyDescription')
-              : t('superadmin.condominiums.noResultsDescription')}
+            {search || statusFilter !== 'all'
+              ? t('superadmin.condominiums.noResultsDescription')
+              : t('superadmin.condominiums.emptyDescription')}
           </Typography>
         </div>
       ) : (
@@ -271,7 +295,7 @@ export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTable
           <Table<TCondominiumRow>
             aria-label={t('superadmin.condominiums.title')}
             columns={tableColumns}
-            rows={paginatedCondominiums}
+            rows={condominiums}
             renderCell={renderCell}
             onRowClick={condominium => handleViewDetails(condominium.id)}
             classNames={{
@@ -280,21 +304,19 @@ export function CompanyCondominiumsTable({ companyId }: CompanyCondominiumsTable
           />
 
           {/* Pagination */}
-          {filteredCondominiums.length > limit && (
-            <Pagination
-              className="mt-4"
-              limit={limit}
-              limitOptions={[10, 20, 50]}
-              page={page}
-              total={filteredCondominiums.length}
-              totalPages={totalPages}
-              onLimitChange={newLimit => {
-                setLimit(newLimit)
-                setPage(1)
-              }}
-              onPageChange={setPage}
-            />
-          )}
+          <Pagination
+            className="mt-4"
+            limit={pagination.limit}
+            limitOptions={[10, 20, 50]}
+            page={pagination.page}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            onLimitChange={newLimit => {
+              setLimit(newLimit)
+              setPage(1)
+            }}
+            onPageChange={setPage}
+          />
         </>
       )}
     </div>

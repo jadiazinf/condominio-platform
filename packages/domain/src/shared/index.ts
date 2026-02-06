@@ -4,6 +4,7 @@ export {
   paginationQuerySchema,
   managementCompaniesQuerySchema,
   condominiumsQuerySchema,
+  managementCompanyMembersQuerySchema,
   type TPaginationMeta,
   type TPaginatedResponse,
   type TPaginationQuery,
@@ -12,4 +13,6 @@ export {
   type TManagementCompaniesQuerySchema,
   type TCondominiumsQuery,
   type TCondominiumsQuerySchema,
+  type TManagementCompanyMembersQuery,
+  type TManagementCompanyMembersQuerySchema,
 } from './pagination.types'

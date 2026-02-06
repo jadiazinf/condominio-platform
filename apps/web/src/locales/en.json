@@ -594,14 +594,272 @@
           "error": "Error validating email address"
         }
       },
+      "subscription": {
+        "title": "Subscription",
+        "actions": "Actions",
+        "createButton": "Create Subscription",
+        "cancelButton": "Cancel Subscription",
+        "renewButton": "Renew Subscription",
+        "viewHistory": "View History",
+        "noActiveSubscription": "No Active Subscription",
+        "noActiveSubscriptionDescription": "This management company does not have an active subscription. Create a new subscription to enable platform access.",
+        "noHistory": "No subscription history",
+        "cancelSuccess": "Subscription cancelled successfully",
+        "cancelError": "Error cancelling subscription",
+        "createSuccess": "Subscription created successfully",
+        "createError": "Error creating subscription",
+        "defaultName": "Custom Plan",
+        "form": {
+          "createTitle": "Create Subscription",
+          "steps": {
+            "basic": "Basic Information",
+            "limits": "Limits & Features",
+            "pricing": "Pricing",
+            "confirmation": "Confirmation"
+          },
+          "sections": {
+            "pricing": "Price Calculator",
+            "pricingDescription": "The suggested price is automatically calculated based on the condominiums and units of the management company",
+            "basicInfo": "Basic Information",
+            "basicInfoDescription": "Configure the subscription name and billing cycle",
+            "dates": "Dates",
+            "datesDescription": "Define start, end, and renewal dates",
+            "limits": "Limits",
+            "limitsDescription": "Set usage limits for this subscription (leave empty = unlimited)",
+            "features": "Included Features",
+            "featuresDescription": "Select the features included in this subscription",
+            "notes": "Notes",
+            "notesDescription": "Additional information about the subscription",
+            "finalPrice": "Final Price",
+            "finalPriceDescription": "Set the subscription price. You can use the suggested value or set a different amount",
+            "pricingNotes": "Pricing Notes",
+            "pricingNotesDescription": "Additional information about the price or discounts applied"
+          },
+          "pricing": {
+            "condominiums": "Condominiums",
+            "condominiumsDescription": "Number of active condominiums registered in the management company",
+            "units": "Total units",
+            "unitsDescription": "Sum of all units (apartments, houses, stores) from all condominiums",
+            "breakdown": "Price breakdown",
+            "subtotal": "Subtotal",
+            "discount": "Discount",
+            "suggestedPrice": "Suggested price",
+            "error": "Could not calculate price. Please try again.",
+            "noRateConfigured": {
+              "title": "No subscription rates configured",
+              "description": "To create subscriptions, at least one active rate must exist in the system.",
+              "instruction": "Go to Settings → Subscription Rates to create a rate before continuing."
+            },
+            "noData": "No pricing data available",
+            "formula": "Calculation formula",
+            "formulaDescription": "The price is calculated by adding the cost per condominiums plus the cost per units:",
+            "formulaDetail": "(Condominiums × Rate) + (Units × Rate) - Discount = Final Price",
+            "formulaTooltip": {
+              "title": "Formula explanation",
+              "condominiums": "Condominiums",
+              "condominiumsDesc": "Number of active condominiums assigned to this management company",
+              "condominiumRate": "CondoRate",
+              "condominiumRateDesc": "Amount charged per managed condominium (fixed rate per condominium)",
+              "units": "Units",
+              "unitsDesc": "Total units (apartments, houses, stores) from all buildings of all condominiums",
+              "unitRate": "UnitRate",
+              "unitRateDesc": "Amount charged per registered unit",
+              "discount": "Discount",
+              "discountDesc": "Reduction applied to the subtotal (percentage or fixed amount)"
+            },
+            "rateApplied": "Applied rate",
+            "rateVersion": "Version",
+            "condominiumRate": "Rate per condominium",
+            "unitRate": "Rate per unit",
+            "rateDescription": "Rates are obtained from the active rate system",
+            "resetNoRates": "You must first configure subscription rates before calculating the price"
+          },
+          "discount": {
+            "none": "No discount",
+            "percentage": "Percentage",
+            "fixed": "Fixed amount",
+            "type": "Discount type",
+            "value": "Discount value",
+            "percentagePlaceholder": "e.g. 10",
+            "fixedPlaceholder": "e.g. 50"
+          },
+          "fields": {
+            "subscriptionName": "Subscription Name",
+            "subscriptionNamePlaceholder": "e.g. Premium Plan",
+            "subscriptionNameDescription": "Descriptive name to identify this subscription",
+            "billingCycle": "Billing Cycle",
+            "billingCyclePlaceholder": "Select a cycle",
+            "billingCycleDescription": "Frequency at which the subscription will be billed",
+            "basePrice": "Base Price",
+            "basePricePlaceholder": "0.00",
+            "basePriceDescription": "Amount to charge per billing cycle",
+            "basePriceModified": "You have modified the suggested price",
+            "resetToCalculated": "Reset to calculated price",
+            "pricingNotesPlaceholder": "e.g. Special discount for frequent customer, launch promotion...",
+            "status": "Initial Status",
+            "statusPlaceholder": "Select a status",
+            "statusDescription": "Status with which the subscription will be created",
+            "startDate": "Start Date",
+            "startDateDescription": "Date when the subscription begins",
+            "endDate": "End Date",
+            "endDateDescription": "Date when the subscription ends",
+            "endDateCalculatedDescription": "The end date is automatically calculated based on the selected billing cycle",
+            "endDateAutoCalculated": "Automatically calculated based on billing cycle",
+            "trialEndsAt": "Trial Period End",
+            "trialEndsAtDescription": "Date when the trial period ends",
+            "autoRenew": "Auto Renewal",
+            "autoRenewDescription": "The subscription will automatically renew at the end of the period",
+            "maxCondominiums": "Max Condominiums",
+            "maxCondominiumsPlaceholder": "Unlimited",
+            "maxCondominiumsDescription": "Maximum number of condominiums allowed",
+            "maxUnits": "Max Units",
+            "maxUnitsPlaceholder": "Unlimited",
+            "maxUnitsDescription": "Maximum number of units (apartments, houses, premises) across all condominiums",
+            "maxUsers": "Max Users",
+            "maxUsersPlaceholder": "Unlimited",
+            "maxUsersDescription": "Maximum number of users allowed",
+            "maxStorageGb": "Max Storage (GB)",
+            "maxStorageGbPlaceholder": "Unlimited",
+            "maxStorageGbDescription": "Maximum storage space in gigabytes",
+            "notes": "Notes",
+            "notesPlaceholder": "Additional notes about the subscription...",
+            "notesDescription": "Additional information or comments about this subscription",
+            "newFeature": "New feature...",
+            "addFeature": "Add",
+            "selectAll": "Select all"
+          },
+          "billingCycles": {
+            "monthly": "Monthly",
+            "quarterly": "Quarterly",
+            "semi_annual": "Semi-annual",
+            "annual": "Annual",
+            "custom": "Custom"
+          },
+          "statuses": {
+            "trial": "Trial",
+            "active": "Active",
+            "inactive": "Inactive",
+            "cancelled": "Cancelled",
+            "suspended": "Suspended"
+          },
+          "features": {
+            "reportes_avanzados": "Advanced Reports",
+            "notificaciones_push": "Push Notifications",
+            "soporte_prioritario": "Priority Support",
+            "api_access": "API Access",
+            "backup_automatico": "Automatic Backup",
+            "multi_moneda": "Multi-Currency",
+            "integracion_bancaria": "Bank Integration",
+            "facturacion_electronica": "Electronic Invoicing"
+          },
+          "confirmation": {
+            "title": "Confirm Subscription",
+            "description": "Review the data before creating the subscription",
+            "subscriptionInfo": "Subscription Data",
+            "limitsInfo": "Limits",
+            "featuresInfo": "Features",
+            "unlimited": "Unlimited",
+            "enabled": "enabled"
+          },
+          "validation": {
+            "subscriptionName": {
+              "required": "Subscription name is required."
+            },
+            "billingCycle": {
+              "required": "Billing cycle is required."
+            },
+            "basePrice": {
+              "required": "Base price is required.",
+              "min": "Base price must be greater than 0."
+            },
+            "status": {
+              "required": "Status is required."
+            },
+            "startDate": {
+              "required": "Start date is required."
+            },
+            "trialEndsAt": {
+              "required": "Trial end date is required when status is Trial."
+            },
+            "maxCondominiums": {
+              "required": "Maximum condominiums is required.",
+              "min": "Maximum condominiums must be greater than 0."
+            },
+            "maxUnits": {
+              "required": "Maximum units is required.",
+              "min": "Maximum units must be greater than 0."
+            },
+            "maxUsers": {
+              "required": "Maximum users is required.",
+              "min": "Maximum users must be greater than 0."
+            },
+            "maxStorageGb": {
+              "required": "Maximum storage is required.",
+              "min": "Maximum storage must be greater than 0."
+            },
+            "discount": {
+              "maxPercentage": "Percentage discount cannot be greater than 100%.",
+              "maxFixed": "Fixed discount cannot be greater than the calculated price."
+            },
+            "integer": "This field only accepts positive integers."
+          },
+          "submit": "Create Subscription",
+          "submitting": "Creating...",
+          "update": "Save Changes",
+          "updating": "Saving..."
+        },
+        "cancel": {
+          "title": "Cancel Subscription",
+          "warning": "You are about to cancel the subscription {name}. This action will disable automatic renewal and mark the subscription as cancelled.",
+          "emailNotice": "An email notification will be sent to the main superuser, the company email, and the primary administrators.",
+          "reasonLabel": "Cancellation reason",
+          "reasonPlaceholder": "Describe the reason for cancellation (optional)...",
+          "passwordTitle": "Security Verification",
+          "passwordDescription": "To confirm this sensitive action, enter your current password.",
+          "passwordLabel": "Password",
+          "passwordPlaceholder": "Enter your password",
+          "passwordRequired": "Password is required to continue",
+          "passwordInvalid": "Incorrect password",
+          "passwordError": "Error verifying password",
+          "verifying": "Verifying...",
+          "confirmButton": "Confirm Cancellation",
+          "backButton": "Go Back"
+        },
+        "replace": {
+          "title": "Replace Active Subscription",
+          "warning": "This management company already has an active subscription. If you continue, the current subscription will be cancelled and replaced with the new one.",
+          "currentSubscription": "Current Subscription",
+          "emailNotice": "Email notifications will be sent regarding the cancellation of the current subscription and the creation of the new subscription.",
+          "passwordDescription": "To confirm the subscription replacement, enter your current password.",
+          "confirmButton": "Confirm Replacement",
+          "autoReason": "Subscription replaced with a new one"
+        },
+        "history": {
+          "title": "Subscription History",
+          "startDate": "Start",
+          "endDate": "End",
+          "cancelledAt": "Cancelled",
+          "nextBilling": "Next billing",
+          "reason": "Reason",
+          "searchPlaceholder": "Search by name...",
+          "fromDate": "From",
+          "toDate": "To",
+          "clearFilters": "Clear filters",
+          "resultCountSingular": "1 subscription found",
+          "resultCountPlural": "{count} subscriptions found",
+          "noResults": "No subscriptions found with the applied filters"
+        }
+      },
       "detail": {
         "title": "Company Details",
         "tabs": {
           "general": "General",
           "condominiums": "Condominiums",
-          "users": "Users",
-          "billing": "Billing",
-          "members": "Members"
+          "members": "Members",
+          "subscription": "Subscription",
+          "invoices": "Payment History",
+          "tickets": "Support Tickets",
+          "status": "Status & Actions"
         },
         "members": {
           "title": "Team Members",
@@ -613,7 +871,8 @@
             "title": "Add Member",
             "existingUser": "Existing User",
             "newUser": "Create User",
-            "searchPlaceholder": "Search by name or email...",
+            "searchLabel": "Search user",
+            "searchPlaceholder": "Type name or email (minimum 2 characters)...",
             "searchMinChars": "Type at least 2 characters to search",
             "noResults": "No users found",
             "addAsAdmin": "Add as Admin",
@@ -699,7 +958,9 @@
       "actions": {
         "view": "View details",
         "activate": "Activate",
-        "deactivate": "Deactivate"
+        "deactivate": "Deactivate",
+        "statusUpdated": "Condominium status updated",
+        "statusUpdateError": "Error updating condominium status"
       },
       "noCompany": "No property manager",
       "noContact": "No contact",
@@ -1149,7 +1410,31 @@
         "submitting": "Sending...",
         "success": "Invitation sent successfully",
         "error": "Error sending invitation",
-        "emailNotSent": "User was created but the invitation email could not be sent"
+        "emailNotSent": "User was created but the invitation email could not be sent",
+        "validation": {
+          "email": {
+            "required": "Email is required.",
+            "invalid": "Email is not valid."
+          },
+          "firstName": {
+            "required": "First name is required."
+          },
+          "lastName": {
+            "required": "Last name is required."
+          },
+          "phoneCountryCode": {
+            "required": "Country code is required."
+          },
+          "phoneNumber": {
+            "required": "Phone number is required."
+          },
+          "idDocumentType": {
+            "required": "Document type is required."
+          },
+          "idDocumentNumber": {
+            "required": "Document number is required."
+          }
+        }
       },
       "table": {
         "user": "User",

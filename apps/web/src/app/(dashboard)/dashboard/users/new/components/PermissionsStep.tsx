@@ -172,13 +172,14 @@ export function PermissionsStep({
                     {getModuleLabel(module.module)}
                   </Typography>
                   {onToggleModule && (
-                    <Switch
-                      isSelected={allModulePermissionsSelected}
-                      onValueChange={() => onToggleModule(modulePermissionIds)}
-                      color="primary"
-                      size="sm"
-                      onClick={(e) => e.stopPropagation()}
-                    />
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Switch
+                        isSelected={allModulePermissionsSelected}
+                        onValueChange={() => onToggleModule(modulePermissionIds)}
+                        color="primary"
+                        size="sm"
+                      />
+                    </div>
                   )}
                 </div>
               }

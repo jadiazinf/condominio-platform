@@ -68,7 +68,7 @@ export function useApiMutation<TData, TVariables = unknown>({
         case 'PATCH':
           return client.patch<TData>(resolvedPath, variables, config)
         case 'DELETE':
-          return client.delete<TData>(resolvedPath, config)
+          return client.delete<TData>(resolvedPath, variables, config)
         default:
           throw new Error(`Unsupported method: ${method}`)
       }

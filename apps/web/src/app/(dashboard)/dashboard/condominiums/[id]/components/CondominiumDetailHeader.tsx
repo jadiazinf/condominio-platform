@@ -51,9 +51,9 @@ export function CondominiumDetailHeader({ condominium }: ICondominiumDetailHeade
               </Chip>
             </div>
           </div>
-          {condominium.managementCompany && (
+          {condominium.managementCompanyIds && condominium.managementCompanyIds.length > 0 && (
             <Typography color="muted" variant="body2">
-              {t('superadmin.condominiums.detail.managedBy')} {condominium.managementCompany.name}
+              {t('superadmin.condominiums.detail.managedByCount', { count: condominium.managementCompanyIds.length })}
             </Typography>
           )}
         </div>

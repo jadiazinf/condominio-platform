@@ -3,10 +3,12 @@
 import { Input as HeroUIInput } from '@heroui/input'
 import { Tooltip } from '@heroui/tooltip'
 import { cn } from '@heroui/theme'
-import { ReactNode } from 'react'
+import { ReactNode, KeyboardEvent, ClipboardEvent } from 'react'
 import { Info } from 'lucide-react'
 
 type TInputType = 'text' | 'email' | 'password' | 'tel' | 'url' | 'search' | 'number'
+
+type TInputMode = 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search'
 
 type TInputSize = 'sm' | 'md' | 'lg'
 
@@ -45,9 +47,12 @@ interface IInputProps {
   minLength?: number
   maxLength?: number
   pattern?: string
+  inputMode?: TInputMode
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   onValueChange?: (value: string) => void
   onClear?: () => void
+  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void
+  onPaste?: (e: ClipboardEvent<HTMLInputElement>) => void
 }
 
 export function Input({
@@ -76,9 +81,12 @@ export function Input({
   minLength,
   maxLength,
   pattern,
+  inputMode,
   onChange,
   onValueChange,
   onClear,
+  onKeyDown,
+  onPaste,
 }: IInputProps) {
   // Create label with tooltip and required asterisk (always on the left)
   const labelContent = label ? (
@@ -126,8 +134,11 @@ export function Input({
       type={type}
       value={value}
       variant={variant}
+      inputMode={inputMode}
       onChange={onChange}
       onClear={onClear}
+      onKeyDown={onKeyDown}
+      onPaste={onPaste}
       onValueChange={onValueChange}
     />
   )
@@ -136,6 +147,7 @@ export function Input({
 // Export types for external use
 export type {
   TInputType,
+  TInputMode,
   TInputSize,
   TInputColor,
   TInputVariant,

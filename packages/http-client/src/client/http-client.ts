@@ -179,8 +179,8 @@ export function createHttpClient(config: HttpClientConfig = {}) {
       return request<T>('PATCH', path, body, config)
     },
 
-    delete<T>(path: string, config?: RequestConfig): Promise<ApiResponse<T>> {
-      return request<T>('DELETE', path, undefined, config)
+    delete<T>(path: string, body?: unknown, config?: RequestConfig): Promise<ApiResponse<T>> {
+      return request<T>('DELETE', path, body, config)
     },
   }
 }
