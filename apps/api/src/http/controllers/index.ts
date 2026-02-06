@@ -54,6 +54,9 @@ export { UserInvitationsController } from './user-invitations'
 export { ManagementCompanySubscriptionsController } from './management-company-subscriptions/subscriptions.controller'
 export { SubscriptionInvoicesController } from './subscription-invoices/invoices.controller'
 export { ManagementCompanyMembersController } from './management-company-members/members.controller'
+export { SubscriptionTermsConditionsController } from './subscription-terms-conditions'
+export { SubscriptionAcceptancesController } from './subscription-acceptances'
+export { SubscriptionRatesController } from './subscription-rates'
 
 // Support Tickets
 export { SupportTicketsController } from './support-tickets/support-tickets.controller'

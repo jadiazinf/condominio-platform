@@ -17,7 +17,6 @@ import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
 import {
   GetCondominiumByCodeService,
-  GetCondominiumsByManagementCompanyService,
   GetCondominiumsByLocationService,
   GenerateCondominiumCodeService,
 } from '@src/services/condominiums'
@@ -53,7 +52,6 @@ export class CondominiumsController extends BaseController<
   TCondominiumUpdate
 > {
   private readonly getCondominiumByCodeService: GetCondominiumByCodeService
-  private readonly getCondominiumsByManagementCompanyService: GetCondominiumsByManagementCompanyService
   private readonly getCondominiumsByLocationService: GetCondominiumsByLocationService
   private readonly generateCondominiumCodeService: GenerateCondominiumCodeService
 
@@ -62,9 +60,6 @@ export class CondominiumsController extends BaseController<
 
     // Initialize services
     this.getCondominiumByCodeService = new GetCondominiumByCodeService(repository)
-    this.getCondominiumsByManagementCompanyService = new GetCondominiumsByManagementCompanyService(
-      repository
-    )
     this.getCondominiumsByLocationService = new GetCondominiumsByLocationService(repository)
     this.generateCondominiumCodeService = new GenerateCondominiumCodeService(repository)
 
@@ -93,7 +88,11 @@ export class CondominiumsController extends BaseController<
         method: 'get',
         path: '/management-company/:managementCompanyId',
         handler: this.getByManagementCompanyId,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ManagementCompanyIdParamSchema),
+          queryValidator(condominiumsQuerySchema),
+        ],
       },
       {
         method: 'get',
@@ -168,18 +167,16 @@ export class CondominiumsController extends BaseController<
   }
 
   private async getByManagementCompanyId(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, unknown, TManagementCompanyIdParam>(c)
+    const ctx = this.ctx<unknown, TCondominiumsQuerySchema, TManagementCompanyIdParam>(c)
+    const repo = this.repository as CondominiumsRepository
 
     try {
-      const result = await this.getCondominiumsByManagementCompanyService.execute({
-        managementCompanyId: ctx.params.managementCompanyId,
-      })
+      const result = await repo.listByManagementCompanyPaginated(
+        ctx.params.managementCompanyId,
+        ctx.query
+      )
 
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
+      return ctx.ok(result)
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -217,5 +214,21 @@ export class CondominiumsController extends BaseController<
     } catch (error) {
       return this.handleError(ctx, error)
     }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Override create to inject createdBy from authenticated user
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override create = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TCondominiumCreate>(c)
+    const user = ctx.getAuthenticatedUser()
+
+    const entity = await this.repository.create({
+      ...ctx.body,
+      createdBy: user.id,
+    })
+
+    return ctx.created({ data: entity })
   }
 }

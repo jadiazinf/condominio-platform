@@ -40,7 +40,8 @@ export class AddMemberService {
       input.userId,
       input.role,
       input.isPrimary ?? false,
-      permissions
+      permissions,
+      input.invitedBy
     )
 
     return success(member)

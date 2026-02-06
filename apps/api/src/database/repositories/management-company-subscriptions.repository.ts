@@ -1,10 +1,19 @@
-import { eq, and, sql, desc, lte } from 'drizzle-orm'
+import { eq, and, sql, desc, lte, ilike, gte } from 'drizzle-orm'
 import type {
   TManagementCompanySubscription,
   TManagementCompanySubscriptionCreate,
   TManagementCompanySubscriptionUpdate,
   TSubscriptionStatus,
+  TPaginatedResponse,
 } from '@packages/domain'
+
+export interface ISubscriptionHistoryQuery {
+  page?: number
+  limit?: number
+  search?: string
+  startDateFrom?: Date
+  startDateTo?: Date
+}
 import { managementCompanySubscriptions } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
@@ -42,7 +51,21 @@ export class ManagementCompanySubscriptionsRepository
       billingCycle: r.billingCycle,
       basePrice: Number(r.basePrice),
       currencyId: r.currencyId,
+      // Pricing calculation data
+      pricingCondominiumCount: r.pricingCondominiumCount,
+      pricingUnitCount: r.pricingUnitCount,
+      pricingCondominiumRate: r.pricingCondominiumRate ? Number(r.pricingCondominiumRate) : null,
+      pricingUnitRate: r.pricingUnitRate ? Number(r.pricingUnitRate) : null,
+      calculatedPrice: r.calculatedPrice ? Number(r.calculatedPrice) : null,
+      // Discount
+      discountType: r.discountType,
+      discountValue: r.discountValue ? Number(r.discountValue) : null,
+      discountAmount: r.discountAmount ? Number(r.discountAmount) : null,
+      pricingNotes: r.pricingNotes,
+      rateId: r.rateId,
+      // Limits
       maxCondominiums: r.maxCondominiums,
+      maxUnits: r.maxUnits,
       maxUsers: r.maxUsers,
       maxStorageGb: r.maxStorageGb,
       customFeatures: r.customFeatures as Record<string, boolean> | null,
@@ -70,7 +93,21 @@ export class ManagementCompanySubscriptionsRepository
       billingCycle: dto.billingCycle,
       basePrice: dto.basePrice.toString(),
       currencyId: dto.currencyId,
+      // Pricing calculation data
+      pricingCondominiumCount: dto.pricingCondominiumCount,
+      pricingUnitCount: dto.pricingUnitCount,
+      pricingCondominiumRate: dto.pricingCondominiumRate?.toString(),
+      pricingUnitRate: dto.pricingUnitRate?.toString(),
+      calculatedPrice: dto.calculatedPrice?.toString(),
+      // Discount
+      discountType: dto.discountType,
+      discountValue: dto.discountValue?.toString(),
+      discountAmount: dto.discountAmount?.toString(),
+      pricingNotes: dto.pricingNotes,
+      rateId: dto.rateId,
+      // Limits
       maxCondominiums: dto.maxCondominiums,
+      maxUnits: dto.maxUnits,
       maxUsers: dto.maxUsers,
       maxStorageGb: dto.maxStorageGb,
       customFeatures: dto.customFeatures,
@@ -97,7 +134,22 @@ export class ManagementCompanySubscriptionsRepository
     if (dto.billingCycle !== undefined) values.billingCycle = dto.billingCycle
     if (dto.basePrice !== undefined) values.basePrice = dto.basePrice.toString()
     if (dto.currencyId !== undefined) values.currencyId = dto.currencyId
+    // Pricing calculation data
+    if (dto.pricingCondominiumCount !== undefined) values.pricingCondominiumCount = dto.pricingCondominiumCount
+    if (dto.pricingUnitCount !== undefined) values.pricingUnitCount = dto.pricingUnitCount
+    if (dto.pricingCondominiumRate !== undefined)
+      values.pricingCondominiumRate = dto.pricingCondominiumRate?.toString()
+    if (dto.pricingUnitRate !== undefined) values.pricingUnitRate = dto.pricingUnitRate?.toString()
+    if (dto.calculatedPrice !== undefined) values.calculatedPrice = dto.calculatedPrice?.toString()
+    // Discount
+    if (dto.discountType !== undefined) values.discountType = dto.discountType
+    if (dto.discountValue !== undefined) values.discountValue = dto.discountValue?.toString()
+    if (dto.discountAmount !== undefined) values.discountAmount = dto.discountAmount?.toString()
+    if (dto.pricingNotes !== undefined) values.pricingNotes = dto.pricingNotes
+    if (dto.rateId !== undefined) values.rateId = dto.rateId
+    // Limits
     if (dto.maxCondominiums !== undefined) values.maxCondominiums = dto.maxCondominiums
+    if (dto.maxUnits !== undefined) values.maxUnits = dto.maxUnits
     if (dto.maxUsers !== undefined) values.maxUsers = dto.maxUsers
     if (dto.maxStorageGb !== undefined) values.maxStorageGb = dto.maxStorageGb
     if (dto.customFeatures !== undefined) values.customFeatures = dto.customFeatures
@@ -150,6 +202,65 @@ export class ManagementCompanySubscriptionsRepository
       .orderBy(desc(managementCompanySubscriptions.createdAt))
 
     return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Get paginated subscriptions by management company ID with filtering
+   */
+  async getByCompanyIdPaginated(
+    companyId: string,
+    query: ISubscriptionHistoryQuery
+  ): Promise<TPaginatedResponse<TManagementCompanySubscription>> {
+    const page = query.page ?? 1
+    const limit = query.limit ?? 10
+    const offset = (page - 1) * limit
+
+    // Build conditions
+    const conditions = [eq(managementCompanySubscriptions.managementCompanyId, companyId)]
+
+    if (query.search) {
+      conditions.push(ilike(managementCompanySubscriptions.subscriptionName, `%${query.search}%`))
+    }
+
+    if (query.startDateFrom) {
+      conditions.push(gte(managementCompanySubscriptions.startDate, query.startDateFrom))
+    }
+
+    if (query.startDateTo) {
+      conditions.push(lte(managementCompanySubscriptions.startDate, query.startDateTo))
+    }
+
+    const whereClause = and(...conditions)
+
+    // Get total count
+    const countResult = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(managementCompanySubscriptions)
+      .where(whereClause)
+
+    const total = countResult[0]?.count ?? 0
+
+    // Get paginated results
+    const results = await this.db
+      .select()
+      .from(managementCompanySubscriptions)
+      .where(whereClause)
+      .orderBy(desc(managementCompanySubscriptions.createdAt))
+      .limit(limit)
+      .offset(offset)
+
+    const data = results.map(record => this.mapToEntity(record))
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    }
   }
 
   /**

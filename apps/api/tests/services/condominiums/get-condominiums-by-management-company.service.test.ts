@@ -20,7 +20,7 @@ describe('GetCondominiumsByManagementCompanyService', function () {
       id: '550e8400-e29b-41d4-a716-446655440001',
       name: 'Test Condominium 1',
       code: 'CONDO-001',
-      managementCompanyId,
+      managementCompanyIds: [managementCompanyId],
       address: '123 Condominium Street',
       locationId: '550e8400-e29b-41d4-a716-446655440020',
       email: 'admin@testcondo1.com',
@@ -37,7 +37,7 @@ describe('GetCondominiumsByManagementCompanyService', function () {
       id: '550e8400-e29b-41d4-a716-446655440002',
       name: 'Test Condominium 2',
       code: 'CONDO-002',
-      managementCompanyId,
+      managementCompanyIds: [managementCompanyId],
       address: '456 Condominium Street',
       locationId: '550e8400-e29b-41d4-a716-446655440021',
       email: 'admin@testcondo2.com',
@@ -54,7 +54,7 @@ describe('GetCondominiumsByManagementCompanyService', function () {
       id: '550e8400-e29b-41d4-a716-446655440003',
       name: 'Inactive Condominium',
       code: 'CONDO-003',
-      managementCompanyId,
+      managementCompanyIds: [managementCompanyId],
       address: '789 Condominium Street',
       locationId: '550e8400-e29b-41d4-a716-446655440022',
       email: 'admin@testcondo3.com',
@@ -76,7 +76,7 @@ describe('GetCondominiumsByManagementCompanyService', function () {
         includeInactive?: boolean
       ) {
         const condominiums = mockCondominiums.filter(function (c) {
-          return c.managementCompanyId === requestedManagementCompanyId
+          return c.managementCompanyIds.includes(requestedManagementCompanyId)
         })
         if (includeInactive) {
           return condominiums
@@ -96,7 +96,7 @@ describe('GetCondominiumsByManagementCompanyService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every(c => c.managementCompanyId === managementCompanyId)).toBe(true)
+        expect(result.data.every(c => c.managementCompanyIds.includes(managementCompanyId))).toBe(true)
         expect(result.data.every(c => c.isActive)).toBe(true)
       }
     })
@@ -107,7 +107,7 @@ describe('GetCondominiumsByManagementCompanyService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(3)
-        expect(result.data.every(c => c.managementCompanyId === managementCompanyId)).toBe(true)
+        expect(result.data.every(c => c.managementCompanyIds.includes(managementCompanyId))).toBe(true)
       }
     })
 

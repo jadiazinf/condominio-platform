@@ -158,9 +158,11 @@ export class AcceptInvitationService {
       billingCycle: 'monthly',
       basePrice: 0, // Free during trial
       currencyId: null,
-      maxCondominiums: null, // No limits during trial
-      maxUsers: null,
-      maxStorageGb: null,
+      // Effectively unlimited during trial (large values)
+      maxCondominiums: 9999,
+      maxUnits: 999999,
+      maxUsers: 9999,
+      maxStorageGb: 9999,
       customFeatures: null,
       customRules: null,
       status: 'trial',
@@ -174,6 +176,17 @@ export class AcceptInvitationService {
       cancelledAt: null,
       cancelledBy: null,
       cancellationReason: null,
+      // Pricing fields (null for trial)
+      pricingCondominiumCount: null,
+      pricingUnitCount: null,
+      pricingCondominiumRate: null,
+      pricingUnitRate: null,
+      calculatedPrice: null,
+      discountType: null,
+      discountValue: null,
+      discountAmount: null,
+      pricingNotes: null,
+      rateId: null,
     })
 
     if (!subscription) {

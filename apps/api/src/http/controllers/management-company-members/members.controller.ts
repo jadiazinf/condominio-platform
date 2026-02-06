@@ -2,14 +2,16 @@ import type { Context } from 'hono'
 import {
   managementCompanyMemberCreateSchema,
   managementCompanyMemberUpdateSchema,
+  managementCompanyMembersQuerySchema,
   type TManagementCompanyMember,
   type TManagementCompanyMemberCreate,
   type TManagementCompanyMemberUpdate,
+  type TManagementCompanyMembersQuerySchema,
   memberPermissionsSchema,
 } from '@packages/domain'
 import type { ManagementCompanyMembersRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -17,6 +19,8 @@ import {
   AddMemberService,
   UpdateMemberPermissionsService,
 } from '../../../services/management-company-members'
+import { authMiddleware } from '../../middlewares/auth'
+import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
 
 const CompanyIdParamSchema = z.object({
   companyId: z.string().uuid('Invalid company ID format'),
@@ -83,13 +87,16 @@ export class ManagementCompanyMembersController extends BaseController<
         method: 'get',
         path: '/management-companies/:companyId/members',
         handler: this.getMembersByCompany,
-        middlewares: [paramsValidator(CompanyIdParamSchema)],
+        middlewares: [
+          paramsValidator(CompanyIdParamSchema),
+          queryValidator(managementCompanyMembersQuerySchema),
+        ],
       },
       {
         method: 'post',
         path: '/management-companies/:companyId/members',
         handler: this.addMember,
-        middlewares: [paramsValidator(CompanyIdParamSchema), bodyValidator(AddMemberBodySchema)],
+        middlewares: [authMiddleware, paramsValidator(CompanyIdParamSchema), bodyValidator(AddMemberBodySchema)],
       },
       {
         method: 'get',
@@ -123,13 +130,13 @@ export class ManagementCompanyMembersController extends BaseController<
   // ─────────────────────────────────────────────────────────────────────────────
 
   private async getMembersByCompany(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, unknown, TCompanyIdParam>(c)
+    const ctx = this.ctx<unknown, TManagementCompanyMembersQuerySchema, TCompanyIdParam>(c)
     const repo = this.repository as ManagementCompanyMembersRepository
 
     try {
-      const members = await repo.listByCompanyId(ctx.params.companyId)
+      const result = await repo.listByCompanyIdPaginated(ctx.params.companyId, ctx.query)
 
-      return ctx.ok({ data: members })
+      return ctx.ok(result)
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -155,6 +162,9 @@ export class ManagementCompanyMembersController extends BaseController<
   private async addMember(c: Context): Promise<Response> {
     const ctx = this.ctx<TAddMemberBody, unknown, TCompanyIdParam>(c)
 
+    // Get authenticated user from middleware
+    const authenticatedUser = c.get(AUTHENTICATED_USER_PROP)
+
     try {
       const result = await this.addMemberService.execute({
         managementCompanyId: ctx.params.companyId,
@@ -162,7 +172,8 @@ export class ManagementCompanyMembersController extends BaseController<
         role: ctx.body.role,
         permissions: ctx.body.permissions,
         isPrimary: ctx.body.isPrimary,
-        invitedBy: ctx.body.invitedBy,
+        // Use the authenticated user as invitedBy (fallback to body if provided for backwards compatibility)
+        invitedBy: ctx.body.invitedBy ?? authenticatedUser?.id,
       })
 
       if (!result.success) {

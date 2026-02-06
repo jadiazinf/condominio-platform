@@ -24,7 +24,7 @@ type TMockCondominiumsRepository = {
   update: (id: string, data: TCondominiumUpdate) => Promise<TCondominium | null>
   delete: (id: string) => Promise<boolean>
   getByCode: (code: string) => Promise<TCondominium | null>
-  getByManagementCompanyId: (managementCompanyId: string) => Promise<TCondominium[]>
+  listByManagementCompanyPaginated: (managementCompanyId: string, query: unknown) => Promise<{ data: TCondominium[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>
   getByLocationId: (locationId: string) => Promise<TCondominium[]>
 }
 
@@ -99,10 +99,19 @@ describe('CondominiumsController', function () {
           }) || null
         )
       },
-      getByManagementCompanyId: async function (managementCompanyId: string) {
-        return testCondominiums.filter(function (c) {
+      listByManagementCompanyPaginated: async function (managementCompanyId: string) {
+        const data = testCondominiums.filter(function (c) {
           return c.managementCompanyIds?.includes(managementCompanyId)
         })
+        return {
+          data,
+          pagination: {
+            page: 1,
+            limit: 20,
+            total: data.length,
+            totalPages: 1,
+          },
+        }
       },
       getByLocationId: async function (locationId: string) {
         return testCondominiums.filter(function (c) {
@@ -209,8 +218,16 @@ describe('CondominiumsController', function () {
     })
 
     it('should return empty array when no condominiums for company', async function () {
-      mockRepository.getByManagementCompanyId = async function () {
-        return []
+      mockRepository.listByManagementCompanyPaginated = async function () {
+        return {
+          data: [],
+          pagination: {
+            page: 1,
+            limit: 20,
+            total: 0,
+            totalPages: 0,
+          },
+        }
       }
 
       const res = await request(

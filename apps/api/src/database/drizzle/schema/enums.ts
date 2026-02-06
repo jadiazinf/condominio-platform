@@ -180,6 +180,8 @@ export const billingCycleEnum = pgEnum('billing_cycle', [
   'custom',
 ])
 
+export const discountTypeEnum = pgEnum('discount_type', ['percentage', 'fixed'])
+
 export const invoiceStatusEnum = pgEnum('invoice_status', [
   'draft',
   'sent',
@@ -213,4 +215,26 @@ export const ticketCategoryEnum = pgEnum('ticket_category', [
   'feature_request',
   'general',
   'bug',
+])
+
+// ============================================================================
+// SUBSCRIPTION AUDIT ENUMS
+// ============================================================================
+
+export const subscriptionAuditActionEnum = pgEnum('subscription_audit_action', [
+  'created',
+  'activated',
+  'deactivated',
+  'updated',
+  'cancelled',
+  'renewed',
+  'terms_accepted',
+  'price_changed',
+])
+
+export const acceptanceStatusEnum = pgEnum('acceptance_status', [
+  'pending',
+  'accepted',
+  'expired',
+  'cancelled',
 ])

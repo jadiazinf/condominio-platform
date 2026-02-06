@@ -2,3 +2,18 @@ export { CreateSubscriptionService, type ICreateSubscriptionInput } from './crea
 export { UpdateSubscriptionService, type IUpdateSubscriptionInput } from './update-subscription.service'
 export { CancelSubscriptionService, type ICancelSubscriptionInput } from './cancel-subscription.service'
 export { RenewSubscriptionService, type IRenewSubscriptionInput } from './renew-subscription.service'
+export {
+  CalculatePricingService,
+  type IPricingCalculationInput,
+  type IPricingCalculationResult,
+} from './calculate-pricing.service'
+export {
+  SubscriptionAuditService,
+  type ICreateAuditEntryInput,
+} from './subscription-audit.service'
+export {
+  AcceptSubscriptionService,
+  type IValidateAcceptanceTokenInput,
+  type IAcceptSubscriptionInput,
+  type IAcceptSubscriptionResult,
+} from './accept-subscription.service'

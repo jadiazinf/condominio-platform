@@ -144,7 +144,7 @@ export class CreateMemberWithInvitationService {
     const memberResult = await this.addMember(user.id, input)
     if (!memberResult.success) {
       // Rollback: delete invitation, role, and user
-      await this.invitationsRepository.cancel(invitation.id, input.createdBy)
+      await this.invitationsRepository.markAsCancelled(invitation.id)
       await this.userRolesRepository.delete(userRole.id)
       if (isNew) {
         await this.usersRepository.delete(user.id)

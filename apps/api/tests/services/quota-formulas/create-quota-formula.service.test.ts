@@ -23,7 +23,7 @@ describe('CreateQuotaFormulaService', function () {
     id: condominiumId,
     code: 'CONDO-001',
     name: 'Test Condominium',
-    managementCompanyId: '550e8400-e29b-41d4-a716-446655440010',
+    managementCompanyIds: ['550e8400-e29b-41d4-a716-446655440010'],
     locationId: null,
     address: null,
     email: null,

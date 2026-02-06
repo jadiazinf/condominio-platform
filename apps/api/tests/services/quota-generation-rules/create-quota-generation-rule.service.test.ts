@@ -47,7 +47,7 @@ describe('CreateQuotaGenerationRuleService', function () {
     id: condominiumId,
     code: 'CONDO-001',
     name: 'Test Condominium',
-    managementCompanyId: null,
+    managementCompanyIds: [],
     locationId: null,
     address: null,
     email: null,

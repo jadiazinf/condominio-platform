@@ -183,7 +183,7 @@ export class CondominiumsRepository
   /**
    * Override getById to include management company IDs.
    */
-  async getById(id: string, includeInactive = false): Promise<TCondominium | null> {
+  override async getById(id: string, includeInactive = false): Promise<TCondominium | null> {
     const whereCondition = includeInactive
       ? eq(condominiums.id, id)
       : and(eq(condominiums.id, id), eq(condominiums.isActive, true))
@@ -201,28 +201,30 @@ export class CondominiumsRepository
   /**
    * Override create to handle management company assignments.
    */
-  async create(dto: TCondominiumCreate): Promise<TCondominium> {
+  override async create(dto: TCondominiumCreate): Promise<TCondominium> {
     const values = this.mapToInsertValues(dto)
-    const results = await this.db.insert(condominiums).values(values).returning()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Drizzle requires specific type for insert values
+    const results = await this.db.insert(condominiums).values(values as any).returning()
 
-    if (results.length === 0) {
+    const record = results[0]
+    if (!record) {
       throw new Error('Failed to create condominium')
     }
 
-    const condominiumId = results[0].id
+    const condominiumId = record.id
 
     // Assign management companies via junction table
     if (dto.managementCompanyIds && dto.managementCompanyIds.length > 0) {
       await this.assignManagementCompanies(condominiumId, dto.managementCompanyIds, dto.createdBy)
     }
 
-    return this.mapToEntity(results[0], dto.managementCompanyIds)
+    return this.mapToEntity(record, dto.managementCompanyIds)
   }
 
   /**
    * Override update to handle management company assignments.
    */
-  async update(id: string, dto: TCondominiumUpdate): Promise<TCondominium | null> {
+  override async update(id: string, dto: TCondominiumUpdate): Promise<TCondominium | null> {
     const values = this.mapToUpdateValues(dto)
     values.updatedAt = new Date()
 
@@ -237,17 +239,19 @@ export class CondominiumsRepository
         .where(eq(condominiums.id, id))
         .returning()
 
-      if (results.length === 0) {
+      const updatedRecord = results[0]
+      if (!updatedRecord) {
         return null
       }
-      record = results[0]
+      record = updatedRecord
     } else {
       // Just fetch the current record
       const results = await this.db.select().from(condominiums).where(eq(condominiums.id, id)).limit(1)
-      if (results.length === 0) {
+      const fetchedRecord = results[0]
+      if (!fetchedRecord) {
         return null
       }
-      record = results[0]
+      record = fetchedRecord
     }
 
     // Sync management companies if provided
@@ -269,12 +273,13 @@ export class CondominiumsRepository
       .where(eq(condominiums.code, code))
       .limit(1)
 
-    if (results.length === 0) {
+    const record = results[0]
+    if (!record) {
       return null
     }
 
-    const managementCompanyIds = await this.getManagementCompanyIds(results[0].id)
-    return this.mapToEntity(results[0], managementCompanyIds)
+    const managementCompanyIds = await this.getManagementCompanyIds(record.id)
+    return this.mapToEntity(record, managementCompanyIds)
   }
 
   /**
@@ -314,6 +319,91 @@ export class CondominiumsRepository
     }
 
     return mapped.filter(c => c.isActive)
+  }
+
+  /**
+   * Retrieves condominiums by management company with pagination and filtering.
+   */
+  async listByManagementCompanyPaginated(
+    managementCompanyId: string,
+    query: TCondominiumsQuerySchema
+  ): Promise<TPaginatedResponse<TCondominium>> {
+    const { page = 1, limit = 20, search, isActive } = query
+    const offset = (page - 1) * limit
+
+    // Get condominium IDs that belong to this management company
+    const junctionResults = await this.db
+      .select({ condominiumId: condominiumManagementCompanies.condominiumId })
+      .from(condominiumManagementCompanies)
+      .where(eq(condominiumManagementCompanies.managementCompanyId, managementCompanyId))
+
+    const condominiumIds = junctionResults.map(r => r.condominiumId)
+
+    if (condominiumIds.length === 0) {
+      return {
+        data: [],
+        pagination: { page, limit, total: 0, totalPages: 0 },
+      }
+    }
+
+    // Build conditions array
+    const conditions = [inArray(condominiums.id, condominiumIds)]
+
+    // Filter by isActive if specified
+    if (isActive !== undefined) {
+      conditions.push(eq(condominiums.isActive, isActive))
+    }
+
+    // Search filter (name, code, email, address)
+    if (search && search.trim()) {
+      const searchTerm = `%${search.trim()}%`
+      const searchCondition = or(
+        ilike(condominiums.name, searchTerm),
+        ilike(condominiums.code, searchTerm),
+        ilike(condominiums.email, searchTerm),
+        ilike(condominiums.address, searchTerm)
+      )
+      if (searchCondition) {
+        conditions.push(searchCondition)
+      }
+    }
+
+    // Build where clause - and() returns undefined if conditions is empty
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    // Get paginated data ordered by createdAt DESC
+    const results = await this.db
+      .select()
+      .from(condominiums)
+      .where(whereClause)
+      .orderBy(desc(condominiums.createdAt))
+      .limit(limit)
+      .offset(offset)
+
+    // Get total count
+    const countResult = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(condominiums)
+      .where(whereClause)
+
+    const total = countResult[0]?.count ?? 0
+    const totalPages = Math.ceil(total / limit)
+
+    // Get management company IDs for all results
+    const resultIds = results.map(r => r.id)
+    const managementCompanyMap = await this.getManagementCompanyIdsForCondominiums(resultIds)
+
+    return {
+      data: results.map(record =>
+        this.mapToEntity(record, managementCompanyMap.get(record.id) || [])
+      ),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    }
   }
 
   /**
@@ -362,14 +452,15 @@ export class CondominiumsRepository
     // Search filter (name, code, email, address)
     if (search && search.trim()) {
       const searchTerm = `%${search.trim()}%`
-      conditions.push(
-        or(
-          ilike(condominiums.name, searchTerm),
-          ilike(condominiums.code, searchTerm),
-          ilike(condominiums.email, searchTerm),
-          ilike(condominiums.address, searchTerm)
-        )
+      const searchCondition = or(
+        ilike(condominiums.name, searchTerm),
+        ilike(condominiums.code, searchTerm),
+        ilike(condominiums.email, searchTerm),
+        ilike(condominiums.address, searchTerm)
       )
+      if (searchCondition) {
+        conditions.push(searchCondition)
+      }
     }
 
     // Build where clause

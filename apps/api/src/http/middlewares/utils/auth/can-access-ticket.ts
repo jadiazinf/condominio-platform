@@ -4,7 +4,7 @@ import { eq, and, isNotNull } from 'drizzle-orm'
 import { HttpContext } from '@http/context'
 import { DatabaseService } from '@database/service'
 import { UserRolesRepository, SupportTicketsRepository } from '@database/repositories'
-import { userRoles, condominiums } from '@database/drizzle/schema'
+import { userRoles, condominiums, condominiumManagementCompanies } from '@database/drizzle/schema'
 import { AUTHENTICATED_USER_PROP } from './is-user-authenticated'
 import { LocaleDictionary } from '@locales/dictionary'
 
@@ -61,18 +61,20 @@ export function createCanAccessTicket(paramName: string = 'id'): MiddlewareHandl
     // belongs to the ticket's managementCompanyId
 
     // Get user's roles that have a condominiumId
+    // Check via junction table: userRoles -> condominiums -> condominiumManagementCompanies
     const userRolesWithCondominium = await db
       .select({
         condominiumId: userRoles.condominiumId,
-        managementCompanyId: condominiums.managementCompanyId,
+        managementCompanyId: condominiumManagementCompanies.managementCompanyId,
       })
       .from(userRoles)
       .innerJoin(condominiums, eq(userRoles.condominiumId, condominiums.id))
+      .innerJoin(condominiumManagementCompanies, eq(condominiums.id, condominiumManagementCompanies.condominiumId))
       .where(
         and(
           eq(userRoles.userId, user.id),
           isNotNull(userRoles.condominiumId),
-          eq(condominiums.managementCompanyId, ticket.managementCompanyId)
+          eq(condominiumManagementCompanies.managementCompanyId, ticket.managementCompanyId)
         )
       )
       .limit(1)

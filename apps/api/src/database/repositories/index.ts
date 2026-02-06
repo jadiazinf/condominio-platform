@@ -75,6 +75,19 @@ export { UserInvitationsRepository } from './user-invitations.repository'
 export { ManagementCompanySubscriptionsRepository } from './management-company-subscriptions.repository'
 export { SubscriptionInvoicesRepository } from './subscription-invoices.repository'
 export { ManagementCompanyMembersRepository } from './management-company-members.repository'
+export {
+  SubscriptionAuditHistoryRepository,
+  type IAuditHistoryQuery,
+} from './subscription-audit-history.repository'
+export {
+  SubscriptionTermsConditionsRepository,
+  type ITermsQuery,
+} from './subscription-terms-conditions.repository'
+export { SubscriptionAcceptancesRepository } from './subscription-acceptances.repository'
+export {
+  SubscriptionRatesRepository,
+  type IRatesQuery,
+} from './subscription-rates.repository'
 
 // Support Tickets
 export { SupportTicketsRepository } from './support-tickets.repository'

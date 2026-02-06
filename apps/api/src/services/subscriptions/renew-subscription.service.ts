@@ -1,4 +1,4 @@
-import type { TManagementCompanySubscription, TBillingCycle } from '@packages/domain'
+import type { TManagementCompanySubscription, TManagementCompanySubscriptionUpdate, TBillingCycle } from '@packages/domain'
 import type { ManagementCompanySubscriptionsRepository } from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 
@@ -34,7 +34,7 @@ export class RenewSubscriptionService {
     )
 
     // Update subscription
-    const updateData: Partial<TManagementCompanySubscription> = {
+    const updateData: TManagementCompanySubscriptionUpdate = {
       status: 'active',
       nextBillingDate,
     }

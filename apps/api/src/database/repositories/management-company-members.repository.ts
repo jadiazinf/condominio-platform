@@ -1,16 +1,31 @@
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and, desc, or, ilike, sql } from 'drizzle-orm'
 import type {
   TManagementCompanyMember,
   TManagementCompanyMemberCreate,
   TManagementCompanyMemberUpdate,
   TMemberPermissions,
   TMemberRole,
+  TPaginatedResponse,
+  TManagementCompanyMembersQuerySchema,
 } from '@packages/domain'
-import { managementCompanyMembers } from '@database/drizzle/schema'
+import { managementCompanyMembers, users } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
 
 type TMemberRecord = typeof managementCompanyMembers.$inferSelect
+
+export type TMemberUserInfo = {
+  id: string
+  email: string
+  displayName: string | null
+  firstName: string | null
+  lastName: string | null
+  photoUrl: string | null
+}
+
+export type TManagementCompanyMemberWithUser = Omit<TManagementCompanyMember, 'user' | 'managementCompany' | 'invitedByUser' | 'deactivatedByUser'> & {
+  user: TMemberUserInfo | null
+}
 
 /**
  * Repository for managing company member entities.
@@ -105,6 +120,133 @@ export class ManagementCompanyMembersRepository
   }
 
   /**
+   * Get all members by management company ID with user details
+   */
+  async listByCompanyIdWithUsers(
+    companyId: string,
+    includeInactive = false
+  ): Promise<TManagementCompanyMemberWithUser[]> {
+    const conditions = [eq(managementCompanyMembers.managementCompanyId, companyId)]
+
+    if (!includeInactive) {
+      conditions.push(eq(managementCompanyMembers.isActive, true))
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    const results = await this.db
+      .select({
+        member: managementCompanyMembers,
+        user: users,
+      })
+      .from(managementCompanyMembers)
+      .leftJoin(users, eq(managementCompanyMembers.userId, users.id))
+      .where(whereClause)
+      .orderBy(desc(managementCompanyMembers.joinedAt))
+
+    return results.map(({ member, user }) => ({
+      ...this.mapToEntity(member),
+      user: user
+        ? {
+            id: user.id,
+            email: user.email,
+            displayName: user.displayName,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            photoUrl: user.photoUrl,
+          }
+        : null,
+    }))
+  }
+
+  /**
+   * Get members by management company ID with pagination, filtering, and user details.
+   * Results are sorted by isPrimaryAdmin (primary first), then by joinedAt.
+   */
+  async listByCompanyIdPaginated(
+    companyId: string,
+    query: TManagementCompanyMembersQuerySchema
+  ): Promise<TPaginatedResponse<TManagementCompanyMemberWithUser>> {
+    const { page = 1, limit = 20, search, roleName, isActive } = query
+    const offset = (page - 1) * limit
+
+    // Build conditions for members table
+    const memberConditions = [eq(managementCompanyMembers.managementCompanyId, companyId)]
+
+    // Filter by isActive
+    if (isActive !== undefined) {
+      memberConditions.push(eq(managementCompanyMembers.isActive, isActive))
+    }
+
+    // Filter by role
+    if (roleName) {
+      memberConditions.push(eq(managementCompanyMembers.roleName, roleName))
+    }
+
+    // Build search condition (searches in user name and email)
+    let searchCondition
+    if (search && search.trim()) {
+      const searchTerm = `%${search.trim()}%`
+      searchCondition = or(
+        ilike(users.email, searchTerm),
+        ilike(users.displayName, searchTerm),
+        ilike(users.firstName, searchTerm),
+        ilike(users.lastName, searchTerm)
+      )
+    }
+
+    // Combine conditions
+    const whereClause = searchCondition
+      ? and(...memberConditions, searchCondition)
+      : and(...memberConditions)
+
+    // Get paginated data ordered by isPrimaryAdmin DESC (primary first), then joinedAt DESC
+    const results = await this.db
+      .select({
+        member: managementCompanyMembers,
+        user: users,
+      })
+      .from(managementCompanyMembers)
+      .leftJoin(users, eq(managementCompanyMembers.userId, users.id))
+      .where(whereClause)
+      .orderBy(desc(managementCompanyMembers.isPrimaryAdmin), desc(managementCompanyMembers.joinedAt))
+      .limit(limit)
+      .offset(offset)
+
+    // Get total count
+    const countResult = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(managementCompanyMembers)
+      .leftJoin(users, eq(managementCompanyMembers.userId, users.id))
+      .where(whereClause)
+
+    const total = countResult[0]?.count ?? 0
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data: results.map(({ member, user }) => ({
+        ...this.mapToEntity(member),
+        user: user
+          ? {
+              id: user.id,
+              email: user.email,
+              displayName: user.displayName,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              photoUrl: user.photoUrl,
+            }
+          : null,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    }
+  }
+
+  /**
    * Get a member by company ID and user ID
    */
   async getByCompanyAndUser(companyId: string, userId: string): Promise<TManagementCompanyMember | null> {
@@ -157,7 +299,8 @@ export class ManagementCompanyMembersRepository
     userId: string,
     role: TMemberRole,
     isPrimary: boolean,
-    permissions: TMemberPermissions | null
+    permissions: TMemberPermissions | null,
+    invitedBy?: string | null
   ): Promise<TManagementCompanyMember> {
     const dto: TManagementCompanyMemberCreate = {
       managementCompanyId: companyId,
@@ -167,8 +310,8 @@ export class ManagementCompanyMembersRepository
       permissions,
       isActive: true,
       joinedAt: new Date(),
-      invitedAt: null,
-      invitedBy: null,
+      invitedAt: invitedBy ? new Date() : null,
+      invitedBy: invitedBy ?? null,
       deactivatedAt: null,
       deactivatedBy: null,
     }

@@ -48,6 +48,10 @@ export * from './user-invitations'
 export * from './management-company-subscriptions'
 export * from './subscription-invoices'
 export * from './management-company-members'
+export * from './subscription-audit-history'
+export * from './subscription-terms-conditions'
+export * from './subscription-acceptances'
+export * from './subscription-rates'
 
 // Support Tickets
 export * from './support-tickets'

@@ -14,7 +14,7 @@ describe('GetCondominiumByCodeService', function () {
     id: '550e8400-e29b-41d4-a716-446655440001',
     name: 'Test Condominium',
     code: 'CONDO-001',
-    managementCompanyId: '550e8400-e29b-41d4-a716-446655440010',
+    managementCompanyIds: ['550e8400-e29b-41d4-a716-446655440010'],
     address: '123 Condominium Street',
     locationId: '550e8400-e29b-41d4-a716-446655440020',
     email: 'admin@testcondo.com',

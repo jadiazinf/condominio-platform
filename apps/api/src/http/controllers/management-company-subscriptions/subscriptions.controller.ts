@@ -9,18 +9,27 @@ import {
 import type {
   ManagementCompanySubscriptionsRepository,
   ManagementCompanyMembersRepository,
+  ManagementCompaniesRepository,
+  UsersRepository,
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
+import type { ISubscriptionHistoryQuery } from '@database/repositories/management-company-subscriptions.repository'
 import {
   CreateSubscriptionService,
   UpdateSubscriptionService,
   CancelSubscriptionService,
   RenewSubscriptionService,
+  CalculatePricingService,
 } from '../../../services/subscriptions'
+import { SendSubscriptionCancellationEmailService } from '../../../services/email'
+import { DatabaseService } from '@database/service'
+import { isUserAuthenticated } from '../../middlewares/utils/auth/is-user-authenticated'
+import { isSuperadmin } from '../../middlewares/utils/auth/is-superadmin'
+import { requireSuperadminPermission } from '../../middlewares/utils/auth/has-superadmin-permission'
 
 const CompanyIdParamSchema = z.object({
   companyId: z.string().uuid('Invalid company ID format'),
@@ -42,16 +51,36 @@ const RenewSubscriptionBodySchema = z.object({
 
 type TRenewSubscriptionBody = z.infer<typeof RenewSubscriptionBodySchema>
 
+const SubscriptionHistoryQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  search: z.string().optional(),
+  startDateFrom: z.string().optional(),
+  startDateTo: z.string().optional(),
+})
+
+type TSubscriptionHistoryQuery = z.infer<typeof SubscriptionHistoryQuerySchema>
+
+const CalculatePricingQuerySchema = z.object({
+  condominiumRate: z.coerce.number().positive().optional(),
+  unitRate: z.coerce.number().positive().optional(),
+  discountType: z.enum(['percentage', 'fixed']).optional(),
+  discountValue: z.coerce.number().nonnegative().optional(),
+})
+
+type TCalculatePricingQuery = z.infer<typeof CalculatePricingQuerySchema>
+
 /**
  * Controller for managing management company subscriptions.
  *
  * Endpoints:
- * - GET    /management-companies/:companyId/subscription        Get active subscription
- * - GET    /management-companies/:companyId/subscriptions       Get all subscriptions (history)
- * - POST   /management-companies/:companyId/subscription        Create new subscription
- * - PATCH  /management-companies/:companyId/subscription        Update active subscription
- * - DELETE /management-companies/:companyId/subscription        Cancel active subscription
- * - POST   /management-companies/:companyId/subscription/renew  Renew subscription
+ * - GET    /management-companies/:companyId/subscription             Get active subscription
+ * - GET    /management-companies/:companyId/subscriptions            Get all subscriptions (history)
+ * - GET    /management-companies/:companyId/subscription/pricing     Calculate subscription pricing
+ * - POST   /management-companies/:companyId/subscription             Create new subscription
+ * - PATCH  /management-companies/:companyId/subscription             Update active subscription
+ * - DELETE /management-companies/:companyId/subscription             Cancel active subscription
+ * - POST   /management-companies/:companyId/subscription/renew       Renew subscription
  */
 export class ManagementCompanySubscriptionsController extends BaseController<
   TManagementCompanySubscription,
@@ -62,19 +91,31 @@ export class ManagementCompanySubscriptionsController extends BaseController<
   private readonly updateService: UpdateSubscriptionService
   private readonly cancelService: CancelSubscriptionService
   private readonly renewService: RenewSubscriptionService
+  private readonly pricingService: CalculatePricingService
 
   constructor(
     repository: ManagementCompanySubscriptionsRepository,
-    membersRepository: ManagementCompanyMembersRepository
+    membersRepository: ManagementCompanyMembersRepository,
+    companiesRepository: ManagementCompaniesRepository,
+    usersRepository: UsersRepository
   ) {
     super(repository)
+    const db = DatabaseService.getInstance().getDb()
     this.createService = new CreateSubscriptionService(repository)
     this.updateService = new UpdateSubscriptionService(repository)
-    this.cancelService = new CancelSubscriptionService(repository)
+    this.cancelService = new CancelSubscriptionService(repository, {
+      membersRepository,
+      companiesRepository,
+      usersRepository,
+      emailService: new SendSubscriptionCancellationEmailService(),
+      db,
+    })
     this.renewService = new RenewSubscriptionService(repository)
+    this.pricingService = new CalculatePricingService(db)
 
     this.getActiveSubscription = this.getActiveSubscription.bind(this)
     this.getAllSubscriptions = this.getAllSubscriptions.bind(this)
+    this.calculatePricing = this.calculatePricing.bind(this)
     this.createSubscription = this.createSubscription.bind(this)
     this.updateActiveSubscription = this.updateActiveSubscription.bind(this)
     this.cancelSubscription = this.cancelSubscription.bind(this)
@@ -83,47 +124,92 @@ export class ManagementCompanySubscriptionsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
+      // Superadmin only: Get active subscription
       {
         method: 'get',
         path: '/management-companies/:companyId/subscription',
         handler: this.getActiveSubscription,
-        middlewares: [paramsValidator(CompanyIdParamSchema)],
+        middlewares: [
+          isUserAuthenticated,
+          isSuperadmin,
+          paramsValidator(CompanyIdParamSchema),
+        ],
       },
+      // Superadmin only: Get subscription history
       {
         method: 'get',
         path: '/management-companies/:companyId/subscriptions',
         handler: this.getAllSubscriptions,
-        middlewares: [paramsValidator(CompanyIdParamSchema)],
+        middlewares: [
+          isUserAuthenticated,
+          isSuperadmin,
+          paramsValidator(CompanyIdParamSchema),
+          queryValidator(SubscriptionHistoryQuerySchema),
+        ],
       },
+      // Superadmin only: Calculate subscription pricing
+      {
+        method: 'get',
+        path: '/management-companies/:companyId/subscription/pricing',
+        handler: this.calculatePricing,
+        middlewares: [
+          isUserAuthenticated,
+          isSuperadmin,
+          paramsValidator(CompanyIdParamSchema),
+          queryValidator(CalculatePricingQuerySchema),
+        ],
+      },
+      // Superadmin with manage permission: Create subscription
       {
         method: 'post',
         path: '/management-companies/:companyId/subscription',
         handler: this.createSubscription,
         middlewares: [
+          isUserAuthenticated,
+          isSuperadmin,
+          requireSuperadminPermission('platform_management_companies', 'manage'),
           paramsValidator(CompanyIdParamSchema),
           bodyValidator(managementCompanySubscriptionCreateSchema),
         ],
       },
+      // Superadmin with manage permission: Update subscription
       {
         method: 'patch',
         path: '/management-companies/:companyId/subscription',
         handler: this.updateActiveSubscription,
         middlewares: [
+          isUserAuthenticated,
+          isSuperadmin,
+          requireSuperadminPermission('platform_management_companies', 'manage'),
           paramsValidator(CompanyIdParamSchema),
           bodyValidator(managementCompanySubscriptionUpdateSchema),
         ],
       },
+      // Superadmin with manage permission: Cancel subscription
       {
         method: 'delete',
         path: '/management-companies/:companyId/subscription',
         handler: this.cancelSubscription,
-        middlewares: [paramsValidator(CompanyIdParamSchema), bodyValidator(CancelSubscriptionBodySchema)],
+        middlewares: [
+          isUserAuthenticated,
+          isSuperadmin,
+          requireSuperadminPermission('platform_management_companies', 'manage'),
+          paramsValidator(CompanyIdParamSchema),
+          bodyValidator(CancelSubscriptionBodySchema),
+        ],
       },
+      // Superadmin with manage permission: Renew subscription
       {
         method: 'post',
         path: '/management-companies/:companyId/subscription/renew',
         handler: this.renewSubscription,
-        middlewares: [paramsValidator(CompanyIdParamSchema), bodyValidator(RenewSubscriptionBodySchema)],
+        middlewares: [
+          isUserAuthenticated,
+          isSuperadmin,
+          requireSuperadminPermission('platform_management_companies', 'manage'),
+          paramsValidator(CompanyIdParamSchema),
+          bodyValidator(RenewSubscriptionBodySchema),
+        ],
       },
     ]
   }
@@ -150,13 +236,43 @@ export class ManagementCompanySubscriptionsController extends BaseController<
   }
 
   private async getAllSubscriptions(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, unknown, TCompanyIdParam>(c)
+    const ctx = this.ctx<unknown, TSubscriptionHistoryQuery, TCompanyIdParam>(c)
     const repo = this.repository as ManagementCompanySubscriptionsRepository
 
     try {
-      const subscriptions = await repo.getByCompanyId(ctx.params.companyId)
+      const query: ISubscriptionHistoryQuery = {
+        page: ctx.query.page,
+        limit: ctx.query.limit,
+        search: ctx.query.search,
+        startDateFrom: ctx.query.startDateFrom ? new Date(ctx.query.startDateFrom) : undefined,
+        startDateTo: ctx.query.startDateTo ? new Date(ctx.query.startDateTo) : undefined,
+      }
 
-      return ctx.ok({ data: subscriptions })
+      const result = await repo.getByCompanyIdPaginated(ctx.params.companyId, query)
+
+      return ctx.ok(result)
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private async calculatePricing(c: Context): Promise<Response> {
+    const ctx = this.ctx<unknown, TCalculatePricingQuery, TCompanyIdParam>(c)
+
+    try {
+      const result = await this.pricingService.execute({
+        managementCompanyId: ctx.params.companyId,
+        condominiumRate: ctx.query.condominiumRate,
+        unitRate: ctx.query.unitRate,
+        discountType: ctx.query.discountType,
+        discountValue: ctx.query.discountValue,
+      })
+
+      if (!result.success) {
+        return ctx.badRequest({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }

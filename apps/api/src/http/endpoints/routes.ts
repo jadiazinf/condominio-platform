@@ -43,6 +43,7 @@ import { SubscriptionInvoicesEndpoint } from './subscription-invoices.endpoint'
 import { ManagementCompanyMembersEndpoint } from './management-company-members.endpoint'
 import { SupportTicketsEndpoint } from './support-tickets.endpoint'
 import { SupportTicketMessagesEndpoint } from './support-ticket-messages.endpoint'
+import { SubscriptionRatesEndpoint } from './subscription-rates.endpoint'
 import { WebSocketEndpoint } from './websocket.endpoint'
 
 /**
@@ -125,6 +126,7 @@ export class ApiRoutes {
       new ManagementCompanySubscriptionsEndpoint(db),
       new SubscriptionInvoicesEndpoint(db),
       new ManagementCompanyMembersEndpoint(db),
+      new SubscriptionRatesEndpoint(db),
 
       // Support Tickets
       new SupportTicketsEndpoint(db),

@@ -220,6 +220,7 @@ describe('AcceptInvitationService', function () {
           basePrice: data.basePrice,
           currencyId: data.currencyId,
           maxCondominiums: data.maxCondominiums,
+          maxUnits: data.maxUnits,
           maxUsers: data.maxUsers,
           maxStorageGb: data.maxStorageGb,
           customFeatures: data.customFeatures,
@@ -237,6 +238,17 @@ describe('AcceptInvitationService', function () {
           cancelledAt: null,
           cancelledBy: null,
           cancellationReason: null,
+          // Pricing fields
+          pricingCondominiumCount: data.pricingCondominiumCount ?? null,
+          pricingUnitCount: data.pricingUnitCount ?? null,
+          pricingCondominiumRate: data.pricingCondominiumRate ?? null,
+          pricingUnitRate: data.pricingUnitRate ?? null,
+          calculatedPrice: data.calculatedPrice ?? null,
+          discountType: data.discountType ?? null,
+          discountValue: data.discountValue ?? null,
+          discountAmount: data.discountAmount ?? null,
+          pricingNotes: data.pricingNotes ?? null,
+          rateId: data.rateId ?? null,
         }
       },
     }
