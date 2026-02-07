@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { eq, ne, and } from 'drizzle-orm'
 import type { TCurrency, TCurrencyCreate, TCurrencyUpdate } from '@packages/domain'
 import { currencies } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
@@ -92,5 +92,40 @@ export class CurrenciesRepository
     }
 
     return this.mapToEntity(results[0])
+  }
+
+  /**
+   * Sets a currency as the base currency, ensuring only one base currency exists.
+   * Unsets any previously marked base currency.
+   */
+  async setBaseCurrency(id: string): Promise<TCurrency | null> {
+    // Unset any existing base currency
+    await this.db
+      .update(currencies)
+      .set({ isBaseCurrency: false, updatedAt: new Date() })
+      .where(and(eq(currencies.isBaseCurrency, true), ne(currencies.id, id)))
+
+    // Set the new base currency
+    const results = await this.db
+      .update(currencies)
+      .set({ isBaseCurrency: true, updatedAt: new Date() })
+      .where(eq(currencies.id, id))
+      .returning()
+
+    if (results.length === 0) return null
+    return this.mapToEntity(results[0])
+  }
+
+  /**
+   * Override create to enforce only one base currency at a time.
+   */
+  override async create(dto: TCurrencyCreate): Promise<TCurrency> {
+    if (dto.isBaseCurrency) {
+      await this.db
+        .update(currencies)
+        .set({ isBaseCurrency: false, updatedAt: new Date() })
+        .where(eq(currencies.isBaseCurrency, true))
+    }
+    return super.create(dto)
   }
 }

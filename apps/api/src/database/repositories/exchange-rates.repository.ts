@@ -1,14 +1,14 @@
-import { and, eq, desc } from 'drizzle-orm'
-import type { TExchangeRate, TExchangeRateCreate, TExchangeRateUpdate } from '@packages/domain'
+import { and, eq, desc, gte, lte, sql } from 'drizzle-orm'
+import type { TExchangeRate, TExchangeRateCreate, TExchangeRateUpdate, TPaginatedResponse } from '@packages/domain'
 import { exchangeRates } from '@database/drizzle/schema'
-import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
+import type { TDrizzleClient } from './interfaces'
 import { BaseRepository } from './base'
 
 type TExchangeRateRecord = typeof exchangeRates.$inferSelect
 
 /**
  * Repository for managing exchange rate entities.
- * Uses hard delete since exchange rates don't have isActive flag.
+ * Uses soft delete via isActive flag.
  */
 export class ExchangeRatesRepository
   extends BaseRepository<
@@ -17,7 +17,6 @@ export class ExchangeRatesRepository
     TExchangeRateCreate,
     TExchangeRateUpdate
   >
-  implements IRepositoryWithHardDelete<TExchangeRate, TExchangeRateCreate, TExchangeRateUpdate>
 {
   constructor(db: TDrizzleClient) {
     super(db, exchangeRates)
@@ -32,9 +31,11 @@ export class ExchangeRatesRepository
       rate: r.rate,
       effectiveDate: r.effectiveDate,
       source: r.source,
+      isActive: r.isActive ?? true,
       createdBy: r.createdBy,
       registeredBy: r.registeredBy,
       createdAt: r.createdAt ?? new Date(),
+      updatedAt: r.updatedAt ?? new Date(),
     }
   }
 
@@ -45,6 +46,7 @@ export class ExchangeRatesRepository
       rate: dto.rate,
       effectiveDate: dto.effectiveDate,
       source: dto.source,
+      isActive: dto.isActive ?? true,
       createdBy: dto.createdBy,
       registeredBy: dto.registeredBy,
     }
@@ -58,6 +60,7 @@ export class ExchangeRatesRepository
     if (dto.rate !== undefined) values.rate = dto.rate
     if (dto.effectiveDate !== undefined) values.effectiveDate = dto.effectiveDate
     if (dto.source !== undefined) values.source = dto.source
+    if (dto.isActive !== undefined) values.isActive = dto.isActive
     if (dto.createdBy !== undefined) values.createdBy = dto.createdBy
     if (dto.registeredBy !== undefined) values.registeredBy = dto.registeredBy
 
@@ -65,22 +68,7 @@ export class ExchangeRatesRepository
   }
 
   /**
-   * Override listAll since exchange rates don't have isActive.
-   */
-  override async listAll(): Promise<TExchangeRate[]> {
-    const results = await this.db.select().from(exchangeRates)
-    return results.map(record => this.mapToEntity(record))
-  }
-
-  /**
-   * Override delete to use hard delete.
-   */
-  override async delete(id: string): Promise<boolean> {
-    return this.hardDelete(id)
-  }
-
-  /**
-   * Gets the latest exchange rate between two currencies.
+   * Gets the latest active exchange rate between two currencies.
    */
   async getLatestRate(fromCurrencyId: string, toCurrencyId: string): Promise<TExchangeRate | null> {
     const results = await this.db
@@ -89,7 +77,8 @@ export class ExchangeRatesRepository
       .where(
         and(
           eq(exchangeRates.fromCurrencyId, fromCurrencyId),
-          eq(exchangeRates.toCurrencyId, toCurrencyId)
+          eq(exchangeRates.toCurrencyId, toCurrencyId),
+          eq(exchangeRates.isActive, true)
         )
       )
       .orderBy(desc(exchangeRates.effectiveDate))
@@ -103,14 +92,100 @@ export class ExchangeRatesRepository
   }
 
   /**
-   * Gets exchange rates for a specific date.
+   * Gets active exchange rates for a specific date.
    */
   async getByDate(effectiveDate: string): Promise<TExchangeRate[]> {
     const results = await this.db
       .select()
       .from(exchangeRates)
-      .where(eq(exchangeRates.effectiveDate, effectiveDate))
+      .where(
+        and(
+          eq(exchangeRates.effectiveDate, effectiveDate),
+          eq(exchangeRates.isActive, true)
+        )
+      )
 
     return results.map(record => this.mapToEntity(record))
   }
+
+  /**
+   * Gets the latest active exchange rate for each unique currency pair.
+   */
+  async getLatestRates(): Promise<TExchangeRate[]> {
+    const subquery = this.db
+      .select({
+        fromCurrencyId: exchangeRates.fromCurrencyId,
+        toCurrencyId: exchangeRates.toCurrencyId,
+        maxDate: sql<string>`max(${exchangeRates.effectiveDate})`.as('max_date'),
+      })
+      .from(exchangeRates)
+      .where(eq(exchangeRates.isActive, true))
+      .groupBy(exchangeRates.fromCurrencyId, exchangeRates.toCurrencyId)
+      .as('latest')
+
+    const results = await this.db
+      .select({ er: exchangeRates })
+      .from(exchangeRates)
+      .innerJoin(
+        subquery,
+        and(
+          eq(exchangeRates.fromCurrencyId, subquery.fromCurrencyId),
+          eq(exchangeRates.toCurrencyId, subquery.toCurrencyId),
+          eq(exchangeRates.effectiveDate, subquery.maxDate)
+        )
+      )
+      .where(eq(exchangeRates.isActive, true))
+      .orderBy(desc(exchangeRates.effectiveDate))
+
+    return results.map(r => this.mapToEntity(r.er))
+  }
+
+  /**
+   * Gets all exchange rates with pagination and filters.
+   */
+  async getAllPaginated(query: IExchangeRatesQuery): Promise<TPaginatedResponse<TExchangeRate>> {
+    const page = query.page ?? 1
+    const limit = query.limit ?? 20
+    const offset = (page - 1) * limit
+
+    const conditions = []
+    if (query.fromCurrencyId) conditions.push(eq(exchangeRates.fromCurrencyId, query.fromCurrencyId))
+    if (query.toCurrencyId) conditions.push(eq(exchangeRates.toCurrencyId, query.toCurrencyId))
+    if (query.dateFrom) conditions.push(gte(exchangeRates.effectiveDate, query.dateFrom))
+    if (query.dateTo) conditions.push(lte(exchangeRates.effectiveDate, query.dateTo))
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    const countResult = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(exchangeRates)
+      .where(whereClause)
+
+    const total = countResult[0]?.count ?? 0
+
+    const results = await this.db
+      .select()
+      .from(exchangeRates)
+      .where(whereClause)
+      .orderBy(desc(exchangeRates.effectiveDate))
+      .limit(limit)
+      .offset(offset)
+
+    const data = results.map(record => this.mapToEntity(record))
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data,
+      pagination: { page, limit, total, totalPages },
+    }
+  }
+}
+
+export interface IExchangeRatesQuery {
+  page?: number
+  limit?: number
+  fromCurrencyId?: string
+  toCurrencyId?: string
+  dateFrom?: string
+  dateTo?: string
 }

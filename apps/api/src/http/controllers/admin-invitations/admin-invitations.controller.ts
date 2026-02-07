@@ -1,7 +1,5 @@
 import type { Context } from 'hono'
 import { z } from 'zod'
-import { useTranslation } from '@intlify/hono'
-import { admin } from '@libs/firebase/config'
 import { ETaxIdTypes, EIdDocumentTypes, EPreferredLanguages } from '@packages/domain'
 import type {
   AdminInvitationsRepository,
@@ -13,17 +11,23 @@ import type {
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { HttpContext } from '../../context'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import {
+  isUserAuthenticated,
+  AUTHENTICATED_USER_PROP,
+} from '../../middlewares/utils/auth/is-user-authenticated'
+import { isSuperadmin } from '../../middlewares/utils/auth/is-superadmin'
+import { isTokenValid, DECODED_TOKEN_PROP } from '../../middlewares/utils/auth/is-token-valid'
 import { createRouter } from '../create-router'
 import type { TRouteDefinition } from '../types'
 import { AppError } from '@errors/index'
 import {
   CreateCompanyWithAdminService,
+  CreateCompanyWithExistingAdminService,
   ValidateInvitationTokenService,
   AcceptInvitationService,
   CancelInvitationService,
 } from '@src/services/admin-invitations'
 import { SendInvitationEmailService } from '@src/services/email'
-import { LocaleDictionary } from '@locales/dictionary'
 import logger from '@utils/logger'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -66,6 +70,26 @@ const CreateCompanyWithAdminSchema = z.object({
 
 type TCreateCompanyWithAdminBody = z.infer<typeof CreateCompanyWithAdminSchema>
 
+const CreateCompanyWithExistingAdminSchema = z.object({
+  company: z.object({
+    name: z.string().min(1),
+    legalName: z.string().nullable().default(null),
+    taxIdType: z.enum(ETaxIdTypes).nullable().default(null),
+    taxIdNumber: z.string().nullable().default(null),
+    email: z.string().email().nullable().default(null),
+    phoneCountryCode: z.string().nullable().default(null),
+    phone: z.string().nullable().default(null),
+    website: z.string().nullable().default(null),
+    address: z.string().nullable().default(null),
+    locationId: z.string().uuid().nullable().default(null),
+    logoUrl: z.string().nullable().default(null),
+    metadata: z.record(z.string(), z.unknown()).nullable().default(null),
+  }),
+  existingUserId: z.string().uuid(),
+})
+
+type TCreateCompanyWithExistingAdminBody = z.infer<typeof CreateCompanyWithExistingAdminSchema>
+
 const TokenParamSchema = z.object({
   token: z.string().min(1),
 })
@@ -82,14 +106,16 @@ type TIdParam = z.infer<typeof IdParamSchema>
  * Controller for admin invitation endpoints.
  *
  * Endpoints:
- * - POST   /create-with-admin        Create management company with new admin (superadmin only)
- * - POST   /:id/resend-email         Resend invitation email (superadmin only)
- * - GET    /validate/:token          Validate invitation token (public)
- * - POST   /accept/:token            Accept invitation (public, requires Firebase token)
- * - DELETE /:id                      Cancel invitation (superadmin only)
+ * - POST   /create-with-admin              Create management company with new admin (superadmin only)
+ * - POST   /create-with-existing-admin    Create management company with existing user as admin (superadmin only)
+ * - POST   /:id/resend-email              Resend invitation email (superadmin only)
+ * - GET    /validate/:token               Validate invitation token (public)
+ * - POST   /accept/:token                 Accept invitation (public, requires Firebase token)
+ * - DELETE /:id                           Cancel invitation (superadmin only)
  */
 export class AdminInvitationsController {
   private readonly createCompanyWithAdminService: CreateCompanyWithAdminService
+  private readonly createCompanyWithExistingAdminService: CreateCompanyWithExistingAdminService
   private readonly validateInvitationTokenService: ValidateInvitationTokenService
   private readonly acceptInvitationService: AcceptInvitationService
   private readonly cancelInvitationService: CancelInvitationService
@@ -107,6 +133,12 @@ export class AdminInvitationsController {
       invitationsRepository,
       usersRepository,
       managementCompaniesRepository
+    )
+    this.createCompanyWithExistingAdminService = new CreateCompanyWithExistingAdminService(
+      usersRepository,
+      managementCompaniesRepository,
+      membersRepository,
+      subscriptionsRepository
     )
     this.validateInvitationTokenService = new ValidateInvitationTokenService(
       invitationsRepository,
@@ -131,13 +163,23 @@ export class AdminInvitationsController {
         method: 'post',
         path: '/create-with-admin',
         handler: this.createWithAdmin,
-        middlewares: [bodyValidator(CreateCompanyWithAdminSchema)],
+        middlewares: [isUserAuthenticated, isSuperadmin, bodyValidator(CreateCompanyWithAdminSchema)],
+      },
+      {
+        method: 'post',
+        path: '/create-with-existing-admin',
+        handler: this.createWithExistingAdmin,
+        middlewares: [
+          isUserAuthenticated,
+          isSuperadmin,
+          bodyValidator(CreateCompanyWithExistingAdminSchema),
+        ],
       },
       {
         method: 'post',
         path: '/:id/resend-email',
         handler: this.resendEmail,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [isUserAuthenticated, isSuperadmin, paramsValidator(IdParamSchema)],
       },
       {
         method: 'get',
@@ -149,13 +191,13 @@ export class AdminInvitationsController {
         method: 'post',
         path: '/accept/:token',
         handler: this.acceptInvitation,
-        middlewares: [paramsValidator(TokenParamSchema)],
+        middlewares: [isTokenValid, paramsValidator(TokenParamSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.cancelInvitation,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [isUserAuthenticated, isSuperadmin, paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -170,38 +212,17 @@ export class AdminInvitationsController {
 
   /**
    * Create a management company with a new admin user.
-   * This endpoint should be protected by superadmin middleware.
+   * Protected by isUserAuthenticated + isSuperadmin middleware.
    */
   private createWithAdmin = async (c: Context): Promise<Response> => {
     const ctx = new HttpContext<TCreateCompanyWithAdminBody>(c)
-    const t = useTranslation(c)
-
-    // Get the superadmin user from context (set by auth middleware)
-    const authHeader = c.req.header('Authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw AppError.unauthorized(t(LocaleDictionary.http.middlewares.utils.auth.malformedHeader))
-    }
-
-    const token = authHeader.slice(7)
-
-    let decodedToken: { uid: string }
-    try {
-      decodedToken = await admin.auth().verifyIdToken(token)
-    } catch (error) {
-      throw AppError.invalidToken()
-    }
+    const user = c.get(AUTHENTICATED_USER_PROP)
 
     try {
-      const creatorUser = await this.usersRepository.getByFirebaseUid(decodedToken.uid)
-
-      if (!creatorUser) {
-        throw AppError.unauthorized('User not found')
-      }
-
       const result = await this.createCompanyWithAdminService.execute({
         company: ctx.body.company,
         admin: ctx.body.admin,
-        createdBy: creatorUser.id,
+        createdBy: user.id,
       })
 
       if (!result.success) {
@@ -255,6 +276,48 @@ export class AdminInvitationsController {
       })
     } catch (error) {
       logger.error(`Error creating company with admin ${error}`)
+      if (error instanceof AppError) {
+        throw error
+      }
+      throw error
+    }
+  }
+
+  /**
+   * Create a management company with an existing user as admin.
+   * Protected by isUserAuthenticated + isSuperadmin middleware.
+   */
+  private createWithExistingAdmin = async (c: Context): Promise<Response> => {
+    const ctx = new HttpContext<TCreateCompanyWithExistingAdminBody>(c)
+    const user = c.get(AUTHENTICATED_USER_PROP)
+
+    try {
+      const result = await this.createCompanyWithExistingAdminService.execute({
+        company: ctx.body.company,
+        existingUserId: ctx.body.existingUserId,
+        createdBy: user.id,
+      })
+
+      if (!result.success) {
+        if (result.code === 'NOT_FOUND') {
+          throw AppError.notFound('User')
+        }
+        if (result.code === 'BAD_REQUEST') {
+          throw AppError.validation(result.error)
+        }
+        throw AppError.validation(result.error)
+      }
+
+      return ctx.created({
+        data: {
+          company: result.data.company,
+          admin: result.data.admin,
+          member: result.data.member,
+          subscription: result.data.subscription,
+        },
+      })
+    } catch (error) {
+      logger.error(`Error creating company with existing admin ${error}`)
       if (error instanceof AppError) {
         throw error
       }

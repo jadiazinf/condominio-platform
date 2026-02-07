@@ -30,3 +30,9 @@ export type {
   ICreateCompanyWithAdminInput,
   ICreateCompanyWithAdminResult,
 } from './create-company-with-admin.service'
+
+export { CreateCompanyWithExistingAdminService } from './create-company-with-existing-admin.service'
+export type {
+  ICreateCompanyWithExistingAdminInput,
+  ICreateCompanyWithExistingAdminResult,
+} from './create-company-with-existing-admin.service'

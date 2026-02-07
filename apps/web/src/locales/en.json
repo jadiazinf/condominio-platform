@@ -2,6 +2,7 @@
   "common": {
     "loading": "Loading...",
     "error": "Error",
+    "loadError": "Error loading data",
     "success": "Success",
     "cancel": "Cancel",
     "save": "Save",
@@ -433,7 +434,8 @@
       "condominiums": "Condominiums",
       "admins": "Property Managers",
       "tickets": "Support Tickets",
-      "permissions": "Permissions",
+      "rates": "Rates",
+      "currencies": "Currencies",
       "billing": "Billing",
       "activity": "Activity",
       "auditLogs": "Audit Logs",
@@ -1070,39 +1072,29 @@
           "description": "Geographic location and address of the condominium"
         },
         "fields": {
-          "name": {
-            "label": "Condominium Name",
-            "placeholder": "e.g. Beautiful View Residences",
-            "error": "Name is required"
-          },
-          "code": {
-            "label": "Code",
-            "placeholder": "Auto-generated if left empty"
-          },
+          "name": "Condominium Name",
+          "namePlaceholder": "e.g. Beautiful View Residences",
+          "nameDescription": "Official name of the condominium",
+          "code": "Code",
+          "codePlaceholder": "Auto-generated if left empty",
+          "codeDescription": "Unique identification code for the condominium",
+          "generateCode": "Generate code automatically",
           "status": {
             "label": "Status",
             "active": "Active",
             "inactive": "Inactive"
           },
-          "address": {
-            "label": "Exact address",
-            "placeholder": "Example: Parish, Municipality, Urbanization, Postal Code, Street",
-            "error": "Exact address is required",
-            "maxLengthError": "The address must be a maximum of 500 characters"
-          },
-          "location": {
-            "label": "Location",
-            "placeholder": "Location ID (optional)"
-          },
-          "email": {
-            "label": "Email",
-            "placeholder": "contact@condominium.com",
-            "error": "Must be a valid email"
-          },
-          "phoneNumber": {
-            "label": "Phone Number",
-            "placeholder": "+1 (809) 000-0000"
-          },
+          "address": "Address",
+          "addressPlaceholder": "Example: Parish, Municipality, Urbanization, Postal Code, Street",
+          "addressDescription": "Physical address of the condominium",
+          "location": "Location",
+          "locationDescription": "Geographic location of the condominium",
+          "email": "Email",
+          "emailPlaceholder": "contact@condominium.com",
+          "emailDescription": "Contact email for the condominium",
+          "phone": "Phone",
+          "phonePlaceholder": "+1 (809) 000-0000",
+          "phoneDescription": "Contact phone number for the condominium",
           "phoneCountryCode": {
             "label": "Code"
           },
@@ -1663,6 +1655,237 @@
           "pendingChanges": "pending change(s)",
           "permissionsSaved": "Permissions updated successfully",
           "permissionsSaveError": "Error updating permissions"
+        }
+      }
+    },
+    "rates": {
+      "title": "Subscription Rates",
+      "subtitle": "Manage platform subscription rates",
+      "create": "New Rate",
+      "empty": "No rates registered",
+      "emptyDescription": "Create the first subscription rate to get started",
+      "table": {
+        "name": "Name",
+        "version": "Version",
+        "condominiumRate": "Condominium Rate",
+        "unitRate": "Unit Rate",
+        "userRate": "User Rate",
+        "annualDiscount": "Annual Discount",
+        "status": "Status",
+        "effectiveFrom": "Effective From",
+        "effectiveUntil": "Effective Until",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "all": "All"
+      },
+      "filters": {
+        "searchPlaceholder": "Search by name or version...",
+        "status": "Status"
+      },
+      "actions": {
+        "view": "View details",
+        "activate": "Activate",
+        "deactivate": "Deactivate",
+        "activateSuccess": "Rate activated successfully",
+        "deactivateSuccess": "Rate deactivated successfully",
+        "toggleError": "Error changing rate status"
+      },
+      "form": {
+        "createTitle": "Create Subscription Rate",
+        "createSubtitle": "Define a new rate with pricing and validity",
+        "submit": "Create Rate",
+        "submitting": "Creating...",
+        "success": "Rate created successfully",
+        "error": "Error creating rate",
+        "fields": {
+          "name": {
+            "label": "Rate name",
+            "placeholder": "E.g.: Standard Plan v2"
+          },
+          "description": {
+            "label": "Description",
+            "placeholder": "Rate description (optional)"
+          },
+          "condominiumRate": {
+            "label": "Condominium Rate",
+            "placeholder": "0.00"
+          },
+          "unitRate": {
+            "label": "Unit Rate",
+            "placeholder": "0.0000"
+          },
+          "userRate": {
+            "label": "User Rate",
+            "placeholder": "0.00"
+          },
+          "annualDiscountPercentage": {
+            "label": "Annual Discount (%)",
+            "placeholder": "15"
+          },
+          "version": {
+            "label": "Version",
+            "placeholder": "E.g.: v2.0"
+          },
+          "effectiveFrom": {
+            "label": "Effective from",
+            "placeholder": "Select a date"
+          },
+          "effectiveUntil": {
+            "label": "Effective until (optional)",
+            "placeholder": "Select a date"
+          },
+          "isActive": {
+            "label": "Activate on creation"
+          }
+        },
+        "validation": {
+          "name": "Name is required",
+          "condominiumRate": "Condominium rate is required",
+          "unitRate": "Unit rate is required",
+          "version": "Version is required",
+          "effectiveFrom": "Effective date is required"
+        }
+      }
+    },
+    "currencies": {
+      "title": "Currencies",
+      "subtitle": "Manage currencies and exchange rates for the platform",
+      "tabs": {
+        "currencies": "Currencies",
+        "currentRates": "Current Rates",
+        "rateHistory": "Rate History"
+      },
+      "create": "New Currency",
+      "empty": "No currencies registered",
+      "emptyDescription": "Register the first currency to get started",
+      "table": {
+        "code": "Code",
+        "name": "Name",
+        "symbol": "Symbol",
+        "baseCurrency": "Base Currency",
+        "decimals": "Decimals",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "all": "All"
+      },
+      "filters": {
+        "status": "Status"
+      },
+      "actions": {
+        "activate": "Activate",
+        "deactivate": "Deactivate",
+        "delete": "Delete",
+        "activateSuccess": "Currency activated successfully",
+        "deactivateSuccess": "Currency deactivated successfully",
+        "deleteSuccess": "Currency deleted successfully",
+        "toggleError": "Error changing currency status"
+      },
+      "form": {
+        "createTitle": "Register Currency",
+        "createSubtitle": "Define a new currency with its code and symbol",
+        "submit": "Register Currency",
+        "submitting": "Registering...",
+        "success": "Currency registered successfully",
+        "error": "Error registering currency",
+        "fields": {
+          "code": {
+            "label": "Currency Code",
+            "placeholder": "E.g.: USD, EUR, VES"
+          },
+          "name": {
+            "label": "Name",
+            "placeholder": "E.g.: US Dollar"
+          },
+          "symbol": {
+            "label": "Symbol",
+            "placeholder": "E.g.: $, €"
+          },
+          "isBaseCurrency": {
+            "label": "Is base currency"
+          },
+          "decimals": {
+            "label": "Decimals",
+            "placeholder": "2"
+          }
+        },
+        "validation": {
+          "code": "Currency code is required",
+          "name": "Name is required"
+        }
+      },
+      "exchangeRates": {
+        "title": "Current Exchange Rates",
+        "subtitle": "Latest rate for each currency pair",
+        "create": "New Exchange Rate",
+        "empty": "No exchange rates registered",
+        "emptyDescription": "Register the first exchange rate to get started",
+        "table": {
+          "fromCurrency": "From Currency",
+          "toCurrency": "To Currency",
+          "rate": "Rate",
+          "effectiveDate": "Effective Date",
+          "source": "Source",
+          "createdAt": "Created At",
+          "actions": "Actions"
+        },
+        "filters": {
+          "fromCurrency": "From Currency",
+          "toCurrency": "To Currency",
+          "dateFrom": "From",
+          "dateTo": "To"
+        },
+        "actions": {
+          "delete": "Delete",
+          "deleteSuccess": "Exchange rate deleted successfully",
+          "deleteError": "Error deleting exchange rate"
+        },
+        "history": {
+          "title": "Exchange Rate History",
+          "subtitle": "Complete record of all exchange rates"
+        },
+        "form": {
+          "createTitle": "Register Exchange Rate",
+          "createSubtitle": "Define a new conversion between currencies",
+          "submit": "Register Rate",
+          "submitting": "Registering...",
+          "success": "Exchange rate registered successfully",
+          "error": "Error registering exchange rate",
+          "fields": {
+            "fromCurrency": {
+              "label": "From Currency",
+              "placeholder": "Select source currency"
+            },
+            "toCurrency": {
+              "label": "To Currency",
+              "placeholder": "Select target currency"
+            },
+            "rate": {
+              "label": "Exchange Rate",
+              "placeholder": "E.g.: 36.50"
+            },
+            "effectiveDate": {
+              "label": "Effective Date",
+              "placeholder": "Select a date"
+            },
+            "source": {
+              "label": "Source (optional)",
+              "placeholder": "E.g.: ECB, Manual"
+            }
+          },
+          "validation": {
+            "fromCurrency": "Select source currency",
+            "toCurrency": "Select target currency",
+            "sameCurrency": "Source and target currencies must be different",
+            "rate": "Exchange rate is required",
+            "effectiveDate": "Effective date is required"
+          }
         }
       }
     }

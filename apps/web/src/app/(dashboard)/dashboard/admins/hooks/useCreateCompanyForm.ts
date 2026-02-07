@@ -11,8 +11,8 @@ import {
   type TCreateManagementCompanyWithAdminForm,
 } from '@packages/domain'
 import {
-  createManagementCompany,
   createCompanyWithAdmin,
+  createCompanyWithExistingAdmin,
   getUserByEmail,
   HttpError,
 } from '@packages/http-client'
@@ -172,28 +172,25 @@ export function useCreateCompanyForm(options: UseCreateCompanyFormOptions = {}) 
         setIsSubmitting(true)
         const token = await firebaseUser.getIdToken()
 
-        // Prepare company data
-        const companyData = {
-          name: data.company.name,
-          legalName: data.company.legalName || null,
-          taxIdType: data.company.taxIdType || null,
-          taxIdNumber: data.company.taxIdNumber || null,
-          email: data.company.email || null,
-          phoneCountryCode: data.company.phoneCountryCode || null,
-          phone: data.company.phone || null,
-          website: data.company.website || null,
-          address: data.company.address || null,
-          locationId: data.company.locationId || null,
-          isActive: true,
-          logoUrl: null,
-          metadata: null,
-          createdBy: null, // Backend will set from authenticated user
-        }
-
         if (data.admin.mode === 'existing' && data.admin.existingUserId) {
-          // For existing users, create company with isActive=true
-          // Backend will set createdBy from authenticated user
-          await createManagementCompany(token, companyData)
+          // For existing users, create company + link user as primary admin + create trial subscription
+          await createCompanyWithExistingAdmin(token, {
+            company: {
+              name: data.company.name,
+              legalName: data.company.legalName || null,
+              taxIdType: data.company.taxIdType || null,
+              taxIdNumber: data.company.taxIdNumber || null,
+              email: data.company.email || null,
+              phoneCountryCode: data.company.phoneCountryCode || null,
+              phone: data.company.phone || null,
+              website: data.company.website || null,
+              address: data.company.address || null,
+              locationId: data.company.locationId || null,
+              logoUrl: null,
+              metadata: null,
+            },
+            existingUserId: data.admin.existingUserId,
+          })
         } else {
           // For new users, use the invitation flow
           // This creates: user (inactive), company (inactive), and invitation

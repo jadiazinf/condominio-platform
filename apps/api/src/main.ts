@@ -3,9 +3,11 @@ import { Server } from '@http/server'
 import { env } from '@config/environment'
 import { DatabaseService } from '@database/service'
 import { websocket, handleWebSocketUpgrade } from '@http/endpoints'
+import { startBcvExchangeRatesCron } from '@src/cron/bcv-exchange-rates.cron'
 
 async function main() {
   DatabaseService.getInstance()
+  startBcvExchangeRatesCron()
 
   const app = Server.getInstance().buildApp()
 

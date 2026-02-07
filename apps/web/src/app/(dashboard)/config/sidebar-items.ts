@@ -8,7 +8,8 @@ import {
   Users,
   Building2,
   Building,
-  Shield,
+  DollarSign,
+  Coins,
   CreditCard,
   MessageSquare,
 } from 'lucide-react'
@@ -63,10 +64,16 @@ export const superadminSidebarItems: TSidebarItemConfig[] = [
     href: '/dashboard/admins',
   },
   {
-    key: 'permissions',
-    title: 'superadmin.nav.permissions',
-    icon: Shield,
-    href: '/dashboard/permissions',
+    key: 'rates',
+    title: 'superadmin.nav.rates',
+    icon: DollarSign,
+    href: '/dashboard/rates',
+  },
+  {
+    key: 'currencies',
+    title: 'superadmin.nav.currencies',
+    icon: Coins,
+    href: '/dashboard/currencies',
   },
   {
     key: 'billing',

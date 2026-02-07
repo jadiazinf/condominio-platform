@@ -36,6 +36,7 @@ function createExchangeRate(
     rate: '1.100000',
     effectiveDate: new Date().toISOString().split('T')[0] as string,
     source: 'manual',
+    isActive: true,
     createdBy: null,
     registeredBy: null,
     ...overrides,

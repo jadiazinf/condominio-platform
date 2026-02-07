@@ -13,7 +13,9 @@ export const exchangeRateSchema = z.object({
   rate: z.string({ error: d.rate.required }),
   effectiveDate: dateField,
   source: z.string().max(100, { error: d.source.max }).nullable(),
+  isActive: z.boolean().default(true),
   createdAt: timestampField,
+  updatedAt: timestampField,
   createdBy: z.uuid({ error: d.createdBy.invalid }).nullable(),
   registeredBy: z.uuid().nullable(),
   // Relations

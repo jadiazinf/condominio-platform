@@ -2,6 +2,7 @@
   "common": {
     "loading": "Cargando...",
     "error": "Error",
+    "loadError": "Error al cargar los datos",
     "success": "Exitoso",
     "cancel": "Cancelar",
     "save": "Guardar",
@@ -442,7 +443,8 @@
       "condominiums": "Condominios",
       "admins": "Administradoras",
       "tickets": "Tickets de Soporte",
-      "permissions": "Permisos",
+      "rates": "Tarifas",
+      "currencies": "Divisas",
       "billing": "Facturación",
       "activity": "Actividad",
       "auditLogs": "Logs de Auditoría",
@@ -1083,38 +1085,29 @@
           "description": "Ubicación geográfica y dirección del condominio"
         },
         "fields": {
-          "name": {
-            "label": "Nombre del Condominio",
-            "placeholder": "Ej: Residencial Vista Hermosa",
-            "error": "El nombre es requerido"
-          },
-          "code": {
-            "label": "Código",
-            "placeholder": "Auto-generado si se deja vacío"
-          },
+          "name": "Nombre del Condominio",
+          "namePlaceholder": "Ej: Residencial Vista Hermosa",
+          "nameDescription": "Nombre oficial del condominio",
+          "code": "Código",
+          "codePlaceholder": "Auto-generado si se deja vacío",
+          "codeDescription": "Código único de identificación del condominio",
+          "generateCode": "Generar código automáticamente",
           "status": {
             "label": "Estado",
             "active": "Activo",
             "inactive": "Inactivo"
           },
-          "address": {
-            "label": "Dirección",
-            "placeholder": "Av. Principal, Sector Centro",
-            "error": "La dirección es requerida"
-          },
-          "location": {
-            "label": "Ubicación",
-            "placeholder": "ID de ubicación (opcional)"
-          },
-          "email": {
-            "label": "Correo Electrónico",
-            "placeholder": "contacto@condominio.com",
-            "error": "Debe ser un correo válido"
-          },
-          "phoneNumber": {
-            "label": "Teléfono",
-            "placeholder": "+1 (809) 000-0000"
-          },
+          "address": "Dirección",
+          "addressPlaceholder": "Av. Principal, Sector Centro",
+          "addressDescription": "Dirección física del condominio",
+          "location": "Ubicación",
+          "locationDescription": "Ubicación geográfica del condominio",
+          "email": "Correo Electrónico",
+          "emailPlaceholder": "contacto@condominio.com",
+          "emailDescription": "Correo electrónico de contacto del condominio",
+          "phone": "Teléfono",
+          "phonePlaceholder": "+1 (809) 000-0000",
+          "phoneDescription": "Número de teléfono de contacto del condominio",
           "phoneCountryCode": {
             "label": "Código"
           },
@@ -1685,6 +1678,237 @@
           "permissionsSaveError": "Error al actualizar los permisos",
           "selectAllPermissions": "Seleccionar todos los permisos",
           "deselectAllPermissions": "Deseleccionar todos los permisos"
+        }
+      }
+    },
+    "rates": {
+      "title": "Tarifas de Suscripción",
+      "subtitle": "Gestiona las tarifas de suscripción de la plataforma",
+      "create": "Nueva Tarifa",
+      "empty": "No hay tarifas registradas",
+      "emptyDescription": "Crea la primera tarifa de suscripción para comenzar",
+      "table": {
+        "name": "Nombre",
+        "version": "Versión",
+        "condominiumRate": "Tarifa Condominio",
+        "unitRate": "Tarifa Unidad",
+        "userRate": "Tarifa Usuario",
+        "annualDiscount": "Desc. Anual",
+        "status": "Estado",
+        "effectiveFrom": "Vigente desde",
+        "effectiveUntil": "Vigente hasta",
+        "actions": "Acciones"
+      },
+      "status": {
+        "active": "Activa",
+        "inactive": "Inactiva",
+        "all": "Todas"
+      },
+      "filters": {
+        "searchPlaceholder": "Buscar por nombre o versión...",
+        "status": "Estado"
+      },
+      "actions": {
+        "view": "Ver detalles",
+        "activate": "Activar",
+        "deactivate": "Desactivar",
+        "activateSuccess": "Tarifa activada correctamente",
+        "deactivateSuccess": "Tarifa desactivada correctamente",
+        "toggleError": "Error al cambiar el estado de la tarifa"
+      },
+      "form": {
+        "createTitle": "Crear Tarifa de Suscripción",
+        "createSubtitle": "Define una nueva tarifa con sus precios y vigencia",
+        "submit": "Crear Tarifa",
+        "submitting": "Creando...",
+        "success": "Tarifa creada exitosamente",
+        "error": "Error al crear la tarifa",
+        "fields": {
+          "name": {
+            "label": "Nombre de la tarifa",
+            "placeholder": "Ej: Plan Estándar v2"
+          },
+          "description": {
+            "label": "Descripción",
+            "placeholder": "Descripción de la tarifa (opcional)"
+          },
+          "condominiumRate": {
+            "label": "Tarifa por Condominio",
+            "placeholder": "0.00"
+          },
+          "unitRate": {
+            "label": "Tarifa por Unidad",
+            "placeholder": "0.0000"
+          },
+          "userRate": {
+            "label": "Tarifa por Usuario",
+            "placeholder": "0.00"
+          },
+          "annualDiscountPercentage": {
+            "label": "Descuento Anual (%)",
+            "placeholder": "15"
+          },
+          "version": {
+            "label": "Versión",
+            "placeholder": "Ej: v2.0"
+          },
+          "effectiveFrom": {
+            "label": "Vigente desde",
+            "placeholder": "Selecciona una fecha"
+          },
+          "effectiveUntil": {
+            "label": "Vigente hasta (opcional)",
+            "placeholder": "Selecciona una fecha"
+          },
+          "isActive": {
+            "label": "Activar al crear"
+          }
+        },
+        "validation": {
+          "name": "El nombre es requerido",
+          "condominiumRate": "La tarifa por condominio es requerida",
+          "unitRate": "La tarifa por unidad es requerida",
+          "version": "La versión es requerida",
+          "effectiveFrom": "La fecha de vigencia es requerida"
+        }
+      }
+    },
+    "currencies": {
+      "title": "Divisas",
+      "subtitle": "Gestiona las divisas y tasas de cambio de la plataforma",
+      "tabs": {
+        "currencies": "Divisas",
+        "currentRates": "Tasas Actuales",
+        "rateHistory": "Historial de Tasas"
+      },
+      "create": "Nueva Divisa",
+      "empty": "No hay divisas registradas",
+      "emptyDescription": "Registra la primera divisa para comenzar",
+      "table": {
+        "code": "Código",
+        "name": "Nombre",
+        "symbol": "Símbolo",
+        "baseCurrency": "Divisa Base",
+        "decimals": "Decimales",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "status": {
+        "active": "Activa",
+        "inactive": "Inactiva",
+        "all": "Todas"
+      },
+      "filters": {
+        "status": "Estado"
+      },
+      "actions": {
+        "activate": "Activar",
+        "deactivate": "Desactivar",
+        "delete": "Eliminar",
+        "activateSuccess": "Divisa activada correctamente",
+        "deactivateSuccess": "Divisa desactivada correctamente",
+        "deleteSuccess": "Divisa eliminada correctamente",
+        "toggleError": "Error al cambiar el estado de la divisa"
+      },
+      "form": {
+        "createTitle": "Registrar Divisa",
+        "createSubtitle": "Define una nueva divisa con su código y símbolo",
+        "submit": "Registrar Divisa",
+        "submitting": "Registrando...",
+        "success": "Divisa registrada exitosamente",
+        "error": "Error al registrar la divisa",
+        "fields": {
+          "code": {
+            "label": "Código de Divisa",
+            "placeholder": "Ej: USD, EUR, VES"
+          },
+          "name": {
+            "label": "Nombre",
+            "placeholder": "Ej: Dólar Estadounidense"
+          },
+          "symbol": {
+            "label": "Símbolo",
+            "placeholder": "Ej: $, €, Bs."
+          },
+          "isBaseCurrency": {
+            "label": "Es divisa base"
+          },
+          "decimals": {
+            "label": "Decimales",
+            "placeholder": "2"
+          }
+        },
+        "validation": {
+          "code": "El código de divisa es requerido",
+          "name": "El nombre es requerido"
+        }
+      },
+      "exchangeRates": {
+        "title": "Tasas de Cambio Actuales",
+        "subtitle": "Tasa más reciente para cada par de divisas",
+        "create": "Nueva Tasa de Cambio",
+        "empty": "No hay tasas de cambio registradas",
+        "emptyDescription": "Registra la primera tasa de cambio para comenzar",
+        "table": {
+          "fromCurrency": "Divisa Origen",
+          "toCurrency": "Divisa Destino",
+          "rate": "Tasa",
+          "effectiveDate": "Fecha Efectiva",
+          "source": "Fuente",
+          "createdAt": "Fecha de Registro",
+          "actions": "Acciones"
+        },
+        "filters": {
+          "fromCurrency": "Divisa Origen",
+          "toCurrency": "Divisa Destino",
+          "dateFrom": "Desde",
+          "dateTo": "Hasta"
+        },
+        "actions": {
+          "delete": "Eliminar",
+          "deleteSuccess": "Tasa de cambio eliminada correctamente",
+          "deleteError": "Error al eliminar la tasa de cambio"
+        },
+        "history": {
+          "title": "Historial de Tasas de Cambio",
+          "subtitle": "Registro completo de todas las tasas de cambio"
+        },
+        "form": {
+          "createTitle": "Registrar Tasa de Cambio",
+          "createSubtitle": "Define una nueva conversión entre divisas",
+          "submit": "Registrar Tasa",
+          "submitting": "Registrando...",
+          "success": "Tasa de cambio registrada exitosamente",
+          "error": "Error al registrar la tasa de cambio",
+          "fields": {
+            "fromCurrency": {
+              "label": "Divisa Origen",
+              "placeholder": "Selecciona la divisa de origen"
+            },
+            "toCurrency": {
+              "label": "Divisa Destino",
+              "placeholder": "Selecciona la divisa de destino"
+            },
+            "rate": {
+              "label": "Tasa de Cambio",
+              "placeholder": "Ej: 36.50"
+            },
+            "effectiveDate": {
+              "label": "Fecha Efectiva",
+              "placeholder": "Selecciona una fecha"
+            },
+            "source": {
+              "label": "Fuente (opcional)",
+              "placeholder": "Ej: BCV, Monitor Dólar"
+            }
+          },
+          "validation": {
+            "fromCurrency": "Selecciona la divisa de origen",
+            "toCurrency": "Selecciona la divisa de destino",
+            "sameCurrency": "Las divisas de origen y destino deben ser diferentes",
+            "rate": "La tasa de cambio es requerida",
+            "effectiveDate": "La fecha efectiva es requerida"
+          }
         }
       }
     }

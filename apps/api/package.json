@@ -27,6 +27,7 @@
     "@packages/domain": "workspace:*",
     "@packages/http-client": "workspace:*",
     "@packages/utils": "workspace:*",
+    "cheerio": "^1.2.0",
     "dayjs": "^1.11.19",
     "drizzle-orm": "^0.44.7",
     "eslint-plugin-unused-imports": "^4.3.0",

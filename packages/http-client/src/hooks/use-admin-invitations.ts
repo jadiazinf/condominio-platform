@@ -4,6 +4,8 @@ import type {
   TUserCreate,
   TManagementCompany,
   TManagementCompanyCreate,
+  TManagementCompanyMember,
+  TManagementCompanySubscription,
 } from '@packages/domain'
 
 import { getHttpClient } from '../client/http-client'
@@ -43,6 +45,18 @@ export type TAcceptInvitationResult = {
   invitation: TAdminInvitation
   user: TUser
   managementCompany: TManagementCompany
+}
+
+export type TCreateCompanyWithExistingAdminInput = {
+  company: Omit<TManagementCompanyCreate, 'createdBy' | 'isActive'>
+  existingUserId: string
+}
+
+export type TCreateCompanyWithExistingAdminResult = {
+  company: TManagementCompany
+  admin: TUser
+  member: TManagementCompanyMember
+  subscription: TManagementCompanySubscription
 }
 
 // =============================================================================
@@ -176,6 +190,28 @@ export async function resendInvitationEmail(
     {
       headers: {
         Authorization: `Bearer ${authToken}`,
+      },
+    }
+  )
+
+  return response.data.data
+}
+
+/**
+ * Creates a management company with an existing user as admin.
+ * The company is created active and the user is immediately linked as primary admin.
+ */
+export async function createCompanyWithExistingAdmin(
+  token: string,
+  input: TCreateCompanyWithExistingAdminInput
+): Promise<TCreateCompanyWithExistingAdminResult> {
+  const client = getHttpClient()
+  const response = await client.post<TApiDataResponse<TCreateCompanyWithExistingAdminResult>>(
+    '/admin-invitations/create-with-existing-admin',
+    input,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
     }
   )

@@ -40,7 +40,8 @@
       "@entities/*": ["./src/domain/entities/*"],
       "@shared/*": ["./src/shared/*"],
       "@errors/*": ["./src/errors/*"],
-      "@errors": ["./src/errors/index.ts"]
+      "@errors": ["./src/errors/index.ts"],
+      "@services/*": ["./src/services/*"]
     }
   },
   "include": ["src", "tests", "drizzle.config.ts", "eslint.config.mjs"],

@@ -20,7 +20,9 @@ describe('GetLatestRateService', function () {
     rate: '36.50',
     effectiveDate: '2024-01-15',
     source: 'BCV',
+    isActive: true,
     createdAt: new Date(),
+    updatedAt: new Date(),
     createdBy: null,
     registeredBy: null,
   }

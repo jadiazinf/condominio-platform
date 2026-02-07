@@ -176,8 +176,67 @@ const createAuthMock = () => {
   }
 }
 
-// Mock both path alias and resolved paths for auth middleware
+// Mock both path alias and resolved paths for auth middleware (barrel export)
 mock.module('@http/middlewares/auth', createAuthMock)
 mock.module(path.resolve(process.cwd(), 'src/http/middlewares/auth.ts'), createAuthMock)
 mock.module(path.resolve(__dirname, '../../src/http/middlewares/auth.ts'), createAuthMock)
 mock.module('../../middlewares/auth', createAuthMock)
+
+// Mock direct path imports for is-user-authenticated
+// (some controllers import directly instead of through barrel)
+const createAuthMockDirect = () => ({
+  isUserAuthenticated: createAuthMock().isUserAuthenticated,
+  AUTHENTICATED_USER_PROP: 'user',
+})
+mock.module('@http/middlewares/utils/auth/is-user-authenticated', createAuthMockDirect)
+mock.module(
+  path.resolve(process.cwd(), 'src/http/middlewares/utils/auth/is-user-authenticated.ts'),
+  createAuthMockDirect
+)
+mock.module(
+  path.resolve(__dirname, '../../src/http/middlewares/utils/auth/is-user-authenticated.ts'),
+  createAuthMockDirect
+)
+
+// Mock direct path imports for is-token-valid
+const createTokenValidMockDirect = () => ({
+  isTokenValid: createAuthMock().isTokenValid,
+  DECODED_TOKEN_PROP: 'decodedToken',
+})
+mock.module('@http/middlewares/utils/auth/is-token-valid', createTokenValidMockDirect)
+mock.module(
+  path.resolve(process.cwd(), 'src/http/middlewares/utils/auth/is-token-valid.ts'),
+  createTokenValidMockDirect
+)
+mock.module(
+  path.resolve(__dirname, '../../src/http/middlewares/utils/auth/is-token-valid.ts'),
+  createTokenValidMockDirect
+)
+
+// Mock isSuperadmin middleware
+const createSuperadminMock = () => {
+  const mockSuperadminHandler = async (
+    c: { set: (key: string, value: unknown) => void },
+    next: () => Promise<void>
+  ) => {
+    c.set('superadminUser', {
+      id: 'mock-superadmin-user-role-id',
+      userId: mockUser.id,
+      roleId: 'mock-superadmin-role-id',
+    })
+    await next()
+  }
+  return {
+    isSuperadmin: mockSuperadminHandler,
+    SUPERADMIN_USER_PROP: 'superadminUser',
+  }
+}
+mock.module('@http/middlewares/utils/auth/is-superadmin', createSuperadminMock)
+mock.module(
+  path.resolve(process.cwd(), 'src/http/middlewares/utils/auth/is-superadmin.ts'),
+  createSuperadminMock
+)
+mock.module(
+  path.resolve(__dirname, '../../src/http/middlewares/utils/auth/is-superadmin.ts'),
+  createSuperadminMock
+)

@@ -6,7 +6,7 @@ import { cn } from '@heroui/theme'
 import { ReactNode, KeyboardEvent, ClipboardEvent, forwardRef } from 'react'
 import { Info } from 'lucide-react'
 
-type TInputType = 'text' | 'email' | 'password' | 'tel' | 'url' | 'search' | 'number'
+type TInputType = 'text' | 'email' | 'password' | 'tel' | 'url' | 'search' | 'number' | 'date'
 
 type TInputMode = 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search'
 

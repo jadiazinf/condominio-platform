@@ -15,6 +15,7 @@ export class ExchangeRateFactory {
       rate: faker.number.float({ min: 0.5, max: 100, fractionDigits: 8 }).toString(),
       effectiveDate: faker.date.recent().toISOString().split('T')[0]!,
       source: faker.helpers.arrayElement(['BCV', 'Manual', 'API', 'Bank']),
+      isActive: true,
       createdBy: null,
       registeredBy: null,
       ...overrides,

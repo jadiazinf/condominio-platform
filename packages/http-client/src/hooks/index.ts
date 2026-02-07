@@ -182,6 +182,7 @@ export {
 } from './use-locations'
 export {
   createCompanyWithAdmin,
+  createCompanyWithExistingAdmin,
   validateInvitationToken,
   acceptInvitation,
   cancelInvitation,
@@ -190,6 +191,8 @@ export {
   resendInvitationEmail,
   type TCreateCompanyWithAdminInput,
   type TCreateCompanyWithAdminResult,
+  type TCreateCompanyWithExistingAdminInput,
+  type TCreateCompanyWithExistingAdminResult,
   type TValidateInvitationResult,
   type TAcceptInvitationInput,
   type TAcceptInvitationResult,
@@ -435,6 +438,39 @@ export {
   type IActivateSubscriptionRateOptions,
   type IDeactivateSubscriptionRateOptions,
 } from './use-subscription-rates'
+export {
+  useCurrencies,
+  useCurrency,
+  useBaseCurrency,
+  useCreateCurrency,
+  useUpdateCurrency,
+  useDeleteCurrency,
+  getCurrencies,
+  getBaseCurrency,
+  getCurrency,
+  currencyKeys,
+  type IUseCurrenciesOptions,
+  type IUseCurrencyOptions,
+  type ICreateCurrencyOptions,
+  type IUpdateCurrencyOptions,
+  type IDeleteCurrencyOptions,
+} from './use-currencies'
+export {
+  useExchangeRates,
+  useExchangeRatesPaginated,
+  useLatestExchangeRates,
+  useLatestExchangeRate,
+  useExchangeRatesByDate,
+  useCreateExchangeRate,
+  useDeleteExchangeRate,
+  getLatestExchangeRates,
+  getExchangeRatesPaginated,
+  exchangeRateKeys,
+  type IExchangeRatesQuery,
+  type IUseExchangeRatesOptions,
+  type ICreateExchangeRateOptions,
+  type IDeleteExchangeRateOptions,
+} from './use-exchange-rates'
 
 // Re-export commonly used TanStack Query hooks
 export {

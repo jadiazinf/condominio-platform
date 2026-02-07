@@ -26,11 +26,22 @@ const DateParamSchema = z.object({
 
 type TDateParam = z.infer<typeof DateParamSchema>
 
+type TExchangeRatesQuery = {
+  page?: number
+  limit?: number
+  fromCurrencyId?: string
+  toCurrencyId?: string
+  dateFrom?: string
+  dateTo?: string
+}
+
 /**
  * Controller for managing exchange rate resources.
  *
  * Endpoints:
  * - GET    /                                           List all exchange rates
+ * - GET    /paginated                                  List with pagination and filters
+ * - GET    /latest                                     Latest rate per currency pair
  * - GET    /date/:date                                 Get by date
  * - GET    /latest/:fromCurrencyId/:toCurrencyId       Get latest rate for currency pair
  * - GET    /:id                                        Get by ID
@@ -46,12 +57,16 @@ export class ExchangeRatesController extends BaseController<
   constructor(repository: ExchangeRatesRepository) {
     super(repository)
     this.getLatestRate = this.getLatestRate.bind(this)
+    this.getLatestRates = this.getLatestRates.bind(this)
     this.getByDate = this.getByDate.bind(this)
+    this.listPaginated = this.listPaginated.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
       { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/paginated', handler: this.listPaginated },
+      { method: 'get', path: '/latest', handler: this.getLatestRates },
       {
         method: 'get',
         path: '/date/:date',
@@ -94,6 +109,39 @@ export class ExchangeRatesController extends BaseController<
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
+
+  private async listPaginated(c: Context): Promise<Response> {
+    const ctx = this.ctx(c)
+    const repo = this.repository as ExchangeRatesRepository
+    const raw = c.req.query()
+
+    try {
+      const result = await repo.getAllPaginated({
+        page: raw.page ? parseInt(raw.page) : undefined,
+        limit: raw.limit ? parseInt(raw.limit) : undefined,
+        fromCurrencyId: raw.fromCurrencyId || undefined,
+        toCurrencyId: raw.toCurrencyId || undefined,
+        dateFrom: raw.dateFrom || undefined,
+        dateTo: raw.dateTo || undefined,
+      })
+
+      return ctx.ok(result)
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private async getLatestRates(c: Context): Promise<Response> {
+    const ctx = this.ctx(c)
+    const repo = this.repository as ExchangeRatesRepository
+
+    try {
+      const rates = await repo.getLatestRates()
+      return ctx.ok({ data: rates })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
 
   private async getLatestRate(c: Context): Promise<Response> {
     const ctx = this.ctx<unknown, unknown, TCurrencyPairParam>(c)
