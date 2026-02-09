@@ -225,6 +225,61 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
+    DO $$ BEGIN
+      CREATE TYPE subscription_status AS ENUM ('trial', 'active', 'inactive', 'cancelled', 'suspended');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE billing_cycle AS ENUM ('monthly', 'quarterly', 'semi_annual', 'annual', 'custom');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE discount_type AS ENUM ('percentage', 'fixed');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE invoice_status AS ENUM ('draft', 'sent', 'pending', 'paid', 'overdue', 'cancelled', 'refunded');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE acceptance_status AS ENUM ('pending', 'accepted', 'expired', 'cancelled');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE subscription_audit_action AS ENUM ('created', 'activated', 'deactivated', 'updated', 'cancelled', 'renewed', 'terms_accepted', 'price_changed');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE reservation_status AS ENUM ('pending', 'approved', 'rejected', 'cancelled');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE notification_category AS ENUM ('payment', 'quota', 'announcement', 'reminder', 'alert', 'system');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE notification_channel AS ENUM ('in_app', 'email', 'push');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE device_platform AS ENUM ('web', 'ios', 'android');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE delivery_status AS ENUM ('pending', 'sent', 'delivered', 'failed', 'bounced');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
     CREATE TABLE IF NOT EXISTS locations (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(200) NOT NULL,
@@ -284,7 +339,9 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       source VARCHAR(100),
       created_by UUID REFERENCES users(id) ON DELETE SET NULL,
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      is_active BOOLEAN DEFAULT true,
       created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
       CONSTRAINT check_different_currencies CHECK (from_currency_id != to_currency_id)
     );
 
@@ -889,6 +946,240 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP NOT NULL DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS subscription_rates (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(100) NOT NULL,
+      description TEXT,
+      condominium_rate DECIMAL(10, 2) NOT NULL,
+      unit_rate DECIMAL(10, 4) NOT NULL,
+      user_rate DECIMAL(10, 2) NOT NULL DEFAULT '0',
+      annual_discount_percentage DECIMAL(5, 2) DEFAULT '15' NOT NULL,
+      min_condominiums INTEGER DEFAULT 1 NOT NULL,
+      max_condominiums INTEGER,
+      version VARCHAR(50) NOT NULL,
+      is_active BOOLEAN DEFAULT false NOT NULL,
+      effective_from TIMESTAMP NOT NULL,
+      effective_until TIMESTAMP,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+      updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS subscription_terms_conditions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      version VARCHAR(50) NOT NULL UNIQUE,
+      title VARCHAR(255) NOT NULL,
+      content TEXT NOT NULL,
+      summary TEXT,
+      effective_from TIMESTAMP NOT NULL,
+      effective_until TIMESTAMP,
+      is_active BOOLEAN DEFAULT true NOT NULL,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+      updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS management_company_subscriptions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      management_company_id UUID NOT NULL REFERENCES management_companies(id) ON DELETE CASCADE,
+      subscription_name VARCHAR(100),
+      billing_cycle billing_cycle NOT NULL,
+      base_price DECIMAL(10, 2) NOT NULL,
+      currency_id UUID REFERENCES currencies(id) ON DELETE RESTRICT,
+      pricing_condominium_count INTEGER,
+      pricing_unit_count INTEGER,
+      pricing_condominium_rate DECIMAL(10, 2),
+      pricing_unit_rate DECIMAL(10, 4),
+      calculated_price DECIMAL(10, 2),
+      discount_type discount_type,
+      discount_value DECIMAL(10, 2),
+      discount_amount DECIMAL(10, 2),
+      pricing_notes TEXT,
+      rate_id UUID REFERENCES subscription_rates(id) ON DELETE SET NULL,
+      max_condominiums INTEGER,
+      max_units INTEGER,
+      max_users INTEGER,
+      max_storage_gb INTEGER,
+      custom_features JSONB,
+      custom_rules JSONB,
+      status subscription_status DEFAULT 'trial' NOT NULL,
+      start_date TIMESTAMP DEFAULT NOW() NOT NULL,
+      end_date TIMESTAMP,
+      next_billing_date TIMESTAMP,
+      trial_ends_at TIMESTAMP,
+      auto_renew BOOLEAN DEFAULT true,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      cancelled_at TIMESTAMP,
+      cancelled_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      cancellation_reason TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS subscription_acceptances (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      subscription_id UUID NOT NULL REFERENCES management_company_subscriptions(id) ON DELETE CASCADE,
+      terms_conditions_id UUID NOT NULL REFERENCES subscription_terms_conditions(id) ON DELETE RESTRICT,
+      token VARCHAR(64) NOT NULL,
+      token_hash VARCHAR(64) NOT NULL UNIQUE,
+      status acceptance_status DEFAULT 'pending' NOT NULL,
+      expires_at TIMESTAMP NOT NULL,
+      accepted_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      accepted_at TIMESTAMP,
+      acceptor_email VARCHAR(255),
+      ip_address INET,
+      user_agent TEXT,
+      created_at TIMESTAMP DEFAULT NOW() NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS subscription_invoices (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      invoice_number VARCHAR(50) NOT NULL UNIQUE,
+      subscription_id UUID NOT NULL REFERENCES management_company_subscriptions(id) ON DELETE RESTRICT,
+      management_company_id UUID NOT NULL REFERENCES management_companies(id) ON DELETE CASCADE,
+      amount DECIMAL(10, 2) NOT NULL,
+      currency_id UUID REFERENCES currencies(id) ON DELETE RESTRICT,
+      tax_amount DECIMAL(10, 2) DEFAULT '0',
+      total_amount DECIMAL(10, 2) NOT NULL,
+      status invoice_status DEFAULT 'pending' NOT NULL,
+      issue_date TIMESTAMP DEFAULT NOW() NOT NULL,
+      due_date TIMESTAMP NOT NULL,
+      paid_date TIMESTAMP,
+      payment_id UUID REFERENCES payments(id) ON DELETE SET NULL,
+      payment_method VARCHAR(50),
+      billing_period_start TIMESTAMP NOT NULL,
+      billing_period_end TIMESTAMP NOT NULL,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS subscription_audit_history (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      subscription_id UUID NOT NULL REFERENCES management_company_subscriptions(id) ON DELETE CASCADE,
+      action subscription_audit_action NOT NULL,
+      previous_values JSONB,
+      new_values JSONB,
+      changed_fields TEXT[],
+      performed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      performed_at TIMESTAMP DEFAULT NOW() NOT NULL,
+      reason TEXT,
+      ip_address INET,
+      user_agent TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS amenities (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      name VARCHAR(255) NOT NULL,
+      description TEXT,
+      location VARCHAR(255),
+      capacity INTEGER,
+      requires_approval BOOLEAN DEFAULT false,
+      reservation_rules JSONB,
+      is_active BOOLEAN DEFAULT true,
+      metadata JSONB,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS amenity_reservations (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      amenity_id UUID NOT NULL REFERENCES amenities(id) ON DELETE CASCADE,
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      start_time TIMESTAMP NOT NULL,
+      end_time TIMESTAMP NOT NULL,
+      status reservation_status DEFAULT 'pending',
+      notes TEXT,
+      rejection_reason TEXT,
+      approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      approved_at TIMESTAMP,
+      cancelled_at TIMESTAMP,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS notification_templates (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      code VARCHAR(100) NOT NULL UNIQUE,
+      name VARCHAR(255) NOT NULL,
+      category notification_category NOT NULL,
+      subject_template VARCHAR(500),
+      body_template TEXT NOT NULL,
+      variables JSONB,
+      default_channels JSONB DEFAULT '["in_app"]',
+      is_active BOOLEAN DEFAULT true,
+      metadata JSONB,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS notifications (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      template_id UUID REFERENCES notification_templates(id) ON DELETE SET NULL,
+      category notification_category NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      body TEXT NOT NULL,
+      priority priority DEFAULT 'normal',
+      data JSONB,
+      is_read BOOLEAN DEFAULT false,
+      read_at TIMESTAMP,
+      expires_at TIMESTAMP,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS notification_deliveries (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      notification_id UUID NOT NULL REFERENCES notifications(id) ON DELETE CASCADE,
+      channel notification_channel NOT NULL,
+      status delivery_status DEFAULT 'pending',
+      sent_at TIMESTAMP,
+      delivered_at TIMESTAMP,
+      failed_at TIMESTAMP,
+      error_message TEXT,
+      retry_count INTEGER DEFAULT 0,
+      external_id VARCHAR(255),
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(notification_id, channel)
+    );
+
+    CREATE TABLE IF NOT EXISTS user_notification_preferences (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      category notification_category NOT NULL,
+      channel notification_channel NOT NULL,
+      is_enabled BOOLEAN DEFAULT true,
+      quiet_hours_start VARCHAR(5),
+      quiet_hours_end VARCHAR(5),
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(user_id, category, channel)
+    );
+
+    CREATE TABLE IF NOT EXISTS user_fcm_tokens (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      token VARCHAR(500) NOT NULL,
+      platform device_platform NOT NULL,
+      device_name VARCHAR(255),
+      is_active BOOLEAN DEFAULT true,
+      last_used_at TIMESTAMP,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(user_id, token)
+    );
   `)
   const elapsed = performance.now() - start
   console.log(`[TestContainer] createSchema took ${elapsed.toFixed(1)}ms`)
@@ -937,6 +1228,19 @@ export async function cleanDatabase(testDb: TTestDrizzleClient): Promise<void> {
   // Truncate all tables in one command for better performance
   await testDb.execute(sql`
     TRUNCATE TABLE
+      user_fcm_tokens,
+      user_notification_preferences,
+      notification_deliveries,
+      notifications,
+      notification_templates,
+      amenity_reservations,
+      amenities,
+      subscription_audit_history,
+      subscription_invoices,
+      subscription_acceptances,
+      management_company_subscriptions,
+      subscription_terms_conditions,
+      subscription_rates,
       support_ticket_assignment_history,
       support_ticket_messages,
       support_tickets,

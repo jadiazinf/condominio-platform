@@ -62,7 +62,7 @@ export function useRoleByName(options: UseRoleByNameOptions) {
   const { token, roleName, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TRole>>({
-    path: `/roles/name/${roleName}`,
+    path: `/platform/roles/name/${roleName}`,
     queryKey: rolesKeys.byName(roleName),
     config: {
       headers: {
@@ -80,7 +80,7 @@ export function useAssignableRoles(options: UseAssignableRolesOptions) {
   const { token, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TRoleOption[]>>({
-    path: '/roles/assignable',
+    path: '/platform/roles/assignable',
     queryKey: rolesKeys.assignable(),
     config: {
       headers: {
@@ -98,7 +98,7 @@ export function useAllRoles(options: UseAllRolesOptions) {
   const { token, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TRole[]>>({
-    path: '/roles',
+    path: '/platform/roles',
     queryKey: rolesKeys.lists(),
     config: {
       headers: {
@@ -116,7 +116,7 @@ export function useSystemRoles(options: UseSystemRolesOptions) {
   const { token, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TRole[]>>({
-    path: '/roles/system',
+    path: '/platform/roles/system',
     queryKey: rolesKeys.system(),
     config: {
       headers: {
@@ -137,7 +137,7 @@ export function useSystemRoles(options: UseSystemRolesOptions) {
 export async function getRoleByName(token: string, roleName: string): Promise<TRole> {
   const client = getHttpClient()
 
-  const response = await client.get<TApiDataResponse<TRole>>(`/roles/name/${roleName}`, {
+  const response = await client.get<TApiDataResponse<TRole>>(`/platform/roles/name/${roleName}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -152,7 +152,7 @@ export async function getRoleByName(token: string, roleName: string): Promise<TR
 export async function getAssignableRoles(token: string): Promise<TRoleOption[]> {
   const client = getHttpClient()
 
-  const response = await client.get<TApiDataResponse<TRoleOption[]>>('/roles/assignable', {
+  const response = await client.get<TApiDataResponse<TRoleOption[]>>('/platform/roles/assignable', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -167,7 +167,7 @@ export async function getAssignableRoles(token: string): Promise<TRoleOption[]> 
 export async function getAllRoles(token: string): Promise<TRole[]> {
   const client = getHttpClient()
 
-  const response = await client.get<TApiDataResponse<TRole[]>>('/roles', {
+  const response = await client.get<TApiDataResponse<TRole[]>>('/platform/roles', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -182,7 +182,7 @@ export async function getAllRoles(token: string): Promise<TRole[]> {
 export async function getSystemRoles(token: string): Promise<TRole[]> {
   const client = getHttpClient()
 
-  const response = await client.get<TApiDataResponse<TRole[]>>('/roles/system', {
+  const response = await client.get<TApiDataResponse<TRole[]>>('/platform/roles/system', {
     headers: {
       Authorization: `Bearer ${token}`,
     },

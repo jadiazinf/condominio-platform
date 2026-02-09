@@ -8,16 +8,11 @@ import {
 } from '@packages/domain'
 import type { InterestConfigurationsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
-
-const CondominiumIdParamSchema = z.object({
-  condominiumId: z.string().uuid('Invalid condominium ID format'),
-})
-
-type TCondominiumIdParam = z.infer<typeof CondominiumIdParamSchema>
 
 const PaymentConceptIdParamSchema = z.object({
   paymentConceptId: z.string().uuid('Invalid payment concept ID format'),
@@ -36,12 +31,11 @@ type TActiveForDateParam = z.infer<typeof ActiveForDateParamSchema>
  * Controller for managing interest configuration resources.
  *
  * Endpoints:
- * - GET    /                                                      List all configs
- * - GET    /condominium/:condominiumId                           Get by condominium
+ * - GET    /                                                      List configs (scoped by condominium from context)
  * - GET    /payment-concept/:paymentConceptId                    Get by payment concept
  * - GET    /payment-concept/:paymentConceptId/active/:date       Get active for date
  * - GET    /:id                                                   Get by ID
- * - POST   /                                                      Create config
+ * - POST   /                                                      Create config (condominiumId injected from context)
  * - PATCH  /:id                                                   Update config
  * - DELETE /:id                                                   Delete config
  */
@@ -52,49 +46,42 @@ export class InterestConfigurationsController extends BaseController<
 > {
   constructor(repository: InterestConfigurationsRepository) {
     super(repository)
-    this.getByCondominiumId = this.getByCondominiumId.bind(this)
-    this.getByPaymentConceptId = this.getByPaymentConceptId.bind(this)
-    this.getActiveForDate = this.getActiveForDate.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
-      {
-        method: 'get',
-        path: '/condominium/:condominiumId',
-        handler: this.getByCondominiumId,
-        middlewares: [paramsValidator(CondominiumIdParamSchema)],
-      },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN')] },
       {
         method: 'get',
         path: '/payment-concept/:paymentConceptId',
         handler: this.getByPaymentConceptId,
-        middlewares: [paramsValidator(PaymentConceptIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(PaymentConceptIdParamSchema)],
       },
       {
         method: 'get',
         path: '/payment-concept/:paymentConceptId/active/:date',
         handler: this.getActiveForDate,
-        middlewares: [paramsValidator(ActiveForDateParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(ActiveForDateParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(interestConfigurationCreateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(interestConfigurationCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
         middlewares: [
+          authMiddleware,
+          requireRole('ADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(interestConfigurationUpdateSchema),
         ],
@@ -103,28 +90,36 @@ export class InterestConfigurationsController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Overridden Handlers
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override list = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const repo = this.repository as InterestConfigurationsRepository
+
+    const configs = await repo.getByCondominiumId(condominiumId)
+    return ctx.ok({ data: configs })
+  }
+
+  protected override create = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TInterestConfigurationCreate>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const entity = await this.repository.create({ ...ctx.body, condominiumId })
+    return ctx.created({ data: entity })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByCondominiumId(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, unknown, TCondominiumIdParam>(c)
-    const repo = this.repository as InterestConfigurationsRepository
-
-    try {
-      const configs = await repo.getByCondominiumId(ctx.params.condominiumId)
-      return ctx.ok({ data: configs })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
-  }
-
-  private async getByPaymentConceptId(c: Context): Promise<Response> {
+  private getByPaymentConceptId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPaymentConceptIdParam>(c)
     const repo = this.repository as InterestConfigurationsRepository
 
@@ -136,7 +131,7 @@ export class InterestConfigurationsController extends BaseController<
     }
   }
 
-  private async getActiveForDate(c: Context): Promise<Response> {
+  private getActiveForDate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TActiveForDateParam>(c)
     const repo = this.repository as InterestConfigurationsRepository
 

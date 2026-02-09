@@ -15,8 +15,8 @@ import {
   isUserAuthenticated,
   AUTHENTICATED_USER_PROP,
 } from '../../middlewares/utils/auth/is-user-authenticated'
-import { isSuperadmin } from '../../middlewares/utils/auth/is-superadmin'
 import { isTokenValid, DECODED_TOKEN_PROP } from '../../middlewares/utils/auth/is-token-valid'
+import { requireRole } from '../../middlewares/auth'
 import { createRouter } from '../create-router'
 import type { TRouteDefinition } from '../types'
 import { AppError } from '@errors/index'
@@ -28,6 +28,7 @@ import {
   CancelInvitationService,
 } from '@src/services/admin-invitations'
 import { SendInvitationEmailService } from '@src/services/email'
+import { generateSecureToken, hashToken } from '@utils/token'
 import logger from '@utils/logger'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -130,11 +131,13 @@ export class AdminInvitationsController {
     private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository
   ) {
     this.createCompanyWithAdminService = new CreateCompanyWithAdminService(
+      db,
       invitationsRepository,
       usersRepository,
       managementCompaniesRepository
     )
     this.createCompanyWithExistingAdminService = new CreateCompanyWithExistingAdminService(
+      db,
       usersRepository,
       managementCompaniesRepository,
       membersRepository,
@@ -163,7 +166,7 @@ export class AdminInvitationsController {
         method: 'post',
         path: '/create-with-admin',
         handler: this.createWithAdmin,
-        middlewares: [isUserAuthenticated, isSuperadmin, bodyValidator(CreateCompanyWithAdminSchema)],
+        middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), bodyValidator(CreateCompanyWithAdminSchema)],
       },
       {
         method: 'post',
@@ -171,7 +174,7 @@ export class AdminInvitationsController {
         handler: this.createWithExistingAdmin,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
+          requireRole('SUPERADMIN'),
           bodyValidator(CreateCompanyWithExistingAdminSchema),
         ],
       },
@@ -179,7 +182,7 @@ export class AdminInvitationsController {
         method: 'post',
         path: '/:id/resend-email',
         handler: this.resendEmail,
-        middlewares: [isUserAuthenticated, isSuperadmin, paramsValidator(IdParamSchema)],
+        middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'get',
@@ -197,7 +200,7 @@ export class AdminInvitationsController {
         method: 'delete',
         path: '/:id',
         handler: this.cancelInvitation,
-        middlewares: [isUserAuthenticated, isSuperadmin, paramsValidator(IdParamSchema)],
+        middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -261,6 +264,37 @@ export class AdminInvitationsController {
         await this.invitationsRepository.recordEmailError(
           result.data.invitation.id,
           emailResult.error
+        )
+      } else {
+        logger.info(
+          {
+            invitationId: result.data.invitation.id,
+            email: result.data.admin.email,
+            tokenPrefix: result.data.invitationToken.substring(0, 8),
+          },
+          'Invitation email sent successfully'
+        )
+      }
+
+      // Verify invitation was persisted by re-reading from DB
+      const verifyInvitation = await this.invitationsRepository.getByToken(
+        result.data.invitationToken
+      )
+      if (!verifyInvitation) {
+        logger.error(
+          {
+            invitationId: result.data.invitation.id,
+            tokenPrefix: result.data.invitationToken.substring(0, 8),
+          },
+          'CRITICAL: Invitation was created but cannot be found by token in DB!'
+        )
+      } else {
+        logger.info(
+          {
+            invitationId: verifyInvitation.id,
+            tokenMatch: verifyInvitation.token === result.data.invitationToken,
+          },
+          'Invitation verified in database after creation'
         )
       }
 
@@ -333,11 +367,26 @@ export class AdminInvitationsController {
   private validateToken = async (c: Context): Promise<Response> => {
     const ctx = new HttpContext<unknown, unknown, TTokenParam>(c)
 
+    logger.info(
+      {
+        tokenLength: ctx.params.token.length,
+        tokenPrefix: ctx.params.token.substring(0, 8),
+      },
+      'Received invitation token validation request'
+    )
+
     const result = await this.validateInvitationTokenService.execute({
       token: ctx.params.token,
     })
 
     if (!result.success) {
+      logger.warn(
+        {
+          tokenPrefix: ctx.params.token.substring(0, 8),
+          error: result.error,
+        },
+        'Invitation token validation failed'
+      )
       throw AppError.notFound('Invitation')
     }
 
@@ -361,56 +410,39 @@ export class AdminInvitationsController {
 
   /**
    * Accept an invitation.
-   * Requires a valid Firebase token in the Authorization header.
+   * Protected by isTokenValid middleware (verifies Firebase token without DB user lookup).
    * Updates the user with the Firebase UID and activates user/company.
    */
   private acceptInvitation = async (c: Context): Promise<Response> => {
     const ctx = new HttpContext<unknown, unknown, TTokenParam>(c)
-    const t = useTranslation(c)
+    const decodedToken = c.get(DECODED_TOKEN_PROP)
 
-    // Get and verify the Firebase token
-    const authHeader = c.req.header('Authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw AppError.unauthorized(t(LocaleDictionary.http.middlewares.utils.auth.malformedHeader))
+    const result = await this.acceptInvitationService.execute({
+      token: ctx.params.token,
+      firebaseUid: decodedToken.uid,
+    })
+
+    if (!result.success) {
+      if (result.code === 'NOT_FOUND') {
+        throw AppError.notFound('Invitation')
+      }
+      if (result.code === 'CONFLICT') {
+        throw AppError.alreadyExists('User', 'firebaseUid')
+      }
+      throw AppError.validation(result.error)
     }
 
-    const token = authHeader.slice(7)
-
-    try {
-      const decodedToken = await admin.auth().verifyIdToken(token)
-
-      const result = await this.acceptInvitationService.execute({
-        token: ctx.params.token,
-        firebaseUid: decodedToken.uid,
-      })
-
-      if (!result.success) {
-        if (result.code === 'NOT_FOUND') {
-          throw AppError.notFound('Invitation')
-        }
-        if (result.code === 'CONFLICT') {
-          throw AppError.alreadyExists('User', 'firebaseUid')
-        }
-        throw AppError.validation(result.error)
-      }
-
-      return ctx.ok({
-        data: {
-          user: result.data.user,
-          managementCompany: result.data.managementCompany,
-        },
-      })
-    } catch (error) {
-      if (error instanceof AppError) {
-        throw error
-      }
-      throw AppError.invalidToken()
-    }
+    return ctx.ok({
+      data: {
+        user: result.data.user,
+        managementCompany: result.data.managementCompany,
+      },
+    })
   }
 
   /**
    * Resend invitation email.
-   * This endpoint should be protected by superadmin middleware.
+   * Protected by isUserAuthenticated + isSuperadmin middleware.
    */
   private resendEmail = async (c: Context): Promise<Response> => {
     const ctx = new HttpContext<unknown, unknown, TIdParam>(c)
@@ -426,23 +458,17 @@ export class AdminInvitationsController {
       throw AppError.validation('Cannot resend email for non-pending invitation')
     }
 
-    // Get the user and company
-    const user = await this.usersRepository.getById(invitation.userId)
-    const company = await this.managementCompaniesRepository.getById(invitation.managementCompanyId)
+    // Get the user and company (include inactive — invitation users/companies are inactive until accepted)
+    const user = await this.usersRepository.getById(invitation.userId, true)
+    const company = await this.managementCompaniesRepository.getById(invitation.managementCompanyId, true)
 
     if (!user || !company) {
       throw AppError.notFound('User or company not found')
     }
 
-    // Generate a new token for the invitation
-    const tokenBytes = new Uint8Array(32)
-    crypto.getRandomValues(tokenBytes)
-    const newToken = Buffer.from(tokenBytes).toString('base64url')
-    const newTokenHash = await Bun.password.hash(newToken, {
-      algorithm: 'argon2id',
-      memoryCost: 4,
-      timeCost: 3,
-    })
+    // Generate a new token for the invitation (same method as initial creation)
+    const newToken = generateSecureToken()
+    const newTokenHash = hashToken(newToken)
 
     // Update the invitation with the new token
     await this.invitationsRepository.regenerateToken(invitation.id, newToken, newTokenHash)
@@ -480,7 +506,7 @@ export class AdminInvitationsController {
 
   /**
    * Cancel an invitation.
-   * This endpoint should be protected by superadmin middleware.
+   * Protected by isUserAuthenticated + isSuperadmin middleware.
    */
   private cancelInvitation = async (c: Context): Promise<Response> => {
     const ctx = new HttpContext<unknown, unknown, TIdParam>(c)

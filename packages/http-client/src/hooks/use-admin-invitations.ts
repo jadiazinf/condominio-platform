@@ -73,7 +73,7 @@ export async function createCompanyWithAdmin(
 ): Promise<TCreateCompanyWithAdminResult> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<TCreateCompanyWithAdminResult>>(
-    '/admin-invitations/create-with-admin',
+    '/platform/admin-invitations/create-with-admin',
     input,
     {
       headers: {
@@ -95,7 +95,7 @@ export async function validateInvitationToken(
 ): Promise<TValidateInvitationResult> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TValidateInvitationResult>>(
-    `/admin-invitations/validate/${token}`
+    `/platform/admin-invitations/validate/${token}`
   )
 
   return response.data.data
@@ -112,7 +112,7 @@ export async function acceptInvitation(
 ): Promise<TAcceptInvitationResult> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<TAcceptInvitationResult>>(
-    `/admin-invitations/accept/${invitationToken}`,
+    `/platform/admin-invitations/accept/${invitationToken}`,
     input
   )
 
@@ -129,7 +129,7 @@ export async function cancelInvitation(
 ): Promise<TAdminInvitation> {
   const client = getHttpClient()
   const response = await client.delete<TApiDataResponse<TAdminInvitation>>(
-    `/admin-invitations/${invitationId}`,
+    `/platform/admin-invitations/${invitationId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -147,7 +147,7 @@ export async function cancelInvitation(
 export async function getInvitationByToken(token: string): Promise<TAdminInvitation> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TAdminInvitation>>(
-    `/admin-invitations/validate/${token}`
+    `/platform/admin-invitations/validate/${token}`
   )
 
   return response.data.data
@@ -163,7 +163,7 @@ export async function getPendingInvitationsByEmail(
 ): Promise<TAdminInvitation[]> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TAdminInvitation[]>>(
-    `/admin-invitations/by-email/${encodeURIComponent(email)}`,
+    `/platform/admin-invitations/by-email/${encodeURIComponent(email)}`,
     {
       headers: {
         Authorization: `Bearer ${authToken}`,
@@ -185,7 +185,7 @@ export async function resendInvitationEmail(
 ): Promise<{ success: boolean; message: string }> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<{ success: boolean; message: string }>>(
-    `/admin-invitations/${invitationId}/resend-email`,
+    `/platform/admin-invitations/${invitationId}/resend-email`,
     {},
     {
       headers: {
@@ -207,7 +207,7 @@ export async function createCompanyWithExistingAdmin(
 ): Promise<TCreateCompanyWithExistingAdminResult> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<TCreateCompanyWithExistingAdminResult>>(
-    '/admin-invitations/create-with-existing-admin',
+    '/platform/admin-invitations/create-with-existing-admin',
     input,
     {
       headers: {

@@ -47,6 +47,8 @@ export { QuotasRepository } from './quotas.repository'
 export { QuotaAdjustmentsRepository } from './quota-adjustments.repository'
 export { QuotaFormulasRepository } from './quota-formulas.repository'
 export { QuotaGenerationRulesRepository } from './quota-generation-rules.repository'
+export { QuotaGenerationSchedulesRepository } from './quota-generation-schedules.repository'
+export { QuotaGenerationLogsRepository } from './quota-generation-logs.repository'
 export { PaymentGatewaysRepository } from './payment-gateways.repository'
 export { EntityPaymentGatewaysRepository } from './entity-payment-gateways.repository'
 export { PaymentsRepository } from './payments.repository'
@@ -92,3 +94,7 @@ export {
 // Support Tickets
 export { SupportTicketsRepository } from './support-tickets.repository'
 export { SupportTicketMessagesRepository } from './support-ticket-messages.repository'
+
+// Amenities & Reservations
+export { AmenitiesRepository } from './amenities.repository'
+export { AmenityReservationsRepository } from './amenity-reservations.repository'

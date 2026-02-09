@@ -11,8 +11,7 @@ import { bodyValidator, paramsValidator, queryValidator } from '../../middleware
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { isUserAuthenticated } from '../../middlewares/utils/auth/is-user-authenticated'
-import { isSuperadmin } from '../../middlewares/utils/auth/is-superadmin'
-import { requireSuperadminPermission } from '../../middlewares/utils/auth/has-superadmin-permission'
+import { requireRole } from '../../middlewares/auth'
 
 const VersionParamSchema = z.object({
   version: z.string().min(1, 'Version is required'),
@@ -58,12 +57,6 @@ export class SubscriptionTermsConditionsController extends BaseController<
 > {
   constructor(repository: SubscriptionTermsConditionsRepository) {
     super(repository)
-
-    this.getActiveTerms = this.getActiveTerms.bind(this)
-    this.getByVersion = this.getByVersion.bind(this)
-    this.getAllTerms = this.getAllTerms.bind(this)
-    this.createTerms = this.createTerms.bind(this)
-    this.deactivateTerms = this.deactivateTerms.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -75,12 +68,12 @@ export class SubscriptionTermsConditionsController extends BaseController<
         handler: this.getActiveTerms,
         middlewares: [],
       },
-      // Public: Get terms by version
+      // Superadmin: Get terms by version
       {
         method: 'get',
         path: '/subscription-terms/version/:version',
         handler: this.getByVersion,
-        middlewares: [paramsValidator(VersionParamSchema)],
+        middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), paramsValidator(VersionParamSchema)],
       },
       // Superadmin: List all terms
       {
@@ -89,31 +82,29 @@ export class SubscriptionTermsConditionsController extends BaseController<
         handler: this.getAllTerms,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
+          requireRole('SUPERADMIN'),
           queryValidator(TermsQuerySchema),
         ],
       },
-      // Superadmin with manage permission: Create new terms
+      // Superadmin: Create new terms
       {
         method: 'post',
         path: '/subscription-terms',
         handler: this.createTerms,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
-          requireSuperadminPermission('platform_management_companies', 'manage'),
+          requireRole('SUPERADMIN'),
           bodyValidator(CreateTermsSchema),
         ],
       },
-      // Superadmin with manage permission: Deactivate terms
+      // Superadmin: Deactivate terms
       {
         method: 'patch',
         path: '/subscription-terms/:id/deactivate',
         handler: this.deactivateTerms,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
-          requireSuperadminPermission('platform_management_companies', 'manage'),
+          requireRole('SUPERADMIN'),
           paramsValidator(IdParamSchema),
         ],
       },
@@ -127,7 +118,7 @@ export class SubscriptionTermsConditionsController extends BaseController<
   /**
    * Get current active terms and conditions (public)
    */
-  private async getActiveTerms(c: Context): Promise<Response> {
+  private getActiveTerms = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const repo = this.repository as SubscriptionTermsConditionsRepository
 
@@ -147,7 +138,7 @@ export class SubscriptionTermsConditionsController extends BaseController<
   /**
    * Get terms by version (public)
    */
-  private async getByVersion(c: Context): Promise<Response> {
+  private getByVersion = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TVersionParam>(c)
     const repo = this.repository as SubscriptionTermsConditionsRepository
 
@@ -167,7 +158,7 @@ export class SubscriptionTermsConditionsController extends BaseController<
   /**
    * List all terms with pagination (superadmin only)
    */
-  private async getAllTerms(c: Context): Promise<Response> {
+  private getAllTerms = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TTermsQuery>(c)
     const repo = this.repository as SubscriptionTermsConditionsRepository
 
@@ -187,7 +178,7 @@ export class SubscriptionTermsConditionsController extends BaseController<
   /**
    * Create new terms version (superadmin only)
    */
-  private async createTerms(c: Context): Promise<Response> {
+  private createTerms = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TCreateTermsBody>(c)
     const repo = this.repository as SubscriptionTermsConditionsRepository
 
@@ -218,7 +209,7 @@ export class SubscriptionTermsConditionsController extends BaseController<
   /**
    * Deactivate terms version (superadmin only)
    */
-  private async deactivateTerms(c: Context): Promise<Response> {
+  private deactivateTerms = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
     const repo = this.repository as SubscriptionTermsConditionsRepository
 

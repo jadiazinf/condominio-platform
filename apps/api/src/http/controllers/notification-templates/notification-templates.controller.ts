@@ -11,6 +11,7 @@ import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { z } from 'zod'
 import {
   GetTemplateByCodeService,
@@ -56,42 +57,42 @@ export class NotificationTemplatesController extends BaseController<
     this.getTemplateByCodeService = new GetTemplateByCodeService(repository)
     this.renderTemplateService = new RenderTemplateService(repository)
 
-    this.getByCode = this.getByCode.bind(this)
-    this.renderTemplate = this.renderTemplate.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
       {
         method: 'get',
         path: '/code/:code',
         handler: this.getByCode,
-        middlewares: [paramsValidator(CodeParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(CodeParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(notificationTemplateCreateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(notificationTemplateCreateSchema)],
       },
       {
         method: 'post',
         path: '/code/:code/render',
         handler: this.renderTemplate,
-        middlewares: [paramsValidator(CodeParamSchema), bodyValidator(RenderTemplateBodySchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(CodeParamSchema), bodyValidator(RenderTemplateBodySchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
         middlewares: [
+          authMiddleware,
+          requireRole('SUPERADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(notificationTemplateUpdateSchema),
         ],
@@ -100,12 +101,12 @@ export class NotificationTemplatesController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
 
-  private async getByCode(c: Context): Promise<Response> {
+  private getByCode = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TCodeParam>(c)
 
     try {
@@ -123,7 +124,7 @@ export class NotificationTemplatesController extends BaseController<
     }
   }
 
-  private async renderTemplate(c: Context): Promise<Response> {
+  private renderTemplate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TRenderTemplateBody, unknown, TCodeParam>(c)
 
     try {

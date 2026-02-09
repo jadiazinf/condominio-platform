@@ -2,6 +2,8 @@ import { relations } from 'drizzle-orm'
 
 // Import all tables
 import { locations } from '../tables/locations'
+import { amenities } from '../tables/amenities'
+import { amenityReservations } from '../tables/amenity-reservations'
 import { currencies } from '../tables/currencies'
 import { exchangeRates } from '../tables/exchange-rates'
 import { users } from '../tables/users'
@@ -259,6 +261,7 @@ export const condominiumsRelations = relations(condominiums, ({ one, many }) => 
   messages: many(messages),
   quotaFormulas: many(quotaFormulas),
   quotaGenerationRules: many(quotaGenerationRules),
+  amenities: many(amenities),
 }))
 
 // Junction table relations for condominium-management company many-to-many
@@ -919,5 +922,41 @@ export const supportTicketMessagesRelations = relations(supportTicketMessages, (
   user: one(users, {
     fields: [supportTicketMessages.userId],
     references: [users.id],
+  }),
+}))
+
+// ============================================================================
+// AMENITIES RELATIONS
+// ============================================================================
+
+export const amenitiesRelations = relations(amenities, ({ one, many }) => ({
+  condominium: one(condominiums, {
+    fields: [amenities.condominiumId],
+    references: [condominiums.id],
+  }),
+  createdByUser: one(users, {
+    fields: [amenities.createdBy],
+    references: [users.id],
+  }),
+  reservations: many(amenityReservations),
+}))
+
+// ============================================================================
+// AMENITY RESERVATIONS RELATIONS
+// ============================================================================
+
+export const amenityReservationsRelations = relations(amenityReservations, ({ one }) => ({
+  amenity: one(amenities, {
+    fields: [amenityReservations.amenityId],
+    references: [amenities.id],
+  }),
+  user: one(users, {
+    fields: [amenityReservations.userId],
+    references: [users.id],
+  }),
+  approvedByUser: one(users, {
+    fields: [amenityReservations.approvedBy],
+    references: [users.id],
+    relationName: 'reservationApprover',
   }),
 }))

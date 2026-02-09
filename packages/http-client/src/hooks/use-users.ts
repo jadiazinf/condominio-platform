@@ -211,7 +211,7 @@ export function useUsersPaginated(options: UseUsersPaginatedOptions) {
   if (query.roleId) params.set('roleId', query.roleId)
 
   const queryString = params.toString()
-  const path = `/users/paginated${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/users/paginated${queryString ? `?${queryString}` : ''}`
 
   return useApiQuery<TApiPaginatedResponse<TUserWithRoles>>({
     path,
@@ -232,7 +232,7 @@ export function useUserFullDetails(options: UseUserFullDetailsOptions) {
   const { token, userId, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TUserFullDetails>>({
-    path: `/users/${userId}/full`,
+    path: `/platform/users/${userId}/full`,
     queryKey: usersKeys.detail(userId),
     config: {
       headers: {
@@ -250,7 +250,7 @@ export function useRoles(options: UseRolesOptions) {
   const { token, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TRoleOption[]>>({
-    path: '/users/roles',
+    path: '/platform/users/roles',
     queryKey: usersKeys.roles(),
     config: {
       headers: {
@@ -266,7 +266,7 @@ export function useRoles(options: UseRolesOptions) {
  */
 export function useToggleUserPermission(options?: IUseToggleUserPermissionOptions) {
   return useApiMutation<TApiMessageResponse, IToggleUserPermissionVariables>({
-    path: (variables) => `/users/${variables.userId}/permissions`,
+    path: (variables) => `/platform/users/${variables.userId}/permissions`,
     method: 'PATCH',
     invalidateKeys: [usersKeys.all],
     onSuccess: options?.onSuccess,
@@ -279,7 +279,7 @@ export function useToggleUserPermission(options?: IUseToggleUserPermissionOption
  */
 export function useBatchToggleUserPermissions(options?: IUseBatchToggleUserPermissionsOptions) {
   return useApiMutation<IBatchToggleUserPermissionsResponse, IBatchToggleUserPermissionsVariables>({
-    path: (variables) => `/users/${variables.userId}/permissions/batch`,
+    path: (variables) => `/platform/users/${variables.userId}/permissions/batch`,
     method: 'PATCH',
     invalidateKeys: [usersKeys.all],
     onSuccess: options?.onSuccess,
@@ -309,7 +309,7 @@ export async function getUsersPaginated(
   if (query.roleId) params.set('roleId', query.roleId)
 
   const queryString = params.toString()
-  const path = `/users/paginated${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/users/paginated${queryString ? `?${queryString}` : ''}`
 
   const response = await client.get<TApiPaginatedResponse<TUserWithRoles>>(path, {
     headers: {
@@ -329,7 +329,7 @@ export async function getUserFullDetails(
 ): Promise<TUserFullDetails> {
   const client = getHttpClient()
 
-  const response = await client.get<TApiDataResponse<TUserFullDetails>>(`/users/${userId}/full`, {
+  const response = await client.get<TApiDataResponse<TUserFullDetails>>(`/platform/users/${userId}/full`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -344,7 +344,7 @@ export async function getUserFullDetails(
 export async function getAllRoles(token: string): Promise<TRoleOption[]> {
   const client = getHttpClient()
 
-  const response = await client.get<TApiDataResponse<TRoleOption[]>>('/users/roles', {
+  const response = await client.get<TApiDataResponse<TRoleOption[]>>('/platform/users/roles', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -365,7 +365,7 @@ export async function updateUserStatus(
   const client = getHttpClient()
 
   const response = await client.patch<TApiMessageResponse>(
-    `/users/${userId}/status`,
+    `/platform/users/${userId}/status`,
     { isActive },
     {
       headers: {
@@ -416,7 +416,7 @@ export async function toggleUserPermission(
   const client = getHttpClient()
 
   const response = await client.patch<TApiMessageResponse>(
-    `/users/${userId}/permissions`,
+    `/platform/users/${userId}/permissions`,
     { permissionId, isEnabled },
     {
       headers: {
@@ -449,7 +449,7 @@ export async function batchToggleUserPermissions(
   const client = getHttpClient()
 
   const response = await client.patch<TApiDataResponse<IBatchTogglePermissionsResult> & { message: string }>(
-    `/users/${userId}/permissions/batch`,
+    `/platform/users/${userId}/permissions/batch`,
     { changes },
     {
       headers: {

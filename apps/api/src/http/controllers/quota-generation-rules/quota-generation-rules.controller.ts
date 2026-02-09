@@ -14,7 +14,7 @@ import {
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
-import { authMiddleware } from '../../middlewares/auth'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { createRouter } from '../create-router'
@@ -30,12 +30,6 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 // Schemas
 // ─────────────────────────────────────────────────────────────────────────────
-
-const CondominiumIdParamSchema = z.object({
-  condominiumId: z.string().uuid('Invalid condominium ID format'),
-})
-
-type TCondominiumIdParam = z.infer<typeof CondominiumIdParamSchema>
 
 const IncludeInactiveQuerySchema = z.object({
   includeInactive: z
@@ -102,12 +96,12 @@ type TIdParam = z.infer<typeof IdParamSchema>
 
 /**
  * Controller for managing quota generation rules.
+ * List is scoped by condominiumId from the requireRole middleware context.
  *
  * Endpoints:
- * - GET    /                                     List all rules
- * - GET    /condominium/:condominiumId           Get rules for a condominium
- * - GET    /condominium/:condominiumId/applicable Get applicable rule
- * - GET    /condominium/:condominiumId/effective  Get effective rules for date
+ * - GET    /                                     List rules (scoped by condominium)
+ * - GET    /applicable                           Get applicable rule for condominium
+ * - GET    /effective                            Get effective rules for date
  * - GET    /:id                                  Get rule by ID
  * - POST   /                                     Create a new rule
  * - PUT    /:id                                  Update a rule
@@ -149,15 +143,6 @@ export class QuotaGenerationRulesController {
       quotaGenerationRulesRepository
     )
 
-    // Bind handlers
-    this.list = this.list.bind(this)
-    this.getById = this.getById.bind(this)
-    this.getByCondominiumId = this.getByCondominiumId.bind(this)
-    this.getApplicableRule = this.getApplicableRule.bind(this)
-    this.getEffectiveRules = this.getEffectiveRules.bind(this)
-    this.create = this.create.bind(this)
-    this.update = this.update.bind(this)
-    this.delete = this.delete.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -166,35 +151,25 @@ export class QuotaGenerationRulesController {
         method: 'get',
         path: '/',
         handler: this.list,
-        middlewares: [authMiddleware, queryValidator(IncludeInactiveQuerySchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), queryValidator(IncludeInactiveQuerySchema)],
       },
       {
         method: 'get',
-        path: '/condominium/:condominiumId',
-        handler: this.getByCondominiumId,
-        middlewares: [
-          authMiddleware,
-          paramsValidator(CondominiumIdParamSchema),
-          queryValidator(IncludeInactiveQuerySchema),
-        ],
-      },
-      {
-        method: 'get',
-        path: '/condominium/:condominiumId/applicable',
+        path: '/applicable',
         handler: this.getApplicableRule,
         middlewares: [
           authMiddleware,
-          paramsValidator(CondominiumIdParamSchema),
+          requireRole('ADMIN', 'ACCOUNTANT'),
           queryValidator(GetApplicableRuleQuerySchema),
         ],
       },
       {
         method: 'get',
-        path: '/condominium/:condominiumId/effective',
+        path: '/effective',
         handler: this.getEffectiveRules,
         middlewares: [
           authMiddleware,
-          paramsValidator(CondominiumIdParamSchema),
+          requireRole('ADMIN', 'ACCOUNTANT'),
           queryValidator(GetEffectiveRulesQuerySchema),
         ],
       },
@@ -202,13 +177,13 @@ export class QuotaGenerationRulesController {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, bodyValidator(CreateQuotaGenerationRuleBodySchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(CreateQuotaGenerationRuleBodySchema)],
       },
       {
         method: 'put',
@@ -216,6 +191,7 @@ export class QuotaGenerationRulesController {
         handler: this.update,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(UpdateQuotaGenerationRuleBodySchema),
         ],
@@ -224,7 +200,7 @@ export class QuotaGenerationRulesController {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -241,18 +217,27 @@ export class QuotaGenerationRulesController {
     return new HttpContext<TBody, TQuery, TParams>(c)
   }
 
-  private async list(c: Context): Promise<Response> {
+  private list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TIncludeInactiveQuery>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
-      const rules = await this.quotaGenerationRulesRepository.listAll(ctx.query.includeInactive)
-      return ctx.ok({ data: rules })
+      const result = await this.getRulesByCondominiumService.execute({
+        condominiumId,
+        includeInactive: ctx.query.includeInactive,
+      })
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
   }
 
-  private async getById(c: Context): Promise<Response> {
+  private getById = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TIdParam>(c)
 
     try {
@@ -268,31 +253,13 @@ export class QuotaGenerationRulesController {
     }
   }
 
-  private async getByCondominiumId(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, TIncludeInactiveQuery, TCondominiumIdParam>(c)
-
-    try {
-      const result = await this.getRulesByCondominiumService.execute({
-        condominiumId: ctx.params.condominiumId,
-        includeInactive: ctx.query.includeInactive,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
-  }
-
-  private async getApplicableRule(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, TGetApplicableRuleQuery, TCondominiumIdParam>(c)
+  private getApplicableRule = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, TGetApplicableRuleQuery>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
       const result = await this.getApplicableRuleService.execute({
-        condominiumId: ctx.params.condominiumId,
+        condominiumId,
         paymentConceptId: ctx.query.paymentConceptId,
         targetDate: ctx.query.targetDate,
         buildingId: ctx.query.buildingId,
@@ -311,12 +278,13 @@ export class QuotaGenerationRulesController {
     }
   }
 
-  private async getEffectiveRules(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, TGetEffectiveRulesQuery, TCondominiumIdParam>(c)
+  private getEffectiveRules = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, TGetEffectiveRulesQuery>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
       const result = await this.getEffectiveRulesForDateService.execute({
-        condominiumId: ctx.params.condominiumId,
+        condominiumId,
         targetDate: ctx.query.targetDate,
       })
 
@@ -330,7 +298,7 @@ export class QuotaGenerationRulesController {
     }
   }
 
-  private async create(c: Context): Promise<Response> {
+  private create = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TCreateQuotaGenerationRuleBody>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 
@@ -366,7 +334,7 @@ export class QuotaGenerationRulesController {
     }
   }
 
-  private async update(c: Context): Promise<Response> {
+  private update = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TUpdateQuotaGenerationRuleBody, unknown, TIdParam>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 
@@ -401,7 +369,7 @@ export class QuotaGenerationRulesController {
     }
   }
 
-  private async delete(c: Context): Promise<Response> {
+  private delete = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TIdParam>(c)
 
     try {

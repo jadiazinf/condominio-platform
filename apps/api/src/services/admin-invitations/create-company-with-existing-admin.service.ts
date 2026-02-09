@@ -11,6 +11,7 @@ import type {
   ManagementCompanyMembersRepository,
   ManagementCompanySubscriptionsRepository,
 } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
 
 export interface ICreateCompanyWithExistingAdminInput {
@@ -40,6 +41,7 @@ export interface ICreateCompanyWithExistingAdminResult {
  */
 export class CreateCompanyWithExistingAdminService {
   constructor(
+    private readonly db: TDrizzleClient,
     private readonly usersRepository: UsersRepository,
     private readonly managementCompaniesRepository: ManagementCompaniesRepository,
     private readonly membersRepository: ManagementCompanyMembersRepository,
@@ -60,91 +62,98 @@ export class CreateCompanyWithExistingAdminService {
       return failure('User is not active', 'BAD_REQUEST')
     }
 
-    // Create management company (active from the start since admin already exists)
-    const companyData: TManagementCompanyCreate = {
-      ...input.company,
-      createdBy: input.createdBy,
-      isActive: true,
-    }
+    // All writes inside a transaction for atomicity
+    return await this.db.transaction(async (tx) => {
+      const txCompaniesRepo = this.managementCompaniesRepository.withTx(tx)
+      const txMembersRepo = this.membersRepository.withTx(tx)
+      const txSubscriptionsRepo = this.subscriptionsRepository.withTx(tx)
 
-    const company = await this.managementCompaniesRepository.create(companyData)
+      // Create management company (active from the start since admin already exists)
+      const companyData: TManagementCompanyCreate = {
+        ...input.company,
+        createdBy: input.createdBy,
+        isActive: true,
+      }
 
-    if (!company) {
-      return failure('Failed to create management company', 'INTERNAL_ERROR')
-    }
+      const company = await txCompaniesRepo.create(companyData)
 
-    // Create member with primary admin role
-    const member = await this.membersRepository.create({
-      managementCompanyId: company.id,
-      userId: user.id,
-      roleName: 'admin',
-      permissions: {
-        can_change_subscription: true,
-        can_manage_members: true,
-        can_create_tickets: true,
-        can_view_invoices: true,
-      },
-      isPrimaryAdmin: true,
-      joinedAt: new Date(),
-      invitedAt: new Date(),
-      invitedBy: input.createdBy,
-      isActive: true,
-      deactivatedAt: null,
-      deactivatedBy: null,
-    })
+      if (!company) {
+        return failure('Failed to create management company', 'INTERNAL_ERROR')
+      }
 
-    if (!member) {
-      return failure('Failed to create member', 'INTERNAL_ERROR')
-    }
+      // Create member with primary admin role
+      const member = await txMembersRepo.create({
+        managementCompanyId: company.id,
+        userId: user.id,
+        roleName: 'admin',
+        permissions: {
+          can_change_subscription: true,
+          can_manage_members: true,
+          can_create_tickets: true,
+          can_view_invoices: true,
+        },
+        isPrimaryAdmin: true,
+        joinedAt: new Date(),
+        invitedAt: new Date(),
+        invitedBy: input.createdBy,
+        isActive: true,
+        deactivatedAt: null,
+        deactivatedBy: null,
+      })
 
-    // Create trial subscription (30 days)
-    const trialEndsAt = new Date()
-    trialEndsAt.setDate(trialEndsAt.getDate() + 30)
+      if (!member) {
+        return failure('Failed to create member', 'INTERNAL_ERROR')
+      }
 
-    const subscription = await this.subscriptionsRepository.create({
-      managementCompanyId: company.id,
-      subscriptionName: 'Trial Subscription',
-      billingCycle: 'monthly',
-      basePrice: 0,
-      currencyId: null,
-      maxCondominiums: 9999,
-      maxUnits: 999999,
-      maxUsers: 9999,
-      maxStorageGb: 9999,
-      customFeatures: null,
-      customRules: null,
-      status: 'trial',
-      startDate: new Date(),
-      endDate: null,
-      nextBillingDate: trialEndsAt,
-      trialEndsAt,
-      autoRenew: false,
-      notes: 'Automatically created trial subscription',
-      createdBy: input.createdBy,
-      cancelledAt: null,
-      cancelledBy: null,
-      cancellationReason: null,
-      pricingCondominiumCount: null,
-      pricingUnitCount: null,
-      pricingCondominiumRate: null,
-      pricingUnitRate: null,
-      calculatedPrice: null,
-      discountType: null,
-      discountValue: null,
-      discountAmount: null,
-      pricingNotes: null,
-      rateId: null,
-    })
+      // Create trial subscription (30 days)
+      const trialEndsAt = new Date()
+      trialEndsAt.setDate(trialEndsAt.getDate() + 30)
 
-    if (!subscription) {
-      return failure('Failed to create trial subscription', 'INTERNAL_ERROR')
-    }
+      const subscription = await txSubscriptionsRepo.create({
+        managementCompanyId: company.id,
+        subscriptionName: 'Trial Subscription',
+        billingCycle: 'monthly',
+        basePrice: 0,
+        currencyId: null,
+        maxCondominiums: 9999,
+        maxUnits: 999999,
+        maxUsers: 9999,
+        maxStorageGb: 9999,
+        customFeatures: null,
+        customRules: null,
+        status: 'trial',
+        startDate: new Date(),
+        endDate: null,
+        nextBillingDate: trialEndsAt,
+        trialEndsAt,
+        autoRenew: false,
+        notes: 'Automatically created trial subscription',
+        createdBy: input.createdBy,
+        cancelledAt: null,
+        cancelledBy: null,
+        cancellationReason: null,
+        pricingCondominiumCount: null,
+        pricingUnitCount: null,
+        pricingCondominiumRate: null,
+        pricingUnitRate: null,
+        calculatedPrice: null,
+        discountType: null,
+        discountValue: null,
+        discountAmount: null,
+        pricingNotes: null,
+        rateId: null,
+      })
 
-    return success({
-      company,
-      admin: user,
-      member,
-      subscription,
+      if (!subscription) {
+        return failure('Failed to create trial subscription', 'INTERNAL_ERROR')
+      }
+
+      return success({
+        company,
+        admin: user,
+        member,
+        subscription,
+      })
     })
   }
 }

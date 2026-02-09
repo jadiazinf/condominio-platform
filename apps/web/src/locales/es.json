@@ -392,6 +392,12 @@
     "title": "Panel de Control"
   },
   "resident": {
+    "nav": {
+      "myQuotas": "Mis Cuotas",
+      "myPayments": "Mis Pagos",
+      "reportPayment": "Reportar Pago",
+      "reservations": "Reservaciones"
+    },
     "dashboard": {
       "subtitle": "Aquí puedes ver el resumen de tu cuenta y cuotas pendientes",
       "totalPending": "Total pendiente",
@@ -420,6 +426,86 @@
       "notifications": "Notificaciones",
       "unit": "Unidad",
       "building": "Edificio"
+    },
+    "myQuotas": {
+      "title": "Mis Cuotas",
+      "subtitle": "Consulta y da seguimiento a todas tus cuotas del condominio",
+      "filterAll": "Todas",
+      "filterPending": "Pendientes",
+      "filterOverdue": "Vencidas",
+      "filterPaid": "Pagadas",
+      "filterCancelled": "Canceladas",
+      "noQuotas": "No se encontraron cuotas",
+      "noQuotasDescription": "No tienes cuotas que coincidan con el filtro seleccionado",
+      "concept": "Concepto",
+      "period": "Periodo",
+      "amount": "Monto",
+      "dueDate": "Fecha de vencimiento",
+      "status": "Estado",
+      "balance": "Saldo",
+      "unit": "Unidad",
+      "totalPending": "Total pendiente",
+      "overdueCount": "Vencidas",
+      "paidThisMonth": "Pagadas este mes",
+      "status_pending": "Pendiente",
+      "status_overdue": "Vencida",
+      "status_paid": "Pagada",
+      "status_cancelled": "Cancelada",
+      "export": {
+        "csv": "Exportar CSV",
+        "pdf": "Exportar PDF",
+        "downloading": "Descargando...",
+        "success": "Exportación descargada exitosamente",
+        "error": "Error al exportar. Intenta de nuevo."
+      }
+    },
+    "myPayments": {
+      "title": "Mis Pagos",
+      "subtitle": "Consulta tu historial de pagos y estado de verificación",
+      "filterAll": "Todos",
+      "filterPendingVerification": "En verificación",
+      "filterCompleted": "Completados",
+      "filterRejected": "Rechazados",
+      "noPayments": "No se encontraron pagos",
+      "noPaymentsDescription": "Aún no has realizado ningún pago",
+      "amount": "Monto",
+      "method": "Método",
+      "date": "Fecha",
+      "status": "Estado",
+      "receiptNumber": "# Recibo",
+      "reportPayment": "Reportar Pago",
+      "unit": "Unidad",
+      "verificationNotes": "Notas de verificación",
+      "status_pending": "Pendiente",
+      "status_pending_verification": "En verificación",
+      "status_completed": "Completado",
+      "status_failed": "Fallido",
+      "status_refunded": "Reembolsado",
+      "status_rejected": "Rechazado",
+      "method_transfer": "Transferencia",
+      "method_cash": "Efectivo",
+      "method_card": "Tarjeta",
+      "method_mobile_payment": "Pago Móvil",
+      "method_gateway": "Pasarela de Pago",
+      "method_other": "Otro"
+    },
+    "reportPayment": {
+      "title": "Reportar Pago",
+      "subtitle": "Reporta un pago externo para verificación del administrador",
+      "selectUnit": "Seleccionar Unidad",
+      "amount": "Monto",
+      "amountPlaceholder": "0.00",
+      "paymentMethod": "Método de Pago",
+      "paymentDate": "Fecha de Pago",
+      "receiptNumber": "Número de Recibo/Referencia",
+      "receiptNumberPlaceholder": "ej. TRF-123456",
+      "notes": "Notas",
+      "notesPlaceholder": "Agrega detalles sobre este pago...",
+      "submit": "Enviar Reporte de Pago",
+      "submitting": "Enviando...",
+      "success": "Pago reportado exitosamente. Será revisado por un administrador.",
+      "error": "Error al reportar el pago. Intenta de nuevo.",
+      "backToPayments": "Volver a Mis Pagos"
     }
   },
   "condominium": {
@@ -434,6 +520,27 @@
     },
     "loading": {
       "fetchingCondominiums": "Cargando tus condominios..."
+    },
+    "reservations": {
+      "title": "Reservaciones",
+      "subtitle": "Reserva amenidades y gestiona tus reservas",
+      "availableAmenities": "Amenidades Disponibles",
+      "myReservations": "Mis Reservaciones",
+      "reserve": "Reservar",
+      "cancel": "Cancelar",
+      "date": "Fecha",
+      "startTime": "Hora de Inicio",
+      "endTime": "Hora de Fin",
+      "notes": "Notas",
+      "submit": "Enviar Reservación",
+      "success": "Reservación enviada!",
+      "cancelSuccess": "Reservación cancelada",
+      "status": {
+        "pending": "Pendiente",
+        "approved": "Aprobada",
+        "rejected": "Rechazada",
+        "cancelled": "Cancelada"
+      }
     }
   },
   "superadmin": {
@@ -448,7 +555,11 @@
       "billing": "Facturación",
       "activity": "Actividad",
       "auditLogs": "Logs de Auditoría",
-      "settings": "Configuración"
+      "settings": "Configuración",
+      "quotas": "Cuotas",
+      "payments": "Pagos",
+      "expenses": "Gastos",
+      "amenities": "Amenidades"
     },
     "dashboard": {
       "title": "Panel de Superadmin",
@@ -1911,6 +2022,88 @@
           }
         }
       }
+    },
+    "payments": {
+      "title": "Pagos",
+      "subtitle": "Gestiona y verifica los pagos de la plataforma",
+      "empty": "No hay pagos registrados",
+      "emptyDescription": "No se encontraron pagos con los filtros seleccionados",
+      "loading": "Cargando pagos...",
+      "error": "Error al cargar los pagos",
+      "table": {
+        "paymentNumber": "N\u00ba Pago",
+        "user": "Usuario",
+        "unit": "Unidad",
+        "amount": "Monto",
+        "method": "M\u00e9todo",
+        "date": "Fecha",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "status": {
+        "all": "Todos",
+        "pending": "Pendiente",
+        "pending_verification": "Por verificar",
+        "completed": "Completado",
+        "failed": "Fallido",
+        "refunded": "Reembolsado",
+        "rejected": "Rechazado"
+      },
+      "method": {
+        "transfer": "Transferencia",
+        "cash": "Efectivo",
+        "card": "Tarjeta",
+        "mobile_payment": "Pago M\u00f3vil",
+        "gateway": "Pasarela",
+        "other": "Otro"
+      },
+      "filters": {
+        "searchPlaceholder": "Buscar por n\u00famero de pago...",
+        "status": "Estado"
+      },
+      "actions": {
+        "view": "Ver detalles",
+        "verify": "Verificar pago",
+        "reject": "Rechazar pago",
+        "verifySuccess": "Pago verificado correctamente",
+        "rejectSuccess": "Pago rechazado correctamente",
+        "verifyError": "Error al verificar el pago",
+        "rejectError": "Error al rechazar el pago",
+        "confirmVerify": "\u00bfEst\u00e1s seguro de que deseas verificar este pago?",
+        "confirmReject": "\u00bfEst\u00e1s seguro de que deseas rechazar este pago?",
+        "back": "Volver a pagos"
+      },
+      "detail": {
+        "title": "Detalle del Pago",
+        "paymentInfo": "Informaci\u00f3n del Pago",
+        "paymentNumber": "N\u00famero de Pago",
+        "userInfo": "Informaci\u00f3n del Usuario",
+        "userName": "Usuario",
+        "userEmail": "Email",
+        "unitInfo": "Informaci\u00f3n de la Unidad",
+        "unitName": "Unidad",
+        "amounts": "Montos",
+        "amount": "Monto",
+        "paidAmount": "Monto Pagado",
+        "exchangeRate": "Tasa de Cambio",
+        "currency": "Divisa",
+        "paidCurrency": "Divisa de Pago",
+        "paymentMethod": "M\u00e9todo de Pago",
+        "paymentDetails": "Detalles del Pago",
+        "dates": "Fechas",
+        "paymentDate": "Fecha de Pago",
+        "registeredAt": "Fecha de Registro",
+        "verifiedAt": "Fecha de Verificaci\u00f3n",
+        "status": "Estado",
+        "receipt": "Comprobante",
+        "receiptUrl": "Ver comprobante",
+        "receiptNumber": "N\u00famero de Recibo",
+        "verification": "Verificaci\u00f3n",
+        "verifiedBy": "Verificado por",
+        "verificationNotes": "Notas de Verificaci\u00f3n",
+        "notes": "Notas",
+        "notAvailable": "No disponible"
+      }
     }
   },
   "notifications": {
@@ -2267,6 +2460,232 @@
         "mustBeLoggedIn": "Debes iniciar sesión para aceptar esta suscripción.",
         "unknown": "Ocurrió un error inesperado. Intenta de nuevo."
       }
+    }
+  },
+  "admin": {
+    "nav": {
+      "quotas": "Cuotas",
+      "payments": "Pagos",
+      "expenses": "Gastos",
+      "amenities": "Amenidades"
+    },
+    "quotas": {
+      "title": "Cuotas",
+      "subtitle": "Gestiona las cuotas y cargos del condominio",
+      "empty": "No se encontraron cuotas",
+      "emptyDescription": "Las cuotas aparecerán aquí cuando sean generadas",
+      "table": {
+        "unit": "Unidad",
+        "concept": "Concepto",
+        "period": "Período",
+        "amount": "Monto",
+        "dueDate": "Fecha de Vencimiento",
+        "status": "Estado",
+        "balance": "Saldo",
+        "actions": "Acciones"
+      },
+      "status": {
+        "all": "Todos",
+        "pending": "Pendiente",
+        "paid": "Pagada",
+        "overdue": "Vencida",
+        "cancelled": "Cancelada"
+      },
+      "filters": {
+        "searchPlaceholder": "Buscar por unidad o concepto...",
+        "status": "Estado",
+        "year": "Año",
+        "month": "Mes"
+      },
+      "detail": {
+        "title": "Detalle de Cuota",
+        "unitInfo": "Información de la Unidad",
+        "amountInfo": "Información del Monto",
+        "dateInfo": "Información de Fechas",
+        "baseAmount": "Monto Base",
+        "interestAmount": "Intereses",
+        "paidAmount": "Monto Pagado",
+        "balance": "Saldo",
+        "issueDate": "Fecha de Emisión",
+        "dueDate": "Fecha de Vencimiento",
+        "period": "Período",
+        "notes": "Notas",
+        "noNotes": "Sin notas"
+      },
+      "export": {
+        "csv": "Exportar CSV",
+        "pdf": "Exportar PDF",
+        "downloading": "Descargando...",
+        "success": "Exportación descargada exitosamente",
+        "error": "Error al exportar. Intenta de nuevo."
+      },
+      "actions": {
+        "view": "Ver detalles",
+        "backToList": "Volver a cuotas"
+      }
+    },
+    "payments": {
+      "title": "Pagos",
+      "subtitle": "Ver y gestionar registros de pagos",
+      "empty": "No se encontraron pagos",
+      "emptyDescription": "Los pagos aparecerán aquí cuando los residentes los reporten",
+      "error": "Error al cargar los pagos",
+      "table": {
+        "paymentNumber": "Nº Pago",
+        "user": "Usuario",
+        "unit": "Unidad",
+        "amount": "Monto",
+        "method": "Método",
+        "date": "Fecha",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "status": {
+        "all": "Todos",
+        "pending": "Pendiente",
+        "pending_verification": "Por verificar",
+        "completed": "Completado",
+        "failed": "Fallido",
+        "refunded": "Reembolsado",
+        "rejected": "Rechazado"
+      },
+      "method": {
+        "transfer": "Transferencia",
+        "cash": "Efectivo",
+        "card": "Tarjeta",
+        "mobile_payment": "Pago Móvil",
+        "gateway": "Pasarela",
+        "other": "Otro"
+      },
+      "filters": {
+        "searchPlaceholder": "Buscar por número de pago...",
+        "status": "Estado"
+      },
+      "detail": {
+        "title": "Detalle del Pago",
+        "paymentInfo": "Información del Pago",
+        "paymentNumber": "Número de Pago",
+        "userInfo": "Información del Usuario",
+        "userName": "Usuario",
+        "userEmail": "Email",
+        "unitInfo": "Información de la Unidad",
+        "unitName": "Unidad",
+        "amounts": "Montos",
+        "amount": "Monto",
+        "paidAmount": "Monto Pagado",
+        "exchangeRate": "Tasa de Cambio",
+        "currency": "Divisa",
+        "paidCurrency": "Divisa de Pago",
+        "paymentMethod": "Método de Pago",
+        "dates": "Fechas",
+        "paymentDate": "Fecha de Pago",
+        "registeredAt": "Registrado el",
+        "verifiedAt": "Verificado el",
+        "status": "Estado",
+        "receipt": "Comprobante",
+        "receiptUrl": "Ver comprobante",
+        "receiptNumber": "Número de Recibo",
+        "verification": "Verificación",
+        "verifiedBy": "Verificado por",
+        "verificationNotes": "Notas de Verificación",
+        "notes": "Notas",
+        "notAvailable": "No disponible"
+      },
+      "actions": {
+        "view": "Ver detalles",
+        "verify": "Verificar Pago",
+        "reject": "Rechazar Pago",
+        "verifySuccess": "Pago verificado correctamente",
+        "rejectSuccess": "Pago rechazado correctamente",
+        "verifyError": "Error al verificar el pago",
+        "rejectError": "Error al rechazar el pago",
+        "confirmVerify": "¿Estás seguro de que deseas verificar este pago?",
+        "confirmReject": "¿Estás seguro de que deseas rechazar este pago?",
+        "back": "Volver a pagos"
+      },
+      "export": {
+        "csv": "Exportar CSV",
+        "pdf": "Exportar PDF",
+        "downloading": "Descargando...",
+        "success": "Exportación descargada exitosamente",
+        "error": "Error al exportar. Intenta de nuevo."
+      }
+    },
+    "expenses": {
+      "title": "Gastos",
+      "subtitle": "Gestiona y registra los gastos del condominio",
+      "empty": "No se encontraron gastos",
+      "emptyDescription": "Los gastos aparecerán aquí cuando sean registrados",
+      "error": "Error al cargar los gastos",
+      "table": {
+        "description": "Descripción",
+        "category": "Categoría",
+        "amount": "Monto",
+        "expenseDate": "Fecha",
+        "vendor": "Proveedor",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "status": {
+        "all": "Todos",
+        "pending": "Pendiente",
+        "approved": "Aprobado",
+        "rejected": "Rechazado",
+        "paid": "Pagado"
+      },
+      "filters": {
+        "searchPlaceholder": "Buscar por descripción o proveedor...",
+        "status": "Estado"
+      },
+      "detail": {
+        "title": "Detalle del Gasto",
+        "expenseInfo": "Información del Gasto",
+        "description": "Descripción",
+        "category": "Categoría",
+        "amountInfo": "Información del Monto",
+        "amount": "Monto",
+        "currency": "Divisa",
+        "vendorInfo": "Información del Proveedor",
+        "vendorName": "Nombre del Proveedor",
+        "vendorTaxId": "RIF/NIT del Proveedor",
+        "invoiceNumber": "Número de Factura",
+        "invoiceUrl": "Factura",
+        "viewInvoice": "Ver Factura",
+        "dateInfo": "Información de Fechas",
+        "expenseDate": "Fecha del Gasto",
+        "createdAt": "Creado el",
+        "approvalInfo": "Información de Aprobación",
+        "status": "Estado",
+        "approvedBy": "Aprobado por",
+        "approvedAt": "Aprobado el",
+        "notes": "Notas",
+        "noNotes": "Sin notas",
+        "notAvailable": "No disponible"
+      },
+      "export": {
+        "csv": "Exportar CSV",
+        "pdf": "Exportar PDF",
+        "downloading": "Descargando...",
+        "success": "Exportación descargada exitosamente",
+        "error": "Error al exportar. Intenta de nuevo."
+      },
+      "actions": {
+        "view": "Ver detalles",
+        "backToList": "Volver a gastos"
+      }
+    },
+    "amenities": {
+      "title": "Amenidades",
+      "subtitle": "Gestiona las amenidades del condominio",
+      "add": "Agregar Amenidad",
+      "name": "Nombre",
+      "description": "Descripción",
+      "location": "Ubicación",
+      "capacity": "Capacidad",
+      "requiresApproval": "Requiere Aprobación",
+      "noAmenities": "No se encontraron amenidades",
+      "saveSuccess": "Amenidad guardada",
+      "deleteSuccess": "Amenidad eliminada"
     }
   }
 }

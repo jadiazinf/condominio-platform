@@ -8,6 +8,7 @@ import {
 } from '@packages/domain'
 import type { SubscriptionInvoicesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
@@ -57,29 +58,27 @@ export class SubscriptionInvoicesController extends BaseController<
     super(repository)
     this.markPaidService = new MarkInvoicePaidService(repository)
 
-    this.getInvoicesByCompany = this.getInvoicesByCompany.bind(this)
-    this.markInvoicePaid = this.markInvoicePaid.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
       {
         method: 'get',
-        path: '/management-companies/:companyId/invoices',
+        path: '/platform/management-companies/:companyId/invoices',
         handler: this.getInvoicesByCompany,
-        middlewares: [paramsValidator(CompanyIdParamSchema), queryValidator(InvoicesQuerySchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(CompanyIdParamSchema), queryValidator(InvoicesQuerySchema)],
       },
       {
         method: 'get',
-        path: '/subscription-invoices/:id',
+        path: '/platform/subscription-invoices/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'patch',
-        path: '/subscription-invoices/:id/mark-paid',
+        path: '/platform/subscription-invoices/:id/mark-paid',
         handler: this.markInvoicePaid,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(MarkPaidBodySchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(MarkPaidBodySchema)],
       },
     ]
   }
@@ -88,7 +87,7 @@ export class SubscriptionInvoicesController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getInvoicesByCompany(c: Context): Promise<Response> {
+  private getInvoicesByCompany = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TInvoicesQuery, TCompanyIdParam>(c)
     const repo = this.repository as SubscriptionInvoicesRepository
 
@@ -105,7 +104,7 @@ export class SubscriptionInvoicesController extends BaseController<
     }
   }
 
-  private async markInvoicePaid(c: Context): Promise<Response> {
+  private markInvoicePaid = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TMarkPaidBody, unknown, { id: string }>(c)
 
     try {

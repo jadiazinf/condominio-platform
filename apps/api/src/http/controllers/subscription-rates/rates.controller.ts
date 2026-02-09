@@ -11,8 +11,7 @@ import { bodyValidator, paramsValidator, queryValidator } from '../../middleware
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { isUserAuthenticated } from '../../middlewares/utils/auth/is-user-authenticated'
-import { isSuperadmin } from '../../middlewares/utils/auth/is-superadmin'
-import { requireSuperadminPermission } from '../../middlewares/utils/auth/has-superadmin-permission'
+import { requireRole } from '../../middlewares/auth'
 
 const VersionParamSchema = z.object({
   version: z.string().min(1, 'Version is required'),
@@ -81,14 +80,6 @@ export class SubscriptionRatesController extends BaseController<
   constructor(repository: SubscriptionRatesRepository) {
     super(repository)
 
-    this.getActiveRate = this.getActiveRate.bind(this)
-    this.getByVersion = this.getByVersion.bind(this)
-    this.getAllRates = this.getAllRates.bind(this)
-    this.getRateById = this.getRateById.bind(this)
-    this.createRate = this.createRate.bind(this)
-    this.updateRate = this.updateRate.bind(this)
-    this.activateRate = this.activateRate.bind(this)
-    this.deactivateRate = this.deactivateRate.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -96,64 +87,64 @@ export class SubscriptionRatesController extends BaseController<
       // Public: Get active rate
       {
         method: 'get',
-        path: '/subscription-rates/active',
+        path: '/platform/subscription-rates/active',
         handler: this.getActiveRate,
         middlewares: [],
       },
       // Superadmin: Get rate by version
       {
         method: 'get',
-        path: '/subscription-rates/version/:version',
+        path: '/platform/subscription-rates/version/:version',
         handler: this.getByVersion,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
+          requireRole('SUPERADMIN'),
           paramsValidator(VersionParamSchema),
         ],
       },
       // Superadmin: List all rates
       {
         method: 'get',
-        path: '/subscription-rates',
+        path: '/platform/subscription-rates',
         handler: this.getAllRates,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
+          requireRole('SUPERADMIN'),
           queryValidator(RatesQuerySchema),
         ],
       },
       // Superadmin: Get rate by ID
       {
         method: 'get',
-        path: '/subscription-rates/:id',
+        path: '/platform/subscription-rates/:id',
         handler: this.getRateById,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
+          requireRole('SUPERADMIN'),
           paramsValidator(IdParamSchema),
         ],
       },
       // Superadmin with manage permission: Create new rate
       {
         method: 'post',
-        path: '/subscription-rates',
+        path: '/platform/subscription-rates',
         handler: this.createRate,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
-          requireSuperadminPermission('platform_management_companies', 'manage'),
+          requireRole('SUPERADMIN'),
+
           bodyValidator(CreateRateSchema),
         ],
       },
       // Superadmin with manage permission: Update rate
       {
         method: 'patch',
-        path: '/subscription-rates/:id',
+        path: '/platform/subscription-rates/:id',
         handler: this.updateRate,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
-          requireSuperadminPermission('platform_management_companies', 'manage'),
+          requireRole('SUPERADMIN'),
+
           paramsValidator(IdParamSchema),
           bodyValidator(UpdateRateSchema),
         ],
@@ -161,24 +152,24 @@ export class SubscriptionRatesController extends BaseController<
       // Superadmin with manage permission: Activate rate
       {
         method: 'patch',
-        path: '/subscription-rates/:id/activate',
+        path: '/platform/subscription-rates/:id/activate',
         handler: this.activateRate,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
-          requireSuperadminPermission('platform_management_companies', 'manage'),
+          requireRole('SUPERADMIN'),
+
           paramsValidator(IdParamSchema),
         ],
       },
       // Superadmin with manage permission: Deactivate rate
       {
         method: 'patch',
-        path: '/subscription-rates/:id/deactivate',
+        path: '/platform/subscription-rates/:id/deactivate',
         handler: this.deactivateRate,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
-          requireSuperadminPermission('platform_management_companies', 'manage'),
+          requireRole('SUPERADMIN'),
+
           paramsValidator(IdParamSchema),
         ],
       },
@@ -192,7 +183,7 @@ export class SubscriptionRatesController extends BaseController<
   /**
    * Get current active subscription rate (public)
    */
-  private async getActiveRate(c: Context): Promise<Response> {
+  private getActiveRate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const repo = this.repository as SubscriptionRatesRepository
 
@@ -212,7 +203,7 @@ export class SubscriptionRatesController extends BaseController<
   /**
    * Get rate by version (superadmin only)
    */
-  private async getByVersion(c: Context): Promise<Response> {
+  private getByVersion = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TVersionParam>(c)
     const repo = this.repository as SubscriptionRatesRepository
 
@@ -232,7 +223,7 @@ export class SubscriptionRatesController extends BaseController<
   /**
    * List all rates with pagination (superadmin only)
    */
-  private async getAllRates(c: Context): Promise<Response> {
+  private getAllRates = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TRatesQuery>(c)
     const repo = this.repository as SubscriptionRatesRepository
 
@@ -252,7 +243,7 @@ export class SubscriptionRatesController extends BaseController<
   /**
    * Get rate by ID (superadmin only)
    */
-  private async getRateById(c: Context): Promise<Response> {
+  private getRateById = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
     const repo = this.repository as SubscriptionRatesRepository
 
@@ -272,7 +263,7 @@ export class SubscriptionRatesController extends BaseController<
   /**
    * Create new rate (superadmin only)
    */
-  private async createRate(c: Context): Promise<Response> {
+  private createRate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TCreateRateBody>(c)
     const repo = this.repository as SubscriptionRatesRepository
 
@@ -309,7 +300,7 @@ export class SubscriptionRatesController extends BaseController<
   /**
    * Update rate (superadmin only)
    */
-  private async updateRate(c: Context): Promise<Response> {
+  private updateRate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TUpdateRateBody, unknown, { id: string }>(c)
     const repo = this.repository as SubscriptionRatesRepository
 
@@ -340,7 +331,7 @@ export class SubscriptionRatesController extends BaseController<
   /**
    * Activate rate (superadmin only) - deactivates all other rates
    */
-  private async activateRate(c: Context): Promise<Response> {
+  private activateRate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
     const repo = this.repository as SubscriptionRatesRepository
 
@@ -363,7 +354,7 @@ export class SubscriptionRatesController extends BaseController<
   /**
    * Deactivate rate (superadmin only)
    */
-  private async deactivateRate(c: Context): Promise<Response> {
+  private deactivateRate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
     const repo = this.repository as SubscriptionRatesRepository
 

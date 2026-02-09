@@ -9,6 +9,7 @@ import {
 import type { UnitOwnershipsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -53,71 +54,79 @@ export class UnitOwnershipsController extends BaseController<
 > {
   constructor(repository: UnitOwnershipsRepository) {
     super(repository)
-    this.getByUnitId = this.getByUnitId.bind(this)
-    this.getByUserId = this.getByUserId.bind(this)
-    this.getByUnitAndUser = this.getByUnitAndUser.bind(this)
-    this.getPrimaryResidenceByUser = this.getPrimaryResidenceByUser.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
       {
         method: 'get',
         path: '/unit/:unitId',
         handler: this.getByUnitId,
-        middlewares: [paramsValidator(UnitIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(UnitIdParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'USER'), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId/primary',
         handler: this.getPrimaryResidenceByUser,
-        middlewares: [paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'USER'), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/unit/:unitId/user/:userId',
         handler: this.getByUnitAndUser,
-        middlewares: [paramsValidator(UnitAndUserParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(UnitAndUserParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'USER'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(unitOwnershipCreateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(unitOwnershipCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(unitOwnershipUpdateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema), bodyValidator(unitOwnershipUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Overridden Handlers
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override list = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    // TODO: Filter by condominiumId via JOIN through unit → building.condominiumId
+    const entities = await this.repository.listAll()
+    return ctx.ok({ data: entities })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByUnitId(c: Context): Promise<Response> {
+  private getByUnitId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)
     const repo = this.repository as UnitOwnershipsRepository
 
@@ -129,7 +138,7 @@ export class UnitOwnershipsController extends BaseController<
     }
   }
 
-  private async getByUserId(c: Context): Promise<Response> {
+  private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
     const repo = this.repository as UnitOwnershipsRepository
 
@@ -141,7 +150,7 @@ export class UnitOwnershipsController extends BaseController<
     }
   }
 
-  private async getByUnitAndUser(c: Context): Promise<Response> {
+  private getByUnitAndUser = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitAndUserParam>(c)
     const repo = this.repository as UnitOwnershipsRepository
 
@@ -158,7 +167,7 @@ export class UnitOwnershipsController extends BaseController<
     }
   }
 
-  private async getPrimaryResidenceByUser(c: Context): Promise<Response> {
+  private getPrimaryResidenceByUser = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
     const repo = this.repository as UnitOwnershipsRepository
 

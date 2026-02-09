@@ -1,5 +1,6 @@
 import type { TSupportTicketMessage, TSupportTicketMessageCreate } from '@packages/domain'
 import type { SupportTicketMessagesRepository, SupportTicketsRepository } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
 import { WebSocketManager } from '@libs/websocket'
 
@@ -12,6 +13,7 @@ export class CreateMessageService {
   private readonly wsManager = WebSocketManager.getInstance()
 
   constructor(
+    private readonly db: TDrizzleClient,
     private readonly messagesRepository: SupportTicketMessagesRepository,
     private readonly ticketsRepository: SupportTicketsRepository
   ) {}
@@ -29,13 +31,21 @@ export class CreateMessageService {
       return failure('Cannot add message to a closed or cancelled ticket', 'BAD_REQUEST')
     }
 
-    // Create message
-    const createdMessage = await this.messagesRepository.create(input)
+    // All writes inside a transaction for atomicity
+    const createdMessage = await this.db.transaction(async (tx) => {
+      const txMessagesRepo = this.messagesRepository.withTx(tx)
+      const txTicketsRepo = this.ticketsRepository.withTx(tx)
 
-    // Update ticket's updatedAt timestamp
-    await this.ticketsRepository.update(input.ticketId, {})
+      // Create message
+      const message = await txMessagesRepo.create(input)
 
-    // Fetch the message again with user information for broadcasting
+      // Update ticket's updatedAt timestamp
+      await txTicketsRepo.update(input.ticketId, {})
+
+      return message
+    })
+
+    // Fetch the message again with user information for broadcasting (read outside transaction)
     const messages = await this.messagesRepository.listByTicketId(input.ticketId)
     const messageWithUser = messages.find(m => m.id === createdMessage.id)
 

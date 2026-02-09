@@ -42,8 +42,8 @@ export class ValidateUserInvitationTokenService {
       return failure('Invalid invitation token', 'NOT_FOUND')
     }
 
-    // Get user
-    const user = await this.usersRepository.getById(invitation.userId)
+    // Get user (include inactive — invitation users are inactive until accepted)
+    const user = await this.usersRepository.getById(invitation.userId, true)
     if (!user) {
       return failure('User associated with invitation not found', 'NOT_FOUND')
     }

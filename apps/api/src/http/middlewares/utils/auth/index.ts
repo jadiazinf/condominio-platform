@@ -14,3 +14,4 @@ export {
   createCanAccessTicket,
   TICKET_PROP,
 } from './can-access-ticket'
+export { requireRole, CONDOMINIUM_ID_PROP, USER_ROLE_PROP } from './require-role'

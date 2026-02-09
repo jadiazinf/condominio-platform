@@ -19,7 +19,7 @@ export function useCondominiumDetail(options: UseCondominiumDetailOptions) {
   const { token, condominiumId, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TCondominium>>({
-    path: `/condominiums/${condominiumId}`,
+    path: `/condominium/condominiums/${condominiumId}`,
     queryKey: condominiumsKeys.detail(condominiumId),
     config: {
       headers: {
@@ -40,7 +40,7 @@ export async function getCondominiumDetail(
   const client = getHttpClient()
 
   const response = await client.get<TApiDataResponse<TCondominium>>(
-    `/condominiums/${condominiumId}`,
+    `/condominium/condominiums/${condominiumId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

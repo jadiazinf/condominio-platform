@@ -19,7 +19,7 @@ import {
   AddMemberService,
   UpdateMemberPermissionsService,
 } from '../../../services/management-company-members'
-import { authMiddleware } from '../../middlewares/auth'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
 
 const CompanyIdParamSchema = z.object({
@@ -74,53 +74,50 @@ export class ManagementCompanyMembersController extends BaseController<
     this.addMemberService = new AddMemberService(repository)
     this.updatePermissionsService = new UpdateMemberPermissionsService(repository)
 
-    this.getMembersByCompany = this.getMembersByCompany.bind(this)
-    this.getPrimaryAdmin = this.getPrimaryAdmin.bind(this)
-    this.addMember = this.addMember.bind(this)
-    this.updatePermissions = this.updatePermissions.bind(this)
-    this.removeMember = this.removeMember.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
       {
         method: 'get',
-        path: '/management-companies/:companyId/members',
+        path: '/platform/management-companies/:companyId/members',
         handler: this.getMembersByCompany,
         middlewares: [
+          authMiddleware,
+          requireRole('SUPERADMIN'),
           paramsValidator(CompanyIdParamSchema),
           queryValidator(managementCompanyMembersQuerySchema),
         ],
       },
       {
         method: 'post',
-        path: '/management-companies/:companyId/members',
+        path: '/platform/management-companies/:companyId/members',
         handler: this.addMember,
-        middlewares: [authMiddleware, paramsValidator(CompanyIdParamSchema), bodyValidator(AddMemberBodySchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(CompanyIdParamSchema), bodyValidator(AddMemberBodySchema)],
       },
       {
         method: 'get',
-        path: '/management-companies/:companyId/primary-admin',
+        path: '/platform/management-companies/:companyId/primary-admin',
         handler: this.getPrimaryAdmin,
-        middlewares: [paramsValidator(CompanyIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(CompanyIdParamSchema)],
       },
       {
         method: 'patch',
-        path: '/management-company-members/:id',
+        path: '/platform/management-company-members/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(managementCompanyMemberUpdateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(managementCompanyMemberUpdateSchema)],
       },
       {
         method: 'patch',
-        path: '/management-company-members/:id/permissions',
+        path: '/platform/management-company-members/:id/permissions',
         handler: this.updatePermissions,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(UpdatePermissionsBodySchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(UpdatePermissionsBodySchema)],
       },
       {
         method: 'delete',
-        path: '/management-company-members/:id',
+        path: '/platform/management-company-members/:id',
         handler: this.removeMember,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(RemoveMemberBodySchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(RemoveMemberBodySchema)],
       },
     ]
   }
@@ -129,7 +126,7 @@ export class ManagementCompanyMembersController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getMembersByCompany(c: Context): Promise<Response> {
+  private getMembersByCompany = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TManagementCompanyMembersQuerySchema, TCompanyIdParam>(c)
     const repo = this.repository as ManagementCompanyMembersRepository
 
@@ -142,7 +139,7 @@ export class ManagementCompanyMembersController extends BaseController<
     }
   }
 
-  private async getPrimaryAdmin(c: Context): Promise<Response> {
+  private getPrimaryAdmin = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TCompanyIdParam>(c)
     const repo = this.repository as ManagementCompanyMembersRepository
 
@@ -159,7 +156,7 @@ export class ManagementCompanyMembersController extends BaseController<
     }
   }
 
-  private async addMember(c: Context): Promise<Response> {
+  private addMember = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TAddMemberBody, unknown, TCompanyIdParam>(c)
 
     // Get authenticated user from middleware
@@ -186,7 +183,7 @@ export class ManagementCompanyMembersController extends BaseController<
     }
   }
 
-  private async updatePermissions(c: Context): Promise<Response> {
+  private updatePermissions = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TUpdatePermissionsBody, unknown, { id: string }>(c)
 
     try {
@@ -205,7 +202,7 @@ export class ManagementCompanyMembersController extends BaseController<
     }
   }
 
-  private async removeMember(c: Context): Promise<Response> {
+  private removeMember = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TRemoveMemberBody, unknown, { id: string }>(c)
     const repo = this.repository as ManagementCompanyMembersRepository
 

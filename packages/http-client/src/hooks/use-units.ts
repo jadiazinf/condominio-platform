@@ -29,7 +29,7 @@ export function useBuildingUnits(options: UseBuildingUnitsOptions) {
   const { token, buildingId, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TUnit[]>>({
-    path: `/buildings/${buildingId}/units`,
+    path: `/condominium/units?buildingId=${buildingId}`,
     queryKey: unitsKeys.list(buildingId),
     config: {
       headers: {
@@ -53,7 +53,7 @@ export function useUnitDetail(options: UseUnitDetailOptions) {
   const { token, unitId, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TUnit>>({
-    path: `/units/${unitId}`,
+    path: `/condominium/units/${unitId}`,
     queryKey: unitsKeys.detail(unitId),
     config: {
       headers: {
@@ -93,7 +93,7 @@ export function useCreateUnit(options: UseCreateUnitOptions = {}) {
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiDataResponse<TUnit>, TCreateUnitVariables>({
-    path: (variables: TCreateUnitVariables) => `/buildings/${variables.buildingId}/units`,
+    path: '/condominium/units',
     method: 'POST',
     invalidateKeys: [unitsKeys.all],
     onSuccess: (response: ApiResponse<TApiDataResponse<TUnit>>) => {
@@ -128,7 +128,7 @@ export function useUpdateUnit(options: UseUpdateUnitOptions = {}) {
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiDataResponse<TUnit>, TUpdateUnitVariables>({
-    path: (variables: TUpdateUnitVariables) => `/units/${variables.unitId}`,
+    path: (variables: TUpdateUnitVariables) => `/condominium/units/${variables.unitId}`,
     method: 'PATCH',
     invalidateKeys: [unitsKeys.all],
     onSuccess: (response: ApiResponse<TApiDataResponse<TUnit>>) => {
@@ -154,7 +154,7 @@ export function useDeleteUnit(options: UseDeleteUnitOptions = {}) {
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiMessageResponse, TDeleteUnitVariables>({
-    path: (variables: TDeleteUnitVariables) => `/units/${variables.unitId}`,
+    path: (variables: TDeleteUnitVariables) => `/condominium/units/${variables.unitId}`,
     method: 'DELETE',
     invalidateKeys: [unitsKeys.all],
     onSuccess: (response: ApiResponse<TApiMessageResponse>) => {
@@ -181,7 +181,7 @@ export function useToggleUnitStatus(options: UseToggleUnitStatusOptions = {}) {
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiMessageResponse, TToggleUnitStatusVariables>({
-    path: (variables: TToggleUnitStatusVariables) => `/units/${variables.unitId}/status`,
+    path: (variables: TToggleUnitStatusVariables) => `/condominium/units/${variables.unitId}/status`,
     method: 'PATCH',
     invalidateKeys: [unitsKeys.all],
     onSuccess: (response: ApiResponse<TApiMessageResponse>) => {
@@ -201,7 +201,7 @@ export function useToggleUnitStatus(options: UseToggleUnitStatusOptions = {}) {
 export async function getBuildingUnits(token: string, buildingId: string): Promise<TUnit[]> {
   const client = getHttpClient()
 
-  const response = await client.get<TApiDataResponse<TUnit[]>>(`/buildings/${buildingId}/units`, {
+  const response = await client.get<TApiDataResponse<TUnit[]>>(`/condominium/units?buildingId=${buildingId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -216,7 +216,7 @@ export async function getBuildingUnits(token: string, buildingId: string): Promi
 export async function getUnitDetail(token: string, unitId: string): Promise<TUnit> {
   const client = getHttpClient()
 
-  const response = await client.get<TApiDataResponse<TUnit>>(`/units/${unitId}`, {
+  const response = await client.get<TApiDataResponse<TUnit>>(`/condominium/units/${unitId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

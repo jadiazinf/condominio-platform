@@ -42,15 +42,18 @@ interface IBcvScrapedRate {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class SyncBcvRatesService {
+  private readonly db: TDrizzleClient
   private currenciesRepo: CurrenciesRepository
   private exchangeRatesRepo: ExchangeRatesRepository
 
   constructor(db: TDrizzleClient) {
+    this.db = db
     this.currenciesRepo = new CurrenciesRepository(db)
     this.exchangeRatesRepo = new ExchangeRatesRepository(db)
   }
 
   async execute(): Promise<void> {
+    // Scraping is a read/external operation — stays outside transaction
     const scrapedRates = await this.scrapeBcv()
 
     if (scrapedRates.length === 0) {
@@ -60,11 +63,17 @@ export class SyncBcvRatesService {
 
     logger.info({ count: scrapedRates.length }, '[BCV Sync] Scraped rates from BCV')
 
-    const vesCurrency = await this.ensureCurrency(VES_METADATA)
+    // All database writes inside a transaction for atomicity
+    await this.db.transaction(async (tx) => {
+      const txCurrenciesRepo = this.currenciesRepo.withTx(tx)
+      const txExchangeRatesRepo = this.exchangeRatesRepo.withTx(tx)
 
-    for (const scraped of scrapedRates) {
-      await this.processSingleRate(scraped, vesCurrency)
-    }
+      const vesCurrency = await this.ensureCurrencyWithRepo(txCurrenciesRepo, VES_METADATA)
+
+      for (const scraped of scrapedRates) {
+        await this.processSingleRateWithRepos(txCurrenciesRepo, txExchangeRatesRepo, scraped, vesCurrency)
+      }
+    })
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -122,18 +131,21 @@ export class SyncBcvRatesService {
   // Currency ensure
   // ─────────────────────────────────────────────────────────────────────────
 
-  private async ensureCurrency(meta: {
-    code: string
-    name: string
-    symbol: string
-    decimals: number
-    isBaseCurrency?: boolean
-  }): Promise<TCurrency> {
-    const existing = await this.currenciesRepo.getByCode(meta.code)
+  private async ensureCurrencyWithRepo(
+    currenciesRepo: CurrenciesRepository,
+    meta: {
+      code: string
+      name: string
+      symbol: string
+      decimals: number
+      isBaseCurrency?: boolean
+    }
+  ): Promise<TCurrency> {
+    const existing = await currenciesRepo.getByCode(meta.code)
     if (existing) return existing
 
     logger.info({ code: meta.code }, '[BCV Sync] Creating currency')
-    return this.currenciesRepo.create({
+    return currenciesRepo.create({
       code: meta.code,
       name: meta.name,
       symbol: meta.symbol,
@@ -148,16 +160,18 @@ export class SyncBcvRatesService {
   // Rate processing
   // ─────────────────────────────────────────────────────────────────────────
 
-  private async processSingleRate(
+  private async processSingleRateWithRepos(
+    currenciesRepo: CurrenciesRepository,
+    exchangeRatesRepo: ExchangeRatesRepository,
     scraped: IBcvScrapedRate,
     vesCurrency: TCurrency
   ): Promise<void> {
     const meta = Object.values(BCV_CURRENCY_MAP).find((m) => m.code === scraped.currencyCode)
     if (!meta) return
 
-    const fromCurrency = await this.ensureCurrency(meta)
+    const fromCurrency = await this.ensureCurrencyWithRepo(currenciesRepo, meta)
 
-    const latestRate = await this.exchangeRatesRepo.getLatestRate(fromCurrency.id, vesCurrency.id)
+    const latestRate = await exchangeRatesRepo.getLatestRate(fromCurrency.id, vesCurrency.id)
 
     if (latestRate) {
       const sameRate = latestRate.rate === scraped.rate
@@ -175,7 +189,7 @@ export class SyncBcvRatesService {
         { code: scraped.currencyCode, oldRate: latestRate.rate, newRate: scraped.rate },
         '[BCV Sync] Rate changed, deactivating previous'
       )
-      await this.exchangeRatesRepo.delete(latestRate.id)
+      await exchangeRatesRepo.delete(latestRate.id)
     }
 
     logger.info(
@@ -183,7 +197,7 @@ export class SyncBcvRatesService {
       '[BCV Sync] Inserting exchange rate'
     )
 
-    await this.exchangeRatesRepo.create({
+    await exchangeRatesRepo.create({
       fromCurrencyId: fromCurrency.id,
       toCurrencyId: vesCurrency.id,
       rate: scraped.rate,

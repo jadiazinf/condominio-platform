@@ -61,7 +61,7 @@ export function useCondominiumUsers(options: UseCondominiumUsersOptions) {
   const { token, condominiumId, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TCondominiumUser[]>>({
-    path: `/condominiums/${condominiumId}/users`,
+    path: `/condominium/condominiums/${condominiumId}/users`,
     queryKey: condominiumUsersKeys.list(condominiumId),
     config: {
       headers: {
@@ -97,7 +97,7 @@ export function useAddUserToCondominium(options: UseAddUserToCondominiumOptions 
 
   return useApiMutation<TApiDataResponse<TUserRole>, TAddUserToCondominiumVariables>({
     path: (variables: TAddUserToCondominiumVariables) =>
-      `/condominiums/${variables.condominiumId}/users`,
+      `/condominium/condominiums/${variables.condominiumId}/users`,
     method: 'POST',
     invalidateKeys: [condominiumUsersKeys.all],
     onSuccess: (response: ApiResponse<TApiDataResponse<TUserRole>>) => {
@@ -125,7 +125,7 @@ export function useRemoveUserFromCondominium(options: UseRemoveUserFromCondomini
 
   return useApiMutation<TApiMessageResponse, TRemoveUserFromCondominiumVariables>({
     path: (variables: TRemoveUserFromCondominiumVariables) =>
-      `/condominiums/${variables.condominiumId}/users/${variables.userId}`,
+      `/condominium/condominiums/${variables.condominiumId}/users/${variables.userId}`,
     method: 'DELETE',
     invalidateKeys: [condominiumUsersKeys.all],
     onSuccess: (response: ApiResponse<TApiMessageResponse>) => {
@@ -154,7 +154,7 @@ export function useUpdateUserCondominiumRole(options: UseUpdateUserRoleOptions =
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiDataResponse<TUserRole>, TUpdateUserRoleVariables>({
-    path: (variables: TUpdateUserRoleVariables) => `/user-roles/${variables.userRoleId}`,
+    path: (variables: TUpdateUserRoleVariables) => `/condominium/user-roles/${variables.userRoleId}`,
     method: 'PATCH',
     invalidateKeys: [condominiumUsersKeys.all],
     onSuccess: (response: ApiResponse<TApiDataResponse<TUserRole>>) => {
@@ -186,7 +186,7 @@ export function useAssignUnitToUser(options: UseAssignUnitToUserOptions = {}) {
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiDataResponse<TUnitOwnership>, TAssignUnitToUserVariables>({
-    path: (variables: TAssignUnitToUserVariables) => `/units/${variables.unitId}/ownerships`,
+    path: '/condominium/unit-ownerships',
     method: 'POST',
     invalidateKeys: [condominiumUsersKeys.all],
     onSuccess: (response: ApiResponse<TApiDataResponse<TUnitOwnership>>) => {
@@ -213,7 +213,7 @@ export function useRemoveUnitFromUser(options: UseRemoveUnitFromUserOptions = {}
 
   return useApiMutation<TApiMessageResponse, TRemoveUnitFromUserVariables>({
     path: (variables: TRemoveUnitFromUserVariables) =>
-      `/unit-ownerships/${variables.ownershipId}`,
+      `/condominium/unit-ownerships/${variables.ownershipId}`,
     method: 'DELETE',
     invalidateKeys: [condominiumUsersKeys.all],
     onSuccess: (response: ApiResponse<TApiMessageResponse>) => {
@@ -237,7 +237,7 @@ export async function getCondominiumUsers(
   const client = getHttpClient()
 
   const response = await client.get<TApiDataResponse<TCondominiumUser[]>>(
-    `/condominiums/${condominiumId}/users`,
+    `/condominium/condominiums/${condominiumId}/users`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

@@ -12,6 +12,7 @@ import type {
   CondominiumsRepository,
   PermissionsRepository,
 } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { HttpContext } from '../../context'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { createRouter } from '../create-router'
@@ -26,8 +27,8 @@ import {
 import { SendUserInvitationEmailService } from '@src/services/email'
 import { LocaleDictionary } from '@locales/dictionary'
 import logger from '@utils/logger'
-import { isSuperadmin, SUPERADMIN_USER_PROP } from '@http/middlewares/utils/auth/is-superadmin'
-import { authMiddleware } from '@http/middlewares/auth'
+import { authMiddleware, requireRole } from '@http/middlewares/auth'
+import { generateSecureToken, hashToken } from '@utils/token'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Schemas
@@ -100,6 +101,7 @@ export class UserInvitationsController {
   private readonly sendUserInvitationEmailService: SendUserInvitationEmailService
 
   constructor(
+    private readonly db: TDrizzleClient,
     private readonly invitationsRepository: UserInvitationsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly userRolesRepository: UserRolesRepository,
@@ -116,6 +118,7 @@ export class UserInvitationsController {
       condominiumsRepository
     )
     this.createUserWithInvitationService = new CreateUserWithInvitationService(
+      db,
       invitationsRepository,
       usersRepository,
       userRolesRepository,
@@ -131,6 +134,7 @@ export class UserInvitationsController {
       rolesRepository
     )
     this.acceptUserInvitationService = new AcceptUserInvitationService(
+      db,
       invitationsRepository,
       usersRepository,
       userRolesRepository
@@ -144,19 +148,19 @@ export class UserInvitationsController {
         method: 'post',
         path: '/',
         handler: this.createInvitation,
-        middlewares: [bodyValidator(CreateUserInvitationSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(CreateUserInvitationSchema)],
       },
       {
         method: 'post',
         path: '/create-user',
         handler: this.createUserWithInvitation,
-        middlewares: [authMiddleware, isSuperadmin, bodyValidator(CreateUserWithInvitationSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(CreateUserWithInvitationSchema)],
       },
       {
         method: 'post',
         path: '/:id/resend-email',
         handler: this.resendEmail,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'get',
@@ -174,7 +178,7 @@ export class UserInvitationsController {
         method: 'delete',
         path: '/:id',
         handler: this.cancelInvitation,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -313,12 +317,8 @@ export class UserInvitationsController {
     const ctx = new HttpContext<TCreateUserWithInvitationBody>(c)
     const t = useTranslation(c)
 
-    // Get the superadmin user from context (set by isSuperadmin middleware)
-    const superadminUser = c.get(SUPERADMIN_USER_PROP)
-
-    if (!superadminUser) {
-      throw AppError.forbidden(t(LocaleDictionary.http.middlewares.utils.auth.notSuperadmin))
-    }
+    // Get the authenticated user from context (set by authMiddleware)
+    const authenticatedUser = ctx.getAuthenticatedUser()
 
     try {
       // Execute the service
@@ -334,7 +334,7 @@ export class UserInvitationsController {
         condominiumId: ctx.body.condominiumId,
         roleId: ctx.body.roleId,
         customPermissions: ctx.body.customPermissions,
-        createdBy: superadminUser.userId,
+        createdBy: authenticatedUser.id,
         expirationDays: ctx.body.expirationDays,
       })
 
@@ -534,8 +534,8 @@ export class UserInvitationsController {
       throw AppError.validation('Cannot resend email for non-pending invitation')
     }
 
-    // Get the user, condominium, and role
-    const user = await this.usersRepository.getById(invitation.userId)
+    // Get the user, condominium, and role (include inactive — invitation users are inactive until accepted)
+    const user = await this.usersRepository.getById(invitation.userId, true)
     if (!user) {
       throw AppError.notFound('User not found')
     }
@@ -549,15 +549,9 @@ export class UserInvitationsController {
     const role = await this.rolesRepository.getById(invitation.roleId)
     const roleName = role?.name ?? 'Usuario'
 
-    // Generate a new token for the invitation
-    const tokenBytes = new Uint8Array(32)
-    crypto.getRandomValues(tokenBytes)
-    const newToken = Buffer.from(tokenBytes).toString('base64url')
-    const newTokenHash = await Bun.password.hash(newToken, {
-      algorithm: 'argon2id',
-      memoryCost: 4,
-      timeCost: 3,
-    })
+    // Generate a new token for the invitation (same method as initial creation)
+    const newToken = generateSecureToken()
+    const newTokenHash = hashToken(newToken)
 
     // Update the invitation with the new token
     await this.invitationsRepository.regenerateToken(invitation.id, newToken, newTokenHash)

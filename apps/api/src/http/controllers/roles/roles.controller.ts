@@ -9,7 +9,7 @@ import {
 import type { RolesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware } from '../../middlewares/auth'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { GetAssignableRolesService } from '@src/services/roles'
@@ -40,43 +40,40 @@ export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpd
   constructor(repository: RolesRepository) {
     super(repository)
     this.getAssignableRolesService = new GetAssignableRolesService(repository)
-    this.getByName = this.getByName.bind(this)
-    this.getSystemRoles = this.getSystemRoles.bind(this)
-    this.getAssignableRoles = this.getAssignableRoles.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
       {
         method: 'get',
         path: '/system',
         handler: this.getSystemRoles,
-        middlewares: [authMiddleware],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN')],
       },
       {
         method: 'get',
         path: '/assignable',
         handler: this.getAssignableRoles,
-        middlewares: [authMiddleware],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN')],
       },
       {
         method: 'get',
         path: '/name/:name',
         handler: this.getByName,
-        middlewares: [authMiddleware, paramsValidator(NameParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(NameParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, bodyValidator(roleCreateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(roleCreateSchema)],
       },
       {
         method: 'patch',
@@ -84,6 +81,7 @@ export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpd
         handler: this.update,
         middlewares: [
           authMiddleware,
+          requireRole('SUPERADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(roleUpdateSchema),
         ],
@@ -92,7 +90,7 @@ export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpd
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -101,7 +99,7 @@ export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpd
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByName(c: Context): Promise<Response> {
+  private getByName = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TNameParam>(c)
     const repo = this.repository as RolesRepository
 
@@ -118,7 +116,7 @@ export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpd
     }
   }
 
-  private async getSystemRoles(c: Context): Promise<Response> {
+  private getSystemRoles = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const repo = this.repository as RolesRepository
 
@@ -130,7 +128,7 @@ export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpd
     }
   }
 
-  private async getAssignableRoles(c: Context): Promise<Response> {
+  private getAssignableRoles = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
 
     try {

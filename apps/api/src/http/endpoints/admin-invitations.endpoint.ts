@@ -11,7 +11,7 @@ import type { IEndpoint } from './types'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 
 export class AdminInvitationsEndpoint implements IEndpoint {
-  readonly path = '/admin-invitations'
+  readonly path = '/platform/admin-invitations'
   private readonly controller: AdminInvitationsController
 
   constructor(db: TDrizzleClient) {

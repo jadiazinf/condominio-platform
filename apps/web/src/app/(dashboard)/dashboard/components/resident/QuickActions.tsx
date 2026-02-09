@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
 import { CreditCard, FileText, History, Bell, Zap } from 'lucide-react'
@@ -19,21 +20,21 @@ export function QuickActions({ translations: t }: QuickActionsProps) {
       label: t.payQuota,
       icon: CreditCard,
       color: 'primary' as const,
-      href: '/dashboard/payments/new',
+      href: '/dashboard/report-payment',
     },
     {
       key: 'statement',
       label: t.viewStatement,
       icon: FileText,
       color: 'default' as const,
-      href: '/dashboard/statements',
+      href: '/dashboard/my-quotas',
     },
     {
       key: 'history',
       label: t.paymentHistory,
       icon: History,
       color: 'default' as const,
-      href: '/dashboard/payments',
+      href: '/dashboard/my-payments',
     },
     {
       key: 'notifications',
@@ -56,15 +57,16 @@ export function QuickActions({ translations: t }: QuickActionsProps) {
             const Icon = action.icon
 
             return (
-              <Button
-                key={action.key}
-                className="h-auto py-4 flex-col gap-2"
-                color={action.color}
-                startContent={<Icon size={24} />}
-                variant={action.color === 'primary' ? 'solid' : 'bordered'}
-              >
-                <span className="text-xs">{action.label}</span>
-              </Button>
+              <Link key={action.key} href={action.href}>
+                <Button
+                  className="h-auto w-full py-4 flex-col gap-2"
+                  color={action.color}
+                  startContent={<Icon size={24} />}
+                  variant={action.color === 'primary' ? 'solid' : 'bordered'}
+                >
+                  <span className="text-xs">{action.label}</span>
+                </Button>
+              </Link>
             )
           })}
         </div>

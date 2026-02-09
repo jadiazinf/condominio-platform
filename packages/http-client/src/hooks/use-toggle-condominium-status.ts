@@ -21,7 +21,7 @@ export function useToggleCondominiumStatus(options: UseToggleCondominiumStatusOp
 
   return useApiMutation<TApiMessageResponse, TToggleCondominiumStatusVariables>({
     path: (variables: TToggleCondominiumStatusVariables) =>
-      `/condominiums/${variables.condominiumId}/status`,
+      `/condominium/condominiums/${variables.condominiumId}/status`,
     method: 'PATCH',
     invalidateKeys: [
       condominiumsKeys.all,

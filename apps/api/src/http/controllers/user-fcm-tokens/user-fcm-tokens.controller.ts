@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { TUserFcmToken, TUserFcmTokenCreate, TUserFcmTokenUpdate } from '@packages/domain'
 import type { UserFcmTokensRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
+import { authMiddleware } from '../../middlewares/auth'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
@@ -58,9 +59,6 @@ export class UserFcmTokensController extends BaseController<
     this.unregisterTokenService = new UnregisterTokenService(repository)
     this.getUserTokensService = new GetUserTokensService(repository)
 
-    this.getByUserId = this.getByUserId.bind(this)
-    this.registerToken = this.registerToken.bind(this)
-    this.unregisterToken = this.unregisterToken.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -69,30 +67,30 @@ export class UserFcmTokensController extends BaseController<
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'post',
         path: '/user/:userId/register',
         handler: this.registerToken,
-        middlewares: [paramsValidator(UserIdParamSchema), bodyValidator(RegisterTokenBodySchema)],
+        middlewares: [authMiddleware, paramsValidator(UserIdParamSchema), bodyValidator(RegisterTokenBodySchema)],
       },
       {
         method: 'post',
         path: '/user/:userId/unregister',
         handler: this.unregisterToken,
-        middlewares: [paramsValidator(UserIdParamSchema), bodyValidator(UnregisterTokenBodySchema)],
+        middlewares: [authMiddleware, paramsValidator(UserIdParamSchema), bodyValidator(UnregisterTokenBodySchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
     ]
   }
 
-  private async getByUserId(c: Context): Promise<Response> {
+  private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
     try {
@@ -111,7 +109,7 @@ export class UserFcmTokensController extends BaseController<
     }
   }
 
-  private async registerToken(c: Context): Promise<Response> {
+  private registerToken = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TRegisterTokenBody, unknown, TUserIdParam>(c)
 
     try {
@@ -135,7 +133,7 @@ export class UserFcmTokensController extends BaseController<
     }
   }
 
-  private async unregisterToken(c: Context): Promise<Response> {
+  private unregisterToken = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TUnregisterTokenBody, unknown, TUserIdParam>(c)
 
     try {

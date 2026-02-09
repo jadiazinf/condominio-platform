@@ -9,6 +9,7 @@ import {
 } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { createRouter } from '../create-router'
 import { z } from 'zod'
 
@@ -67,67 +68,58 @@ type TDateRangeQuery = z.infer<typeof DateRangeQuerySchema>
  */
 export class AuditLogsController {
   constructor(protected readonly repository: AuditLogsRepository) {
-    this.list = this.list.bind(this)
-    this.getById = this.getById.bind(this)
-    this.create = this.create.bind(this)
-    this.getByTableName = this.getByTableName.bind(this)
-    this.getByRecordId = this.getByRecordId.bind(this)
-    this.getByTableAndRecord = this.getByTableAndRecord.bind(this)
-    this.getByUserId = this.getByUserId.bind(this)
-    this.getByAction = this.getByAction.bind(this)
-    this.getByDateRange = this.getByDateRange.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
       {
         method: 'get',
         path: '/table/:tableName',
         handler: this.getByTableName,
-        middlewares: [paramsValidator(TableNameParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(TableNameParamSchema)],
       },
       {
         method: 'get',
         path: '/record/:recordId',
         handler: this.getByRecordId,
-        middlewares: [paramsValidator(RecordIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(RecordIdParamSchema)],
       },
       {
         method: 'get',
         path: '/table/:tableName/record/:recordId',
         handler: this.getByTableAndRecord,
-        middlewares: [paramsValidator(TableAndRecordParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(TableAndRecordParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/action/:action',
         handler: this.getByAction,
-        middlewares: [paramsValidator(ActionParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(ActionParamSchema)],
       },
       {
         method: 'get',
         path: '/date-range',
         handler: this.getByDateRange,
-        middlewares: [queryValidator(DateRangeQuerySchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), queryValidator(DateRangeQuerySchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(auditLogCreateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(auditLogCreateSchema)],
       },
     ]
   }
@@ -144,7 +136,7 @@ export class AuditLogsController {
   // Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async list(c: Context): Promise<Response> {
+  private list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
 
     try {
@@ -155,7 +147,7 @@ export class AuditLogsController {
     }
   }
 
-  private async getById(c: Context): Promise<Response> {
+  private getById = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
 
     try {
@@ -171,7 +163,7 @@ export class AuditLogsController {
     }
   }
 
-  private async create(c: Context): Promise<Response> {
+  private create = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TAuditLogCreate>(c)
 
     try {
@@ -182,7 +174,7 @@ export class AuditLogsController {
     }
   }
 
-  private async getByTableName(c: Context): Promise<Response> {
+  private getByTableName = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TTableNameParam>(c)
 
     try {
@@ -193,7 +185,7 @@ export class AuditLogsController {
     }
   }
 
-  private async getByRecordId(c: Context): Promise<Response> {
+  private getByRecordId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TRecordIdParam>(c)
 
     try {
@@ -204,7 +196,7 @@ export class AuditLogsController {
     }
   }
 
-  private async getByTableAndRecord(c: Context): Promise<Response> {
+  private getByTableAndRecord = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TTableAndRecordParam>(c)
 
     try {
@@ -218,7 +210,7 @@ export class AuditLogsController {
     }
   }
 
-  private async getByUserId(c: Context): Promise<Response> {
+  private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
     try {
@@ -229,7 +221,7 @@ export class AuditLogsController {
     }
   }
 
-  private async getByAction(c: Context): Promise<Response> {
+  private getByAction = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TActionParam>(c)
 
     try {
@@ -240,7 +232,7 @@ export class AuditLogsController {
     }
   }
 
-  private async getByDateRange(c: Context): Promise<Response> {
+  private getByDateRange = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TDateRangeQuery>(c)
 
     try {

@@ -18,7 +18,7 @@ export async function checkIsSuperadmin(
 ): Promise<boolean> {
   try {
     const { apiBaseUrl } = getEnvConfig()
-    const response = await fetch(`${apiBaseUrl}/user-roles/superadmin/check/${userId}`, {
+    const response = await fetch(`${apiBaseUrl}/condominium/user-roles/superadmin/check/${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -50,7 +50,7 @@ export async function fetchSuperadminSession(
 ): Promise<TSuperadminSession | null> {
   try {
     const { apiBaseUrl } = getEnvConfig()
-    const response = await fetch(`${apiBaseUrl}/user-roles/superadmin/session/${userId}`, {
+    const response = await fetch(`${apiBaseUrl}/condominium/user-roles/superadmin/session/${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ export async function fetchActiveSuperadminUsers(
   try {
     const { apiBaseUrl } = getEnvConfig()
 
-    const response = await fetch(`${apiBaseUrl}/user-roles/superadmin/active-users`, {
+    const response = await fetch(`${apiBaseUrl}/condominium/user-roles/superadmin/active-users`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -134,7 +134,7 @@ export async function fetchSuperadminPermissions(
     const { apiBaseUrl } = getEnvConfig()
     // We need to get permissions from any superadmin session
     // This is a fallback - prefer using fetchSuperadminSession directly
-    const response = await fetch(`${apiBaseUrl}/user-roles/superadmin/active-users`, {
+    const response = await fetch(`${apiBaseUrl}/condominium/user-roles/superadmin/active-users`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

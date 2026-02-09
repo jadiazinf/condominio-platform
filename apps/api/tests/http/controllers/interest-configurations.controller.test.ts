@@ -150,20 +150,26 @@ describe('InterestConfigurationsController', function () {
   })
 
   describe('GET / (list)', function () {
-    it('should return all interest configurations', async function () {
-      const res = await request('/interest-configurations')
+    it('should return configurations for the condominium from context', async function () {
+      const res = await request('/interest-configurations', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(3)
+      // Only config1 has condominiumId set to our test condominiumId
+      expect(json.data).toHaveLength(1)
+      expect(json.data[0].condominiumId).toBe(condominiumId)
     })
 
-    it('should return empty array when no configurations exist', async function () {
-      mockRepository.listAll = async function () {
+    it('should return empty array when no configurations exist for condominium', async function () {
+      mockRepository.getByCondominiumId = async function () {
         return []
       }
 
-      const res = await request('/interest-configurations')
+      const res = await request('/interest-configurations', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -192,31 +198,6 @@ describe('InterestConfigurationsController', function () {
     it('should return 400 for invalid UUID format', async function () {
       const res = await request('/interest-configurations/invalid-id')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
-    })
-  })
-
-  describe('GET /condominium/:condominiumId (getByCondominiumId)', function () {
-    it('should return configurations by condominium ID', async function () {
-      const res = await request(`/interest-configurations/condominium/${condominiumId}`)
-      expect(res.status).toBe(StatusCodes.OK)
-
-      const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(1)
-      expect(json.data[0].condominiumId).toBe(condominiumId)
-    })
-
-    it('should return empty array when no configs for condominium', async function () {
-      mockRepository.getByCondominiumId = async function () {
-        return []
-      }
-
-      const res = await request(
-        '/interest-configurations/condominium/550e8400-e29b-41d4-a716-446655440099'
-      )
-      expect(res.status).toBe(StatusCodes.OK)
-
-      const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(0)
     })
   })
 
@@ -284,12 +265,12 @@ describe('InterestConfigurationsController', function () {
   })
 
   describe('POST / (create)', function () {
-    it('should create a new interest configuration', async function () {
+    it('should create a new interest configuration with condominiumId from context', async function () {
       const newConfig = createInterestConfiguration(paymentConceptId2, { interestRate: '0.080000' })
 
       const res = await request('/interest-configurations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-condominium-id': condominiumId },
         body: JSON.stringify(newConfig),
       })
 
@@ -298,13 +279,14 @@ describe('InterestConfigurationsController', function () {
       const json = (await res.json()) as IApiResponse
       expect(json.data.paymentConceptId).toBe(paymentConceptId2)
       expect(json.data.interestRate).toBe('0.080000')
+      expect(json.data.condominiumId).toBe(condominiumId)
       expect(json.data.id).toBeDefined()
     })
 
     it('should return 422 for invalid body', async function () {
       const res = await request('/interest-configurations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-condominium-id': condominiumId },
         body: JSON.stringify({ paymentConceptId: 'invalid' }),
       })
 
@@ -327,7 +309,7 @@ describe('InterestConfigurationsController', function () {
 
       const res = await request('/interest-configurations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-condominium-id': condominiumId },
         body: JSON.stringify(newConfig),
       })
 
@@ -393,11 +375,13 @@ describe('InterestConfigurationsController', function () {
 
   describe('Error handling', function () {
     it('should return 500 for unexpected errors', async function () {
-      mockRepository.listAll = async function () {
+      mockRepository.getByCondominiumId = async function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await request('/interest-configurations')
+      const res = await request('/interest-configurations', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

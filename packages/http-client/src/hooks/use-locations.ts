@@ -37,7 +37,7 @@ export function useLocationsByType(options: UseLocationsByTypeOptions) {
   const { token, locationType, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TLocation[]>>({
-    path: `/locations/type/${locationType}`,
+    path: `/platform/locations/type/${locationType}`,
     queryKey: ['locations', 'type', locationType],
     config: {
       headers: {
@@ -55,7 +55,7 @@ export function useLocationsByParent(options: UseLocationsByParentOptions) {
   const { token, parentId, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TLocation[]>>({
-    path: `/locations/parent/${parentId}`,
+    path: `/platform/locations/parent/${parentId}`,
     queryKey: ['locations', 'parent', parentId],
     config: {
       headers: {
@@ -73,7 +73,7 @@ export function useLocationById(options: UseLocationByIdOptions) {
   const { token, locationId, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TLocation>>({
-    path: `/locations/${locationId}`,
+    path: `/platform/locations/${locationId}`,
     queryKey: ['locations', 'byId', locationId],
     config: {
       headers: {
@@ -97,7 +97,7 @@ export async function getLocationsByType(
 ): Promise<TLocation[]> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TLocation[]>>(
-    `/locations/type/${locationType}`,
+    `/platform/locations/type/${locationType}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -117,7 +117,7 @@ export async function getLocationsByParent(
 ): Promise<TLocation[]> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TLocation[]>>(
-    `/locations/parent/${parentId}`,
+    `/platform/locations/parent/${parentId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -137,7 +137,7 @@ export async function getLocationById(
 ): Promise<TLocation> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TLocation>>(
-    `/locations/${locationId}`,
+    `/platform/locations/${locationId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -160,7 +160,7 @@ export async function getLocationHierarchy(
 
   // Fetch the initial location
   const cityResponse = await client.get<TApiDataResponse<TLocation>>(
-    `/locations/${locationId}`,
+    `/platform/locations/${locationId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -172,7 +172,7 @@ export async function getLocationHierarchy(
   // If it's a city, get its parent (province)
   if (city.locationType === 'city' && city.parentId) {
     const provinceResponse = await client.get<TApiDataResponse<TLocation>>(
-      `/locations/${city.parentId}`,
+      `/platform/locations/${city.parentId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

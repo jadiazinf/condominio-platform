@@ -188,7 +188,8 @@ describe('PaymentsController', function () {
     }
 
     // Create controller with mock repository
-    const controller = new PaymentsController(mockRepository as unknown as PaymentsRepository)
+    const mockDb = {} as any
+    const controller = new PaymentsController(mockRepository as unknown as PaymentsRepository, mockDb)
 
     // Create Hono app with controller routes
     app = createTestApp()

@@ -131,7 +131,7 @@ export class ManagementCompaniesRepository
   /**
    * Retrieves management companies with pagination, filtering, and ordering.
    */
-  async listPaginated(
+  override async listPaginated(
     query: TManagementCompaniesQuerySchema
   ): Promise<TPaginatedResponse<TManagementCompany>> {
     const { page = 1, limit = 20, search, isActive } = query

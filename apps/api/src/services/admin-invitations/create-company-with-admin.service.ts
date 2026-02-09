@@ -10,8 +10,10 @@ import type {
   UsersRepository,
   ManagementCompaniesRepository,
 } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
 import { generateSecureToken, hashToken, calculateExpirationDate } from '../../utils/token'
+import logger from '@utils/logger'
 
 export interface ICreateCompanyWithAdminInput {
   company: Omit<TManagementCompanyCreate, 'createdBy' | 'isActive'>
@@ -41,6 +43,7 @@ export interface ICreateCompanyWithAdminResult {
  */
 export class CreateCompanyWithAdminService {
   constructor(
+    private readonly db: TDrizzleClient,
     private readonly invitationsRepository: AdminInvitationsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly managementCompaniesRepository: ManagementCompaniesRepository
@@ -67,49 +70,70 @@ export class CreateCompanyWithAdminService {
     // Generate a temporary Firebase UID (will be replaced when user accepts invitation)
     const tempFirebaseUid = `pending_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
 
-    // Create user with isActive=false
-    const userData: TUserCreate = {
-      ...input.admin,
-      firebaseUid: tempFirebaseUid,
-      isActive: false,
-      isEmailVerified: false,
-    }
-
-    const admin = await this.usersRepository.create(userData)
-
-    // Create management company with isActive=false
-    const companyData: TManagementCompanyCreate = {
-      ...input.company,
-      createdBy: input.createdBy, // Use authenticated user (superadmin), not the admin
-      isActive: false,
-    }
-
-    const company = await this.managementCompaniesRepository.create(companyData)
-
-    // Generate invitation token
+    // Generate invitation token before transaction (pure computation)
     const token = generateSecureToken()
     const tokenHash = hashToken(token)
     const expiresAt = calculateExpirationDate(input.expirationDays ?? 7)
 
-    // Create invitation
-    const invitation = await this.invitationsRepository.create({
-      userId: admin.id,
-      managementCompanyId: company.id,
-      token,
-      tokenHash,
-      status: 'pending',
-      email: admin.email,
-      expiresAt,
-      acceptedAt: null,
-      emailError: null,
-      createdBy: input.createdBy,
-    })
+    // All writes inside a transaction for atomicity
+    return await this.db.transaction(async (tx) => {
+      const txUsersRepo = this.usersRepository.withTx(tx)
+      const txCompaniesRepo = this.managementCompaniesRepository.withTx(tx)
+      const txInvitationsRepo = this.invitationsRepository.withTx(tx)
 
-    return success({
-      company,
-      admin,
-      invitation,
-      invitationToken: token,
+      // Create user with isActive=false
+      const userData: TUserCreate = {
+        ...input.admin,
+        firebaseUid: tempFirebaseUid,
+        isActive: false,
+        isEmailVerified: false,
+      }
+
+      const admin = await txUsersRepo.create(userData)
+
+      // Create management company with isActive=false
+      const companyData: TManagementCompanyCreate = {
+        ...input.company,
+        createdBy: input.createdBy, // Use authenticated user (superadmin), not the admin
+        isActive: false,
+      }
+
+      const company = await txCompaniesRepo.create(companyData)
+
+      // Create invitation
+      const invitation = await txInvitationsRepo.create({
+        userId: admin.id,
+        managementCompanyId: company.id,
+        token,
+        tokenHash,
+        status: 'pending',
+        email: admin.email,
+        expiresAt,
+        acceptedAt: null,
+        emailError: null,
+        createdBy: input.createdBy,
+      })
+
+      logger.info(
+        {
+          invitationId: invitation.id,
+          userId: admin.id,
+          companyId: company.id,
+          email: admin.email,
+          tokenLength: token.length,
+          tokenPrefix: token.substring(0, 8),
+          storedTokenPrefix: invitation.token.substring(0, 8),
+          tokenMatch: token === invitation.token,
+        },
+        'Admin invitation created successfully'
+      )
+
+      return success({
+        company,
+        admin,
+        invitation,
+        invitationToken: token,
+      })
     })
   }
 }

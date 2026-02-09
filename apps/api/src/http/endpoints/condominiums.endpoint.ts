@@ -12,7 +12,7 @@ import type { IEndpoint } from './types'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 
 export class CondominiumsEndpoint implements IEndpoint {
-  readonly path = '/condominiums'
+  readonly path = '/condominium/condominiums'
   private readonly controller: CondominiumsController
 
   constructor(db: TDrizzleClient) {

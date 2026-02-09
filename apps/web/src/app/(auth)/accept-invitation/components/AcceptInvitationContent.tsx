@@ -40,7 +40,20 @@ export function AcceptInvitationContent({ token }: AcceptInvitationContentProps)
 
     async function validateToken() {
       try {
+        console.log('[AcceptInvitation] Validating token:', {
+          tokenLength: token!.length,
+          tokenPrefix: token!.substring(0, 12),
+          fullToken: token,
+        })
+
         const result = await validateInvitationToken(token!)
+
+        console.log('[AcceptInvitation] Validation result:', {
+          isValid: result.isValid,
+          isExpired: result.isExpired,
+          user: result.user,
+          company: result.managementCompany,
+        })
 
         if (!result.isValid) {
           if (result.isExpired) {
@@ -54,6 +67,12 @@ export function AcceptInvitationContent({ token }: AcceptInvitationContentProps)
 
         setViewState({ type: 'valid', data: result })
       } catch (err) {
+        console.error('[AcceptInvitation] Validation error:', {
+          isHttpError: HttpError.isHttpError(err),
+          status: HttpError.isHttpError(err) ? err.status : undefined,
+          message: err instanceof Error ? err.message : String(err),
+        })
+
         if (HttpError.isHttpError(err) && err.status === 404) {
           setViewState({ type: 'invalid' })
         } else {

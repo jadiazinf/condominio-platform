@@ -383,6 +383,12 @@
     "title": "Dashboard"
   },
   "resident": {
+    "nav": {
+      "myQuotas": "My Quotas",
+      "myPayments": "My Payments",
+      "reportPayment": "Report Payment",
+      "reservations": "Reservations"
+    },
     "dashboard": {
       "subtitle": "Here you can see a summary of your account and pending quotas",
       "totalPending": "Total pending",
@@ -411,6 +417,86 @@
       "notifications": "Notifications",
       "unit": "Unit",
       "building": "Building"
+    },
+    "myQuotas": {
+      "title": "My Quotas",
+      "subtitle": "View and track all your condominium quotas",
+      "filterAll": "All",
+      "filterPending": "Pending",
+      "filterOverdue": "Overdue",
+      "filterPaid": "Paid",
+      "filterCancelled": "Cancelled",
+      "noQuotas": "No quotas found",
+      "noQuotasDescription": "You don't have any quotas matching the selected filter",
+      "concept": "Concept",
+      "period": "Period",
+      "amount": "Amount",
+      "dueDate": "Due Date",
+      "status": "Status",
+      "balance": "Balance",
+      "unit": "Unit",
+      "totalPending": "Total Pending",
+      "overdueCount": "Overdue",
+      "paidThisMonth": "Paid this month",
+      "status_pending": "Pending",
+      "status_overdue": "Overdue",
+      "status_paid": "Paid",
+      "status_cancelled": "Cancelled",
+      "export": {
+        "csv": "Export CSV",
+        "pdf": "Export PDF",
+        "downloading": "Downloading...",
+        "success": "Export downloaded successfully",
+        "error": "Failed to export. Please try again."
+      }
+    },
+    "myPayments": {
+      "title": "My Payments",
+      "subtitle": "View your payment history and track payment status",
+      "filterAll": "All",
+      "filterPendingVerification": "Pending Verification",
+      "filterCompleted": "Completed",
+      "filterRejected": "Rejected",
+      "noPayments": "No payments found",
+      "noPaymentsDescription": "You haven't made any payments yet",
+      "amount": "Amount",
+      "method": "Method",
+      "date": "Date",
+      "status": "Status",
+      "receiptNumber": "Receipt #",
+      "reportPayment": "Report Payment",
+      "unit": "Unit",
+      "verificationNotes": "Verification Notes",
+      "status_pending": "Pending",
+      "status_pending_verification": "Pending Verification",
+      "status_completed": "Completed",
+      "status_failed": "Failed",
+      "status_refunded": "Refunded",
+      "status_rejected": "Rejected",
+      "method_transfer": "Bank Transfer",
+      "method_cash": "Cash",
+      "method_card": "Card",
+      "method_mobile_payment": "Mobile Payment",
+      "method_gateway": "Payment Gateway",
+      "method_other": "Other"
+    },
+    "reportPayment": {
+      "title": "Report Payment",
+      "subtitle": "Report an external payment for admin verification",
+      "selectUnit": "Select Unit",
+      "amount": "Amount",
+      "amountPlaceholder": "0.00",
+      "paymentMethod": "Payment Method",
+      "paymentDate": "Payment Date",
+      "receiptNumber": "Receipt/Reference Number",
+      "receiptNumberPlaceholder": "e.g. TRF-123456",
+      "notes": "Notes",
+      "notesPlaceholder": "Add any details about this payment...",
+      "submit": "Submit Payment Report",
+      "submitting": "Submitting...",
+      "success": "Payment reported successfully! It will be reviewed by an administrator.",
+      "error": "Failed to report payment. Please try again.",
+      "backToPayments": "Back to My Payments"
     }
   },
   "condominium": {
@@ -425,6 +511,27 @@
     },
     "loading": {
       "fetchingCondominiums": "Loading your condominiums..."
+    },
+    "reservations": {
+      "title": "Reservations",
+      "subtitle": "Reserve amenities and manage bookings",
+      "availableAmenities": "Available Amenities",
+      "myReservations": "My Reservations",
+      "reserve": "Reserve",
+      "cancel": "Cancel",
+      "date": "Date",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "notes": "Notes",
+      "submit": "Submit Reservation",
+      "success": "Reservation submitted!",
+      "cancelSuccess": "Reservation cancelled",
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled"
+      }
     }
   },
   "superadmin": {
@@ -439,7 +546,11 @@
       "billing": "Billing",
       "activity": "Activity",
       "auditLogs": "Audit Logs",
-      "settings": "Settings"
+      "settings": "Settings",
+      "quotas": "Quotas",
+      "payments": "Payments",
+      "expenses": "Expenses",
+      "amenities": "Amenities"
     },
     "dashboard": {
       "title": "Superadmin Dashboard",
@@ -1888,6 +1999,88 @@
           }
         }
       }
+    },
+    "payments": {
+      "title": "Payments",
+      "subtitle": "Manage and verify platform payments",
+      "empty": "No payments found",
+      "emptyDescription": "No payments found with the selected filters",
+      "loading": "Loading payments...",
+      "error": "Error loading payments",
+      "table": {
+        "paymentNumber": "Payment #",
+        "user": "User",
+        "unit": "Unit",
+        "amount": "Amount",
+        "method": "Method",
+        "date": "Date",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "all": "All",
+        "pending": "Pending",
+        "pending_verification": "Pending Verification",
+        "completed": "Completed",
+        "failed": "Failed",
+        "refunded": "Refunded",
+        "rejected": "Rejected"
+      },
+      "method": {
+        "transfer": "Transfer",
+        "cash": "Cash",
+        "card": "Card",
+        "mobile_payment": "Mobile Payment",
+        "gateway": "Gateway",
+        "other": "Other"
+      },
+      "filters": {
+        "searchPlaceholder": "Search by payment number...",
+        "status": "Status"
+      },
+      "actions": {
+        "view": "View details",
+        "verify": "Verify payment",
+        "reject": "Reject payment",
+        "verifySuccess": "Payment verified successfully",
+        "rejectSuccess": "Payment rejected successfully",
+        "verifyError": "Error verifying payment",
+        "rejectError": "Error rejecting payment",
+        "confirmVerify": "Are you sure you want to verify this payment?",
+        "confirmReject": "Are you sure you want to reject this payment?",
+        "back": "Back to payments"
+      },
+      "detail": {
+        "title": "Payment Detail",
+        "paymentInfo": "Payment Information",
+        "paymentNumber": "Payment Number",
+        "userInfo": "User Information",
+        "userName": "User",
+        "userEmail": "Email",
+        "unitInfo": "Unit Information",
+        "unitName": "Unit",
+        "amounts": "Amounts",
+        "amount": "Amount",
+        "paidAmount": "Paid Amount",
+        "exchangeRate": "Exchange Rate",
+        "currency": "Currency",
+        "paidCurrency": "Paid Currency",
+        "paymentMethod": "Payment Method",
+        "paymentDetails": "Payment Details",
+        "dates": "Dates",
+        "paymentDate": "Payment Date",
+        "registeredAt": "Registered At",
+        "verifiedAt": "Verified At",
+        "status": "Status",
+        "receipt": "Receipt",
+        "receiptUrl": "View receipt",
+        "receiptNumber": "Receipt Number",
+        "verification": "Verification",
+        "verifiedBy": "Verified By",
+        "verificationNotes": "Verification Notes",
+        "notes": "Notes",
+        "notAvailable": "Not available"
+      }
     }
   },
   "notifications": {
@@ -2218,6 +2411,232 @@
         "location": "Location",
         "contact": "Contact"
       }
+    }
+  },
+  "admin": {
+    "nav": {
+      "quotas": "Quotas",
+      "payments": "Payments",
+      "expenses": "Expenses",
+      "amenities": "Amenities"
+    },
+    "quotas": {
+      "title": "Quotas",
+      "subtitle": "Manage condominium quotas and fees",
+      "empty": "No quotas found",
+      "emptyDescription": "Quotas will appear here when they are generated",
+      "table": {
+        "unit": "Unit",
+        "concept": "Concept",
+        "period": "Period",
+        "amount": "Amount",
+        "dueDate": "Due Date",
+        "status": "Status",
+        "balance": "Balance",
+        "actions": "Actions"
+      },
+      "status": {
+        "all": "All",
+        "pending": "Pending",
+        "paid": "Paid",
+        "overdue": "Overdue",
+        "cancelled": "Cancelled"
+      },
+      "filters": {
+        "searchPlaceholder": "Search by unit or concept...",
+        "status": "Status",
+        "year": "Year",
+        "month": "Month"
+      },
+      "detail": {
+        "title": "Quota Detail",
+        "unitInfo": "Unit Information",
+        "amountInfo": "Amount Information",
+        "dateInfo": "Date Information",
+        "baseAmount": "Base Amount",
+        "interestAmount": "Interest",
+        "paidAmount": "Paid Amount",
+        "balance": "Balance",
+        "issueDate": "Issue Date",
+        "dueDate": "Due Date",
+        "period": "Period",
+        "notes": "Notes",
+        "noNotes": "No notes"
+      },
+      "export": {
+        "csv": "Export CSV",
+        "pdf": "Export PDF",
+        "downloading": "Downloading...",
+        "success": "Export downloaded successfully",
+        "error": "Failed to export. Please try again."
+      },
+      "actions": {
+        "view": "View details",
+        "backToList": "Back to quotas"
+      }
+    },
+    "payments": {
+      "title": "Payments",
+      "subtitle": "View and manage payment records",
+      "empty": "No payments found",
+      "emptyDescription": "Payments will appear here when residents report them",
+      "error": "Error loading payments",
+      "table": {
+        "paymentNumber": "Payment #",
+        "user": "User",
+        "unit": "Unit",
+        "amount": "Amount",
+        "method": "Method",
+        "date": "Date",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "all": "All",
+        "pending": "Pending",
+        "pending_verification": "Pending Verification",
+        "completed": "Completed",
+        "failed": "Failed",
+        "refunded": "Refunded",
+        "rejected": "Rejected"
+      },
+      "method": {
+        "transfer": "Transfer",
+        "cash": "Cash",
+        "card": "Card",
+        "mobile_payment": "Mobile Payment",
+        "gateway": "Gateway",
+        "other": "Other"
+      },
+      "filters": {
+        "searchPlaceholder": "Search by payment number...",
+        "status": "Status"
+      },
+      "detail": {
+        "title": "Payment Detail",
+        "paymentInfo": "Payment Information",
+        "paymentNumber": "Payment Number",
+        "userInfo": "User Information",
+        "userName": "User",
+        "userEmail": "Email",
+        "unitInfo": "Unit Information",
+        "unitName": "Unit",
+        "amounts": "Amounts",
+        "amount": "Amount",
+        "paidAmount": "Paid Amount",
+        "exchangeRate": "Exchange Rate",
+        "currency": "Currency",
+        "paidCurrency": "Paid Currency",
+        "paymentMethod": "Payment Method",
+        "dates": "Dates",
+        "paymentDate": "Payment Date",
+        "registeredAt": "Registered At",
+        "verifiedAt": "Verified At",
+        "status": "Status",
+        "receipt": "Receipt",
+        "receiptUrl": "View receipt",
+        "receiptNumber": "Receipt Number",
+        "verification": "Verification",
+        "verifiedBy": "Verified By",
+        "verificationNotes": "Verification Notes",
+        "notes": "Notes",
+        "notAvailable": "Not available"
+      },
+      "actions": {
+        "view": "View details",
+        "verify": "Verify Payment",
+        "reject": "Reject Payment",
+        "verifySuccess": "Payment verified successfully",
+        "rejectSuccess": "Payment rejected successfully",
+        "verifyError": "Error verifying payment",
+        "rejectError": "Error rejecting payment",
+        "confirmVerify": "Are you sure you want to verify this payment?",
+        "confirmReject": "Are you sure you want to reject this payment?",
+        "back": "Back to payments"
+      },
+      "export": {
+        "csv": "Export CSV",
+        "pdf": "Export PDF",
+        "downloading": "Downloading...",
+        "success": "Export downloaded successfully",
+        "error": "Failed to export. Please try again."
+      }
+    },
+    "expenses": {
+      "title": "Expenses",
+      "subtitle": "Track and manage condominium expenses",
+      "empty": "No expenses found",
+      "emptyDescription": "Expenses will appear here when they are recorded",
+      "error": "Error loading expenses",
+      "table": {
+        "description": "Description",
+        "category": "Category",
+        "amount": "Amount",
+        "expenseDate": "Date",
+        "vendor": "Vendor",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "all": "All",
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "paid": "Paid"
+      },
+      "filters": {
+        "searchPlaceholder": "Search by description or vendor...",
+        "status": "Status"
+      },
+      "detail": {
+        "title": "Expense Detail",
+        "expenseInfo": "Expense Information",
+        "description": "Description",
+        "category": "Category",
+        "amountInfo": "Amount Information",
+        "amount": "Amount",
+        "currency": "Currency",
+        "vendorInfo": "Vendor Information",
+        "vendorName": "Vendor Name",
+        "vendorTaxId": "Vendor Tax ID",
+        "invoiceNumber": "Invoice Number",
+        "invoiceUrl": "Invoice",
+        "viewInvoice": "View Invoice",
+        "dateInfo": "Date Information",
+        "expenseDate": "Expense Date",
+        "createdAt": "Created At",
+        "approvalInfo": "Approval Information",
+        "status": "Status",
+        "approvedBy": "Approved By",
+        "approvedAt": "Approved At",
+        "notes": "Notes",
+        "noNotes": "No notes",
+        "notAvailable": "Not available"
+      },
+      "export": {
+        "csv": "Export CSV",
+        "pdf": "Export PDF",
+        "downloading": "Downloading...",
+        "success": "Export downloaded successfully",
+        "error": "Failed to export. Please try again."
+      },
+      "actions": {
+        "view": "View details",
+        "backToList": "Back to expenses"
+      }
+    },
+    "amenities": {
+      "title": "Amenities",
+      "subtitle": "Manage condominium amenities",
+      "add": "Add Amenity",
+      "name": "Name",
+      "description": "Description",
+      "location": "Location",
+      "capacity": "Capacity",
+      "requiresApproval": "Requires Approval",
+      "noAmenities": "No amenities found",
+      "saveSuccess": "Amenity saved",
+      "deleteSuccess": "Amenity deleted"
     }
   }
 }

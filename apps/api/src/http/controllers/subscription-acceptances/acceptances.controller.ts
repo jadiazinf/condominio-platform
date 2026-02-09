@@ -45,8 +45,6 @@ export class SubscriptionAcceptancesController {
       auditService
     )
 
-    this.validateToken = this.validateToken.bind(this)
-    this.acceptSubscription = this.acceptSubscription.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -74,7 +72,7 @@ export class SubscriptionAcceptancesController {
   /**
    * Validate an acceptance token (public endpoint)
    */
-  private async validateToken(c: Context): Promise<Response> {
+  private validateToken = async (c: Context): Promise<Response> => {
     const params = getParams<TTokenParam>(c)
 
     try {
@@ -105,7 +103,7 @@ export class SubscriptionAcceptancesController {
   /**
    * Accept subscription using token (public endpoint)
    */
-  private async acceptSubscription(c: Context): Promise<Response> {
+  private acceptSubscription = async (c: Context): Promise<Response> => {
     const params = getParams<TTokenParam>(c)
     const body = getBody<TAcceptSubscriptionBody>(c)
 

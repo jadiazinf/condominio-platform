@@ -8,7 +8,7 @@ import {
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
-import { authMiddleware } from '../../middlewares/auth'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { createRouter } from '../create-router'
@@ -87,12 +87,6 @@ export class PaymentPendingAllocationsController {
       paymentPendingAllocationsRepository
     )
 
-    // Bind handlers
-    this.listPending = this.listPending.bind(this)
-    this.getById = this.getById.bind(this)
-    this.getByPaymentId = this.getByPaymentId.bind(this)
-    this.allocateToQuota = this.allocateToQuota.bind(this)
-    this.refund = this.refund.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -101,19 +95,19 @@ export class PaymentPendingAllocationsController {
         method: 'get',
         path: '/',
         handler: this.listPending,
-        middlewares: [authMiddleware, queryValidator(StatusQuerySchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), queryValidator(StatusQuerySchema)],
       },
       {
         method: 'get',
         path: '/payment/:paymentId',
         handler: this.getByPaymentId,
-        middlewares: [authMiddleware, paramsValidator(PaymentIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(PaymentIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
@@ -121,6 +115,7 @@ export class PaymentPendingAllocationsController {
         handler: this.allocateToQuota,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN', 'ACCOUNTANT'),
           paramsValidator(IdParamSchema),
           bodyValidator(AllocateToQuotaBodySchema),
         ],
@@ -131,6 +126,7 @@ export class PaymentPendingAllocationsController {
         handler: this.refund,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN', 'ACCOUNTANT'),
           paramsValidator(IdParamSchema),
           bodyValidator(RefundBodySchema),
         ],
@@ -150,8 +146,10 @@ export class PaymentPendingAllocationsController {
     return new HttpContext<TBody, TQuery, TParams>(c)
   }
 
-  private async listPending(c: Context): Promise<Response> {
+  private listPending = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TStatusQuery>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    // TODO: Filter by condominiumId via JOIN through payment → unit → building.condominiumId
 
     try {
       if (ctx.query.status) {
@@ -173,7 +171,7 @@ export class PaymentPendingAllocationsController {
     }
   }
 
-  private async getById(c: Context): Promise<Response> {
+  private getById = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TIdParam>(c)
 
     try {
@@ -189,7 +187,7 @@ export class PaymentPendingAllocationsController {
     }
   }
 
-  private async getByPaymentId(c: Context): Promise<Response> {
+  private getByPaymentId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPaymentIdParam>(c)
 
     try {
@@ -207,7 +205,7 @@ export class PaymentPendingAllocationsController {
     }
   }
 
-  private async allocateToQuota(c: Context): Promise<Response> {
+  private allocateToQuota = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TAllocateToQuotaBody, unknown, TIdParam>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 
@@ -235,7 +233,7 @@ export class PaymentPendingAllocationsController {
     }
   }
 
-  private async refund(c: Context): Promise<Response> {
+  private refund = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TRefundBody, unknown, TIdParam>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 

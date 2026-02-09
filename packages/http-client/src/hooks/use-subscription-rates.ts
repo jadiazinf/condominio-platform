@@ -74,7 +74,7 @@ export interface IDeactivateSubscriptionRateOptions {
  */
 export function useActiveSubscriptionRate(options?: IUseActiveSubscriptionRateOptions) {
   return useApiQuery<TApiDataResponse<TSubscriptionRate>>({
-    path: '/subscription-rates/active',
+    path: '/platform/subscription-rates/active',
     queryKey: subscriptionRateKeys.active(),
     config: {},
     enabled: options?.enabled !== false,
@@ -87,7 +87,7 @@ export function useActiveSubscriptionRate(options?: IUseActiveSubscriptionRateOp
 export async function getActiveSubscriptionRate(): Promise<TSubscriptionRate> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TSubscriptionRate>>(
-    '/subscription-rates/active'
+    '/platform/subscription-rates/active'
   )
 
   return response.data.data
@@ -105,7 +105,7 @@ export function useSubscriptionRateByVersion(
   options?: IUseSubscriptionRateOptions
 ) {
   return useApiQuery<TApiDataResponse<TSubscriptionRate>>({
-    path: `/subscription-rates/version/${version}`,
+    path: `/platform/subscription-rates/version/${version}`,
     queryKey: subscriptionRateKeys.version(version),
     config: {},
     enabled: options?.enabled !== false && !!version,
@@ -118,7 +118,7 @@ export function useSubscriptionRateByVersion(
 export async function getSubscriptionRateByVersion(version: string): Promise<TSubscriptionRate> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TSubscriptionRate>>(
-    `/subscription-rates/version/${version}`
+    `/platform/subscription-rates/version/${version}`
   )
 
   return response.data.data
@@ -133,7 +133,7 @@ export async function getSubscriptionRateByVersion(version: string): Promise<TSu
  */
 export function useSubscriptionRate(id: string, options?: IUseSubscriptionRateOptions) {
   return useApiQuery<TApiDataResponse<TSubscriptionRate>>({
-    path: `/subscription-rates/${id}`,
+    path: `/platform/subscription-rates/${id}`,
     queryKey: subscriptionRateKeys.detail(id),
     config: {},
     enabled: options?.enabled !== false && !!id,
@@ -146,7 +146,7 @@ export function useSubscriptionRate(id: string, options?: IUseSubscriptionRateOp
 export async function getSubscriptionRate(id: string): Promise<TSubscriptionRate> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TSubscriptionRate>>(
-    `/subscription-rates/${id}`
+    `/platform/subscription-rates/${id}`
   )
 
   return response.data.data
@@ -169,7 +169,7 @@ export function useSubscriptionRates(options?: IUseSubscriptionRatesOptions) {
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
 
   const queryString = params.toString()
-  const path = `/subscription-rates${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/subscription-rates${queryString ? `?${queryString}` : ''}`
 
   return useApiQuery<TApiPaginatedResponse<TSubscriptionRate>>({
     path,
@@ -194,7 +194,7 @@ export async function getSubscriptionRates(
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
 
   const queryString = params.toString()
-  const path = `/subscription-rates${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/subscription-rates${queryString ? `?${queryString}` : ''}`
 
   const response = await client.get<TApiPaginatedResponse<TSubscriptionRate>>(path)
 
@@ -210,7 +210,7 @@ export async function getSubscriptionRates(
  */
 export function useCreateSubscriptionRate(options?: ICreateSubscriptionRateOptions) {
   return useApiMutation<TApiDataResponse<TSubscriptionRate>, TSubscriptionRateCreate>({
-    path: '/subscription-rates',
+    path: '/platform/subscription-rates',
     method: 'POST',
     config: {},
     onSuccess: options?.onSuccess,
@@ -227,7 +227,7 @@ export async function createSubscriptionRate(
 ): Promise<TSubscriptionRate> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<TSubscriptionRate>>(
-    '/subscription-rates',
+    '/platform/subscription-rates',
     data
   )
 
@@ -246,7 +246,7 @@ export function useUpdateSubscriptionRate(
   options?: IUpdateSubscriptionRateOptions
 ) {
   return useApiMutation<TApiDataResponse<TSubscriptionRate>, TSubscriptionRateUpdate>({
-    path: `/subscription-rates/${id}`,
+    path: `/platform/subscription-rates/${id}`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
@@ -267,7 +267,7 @@ export async function updateSubscriptionRate(
 ): Promise<TSubscriptionRate> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataResponse<TSubscriptionRate>>(
-    `/subscription-rates/${id}`,
+    `/platform/subscription-rates/${id}`,
     data
   )
 
@@ -283,7 +283,7 @@ export async function updateSubscriptionRate(
  */
 export function useActivateSubscriptionRate(options?: IActivateSubscriptionRateOptions) {
   return useApiMutation<TApiDataResponse<TSubscriptionRate>, { id: string }>({
-    path: (data) => `/subscription-rates/${data.id}/activate`,
+    path: (data) => `/platform/subscription-rates/${data.id}/activate`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
@@ -298,7 +298,7 @@ export function useActivateSubscriptionRate(options?: IActivateSubscriptionRateO
 export async function activateSubscriptionRate(id: string): Promise<TSubscriptionRate> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataResponse<TSubscriptionRate>>(
-    `/subscription-rates/${id}/activate`
+    `/platform/subscription-rates/${id}/activate`
   )
 
   return response.data.data
@@ -313,7 +313,7 @@ export async function activateSubscriptionRate(id: string): Promise<TSubscriptio
  */
 export function useDeactivateSubscriptionRate(options?: IDeactivateSubscriptionRateOptions) {
   return useApiMutation<TApiDataResponse<TSubscriptionRate>, { id: string }>({
-    path: (data) => `/subscription-rates/${data.id}/deactivate`,
+    path: (data) => `/platform/subscription-rates/${data.id}/deactivate`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
@@ -328,7 +328,7 @@ export function useDeactivateSubscriptionRate(options?: IDeactivateSubscriptionR
 export async function deactivateSubscriptionRate(id: string): Promise<TSubscriptionRate> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataResponse<TSubscriptionRate>>(
-    `/subscription-rates/${id}/deactivate`
+    `/platform/subscription-rates/${id}/deactivate`
   )
 
   return response.data.data

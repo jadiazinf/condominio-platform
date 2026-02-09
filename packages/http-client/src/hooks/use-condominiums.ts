@@ -31,7 +31,7 @@ export function useCondominiums(options: UseCondominiumsOptions = {}) {
   const { enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TCondominium[]>>({
-    path: '/condominiums',
+    path: '/condominium/condominiums',
     queryKey: condominiumsKeys.list(),
     enabled,
   })
@@ -52,7 +52,7 @@ export function useCondominiumsPaginated(options: UseCondominiumsPaginatedOption
   if (query.locationId) params.set('locationId', query.locationId)
 
   const queryString = params.toString()
-  const path = `/condominiums${queryString ? `?${queryString}` : ''}`
+  const path = `/condominium/condominiums${queryString ? `?${queryString}` : ''}`
 
   return useApiQuery<TApiPaginatedResponse<TCondominium>>({
     path,
@@ -78,7 +78,7 @@ export async function getAllCondominiums(token?: string): Promise<TCondominium[]
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  const response = await client.get<TApiDataResponse<TCondominium[]>>('/condominiums', { headers })
+  const response = await client.get<TApiDataResponse<TCondominium[]>>('/condominium/condominiums', { headers })
 
   return response.data.data
 }
@@ -101,7 +101,7 @@ export async function getCondominiumsPaginated(
   if (query.locationId) params.set('locationId', query.locationId)
 
   const queryString = params.toString()
-  const path = `/condominiums${queryString ? `?${queryString}` : ''}`
+  const path = `/condominium/condominiums${queryString ? `?${queryString}` : ''}`
 
   const response = await client.get<TApiPaginatedResponse<TCondominium>>(path, {
     headers: {
@@ -129,7 +129,7 @@ export function useCreateCondominium(options: UseCreateCondominiumOptions) {
   const { token, onSuccess, onError } = options
 
   return useApiMutation<TApiDataResponse<TCondominium>, TCondominiumCreate>({
-    path: '/condominiums',
+    path: '/condominium/condominiums',
     method: 'POST',
     config: {
       headers: {
@@ -153,7 +153,7 @@ export async function createCondominium(
 ): Promise<TCondominium> {
   const client = getHttpClient()
 
-  const response = await client.post<TApiDataResponse<TCondominium>>('/condominiums', data, {
+  const response = await client.post<TApiDataResponse<TCondominium>>('/condominium/condominiums', data, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -183,7 +183,7 @@ export function useGenerateCondominiumCode(options: UseGenerateCondominiumCodeOp
   const { token, onSuccess, onError } = options
 
   return useApiMutation<TApiDataResponse<TGenerateCondominiumCodeResponse>, void>({
-    path: '/condominiums/generate-code',
+    path: '/condominium/condominiums/generate-code',
     method: 'POST',
     config: {
       headers: {
@@ -206,7 +206,7 @@ export async function generateCondominiumCode(
   const client = getHttpClient()
 
   const response = await client.post<TApiDataResponse<TGenerateCondominiumCodeResponse>>(
-    '/condominiums/generate-code',
+    '/condominium/condominiums/generate-code',
     {},
     {
       headers: {
@@ -235,7 +235,7 @@ export function useUpdateCondominium(options: UseUpdateCondominiumOptions) {
   const { token, onSuccess, onError } = options
 
   return useApiMutation<TApiDataResponse<TCondominium>, TCondominiumUpdate & { id: string }>({
-    path: (variables) => `/condominiums/${variables.id}`,
+    path: (variables) => `/condominium/condominiums/${variables.id}`,
     method: 'PATCH',
     config: {
       headers: {
@@ -260,7 +260,7 @@ export async function updateCondominium(
 ): Promise<TCondominium> {
   const client = getHttpClient()
 
-  const response = await client.patch<TApiDataResponse<TCondominium>>(`/condominiums/${id}`, data)
+  const response = await client.patch<TApiDataResponse<TCondominium>>(`/condominium/condominiums/${id}`, data)
 
   return response.data.data
 }

@@ -56,7 +56,7 @@ export async function promoteUserToSuperadmin(
   }
 
   const response = await client.post<TApiMessageResponse>(
-    `/users/${userId}/promote-to-superadmin`,
+    `/platform/users/${userId}/promote-to-superadmin`,
     payload,
     {
       headers: {
@@ -83,7 +83,7 @@ export async function demoteUserFromSuperadmin(
   const client = getHttpClient()
 
   const response = await client.post<TApiMessageResponse>(
-    `/users/${userId}/demote-from-superadmin`,
+    `/platform/users/${userId}/demote-from-superadmin`,
     {},
     {
       headers: {
@@ -105,7 +105,7 @@ export async function demoteUserFromSuperadmin(
  */
 export function usePromoteToSuperadmin(options?: IUsePromoteToSuperadminOptions) {
   return useApiMutation<TApiMessageResponse, IPromoteToSuperadminVariables>({
-    path: (variables) => `/users/${variables.userId}/promote-to-superadmin`,
+    path: (variables) => `/platform/users/${variables.userId}/promote-to-superadmin`,
     method: 'POST',
     invalidateKeys: [usersKeys.all],
     onSuccess: options?.onSuccess,
@@ -119,7 +119,7 @@ export function usePromoteToSuperadmin(options?: IUsePromoteToSuperadminOptions)
  */
 export function useDemoteFromSuperadmin(options?: IUseDemoteFromSuperadminOptions) {
   return useApiMutation<TApiMessageResponse, IDemoteFromSuperadminVariables>({
-    path: (variables) => `/users/${variables.userId}/demote-from-superadmin`,
+    path: (variables) => `/platform/users/${variables.userId}/demote-from-superadmin`,
     method: 'POST',
     invalidateKeys: [usersKeys.all],
     onSuccess: options?.onSuccess,

@@ -9,7 +9,7 @@ import {
 import type { PermissionsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware } from '../../middlewares/auth'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -46,36 +46,34 @@ export class PermissionsController extends BaseController<
 > {
   constructor(repository: PermissionsRepository) {
     super(repository)
-    this.getByModule = this.getByModule.bind(this)
-    this.getByModuleAndAction = this.getByModuleAndAction.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
       {
         method: 'get',
         path: '/module/:module',
         handler: this.getByModule,
-        middlewares: [authMiddleware, paramsValidator(ModuleParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(ModuleParamSchema)],
       },
       {
         method: 'get',
         path: '/module/:module/action/:action',
         handler: this.getByModuleAndAction,
-        middlewares: [authMiddleware, paramsValidator(ModuleAndActionParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(ModuleAndActionParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, bodyValidator(permissionCreateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(permissionCreateSchema)],
       },
       {
         method: 'patch',
@@ -83,6 +81,7 @@ export class PermissionsController extends BaseController<
         handler: this.update,
         middlewares: [
           authMiddleware,
+          requireRole('SUPERADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(permissionUpdateSchema),
         ],
@@ -91,7 +90,7 @@ export class PermissionsController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -100,7 +99,7 @@ export class PermissionsController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByModule(c: Context): Promise<Response> {
+  private getByModule = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TModuleParam>(c)
     const repo = this.repository as PermissionsRepository
 
@@ -112,7 +111,7 @@ export class PermissionsController extends BaseController<
     }
   }
 
-  private async getByModuleAndAction(c: Context): Promise<Response> {
+  private getByModuleAndAction = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TModuleAndActionParam>(c)
     const repo = this.repository as PermissionsRepository
 

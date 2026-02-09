@@ -14,7 +14,7 @@ export class SupportTicketMessagesEndpoint implements IEndpoint {
   constructor(db: TDrizzleClient) {
     const repository = new SupportTicketMessagesRepository(db)
     const ticketsRepository = new SupportTicketsRepository(db)
-    this.controller = new SupportTicketMessagesController(repository, ticketsRepository)
+    this.controller = new SupportTicketMessagesController(db, repository, ticketsRepository)
   }
 
   getRouter(): Hono {

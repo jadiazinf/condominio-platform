@@ -5,7 +5,7 @@ import type { IEndpoint } from './types'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 
 export class UserFcmTokensEndpoint implements IEndpoint {
-  readonly path = '/user-fcm-tokens'
+  readonly path = '/me/fcm-tokens'
   private readonly controller: UserFcmTokensController
 
   constructor(db: TDrizzleClient) {

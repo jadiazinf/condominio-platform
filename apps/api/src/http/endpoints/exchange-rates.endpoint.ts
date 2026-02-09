@@ -5,7 +5,7 @@ import type { IEndpoint } from './types'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 
 export class ExchangeRatesEndpoint implements IEndpoint {
-  readonly path = '/exchange-rates'
+  readonly path = '/platform/exchange-rates'
   private readonly controller: ExchangeRatesController
 
   constructor(db: TDrizzleClient) {

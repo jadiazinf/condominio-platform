@@ -9,7 +9,7 @@ import {
 import type { UnitsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware } from '../../middlewares/auth'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -65,43 +65,40 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
     this.getUnitByBuildingAndNumberService = new GetUnitByBuildingAndNumberService(repository)
     this.getUnitsByFloorService = new GetUnitsByFloorService(repository)
 
-    this.getByBuildingId = this.getByBuildingId.bind(this)
-    this.getByBuildingAndNumber = this.getByBuildingAndNumber.bind(this)
-    this.getByFloor = this.getByFloor.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT')] },
       {
         method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
-        middlewares: [authMiddleware, paramsValidator(BuildingIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT'), paramsValidator(BuildingIdParamSchema)],
       },
       {
         method: 'get',
         path: '/building/:buildingId/number/:unitNumber',
         handler: this.getByBuildingAndNumber,
-        middlewares: [authMiddleware, paramsValidator(BuildingAndNumberParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT'), paramsValidator(BuildingAndNumberParamSchema)],
       },
       {
         method: 'get',
         path: '/building/:buildingId/floor/:floor',
         handler: this.getByFloor,
-        middlewares: [authMiddleware, paramsValidator(BuildingAndFloorParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT'), paramsValidator(BuildingAndFloorParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, bodyValidator(unitCreateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(unitCreateSchema)],
       },
       {
         method: 'patch',
@@ -109,6 +106,7 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
         handler: this.update,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(unitUpdateSchema),
         ],
@@ -117,16 +115,28 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Overridden Handlers
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override list = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    // TODO: Filter by condominiumId via JOIN through building.condominiumId
+    const entities = await this.repository.listAll()
+    return ctx.ok({ data: entities })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByBuildingId(c: Context): Promise<Response> {
+  private getByBuildingId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)
 
     try {
@@ -144,7 +154,7 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
     }
   }
 
-  private async getByBuildingAndNumber(c: Context): Promise<Response> {
+  private getByBuildingAndNumber = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingAndNumberParam>(c)
 
     try {
@@ -163,7 +173,7 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
     }
   }
 
-  private async getByFloor(c: Context): Promise<Response> {
+  private getByFloor = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingAndFloorParam>(c)
 
     try {

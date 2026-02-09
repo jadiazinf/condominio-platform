@@ -112,7 +112,7 @@ export function useAllSupportTickets(options?: IUseSupportTicketsOptions) {
   if (filters?.limit) queryParams.set('limit', filters.limit.toString())
 
   const queryString = queryParams.toString()
-  const path = `/support-tickets${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/support-tickets${queryString ? `?${queryString}` : ''}`
 
   return useApiQuery<TApiPaginatedResponse<TSupportTicket>>({
     path,
@@ -136,7 +136,7 @@ export async function getAllSupportTickets(filters?: ITicketFilters, token?: str
   if (filters?.limit) queryParams.set('limit', filters.limit.toString())
 
   const queryString = queryParams.toString()
-  const url = `/support-tickets${queryString ? `?${queryString}` : ''}`
+  const url = `/platform/support-tickets${queryString ? `?${queryString}` : ''}`
 
   const headers: Record<string, string> = {}
   if (token) {
@@ -168,7 +168,7 @@ export function useSupportTickets(companyId: string, options?: IUseSupportTicket
   if (filters?.limit) queryParams.set('limit', filters.limit.toString())
 
   const queryString = queryParams.toString()
-  const path = `/management-companies/${companyId}/tickets${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/management-companies/${companyId}/tickets${queryString ? `?${queryString}` : ''}`
 
   return useApiQuery<TApiPaginatedResponse<TSupportTicket>>({
     path,
@@ -196,7 +196,7 @@ export async function getSupportTickets(
   if (filters?.limit) queryParams.set('limit', filters.limit.toString())
 
   const queryString = queryParams.toString()
-  const url = `/management-companies/${companyId}/tickets${queryString ? `?${queryString}` : ''}`
+  const url = `/platform/management-companies/${companyId}/tickets${queryString ? `?${queryString}` : ''}`
 
   const headers: Record<string, string> = {}
   if (token) {
@@ -217,7 +217,7 @@ export async function getSupportTickets(
  */
 export function useSupportTicket(ticketId: string, options?: IUseSupportTicketOptions) {
   return useApiQuery<TApiDataResponse<TSupportTicket>>({
-    path: `/support-tickets/${ticketId}`,
+    path: `/platform/support-tickets/${ticketId}`,
     queryKey: supportTicketKeys.detail(ticketId),
     config: {},
     enabled: options?.enabled !== false && !!ticketId,
@@ -236,7 +236,7 @@ export async function getSupportTicket(ticketId: string, token?: string): Promis
   }
 
   const response = await client.get<TApiDataResponse<TSupportTicket>>(
-    `/support-tickets/${ticketId}`,
+    `/platform/support-tickets/${ticketId}`,
     { headers }
   )
 
@@ -252,7 +252,7 @@ export async function getSupportTicket(ticketId: string, token?: string): Promis
  */
 export function useCreateTicket(companyId: string, options?: ICreateTicketOptions) {
   return useApiMutation<TApiDataResponse<TSupportTicket>, TSupportTicketCreate>({
-    path: `/management-companies/${companyId}/tickets`,
+    path: `/platform/management-companies/${companyId}/tickets`,
     method: 'POST',
     config: {},
     onSuccess: options?.onSuccess,
@@ -270,7 +270,7 @@ export async function createTicket(
 ): Promise<TSupportTicket> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<TSupportTicket>>(
-    `/management-companies/${companyId}/tickets`,
+    `/platform/management-companies/${companyId}/tickets`,
     data
   )
 
@@ -290,7 +290,7 @@ export function useUpdateTicket(
   options?: IUpdateTicketOptions
 ) {
   return useApiMutation<TApiDataResponse<TSupportTicket>, TSupportTicketUpdate>({
-    path: `/support-tickets/${ticketId}`,
+    path: `/platform/support-tickets/${ticketId}`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
@@ -308,7 +308,7 @@ export async function updateTicket(
 ): Promise<TSupportTicket> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataResponse<TSupportTicket>>(
-    `/support-tickets/${ticketId}`,
+    `/platform/support-tickets/${ticketId}`,
     data
   )
 
@@ -328,7 +328,7 @@ export function useAssignTicket(
   options?: IAssignTicketOptions
 ) {
   return useApiMutation<TApiDataResponse<TSupportTicket>, IAssignTicketData>({
-    path: `/support-tickets/${ticketId}/assign`,
+    path: `/platform/support-tickets/${ticketId}/assign`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
@@ -343,7 +343,7 @@ export function useAssignTicket(
 export async function assignTicket(ticketId: string, assignedTo: string): Promise<TSupportTicket> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataResponse<TSupportTicket>>(
-    `/support-tickets/${ticketId}/assign`,
+    `/platform/support-tickets/${ticketId}/assign`,
     { assignedTo }
   )
 
@@ -363,7 +363,7 @@ export function useResolveTicket(
   options?: IResolveTicketOptions
 ) {
   return useApiMutation<TApiDataResponse<TSupportTicket>, IResolveTicketData>({
-    path: `/support-tickets/${ticketId}/resolve`,
+    path: `/platform/support-tickets/${ticketId}/resolve`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
@@ -378,7 +378,7 @@ export function useResolveTicket(
 export async function resolveTicket(ticketId: string, resolvedBy: string): Promise<TSupportTicket> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataResponse<TSupportTicket>>(
-    `/support-tickets/${ticketId}/resolve`,
+    `/platform/support-tickets/${ticketId}/resolve`,
     { resolvedBy }
   )
 
@@ -394,7 +394,7 @@ export async function resolveTicket(ticketId: string, resolvedBy: string): Promi
  */
 export function useCloseTicket(ticketId: string, companyId: string, options?: ICloseTicketOptions) {
   return useApiMutation<TApiDataResponse<TSupportTicket>, ICloseTicketData>({
-    path: `/support-tickets/${ticketId}/close`,
+    path: `/platform/support-tickets/${ticketId}/close`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
@@ -409,7 +409,7 @@ export function useCloseTicket(ticketId: string, companyId: string, options?: IC
 export async function closeTicket(ticketId: string, closedBy: string): Promise<TSupportTicket> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataResponse<TSupportTicket>>(
-    `/support-tickets/${ticketId}/close`,
+    `/platform/support-tickets/${ticketId}/close`,
     { closedBy }
   )
 
@@ -429,7 +429,7 @@ export function useUpdateTicketStatus(
   options?: IUpdateTicketStatusOptions
 ) {
   return useApiMutation<TApiDataResponse<TSupportTicket>, IUpdateTicketStatusData>({
-    path: `/support-tickets/${ticketId}/status`,
+    path: `/platform/support-tickets/${ticketId}/status`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
@@ -447,7 +447,7 @@ export async function updateTicketStatus(
 ): Promise<TSupportTicket> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataResponse<TSupportTicket>>(
-    `/support-tickets/${ticketId}/status`,
+    `/platform/support-tickets/${ticketId}/status`,
     { status }
   )
 

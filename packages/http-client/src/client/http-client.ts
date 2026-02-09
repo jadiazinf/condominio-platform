@@ -81,6 +81,7 @@ export interface HttpClientConfig {
   timeout?: number
   getAuthToken?: () => string | null | Promise<string | null>
   getLocale?: () => string | null | Promise<string | null>
+  getCondominiumId?: () => string | null | Promise<string | null>
   onTokenRefresh?: () => Promise<void>
 }
 
@@ -120,6 +121,13 @@ export function createHttpClient(config: HttpClientConfig = {}) {
       const locale = await config.getLocale()
       if (locale) {
         headers['Accept-Language'] = locale
+      }
+    }
+
+    if (config.getCondominiumId) {
+      const condominiumId = await config.getCondominiumId()
+      if (condominiumId) {
+        headers['x-condominium-id'] = condominiumId
       }
     }
 
@@ -213,6 +221,18 @@ export function setGlobalAuthToken(
   }
 }
 
+// Global condominium ID getter (can be set by the app)
+let globalCondominiumIdGetter: (() => string | null | Promise<string | null>) | null = null
+
+export function setGlobalCondominiumId(
+  condominiumIdGetter: () => string | null | Promise<string | null>
+): void {
+  globalCondominiumIdGetter = condominiumIdGetter
+  if (defaultClient) {
+    defaultClient = null
+  }
+}
+
 // Default client instance (uses env config)
 let defaultClient: HttpClient | null = null
 
@@ -221,6 +241,7 @@ export function getHttpClient(): HttpClient {
     defaultClient = createHttpClient({
       getLocale: globalLocaleGetter ?? undefined,
       getAuthToken: globalAuthTokenGetter ?? undefined,
+      getCondominiumId: globalCondominiumIdGetter ?? undefined,
     })
   }
   return defaultClient

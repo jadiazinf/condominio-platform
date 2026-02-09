@@ -5,6 +5,7 @@ import type {
   ManagementCompaniesRepository,
 } from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
+import logger from '@utils/logger'
 
 export interface IValidateInvitationTokenInput {
   token: string
@@ -33,20 +34,46 @@ export class ValidateInvitationTokenService {
     input: IValidateInvitationTokenInput
   ): Promise<TServiceResult<IValidateInvitationTokenResult>> {
     // Find invitation by token
+    logger.info(
+      {
+        tokenLength: input.token.length,
+        tokenPrefix: input.token.substring(0, 8),
+      },
+      'Validating invitation token'
+    )
+
     const invitation = await this.invitationsRepository.getByToken(input.token)
 
     if (!invitation) {
+      logger.warn(
+        {
+          tokenLength: input.token.length,
+          tokenPrefix: input.token.substring(0, 8),
+        },
+        'Invitation token not found in database'
+      )
       return failure('Invalid invitation token', 'NOT_FOUND')
     }
 
-    // Get related data
-    const user = await this.usersRepository.getById(invitation.userId)
+    logger.info(
+      {
+        invitationId: invitation.id,
+        status: invitation.status,
+        email: invitation.email,
+        expiresAt: invitation.expiresAt,
+      },
+      'Invitation token found'
+    )
+
+    // Get related data (include inactive users — invitation users are inactive until accepted)
+    const user = await this.usersRepository.getById(invitation.userId, true)
     if (!user) {
       return failure('User associated with invitation not found', 'NOT_FOUND')
     }
 
+    // Include inactive — company is inactive until invitation accepted
     const managementCompany = await this.managementCompaniesRepository.getById(
-      invitation.managementCompanyId
+      invitation.managementCompanyId, true
     )
     if (!managementCompany) {
       return failure('Management company associated with invitation not found', 'NOT_FOUND')

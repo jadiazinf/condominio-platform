@@ -61,3 +61,7 @@ export { SubscriptionRatesController } from './subscription-rates'
 // Support Tickets
 export { SupportTicketsController } from './support-tickets/support-tickets.controller'
 export { SupportTicketMessagesController } from './support-ticket-messages/messages.controller'
+
+// Amenities & Reservations
+export { AmenitiesController } from './amenities'
+export { AmenityReservationsController } from './amenity-reservations'

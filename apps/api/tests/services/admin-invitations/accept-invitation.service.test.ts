@@ -12,26 +12,36 @@ type TMockInvitationsRepository = {
   getByToken: (token: string) => Promise<TAdminInvitation | null>
   update: (id: string, data: Partial<TAdminInvitation>) => Promise<TAdminInvitation | null>
   markAsAccepted: (id: string) => Promise<TAdminInvitation | null>
+  withTx: (tx: unknown) => TMockInvitationsRepository
 }
 
 type TMockUsersRepository = {
   getById: (id: string) => Promise<TUser | null>
   getByFirebaseUid: (uid: string) => Promise<TUser | null>
   update: (id: string, data: Partial<TUser>) => Promise<TUser | null>
+  withTx: (tx: unknown) => TMockUsersRepository
 }
 
 type TMockCompaniesRepository = {
   getById: (id: string) => Promise<TManagementCompany | null>
   update: (id: string, data: Partial<TManagementCompany>) => Promise<TManagementCompany | null>
+  withTx: (tx: unknown) => TMockCompaniesRepository
 }
 
 type TMockMembersRepository = {
   create: (data: any) => Promise<TManagementCompanyMember>
+  withTx: (tx: unknown) => TMockMembersRepository
 }
 
 type TMockSubscriptionsRepository = {
   create: (data: any) => Promise<TManagementCompanySubscription>
+  withTx: (tx: unknown) => TMockSubscriptionsRepository
 }
+
+// Mock db that executes the transaction callback immediately (no real DB)
+const mockDb = {
+  transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn({}),
+} as never
 
 describe('AcceptInvitationService', function () {
   let service: AcceptInvitationService
@@ -145,6 +155,7 @@ describe('AcceptInvitationService', function () {
         }
         return null
       },
+      withTx() { return this },
     }
 
     mockCompaniesRepository = {
@@ -161,6 +172,7 @@ describe('AcceptInvitationService', function () {
         }
         return null
       },
+      withTx() { return this },
     }
 
     mockInvitationsRepository = {
@@ -187,6 +199,7 @@ describe('AcceptInvitationService', function () {
         }
         return null
       },
+      withTx() { return this },
     }
 
     mockMembersRepository = {
@@ -208,6 +221,7 @@ describe('AcceptInvitationService', function () {
           updatedAt: new Date(),
         }
       },
+      withTx() { return this },
     }
 
     mockSubscriptionsRepository = {
@@ -251,10 +265,11 @@ describe('AcceptInvitationService', function () {
           rateId: data.rateId ?? null,
         }
       },
+      withTx() { return this },
     }
 
     service = new AcceptInvitationService(
-      {} as never, // db not used in mock tests
+      mockDb,
       mockInvitationsRepository as never,
       mockUsersRepository as never,
       mockCompaniesRepository as never,

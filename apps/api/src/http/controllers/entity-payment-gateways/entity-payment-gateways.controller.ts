@@ -9,15 +9,10 @@ import {
 import type { EntityPaymentGatewaysRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
-
-const CondominiumIdParamSchema = z.object({
-  condominiumId: z.string().uuid('Invalid condominium ID format'),
-})
-
-type TCondominiumIdParam = z.infer<typeof CondominiumIdParamSchema>
 
 const BuildingIdParamSchema = z.object({
   buildingId: z.string().uuid('Invalid building ID format'),
@@ -33,10 +28,10 @@ type TPaymentGatewayIdParam = z.infer<typeof PaymentGatewayIdParamSchema>
 
 /**
  * Controller for managing entity payment gateway resources.
+ * List is scoped by condominiumId from the requireRole middleware context.
  *
  * Endpoints:
- * - GET    /                                    List all entity payment gateways
- * - GET    /condominium/:condominiumId          Get by condominium
+ * - GET    /                                    List entity payment gateways (scoped by condominium)
  * - GET    /building/:buildingId                Get by building
  * - GET    /gateway/:paymentGatewayId           Get by payment gateway
  * - GET    /:id                                 Get by ID
@@ -51,49 +46,42 @@ export class EntityPaymentGatewaysController extends BaseController<
 > {
   constructor(repository: EntityPaymentGatewaysRepository) {
     super(repository)
-    this.getByCondominiumId = this.getByCondominiumId.bind(this)
-    this.getByBuildingId = this.getByBuildingId.bind(this)
-    this.getByPaymentGatewayId = this.getByPaymentGatewayId.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
-      {
-        method: 'get',
-        path: '/condominium/:condominiumId',
-        handler: this.getByCondominiumId,
-        middlewares: [paramsValidator(CondominiumIdParamSchema)],
-      },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN')] },
       {
         method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
-        middlewares: [paramsValidator(BuildingIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(BuildingIdParamSchema)],
       },
       {
         method: 'get',
         path: '/gateway/:paymentGatewayId',
         handler: this.getByPaymentGatewayId,
-        middlewares: [paramsValidator(PaymentGatewayIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(PaymentGatewayIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(entityPaymentGatewayCreateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(entityPaymentGatewayCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
         middlewares: [
+          authMiddleware,
+          requireRole('ADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(entityPaymentGatewayUpdateSchema),
         ],
@@ -102,7 +90,7 @@ export class EntityPaymentGatewaysController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -111,19 +99,16 @@ export class EntityPaymentGatewaysController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByCondominiumId(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, unknown, TCondominiumIdParam>(c)
+  protected override list = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     const repo = this.repository as EntityPaymentGatewaysRepository
 
-    try {
-      const gateways = await repo.getByCondominiumId(ctx.params.condominiumId)
-      return ctx.ok({ data: gateways })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const gateways = await repo.getByCondominiumId(condominiumId)
+    return ctx.ok({ data: gateways })
   }
 
-  private async getByBuildingId(c: Context): Promise<Response> {
+  private getByBuildingId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)
     const repo = this.repository as EntityPaymentGatewaysRepository
 
@@ -135,7 +120,7 @@ export class EntityPaymentGatewaysController extends BaseController<
     }
   }
 
-  private async getByPaymentGatewayId(c: Context): Promise<Response> {
+  private getByPaymentGatewayId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPaymentGatewayIdParam>(c)
     const repo = this.repository as EntityPaymentGatewaysRepository
 

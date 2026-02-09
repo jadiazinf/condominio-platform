@@ -1,5 +1,6 @@
 import type { TQuotaAdjustment, TAdjustmentType, TQuotaStatus } from '@packages/domain'
 import type { QuotasRepository, QuotaAdjustmentsRepository } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
 
 type TAdjustQuotaInput = {
@@ -21,6 +22,7 @@ type TAdjustQuotaOutput = {
  */
 export class AdjustQuotaService {
   constructor(
+    private readonly db: TDrizzleClient,
     private readonly quotasRepository: QuotasRepository,
     private readonly quotaAdjustmentsRepository: QuotaAdjustmentsRepository
   ) {}
@@ -55,22 +57,12 @@ export class AdjustQuotaService {
       return failure('Waiver adjustment must set amount to 0', 'BAD_REQUEST')
     }
 
-    // 6. Create the adjustment record
-    const adjustment = await this.quotaAdjustmentsRepository.create({
-      quotaId,
-      previousAmount: quota.baseAmount,
-      newAmount,
-      adjustmentType,
-      reason,
-      createdBy: adjustedByUserId,
-    })
-
-    // 7. Calculate new balance
+    // 6. Calculate new balance
     const paidAmount = parseFloat(quota.paidAmount || '0')
     const interestAmount = parseFloat(quota.interestAmount || '0')
     const newBalance = newAmountNum + interestAmount - paidAmount
 
-    // 8. Determine new status
+    // 7. Determine new status
     let newStatus: TQuotaStatus = quota.status
     if (adjustmentType === 'waiver') {
       newStatus = 'cancelled'
@@ -78,18 +70,34 @@ export class AdjustQuotaService {
       newStatus = 'paid'
     }
 
-    // 9. Update the quota
-    await this.quotasRepository.update(quotaId, {
-      baseAmount: newAmount,
-      balance: newBalance.toFixed(2),
-      status: newStatus,
+    // 8. All writes inside a transaction for atomicity
+    return await this.db.transaction(async (tx) => {
+      const txAdjustmentsRepo = this.quotaAdjustmentsRepository.withTx(tx)
+      const txQuotasRepo = this.quotasRepository.withTx(tx)
+
+      // Create the adjustment record
+      const adjustment = await txAdjustmentsRepo.create({
+        quotaId,
+        previousAmount: quota.baseAmount,
+        newAmount,
+        adjustmentType,
+        reason,
+        createdBy: adjustedByUserId,
+      })
+
+      // Update the quota
+      await txQuotasRepo.update(quotaId, {
+        baseAmount: newAmount,
+        balance: newBalance.toFixed(2),
+        status: newStatus,
+      })
+
+      // Build message
+      const diff = newAmountNum - parseFloat(quota.baseAmount)
+      const diffStr = diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2)
+      const message = `Quota adjusted from ${quota.baseAmount} to ${newAmount} (${diffStr}). Reason: ${reason}`
+
+      return success({ adjustment, message })
     })
-
-    // 10. Build message
-    const diff = newAmountNum - parseFloat(quota.baseAmount)
-    const diffStr = diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2)
-    const message = `Quota adjusted from ${quota.baseAmount} to ${newAmount} (${diffStr}). Reason: ${reason}`
-
-    return success({ adjustment, message })
   }
 }

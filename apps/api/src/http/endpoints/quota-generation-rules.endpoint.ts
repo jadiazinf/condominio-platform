@@ -11,7 +11,7 @@ import type { IEndpoint } from './types'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 
 export class QuotaGenerationRulesEndpoint implements IEndpoint {
-  readonly path = '/quota-generation-rules'
+  readonly path = '/condominium/quota-generation-rules'
   private readonly controller: QuotaGenerationRulesController
 
   constructor(db: TDrizzleClient) {

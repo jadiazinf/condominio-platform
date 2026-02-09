@@ -18,7 +18,7 @@ export function useCurrentUser(options: UseCurrentUserOptions = {}) {
   const { token, enabled = true } = options
 
   return useApiQuery<TUser>({
-    path: '/users/me',
+    path: '/platform/users/me',
     queryKey: ['users', 'me'],
     enabled: enabled && !!token,
     config: token
@@ -46,7 +46,7 @@ export function useUserByFirebaseUid(
   const { token, enabled = true } = options
 
   return useApiQuery<TUser>({
-    path: `/users/firebase/${firebaseUid}`,
+    path: `/platform/users/firebase/${firebaseUid}`,
     queryKey: ['users', 'firebase', firebaseUid],
     enabled: enabled && !!firebaseUid && !!token,
     config: token
@@ -64,7 +64,7 @@ export function useUserByFirebaseUid(
  */
 export async function getUserByEmail(token: string, email: string): Promise<TUser> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TUser>>(`/users/email/${email}`, {
+  const response = await client.get<TApiDataResponse<TUser>>(`/platform/users/email/${email}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

@@ -238,3 +238,14 @@ export const acceptanceStatusEnum = pgEnum('acceptance_status', [
   'expired',
   'cancelled',
 ])
+
+// ============================================================================
+// RESERVATION ENUMS
+// ============================================================================
+
+export const reservationStatusEnum = pgEnum('reservation_status', [
+  'pending',
+  'approved',
+  'rejected',
+  'cancelled',
+])

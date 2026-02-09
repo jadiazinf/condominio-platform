@@ -44,7 +44,10 @@ import { ManagementCompanyMembersEndpoint } from './management-company-members.e
 import { SupportTicketsEndpoint } from './support-tickets.endpoint'
 import { SupportTicketMessagesEndpoint } from './support-ticket-messages.endpoint'
 import { SubscriptionRatesEndpoint } from './subscription-rates.endpoint'
+import { AmenitiesEndpoint } from './amenities.endpoint'
+import { AmenityReservationsEndpoint } from './amenity-reservations.endpoint'
 import { WebSocketEndpoint } from './websocket.endpoint'
+import { ReportsEndpoint } from './reports.endpoint'
 
 /**
  * Central class that manages all API routes.
@@ -131,6 +134,13 @@ export class ApiRoutes {
       // Support Tickets
       new SupportTicketsEndpoint(db),
       new SupportTicketMessagesEndpoint(db),
+
+      // Amenities & Reservations
+      new AmenitiesEndpoint(db),
+      new AmenityReservationsEndpoint(db),
+
+      // Reports
+      new ReportsEndpoint(),
 
       // WebSocket
       new WebSocketEndpoint(),

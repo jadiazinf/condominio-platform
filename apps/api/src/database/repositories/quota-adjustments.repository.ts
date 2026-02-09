@@ -108,4 +108,15 @@ export class QuotaAdjustmentsRepository {
 
     return records.map(record => this.mapToEntity(record))
   }
+
+  /**
+   * Returns a shallow clone of this repository using the given transaction client.
+   * Allows multiple repositories to share the same transaction.
+   */
+  withTx(tx: TDrizzleClient): this {
+    const clone = Object.create(Object.getPrototypeOf(this)) as this
+    Object.assign(clone, this)
+    ;(clone as any).db = tx
+    return clone
+  }
 }

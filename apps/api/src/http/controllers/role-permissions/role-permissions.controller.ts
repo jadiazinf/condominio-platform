@@ -9,6 +9,7 @@ import {
 import type { RolePermissionsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -53,62 +54,58 @@ export class RolePermissionsController extends BaseController<
 > {
   constructor(repository: RolePermissionsRepository) {
     super(repository)
-    this.getByRoleId = this.getByRoleId.bind(this)
-    this.getByPermissionId = this.getByPermissionId.bind(this)
-    this.checkExists = this.checkExists.bind(this)
-    this.removeByRoleAndPermission = this.removeByRoleAndPermission.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
       {
         method: 'get',
         path: '/role/:roleId',
         handler: this.getByRoleId,
-        middlewares: [paramsValidator(RoleIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(RoleIdParamSchema)],
       },
       {
         method: 'get',
         path: '/permission/:permissionId',
         handler: this.getByPermissionId,
-        middlewares: [paramsValidator(PermissionIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(PermissionIdParamSchema)],
       },
       {
         method: 'get',
         path: '/role/:roleId/permission/:permissionId/exists',
         handler: this.checkExists,
-        middlewares: [paramsValidator(RoleAndPermissionParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(RoleAndPermissionParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(rolePermissionCreateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(rolePermissionCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(rolePermissionUpdateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(rolePermissionUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'delete',
         path: '/role/:roleId/permission/:permissionId',
         handler: this.removeByRoleAndPermission,
-        middlewares: [paramsValidator(RoleAndPermissionParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(RoleAndPermissionParamSchema)],
       },
     ]
   }
@@ -117,7 +114,7 @@ export class RolePermissionsController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByRoleId(c: Context): Promise<Response> {
+  private getByRoleId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TRoleIdParam>(c)
     const repo = this.repository as RolePermissionsRepository
 
@@ -129,7 +126,7 @@ export class RolePermissionsController extends BaseController<
     }
   }
 
-  private async getByPermissionId(c: Context): Promise<Response> {
+  private getByPermissionId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPermissionIdParam>(c)
     const repo = this.repository as RolePermissionsRepository
 
@@ -141,7 +138,7 @@ export class RolePermissionsController extends BaseController<
     }
   }
 
-  private async checkExists(c: Context): Promise<Response> {
+  private checkExists = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TRoleAndPermissionParam>(c)
     const repo = this.repository as RolePermissionsRepository
 
@@ -153,7 +150,7 @@ export class RolePermissionsController extends BaseController<
     }
   }
 
-  private async removeByRoleAndPermission(c: Context): Promise<Response> {
+  private removeByRoleAndPermission = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TRoleAndPermissionParam>(c)
     const repo = this.repository as RolePermissionsRepository
 

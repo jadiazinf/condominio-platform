@@ -13,6 +13,7 @@ import type {
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -46,6 +47,10 @@ type TSendNotificationBody = z.infer<typeof SendNotificationBodySchema>
 
 /**
  * Controller for managing notification resources.
+ *
+ * Notifications are user-scoped, not condominium-scoped. They are tied to a userId
+ * rather than a condominiumId. The CONDOMINIUM_ID_PROP is available from context
+ * via requireRole() middleware but is not used for scoping in this controller.
  *
  * Endpoints:
  * - GET    /                          List all notifications
@@ -86,74 +91,69 @@ export class NotificationsController extends BaseController<
     this.markAsReadService = new MarkAsReadService(repository)
     this.markAllAsReadService = new MarkAllAsReadService(repository)
 
-    this.sendNotification = this.sendNotification.bind(this)
-    this.getByUserId = this.getByUserId.bind(this)
-    this.getUnreadCount = this.getUnreadCount.bind(this)
-    this.markAsRead = this.markAsRead.bind(this)
-    this.markAllAsRead = this.markAllAsRead.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT')] },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT', 'USER'), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId/unread-count',
         handler: this.getUnreadCount,
-        middlewares: [paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT', 'USER'), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/send',
         handler: this.sendNotification,
-        middlewares: [bodyValidator(SendNotificationBodySchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT'), bodyValidator(SendNotificationBodySchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(notificationCreateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT'), bodyValidator(notificationCreateSchema)],
       },
       {
         method: 'post',
         path: '/:id/read',
         handler: this.markAsRead,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/user/:userId/read-all',
         handler: this.markAllAsRead,
-        middlewares: [paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT', 'USER'), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(notificationUpdateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT'), paramsValidator(IdParamSchema), bodyValidator(notificationUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
 
-  private async sendNotification(c: Context): Promise<Response> {
+  private sendNotification = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TSendNotificationBody, unknown, unknown>(c)
 
     try {
@@ -178,7 +178,7 @@ export class NotificationsController extends BaseController<
     }
   }
 
-  private async getByUserId(c: Context): Promise<Response> {
+  private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
     try {
@@ -196,7 +196,7 @@ export class NotificationsController extends BaseController<
     }
   }
 
-  private async getUnreadCount(c: Context): Promise<Response> {
+  private getUnreadCount = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
     try {
@@ -214,7 +214,7 @@ export class NotificationsController extends BaseController<
     }
   }
 
-  private async markAsRead(c: Context): Promise<Response> {
+  private markAsRead = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TIdParam>(c)
 
     try {
@@ -232,7 +232,7 @@ export class NotificationsController extends BaseController<
     }
   }
 
-  private async markAllAsRead(c: Context): Promise<Response> {
+  private markAllAsRead = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
     try {

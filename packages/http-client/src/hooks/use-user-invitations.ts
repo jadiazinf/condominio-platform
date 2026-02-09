@@ -163,7 +163,7 @@ export async function createUserInvitation(
   const client = getHttpClient()
 
   const response = await client.post<TApiDataResponse<TCreateUserInvitationResult>>(
-    '/user-invitations',
+    '/condominium/user-invitations',
     input,
     {
       headers: {
@@ -188,7 +188,7 @@ export async function createUserWithInvitation(
   const client = getHttpClient()
 
   const response = await client.post<TApiDataResponse<TCreateUserWithInvitationResult>>(
-    '/user-invitations/create-user',
+    '/condominium/user-invitations/create-user',
     input,
     {
       headers: {
@@ -210,7 +210,7 @@ export async function validateUserInvitationToken(
   const client = getHttpClient()
 
   const response = await client.get<TApiDataResponse<TValidateUserInvitationResult>>(
-    `/user-invitations/validate/${invitationToken}`
+    `/condominium/user-invitations/validate/${invitationToken}`
   )
 
   return response.data.data
@@ -226,7 +226,7 @@ export async function acceptUserInvitation(
   const client = getHttpClient()
 
   const response = await client.post<TApiDataResponse<TAcceptUserInvitationResult>>(
-    `/user-invitations/accept/${invitationToken}`,
+    `/condominium/user-invitations/accept/${invitationToken}`,
     {
       headers: {
         Authorization: `Bearer ${firebaseToken}`,
@@ -248,7 +248,7 @@ export async function resendUserInvitationEmail(
   const client = getHttpClient()
 
   const response = await client.post<TApiDataResponse<{ success: boolean; message: string }>>(
-    `/user-invitations/${invitationId}/resend-email`,
+    `/condominium/user-invitations/${invitationId}/resend-email`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -270,7 +270,7 @@ export async function cancelUserInvitation(
   const client = getHttpClient()
 
   const response = await client.delete<TApiDataResponse<TUserInvitation>>(
-    `/user-invitations/${invitationId}`,
+    `/condominium/user-invitations/${invitationId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

@@ -9,6 +9,7 @@ import {
 import type { CurrenciesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema, CodeParamSchema, type TCodeParam } from '../common'
 import type { TRouteDefinition } from '../types'
 
@@ -31,43 +32,41 @@ export class CurrenciesController extends BaseController<
 > {
   constructor(repository: CurrenciesRepository) {
     super(repository)
-    this.getByCode = this.getByCode.bind(this)
-    this.getBaseCurrency = this.getBaseCurrency.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
-      { method: 'get', path: '/base', handler: this.getBaseCurrency },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
+      { method: 'get', path: '/base', handler: this.getBaseCurrency, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
       {
         method: 'get',
         path: '/code/:code',
         handler: this.getByCode,
-        middlewares: [paramsValidator(CodeParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(CodeParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(currencyCreateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(currencyCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(currencyUpdateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(currencyUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -76,7 +75,7 @@ export class CurrenciesController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByCode(c: Context): Promise<Response> {
+  private getByCode = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TCodeParam>(c)
     const repo = this.repository as CurrenciesRepository
 
@@ -93,7 +92,7 @@ export class CurrenciesController extends BaseController<
     }
   }
 
-  private async getBaseCurrency(c: Context): Promise<Response> {
+  private getBaseCurrency = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const repo = this.repository as CurrenciesRepository
 

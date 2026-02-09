@@ -28,8 +28,7 @@ import {
 import { SendSubscriptionCancellationEmailService } from '../../../services/email'
 import { DatabaseService } from '@database/service'
 import { isUserAuthenticated } from '../../middlewares/utils/auth/is-user-authenticated'
-import { isSuperadmin } from '../../middlewares/utils/auth/is-superadmin'
-import { requireSuperadminPermission } from '../../middlewares/utils/auth/has-superadmin-permission'
+import { requireRole } from '../../middlewares/auth'
 
 const CompanyIdParamSchema = z.object({
   companyId: z.string().uuid('Invalid company ID format'),
@@ -123,13 +122,6 @@ export class ManagementCompanySubscriptionsController extends BaseController<
     this.renewService = new RenewSubscriptionService(repository)
     this.pricingService = new CalculatePricingService(db)
 
-    this.getActiveSubscription = this.getActiveSubscription.bind(this)
-    this.getAllSubscriptions = this.getAllSubscriptions.bind(this)
-    this.calculatePricing = this.calculatePricing.bind(this)
-    this.createSubscription = this.createSubscription.bind(this)
-    this.updateActiveSubscription = this.updateActiveSubscription.bind(this)
-    this.cancelSubscription = this.cancelSubscription.bind(this)
-    this.renewSubscription = this.renewSubscription.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -137,22 +129,22 @@ export class ManagementCompanySubscriptionsController extends BaseController<
       // Superadmin only: Get active subscription
       {
         method: 'get',
-        path: '/management-companies/:companyId/subscription',
+        path: '/platform/management-companies/:companyId/subscription',
         handler: this.getActiveSubscription,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
+          requireRole('SUPERADMIN'),
           paramsValidator(CompanyIdParamSchema),
         ],
       },
       // Superadmin only: Get subscription history
       {
         method: 'get',
-        path: '/management-companies/:companyId/subscriptions',
+        path: '/platform/management-companies/:companyId/subscriptions',
         handler: this.getAllSubscriptions,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
+          requireRole('SUPERADMIN'),
           paramsValidator(CompanyIdParamSchema),
           queryValidator(SubscriptionHistoryQuerySchema),
         ],
@@ -160,11 +152,11 @@ export class ManagementCompanySubscriptionsController extends BaseController<
       // Superadmin only: Calculate subscription pricing
       {
         method: 'get',
-        path: '/management-companies/:companyId/subscription/pricing',
+        path: '/platform/management-companies/:companyId/subscription/pricing',
         handler: this.calculatePricing,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
+          requireRole('SUPERADMIN'),
           paramsValidator(CompanyIdParamSchema),
           queryValidator(CalculatePricingQuerySchema),
         ],
@@ -172,12 +164,12 @@ export class ManagementCompanySubscriptionsController extends BaseController<
       // Superadmin with manage permission: Create subscription
       {
         method: 'post',
-        path: '/management-companies/:companyId/subscription',
+        path: '/platform/management-companies/:companyId/subscription',
         handler: this.createSubscription,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
-          requireSuperadminPermission('platform_management_companies', 'manage'),
+          requireRole('SUPERADMIN'),
+
           paramsValidator(CompanyIdParamSchema),
           bodyValidator(managementCompanySubscriptionCreateSchema),
         ],
@@ -185,12 +177,12 @@ export class ManagementCompanySubscriptionsController extends BaseController<
       // Superadmin with manage permission: Update subscription
       {
         method: 'patch',
-        path: '/management-companies/:companyId/subscription',
+        path: '/platform/management-companies/:companyId/subscription',
         handler: this.updateActiveSubscription,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
-          requireSuperadminPermission('platform_management_companies', 'manage'),
+          requireRole('SUPERADMIN'),
+
           paramsValidator(CompanyIdParamSchema),
           bodyValidator(managementCompanySubscriptionUpdateSchema),
         ],
@@ -198,12 +190,12 @@ export class ManagementCompanySubscriptionsController extends BaseController<
       // Superadmin with manage permission: Cancel subscription
       {
         method: 'delete',
-        path: '/management-companies/:companyId/subscription',
+        path: '/platform/management-companies/:companyId/subscription',
         handler: this.cancelSubscription,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
-          requireSuperadminPermission('platform_management_companies', 'manage'),
+          requireRole('SUPERADMIN'),
+
           paramsValidator(CompanyIdParamSchema),
           bodyValidator(CancelSubscriptionBodySchema),
         ],
@@ -211,12 +203,12 @@ export class ManagementCompanySubscriptionsController extends BaseController<
       // Superadmin with manage permission: Renew subscription
       {
         method: 'post',
-        path: '/management-companies/:companyId/subscription/renew',
+        path: '/platform/management-companies/:companyId/subscription/renew',
         handler: this.renewSubscription,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
-          requireSuperadminPermission('platform_management_companies', 'manage'),
+          requireRole('SUPERADMIN'),
+
           paramsValidator(CompanyIdParamSchema),
           bodyValidator(RenewSubscriptionBodySchema),
         ],
@@ -228,7 +220,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getActiveSubscription(c: Context): Promise<Response> {
+  private getActiveSubscription = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TCompanyIdParam>(c)
     const repo = this.repository as ManagementCompanySubscriptionsRepository
 
@@ -245,7 +237,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
     }
   }
 
-  private async getAllSubscriptions(c: Context): Promise<Response> {
+  private getAllSubscriptions = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TSubscriptionHistoryQuery, TCompanyIdParam>(c)
     const repo = this.repository as ManagementCompanySubscriptionsRepository
 
@@ -266,7 +258,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
     }
   }
 
-  private async calculatePricing(c: Context): Promise<Response> {
+  private calculatePricing = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TCalculatePricingQuery, TCompanyIdParam>(c)
 
     try {
@@ -294,7 +286,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
     }
   }
 
-  private async createSubscription(c: Context): Promise<Response> {
+  private createSubscription = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TManagementCompanySubscriptionCreate, unknown, TCompanyIdParam>(c)
 
     try {
@@ -313,7 +305,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
     }
   }
 
-  private async updateActiveSubscription(c: Context): Promise<Response> {
+  private updateActiveSubscription = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TManagementCompanySubscriptionUpdate, unknown, TCompanyIdParam>(c)
     const repo = this.repository as ManagementCompanySubscriptionsRepository
 
@@ -340,7 +332,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
     }
   }
 
-  private async cancelSubscription(c: Context): Promise<Response> {
+  private cancelSubscription = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TCancelSubscriptionBody, unknown, TCompanyIdParam>(c)
     const repo = this.repository as ManagementCompanySubscriptionsRepository
 
@@ -368,7 +360,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
     }
   }
 
-  private async renewSubscription(c: Context): Promise<Response> {
+  private renewSubscription = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TRenewSubscriptionBody, unknown, TCompanyIdParam>(c)
     const repo = this.repository as ManagementCompanySubscriptionsRepository
 

@@ -8,7 +8,7 @@ export async function fetchUserCondominiums(
 ): Promise<TUserCondominiumsResponse | null> {
   try {
     const { apiBaseUrl } = getEnvConfig()
-    const response = await fetch(`${apiBaseUrl}/users/me/condominiums`, {
+    const response = await fetch(`${apiBaseUrl}/platform/users/me/condominiums`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

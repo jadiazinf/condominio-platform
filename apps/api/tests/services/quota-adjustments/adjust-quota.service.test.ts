@@ -5,6 +5,7 @@ import { AdjustQuotaService } from '@src/services/quota-adjustments'
 type TMockQuotasRepository = {
   getById: (id: string) => Promise<TQuota | null>
   update: (id: string, data: Partial<TQuota>) => Promise<TQuota | null>
+  withTx: (tx: unknown) => TMockQuotasRepository
 }
 
 type TMockQuotaAdjustmentsRepository = {
@@ -16,7 +17,13 @@ type TMockQuotaAdjustmentsRepository = {
     reason: string
     createdBy: string
   }) => Promise<TQuotaAdjustment>
+  withTx: (tx: unknown) => TMockQuotaAdjustmentsRepository
 }
+
+// Mock db that passes through to the callback with itself as the transaction client
+const mockDb = {
+  transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn(mockDb),
+} as never
 
 describe('AdjustQuotaService', function () {
   let service: AdjustQuotaService
@@ -91,6 +98,7 @@ describe('AdjustQuotaService', function () {
         if (!quota) return null
         return { ...quota, ...data }
       },
+      withTx() { return this },
     }
 
     mockQuotaAdjustmentsRepository = {
@@ -108,9 +116,11 @@ describe('AdjustQuotaService', function () {
         lastCreatedAdjustment = adjustment
         return adjustment
       },
+      withTx() { return this },
     }
 
     service = new AdjustQuotaService(
+      mockDb,
       mockQuotasRepository as never,
       mockQuotaAdjustmentsRepository as never
     )

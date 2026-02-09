@@ -10,16 +10,24 @@ import { CreateCompanyWithAdminService } from '@src/services/admin-invitations'
 
 type TMockInvitationsRepository = {
   create: (data: unknown) => Promise<TAdminInvitation>
+  withTx: (tx: unknown) => TMockInvitationsRepository
 }
 
 type TMockUsersRepository = {
   getByEmail: (email: string) => Promise<TUser | null>
   create: (data: TUserCreate) => Promise<TUser>
+  withTx: (tx: unknown) => TMockUsersRepository
 }
 
 type TMockCompaniesRepository = {
   create: (data: TManagementCompanyCreate) => Promise<TManagementCompany>
+  withTx: (tx: unknown) => TMockCompaniesRepository
 }
+
+// Mock db that executes the transaction callback immediately (no real DB)
+const mockDb = {
+  transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn({}),
+} as never
 
 describe('CreateCompanyWithAdminService', function () {
   let service: CreateCompanyWithAdminService
@@ -78,6 +86,7 @@ describe('CreateCompanyWithAdminService', function () {
           updatedAt: new Date(),
         }
       },
+      withTx() { return this },
     }
 
     mockCompaniesRepository = {
@@ -89,6 +98,7 @@ describe('CreateCompanyWithAdminService', function () {
           updatedAt: new Date(),
         } as TManagementCompany
       },
+      withTx() { return this },
     }
 
     mockInvitationsRepository = {
@@ -110,9 +120,11 @@ describe('CreateCompanyWithAdminService', function () {
           updatedAt: new Date(),
         } as TAdminInvitation
       },
+      withTx() { return this },
     }
 
     service = new CreateCompanyWithAdminService(
+      mockDb,
       mockInvitationsRepository as never,
       mockUsersRepository as never,
       mockCompaniesRepository as never

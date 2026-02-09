@@ -211,7 +211,7 @@ export class PaymentsRepository
         verificationNotes: verificationNotes ?? null,
         updatedAt: new Date(),
       })
-      .where(eq(payments.id, id))
+      .where(and(eq(payments.id, id), eq(payments.status, 'pending_verification')))
       .returning()
 
     if (results.length === 0) {
@@ -238,7 +238,7 @@ export class PaymentsRepository
         verificationNotes: verificationNotes ?? null,
         updatedAt: new Date(),
       })
-      .where(eq(payments.id, id))
+      .where(and(eq(payments.id, id), eq(payments.status, 'pending_verification')))
       .returning()
 
     if (results.length === 0) {

@@ -11,6 +11,7 @@ import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { z } from 'zod'
 
 const ParentCategoryIdParamSchema = z.object({
@@ -21,6 +22,10 @@ type TParentCategoryIdParam = z.infer<typeof ParentCategoryIdParamSchema>
 
 /**
  * Controller for managing expense category resources.
+ *
+ * Expense categories are global and shared across all condominiums.
+ * They are not scoped to a specific condominium -- any condominium can use
+ * any expense category. No condominium-level filtering is needed here.
  *
  * Endpoints:
  * - GET    /                          List all expense categories
@@ -38,43 +43,41 @@ export class ExpenseCategoriesController extends BaseController<
 > {
   constructor(repository: ExpenseCategoriesRepository) {
     super(repository)
-    this.getRootCategories = this.getRootCategories.bind(this)
-    this.getByParentId = this.getByParentId.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
-      { method: 'get', path: '/root', handler: this.getRootCategories },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
+      { method: 'get', path: '/root', handler: this.getRootCategories, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
       {
         method: 'get',
         path: '/parent/:parentCategoryId',
         handler: this.getByParentId,
-        middlewares: [paramsValidator(ParentCategoryIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(ParentCategoryIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(expenseCategoryCreateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(expenseCategoryCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(expenseCategoryUpdateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema), bodyValidator(expenseCategoryUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -83,7 +86,7 @@ export class ExpenseCategoriesController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getRootCategories(c: Context): Promise<Response> {
+  private getRootCategories = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const repo = this.repository as ExpenseCategoriesRepository
 
@@ -95,7 +98,7 @@ export class ExpenseCategoriesController extends BaseController<
     }
   }
 
-  private async getByParentId(c: Context): Promise<Response> {
+  private getByParentId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TParentCategoryIdParam>(c)
     const repo = this.repository as ExpenseCategoriesRepository
 

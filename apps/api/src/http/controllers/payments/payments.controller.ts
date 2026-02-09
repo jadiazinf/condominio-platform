@@ -7,13 +7,23 @@ import {
   type TPaymentUpdate,
 } from '@packages/domain'
 import type { PaymentsRepository } from '@database/repositories'
+import {
+  NotificationsRepository,
+  NotificationDeliveriesRepository,
+  UserNotificationPreferencesRepository,
+  UserFcmTokensRepository,
+  PaymentApplicationsRepository,
+  QuotasRepository,
+} from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
+import { SendNotificationService } from '@src/services/notifications'
 import { BaseController } from '../base.controller'
 import {
   bodyValidator,
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
-import { authMiddleware } from '../../middlewares/auth'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -28,6 +38,7 @@ import {
   ReportPaymentService,
   VerifyPaymentService,
   RejectPaymentService,
+  RefundPaymentService,
 } from '@src/services/payments'
 
 const PaymentNumberParamSchema = z.object({
@@ -74,6 +85,12 @@ const VerificationBodySchema = z.object({
 
 type TVerificationBody = z.infer<typeof VerificationBodySchema>
 
+const RefundBodySchema = z.object({
+  refundReason: z.string().min(1, 'Refund reason is required'),
+})
+
+type TRefundBody = z.infer<typeof RefundBodySchema>
+
 type TIdParam = z.infer<typeof IdParamSchema>
 
 /**
@@ -92,6 +109,7 @@ type TIdParam = z.infer<typeof IdParamSchema>
  * - POST   /report                     Report external payment (tenant reports payment, status: pending_verification)
  * - POST   /:id/verify                 Verify/approve a payment (admin action)
  * - POST   /:id/reject                 Reject a payment (admin action)
+ * - POST   /:id/refund                 Refund a completed payment (admin action)
  * - PATCH  /:id                        Update payment
  * - DELETE /:id                        Delete payment (hard delete)
  */
@@ -105,8 +123,10 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
   private readonly reportPaymentService: ReportPaymentService
   private readonly verifyPaymentService: VerifyPaymentService
   private readonly rejectPaymentService: RejectPaymentService
+  private readonly refundPaymentService: RefundPaymentService
+  private readonly sendNotificationService: SendNotificationService
 
-  constructor(repository: PaymentsRepository) {
+  constructor(repository: PaymentsRepository, db: TDrizzleClient) {
     super(repository)
 
     // Initialize services
@@ -122,68 +142,71 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
     this.verifyPaymentService = new VerifyPaymentService(repository)
     this.rejectPaymentService = new RejectPaymentService(repository)
 
-    // Bind handlers
-    this.getByPaymentNumber = this.getByPaymentNumber.bind(this)
-    this.getByUserId = this.getByUserId.bind(this)
-    this.getByUnitId = this.getByUnitId.bind(this)
-    this.getByStatus = this.getByStatus.bind(this)
-    this.getByDateRange = this.getByDateRange.bind(this)
-    this.getPendingVerification = this.getPendingVerification.bind(this)
-    this.reportPayment = this.reportPayment.bind(this)
-    this.verifyPayment = this.verifyPayment.bind(this)
-    this.rejectPayment = this.rejectPayment.bind(this)
+    // Initialize refund service with transaction support
+    const paymentApplicationsRepo = new PaymentApplicationsRepository(db)
+    const quotasRepo = new QuotasRepository(db)
+    this.refundPaymentService = new RefundPaymentService(db, repository, paymentApplicationsRepo, quotasRepo)
+
+    // Initialize notification service
+    const notificationsRepo = new NotificationsRepository(db)
+    const deliveriesRepo = new NotificationDeliveriesRepository(db)
+    const preferencesRepo = new UserNotificationPreferencesRepository(db)
+    const fcmTokensRepo = new UserFcmTokensRepository(db)
+    this.sendNotificationService = new SendNotificationService(
+      notificationsRepo, deliveriesRepo, preferencesRepo, fcmTokensRepo
+    )
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
       {
         method: 'get',
         path: '/pending-verification',
         handler: this.getPendingVerification,
-        middlewares: [authMiddleware],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')],
       },
       {
         method: 'get',
         path: '/number/:paymentNumber',
         handler: this.getByPaymentNumber,
-        middlewares: [authMiddleware, paramsValidator(PaymentNumberParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(PaymentNumberParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [authMiddleware, paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/unit/:unitId',
         handler: this.getByUnitId,
-        middlewares: [authMiddleware, paramsValidator(UnitIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(UnitIdParamSchema)],
       },
       {
         method: 'get',
         path: '/status/:status',
         handler: this.getByStatus,
-        middlewares: [authMiddleware, paramsValidator(StatusParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(StatusParamSchema)],
       },
       {
         method: 'get',
         path: '/date-range',
         handler: this.getByDateRange,
-        middlewares: [authMiddleware, queryValidator(DateRangeQuerySchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), queryValidator(DateRangeQuerySchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'USER'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, bodyValidator(paymentCreateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), bodyValidator(paymentCreateSchema)],
       },
       {
         method: 'post',
@@ -197,6 +220,7 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         handler: this.verifyPayment,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN', 'ACCOUNTANT'),
           paramsValidator(IdParamSchema),
           bodyValidator(VerificationBodySchema),
         ],
@@ -207,8 +231,20 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         handler: this.rejectPayment,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN', 'ACCOUNTANT'),
           paramsValidator(IdParamSchema),
           bodyValidator(VerificationBodySchema),
+        ],
+      },
+      {
+        method: 'post',
+        path: '/:id/refund',
+        handler: this.refundPayment,
+        middlewares: [
+          authMiddleware,
+          requireRole('ADMIN', 'ACCOUNTANT'),
+          paramsValidator(IdParamSchema),
+          bodyValidator(RefundBodySchema),
         ],
       },
       {
@@ -217,6 +253,7 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         handler: this.update,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN', 'ACCOUNTANT'),
           paramsValidator(IdParamSchema),
           bodyValidator(paymentUpdateSchema),
         ],
@@ -225,16 +262,28 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Overridden Handlers
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override list = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    // TODO: Filter by condominiumId via JOIN through unit → building.condominiumId
+    const entities = await this.repository.listAll()
+    return ctx.ok({ data: entities })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByPaymentNumber(c: Context): Promise<Response> {
+  private getByPaymentNumber = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPaymentNumberParam>(c)
 
     try {
@@ -252,7 +301,7 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
     }
   }
 
-  private async getByUserId(c: Context): Promise<Response> {
+  private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
     try {
@@ -270,7 +319,7 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
     }
   }
 
-  private async getByUnitId(c: Context): Promise<Response> {
+  private getByUnitId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)
 
     try {
@@ -288,7 +337,7 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
     }
   }
 
-  private async getByStatus(c: Context): Promise<Response> {
+  private getByStatus = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TStatusParam>(c)
 
     try {
@@ -306,7 +355,7 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
     }
   }
 
-  private async getByDateRange(c: Context): Promise<Response> {
+  private getByDateRange = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TDateRangeQuery>(c)
 
     try {
@@ -329,7 +378,7 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
   // Payment Verification Flow
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getPendingVerification(c: Context): Promise<Response> {
+  private getPendingVerification = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
 
     try {
@@ -345,7 +394,7 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
     }
   }
 
-  private async reportPayment(c: Context): Promise<Response> {
+  private reportPayment = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TPaymentCreate>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 
@@ -365,7 +414,7 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
     }
   }
 
-  private async verifyPayment(c: Context): Promise<Response> {
+  private verifyPayment = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TVerificationBody, unknown, TIdParam>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 
@@ -391,13 +440,23 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         return this.handleServiceError(ctx, result)
       }
 
+      // Fire-and-forget: notify payer
+      this.sendNotificationService.execute({
+        userId: result.data.payment.userId,
+        category: 'payment',
+        title: 'Payment Verified',
+        body: `Your payment has been verified and approved.`,
+        channels: ['in_app', 'push'],
+        data: { paymentId: result.data.payment.id, action: 'payment_verified' },
+      }).catch(() => {})
+
       return ctx.ok({ data: result.data.payment, message: result.data.message })
     } catch (error) {
       return this.handleError(ctx, error)
     }
   }
 
-  private async rejectPayment(c: Context): Promise<Response> {
+  private rejectPayment = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TVerificationBody, unknown, TIdParam>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 
@@ -423,7 +482,69 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         return this.handleServiceError(ctx, result)
       }
 
+      // Fire-and-forget: notify payer
+      this.sendNotificationService.execute({
+        userId: result.data.payment.userId,
+        category: 'payment',
+        title: 'Payment Rejected',
+        body: `Your payment has been rejected.${ctx.body.notes ? ` Reason: ${ctx.body.notes}` : ''}`,
+        channels: ['in_app', 'push'],
+        priority: 'high',
+        data: { paymentId: result.data.payment.id, action: 'payment_rejected' },
+      }).catch(() => {})
+
       return ctx.ok({ data: result.data.payment, message: result.data.message })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private refundPayment = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TRefundBody, unknown, TIdParam>(c)
+    const user = c.get(AUTHENTICATED_USER_PROP)
+
+    try {
+      const result = await this.refundPaymentService.execute({
+        paymentId: ctx.params.id,
+        refundReason: ctx.body.refundReason,
+        refundedByUserId: user.id,
+      })
+
+      if (!result.success) {
+        if (result.code === 'NOT_FOUND') {
+          return ctx.notFound({ error: 'Payment not found' })
+        }
+        if (result.code === 'BAD_REQUEST') {
+          // Extract current status from error message for backward compatibility
+          const statusMatch = result.error.match(/Current status: (.+)$/)
+          return ctx.badRequest({
+            error: result.error,
+            currentStatus: statusMatch ? statusMatch[1] : undefined,
+          })
+        }
+        return this.handleServiceError(ctx, result)
+      }
+
+      // Fire-and-forget: notify payer about refund
+      this.sendNotificationService.execute({
+        userId: result.data.payment.userId,
+        category: 'payment',
+        title: 'Payment Refunded',
+        body: `Your payment has been refunded. ${result.data.reversedApplications} quota(s) have been restored.`,
+        channels: ['in_app', 'push'],
+        priority: 'high',
+        data: {
+          paymentId: result.data.payment.id,
+          action: 'payment_refunded',
+          reversedApplications: result.data.reversedApplications,
+        },
+      }).catch(() => {})
+
+      return ctx.ok({
+        data: result.data.payment,
+        message: result.data.message,
+        reversedApplications: result.data.reversedApplications,
+      })
     } catch (error) {
       return this.handleError(ctx, error)
     }

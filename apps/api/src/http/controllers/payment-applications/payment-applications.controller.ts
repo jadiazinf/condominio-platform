@@ -11,6 +11,7 @@ import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { z } from 'zod'
 
 const PaymentIdParamSchema = z.object({
@@ -44,42 +45,42 @@ export class PaymentApplicationsController extends BaseController<
 > {
   constructor(repository: PaymentApplicationsRepository) {
     super(repository)
-    this.getByPaymentId = this.getByPaymentId.bind(this)
-    this.getByQuotaId = this.getByQuotaId.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
       {
         method: 'get',
         path: '/payment/:paymentId',
         handler: this.getByPaymentId,
-        middlewares: [paramsValidator(PaymentIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(PaymentIdParamSchema)],
       },
       {
         method: 'get',
         path: '/quota/:quotaId',
         handler: this.getByQuotaId,
-        middlewares: [paramsValidator(QuotaIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(QuotaIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(paymentApplicationCreateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), bodyValidator(paymentApplicationCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
         middlewares: [
+          authMiddleware,
+          requireRole('ADMIN', 'ACCOUNTANT'),
           paramsValidator(IdParamSchema),
           bodyValidator(paymentApplicationUpdateSchema),
         ],
@@ -88,16 +89,28 @@ export class PaymentApplicationsController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Overridden Handlers
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override list = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    // TODO: Filter by condominiumId via JOIN through payment → unit → building.condominiumId
+    const entities = await this.repository.listAll()
+    return ctx.ok({ data: entities })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByPaymentId(c: Context): Promise<Response> {
+  private getByPaymentId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPaymentIdParam>(c)
     const repo = this.repository as PaymentApplicationsRepository
 
@@ -109,7 +122,7 @@ export class PaymentApplicationsController extends BaseController<
     }
   }
 
-  private async getByQuotaId(c: Context): Promise<Response> {
+  private getByQuotaId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TQuotaIdParam>(c)
     const repo = this.repository as PaymentApplicationsRepository
 

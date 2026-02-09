@@ -2,11 +2,9 @@ import type { Context } from 'hono'
 import {
   condominiumCreateSchema,
   condominiumUpdateSchema,
-  condominiumsQuerySchema,
   type TCondominium,
   type TCondominiumCreate,
   type TCondominiumUpdate,
-  type TCondominiumsQuerySchema,
 } from '@packages/domain'
 import type {
   CondominiumsRepository,
@@ -17,42 +15,32 @@ import type {
   UsersRepository,
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware } from '../../middlewares/auth'
+import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { validateSubscriptionLimit } from '../../middlewares/utils/validate-subscription-limit'
 import { IdParamSchema, CodeParamSchema, type TCodeParam } from '../common'
 import type { TRouteDefinition } from '../types'
-import { z } from 'zod'
 import {
   GetCondominiumByCodeService,
-  GetCondominiumsByLocationService,
   GenerateCondominiumCodeService,
   GetCondominiumUsersService,
 } from '@src/services/condominiums'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
-
-const ManagementCompanyIdParamSchema = z.object({
-  managementCompanyId: z.string().uuid('Invalid management company ID format'),
-})
-
-type TManagementCompanyIdParam = z.infer<typeof ManagementCompanyIdParamSchema>
-
-const LocationIdParamSchema = z.object({
-  locationId: z.string().uuid('Invalid location ID format'),
-})
-
-type TLocationIdParam = z.infer<typeof LocationIdParamSchema>
+import { AppError } from '@errors/index'
 
 /**
  * Controller for managing condominium resources.
  *
+ * Under the /condominium/condominiums path, this controller is condominium-scoped.
+ * The list() endpoint returns only the current condominium from the context
+ * (set by requireRole() middleware).
+ *
  * Endpoints:
- * - GET    /                                    List all condominiums
+ * - GET    /                                    Get current condominium
  * - GET    /code/:code                          Get by code
- * - GET    /management-company/:managementCompanyId  Get by management company
- * - GET    /location/:locationId                Get by location
  * - GET    /:id                                 Get by ID
  * - GET    /:id/users                           Get users of condominium
+ * - POST   /generate-code                       Generate a new code
  * - POST   /                                    Create condominium
  * - PATCH  /:id                                 Update condominium
  * - DELETE /:id                                 Delete condominium
@@ -63,7 +51,6 @@ export class CondominiumsController extends BaseController<
   TCondominiumUpdate
 > {
   private readonly getCondominiumByCodeService: GetCondominiumByCodeService
-  private readonly getCondominiumsByLocationService: GetCondominiumsByLocationService
   private readonly generateCondominiumCodeService: GenerateCondominiumCodeService
   private readonly getCondominiumUsersService: GetCondominiumUsersService
   private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository
@@ -92,16 +79,9 @@ export class CondominiumsController extends BaseController<
 
     // Initialize services
     this.getCondominiumByCodeService = new GetCondominiumByCodeService(repository)
-    this.getCondominiumsByLocationService = new GetCondominiumsByLocationService(repository)
     this.generateCondominiumCodeService = new GenerateCondominiumCodeService(repository)
     this.getCondominiumUsersService = new GetCondominiumUsersService(db)
 
-    this.listPaginated = this.listPaginated.bind(this)
-    this.getByCode = this.getByCode.bind(this)
-    this.getByManagementCompanyId = this.getByManagementCompanyId.bind(this)
-    this.getByLocationId = this.getByLocationId.bind(this)
-    this.generateCode = this.generateCode.bind(this)
-    this.getCondominiumUsers = this.getCondominiumUsers.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -109,48 +89,32 @@ export class CondominiumsController extends BaseController<
       {
         method: 'get',
         path: '/',
-        handler: this.listPaginated,
-        middlewares: [authMiddleware, queryValidator(condominiumsQuerySchema)],
+        handler: this.list,
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER')],
       },
       {
         method: 'get',
         path: '/code/:code',
         handler: this.getByCode,
-        middlewares: [authMiddleware, paramsValidator(CodeParamSchema)],
-      },
-      {
-        method: 'get',
-        path: '/management-company/:managementCompanyId',
-        handler: this.getByManagementCompanyId,
-        middlewares: [
-          authMiddleware,
-          paramsValidator(ManagementCompanyIdParamSchema),
-          queryValidator(condominiumsQuerySchema),
-        ],
-      },
-      {
-        method: 'get',
-        path: '/location/:locationId',
-        handler: this.getByLocationId,
-        middlewares: [authMiddleware, paramsValidator(LocationIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(CodeParamSchema)],
       },
       {
         method: 'get',
         path: '/:id/users',
         handler: this.getCondominiumUsers,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/generate-code',
         handler: this.generateCode,
-        middlewares: [authMiddleware],
+        middlewares: [authMiddleware, requireRole('ADMIN')],
       },
       {
         method: 'post',
@@ -158,6 +122,7 @@ export class CondominiumsController extends BaseController<
         handler: this.create,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN'),
           bodyValidator(condominiumCreateSchema),
           validateSubscriptionLimit('condominium', this.subscriptionsRepository, this.companiesRepository),
         ],
@@ -168,6 +133,7 @@ export class CondominiumsController extends BaseController<
         handler: this.update,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(condominiumUpdateSchema),
         ],
@@ -176,23 +142,28 @@ export class CondominiumsController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Override list to return only the current condominium from context
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override list = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const condominium = await this.repository.getById(condominiumId)
+    if (!condominium) throw AppError.notFound('Condominium', condominiumId)
+    return ctx.ok({ data: [condominium] })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async listPaginated(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, TCondominiumsQuerySchema>(c)
-    const repo = this.repository as CondominiumsRepository
-    const result = await repo.listPaginated(ctx.query)
-    return ctx.ok(result)
-  }
-
-  private async getByCode(c: Context): Promise<Response> {
+  private getByCode = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TCodeParam>(c)
 
     try {
@@ -210,41 +181,7 @@ export class CondominiumsController extends BaseController<
     }
   }
 
-  private async getByManagementCompanyId(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, TCondominiumsQuerySchema, TManagementCompanyIdParam>(c)
-    const repo = this.repository as CondominiumsRepository
-
-    try {
-      const result = await repo.listByManagementCompanyPaginated(
-        ctx.params.managementCompanyId,
-        ctx.query
-      )
-
-      return ctx.ok(result)
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
-  }
-
-  private async getByLocationId(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, unknown, TLocationIdParam>(c)
-
-    try {
-      const result = await this.getCondominiumsByLocationService.execute({
-        locationId: ctx.params.locationId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
-  }
-
-  private async generateCode(c: Context): Promise<Response> {
+  private generateCode = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
 
     try {
@@ -260,7 +197,7 @@ export class CondominiumsController extends BaseController<
     }
   }
 
-  private async getCondominiumUsers(c: Context): Promise<Response> {
+  private getCondominiumUsers = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
 
     try {

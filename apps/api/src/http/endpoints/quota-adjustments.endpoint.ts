@@ -5,13 +5,13 @@ import type { IEndpoint } from './types'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 
 export class QuotaAdjustmentsEndpoint implements IEndpoint {
-  readonly path = '/quota-adjustments'
+  readonly path = '/condominium/quota-adjustments'
   private readonly controller: QuotaAdjustmentsController
 
   constructor(db: TDrizzleClient) {
     const quotasRepository = new QuotasRepository(db)
     const quotaAdjustmentsRepository = new QuotaAdjustmentsRepository(db)
-    this.controller = new QuotaAdjustmentsController(quotasRepository, quotaAdjustmentsRepository)
+    this.controller = new QuotaAdjustmentsController(db, quotasRepository, quotaAdjustmentsRepository)
   }
 
   getRouter(): Hono {

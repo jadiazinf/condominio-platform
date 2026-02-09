@@ -157,20 +157,26 @@ describe('MessagesController', function () {
   })
 
   describe('GET / (list)', function () {
-    it('should return all messages', async function () {
-      const res = await request('/messages')
+    it('should return messages for the condominium from context', async function () {
+      const res = await request('/messages', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(3)
+      // Only msg3 has recipientCondominiumId set to our test condominiumId
+      expect(json.data).toHaveLength(1)
+      expect(json.data[0].recipientCondominiumId).toBe(condominiumId)
     })
 
-    it('should return empty array when no messages exist', async function () {
-      mockRepository.listAll = async function () {
+    it('should return empty array when no messages exist for condominium', async function () {
+      mockRepository.getByCondominiumId = async function () {
         return []
       }
 
-      const res = await request('/messages')
+      const res = await request('/messages', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -298,29 +304,6 @@ describe('MessagesController', function () {
       }
 
       const res = await request('/messages/type/unknown')
-      expect(res.status).toBe(StatusCodes.OK)
-
-      const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(0)
-    })
-  })
-
-  describe('GET /condominium/:condominiumId (getByCondominiumId)', function () {
-    it('should return messages by condominium ID', async function () {
-      const res = await request(`/messages/condominium/${condominiumId}`)
-      expect(res.status).toBe(StatusCodes.OK)
-
-      const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(1)
-      expect(json.data[0].recipientCondominiumId).toBe(condominiumId)
-    })
-
-    it('should return empty array when no messages for condominium', async function () {
-      mockRepository.getByCondominiumId = async function () {
-        return []
-      }
-
-      const res = await request('/messages/condominium/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -469,11 +452,13 @@ describe('MessagesController', function () {
 
   describe('Error handling', function () {
     it('should return 500 for unexpected errors', async function () {
-      mockRepository.listAll = async function () {
+      mockRepository.getByCondominiumId = async function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await request('/messages')
+      const res = await request('/messages', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

@@ -432,7 +432,7 @@ export class CondominiumsRepository
   /**
    * Retrieves condominiums with pagination, filtering, and ordering.
    */
-  async listPaginated(query: TCondominiumsQuerySchema): Promise<TPaginatedResponse<TCondominium>> {
+  override async listPaginated(query: TCondominiumsQuerySchema): Promise<TPaginatedResponse<TCondominium>> {
     const { page = 1, limit = 20, search, isActive, locationId } = query
     const offset = (page - 1) * limit
 

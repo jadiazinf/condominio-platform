@@ -50,7 +50,7 @@ export interface IDeleteTicketMessageOptions {
  */
 export function useTicketMessages(ticketId: string, options?: IUseTicketMessagesOptions) {
   return useApiQuery<TApiDataResponse<TSupportTicketMessage[]>>({
-    path: `/support-tickets/${ticketId}/messages`,
+    path: `/platform/support-tickets/${ticketId}/messages`,
     queryKey: supportTicketMessageKeys.list(ticketId),
     config: {},
     enabled: options?.enabled !== false && !!ticketId,
@@ -63,7 +63,7 @@ export function useTicketMessages(ticketId: string, options?: IUseTicketMessages
 export async function getTicketMessages(ticketId: string): Promise<TSupportTicketMessage[]> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TSupportTicketMessage[]>>(
-    `/support-tickets/${ticketId}/messages`
+    `/platform/support-tickets/${ticketId}/messages`
   )
 
   return response.data.data
@@ -79,7 +79,7 @@ export async function getTicketMessages(ticketId: string): Promise<TSupportTicke
  */
 export function useCreateTicketMessage(ticketId: string, options?: ICreateTicketMessageOptions) {
   return useApiMutation<TApiDataResponse<TSupportTicketMessage>, TCreateTicketMessageInput>({
-    path: `/support-tickets/${ticketId}/messages`,
+    path: `/platform/support-tickets/${ticketId}/messages`,
     method: 'POST',
     config: {},
     onSuccess: (response) => {
@@ -109,7 +109,7 @@ export async function createTicketMessage(
 ): Promise<TSupportTicketMessage> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<TSupportTicketMessage>>(
-    `/support-tickets/${ticketId}/messages`,
+    `/platform/support-tickets/${ticketId}/messages`,
     data
   )
 
@@ -129,7 +129,7 @@ export function useDeleteTicketMessage(
   options?: IDeleteTicketMessageOptions
 ) {
   return useApiMutation<TApiDataResponse<void>, void>({
-    path: `/support-ticket-messages/${messageId}`,
+    path: `/platform/support-ticket-messages/${messageId}`,
     method: 'DELETE',
     config: {},
     onSuccess: options?.onSuccess,
@@ -143,5 +143,5 @@ export function useDeleteTicketMessage(
  */
 export async function deleteTicketMessage(messageId: string): Promise<void> {
   const client = getHttpClient()
-  await client.delete<TApiDataResponse<void>>(`/support-ticket-messages/${messageId}`)
+  await client.delete<TApiDataResponse<void>>(`/platform/support-ticket-messages/${messageId}`)
 }

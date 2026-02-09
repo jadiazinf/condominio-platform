@@ -69,15 +69,15 @@ export class AcceptInvitationService {
       return failure('Invitation has expired', 'BAD_REQUEST')
     }
 
-    // Get user
-    const user = await this.usersRepository.getById(invitation.userId)
+    // Get user (include inactive — invitation users are inactive until accepted)
+    const user = await this.usersRepository.getById(invitation.userId, true)
     if (!user) {
       return failure('User not found', 'NOT_FOUND')
     }
 
-    // Get management company
+    // Get management company (include inactive — company is inactive until invitation accepted)
     const managementCompany = await this.managementCompaniesRepository.getById(
-      invitation.managementCompanyId
+      invitation.managementCompanyId, true
     )
     if (!managementCompany) {
       return failure('Management company not found', 'NOT_FOUND')
@@ -94,111 +94,120 @@ export class AcceptInvitationService {
       )
     }
 
-    // Update user: set Firebase UID, activate, and verify email
-    const updatedUser = await this.usersRepository.update(user.id, {
-      firebaseUid: input.firebaseUid,
-      isActive: true,
-      isEmailVerified: true,
-    })
+    // All writes inside a transaction for atomicity
+    return await this.db.transaction(async (tx) => {
+      const txUsersRepo = this.usersRepository.withTx(tx)
+      const txCompaniesRepo = this.managementCompaniesRepository.withTx(tx)
+      const txInvitationsRepo = this.invitationsRepository.withTx(tx)
+      const txMembersRepo = this.membersRepository.withTx(tx)
+      const txSubscriptionsRepo = this.subscriptionsRepository.withTx(tx)
 
-    if (!updatedUser) {
-      return failure('Failed to update user', 'INTERNAL_ERROR')
-    }
+      // Update user: set Firebase UID, activate, and verify email
+      const updatedUser = await txUsersRepo.update(user.id, {
+        firebaseUid: input.firebaseUid,
+        isActive: true,
+        isEmailVerified: true,
+      })
 
-    // Activate management company
-    const updatedCompany = await this.managementCompaniesRepository.update(
-      managementCompany.id,
-      { isActive: true }
-    )
+      if (!updatedUser) {
+        return failure('Failed to update user', 'INTERNAL_ERROR')
+      }
 
-    if (!updatedCompany) {
-      return failure('Failed to update management company', 'INTERNAL_ERROR')
-    }
+      // Activate management company
+      const updatedCompany = await txCompaniesRepo.update(
+        managementCompany.id,
+        { isActive: true }
+      )
 
-    // Mark invitation as accepted
-    const acceptedInvitation = await this.invitationsRepository.markAsAccepted(
-      invitation.id
-    )
+      if (!updatedCompany) {
+        return failure('Failed to update management company', 'INTERNAL_ERROR')
+      }
 
-    if (!acceptedInvitation) {
-      return failure('Failed to accept invitation', 'INTERNAL_ERROR')
-    }
+      // Mark invitation as accepted
+      const acceptedInvitation = await txInvitationsRepo.markAsAccepted(
+        invitation.id
+      )
 
-    // Create member with primary admin role
-    const member = await this.membersRepository.create({
-      managementCompanyId: managementCompany.id,
-      userId: updatedUser.id,
-      roleName: 'admin',
-      permissions: {
-        can_change_subscription: true,
-        can_manage_members: true,
-        can_create_tickets: true,
-        can_view_invoices: true,
-      },
-      isPrimaryAdmin: true,
-      joinedAt: new Date(),
-      invitedAt: invitation.createdAt,
-      invitedBy: invitation.createdBy,
-      isActive: true,
-      deactivatedAt: null,
-      deactivatedBy: null,
-    })
+      if (!acceptedInvitation) {
+        return failure('Failed to accept invitation', 'INTERNAL_ERROR')
+      }
 
-    if (!member) {
-      return failure('Failed to create member', 'INTERNAL_ERROR')
-    }
+      // Create member with primary admin role
+      const member = await txMembersRepo.create({
+        managementCompanyId: managementCompany.id,
+        userId: updatedUser.id,
+        roleName: 'admin',
+        permissions: {
+          can_change_subscription: true,
+          can_manage_members: true,
+          can_create_tickets: true,
+          can_view_invoices: true,
+        },
+        isPrimaryAdmin: true,
+        joinedAt: new Date(),
+        invitedAt: invitation.createdAt,
+        invitedBy: invitation.createdBy,
+        isActive: true,
+        deactivatedAt: null,
+        deactivatedBy: null,
+      })
 
-    // Create trial subscription (30 days)
-    const trialEndsAt = new Date()
-    trialEndsAt.setDate(trialEndsAt.getDate() + 30)
+      if (!member) {
+        return failure('Failed to create member', 'INTERNAL_ERROR')
+      }
 
-    const subscription = await this.subscriptionsRepository.create({
-      managementCompanyId: managementCompany.id,
-      subscriptionName: 'Trial Subscription',
-      billingCycle: 'monthly',
-      basePrice: 0, // Free during trial
-      currencyId: null,
-      // Effectively unlimited during trial (large values)
-      maxCondominiums: 9999,
-      maxUnits: 999999,
-      maxUsers: 9999,
-      maxStorageGb: 9999,
-      customFeatures: null,
-      customRules: null,
-      status: 'trial',
-      startDate: new Date(),
-      endDate: null,
-      nextBillingDate: trialEndsAt,
-      trialEndsAt,
-      autoRenew: false,
-      notes: 'Automatically created trial subscription',
-      createdBy: null,
-      cancelledAt: null,
-      cancelledBy: null,
-      cancellationReason: null,
-      // Pricing fields (null for trial)
-      pricingCondominiumCount: null,
-      pricingUnitCount: null,
-      pricingCondominiumRate: null,
-      pricingUnitRate: null,
-      calculatedPrice: null,
-      discountType: null,
-      discountValue: null,
-      discountAmount: null,
-      pricingNotes: null,
-      rateId: null,
-    })
+      // Create trial subscription (30 days)
+      const trialEndsAt = new Date()
+      trialEndsAt.setDate(trialEndsAt.getDate() + 30)
 
-    if (!subscription) {
-      return failure('Failed to create trial subscription', 'INTERNAL_ERROR')
-    }
+      const subscription = await txSubscriptionsRepo.create({
+        managementCompanyId: managementCompany.id,
+        subscriptionName: 'Trial Subscription',
+        billingCycle: 'monthly',
+        basePrice: 0, // Free during trial
+        currencyId: null,
+        // Effectively unlimited during trial (large values)
+        maxCondominiums: 9999,
+        maxUnits: 999999,
+        maxUsers: 9999,
+        maxStorageGb: 9999,
+        customFeatures: null,
+        customRules: null,
+        status: 'trial',
+        startDate: new Date(),
+        endDate: null,
+        nextBillingDate: trialEndsAt,
+        trialEndsAt,
+        autoRenew: false,
+        notes: 'Automatically created trial subscription',
+        createdBy: null,
+        cancelledAt: null,
+        cancelledBy: null,
+        cancellationReason: null,
+        // Pricing fields (null for trial)
+        pricingCondominiumCount: null,
+        pricingUnitCount: null,
+        pricingCondominiumRate: null,
+        pricingUnitRate: null,
+        calculatedPrice: null,
+        discountType: null,
+        discountValue: null,
+        discountAmount: null,
+        pricingNotes: null,
+        rateId: null,
+      })
 
-    return success({
-      invitation: acceptedInvitation,
-      user: updatedUser,
-      managementCompany: updatedCompany,
-      member,
-      subscription,
+      if (!subscription) {
+        return failure('Failed to create trial subscription', 'INTERNAL_ERROR')
+      }
+
+      return success({
+        invitation: acceptedInvitation,
+        user: updatedUser,
+        managementCompany: updatedCompany,
+        member,
+        subscription,
+      })
     })
   }
 }

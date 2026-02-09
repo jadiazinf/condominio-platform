@@ -159,20 +159,24 @@ describe('ExpensesController', function () {
   })
 
   describe('GET / (list)', function () {
-    it('should return all expenses', async function () {
-      const res = await request('/expenses')
+    it('should return expenses scoped by condominium from context', async function () {
+      const res = await request('/expenses', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
       expect(json.data).toHaveLength(3)
     })
 
-    it('should return empty array when no expenses exist', async function () {
-      mockRepository.listAll = async function () {
+    it('should return empty array when no expenses for condominium', async function () {
+      mockRepository.getByCondominiumId = async function () {
         return []
       }
 
-      const res = await request('/expenses')
+      const res = await request('/expenses', {
+        headers: { 'x-condominium-id': '550e8400-e29b-41d4-a716-446655440099' },
+      })
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -220,28 +224,6 @@ describe('ExpensesController', function () {
       }
 
       const res = await request('/expenses/pending-approval')
-      expect(res.status).toBe(StatusCodes.OK)
-
-      const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(0)
-    })
-  })
-
-  describe('GET /condominium/:condominiumId (getByCondominiumId)', function () {
-    it('should return expenses by condominium ID', async function () {
-      const res = await request(`/expenses/condominium/${condominiumId}`)
-      expect(res.status).toBe(StatusCodes.OK)
-
-      const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(3)
-    })
-
-    it('should return empty array when no expenses for condominium', async function () {
-      mockRepository.getByCondominiumId = async function () {
-        return []
-      }
-
-      const res = await request('/expenses/condominium/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -331,7 +313,7 @@ describe('ExpensesController', function () {
 
       const res = await request('/expenses', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-condominium-id': condominiumId },
         body: JSON.stringify(newExpense),
       })
 
@@ -345,7 +327,7 @@ describe('ExpensesController', function () {
     it('should return 422 for invalid body', async function () {
       const res = await request('/expenses', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-condominium-id': condominiumId },
         body: JSON.stringify({ condominiumId: 'invalid' }),
       })
 
@@ -368,7 +350,7 @@ describe('ExpensesController', function () {
 
       const res = await request('/expenses', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-condominium-id': condominiumId },
         body: JSON.stringify(newExpense),
       })
 
@@ -434,11 +416,13 @@ describe('ExpensesController', function () {
 
   describe('Error handling', function () {
     it('should return 500 for unexpected errors', async function () {
-      mockRepository.listAll = async function () {
+      mockRepository.getByCondominiumId = async function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await request('/expenses')
+      const res = await request('/expenses', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

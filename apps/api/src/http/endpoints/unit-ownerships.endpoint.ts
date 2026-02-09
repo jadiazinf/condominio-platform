@@ -5,7 +5,7 @@ import type { IEndpoint } from './types'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 
 export class UnitOwnershipsEndpoint implements IEndpoint {
-  readonly path = '/unit-ownerships'
+  readonly path = '/condominium/unit-ownerships'
   private readonly controller: UnitOwnershipsController
 
   constructor(db: TDrizzleClient) {

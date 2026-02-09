@@ -11,6 +11,7 @@ import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { z } from 'zod'
 import {
   GetPublicDocumentsService,
@@ -27,12 +28,6 @@ const DocumentTypeParamSchema = z.object({
 })
 
 type TDocumentTypeParam = z.infer<typeof DocumentTypeParamSchema>
-
-const CondominiumIdParamSchema = z.object({
-  condominiumId: z.string().uuid('Invalid condominium ID format'),
-})
-
-type TCondominiumIdParam = z.infer<typeof CondominiumIdParamSchema>
 
 const BuildingIdParamSchema = z.object({
   buildingId: z.string().uuid('Invalid building ID format'),
@@ -62,16 +57,15 @@ type TPaymentIdParam = z.infer<typeof PaymentIdParamSchema>
  * Controller for managing document resources.
  *
  * Endpoints:
- * - GET    /                              List all documents
+ * - GET    /                              List documents (scoped by condominium from context)
  * - GET    /public                        Get public documents
  * - GET    /type/:documentType            Get by document type
- * - GET    /condominium/:condominiumId    Get by condominium
  * - GET    /building/:buildingId          Get by building
  * - GET    /unit/:unitId                  Get by unit
  * - GET    /user/:userId                  Get by user
  * - GET    /payment/:paymentId            Get by payment
  * - GET    /:id                           Get by ID
- * - POST   /                              Create document
+ * - POST   /                              Create document (condominiumId injected from context)
  * - PATCH  /:id                           Update document
  * - DELETE /:id                           Delete document (hard delete)
  */
@@ -100,87 +94,98 @@ export class DocumentsController extends BaseController<
     this.getDocumentsByUserService = new GetDocumentsByUserService(repository)
     this.getDocumentsByPaymentService = new GetDocumentsByPaymentService(repository)
 
-    this.getPublicDocuments = this.getPublicDocuments.bind(this)
-    this.getByType = this.getByType.bind(this)
-    this.getByCondominiumId = this.getByCondominiumId.bind(this)
-    this.getByBuildingId = this.getByBuildingId.bind(this)
-    this.getByUnitId = this.getByUnitId.bind(this)
-    this.getByUserId = this.getByUserId.bind(this)
-    this.getByPaymentId = this.getByPaymentId.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER')] },
       { method: 'get', path: '/public', handler: this.getPublicDocuments },
       {
         method: 'get',
         path: '/type/:documentType',
         handler: this.getByType,
-        middlewares: [paramsValidator(DocumentTypeParamSchema)],
-      },
-      {
-        method: 'get',
-        path: '/condominium/:condominiumId',
-        handler: this.getByCondominiumId,
-        middlewares: [paramsValidator(CondominiumIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(DocumentTypeParamSchema)],
       },
       {
         method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
-        middlewares: [paramsValidator(BuildingIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(BuildingIdParamSchema)],
       },
       {
         method: 'get',
         path: '/unit/:unitId',
         handler: this.getByUnitId,
-        middlewares: [paramsValidator(UnitIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(UnitIdParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/payment/:paymentId',
         handler: this.getByPaymentId,
-        middlewares: [paramsValidator(PaymentIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(PaymentIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(documentCreateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(documentCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(documentUpdateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema), bodyValidator(documentUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Overridden Handlers
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override list = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+
+    const result = await this.getDocumentsByCondominiumService.execute({ condominiumId })
+
+    if (!result.success) {
+      return ctx.internalError({ error: result.error })
+    }
+
+    return ctx.ok({ data: result.data })
+  }
+
+  protected override create = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TDocumentCreate>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const entity = await this.repository.create({ ...ctx.body, condominiumId })
+    return ctx.created({ data: entity })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getPublicDocuments(c: Context): Promise<Response> {
+  private getPublicDocuments = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
 
     try {
@@ -196,7 +201,7 @@ export class DocumentsController extends BaseController<
     }
   }
 
-  private async getByType(c: Context): Promise<Response> {
+  private getByType = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TDocumentTypeParam>(c)
 
     try {
@@ -214,25 +219,7 @@ export class DocumentsController extends BaseController<
     }
   }
 
-  private async getByCondominiumId(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, unknown, TCondominiumIdParam>(c)
-
-    try {
-      const result = await this.getDocumentsByCondominiumService.execute({
-        condominiumId: ctx.params.condominiumId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
-  }
-
-  private async getByBuildingId(c: Context): Promise<Response> {
+  private getByBuildingId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)
 
     try {
@@ -250,7 +237,7 @@ export class DocumentsController extends BaseController<
     }
   }
 
-  private async getByUnitId(c: Context): Promise<Response> {
+  private getByUnitId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)
 
     try {
@@ -268,7 +255,7 @@ export class DocumentsController extends BaseController<
     }
   }
 
-  private async getByUserId(c: Context): Promise<Response> {
+  private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
     try {
@@ -286,7 +273,7 @@ export class DocumentsController extends BaseController<
     }
   }
 
-  private async getByPaymentId(c: Context): Promise<Response> {
+  private getByPaymentId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPaymentIdParam>(c)
 
     try {

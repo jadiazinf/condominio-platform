@@ -13,7 +13,7 @@ import {
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
-import { authMiddleware } from '../../middlewares/auth'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -25,12 +25,6 @@ import {
   GetExpensesByStatusService,
   GetExpensesByDateRangeService,
 } from '@src/services/expenses'
-
-const CondominiumIdParamSchema = z.object({
-  condominiumId: z.string().uuid('Invalid condominium ID format'),
-})
-
-type TCondominiumIdParam = z.infer<typeof CondominiumIdParamSchema>
 
 const BuildingIdParamSchema = z.object({
   buildingId: z.string().uuid('Invalid building ID format'),
@@ -61,15 +55,14 @@ type TDateRangeQuery = z.infer<typeof DateRangeQuerySchema>
  * Controller for managing expense resources.
  *
  * Endpoints:
- * - GET    /                              List all expenses
+ * - GET    /                              List expenses (scoped by condominium from context)
  * - GET    /pending-approval              Get pending approval expenses
- * - GET    /condominium/:condominiumId    Get by condominium
  * - GET    /building/:buildingId          Get by building
  * - GET    /category/:categoryId          Get by category
  * - GET    /status/:status                Get by status
  * - GET    /date-range                    Get by date range (query params)
  * - GET    /:id                           Get by ID
- * - POST   /                              Create expense
+ * - POST   /                              Create expense (condominiumId injected from context)
  * - PATCH  /:id                           Update expense
  * - DELETE /:id                           Delete expense (hard delete)
  */
@@ -92,64 +85,52 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
     this.getExpensesByStatusService = new GetExpensesByStatusService(repository)
     this.getExpensesByDateRangeService = new GetExpensesByDateRangeService(repository)
 
-    this.getPendingApproval = this.getPendingApproval.bind(this)
-    this.getByCondominiumId = this.getByCondominiumId.bind(this)
-    this.getByBuildingId = this.getByBuildingId.bind(this)
-    this.getByCategoryId = this.getByCategoryId.bind(this)
-    this.getByStatus = this.getByStatus.bind(this)
-    this.getByDateRange = this.getByDateRange.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
       {
         method: 'get',
         path: '/pending-approval',
         handler: this.getPendingApproval,
-        middlewares: [authMiddleware],
-      },
-      {
-        method: 'get',
-        path: '/condominium/:condominiumId',
-        handler: this.getByCondominiumId,
-        middlewares: [authMiddleware, paramsValidator(CondominiumIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')],
       },
       {
         method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
-        middlewares: [authMiddleware, paramsValidator(BuildingIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(BuildingIdParamSchema)],
       },
       {
         method: 'get',
         path: '/category/:categoryId',
         handler: this.getByCategoryId,
-        middlewares: [authMiddleware, paramsValidator(CategoryIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(CategoryIdParamSchema)],
       },
       {
         method: 'get',
         path: '/status/:status',
         handler: this.getByStatus,
-        middlewares: [authMiddleware, paramsValidator(StatusParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(StatusParamSchema)],
       },
       {
         method: 'get',
         path: '/date-range',
         handler: this.getByDateRange,
-        middlewares: [authMiddleware, queryValidator(DateRangeQuerySchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), queryValidator(DateRangeQuerySchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, bodyValidator(expenseCreateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), bodyValidator(expenseCreateSchema)],
       },
       {
         method: 'patch',
@@ -157,6 +138,7 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
         handler: this.update,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN', 'ACCOUNTANT'),
           paramsValidator(IdParamSchema),
           bodyValidator(expenseUpdateSchema),
         ],
@@ -165,16 +147,40 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Overridden Handlers
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override list = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+
+    const result = await this.getExpensesByCondominiumService.execute({ condominiumId })
+
+    if (!result.success) {
+      return ctx.internalError({ error: result.error })
+    }
+
+    return ctx.ok({ data: result.data })
+  }
+
+  protected override create = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TExpenseCreate>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const entity = await this.repository.create({ ...ctx.body, condominiumId })
+    return ctx.created({ data: entity })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getPendingApproval(c: Context): Promise<Response> {
+  private getPendingApproval = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
 
     try {
@@ -190,25 +196,7 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
     }
   }
 
-  private async getByCondominiumId(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, unknown, TCondominiumIdParam>(c)
-
-    try {
-      const result = await this.getExpensesByCondominiumService.execute({
-        condominiumId: ctx.params.condominiumId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
-  }
-
-  private async getByBuildingId(c: Context): Promise<Response> {
+  private getByBuildingId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)
 
     try {
@@ -226,7 +214,7 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
     }
   }
 
-  private async getByCategoryId(c: Context): Promise<Response> {
+  private getByCategoryId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TCategoryIdParam>(c)
 
     try {
@@ -244,7 +232,7 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
     }
   }
 
-  private async getByStatus(c: Context): Promise<Response> {
+  private getByStatus = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TStatusParam>(c)
 
     try {
@@ -262,7 +250,7 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
     }
   }
 
-  private async getByDateRange(c: Context): Promise<Response> {
+  private getByDateRange = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TDateRangeQuery>(c)
 
     try {

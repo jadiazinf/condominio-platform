@@ -16,6 +16,7 @@ import type {
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -80,12 +81,6 @@ export class ManagementCompaniesController extends BaseController<
       subscriptionsRepository,
       repository
     )
-    this.listPaginated = this.listPaginated.bind(this)
-    this.getByTaxIdNumber = this.getByTaxIdNumber.bind(this)
-    this.getByLocationId = this.getByLocationId.bind(this)
-    this.toggleActive = this.toggleActive.bind(this)
-    this.getUsageStats = this.getUsageStats.bind(this)
-    this.checkCanCreateResource = this.checkCanCreateResource.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -94,61 +89,61 @@ export class ManagementCompaniesController extends BaseController<
         method: 'get',
         path: '/',
         handler: this.listPaginated,
-        middlewares: [queryValidator(managementCompaniesQuerySchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), queryValidator(managementCompaniesQuerySchema)],
       },
       {
         method: 'get',
         path: '/tax-id-number/:taxIdNumber',
         handler: this.getByTaxIdNumber,
-        middlewares: [paramsValidator(TaxIdNumberParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(TaxIdNumberParamSchema)],
       },
       {
         method: 'get',
         path: '/location/:locationId',
         handler: this.getByLocationId,
-        middlewares: [paramsValidator(LocationIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(LocationIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id/usage-stats',
         handler: this.getUsageStats,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id/subscription/can-create/:resourceType',
         handler: this.checkCanCreateResource,
-        middlewares: [paramsValidator(CheckLimitParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(CheckLimitParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(managementCompanyCreateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(managementCompanyCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(managementCompanyUpdateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(managementCompanyUpdateSchema)],
       },
       {
         method: 'patch',
         path: '/:id/toggle-active',
         handler: this.toggleActive,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(ToggleActiveBodySchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(ToggleActiveBodySchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -218,14 +213,14 @@ export class ManagementCompaniesController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async listPaginated(c: Context): Promise<Response> {
+  private listPaginated = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TManagementCompaniesQuerySchema>(c)
     const repo = this.repository as ManagementCompaniesRepository
     const result = await repo.listPaginated(ctx.query)
     return ctx.ok(result)
   }
 
-  private async toggleActive(c: Context): Promise<Response> {
+  private toggleActive = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TToggleActiveBody, unknown, { id: string }>(c)
     const repo = this.repository as ManagementCompaniesRepository
     const company = await repo.toggleActive(ctx.params.id, ctx.body.isActive)
@@ -237,7 +232,7 @@ export class ManagementCompaniesController extends BaseController<
     return ctx.ok({ data: company })
   }
 
-  private async getByTaxIdNumber(c: Context): Promise<Response> {
+  private getByTaxIdNumber = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TTaxIdNumberParam>(c)
     const repo = this.repository as ManagementCompaniesRepository
 
@@ -254,7 +249,7 @@ export class ManagementCompaniesController extends BaseController<
     }
   }
 
-  private async getByLocationId(c: Context): Promise<Response> {
+  private getByLocationId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TLocationIdParam>(c)
     const repo = this.repository as ManagementCompaniesRepository
 
@@ -266,7 +261,7 @@ export class ManagementCompaniesController extends BaseController<
     }
   }
 
-  private async getUsageStats(c: Context): Promise<Response> {
+  private getUsageStats = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
     const repo = this.repository as ManagementCompaniesRepository
 
@@ -278,7 +273,7 @@ export class ManagementCompaniesController extends BaseController<
     }
   }
 
-  private async checkCanCreateResource(c: Context): Promise<Response> {
+  private checkCanCreateResource = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TCheckLimitParam>(c)
 
     try {

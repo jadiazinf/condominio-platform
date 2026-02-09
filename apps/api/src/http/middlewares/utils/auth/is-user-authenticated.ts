@@ -20,9 +20,27 @@ export async function isUserAuthenticated(
   c: Parameters<MiddlewareHandler>[0],
   next: Parameters<MiddlewareHandler>[1]
 ) {
-  // In test mode, bypass authentication and use a mock user
+  // In test mode, bypass Firebase token verification
   // BUT only if we're NOT testing the auth middleware itself
   if (process.env.NODE_ENV === 'test' && !process.env.TEST_AUTH_MIDDLEWARE) {
+    const authHeader = c.req.header('Authorization')
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+
+    // If the token looks like a UUID, treat it as a userId and look up the real user
+    // This allows authorization tests to control which user makes each request
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (token && UUID_REGEX.test(token)) {
+      const db = DatabaseService.getInstance().getDb()
+      const usersRepository = new UsersRepository(db)
+      const user = await usersRepository.getById(token)
+      if (user) {
+        c.set(AUTHENTICATED_USER_PROP, user)
+        await next()
+        return
+      }
+    }
+
+    // Fallback: use hardcoded mock user for backward-compatible controller tests
     const mockUser: TUser = {
       id: '550e8400-e29b-41d4-a716-446655440000',
       email: 'auth@test.com',

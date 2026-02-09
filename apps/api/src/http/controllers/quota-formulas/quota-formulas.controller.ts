@@ -12,7 +12,7 @@ import {
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
-import { authMiddleware } from '../../middlewares/auth'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { createRouter } from '../create-router'
@@ -27,12 +27,6 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 // Schemas
 // ─────────────────────────────────────────────────────────────────────────────
-
-const CondominiumIdParamSchema = z.object({
-  condominiumId: z.string().uuid('Invalid condominium ID format'),
-})
-
-type TCondominiumIdParam = z.infer<typeof CondominiumIdParamSchema>
 
 const IncludeInactiveQuerySchema = z.object({
   includeInactive: z
@@ -83,10 +77,10 @@ type TIdParam = z.infer<typeof IdParamSchema>
 
 /**
  * Controller for managing quota formulas.
+ * List is scoped by condominiumId from the requireRole middleware context.
  *
  * Endpoints:
- * - GET    /                                 List all formulas
- * - GET    /condominium/:condominiumId       Get formulas for a condominium
+ * - GET    /                                 List formulas (scoped by condominium)
  * - GET    /:id                              Get formula by ID
  * - POST   /                                 Create a new formula
  * - PUT    /:id                              Update a formula
@@ -118,14 +112,6 @@ export class QuotaFormulasController {
       unitsRepository
     )
 
-    // Bind handlers
-    this.list = this.list.bind(this)
-    this.getById = this.getById.bind(this)
-    this.getByCondominiumId = this.getByCondominiumId.bind(this)
-    this.create = this.create.bind(this)
-    this.update = this.update.bind(this)
-    this.delete = this.delete.bind(this)
-    this.calculateAmount = this.calculateAmount.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
@@ -134,29 +120,19 @@ export class QuotaFormulasController {
         method: 'get',
         path: '/',
         handler: this.list,
-        middlewares: [authMiddleware, queryValidator(IncludeInactiveQuerySchema)],
-      },
-      {
-        method: 'get',
-        path: '/condominium/:condominiumId',
-        handler: this.getByCondominiumId,
-        middlewares: [
-          authMiddleware,
-          paramsValidator(CondominiumIdParamSchema),
-          queryValidator(IncludeInactiveQuerySchema),
-        ],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), queryValidator(IncludeInactiveQuerySchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, bodyValidator(CreateQuotaFormulaBodySchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), bodyValidator(CreateQuotaFormulaBodySchema)],
       },
       {
         method: 'put',
@@ -164,6 +140,7 @@ export class QuotaFormulasController {
         handler: this.update,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN', 'ACCOUNTANT'),
           paramsValidator(IdParamSchema),
           bodyValidator(UpdateQuotaFormulaBodySchema),
         ],
@@ -172,7 +149,7 @@ export class QuotaFormulasController {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
@@ -180,6 +157,7 @@ export class QuotaFormulasController {
         handler: this.calculateAmount,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN', 'ACCOUNTANT'),
           paramsValidator(IdParamSchema),
           bodyValidator(CalculateAmountBodySchema),
         ],
@@ -199,18 +177,27 @@ export class QuotaFormulasController {
     return new HttpContext<TBody, TQuery, TParams>(c)
   }
 
-  private async list(c: Context): Promise<Response> {
+  private list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TIncludeInactiveQuery>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
-      const formulas = await this.quotaFormulasRepository.listAll(ctx.query.includeInactive)
-      return ctx.ok({ data: formulas })
+      const result = await this.getFormulasByCondominiumService.execute({
+        condominiumId,
+        includeInactive: ctx.query.includeInactive,
+      })
+
+      if (!result.success) {
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
   }
 
-  private async getById(c: Context): Promise<Response> {
+  private getById = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TIdParam>(c)
 
     try {
@@ -226,26 +213,7 @@ export class QuotaFormulasController {
     }
   }
 
-  private async getByCondominiumId(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, TIncludeInactiveQuery, TCondominiumIdParam>(c)
-
-    try {
-      const result = await this.getFormulasByCondominiumService.execute({
-        condominiumId: ctx.params.condominiumId,
-        includeInactive: ctx.query.includeInactive,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
-  }
-
-  private async create(c: Context): Promise<Response> {
+  private create = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TCreateQuotaFormulaBody>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 
@@ -279,7 +247,7 @@ export class QuotaFormulasController {
     }
   }
 
-  private async update(c: Context): Promise<Response> {
+  private update = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TUpdateQuotaFormulaBody, unknown, TIdParam>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 
@@ -315,7 +283,7 @@ export class QuotaFormulasController {
     }
   }
 
-  private async delete(c: Context): Promise<Response> {
+  private delete = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TIdParam>(c)
 
     try {
@@ -331,7 +299,7 @@ export class QuotaFormulasController {
     }
   }
 
-  private async calculateAmount(c: Context): Promise<Response> {
+  private calculateAmount = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TCalculateAmountBody, unknown, TIdParam>(c)
 
     try {

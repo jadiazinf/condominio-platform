@@ -29,7 +29,7 @@ export function useCondominiumBuildings(options: UseCondominiumBuildingsOptions)
   const { token, condominiumId, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TBuilding[]>>({
-    path: `/condominiums/${condominiumId}/buildings`,
+    path: '/condominium/buildings',
     queryKey: buildingsKeys.list(condominiumId),
     config: {
       headers: {
@@ -53,7 +53,7 @@ export function useBuildingDetail(options: UseBuildingDetailOptions) {
   const { token, buildingId, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TBuilding>>({
-    path: `/buildings/${buildingId}`,
+    path: `/condominium/buildings/${buildingId}`,
     queryKey: buildingsKeys.detail(buildingId),
     config: {
       headers: {
@@ -92,8 +92,7 @@ export function useCreateBuilding(options: UseCreateBuildingOptions = {}) {
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiDataResponse<TBuilding>, TCreateBuildingVariables>({
-    path: (variables: TCreateBuildingVariables) =>
-      `/condominiums/${variables.condominiumId}/buildings`,
+    path: '/condominium/buildings',
     method: 'POST',
     invalidateKeys: [buildingsKeys.all],
     onSuccess: (response: ApiResponse<TApiDataResponse<TBuilding>>) => {
@@ -127,7 +126,7 @@ export function useUpdateBuilding(options: UseUpdateBuildingOptions = {}) {
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiDataResponse<TBuilding>, TUpdateBuildingVariables>({
-    path: (variables: TUpdateBuildingVariables) => `/buildings/${variables.buildingId}`,
+    path: (variables: TUpdateBuildingVariables) => `/condominium/buildings/${variables.buildingId}`,
     method: 'PATCH',
     invalidateKeys: [buildingsKeys.all],
     onSuccess: (response: ApiResponse<TApiDataResponse<TBuilding>>) => {
@@ -153,7 +152,7 @@ export function useDeleteBuilding(options: UseDeleteBuildingOptions = {}) {
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiMessageResponse, TDeleteBuildingVariables>({
-    path: (variables: TDeleteBuildingVariables) => `/buildings/${variables.buildingId}`,
+    path: (variables: TDeleteBuildingVariables) => `/condominium/buildings/${variables.buildingId}`,
     method: 'DELETE',
     invalidateKeys: [buildingsKeys.all],
     onSuccess: (response: ApiResponse<TApiMessageResponse>) => {
@@ -180,7 +179,7 @@ export function useToggleBuildingStatus(options: UseToggleBuildingStatusOptions 
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiMessageResponse, TToggleBuildingStatusVariables>({
-    path: (variables: TToggleBuildingStatusVariables) => `/buildings/${variables.buildingId}/status`,
+    path: (variables: TToggleBuildingStatusVariables) => `/condominium/buildings/${variables.buildingId}/status`,
     method: 'PATCH',
     invalidateKeys: [buildingsKeys.all],
     onSuccess: (response: ApiResponse<TApiMessageResponse>) => {
@@ -204,7 +203,7 @@ export async function getCondominiumBuildings(
   const client = getHttpClient()
 
   const response = await client.get<TApiDataResponse<TBuilding[]>>(
-    `/condominiums/${condominiumId}/buildings`,
+    '/condominium/buildings',
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -221,7 +220,7 @@ export async function getCondominiumBuildings(
 export async function getBuildingDetail(token: string, buildingId: string): Promise<TBuilding> {
   const client = getHttpClient()
 
-  const response = await client.get<TApiDataResponse<TBuilding>>(`/buildings/${buildingId}`, {
+  const response = await client.get<TApiDataResponse<TBuilding>>(`/condominium/buildings/${buildingId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

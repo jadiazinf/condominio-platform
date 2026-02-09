@@ -146,7 +146,7 @@ export function useManagementCompanySubscription(
     queryFn: async () => {
       try {
         const response = await client.get<TApiDataResponse<TManagementCompanySubscription>>(
-          `/management-companies/${companyId}/subscription`
+          `/platform/management-companies/${companyId}/subscription`
         )
         return response.data
       } catch (error) {
@@ -172,7 +172,7 @@ export async function getManagementCompanySubscription(
 ): Promise<TManagementCompanySubscription> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TManagementCompanySubscription>>(
-    `/management-companies/${companyId}/subscription`
+    `/platform/management-companies/${companyId}/subscription`
   )
 
   return response.data.data
@@ -191,7 +191,7 @@ export function useManagementCompanySubscriptions(
   options?: IUseManagementCompanySubscriptionsOptions
 ) {
   return useApiQuery<TApiDataResponse<TManagementCompanySubscription[]>>({
-    path: `/management-companies/${companyId}/subscriptions`,
+    path: `/platform/management-companies/${companyId}/subscriptions`,
     queryKey: managementCompanySubscriptionKeys.list(companyId),
     config: {},
     enabled: options?.enabled !== false && !!companyId,
@@ -216,7 +216,7 @@ export function useManagementCompanySubscriptionsPaginated(
   if (query.startDateTo) params.set('startDateTo', query.startDateTo)
 
   const queryString = params.toString()
-  const path = `/management-companies/${companyId}/subscriptions${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/management-companies/${companyId}/subscriptions${queryString ? `?${queryString}` : ''}`
 
   return useApiQuery<TApiPaginatedResponse<TManagementCompanySubscription>>({
     path,
@@ -235,7 +235,7 @@ export async function getManagementCompanySubscriptions(
 ): Promise<TManagementCompanySubscription[]> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TManagementCompanySubscription[]>>(
-    `/management-companies/${companyId}/subscriptions`
+    `/platform/management-companies/${companyId}/subscriptions`
   )
 
   return response.data.data
@@ -259,7 +259,7 @@ export async function getManagementCompanySubscriptionsPaginated(
   if (query.startDateTo) params.set('startDateTo', query.startDateTo)
 
   const queryString = params.toString()
-  const path = `/management-companies/${companyId}/subscriptions${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/management-companies/${companyId}/subscriptions${queryString ? `?${queryString}` : ''}`
 
   const response = await client.get<TApiPaginatedResponse<TManagementCompanySubscription>>(path)
 
@@ -278,7 +278,7 @@ export function useCreateSubscription(companyId: string, options?: ICreateSubscr
     TApiDataResponse<TManagementCompanySubscription>,
     TManagementCompanySubscriptionCreate
   >({
-    path: `/management-companies/${companyId}/subscription`,
+    path: `/platform/management-companies/${companyId}/subscription`,
     method: 'POST',
     config: {},
     onSuccess: options?.onSuccess,
@@ -299,7 +299,7 @@ export async function createSubscription(
 ): Promise<TManagementCompanySubscription> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<TManagementCompanySubscription>>(
-    `/management-companies/${companyId}/subscription`,
+    `/platform/management-companies/${companyId}/subscription`,
     data
   )
 
@@ -318,7 +318,7 @@ export function useUpdateSubscription(companyId: string, options?: IUpdateSubscr
     TApiDataResponse<TManagementCompanySubscription>,
     TManagementCompanySubscriptionUpdate
   >({
-    path: `/management-companies/${companyId}/subscription`,
+    path: `/platform/management-companies/${companyId}/subscription`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
@@ -339,7 +339,7 @@ export async function updateSubscription(
 ): Promise<TManagementCompanySubscription> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataResponse<TManagementCompanySubscription>>(
-    `/management-companies/${companyId}/subscription`,
+    `/platform/management-companies/${companyId}/subscription`,
     data
   )
 
@@ -355,7 +355,7 @@ export async function updateSubscription(
  */
 export function useCancelSubscription(companyId: string, options?: ICancelSubscriptionOptions) {
   return useApiMutation<TApiDataResponse<void>, ICancelSubscriptionData>({
-    path: `/management-companies/${companyId}/subscription`,
+    path: `/platform/management-companies/${companyId}/subscription`,
     method: 'DELETE',
     config: {},
     onSuccess: options?.onSuccess,
@@ -376,7 +376,7 @@ export async function cancelSubscription(
 ): Promise<void> {
   const client = getHttpClient()
   await client.delete<TApiDataResponse<void>>(
-    `/management-companies/${companyId}/subscription`,
+    `/platform/management-companies/${companyId}/subscription`,
     data
   )
 }
@@ -390,7 +390,7 @@ export async function cancelSubscription(
  */
 export function useRenewSubscription(companyId: string, options?: IRenewSubscriptionOptions) {
   return useApiMutation<TApiDataResponse<TManagementCompanySubscription>, void>({
-    path: `/management-companies/${companyId}/subscription/renew`,
+    path: `/platform/management-companies/${companyId}/subscription/renew`,
     method: 'POST',
     config: {},
     onSuccess: options?.onSuccess,
@@ -410,7 +410,7 @@ export async function renewSubscription(
 ): Promise<TManagementCompanySubscription> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<TManagementCompanySubscription>>(
-    `/management-companies/${companyId}/subscription/renew`
+    `/platform/management-companies/${companyId}/subscription/renew`
   )
 
   return response.data.data
@@ -445,7 +445,7 @@ export function useSubscriptionPricing(
   if (query.userCount !== undefined) params.set('userCount', String(query.userCount))
 
   const queryString = params.toString()
-  const path = `/management-companies/${companyId}/subscription/pricing${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/management-companies/${companyId}/subscription/pricing${queryString ? `?${queryString}` : ''}`
 
   return useApiQuery<TApiDataResponse<IPricingCalculationResult>>({
     path,
@@ -481,7 +481,7 @@ export async function getSubscriptionPricing(
   if (query.userCount !== undefined) params.set('userCount', String(query.userCount))
 
   const queryString = params.toString()
-  const path = `/management-companies/${companyId}/subscription/pricing${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/management-companies/${companyId}/subscription/pricing${queryString ? `?${queryString}` : ''}`
 
   const response = await client.get<TApiDataResponse<IPricingCalculationResult>>(path)
 

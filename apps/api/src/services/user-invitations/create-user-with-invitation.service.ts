@@ -16,6 +16,7 @@ import type {
   CondominiumsRepository,
   PermissionsRepository,
 } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
 import { generateSecureToken, hashToken, calculateExpirationDate } from '../../utils/token'
 
@@ -84,6 +85,7 @@ export interface ICreateUserWithInvitationResult {
  */
 export class CreateUserWithInvitationService {
   constructor(
+    private readonly db: TDrizzleClient,
     private readonly invitationsRepository: UserInvitationsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly userRolesRepository: UserRolesRepository,
@@ -96,67 +98,44 @@ export class CreateUserWithInvitationService {
   async execute(
     input: ICreateUserWithInvitationInput
   ): Promise<TServiceResult<ICreateUserWithInvitationResult>> {
-    // Step 1: Validate input
+    // Step 1: Validate input (reads only, outside transaction)
     const validationResult = await this.validateInput(input)
     if (!validationResult.success) {
       return validationResult as TServiceResult<ICreateUserWithInvitationResult>
     }
 
-    // Step 2: Check if user already exists
+    // Step 2: Check if user already exists (read, outside transaction)
     const existingUser = await this.usersRepository.getByEmail(input.email)
     if (existingUser) {
       return this.handleExistingUser(existingUser, input)
     }
 
-    // Step 3: Create new user
-    const userResult = await this.createUser(input)
-    if (!userResult.success) {
-      return userResult as TServiceResult<ICreateUserWithInvitationResult>
-    }
+    // Step 3: All writes inside a transaction (auto-rollback on failure)
+    return await this.db.transaction(async (tx) => {
+      const txUsersRepo = this.usersRepository.withTx(tx)
+      const txUserRolesRepo = this.userRolesRepository.withTx(tx)
+      const txUserPermissionsRepo = this.userPermissionsRepository.withTx(tx)
+      const txInvitationsRepo = this.invitationsRepository.withTx(tx)
 
-    const user = userResult.data
+      // Create new user
+      const user = await this.createUser(input, txUsersRepo)
 
-    // Step 4: Create user-role assignment
-    const userRoleResult = await this.createUserRole(user.id, input)
-    if (!userRoleResult.success) {
-      // Rollback: delete created user
-      await this.usersRepository.delete(user.id)
-      return userRoleResult as TServiceResult<ICreateUserWithInvitationResult>
-    }
+      // Create user-role assignment
+      const userRole = await this.createUserRole(user.id, input, txUserRolesRepo)
 
-    const userRole = userRoleResult.data
+      // Create custom permissions (if provided)
+      const userPermissions = await this.createUserPermissions(user.id, input, txUserPermissionsRepo)
 
-    // Step 5: Create custom permissions (if provided)
-    const permissionsResult = await this.createUserPermissions(user.id, input)
-    if (!permissionsResult.success) {
-      // Rollback: delete user and role
-      await this.userRolesRepository.delete(userRole.id)
-      await this.usersRepository.delete(user.id)
-      return permissionsResult as TServiceResult<ICreateUserWithInvitationResult>
-    }
+      // Create invitation
+      const { invitation, token } = await this.createInvitation(user, input, txInvitationsRepo)
 
-    const userPermissions = permissionsResult.data
-
-    // Step 6: Create invitation
-    const invitationResult = await this.createInvitation(user, input)
-    if (!invitationResult.success) {
-      // Rollback: delete permissions, role, and user
-      for (const perm of userPermissions) {
-        await this.userPermissionsRepository.delete(perm.id)
-      }
-      await this.userRolesRepository.delete(userRole.id)
-      await this.usersRepository.delete(user.id)
-      return invitationResult as TServiceResult<ICreateUserWithInvitationResult>
-    }
-
-    const { invitation, token } = invitationResult.data
-
-    return success({
-      user,
-      invitation,
-      userRole,
-      userPermissions,
-      invitationToken: token,
+      return success({
+        user,
+        invitation,
+        userRole,
+        userPermissions,
+        invitationToken: token,
+      })
     })
   }
 
@@ -229,8 +208,9 @@ export class CreateUserWithInvitationService {
    * Creates a new user with isActive=false.
    */
   private async createUser(
-    input: ICreateUserWithInvitationInput
-  ): Promise<TServiceResult<TUser>> {
+    input: ICreateUserWithInvitationInput,
+    usersRepo: UsersRepository
+  ): Promise<TUser> {
     // Generate a temporary Firebase UID (will be replaced when user accepts invitation)
     const tempFirebaseUid = `pending_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
 
@@ -257,8 +237,7 @@ export class CreateUserWithInvitationService {
       metadata: null,
     }
 
-    const user = await this.usersRepository.create(userData)
-    return success(user)
+    return await usersRepo.create(userData)
   }
 
   /**
@@ -266,8 +245,9 @@ export class CreateUserWithInvitationService {
    */
   private async createUserRole(
     userId: string,
-    input: ICreateUserWithInvitationInput
-  ): Promise<TServiceResult<TUserRole>> {
+    input: ICreateUserWithInvitationInput,
+    userRolesRepo: UserRolesRepository
+  ): Promise<TUserRole> {
     const userRoleData: TUserRoleCreate = {
       userId,
       roleId: input.roleId,
@@ -280,8 +260,7 @@ export class CreateUserWithInvitationService {
       expiresAt: null,
     }
 
-    const userRole = await this.userRolesRepository.create(userRoleData)
-    return success(userRole)
+    return await userRolesRepo.create(userRoleData)
   }
 
   /**
@@ -289,12 +268,13 @@ export class CreateUserWithInvitationService {
    */
   private async createUserPermissions(
     userId: string,
-    input: ICreateUserWithInvitationInput
-  ): Promise<TServiceResult<TUserPermission[]>> {
+    input: ICreateUserWithInvitationInput,
+    userPermissionsRepo: UserPermissionsRepository
+  ): Promise<TUserPermission[]> {
     const userPermissions: TUserPermission[] = []
 
     if (!input.customPermissions || input.customPermissions.length === 0) {
-      return success(userPermissions)
+      return userPermissions
     }
 
     for (const permissionId of input.customPermissions) {
@@ -305,11 +285,11 @@ export class CreateUserWithInvitationService {
         assignedBy: input.createdBy,
       }
 
-      const userPermission = await this.userPermissionsRepository.create(userPermissionData)
+      const userPermission = await userPermissionsRepo.create(userPermissionData)
       userPermissions.push(userPermission)
     }
 
-    return success(userPermissions)
+    return userPermissions
   }
 
   /**
@@ -317,13 +297,14 @@ export class CreateUserWithInvitationService {
    */
   private async createInvitation(
     user: TUser,
-    input: ICreateUserWithInvitationInput
-  ): Promise<TServiceResult<{ invitation: TUserInvitation; token: string }>> {
+    input: ICreateUserWithInvitationInput,
+    invitationsRepo: UserInvitationsRepository
+  ): Promise<{ invitation: TUserInvitation; token: string }> {
     const token = generateSecureToken()
     const tokenHash = hashToken(token)
     const expiresAt = calculateExpirationDate(input.expirationDays ?? 7)
 
-    const invitation = await this.invitationsRepository.create({
+    const invitation = await invitationsRepo.create({
       userId: user.id,
       condominiumId: input.condominiumId ?? null,
       roleId: input.roleId,
@@ -337,51 +318,38 @@ export class CreateUserWithInvitationService {
       createdBy: input.createdBy,
     })
 
-    return success({ invitation, token })
+    return { invitation, token }
   }
 
   /**
    * Creates an invitation for an existing inactive user.
+   * All writes are wrapped in a transaction for automatic rollback on failure.
    */
   private async createInvitationForExistingUser(
     existingUser: TUser,
     input: ICreateUserWithInvitationInput
   ): Promise<TServiceResult<ICreateUserWithInvitationResult>> {
-    // Create user-role assignment
-    const userRoleResult = await this.createUserRole(existingUser.id, input)
-    if (!userRoleResult.success) {
-      return userRoleResult as TServiceResult<ICreateUserWithInvitationResult>
-    }
+    return await this.db.transaction(async (tx) => {
+      const txUserRolesRepo = this.userRolesRepository.withTx(tx)
+      const txUserPermissionsRepo = this.userPermissionsRepository.withTx(tx)
+      const txInvitationsRepo = this.invitationsRepository.withTx(tx)
 
-    const userRole = userRoleResult.data
+      // Create user-role assignment
+      const userRole = await this.createUserRole(existingUser.id, input, txUserRolesRepo)
 
-    // Create custom permissions
-    const permissionsResult = await this.createUserPermissions(existingUser.id, input)
-    if (!permissionsResult.success) {
-      await this.userRolesRepository.delete(userRole.id)
-      return permissionsResult as TServiceResult<ICreateUserWithInvitationResult>
-    }
+      // Create custom permissions
+      const userPermissions = await this.createUserPermissions(existingUser.id, input, txUserPermissionsRepo)
 
-    const userPermissions = permissionsResult.data
+      // Create invitation
+      const { invitation, token } = await this.createInvitation(existingUser, input, txInvitationsRepo)
 
-    // Create invitation
-    const invitationResult = await this.createInvitation(existingUser, input)
-    if (!invitationResult.success) {
-      for (const perm of userPermissions) {
-        await this.userPermissionsRepository.delete(perm.id)
-      }
-      await this.userRolesRepository.delete(userRole.id)
-      return invitationResult as TServiceResult<ICreateUserWithInvitationResult>
-    }
-
-    const { invitation, token } = invitationResult.data
-
-    return success({
-      user: existingUser,
-      invitation,
-      userRole,
-      userPermissions,
-      invitationToken: token,
+      return success({
+        user: existingUser,
+        invitation,
+        userRole,
+        userPermissions,
+        invitationToken: token,
+      })
     })
   }
 }

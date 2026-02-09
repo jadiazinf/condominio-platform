@@ -24,8 +24,6 @@ type TMockCondominiumsRepository = {
   update: (id: string, data: TCondominiumUpdate) => Promise<TCondominium | null>
   delete: (id: string) => Promise<boolean>
   getByCode: (code: string) => Promise<TCondominium | null>
-  listByManagementCompanyPaginated: (managementCompanyId: string, query: unknown) => Promise<{ data: TCondominium[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>
-  getByLocationId: (locationId: string) => Promise<TCondominium[]>
 }
 
 describe('CondominiumsController', function () {
@@ -99,40 +97,34 @@ describe('CondominiumsController', function () {
           }) || null
         )
       },
-      listByManagementCompanyPaginated: async function (managementCompanyId: string) {
-        const data = testCondominiums.filter(function (c) {
-          return c.managementCompanyIds?.includes(managementCompanyId)
-        })
-        return {
-          data,
-          pagination: {
-            page: 1,
-            limit: 20,
-            total: data.length,
-            totalPages: 1,
-          },
-        }
-      },
-      getByLocationId: async function (locationId: string) {
-        return testCondominiums.filter(function (c) {
-          return c.locationId === locationId
-        })
-      },
     }
 
     // Create mock repositories for other dependencies
-    const mockSubscriptionsRepository = {} as any
+    const mockSubscriptionsRepository = {
+      getActiveByCompanyId: async () => ({
+        maxCondominiums: null,
+        maxUnits: null,
+        maxUsers: null,
+      }),
+    } as any
     const mockCompaniesRepository = {
       getById: async () => null,
+      getUsageStats: async () => ({
+        condominiumsCount: 0,
+        unitsCount: 0,
+        usersCount: 0,
+      }),
     } as any
     const mockLocationsRepository = {
       getById: async () => null,
+      getByIdWithHierarchy: async () => null,
     } as any
     const mockCurrenciesRepository = {
       getById: async () => null,
     } as any
     const mockUsersRepository = {
       getById: async () => null,
+      checkIsSuperadmin: async () => false,
     } as any
     const mockDb = {} as any
 
@@ -157,32 +149,25 @@ describe('CondominiumsController', function () {
   })
 
   describe('GET / (list)', function () {
-    it('should return all condominiums', async function () {
-      const res = await request('/condominiums')
+    it('should return the condominium matching the context condominiumId', async function () {
+      const res = await request('/condominiums', {
+        headers: { 'x-condominium-id': '550e8400-e29b-41d4-a716-446655440001' },
+      })
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(2)
+      expect(json.data).toHaveLength(1)
+      expect(json.data[0].name).toBe('Residencias El Sol')
     })
 
-    it('should return empty array when no condominiums exist', async function () {
-      mockRepository.listPaginated = async function () {
-        return {
-          data: [],
-          pagination: {
-            page: 1,
-            limit: 20,
-            total: 0,
-            totalPages: 0,
-          },
-        }
-      }
-
-      const res = await request('/condominiums')
-      expect(res.status).toBe(StatusCodes.OK)
+    it('should return 404 when condominiumId not found', async function () {
+      const res = await request('/condominiums', {
+        headers: { 'x-condominium-id': '550e8400-e29b-41d4-a716-446655440099' },
+      })
+      expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(0)
+      expect(getErrorMessage(json)).toContain('not found')
     })
   })
 
@@ -225,72 +210,6 @@ describe('CondominiumsController', function () {
 
       const json = (await res.json()) as IApiResponse
       expect(getErrorMessage(json)).toBe('Condominium not found')
-    })
-  })
-
-  describe('GET /management-company/:managementCompanyId (getByManagementCompanyId)', function () {
-    it('should return condominiums by management company ID', async function () {
-      const res = await request(
-        '/condominiums/management-company/550e8400-e29b-41d4-a716-446655440010'
-      )
-      expect(res.status).toBe(StatusCodes.OK)
-
-      const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(2)
-    })
-
-    it('should return empty array when no condominiums for company', async function () {
-      mockRepository.listByManagementCompanyPaginated = async function () {
-        return {
-          data: [],
-          pagination: {
-            page: 1,
-            limit: 20,
-            total: 0,
-            totalPages: 0,
-          },
-        }
-      }
-
-      const res = await request(
-        '/condominiums/management-company/550e8400-e29b-41d4-a716-446655440099'
-      )
-      expect(res.status).toBe(StatusCodes.OK)
-
-      const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(0)
-    })
-
-    it('should return 400 for invalid management company UUID format', async function () {
-      const res = await request('/condominiums/management-company/invalid-id')
-      expect(res.status).toBe(StatusCodes.BAD_REQUEST)
-    })
-  })
-
-  describe('GET /location/:locationId (getByLocationId)', function () {
-    it('should return condominiums by location ID', async function () {
-      const res = await request('/condominiums/location/550e8400-e29b-41d4-a716-446655440020')
-      expect(res.status).toBe(StatusCodes.OK)
-
-      const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(2)
-    })
-
-    it('should return empty array when no condominiums for location', async function () {
-      mockRepository.getByLocationId = async function () {
-        return []
-      }
-
-      const res = await request('/condominiums/location/550e8400-e29b-41d4-a716-446655440099')
-      expect(res.status).toBe(StatusCodes.OK)
-
-      const json = (await res.json()) as IApiResponse
-      expect(json.data).toHaveLength(0)
-    })
-
-    it('should return 400 for invalid location UUID format', async function () {
-      const res = await request('/condominiums/location/invalid-id')
-      expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
 
@@ -410,11 +329,13 @@ describe('CondominiumsController', function () {
 
   describe('Error handling', function () {
     it('should return 500 for unexpected errors', async function () {
-      mockRepository.listPaginated = async function () {
+      mockRepository.getById = async function () {
         throw new Error('Unexpected database error')
       }
 
-      const res = await request('/condominiums')
+      const res = await request('/condominiums', {
+        headers: { 'x-condominium-id': '550e8400-e29b-41d4-a716-446655440001' },
+      })
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
 
       const json = (await res.json()) as IApiResponse

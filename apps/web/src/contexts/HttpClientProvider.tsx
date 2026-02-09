@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useRef, type ReactNode } from 'react'
-import { setGlobalAuthToken, createHttpClient, setHttpClient } from '@packages/http-client'
+import { setGlobalAuthToken, setGlobalCondominiumId, setReportAuthToken, createHttpClient, setHttpClient } from '@packages/http-client'
 
 import { getFirebaseAuth } from '@/libs/firebase'
-import { setSessionCookie, getSessionCookie } from '@/libs/cookies'
+import { setSessionCookie, getSessionCookie, getSelectedCondominiumCookie } from '@/libs/cookies'
 import { getLocaleCookie } from '@/libs/i18n/utils'
 import { tokenRefreshManager } from '@/libs/auth'
 
@@ -36,12 +36,22 @@ function initializeHttpClient() {
   tokenRefreshManager.setRefreshFunction(performTokenRefresh)
 
   // Set global auth token getter - this ensures even the default client has auth
-  setGlobalAuthToken(() => {
+  const authTokenGetter = () => {
     const token = getSessionCookie()
     return token || null
+  }
+  setGlobalAuthToken(authTokenGetter)
+
+  // Set global condominium ID getter for x-condominium-id header
+  setGlobalCondominiumId(() => {
+    const selected = getSelectedCondominiumCookie()
+    return selected?.condominium?.id ?? null
   })
 
-  // Configure HTTP client with token refresh capability and locale support
+  // Share the same token getter with the report download utility
+  setReportAuthToken(authTokenGetter)
+
+  // Configure HTTP client with token refresh capability, locale, and condominium support
   const client = createHttpClient({
     getAuthToken: async () => {
       // If a refresh is in progress, wait for it before returning the token
@@ -52,6 +62,10 @@ function initializeHttpClient() {
     getLocale: () => {
       const locale = getLocaleCookie()
       return locale || 'es'
+    },
+    getCondominiumId: () => {
+      const selected = getSelectedCondominiumCookie()
+      return selected?.condominium?.id ?? null
     },
     onTokenRefresh: async () => {
       // Use the manager to handle refresh with queuing

@@ -5,7 +5,7 @@ import type { IEndpoint } from './types'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 
 export class EntityPaymentGatewaysEndpoint implements IEndpoint {
-  readonly path = '/entity-payment-gateways'
+  readonly path = '/condominium/entity-payment-gateways'
   private readonly controller: EntityPaymentGatewaysController
 
   constructor(db: TDrizzleClient) {

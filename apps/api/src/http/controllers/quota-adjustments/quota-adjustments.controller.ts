@@ -6,9 +6,10 @@ import {
   type TQuotaAdjustmentCreate,
 } from '@packages/domain'
 import type { QuotasRepository, QuotaAdjustmentsRepository } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { HttpContext } from '../../context'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware } from '../../middlewares/auth'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { createRouter } from '../create-router'
@@ -68,50 +69,44 @@ export class QuotaAdjustmentsController {
   private readonly getAdjustmentsByTypeService: GetAdjustmentsByTypeService
 
   constructor(
+    private readonly db: TDrizzleClient,
     private readonly quotasRepository: QuotasRepository,
     private readonly quotaAdjustmentsRepository: QuotaAdjustmentsRepository
   ) {
     // Initialize services
-    this.adjustQuotaService = new AdjustQuotaService(quotasRepository, quotaAdjustmentsRepository)
+    this.adjustQuotaService = new AdjustQuotaService(db, quotasRepository, quotaAdjustmentsRepository)
     this.getAdjustmentsByQuotaService = new GetAdjustmentsByQuotaService(quotaAdjustmentsRepository)
     this.getAdjustmentsByUserService = new GetAdjustmentsByUserService(quotaAdjustmentsRepository)
     this.getAdjustmentsByTypeService = new GetAdjustmentsByTypeService(quotaAdjustmentsRepository)
 
-    // Bind handlers
-    this.list = this.list.bind(this)
-    this.getById = this.getById.bind(this)
-    this.getByQuotaId = this.getByQuotaId.bind(this)
-    this.getByUserId = this.getByUserId.bind(this)
-    this.getByType = this.getByType.bind(this)
-    this.adjustQuota = this.adjustQuota.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
       {
         method: 'get',
         path: '/quota/:quotaId',
         handler: this.getByQuotaId,
-        middlewares: [authMiddleware, paramsValidator(QuotaIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(QuotaIdParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [authMiddleware, paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/type/:type',
         handler: this.getByType,
-        middlewares: [authMiddleware, paramsValidator(AdjustmentTypeParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(AdjustmentTypeParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
@@ -119,6 +114,7 @@ export class QuotaAdjustmentsController {
         handler: this.adjustQuota,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN', 'ACCOUNTANT'),
           paramsValidator(QuotaIdParamSchema),
           bodyValidator(AdjustQuotaBodySchema),
         ],
@@ -138,8 +134,10 @@ export class QuotaAdjustmentsController {
     return new HttpContext<TBody, TQuery, TParams>(c)
   }
 
-  private async list(c: Context): Promise<Response> {
+  private list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    // TODO: Filter by condominiumId via JOIN through quota → unit → building.condominiumId
 
     try {
       const adjustments = await this.quotaAdjustmentsRepository.listAll()
@@ -149,7 +147,7 @@ export class QuotaAdjustmentsController {
     }
   }
 
-  private async getById(c: Context): Promise<Response> {
+  private getById = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TIdParam>(c)
 
     try {
@@ -165,7 +163,7 @@ export class QuotaAdjustmentsController {
     }
   }
 
-  private async getByQuotaId(c: Context): Promise<Response> {
+  private getByQuotaId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TQuotaIdParam>(c)
 
     try {
@@ -183,7 +181,7 @@ export class QuotaAdjustmentsController {
     }
   }
 
-  private async getByUserId(c: Context): Promise<Response> {
+  private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
     try {
@@ -201,7 +199,7 @@ export class QuotaAdjustmentsController {
     }
   }
 
-  private async getByType(c: Context): Promise<Response> {
+  private getByType = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TAdjustmentTypeParam>(c)
 
     try {
@@ -219,7 +217,7 @@ export class QuotaAdjustmentsController {
     }
   }
 
-  private async adjustQuota(c: Context): Promise<Response> {
+  private adjustQuota = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TAdjustQuotaBody, unknown, TQuotaIdParam>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 

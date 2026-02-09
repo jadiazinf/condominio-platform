@@ -98,7 +98,7 @@ export function useManagementCompanies(options: UseManagementCompaniesOptions) {
   const { token, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TManagementCompany[]>>({
-    path: '/management-companies',
+    path: '/platform/management-companies',
     queryKey: ['management-companies'],
     config: {
       headers: {
@@ -123,7 +123,7 @@ export function useManagementCompaniesPaginated(options: UseManagementCompaniesP
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
 
   const queryString = params.toString()
-  const path = `/management-companies${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/management-companies${queryString ? `?${queryString}` : ''}`
 
   return useApiQuery<TApiPaginatedResponse<TManagementCompany>>({
     path,
@@ -144,7 +144,7 @@ export function useManagementCompany(options: UseManagementCompanyOptions) {
   const { token, id, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TManagementCompany>>({
-    path: `/management-companies/${id}`,
+    path: `/platform/management-companies/${id}`,
     queryKey: ['management-companies', id],
     config: {
       headers: {
@@ -162,7 +162,7 @@ export function useManagementCompanyUsageStats(options: UseManagementCompanyUsag
   const { token, id, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TManagementCompanyUsageStats>>({
-    path: `/management-companies/${id}/usage-stats`,
+    path: `/platform/management-companies/${id}/usage-stats`,
     queryKey: ['management-companies', id, 'usage-stats'],
     config: {
       headers: {
@@ -181,7 +181,7 @@ export function useCanCreateResource(options: UseCanCreateResourceOptions) {
   const { token, managementCompanyId, resourceType, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TSubscriptionLimitValidation>>({
-    path: `/management-companies/${managementCompanyId}/subscription/can-create/${resourceType}`,
+    path: `/platform/management-companies/${managementCompanyId}/subscription/can-create/${resourceType}`,
     queryKey: ['management-companies', managementCompanyId, 'can-create', resourceType],
     config: {
       headers: {
@@ -199,7 +199,7 @@ export function useCreateManagementCompany(options: UseCreateManagementCompanyOp
   const { token } = options
 
   return useApiMutation<TApiDataResponse<TManagementCompany>, TManagementCompanyCreate>({
-    path: '/management-companies',
+    path: '/platform/management-companies',
     method: 'POST',
     config: {
       headers: {
@@ -217,7 +217,7 @@ export function useUpdateManagementCompany(options: UseUpdateManagementCompanyOp
   const { token } = options
 
   return useApiMutation<TApiDataResponse<TManagementCompany>, TManagementCompanyUpdate & { id: string }>({
-    path: (data) => `/management-companies/${data.id}`,
+    path: (data) => `/platform/management-companies/${data.id}`,
     method: 'PATCH',
     config: {
       headers: {
@@ -239,7 +239,7 @@ export function useToggleManagementCompanyActive(options: UseToggleManagementCom
   const { token } = options
 
   return useApiMutation<TApiDataResponse<TManagementCompany>, TToggleActiveInput>({
-    path: '/management-companies',
+    path: '/platform/management-companies',
     method: 'PATCH',
     config: {
       headers: {
@@ -257,7 +257,7 @@ export function useCreateUser(options: UseCreateUserOptions) {
   const { token } = options
 
   return useApiMutation<TApiDataResponse<TUser>, TUserCreate>({
-    path: '/users',
+    path: '/platform/users',
     method: 'POST',
     config: {
       headers: {
@@ -279,7 +279,7 @@ export function useCreateUser(options: UseCreateUserOptions) {
 export async function getManagementCompanies(token: string): Promise<TManagementCompany[]> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TManagementCompany[]>>(
-    '/management-companies',
+    '/platform/management-companies',
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -307,7 +307,7 @@ export async function getManagementCompaniesPaginated(
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
 
   const queryString = params.toString()
-  const path = `/management-companies${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/management-companies${queryString ? `?${queryString}` : ''}`
 
   const response = await client.get<TApiPaginatedResponse<TManagementCompany>>(path, {
     headers: {
@@ -327,7 +327,7 @@ export async function getManagementCompanyById(
 ): Promise<TManagementCompany> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TManagementCompany>>(
-    `/management-companies/${id}`,
+    `/platform/management-companies/${id}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -347,7 +347,7 @@ export async function createManagementCompany(
 ): Promise<TManagementCompany> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<TManagementCompany>>(
-    '/management-companies',
+    '/platform/management-companies',
     data,
     {
       headers: {
@@ -364,7 +364,7 @@ export async function createManagementCompany(
  */
 export async function createUser(token: string, data: TUserCreate): Promise<TUser> {
   const client = getHttpClient()
-  const response = await client.post<TApiDataResponse<TUser>>('/users', data, {
+  const response = await client.post<TApiDataResponse<TUser>>('/platform/users', data, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -404,7 +404,7 @@ export async function toggleManagementCompanyActive(
 ): Promise<TManagementCompany> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataResponse<TManagementCompany>>(
-    `/management-companies/${id}/toggle-active`,
+    `/platform/management-companies/${id}/toggle-active`,
     { isActive },
     {
       headers: {
@@ -426,7 +426,7 @@ export async function updateManagementCompany(
 ): Promise<TManagementCompany> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataResponse<TManagementCompany>>(
-    `/management-companies/${id}`,
+    `/platform/management-companies/${id}`,
     data,
     {
       headers: {
@@ -447,7 +447,7 @@ export async function getManagementCompanyUsageStats(
 ): Promise<TManagementCompanyUsageStats> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TManagementCompanyUsageStats>>(
-    `/management-companies/${id}/usage-stats`,
+    `/platform/management-companies/${id}/usage-stats`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

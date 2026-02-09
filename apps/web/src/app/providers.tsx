@@ -18,6 +18,7 @@ import {
 import { SessionInitializer } from '@/contexts/SessionInitializer'
 import { ToastProvider } from '@/ui/components/toast'
 import { NetworkStatusMonitor } from '@/ui/components/network-status'
+import { PushNotificationManager } from '@/components/PushNotificationManager'
 import { type TAppLanguages } from '@/locales'
 
 export interface ProvidersProps {
@@ -56,6 +57,7 @@ export function Providers({
                   {children}
                   <ToastProvider position="top-center" />
                   <NetworkStatusMonitor />
+                  <PushNotificationManager />
                 </SessionInitializer>
               </HttpClientProvider>
             </AuthProvider>

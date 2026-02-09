@@ -70,3 +70,7 @@ export * from './subscription-rates'
 export * from './support-tickets'
 export * from './support-ticket-messages'
 export * from './support-ticket-assignment-history'
+
+// Amenities & Reservations
+export * from './amenities'
+export * from './amenity-reservations'

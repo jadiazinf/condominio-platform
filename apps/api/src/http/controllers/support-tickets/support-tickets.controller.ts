@@ -9,6 +9,13 @@ import {
   type TTicketStatus,
 } from '@packages/domain'
 import type { SupportTicketsRepository } from '@database/repositories'
+import {
+  NotificationsRepository,
+  NotificationDeliveriesRepository,
+  UserNotificationPreferencesRepository,
+  UserFcmTokensRepository,
+} from '@database/repositories'
+import { SendNotificationService } from '../../../services/notifications'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BaseController } from '../base.controller'
 import {
@@ -32,7 +39,7 @@ import {
   isUserAuthenticated,
   AUTHENTICATED_USER_PROP,
 } from '../../middlewares/utils/auth/is-user-authenticated'
-import { isSuperadmin } from '../../middlewares/utils/auth/is-superadmin'
+import { requireRole } from '../../middlewares/auth'
 import { canAccessTicket } from '../../middlewares/utils/auth/can-access-ticket'
 
 const CompanyIdParamSchema = z.object({
@@ -101,6 +108,7 @@ export class SupportTicketsController extends BaseController<
   private readonly resolveService: ResolveTicketService
   private readonly closeService: CloseTicketService
   private readonly updateStatusService: UpdateTicketStatusService
+  private readonly sendNotificationService: SendNotificationService
 
   constructor(
     repository: SupportTicketsRepository,
@@ -113,13 +121,14 @@ export class SupportTicketsController extends BaseController<
     this.closeService = new CloseTicketService(repository)
     this.updateStatusService = new UpdateTicketStatusService(repository)
 
-    this.getAllTickets = this.getAllTickets.bind(this)
-    this.getTicketsByCompany = this.getTicketsByCompany.bind(this)
-    this.createTicket = this.createTicket.bind(this)
-    this.assignTicket = this.assignTicket.bind(this)
-    this.resolveTicket = this.resolveTicket.bind(this)
-    this.closeTicket = this.closeTicket.bind(this)
-    this.updateTicketStatus = this.updateTicketStatus.bind(this)
+    // Initialize notification service
+    const notificationsRepo = new NotificationsRepository(db)
+    const deliveriesRepo = new NotificationDeliveriesRepository(db)
+    const preferencesRepo = new UserNotificationPreferencesRepository(db)
+    const fcmTokensRepo = new UserFcmTokensRepository(db)
+    this.sendNotificationService = new SendNotificationService(
+      notificationsRepo, deliveriesRepo, preferencesRepo, fcmTokensRepo
+    )
   }
 
   get routes(): TRouteDefinition[] {
@@ -127,35 +136,37 @@ export class SupportTicketsController extends BaseController<
       // Superadmin only: Get all tickets across all companies
       {
         method: 'get',
-        path: '/support-tickets',
+        path: '/platform/support-tickets',
         handler: this.getAllTickets,
-        middlewares: [isUserAuthenticated, isSuperadmin, queryValidator(TicketsQuerySchema)],
+        middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), queryValidator(TicketsQuerySchema)],
       },
-      // Authenticated: Get tickets by company (TODO: add company membership check)
+      // Superadmin: Get tickets by company
       {
         method: 'get',
-        path: '/management-companies/:companyId/tickets',
+        path: '/platform/management-companies/:companyId/tickets',
         handler: this.getTicketsByCompany,
         middlewares: [
           isUserAuthenticated,
+          requireRole('SUPERADMIN'),
           paramsValidator(CompanyIdParamSchema),
           queryValidator(TicketsQuerySchema),
         ],
       },
-      // Authenticated: Get ticket by ID (superadmin or condominium user of the management company)
+      // Superadmin: Get ticket by ID
       {
         method: 'get',
-        path: '/support-tickets/:id',
+        path: '/platform/support-tickets/:id',
         handler: this.getById,
-        middlewares: [isUserAuthenticated, paramsValidator(IdParamSchema), canAccessTicket],
+        middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), canAccessTicket],
       },
-      // Authenticated: Create new ticket
+      // Superadmin: Create new ticket
       {
         method: 'post',
-        path: '/management-companies/:companyId/tickets',
+        path: '/platform/management-companies/:companyId/tickets',
         handler: this.createTicket,
         middlewares: [
           isUserAuthenticated,
+          requireRole('SUPERADMIN'),
           paramsValidator(CompanyIdParamSchema),
           bodyValidator(supportTicketCreateSchema),
         ],
@@ -163,11 +174,11 @@ export class SupportTicketsController extends BaseController<
       // Superadmin only: Update ticket
       {
         method: 'patch',
-        path: '/support-tickets/:id',
+        path: '/platform/support-tickets/:id',
         handler: this.update,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
+          requireRole('SUPERADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(supportTicketUpdateSchema),
         ],
@@ -175,11 +186,11 @@ export class SupportTicketsController extends BaseController<
       // Superadmin only: Assign ticket
       {
         method: 'patch',
-        path: '/support-tickets/:id/assign',
+        path: '/platform/support-tickets/:id/assign',
         handler: this.assignTicket,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
+          requireRole('SUPERADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(AssignTicketBodySchema),
         ],
@@ -187,11 +198,11 @@ export class SupportTicketsController extends BaseController<
       // Superadmin only: Resolve ticket
       {
         method: 'patch',
-        path: '/support-tickets/:id/resolve',
+        path: '/platform/support-tickets/:id/resolve',
         handler: this.resolveTicket,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
+          requireRole('SUPERADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(ResolveTicketBodySchema),
         ],
@@ -199,11 +210,11 @@ export class SupportTicketsController extends BaseController<
       // Superadmin only: Close ticket
       {
         method: 'patch',
-        path: '/support-tickets/:id/close',
+        path: '/platform/support-tickets/:id/close',
         handler: this.closeTicket,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
+          requireRole('SUPERADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(CloseTicketBodySchema),
         ],
@@ -211,11 +222,11 @@ export class SupportTicketsController extends BaseController<
       // Superadmin only: Update ticket status
       {
         method: 'patch',
-        path: '/support-tickets/:id/status',
+        path: '/platform/support-tickets/:id/status',
         handler: this.updateTicketStatus,
         middlewares: [
           isUserAuthenticated,
-          isSuperadmin,
+          requireRole('SUPERADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(UpdateStatusBodySchema),
         ],
@@ -250,7 +261,7 @@ export class SupportTicketsController extends BaseController<
     }
   }
 
-  private async getAllTickets(c: Context): Promise<Response> {
+  private getAllTickets = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TTicketsQuery, unknown>(c)
     const repo = this.repository as SupportTicketsRepository
 
@@ -269,7 +280,7 @@ export class SupportTicketsController extends BaseController<
     }
   }
 
-  private async getTicketsByCompany(c: Context): Promise<Response> {
+  private getTicketsByCompany = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TTicketsQuery, TCompanyIdParam>(c)
     const repo = this.repository as SupportTicketsRepository
 
@@ -288,7 +299,7 @@ export class SupportTicketsController extends BaseController<
     }
   }
 
-  private async createTicket(c: Context): Promise<Response> {
+  private createTicket = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TSupportTicketCreate, unknown, TCompanyIdParam>(c)
 
     try {
@@ -307,7 +318,7 @@ export class SupportTicketsController extends BaseController<
     }
   }
 
-  private async assignTicket(c: Context): Promise<Response> {
+  private assignTicket = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TAssignTicketBody, unknown, { id: string }>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 
@@ -328,7 +339,7 @@ export class SupportTicketsController extends BaseController<
     }
   }
 
-  private async resolveTicket(c: Context): Promise<Response> {
+  private resolveTicket = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TResolveTicketBody, unknown, { id: string }>(c)
 
     try {
@@ -341,13 +352,25 @@ export class SupportTicketsController extends BaseController<
         return ctx.badRequest({ error: result.error })
       }
 
+      // Fire-and-forget: notify ticket creator
+      if (result.data.createdByUserId) {
+        this.sendNotificationService.execute({
+          userId: result.data.createdByUserId,
+          category: 'system',
+          title: 'Ticket Resolved',
+          body: `Your support ticket #${result.data.ticketNumber} has been resolved.`,
+          channels: ['in_app', 'push'],
+          data: { ticketId: result.data.id, action: 'ticket_resolved' },
+        }).catch(() => {})
+      }
+
       return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
   }
 
-  private async closeTicket(c: Context): Promise<Response> {
+  private closeTicket = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TCloseTicketBody, unknown, { id: string }>(c)
 
     try {
@@ -360,13 +383,25 @@ export class SupportTicketsController extends BaseController<
         return ctx.badRequest({ error: result.error })
       }
 
+      // Fire-and-forget: notify ticket creator
+      if (result.data.createdByUserId) {
+        this.sendNotificationService.execute({
+          userId: result.data.createdByUserId,
+          category: 'system',
+          title: 'Ticket Closed',
+          body: `Your support ticket #${result.data.ticketNumber} has been closed.`,
+          channels: ['in_app', 'push'],
+          data: { ticketId: result.data.id, action: 'ticket_closed' },
+        }).catch(() => {})
+      }
+
       return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
   }
 
-  private async updateTicketStatus(c: Context): Promise<Response> {
+  private updateTicketStatus = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TUpdateStatusBody, unknown, { id: string }>(c)
     const t = useTranslation(c)
 
@@ -385,6 +420,18 @@ export class SupportTicketsController extends BaseController<
         }
         // Fallback for string errors
         return ctx.badRequest({ error: String(error) })
+      }
+
+      // Fire-and-forget: notify ticket creator of status change
+      if (result.data.createdByUserId) {
+        this.sendNotificationService.execute({
+          userId: result.data.createdByUserId,
+          category: 'system',
+          title: 'Ticket Status Updated',
+          body: `Your support ticket #${result.data.ticketNumber} status has been updated to ${ctx.body.status.replace('_', ' ')}.`,
+          channels: ['in_app', 'push'],
+          data: { ticketId: result.data.id, action: 'ticket_status_updated', newStatus: ctx.body.status },
+        }).catch(() => {})
       }
 
       return ctx.ok({ data: result.data })

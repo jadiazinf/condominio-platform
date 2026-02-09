@@ -20,7 +20,7 @@ export async function fetchUserByFirebaseUid(
 ): Promise<TUser | null> {
   try {
     const { apiBaseUrl } = getEnvConfig()
-    const response = await fetch(`${apiBaseUrl}/users/firebase/${firebaseUid}`, {
+    const response = await fetch(`${apiBaseUrl}/platform/users/firebase/${firebaseUid}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ export async function syncUserFirebaseUid(
 ): Promise<TUser | null> {
   try {
     const { apiBaseUrl } = getEnvConfig()
-    const response = await fetch(`${apiBaseUrl}/users/sync-firebase-uid`, {
+    const response = await fetch(`${apiBaseUrl}/platform/users/sync-firebase-uid`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

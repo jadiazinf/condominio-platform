@@ -90,7 +90,7 @@ export function useManagementCompanyMembers(
   options?: IUseManagementCompanyMembersOptions
 ) {
   return useApiQuery<TApiDataResponse<TManagementCompanyMember[]>>({
-    path: `/management-companies/${companyId}/members`,
+    path: `/platform/management-companies/${companyId}/members`,
     queryKey: managementCompanyMemberKeys.list(companyId),
     config: {},
     enabled: options?.enabled !== false && !!companyId,
@@ -114,7 +114,7 @@ export function useManagementCompanyMembersPaginated(
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
 
   const queryString = params.toString()
-  const path = `/management-companies/${companyId}/members${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/management-companies/${companyId}/members${queryString ? `?${queryString}` : ''}`
 
   return useApiQuery<TApiPaginatedResponse<TManagementCompanyMember>>({
     path,
@@ -131,7 +131,7 @@ export async function getManagementCompanyMembers(
 ): Promise<TManagementCompanyMember[]> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TManagementCompanyMember[]>>(
-    `/management-companies/${companyId}/members`
+    `/platform/management-companies/${companyId}/members`
   )
 
   return response.data.data
@@ -154,7 +154,7 @@ export async function getManagementCompanyMembersPaginated(
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
 
   const queryString = params.toString()
-  const path = `/management-companies/${companyId}/members${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/management-companies/${companyId}/members${queryString ? `?${queryString}` : ''}`
 
   const response = await client.get<TApiPaginatedResponse<TManagementCompanyMember>>(path)
 
@@ -170,7 +170,7 @@ export async function getManagementCompanyMembersPaginated(
  */
 export function usePrimaryAdmin(companyId: string, options?: IUsePrimaryAdminOptions) {
   return useApiQuery<TApiDataResponse<TManagementCompanyMember>>({
-    path: `/management-companies/${companyId}/primary-admin`,
+    path: `/platform/management-companies/${companyId}/primary-admin`,
     queryKey: managementCompanyMemberKeys.primaryAdmin(companyId),
     config: {},
     enabled: options?.enabled !== false && !!companyId,
@@ -183,7 +183,7 @@ export function usePrimaryAdmin(companyId: string, options?: IUsePrimaryAdminOpt
 export async function getPrimaryAdmin(companyId: string): Promise<TManagementCompanyMember> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TManagementCompanyMember>>(
-    `/management-companies/${companyId}/primary-admin`
+    `/platform/management-companies/${companyId}/primary-admin`
   )
 
   return response.data.data
@@ -198,7 +198,7 @@ export async function getPrimaryAdmin(companyId: string): Promise<TManagementCom
  */
 export function useAddMember(companyId: string, options?: IAddMemberOptions) {
   return useApiMutation<TApiDataResponse<TManagementCompanyMember>, IAddMemberRequest>({
-    path: `/management-companies/${companyId}/members`,
+    path: `/platform/management-companies/${companyId}/members`,
     method: 'POST',
     config: {},
     onSuccess: options?.onSuccess,
@@ -219,7 +219,7 @@ export async function addMember(
 ): Promise<TManagementCompanyMember> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<TManagementCompanyMember>>(
-    `/management-companies/${companyId}/members`,
+    `/platform/management-companies/${companyId}/members`,
     data
   )
 
@@ -240,7 +240,7 @@ export function useUpdateMember(
 ) {
   return useApiMutation<TApiDataResponse<TManagementCompanyMember>, TManagementCompanyMemberUpdate>(
     {
-      path: `/management-company-members/${memberId}`,
+      path: `/platform/management-company-members/${memberId}`,
       method: 'PATCH',
       config: {},
       onSuccess: options?.onSuccess,
@@ -263,7 +263,7 @@ export async function updateMember(
 ): Promise<TManagementCompanyMember> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataResponse<TManagementCompanyMember>>(
-    `/management-company-members/${memberId}`,
+    `/platform/management-company-members/${memberId}`,
     data
   )
 
@@ -283,7 +283,7 @@ export function useUpdateMemberPermissions(
   options?: IUpdateMemberPermissionsOptions
 ) {
   return useApiMutation<TApiDataResponse<TManagementCompanyMember>, IUpdateMemberPermissionsData>({
-    path: `/management-company-members/${memberId}/permissions`,
+    path: `/platform/management-company-members/${memberId}/permissions`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
@@ -304,7 +304,7 @@ export async function updateMemberPermissions(
 ): Promise<TManagementCompanyMember> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataResponse<TManagementCompanyMember>>(
-    `/management-company-members/${memberId}/permissions`,
+    `/platform/management-company-members/${memberId}/permissions`,
     { permissions }
   )
 
@@ -324,7 +324,7 @@ export function useRemoveMember(
   options?: IRemoveMemberOptions
 ) {
   return useApiMutation<TApiDataResponse<void>, void>({
-    path: `/management-company-members/${memberId}`,
+    path: `/platform/management-company-members/${memberId}`,
     method: 'DELETE',
     config: {},
     onSuccess: options?.onSuccess,
@@ -341,5 +341,5 @@ export function useRemoveMember(
  */
 export async function removeMember(memberId: string): Promise<void> {
   const client = getHttpClient()
-  await client.delete<TApiDataResponse<void>>(`/management-company-members/${memberId}`)
+  await client.delete<TApiDataResponse<void>>(`/platform/management-company-members/${memberId}`)
 }

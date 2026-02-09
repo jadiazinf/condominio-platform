@@ -63,7 +63,7 @@ export function useAllPermissions(options: UseAllPermissionsOptions) {
   const { token, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TPermission[]>>({
-    path: '/permissions',
+    path: '/platform/permissions',
     queryKey: permissionsKeys.lists(),
     config: {
       headers: {
@@ -81,7 +81,7 @@ export function useRolePermissions(options: UseRolePermissionsOptions) {
   const { token, roleId, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TRolePermission[]>>({
-    path: `/role-permissions/role/${roleId}`,
+    path: `/platform/role-permissions/role/${roleId}`,
     queryKey: permissionsKeys.rolePermissions(roleId),
     config: {
       headers: {
@@ -99,7 +99,7 @@ export function usePermissionsByModule(options: UsePermissionsByModuleOptions) {
   const { token, module, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TPermission[]>>({
-    path: `/permissions/module/${module}`,
+    path: `/platform/permissions/module/${module}`,
     queryKey: permissionsKeys.byModule(module),
     config: {
       headers: {
@@ -120,7 +120,7 @@ export function usePermissionsByModule(options: UsePermissionsByModuleOptions) {
 export async function getAllPermissions(token: string): Promise<TPermission[]> {
   const client = getHttpClient()
 
-  const response = await client.get<TApiDataResponse<TPermission[]>>('/permissions', {
+  const response = await client.get<TApiDataResponse<TPermission[]>>('/platform/permissions', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -139,7 +139,7 @@ export async function getRolePermissions(
   const client = getHttpClient()
 
   const response = await client.get<TApiDataResponse<TRolePermission[]>>(
-    `/role-permissions/role/${roleId}`,
+    `/platform/role-permissions/role/${roleId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -160,7 +160,7 @@ export async function getPermissionsByModule(
   const client = getHttpClient()
 
   const response = await client.get<TApiDataResponse<TPermission[]>>(
-    `/permissions/module/${module}`,
+    `/platform/permissions/module/${module}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

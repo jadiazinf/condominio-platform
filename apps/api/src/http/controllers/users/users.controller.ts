@@ -13,7 +13,7 @@ import type { UsersRepository, UserPermissionsRepository, UserRolesRepository } 
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware, tokenOnlyMiddleware } from '../../middlewares/auth'
+import { authMiddleware, tokenOnlyMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -168,13 +168,13 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
         handler: this.getCondominiums,
         middlewares: [authMiddleware],
       },
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
       // New paginated endpoint with filters
       {
         method: 'get',
         path: '/paginated',
         handler: this.listPaginated,
-        middlewares: [authMiddleware, queryValidator(AllUsersQuerySchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), queryValidator(AllUsersQuerySchema)],
       },
       // Roles for filter dropdown
       {
@@ -213,40 +213,40 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
         method: 'patch',
         path: '/:id/status',
         handler: this.updateStatus,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema), bodyValidator(UpdateStatusSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(UpdateStatusSchema)],
       },
       // Permission toggle endpoint (single)
       {
         method: 'patch',
         path: '/:id/permissions',
         handler: this.togglePermission,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema), bodyValidator(TogglePermissionSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(TogglePermissionSchema)],
       },
       // Permission batch toggle endpoint (multiple)
       {
         method: 'patch',
         path: '/:id/permissions/batch',
         handler: this.batchTogglePermissions,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema), bodyValidator(BatchTogglePermissionsSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(BatchTogglePermissionsSchema)],
       },
       // Superadmin promotion/demotion endpoints
       {
         method: 'post',
         path: '/:id/promote-to-superadmin',
         handler: this.promoteToSuperadmin,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema), bodyValidator(PromoteToSuperadminSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(PromoteToSuperadminSchema)],
       },
       {
         method: 'post',
         path: '/:id/demote-from-superadmin',
         handler: this.demoteFromSuperadmin,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',

@@ -1,15 +1,35 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
-import type { TPayment } from '@packages/domain'
+import type { TPayment, TPaymentApplication, TQuota } from '@packages/domain'
 import { RefundPaymentService } from '@src/services/payments'
 
-type TMockRepository = {
+type TMockPaymentsRepository = {
   getById: (id: string) => Promise<TPayment | null>
   update: (id: string, data: unknown) => Promise<TPayment | null>
+  withTx: (tx: any) => TMockPaymentsRepository
+}
+
+type TMockPaymentApplicationsRepository = {
+  getByPaymentId: (paymentId: string) => Promise<TPaymentApplication[]>
+  hardDelete: (id: string) => Promise<boolean>
+  withTx: (tx: any) => TMockPaymentApplicationsRepository
+}
+
+type TMockQuotasRepository = {
+  getById: (id: string) => Promise<TQuota | null>
+  update: (id: string, data: unknown) => Promise<TQuota | null>
+  withTx: (tx: any) => TMockQuotasRepository
+}
+
+type TMockDb = {
+  transaction: <T>(fn: (tx: any) => Promise<T>) => Promise<T>
 }
 
 describe('RefundPaymentService', function () {
   let service: RefundPaymentService
-  let mockRepository: TMockRepository
+  let mockPaymentsRepository: TMockPaymentsRepository
+  let mockPaymentApplicationsRepository: TMockPaymentApplicationsRepository
+  let mockQuotasRepository: TMockQuotasRepository
+  let mockDb: TMockDb
 
   const mockPayment: TPayment = {
     id: '550e8400-e29b-41d4-a716-446655440001',
@@ -39,17 +59,90 @@ describe('RefundPaymentService', function () {
     updatedAt: new Date(),
   }
 
+  const mockQuota: TQuota = {
+    id: '550e8400-e29b-41d4-a716-446655440010',
+    unitId: '550e8400-e29b-41d4-a716-446655440003',
+    paymentConceptId: '550e8400-e29b-41d4-a716-446655440011',
+    periodYear: 2025,
+    periodMonth: 1,
+    periodDescription: 'January 2025',
+    baseAmount: '100.00',
+    currencyId: '550e8400-e29b-41d4-a716-446655440004',
+    interestAmount: '0.00',
+    amountInBaseCurrency: null,
+    exchangeRateUsed: null,
+    issueDate: '2025-01-01',
+    dueDate: '2025-01-15',
+    status: 'paid',
+    paidAmount: '100.00',
+    balance: '0.00',
+    notes: null,
+    metadata: null,
+    createdBy: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+
+  const mockApplication: TPaymentApplication = {
+    id: '550e8400-e29b-41d4-a716-446655440020',
+    paymentId: mockPayment.id,
+    quotaId: mockQuota.id,
+    appliedAmount: '100.00',
+    appliedToPrincipal: '100.00',
+    appliedToInterest: '0.00',
+    registeredBy: mockPayment.registeredBy,
+    appliedAt: new Date(),
+  }
+
   beforeEach(function () {
-    mockRepository = {
+    mockPaymentsRepository = {
       getById: async function () {
         return mockPayment
       },
       update: async function (id, data: any) {
         return { ...mockPayment, ...data }
       },
+      withTx: function (tx: any) {
+        return this
+      },
     }
 
-    service = new RefundPaymentService(mockRepository as never)
+    mockPaymentApplicationsRepository = {
+      getByPaymentId: async function () {
+        return [mockApplication]
+      },
+      hardDelete: async function () {
+        return true
+      },
+      withTx: function (tx: any) {
+        return this
+      },
+    }
+
+    mockQuotasRepository = {
+      getById: async function () {
+        return mockQuota
+      },
+      update: async function (id, data: any) {
+        return { ...mockQuota, ...data }
+      },
+      withTx: function (tx: any) {
+        return this
+      },
+    }
+
+    mockDb = {
+      transaction: async function <T>(fn: (tx: any) => Promise<T>) {
+        return await fn(mockDb)
+      },
+    }
+
+    service = new RefundPaymentService(
+      mockDb as never,
+      mockPaymentsRepository as never,
+      mockPaymentApplicationsRepository as never,
+      mockQuotasRepository as never
+    )
   })
 
   describe('execute', function () {
@@ -63,12 +156,13 @@ describe('RefundPaymentService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data.payment.status).toBe('refunded')
-        expect(result.data.message).toBe('Payment refunded successfully')
+        expect(result.data.reversedApplications).toBe(1)
+        expect(result.data.message).toContain('Payment refunded')
       }
     })
 
     it('should fail when payment not found', async function () {
-      mockRepository.getById = async function () {
+      mockPaymentsRepository.getById = async function () {
         return null
       }
 
@@ -85,7 +179,7 @@ describe('RefundPaymentService', function () {
     })
 
     it('should fail when payment is not completed', async function () {
-      mockRepository.getById = async function () {
+      mockPaymentsRepository.getById = async function () {
         return { ...mockPayment, status: 'pending_verification' }
       }
 

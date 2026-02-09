@@ -5,7 +5,7 @@ import type { IEndpoint } from './types'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 
 export class UserNotificationPreferencesEndpoint implements IEndpoint {
-  readonly path = '/user-notification-preferences'
+  readonly path = '/me/notification-preferences'
   private readonly controller: UserNotificationPreferencesController
 
   constructor(db: TDrizzleClient) {

@@ -44,6 +44,13 @@ export { ManagementCompanyMembersEndpoint } from './management-company-members.e
 export { SupportTicketsEndpoint } from './support-tickets.endpoint'
 export { SupportTicketMessagesEndpoint } from './support-ticket-messages.endpoint'
 
+// Amenities & Reservations
+export { AmenitiesEndpoint } from './amenities.endpoint'
+export { AmenityReservationsEndpoint } from './amenity-reservations.endpoint'
+
+// Reports
+export { ReportsEndpoint } from './reports.endpoint'
+
 // WebSocket
 export { WebSocketEndpoint, websocket, handleWebSocketUpgrade } from './websocket.endpoint'
 

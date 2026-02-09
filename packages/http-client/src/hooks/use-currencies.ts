@@ -50,7 +50,7 @@ export interface IDeleteCurrencyOptions {
 
 export function useCurrencies(options?: IUseCurrenciesOptions) {
   return useApiQuery<TApiDataResponse<TCurrency[]>>({
-    path: '/currencies',
+    path: '/platform/currencies',
     queryKey: currencyKeys.lists(),
     config: {},
     enabled: options?.enabled !== false,
@@ -63,7 +63,7 @@ export function useCurrencies(options?: IUseCurrenciesOptions) {
 
 export function useCurrency(id: string, options?: IUseCurrencyOptions) {
   return useApiQuery<TApiDataResponse<TCurrency>>({
-    path: `/currencies/${id}`,
+    path: `/platform/currencies/${id}`,
     queryKey: currencyKeys.detail(id),
     config: {},
     enabled: options?.enabled !== false && !!id,
@@ -76,7 +76,7 @@ export function useCurrency(id: string, options?: IUseCurrencyOptions) {
 
 export function useBaseCurrency(options?: IUseCurrencyOptions) {
   return useApiQuery<TApiDataResponse<TCurrency>>({
-    path: '/currencies/base',
+    path: '/platform/currencies/base',
     queryKey: currencyKeys.base(),
     config: {},
     enabled: options?.enabled !== false,
@@ -89,7 +89,7 @@ export function useBaseCurrency(options?: IUseCurrencyOptions) {
 
 export function useCreateCurrency(options?: ICreateCurrencyOptions) {
   return useApiMutation<TApiDataResponse<TCurrency>, TCurrencyCreate>({
-    path: '/currencies',
+    path: '/platform/currencies',
     method: 'POST',
     config: {},
     onSuccess: options?.onSuccess,
@@ -104,7 +104,7 @@ export function useCreateCurrency(options?: ICreateCurrencyOptions) {
 
 export function useUpdateCurrency(id: string, options?: IUpdateCurrencyOptions) {
   return useApiMutation<TApiDataResponse<TCurrency>, TCurrencyUpdate>({
-    path: `/currencies/${id}`,
+    path: `/platform/currencies/${id}`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
@@ -119,7 +119,7 @@ export function useUpdateCurrency(id: string, options?: IUpdateCurrencyOptions) 
 
 export function useDeleteCurrency(options?: IDeleteCurrencyOptions) {
   return useApiMutation<TApiDataResponse<TCurrency>, { id: string }>({
-    path: (data) => `/currencies/${data.id}`,
+    path: (data) => `/platform/currencies/${data.id}`,
     method: 'DELETE',
     config: {},
     onSuccess: options?.onSuccess,
@@ -134,18 +134,18 @@ export function useDeleteCurrency(options?: IDeleteCurrencyOptions) {
 
 export async function getCurrencies(): Promise<TCurrency[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TCurrency[]>>('/currencies')
+  const response = await client.get<TApiDataResponse<TCurrency[]>>('/platform/currencies')
   return response.data.data
 }
 
 export async function getBaseCurrency(): Promise<TCurrency> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TCurrency>>('/currencies/base')
+  const response = await client.get<TApiDataResponse<TCurrency>>('/platform/currencies/base')
   return response.data.data
 }
 
 export async function getCurrency(id: string): Promise<TCurrency> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TCurrency>>(`/currencies/${id}`)
+  const response = await client.get<TApiDataResponse<TCurrency>>(`/platform/currencies/${id}`)
   return response.data.data
 }

@@ -120,9 +120,11 @@ describe('ManagementCompaniesController', function () {
     const mockSubscriptionsRepository = {} as any
     const mockLocationsRepository = {
       getById: async () => null,
+      getByIdWithHierarchy: async () => null,
     } as any
     const mockUsersRepository = {
       getById: async () => null,
+      checkIsSuperadmin: async () => false,
     } as any
 
     // Create controller with mock repository

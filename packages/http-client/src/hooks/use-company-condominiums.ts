@@ -33,7 +33,7 @@ export function useCompanyCondominiums(
   const { token, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TCondominium[]>>({
-    path: `/condominiums/management-company/${companyId}`,
+    path: `/platform/condominiums/management-company/${companyId}`,
     queryKey: companyCondominiumsKeys.list(companyId),
     config: token
       ? {
@@ -60,7 +60,7 @@ export function useCompanyCondominiumsPaginated(options: UseCompanyCondominiumsP
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
 
   const queryString = params.toString()
-  const path = `/condominiums/management-company/${companyId}${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/condominiums/management-company/${companyId}${queryString ? `?${queryString}` : ''}`
 
   return useApiQuery<TApiPaginatedResponse<TCondominium>>({
     path,
@@ -79,7 +79,7 @@ export async function getCompanyCondominiums(
   const client = getHttpClient()
 
   const response = await client.get<TApiDataResponse<TCondominium[]>>(
-    `/condominiums/management-company/${companyId}`,
+    `/platform/condominiums/management-company/${companyId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -108,7 +108,7 @@ export async function getCompanyCondominiumsPaginated(
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
 
   const queryString = params.toString()
-  const path = `/condominiums/management-company/${companyId}${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/condominiums/management-company/${companyId}${queryString ? `?${queryString}` : ''}`
 
   const response = await client.get<TApiPaginatedResponse<TCondominium>>(path, {
     headers: {

@@ -11,11 +11,12 @@ import {
   type TAttachment,
 } from '@packages/domain'
 import type { SupportTicketMessagesRepository, SupportTicketsRepository } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { isUserAuthenticated } from '../../middlewares/utils/auth/is-user-authenticated'
 import { canAccessTicketByTicketId } from '../../middlewares/utils/auth/can-access-ticket'
-import { isSuperadmin } from '../../middlewares/utils/auth/is-superadmin'
+import { requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -44,47 +45,48 @@ export class SupportTicketMessagesController extends BaseController<
   private readonly createService: CreateMessageService
 
   constructor(
+    private readonly db: TDrizzleClient,
     repository: SupportTicketMessagesRepository,
     private readonly ticketsRepository: SupportTicketsRepository
   ) {
     super(repository)
-    this.createService = new CreateMessageService(repository, ticketsRepository)
+    this.createService = new CreateMessageService(db, repository, ticketsRepository)
 
-    this.getMessagesByTicket = this.getMessagesByTicket.bind(this)
-    this.createMessage = this.createMessage.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      // Get messages for a ticket (superadmin or condominium user of the management company)
+      // Superadmin: Get messages for a ticket
       {
         method: 'get',
-        path: '/support-tickets/:ticketId/messages',
+        path: '/platform/support-tickets/:ticketId/messages',
         handler: this.getMessagesByTicket,
         middlewares: [
           isUserAuthenticated,
+          requireRole('SUPERADMIN'),
           paramsValidator(TicketIdParamSchema),
           canAccessTicketByTicketId,
         ],
       },
-      // Create message (superadmin or condominium user of the management company)
+      // Superadmin: Create message
       {
         method: 'post',
-        path: '/support-tickets/:ticketId/messages',
+        path: '/platform/support-tickets/:ticketId/messages',
         handler: this.createMessage,
         middlewares: [
           isUserAuthenticated,
+          requireRole('SUPERADMIN'),
           paramsValidator(TicketIdParamSchema),
           canAccessTicketByTicketId,
           bodyValidator(supportTicketMessageCreateSchema.omit({ ticketId: true, userId: true })),
         ],
       },
-      // Delete message (superadmin only)
+      // Superadmin: Delete message
       {
         method: 'delete',
-        path: '/support-ticket-messages/:id',
+        path: '/platform/support-ticket-messages/:id',
         handler: this.delete,
-        middlewares: [isUserAuthenticated, isSuperadmin, paramsValidator(IdParamSchema)],
+        middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -93,7 +95,7 @@ export class SupportTicketMessagesController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getMessagesByTicket(c: Context): Promise<Response> {
+  private getMessagesByTicket = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TTicketIdParam>(c)
     const repo = this.repository as SupportTicketMessagesRepository
 
@@ -106,7 +108,7 @@ export class SupportTicketMessagesController extends BaseController<
     }
   }
 
-  private async createMessage(c: Context): Promise<Response> {
+  private createMessage = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<Omit<TSupportTicketMessageCreate, 'ticketId' | 'userId'>, unknown, TTicketIdParam>(c)
     const user = ctx.getAuthenticatedUser()
     const t = useTranslation(c)

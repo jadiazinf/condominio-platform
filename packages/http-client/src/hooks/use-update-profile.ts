@@ -21,7 +21,7 @@ export function useUpdateProfile(options: UseUpdateProfileOptions) {
   const { token, onSuccess, onError } = options
 
   return useApiMutation<TApiDataMessageResponse<TUser>, TUserUpdateProfile>({
-    path: '/users/me',
+    path: '/platform/users/me',
     method: 'PATCH',
     config: {
       headers: {
@@ -40,7 +40,7 @@ export function useUpdateProfile(options: UseUpdateProfileOptions) {
  */
 export async function updateProfile(token: string, data: TUserUpdateProfile): Promise<TUser> {
   const client = getHttpClient()
-  const response = await client.patch<TApiDataMessageResponse<TUser>>('/users/me', data, {
+  const response = await client.patch<TApiDataMessageResponse<TUser>>('/platform/users/me', data, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

@@ -9,15 +9,10 @@ import {
 import type { PaymentConceptsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
-
-const CondominiumIdParamSchema = z.object({
-  condominiumId: z.string().uuid('Invalid condominium ID format'),
-})
-
-type TCondominiumIdParam = z.infer<typeof CondominiumIdParamSchema>
 
 const BuildingIdParamSchema = z.object({
   buildingId: z.string().uuid('Invalid building ID format'),
@@ -33,11 +28,11 @@ type TConceptTypeParam = z.infer<typeof ConceptTypeParamSchema>
 
 /**
  * Controller for managing payment concept resources.
+ * List is scoped by condominiumId from the requireRole middleware context.
  *
  * Endpoints:
- * - GET    /                              List all payment concepts
+ * - GET    /                              List payment concepts (scoped by condominium)
  * - GET    /recurring                     Get recurring concepts
- * - GET    /condominium/:condominiumId    Get by condominium
  * - GET    /building/:buildingId          Get by building
  * - GET    /type/:conceptType             Get by concept type
  * - GET    /:id                           Get by ID
@@ -52,57 +47,47 @@ export class PaymentConceptsController extends BaseController<
 > {
   constructor(repository: PaymentConceptsRepository) {
     super(repository)
-    this.getByCondominiumId = this.getByCondominiumId.bind(this)
-    this.getByBuildingId = this.getByBuildingId.bind(this)
-    this.getRecurringConcepts = this.getRecurringConcepts.bind(this)
-    this.getByConceptType = this.getByConceptType.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
-      { method: 'get', path: '/recurring', handler: this.getRecurringConcepts },
-      {
-        method: 'get',
-        path: '/condominium/:condominiumId',
-        handler: this.getByCondominiumId,
-        middlewares: [paramsValidator(CondominiumIdParamSchema)],
-      },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
+      { method: 'get', path: '/recurring', handler: this.getRecurringConcepts, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
       {
         method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
-        middlewares: [paramsValidator(BuildingIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(BuildingIdParamSchema)],
       },
       {
         method: 'get',
         path: '/type/:conceptType',
         handler: this.getByConceptType,
-        middlewares: [paramsValidator(ConceptTypeParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(ConceptTypeParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(paymentConceptCreateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(paymentConceptCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(paymentConceptUpdateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema), bodyValidator(paymentConceptUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -111,19 +96,16 @@ export class PaymentConceptsController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByCondominiumId(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, unknown, TCondominiumIdParam>(c)
+  protected override list = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     const repo = this.repository as PaymentConceptsRepository
 
-    try {
-      const concepts = await repo.getByCondominiumId(ctx.params.condominiumId)
-      return ctx.ok({ data: concepts })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const concepts = await repo.getByCondominiumId(condominiumId)
+    return ctx.ok({ data: concepts })
   }
 
-  private async getByBuildingId(c: Context): Promise<Response> {
+  private getByBuildingId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)
     const repo = this.repository as PaymentConceptsRepository
 
@@ -135,7 +117,7 @@ export class PaymentConceptsController extends BaseController<
     }
   }
 
-  private async getRecurringConcepts(c: Context): Promise<Response> {
+  private getRecurringConcepts = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const repo = this.repository as PaymentConceptsRepository
 
@@ -147,7 +129,7 @@ export class PaymentConceptsController extends BaseController<
     }
   }
 
-  private async getByConceptType(c: Context): Promise<Response> {
+  private getByConceptType = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TConceptTypeParam>(c)
     const repo = this.repository as PaymentConceptsRepository
 

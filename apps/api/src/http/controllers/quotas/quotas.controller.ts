@@ -13,7 +13,7 @@ import {
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
-import { authMiddleware } from '../../middlewares/auth'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -82,57 +82,52 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
     this.getOverdueQuotasService = new GetOverdueQuotasService(repository)
     this.getQuotasByPeriodService = new GetQuotasByPeriodService(repository)
 
-    this.getByUnitId = this.getByUnitId.bind(this)
-    this.getPendingByUnit = this.getPendingByUnit.bind(this)
-    this.getByStatus = this.getByStatus.bind(this)
-    this.getOverdue = this.getOverdue.bind(this)
-    this.getByPeriod = this.getByPeriod.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
       {
         method: 'get',
         path: '/unit/:unitId',
         handler: this.getByUnitId,
-        middlewares: [authMiddleware, paramsValidator(UnitIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(UnitIdParamSchema)],
       },
       {
         method: 'get',
         path: '/unit/:unitId/pending',
         handler: this.getPendingByUnit,
-        middlewares: [authMiddleware, paramsValidator(UnitIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(UnitIdParamSchema)],
       },
       {
         method: 'get',
         path: '/status/:status',
         handler: this.getByStatus,
-        middlewares: [authMiddleware, paramsValidator(StatusParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(StatusParamSchema)],
       },
       {
         method: 'get',
         path: '/overdue/:date',
         handler: this.getOverdue,
-        middlewares: [authMiddleware, paramsValidator(DateParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(DateParamSchema)],
       },
       {
         method: 'get',
         path: '/period',
         handler: this.getByPeriod,
-        middlewares: [authMiddleware, queryValidator(PeriodQuerySchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), queryValidator(PeriodQuerySchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, bodyValidator(quotaCreateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), bodyValidator(quotaCreateSchema)],
       },
       {
         method: 'patch',
@@ -140,6 +135,7 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
         handler: this.update,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN', 'ACCOUNTANT'),
           paramsValidator(IdParamSchema),
           bodyValidator(quotaUpdateSchema),
         ],
@@ -148,16 +144,28 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Overridden Handlers
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override list = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    // TODO: Filter by condominiumId via JOIN through unit → building.condominiumId
+    const entities = await this.repository.listAll()
+    return ctx.ok({ data: entities })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByUnitId(c: Context): Promise<Response> {
+  private getByUnitId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)
 
     try {
@@ -175,7 +183,7 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
     }
   }
 
-  private async getPendingByUnit(c: Context): Promise<Response> {
+  private getPendingByUnit = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)
 
     try {
@@ -193,7 +201,7 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
     }
   }
 
-  private async getByStatus(c: Context): Promise<Response> {
+  private getByStatus = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TStatusParam>(c)
 
     try {
@@ -211,7 +219,7 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
     }
   }
 
-  private async getOverdue(c: Context): Promise<Response> {
+  private getOverdue = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TDateParam>(c)
 
     try {
@@ -229,7 +237,7 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
     }
   }
 
-  private async getByPeriod(c: Context): Promise<Response> {
+  private getByPeriod = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TPeriodQuery>(c)
 
     try {

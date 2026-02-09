@@ -10,7 +10,7 @@ const NOTIFICATION_CATEGORIES = [
   'alert',
   'system',
 ] as const
-const NOTIFICATION_CHANNELS = ['in_app', 'email'] as const
+const NOTIFICATION_CHANNELS = ['in_app', 'email', 'push'] as const
 
 export interface IInitializeUserPreferencesInput {
   userId: string

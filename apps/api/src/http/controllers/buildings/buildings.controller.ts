@@ -9,7 +9,7 @@ import {
 import type { BuildingsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware } from '../../middlewares/auth'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -18,30 +18,22 @@ import {
   GetBuildingByCondominiumAndCodeService,
 } from '@src/services/buildings'
 
-const CondominiumIdParamSchema = z.object({
-  condominiumId: z.string().uuid('Invalid condominium ID format'),
-})
-
-type TCondominiumIdParam = z.infer<typeof CondominiumIdParamSchema>
-
-const CondominiumAndCodeParamSchema = z.object({
-  condominiumId: z.string().uuid('Invalid condominium ID format'),
+const CodeParamSchema = z.object({
   code: z.string().min(1),
 })
 
-type TCondominiumAndCodeParam = z.infer<typeof CondominiumAndCodeParamSchema>
+type TCodeParam = z.infer<typeof CodeParamSchema>
 
 /**
  * Controller for managing building resources.
  *
  * Endpoints:
- * - GET    /                                      List all buildings
- * - GET    /condominium/:condominiumId            Get by condominium
- * - GET    /condominium/:condominiumId/code/:code Get by condominium and code
- * - GET    /:id                                   Get by ID
- * - POST   /                                      Create building
- * - PATCH  /:id                                   Update building
- * - DELETE /:id                                   Delete building
+ * - GET    /                List buildings (scoped by condominium from context)
+ * - GET    /code/:code      Get by condominium (context) and code
+ * - GET    /:id             Get by ID
+ * - POST   /                Create building (condominiumId injected from context)
+ * - PATCH  /:id             Update building
+ * - DELETE /:id             Delete building
  */
 export class BuildingsController extends BaseController<
   TBuilding,
@@ -60,36 +52,28 @@ export class BuildingsController extends BaseController<
       repository
     )
 
-    this.getByCondominiumId = this.getByCondominiumId.bind(this)
-    this.getByCondominiumAndCode = this.getByCondominiumAndCode.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT')] },
       {
         method: 'get',
-        path: '/condominium/:condominiumId',
-        handler: this.getByCondominiumId,
-        middlewares: [authMiddleware, paramsValidator(CondominiumIdParamSchema)],
-      },
-      {
-        method: 'get',
-        path: '/condominium/:condominiumId/code/:code',
+        path: '/code/:code',
         handler: this.getByCondominiumAndCode,
-        middlewares: [authMiddleware, paramsValidator(CondominiumAndCodeParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT'), paramsValidator(CodeParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, bodyValidator(buildingCreateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(buildingCreateSchema)],
       },
       {
         method: 'patch',
@@ -97,6 +81,7 @@ export class BuildingsController extends BaseController<
         handler: this.update,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(buildingUpdateSchema),
         ],
@@ -105,39 +90,46 @@ export class BuildingsController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Overridden Handlers
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override list = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+
+    const result = await this.getBuildingsByCondominiumService.execute({ condominiumId })
+
+    if (!result.success) {
+      return ctx.internalError({ error: result.error })
+    }
+
+    return ctx.ok({ data: result.data })
+  }
+
+  protected override create = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TBuildingCreate>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const entity = await this.repository.create({ ...ctx.body, condominiumId })
+    return ctx.created({ data: entity })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByCondominiumId(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, unknown, TCondominiumIdParam>(c)
-
-    try {
-      const result = await this.getBuildingsByCondominiumService.execute({
-        condominiumId: ctx.params.condominiumId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
-  }
-
-  private async getByCondominiumAndCode(c: Context): Promise<Response> {
-    const ctx = this.ctx<unknown, unknown, TCondominiumAndCodeParam>(c)
+  private getByCondominiumAndCode = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TCodeParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
       const result = await this.getBuildingByCondominiumAndCodeService.execute({
-        condominiumId: ctx.params.condominiumId,
+        condominiumId,
         code: ctx.params.code,
       })
 

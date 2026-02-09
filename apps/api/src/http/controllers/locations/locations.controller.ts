@@ -13,6 +13,7 @@ import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { z } from 'zod'
 
 const LocationTypeParamSchema = z.object({
@@ -46,48 +47,46 @@ export class LocationsController extends BaseController<
 > {
   constructor(repository: LocationsRepository) {
     super(repository)
-    this.getByType = this.getByType.bind(this)
-    this.getByParentId = this.getByParentId.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
       {
         method: 'get',
         path: '/type/:type',
         handler: this.getByType,
-        middlewares: [paramsValidator(LocationTypeParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(LocationTypeParamSchema)],
       },
       {
         method: 'get',
         path: '/parent/:parentId',
         handler: this.getByParentId,
-        middlewares: [paramsValidator(ParentIdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(ParentIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(locationCreateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(locationCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(locationUpdateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(locationUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -96,7 +95,7 @@ export class LocationsController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByType(c: Context): Promise<Response> {
+  private getByType = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TLocationTypeParam>(c)
     const repo = this.repository as LocationsRepository
 
@@ -108,7 +107,7 @@ export class LocationsController extends BaseController<
     }
   }
 
-  private async getByParentId(c: Context): Promise<Response> {
+  private getByParentId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TParentIdParam>(c)
     const repo = this.repository as LocationsRepository
 

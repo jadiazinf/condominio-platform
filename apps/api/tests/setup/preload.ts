@@ -168,11 +168,31 @@ const createAuthMock = () => {
     c.set('decodedToken', { uid: 'test-firebase-uid', email: 'test@test.com' })
     await next()
   }
+  // Mock requireRole: sets role and condominiumId in context (mirrors real test bypass)
+  const mockRequireRole = (...allowedRoles: string[]) => {
+    return async (
+      c: { set: (key: string, value: unknown) => void; req: { header: (name: string) => string | undefined } },
+      next: () => Promise<void>
+    ) => {
+      const role = allowedRoles[0] || 'SUPERADMIN'
+      c.set('userRole', role)
+      if (role !== 'SUPERADMIN') {
+        const condominiumId = c.req.header('x-condominium-id')
+        if (condominiumId) {
+          c.set('condominiumId', condominiumId)
+        }
+      }
+      await next()
+    }
+  }
   return {
     authMiddleware: mockAuthHandler,
     isUserAuthenticated: mockAuthHandler,
     tokenOnlyMiddleware: mockTokenOnlyHandler,
     isTokenValid: mockTokenOnlyHandler,
+    requireRole: mockRequireRole,
+    CONDOMINIUM_ID_PROP: 'condominiumId',
+    USER_ROLE_PROP: 'userRole',
   }
 }
 
@@ -182,38 +202,12 @@ mock.module(path.resolve(process.cwd(), 'src/http/middlewares/auth.ts'), createA
 mock.module(path.resolve(__dirname, '../../src/http/middlewares/auth.ts'), createAuthMock)
 mock.module('../../middlewares/auth', createAuthMock)
 
-// Mock direct path imports for is-user-authenticated
-// (some controllers import directly instead of through barrel)
-const createAuthMockDirect = () => ({
-  isUserAuthenticated: createAuthMock().isUserAuthenticated,
-  AUTHENTICATED_USER_PROP: 'user',
-})
-mock.module('@http/middlewares/utils/auth/is-user-authenticated', createAuthMockDirect)
-mock.module(
-  path.resolve(process.cwd(), 'src/http/middlewares/utils/auth/is-user-authenticated.ts'),
-  createAuthMockDirect
-)
-mock.module(
-  path.resolve(__dirname, '../../src/http/middlewares/utils/auth/is-user-authenticated.ts'),
-  createAuthMockDirect
-)
+// Note: isUserAuthenticated and isTokenValid are NOT mocked via direct path because:
+// - isUserAuthenticated has a built-in test bypass (checks NODE_ENV === 'test')
+// - isTokenValid uses Firebase which is already mocked above
+// - Direct path mocks would break tests that test the real middleware (e.g., auth.middleware.test.ts)
 
-// Mock direct path imports for is-token-valid
-const createTokenValidMockDirect = () => ({
-  isTokenValid: createAuthMock().isTokenValid,
-  DECODED_TOKEN_PROP: 'decodedToken',
-})
-mock.module('@http/middlewares/utils/auth/is-token-valid', createTokenValidMockDirect)
-mock.module(
-  path.resolve(process.cwd(), 'src/http/middlewares/utils/auth/is-token-valid.ts'),
-  createTokenValidMockDirect
-)
-mock.module(
-  path.resolve(__dirname, '../../src/http/middlewares/utils/auth/is-token-valid.ts'),
-  createTokenValidMockDirect
-)
-
-// Mock isSuperadmin middleware
+// Mock isSuperadmin middleware (no test bypass, hits DB directly for role checks)
 const createSuperadminMock = () => {
   const mockSuperadminHandler = async (
     c: { set: (key: string, value: unknown) => void },

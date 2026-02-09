@@ -13,7 +13,7 @@ import type { IEndpoint } from './types'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 
 export class UserInvitationsEndpoint implements IEndpoint {
-  readonly path = '/user-invitations'
+  readonly path = '/condominium/user-invitations'
   private readonly controller: UserInvitationsController
 
   constructor(db: TDrizzleClient) {
@@ -25,6 +25,7 @@ export class UserInvitationsEndpoint implements IEndpoint {
     const condominiumsRepository = new CondominiumsRepository(db)
     const permissionsRepository = new PermissionsRepository(db)
     this.controller = new UserInvitationsController(
+      db,
       invitationsRepository,
       usersRepository,
       userRolesRepository,

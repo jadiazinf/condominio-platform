@@ -67,7 +67,7 @@ export function useSubscriptionInvoices(
   if (filters?.dateTo) queryParams.set('dateTo', filters.dateTo)
 
   const queryString = queryParams.toString()
-  const path = `/management-companies/${companyId}/invoices${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/management-companies/${companyId}/invoices${queryString ? `?${queryString}` : ''}`
 
   return useApiQuery<TApiDataResponse<TSubscriptionInvoice[]>>({
     path,
@@ -91,7 +91,7 @@ export async function getSubscriptionInvoices(
   if (filters?.dateTo) queryParams.set('dateTo', filters.dateTo)
 
   const queryString = queryParams.toString()
-  const url = `/management-companies/${companyId}/invoices${queryString ? `?${queryString}` : ''}`
+  const url = `/platform/management-companies/${companyId}/invoices${queryString ? `?${queryString}` : ''}`
 
   const response = await client.get<TApiDataResponse<TSubscriptionInvoice[]>>(url)
 
@@ -110,7 +110,7 @@ export function useSubscriptionInvoice(
   options?: IUseSubscriptionInvoiceOptions
 ) {
   return useApiQuery<TApiDataResponse<TSubscriptionInvoice>>({
-    path: `/subscription-invoices/${invoiceId}`,
+    path: `/platform/subscription-invoices/${invoiceId}`,
     queryKey: subscriptionInvoiceKeys.detail(invoiceId),
     config: {},
     enabled: options?.enabled !== false && !!invoiceId,
@@ -123,7 +123,7 @@ export function useSubscriptionInvoice(
 export async function getSubscriptionInvoice(invoiceId: string): Promise<TSubscriptionInvoice> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TSubscriptionInvoice>>(
-    `/subscription-invoices/${invoiceId}`
+    `/platform/subscription-invoices/${invoiceId}`
   )
 
   return response.data.data
@@ -142,7 +142,7 @@ export function useMarkInvoicePaid(
   options?: IMarkInvoicePaidOptions
 ) {
   return useApiMutation<TApiDataResponse<TSubscriptionInvoice>, IMarkInvoicePaidData>({
-    path: `/subscription-invoices/${invoiceId}/mark-paid`,
+    path: `/platform/subscription-invoices/${invoiceId}/mark-paid`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
@@ -163,7 +163,7 @@ export async function markInvoicePaid(
 ): Promise<TSubscriptionInvoice> {
   const client = getHttpClient()
   const response = await client.patch<TApiDataResponse<TSubscriptionInvoice>>(
-    `/subscription-invoices/${invoiceId}/mark-paid`,
+    `/platform/subscription-invoices/${invoiceId}/mark-paid`,
     data
   )
 
@@ -183,7 +183,7 @@ export function downloadInvoicePDF(invoiceId: string): void {
   // @ts-ignore - window is only available in browser
   if (typeof window === 'undefined') return
 
-  const url = `/subscription-invoices/${invoiceId}/download-pdf`
+  const url = `/platform/subscription-invoices/${invoiceId}/download-pdf`
   // @ts-ignore - window is only available in browser
   window.open(url, '_blank')
 }

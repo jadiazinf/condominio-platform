@@ -14,7 +14,7 @@ import {
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
-import { authMiddleware } from '../../middlewares/auth'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -102,21 +102,11 @@ export class UserRolesController extends BaseController<
     this.getRolesByUserAndBuildingService = new GetRolesByUserAndBuildingService(repository)
     this.checkUserHasRoleService = new CheckUserHasRoleService(repository)
 
-    this.getByUserId = this.getByUserId.bind(this)
-    this.getGlobalRolesByUser = this.getGlobalRolesByUser.bind(this)
-    this.getByUserAndCondominium = this.getByUserAndCondominium.bind(this)
-    this.getByUserAndBuilding = this.getByUserAndBuilding.bind(this)
-    this.checkUserHasRole = this.checkUserHasRole.bind(this)
-    // Superadmin methods
-    this.checkIsSuperadmin = this.checkIsSuperadmin.bind(this)
-    this.getSuperadminSession = this.getSuperadminSession.bind(this)
-    this.getActiveSuperadminUsers = this.getActiveSuperadminUsers.bind(this)
-    this.listSuperadminUsersPaginated = this.listSuperadminUsersPaginated.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN')] },
       // Superadmin endpoints (must be before :id to avoid conflicts)
       {
         method: 'get',
@@ -159,13 +149,13 @@ export class UserRolesController extends BaseController<
         method: 'get',
         path: '/user/:userId/condominium/:condominiumId',
         handler: this.getByUserAndCondominium,
-        middlewares: [authMiddleware, paramsValidator(UserAndCondominiumParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(UserAndCondominiumParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId/building/:buildingId',
         handler: this.getByUserAndBuilding,
-        middlewares: [authMiddleware, paramsValidator(UserAndBuildingParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(UserAndBuildingParamSchema)],
       },
       {
         method: 'get',
@@ -173,6 +163,7 @@ export class UserRolesController extends BaseController<
         handler: this.checkUserHasRole,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN'),
           paramsValidator(UserIdParamSchema),
           queryValidator(CheckRoleQuerySchema),
         ],
@@ -181,13 +172,13 @@ export class UserRolesController extends BaseController<
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, bodyValidator(userRoleCreateSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(userRoleCreateSchema)],
       },
       {
         method: 'patch',
@@ -195,6 +186,7 @@ export class UserRolesController extends BaseController<
         handler: this.update,
         middlewares: [
           authMiddleware,
+          requireRole('ADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(userRoleUpdateSchema),
         ],
@@ -203,7 +195,7 @@ export class UserRolesController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -228,7 +220,7 @@ export class UserRolesController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByUserId(c: Context): Promise<Response> {
+  private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
     try {
@@ -246,7 +238,7 @@ export class UserRolesController extends BaseController<
     }
   }
 
-  private async getGlobalRolesByUser(c: Context): Promise<Response> {
+  private getGlobalRolesByUser = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
     try {
@@ -264,7 +256,7 @@ export class UserRolesController extends BaseController<
     }
   }
 
-  private async getByUserAndCondominium(c: Context): Promise<Response> {
+  private getByUserAndCondominium = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserAndCondominiumParam>(c)
 
     try {
@@ -283,7 +275,7 @@ export class UserRolesController extends BaseController<
     }
   }
 
-  private async getByUserAndBuilding(c: Context): Promise<Response> {
+  private getByUserAndBuilding = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserAndBuildingParam>(c)
 
     try {
@@ -302,7 +294,7 @@ export class UserRolesController extends BaseController<
     }
   }
 
-  private async checkUserHasRole(c: Context): Promise<Response> {
+  private checkUserHasRole = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TCheckRoleQuery, TUserIdParam>(c)
 
     try {
@@ -331,7 +323,7 @@ export class UserRolesController extends BaseController<
    * Check if a user is an active superadmin.
    * GET /superadmin/check/:userId
    */
-  private async checkIsSuperadmin(c: Context): Promise<Response> {
+  private checkIsSuperadmin = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
     const repo = this.repository as UserRolesRepository
 
@@ -348,7 +340,7 @@ export class UserRolesController extends BaseController<
    * Returns null if user is not a superadmin.
    * GET /superadmin/session/:userId
    */
-  private async getSuperadminSession(c: Context): Promise<Response> {
+  private getSuperadminSession = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
     const repo = this.repository as UserRolesRepository
 
@@ -376,7 +368,7 @@ export class UserRolesController extends BaseController<
    * Get all active superadmin users (TUser objects).
    * GET /superadmin/active-users
    */
-  private async getActiveSuperadminUsers(c: Context): Promise<Response> {
+  private getActiveSuperadminUsers = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const repo = this.repository as UserRolesRepository
 
@@ -392,7 +384,7 @@ export class UserRolesController extends BaseController<
    * List superadmin users with pagination.
    * GET /superadmin/users
    */
-  private async listSuperadminUsersPaginated(c: Context): Promise<Response> {
+  private listSuperadminUsersPaginated = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TSuperadminUsersQuery>(c)
     const repo = this.repository as UserRolesRepository
 

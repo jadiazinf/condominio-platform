@@ -8,6 +8,7 @@ import {
 } from '@packages/domain'
 import type { UserNotificationPreferencesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
+import { authMiddleware } from '../../middlewares/auth'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
@@ -63,43 +64,41 @@ export class UserNotificationPreferencesController extends BaseController<
     this.updateUserPreferenceService = new UpdateUserPreferenceService(repository)
     this.initializeUserPreferencesService = new InitializeUserPreferencesService(repository)
 
-    this.getByUserId = this.getByUserId.bind(this)
-    this.updateForUser = this.updateForUser.bind(this)
-    this.initializeForUser = this.initializeForUser.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(userNotificationPreferenceCreateSchema)],
+        middlewares: [authMiddleware, bodyValidator(userNotificationPreferenceCreateSchema)],
       },
       {
         method: 'post',
         path: '/user/:userId/initialize',
         handler: this.initializeForUser,
-        middlewares: [paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'put',
         path: '/user/:userId',
         handler: this.updateForUser,
         middlewares: [
+          authMiddleware,
           paramsValidator(UserIdParamSchema),
           bodyValidator(UpdatePreferenceBodySchema),
         ],
@@ -109,6 +108,7 @@ export class UserNotificationPreferencesController extends BaseController<
         path: '/:id',
         handler: this.update,
         middlewares: [
+          authMiddleware,
           paramsValidator(IdParamSchema),
           bodyValidator(userNotificationPreferenceUpdateSchema),
         ],
@@ -117,12 +117,12 @@ export class UserNotificationPreferencesController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
     ]
   }
 
-  private async getByUserId(c: Context): Promise<Response> {
+  private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
     try {
@@ -140,7 +140,7 @@ export class UserNotificationPreferencesController extends BaseController<
     }
   }
 
-  private async updateForUser(c: Context): Promise<Response> {
+  private updateForUser = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TUpdatePreferenceBody, unknown, TUserIdParam>(c)
 
     try {
@@ -163,7 +163,7 @@ export class UserNotificationPreferencesController extends BaseController<
     }
   }
 
-  private async initializeForUser(c: Context): Promise<Response> {
+  private initializeForUser = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
     try {

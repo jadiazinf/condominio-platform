@@ -8,6 +8,7 @@ import {
 } from '@packages/domain'
 import type { PaymentGatewaysRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
@@ -45,50 +46,47 @@ export class PaymentGatewaysController extends BaseController<
 > {
   constructor(repository: PaymentGatewaysRepository) {
     super(repository)
-    this.getByName = this.getByName.bind(this)
-    this.getByType = this.getByType.bind(this)
-    this.getProductionGateways = this.getProductionGateways.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
-      { method: 'get', path: '/production', handler: this.getProductionGateways },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
+      { method: 'get', path: '/production', handler: this.getProductionGateways, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
       {
         method: 'get',
         path: '/name/:name',
         handler: this.getByName,
-        middlewares: [paramsValidator(NameParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(NameParamSchema)],
       },
       {
         method: 'get',
         path: '/type/:gatewayType',
         handler: this.getByType,
-        middlewares: [paramsValidator(GatewayTypeParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(GatewayTypeParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(paymentGatewayCreateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(paymentGatewayCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(paymentGatewayUpdateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(paymentGatewayUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -97,7 +95,7 @@ export class PaymentGatewaysController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async getByName(c: Context): Promise<Response> {
+  private getByName = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TNameParam>(c)
     const repo = this.repository as PaymentGatewaysRepository
 
@@ -114,7 +112,7 @@ export class PaymentGatewaysController extends BaseController<
     }
   }
 
-  private async getByType(c: Context): Promise<Response> {
+  private getByType = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TGatewayTypeParam>(c)
     const repo = this.repository as PaymentGatewaysRepository
 
@@ -128,7 +126,7 @@ export class PaymentGatewaysController extends BaseController<
     }
   }
 
-  private async getProductionGateways(c: Context): Promise<Response> {
+  private getProductionGateways = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const repo = this.repository as PaymentGatewaysRepository
 

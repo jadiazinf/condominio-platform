@@ -13,10 +13,16 @@ import { QuotaAdjustmentsController } from '@http/controllers/quota-adjustments'
 import type { QuotasRepository, QuotaAdjustmentsRepository } from '@database/repositories'
 import { withId, createTestApp, getErrorMessage, type IApiResponse } from './test-utils'
 
+// Mock db that passes through to the callback with itself as the transaction client
+const mockDb = {
+  transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn(mockDb),
+} as never
+
 // Mock repository types
 type TMockQuotasRepository = {
   getById: (id: string) => Promise<TQuota | null>
   update: (id: string, data: TQuotaUpdate) => Promise<TQuota | null>
+  withTx: (tx: unknown) => TMockQuotasRepository
 }
 
 type TMockQuotaAdjustmentsRepository = {
@@ -26,6 +32,7 @@ type TMockQuotaAdjustmentsRepository = {
   getByCreatedBy: (userId: string) => Promise<TQuotaAdjustment[]>
   getByType: (type: TAdjustmentType) => Promise<TQuotaAdjustment[]>
   create: (data: TQuotaAdjustmentCreate) => Promise<TQuotaAdjustment>
+  withTx: (tx: unknown) => TMockQuotaAdjustmentsRepository
 }
 
 function createTestQuota(overrides: Partial<TQuota> = {}): TQuota {
@@ -108,6 +115,7 @@ describe('QuotaAdjustmentsController', function () {
         }
         return null
       },
+      withTx() { return this },
     }
 
     mockAdjustmentsRepository = {
@@ -129,9 +137,11 @@ describe('QuotaAdjustmentsController', function () {
       create: async function (data: TQuotaAdjustmentCreate) {
         return withId(data, crypto.randomUUID()) as TQuotaAdjustment
       },
+      withTx() { return this },
     }
 
     const controller = new QuotaAdjustmentsController(
+      mockDb,
       mockQuotasRepository as unknown as QuotasRepository,
       mockAdjustmentsRepository as unknown as QuotaAdjustmentsRepository
     )

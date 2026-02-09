@@ -1,6 +1,8 @@
-import { eq, and } from 'drizzle-orm'
+import { eq, and, sql, desc } from 'drizzle-orm'
+import type { SQL } from 'drizzle-orm'
 import type { PgTable } from 'drizzle-orm/pg-core'
 import type { TDrizzleClient } from '../interfaces'
+import type { TPaginatedResponse } from '@packages/domain'
 
 /**
  * Abstract base repository providing common CRUD operations.
@@ -54,6 +56,53 @@ export abstract class BaseRepository<TTable extends PgTable, TEntity, TCreateDto
 
     const results = await this.db.select().from(tableAny)
     return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Retrieves records with pagination, optionally filtering by conditions.
+   * For advanced filtering (search, etc.), override this in child repositories.
+   */
+  async listPaginated(
+    options: { page?: number; limit?: number },
+    conditions?: SQL[]
+  ): Promise<TPaginatedResponse<TEntity>> {
+    const page = options.page ?? 1
+    const limit = options.limit ?? 20
+    const offset = (page - 1) * limit
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic PgTable requires any for Drizzle operations
+    const tableAny = this.table as any
+    const hasIsActive = 'isActive' in tableAny
+
+    const allConditions: SQL[] = []
+    if (hasIsActive) {
+      allConditions.push(eq(tableAny.isActive, true))
+    }
+    if (conditions) {
+      allConditions.push(...conditions)
+    }
+
+    const whereClause = allConditions.length > 0 ? and(...allConditions) : undefined
+
+    const results = await this.db
+      .select()
+      .from(tableAny)
+      .where(whereClause)
+      .orderBy(desc(tableAny.createdAt))
+      .limit(limit)
+      .offset(offset)
+
+    const countResult = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(tableAny)
+      .where(whereClause)
+
+    const total = countResult[0]?.count ?? 0
+
+    return {
+      data: results.map(record => this.mapToEntity(record)),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    }
   }
 
   /**
@@ -148,6 +197,18 @@ export abstract class BaseRepository<TTable extends PgTable, TEntity, TCreateDto
       .returning()
 
     return results.length > 0
+  }
+
+  /**
+   * Returns a shallow clone of this repository using the given transaction client.
+   * Allows multiple repositories to share the same transaction.
+   */
+  withTx(tx: TDrizzleClient): this {
+    const clone = Object.create(Object.getPrototypeOf(this)) as this
+    Object.assign(clone, this)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Override readonly for transaction support
+    ;(clone as any).db = tx
+    return clone
   }
 
   /**

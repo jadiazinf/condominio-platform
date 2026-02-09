@@ -9,6 +9,7 @@ import {
 import type { ExchangeRatesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -56,52 +57,48 @@ export class ExchangeRatesController extends BaseController<
 > {
   constructor(repository: ExchangeRatesRepository) {
     super(repository)
-    this.getLatestRate = this.getLatestRate.bind(this)
-    this.getLatestRates = this.getLatestRates.bind(this)
-    this.getByDate = this.getByDate.bind(this)
-    this.listPaginated = this.listPaginated.bind(this)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list },
-      { method: 'get', path: '/paginated', handler: this.listPaginated },
-      { method: 'get', path: '/latest', handler: this.getLatestRates },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
+      { method: 'get', path: '/paginated', handler: this.listPaginated, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
+      { method: 'get', path: '/latest', handler: this.getLatestRates, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
       {
         method: 'get',
         path: '/date/:date',
         handler: this.getByDate,
-        middlewares: [paramsValidator(DateParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(DateParamSchema)],
       },
       {
         method: 'get',
         path: '/latest/:fromCurrencyId/:toCurrencyId',
         handler: this.getLatestRate,
-        middlewares: [paramsValidator(CurrencyPairParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(CurrencyPairParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [bodyValidator(exchangeRateCreateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(exchangeRateCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [paramsValidator(IdParamSchema), bodyValidator(exchangeRateUpdateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(exchangeRateUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -110,7 +107,7 @@ export class ExchangeRatesController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async listPaginated(c: Context): Promise<Response> {
+  private listPaginated = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const repo = this.repository as ExchangeRatesRepository
     const raw = c.req.query()
@@ -131,7 +128,7 @@ export class ExchangeRatesController extends BaseController<
     }
   }
 
-  private async getLatestRates(c: Context): Promise<Response> {
+  private getLatestRates = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const repo = this.repository as ExchangeRatesRepository
 
@@ -143,7 +140,7 @@ export class ExchangeRatesController extends BaseController<
     }
   }
 
-  private async getLatestRate(c: Context): Promise<Response> {
+  private getLatestRate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TCurrencyPairParam>(c)
     const repo = this.repository as ExchangeRatesRepository
 
@@ -160,7 +157,7 @@ export class ExchangeRatesController extends BaseController<
     }
   }
 
-  private async getByDate(c: Context): Promise<Response> {
+  private getByDate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TDateParam>(c)
     const repo = this.repository as ExchangeRatesRepository
 

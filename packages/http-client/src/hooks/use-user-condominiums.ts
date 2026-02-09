@@ -16,7 +16,7 @@ export function useUserCondominiums(options: UseUserCondominiumsOptions = {}) {
   const { token, enabled = true } = options
 
   return useApiQuery<TUserCondominiumsResponse>({
-    path: '/users/me/condominiums',
+    path: '/platform/users/me/condominiums',
     queryKey: ['users', 'me', 'condominiums'],
     enabled: enabled && !!token,
     config: token

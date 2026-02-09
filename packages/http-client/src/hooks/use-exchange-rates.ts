@@ -53,7 +53,7 @@ export interface IDeleteExchangeRateOptions {
 
 export function useExchangeRates(options?: { enabled?: boolean }) {
   return useApiQuery<TApiDataResponse<TExchangeRate[]>>({
-    path: '/exchange-rates',
+    path: '/platform/exchange-rates',
     queryKey: exchangeRateKeys.lists(),
     config: {},
     enabled: options?.enabled !== false,
@@ -76,7 +76,7 @@ export function useExchangeRatesPaginated(options?: IUseExchangeRatesOptions) {
   if (query.dateTo) params.set('dateTo', query.dateTo)
 
   const queryString = params.toString()
-  const path = `/exchange-rates/paginated${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/exchange-rates/paginated${queryString ? `?${queryString}` : ''}`
 
   return useApiQuery<TApiPaginatedResponse<TExchangeRate>>({
     path,
@@ -92,7 +92,7 @@ export function useExchangeRatesPaginated(options?: IUseExchangeRatesOptions) {
 
 export function useLatestExchangeRates(options?: { enabled?: boolean }) {
   return useApiQuery<TApiDataResponse<TExchangeRate[]>>({
-    path: '/exchange-rates/latest',
+    path: '/platform/exchange-rates/latest',
     queryKey: exchangeRateKeys.latest(),
     config: {},
     enabled: options?.enabled !== false,
@@ -109,7 +109,7 @@ export function useLatestExchangeRate(
   options?: { enabled?: boolean }
 ) {
   return useApiQuery<TApiDataResponse<TExchangeRate>>({
-    path: `/exchange-rates/latest/${fromCurrencyId}/${toCurrencyId}`,
+    path: `/platform/exchange-rates/latest/${fromCurrencyId}/${toCurrencyId}`,
     queryKey: exchangeRateKeys.latestPair(fromCurrencyId, toCurrencyId),
     config: {},
     enabled: options?.enabled !== false && !!fromCurrencyId && !!toCurrencyId,
@@ -122,7 +122,7 @@ export function useLatestExchangeRate(
 
 export function useExchangeRatesByDate(date: string, options?: { enabled?: boolean }) {
   return useApiQuery<TApiDataResponse<TExchangeRate[]>>({
-    path: `/exchange-rates/date/${date}`,
+    path: `/platform/exchange-rates/date/${date}`,
     queryKey: exchangeRateKeys.byDate(date),
     config: {},
     enabled: options?.enabled !== false && !!date,
@@ -135,7 +135,7 @@ export function useExchangeRatesByDate(date: string, options?: { enabled?: boole
 
 export function useCreateExchangeRate(options?: ICreateExchangeRateOptions) {
   return useApiMutation<TApiDataResponse<TExchangeRate>, TExchangeRateCreate>({
-    path: '/exchange-rates',
+    path: '/platform/exchange-rates',
     method: 'POST',
     config: {},
     onSuccess: options?.onSuccess,
@@ -150,7 +150,7 @@ export function useCreateExchangeRate(options?: ICreateExchangeRateOptions) {
 
 export function useDeleteExchangeRate(options?: IDeleteExchangeRateOptions) {
   return useApiMutation<TApiDataResponse<TExchangeRate>, { id: string }>({
-    path: (data) => `/exchange-rates/${data.id}`,
+    path: (data) => `/platform/exchange-rates/${data.id}`,
     method: 'DELETE',
     config: {},
     onSuccess: options?.onSuccess,
@@ -165,7 +165,7 @@ export function useDeleteExchangeRate(options?: IDeleteExchangeRateOptions) {
 
 export async function getLatestExchangeRates(): Promise<TExchangeRate[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TExchangeRate[]>>('/exchange-rates/latest')
+  const response = await client.get<TApiDataResponse<TExchangeRate[]>>('/platform/exchange-rates/latest')
   return response.data.data
 }
 
@@ -181,7 +181,7 @@ export async function getExchangeRatesPaginated(
   if (query.dateFrom) params.set('dateFrom', query.dateFrom)
   if (query.dateTo) params.set('dateTo', query.dateTo)
   const queryString = params.toString()
-  const path = `/exchange-rates/paginated${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/exchange-rates/paginated${queryString ? `?${queryString}` : ''}`
   const response = await client.get<TApiDataResponse<TExchangeRate[]>>(path)
   return response.data.data
 }
