@@ -1,4 +1,4 @@
-import type { TUser, TUserCondominiumAccess, TUserRole, TPermission } from '@packages/domain'
+import type { TUser, TUserCondominiumAccess, TUserRole, TPermission, TUserManagementCompanyAccess, TActiveRoleType } from '@packages/domain'
 
 import { cache } from 'react'
 import { cookies } from 'next/headers'
@@ -9,6 +9,7 @@ import {
   FetchUserError,
   fetchUserCondominiums,
   fetchSuperadminSession,
+  fetchUserManagementCompanies,
 } from '@packages/http-client'
 
 import { verifySessionToken } from '@/libs/firebase/server'
@@ -16,6 +17,8 @@ import {
   getUserCookieServer,
   getCondominiumsCookieServer,
   getSelectedCondominiumCookieServer,
+  getManagementCompaniesCookieServer,
+  getActiveRoleCookieServer,
 } from '@/libs/cookies/server'
 
 const SESSION_COOKIE_NAME = '__session'
@@ -73,8 +76,11 @@ export interface FullSession {
   selectedCondominium: TUserCondominiumAccess | null
   superadmin: TUserRole | null
   superadminPermissions: TPermission[]
+  managementCompanies: TUserManagementCompanyAccess[]
+  activeRole: TActiveRoleType | null
   sessionToken: string
   needsCondominiumSelection: boolean
+  needsRoleSelection: boolean
   /** True if data was freshly fetched from API (not from cookies) - client should update cookies */
   wasFetched: boolean
 }
@@ -115,10 +121,12 @@ export const getFullSession = cache(async function getFullSession(): Promise<Ful
 
   // Try to get user and condominium data from cookies first
   // Note: We always fetch superadmin status from API to catch permission changes
-  const [cookieUser, cookieCondominiums, cookieSelectedCondominium] = await Promise.all([
+  const [cookieUser, cookieCondominiums, cookieSelectedCondominium, cookieManagementCompanies, cookieActiveRole] = await Promise.all([
     getUserCookieServer(),
     getCondominiumsCookieServer(),
     getSelectedCondominiumCookieServer(),
+    getManagementCompaniesCookieServer(),
+    getActiveRoleCookieServer(),
   ])
 
   // Validate that cached user matches current session
@@ -130,6 +138,7 @@ export const getFullSession = cache(async function getFullSession(): Promise<Ful
 
   let user: TUser
   let condominiums: TUserCondominiumAccess[]
+  let managementCompanies: TUserManagementCompanyAccess[]
   let superadmin: TUserRole | null = null
   let superadminPermissions: TPermission[] = []
 
@@ -177,8 +186,8 @@ export const getFullSession = cache(async function getFullSession(): Promise<Ful
 
     user = fetchedUser
 
-    // Fetch condominiums and superadmin in parallel (with silent retry)
-    const [condominiumsResponse, superadminSession] = await Promise.all([
+    // Fetch condominiums, superadmin, and management companies in parallel (with silent retry)
+    const [condominiumsResponse, superadminSession, managementCompaniesResponse] = await Promise.all([
       retryWithBackoff(
         () => fetchUserCondominiums(sessionToken),
         'fetchUserCondominiums'
@@ -187,17 +196,23 @@ export const getFullSession = cache(async function getFullSession(): Promise<Ful
         () => fetchSuperadminSession(fetchedUser.id, sessionToken),
         'fetchSuperadminSession'
       ).catch(() => null), // Non-critical - fall back to null
+      retryWithBackoff(
+        () => fetchUserManagementCompanies(sessionToken),
+        'fetchUserManagementCompanies'
+      ).catch(() => null), // Non-critical - fall back to empty
     ])
 
     condominiums = condominiumsResponse?.condominiums ?? []
     superadmin = superadminSession?.superadmin ?? null
     superadminPermissions = superadminSession?.permissions ?? []
+    managementCompanies = managementCompaniesResponse?.managementCompanies ?? []
 
     // Note: We don't set cookies here because Server Components cannot set cookies.
     // The client-side StoreHydration component will update cookies when wasFetched=true.
   } else {
     user = validCachedUser!
     condominiums = cookieCondominiums ?? []
+    managementCompanies = cookieManagementCompanies ?? []
 
     // Always verify superadmin status from API to catch permission changes
     // This ensures users get updated permissions even if they have valid cached user data
@@ -213,7 +228,25 @@ export const getFullSession = cache(async function getFullSession(): Promise<Ful
 
   const selectedCondominium =
     cookieSelectedCondominium ?? (condominiums.length === 1 ? condominiums[0] : null)
-  const needsCondominiumSelection = condominiums.length > 1 && !selectedCondominium
+
+  // Compute available role types
+  const availableRoles: TActiveRoleType[] = []
+  if (superadmin) availableRoles.push('superadmin')
+  if (managementCompanies.length > 0) availableRoles.push('management_company')
+  if (condominiums.length > 0) availableRoles.push('condominium')
+
+  // Determine active role: cookie → auto-select if single role → null
+  let activeRole: TActiveRoleType | null = cookieActiveRole
+  if (activeRole && !availableRoles.includes(activeRole)) {
+    activeRole = null // Cookie role no longer valid
+  }
+  if (!activeRole && availableRoles.length === 1) {
+    activeRole = availableRoles[0] // Auto-select when only one role type
+  }
+
+  const needsRoleSelection = availableRoles.length > 1 && !activeRole
+  const needsCondominiumSelection =
+    activeRole === 'condominium' && condominiums.length > 1 && !selectedCondominium
 
   return {
     user,
@@ -221,8 +254,11 @@ export const getFullSession = cache(async function getFullSession(): Promise<Ful
     selectedCondominium,
     superadmin,
     superadminPermissions,
+    managementCompanies,
+    activeRole,
     sessionToken,
     needsCondominiumSelection,
+    needsRoleSelection,
     wasFetched: needsUserFetch,
   }
 })

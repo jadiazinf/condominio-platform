@@ -1,9 +1,10 @@
-import { cookies } from 'next/headers'
-import { getCondominiumsPaginated } from '@packages/http-client'
+import { getCondominiumsPaginated, getPlatformCondominiumsPaginated } from '@packages/http-client'
 import type { TCondominiumsQuery } from '@packages/domain'
 
-import { SESSION_COOKIE_NAME } from '@/libs/cookies'
+import { getFullSession } from '@/libs/session'
 import { CondominiumsPageClient } from './CondominiumsPageClient'
+import { getSelectedCondominiumCookieServer } from '@/libs/cookies/server'
+import { redirect } from 'next/navigation'
 
 interface CondominiumsPageProps {
   searchParams: Promise<{
@@ -16,9 +17,15 @@ interface CondominiumsPageProps {
 }
 
 export default async function CondominiumsPage({ searchParams }: CondominiumsPageProps) {
-  const cookieStore = await cookies()
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value || ''
-  const params = await searchParams
+  const [session, selectedCondominium, params] = await Promise.all([
+    getFullSession(),
+    getSelectedCondominiumCookieServer(),
+    searchParams,
+  ])
+
+  if (!session.sessionToken) {
+    redirect('/signin')
+  }
 
   // Build query from URL params
   const query: TCondominiumsQuery = {
@@ -29,14 +36,30 @@ export default async function CondominiumsPage({ searchParams }: CondominiumsPag
     locationId: params.locationId || undefined,
   }
 
-  // Fetch condominiums on the server with pagination
-  const response = await getCondominiumsPaginated(token, query)
+  const isSuperadmin = session.activeRole === 'superadmin'
+  const condominiumId = selectedCondominium?.condominium?.id
 
-  return (
-    <CondominiumsPageClient
-      condominiums={response.data}
-      pagination={response.pagination}
-      initialQuery={query}
-    />
-  )
+  try {
+    // Superadmin: fetch ALL condominiums via /platform/condominiums
+    // Condominium users: fetch scoped via /condominium/condominiums
+    const response = isSuperadmin
+      ? await getPlatformCondominiumsPaginated(session.sessionToken, query)
+      : await getCondominiumsPaginated(session.sessionToken, query, condominiumId)
+
+    return (
+      <CondominiumsPageClient
+        condominiums={response.data}
+        pagination={response.pagination}
+        initialQuery={query}
+      />
+    )
+  } catch {
+    return (
+      <CondominiumsPageClient
+        condominiums={[]}
+        pagination={{ total: 0, page: 1, limit: 10, totalPages: 0 }}
+        initialQuery={query}
+      />
+    )
+  }
 }

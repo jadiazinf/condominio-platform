@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
 import type {
   TUser,
+  TUserRole,
   TManagementCompany,
   TManagementCompanyCreate,
   TManagementCompanyMember,
   TManagementCompanySubscription,
+  TRole,
 } from '@packages/domain'
 import { CreateCompanyWithExistingAdminService } from '@src/services/admin-invitations'
 
@@ -27,6 +29,16 @@ type TMockSubscriptionsRepository = {
   withTx: (tx: unknown) => TMockSubscriptionsRepository
 }
 
+type TMockUserRolesRepository = {
+  create: (data: any) => Promise<TUserRole>
+  getByUserAndRole: (userId: string, roleId: string, condominiumId: string | null) => Promise<TUserRole[]>
+  withTx: (tx: unknown) => TMockUserRolesRepository
+}
+
+type TMockRolesRepository = {
+  getByName: (name: string) => Promise<TRole | null>
+}
+
 // Mock db that executes the transaction callback immediately (no real DB)
 const mockDb = {
   transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn({}),
@@ -38,6 +50,8 @@ describe('CreateCompanyWithExistingAdminService', function () {
   let mockCompaniesRepository: TMockCompaniesRepository
   let mockMembersRepository: TMockMembersRepository
   let mockSubscriptionsRepository: TMockSubscriptionsRepository
+  let mockUserRolesRepository: TMockUserRolesRepository
+  let mockRolesRepository: TMockRolesRepository
   let existingUser: TUser | null
   let companyCreateResult: TManagementCompany | null
   let memberCreateResult: TManagementCompanyMember | null
@@ -83,6 +97,17 @@ describe('CreateCompanyWithExistingAdminService', function () {
     locationId: null,
     logoUrl: null,
     metadata: null,
+  }
+
+  const userRoleId = '550e8400-e29b-41d4-a716-446655440020'
+  const mockUserRole: TRole = {
+    id: '550e8400-e29b-41d4-a716-446655440030',
+    name: 'USER',
+    description: 'Standard user role',
+    isSystemRole: true,
+    registeredBy: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }
 
   let lastMemberCreateData: unknown = null
@@ -195,12 +220,43 @@ describe('CreateCompanyWithExistingAdminService', function () {
       withTx() { return this },
     }
 
+    mockUserRolesRepository = {
+      create: async function (data: any) {
+        return {
+          id: userRoleId,
+          userId: data.userId,
+          roleId: data.roleId,
+          condominiumId: data.condominiumId,
+          buildingId: data.buildingId,
+          isActive: data.isActive,
+          notes: data.notes,
+          assignedAt: new Date(),
+          assignedBy: data.assignedBy,
+          registeredBy: data.registeredBy,
+          expiresAt: data.expiresAt,
+        }
+      },
+      getByUserAndRole: async function () {
+        return [] // No existing role by default
+      },
+      withTx() { return this },
+    }
+
+    mockRolesRepository = {
+      getByName: async function (name: string) {
+        if (name === 'USER') return mockUserRole
+        return null
+      },
+    }
+
     service = new CreateCompanyWithExistingAdminService(
       mockDb,
       mockUsersRepository as never,
       mockCompaniesRepository as never,
       mockMembersRepository as never,
-      mockSubscriptionsRepository as never
+      mockSubscriptionsRepository as never,
+      mockUserRolesRepository as never,
+      mockRolesRepository as never
     )
   })
 
@@ -232,6 +288,45 @@ describe('CreateCompanyWithExistingAdminService', function () {
         // Verify subscription was created
         expect(result.data.subscription).toBeDefined()
         expect(result.data.subscription.status).toBe('trial')
+
+        // Verify user role was assigned
+        expect(result.data.userRole).toBeDefined()
+        expect(result.data.userRole.userId).toBe(existingUserId)
+        expect(result.data.userRole.roleId).toBe(mockUserRole.id)
+        expect(result.data.userRole.isActive).toBe(true)
+        expect(result.data.userRole.condominiumId).toBeNull()
+      }
+    })
+
+    it('should reuse existing user role if user already has USER role', async function () {
+      const existingUserRole: TUserRole = {
+        id: '550e8400-e29b-41d4-a716-446655440040',
+        userId: existingUserId,
+        roleId: mockUserRole.id,
+        condominiumId: null,
+        buildingId: null,
+        isActive: true,
+        notes: 'Previously assigned',
+        assignedAt: new Date(),
+        assignedBy: creatorId,
+        registeredBy: creatorId,
+        expiresAt: null,
+      }
+
+      mockUserRolesRepository.getByUserAndRole = async function () {
+        return [existingUserRole]
+      }
+
+      const result = await service.execute({
+        company: companyInput,
+        existingUserId,
+        createdBy: creatorId,
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        // Should reuse the existing role, not create a new one
+        expect(result.data.userRole.id).toBe(existingUserRole.id)
       }
     })
 

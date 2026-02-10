@@ -1,19 +1,18 @@
-import { Footer } from './components/Footer'
-import { HeroBackground } from './components/HeroBackground'
+import { getUserCookieServer } from '@/libs/cookies/server'
+import { LandingNavbar } from './components/LandingNavbar'
+import { SectionNav } from './components/SectionNav'
 
-import { Navbar } from '@/ui/components/navbar/Navbar'
+export default async function LandingLayout({ children }: { children: React.ReactNode }) {
+  const user = await getUserCookieServer()
+  const isAuthenticated = user !== null
 
-export default function LandingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative flex flex-col min-h-screen">
-      <HeroBackground />
-      <Navbar />
-      <main className="relative z-10 container mx-auto max-w-7xl pt-16 px-6 flex-grow">
+    <div className="relative">
+      <LandingNavbar isAuthenticated={isAuthenticated} />
+      <SectionNav />
+      <main className="snap-container">
         {children}
       </main>
-      <div className="container mx-auto max-w-7xl px-6">
-        <Footer />
-      </div>
     </div>
   )
 }

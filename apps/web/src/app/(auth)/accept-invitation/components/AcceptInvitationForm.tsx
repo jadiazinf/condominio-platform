@@ -18,7 +18,7 @@ import { InputField } from '@/ui/components/input'
 import { CheckboxField } from '@/ui/components/checkbox'
 import { Typography } from '@/ui/components/typography'
 import { useToast } from '@/ui/components/toast'
-import { setUserCookie, setSessionCookie } from '@/libs/cookies'
+import { setUserCookie, setSessionCookie, setActiveRoleCookie } from '@/libs/cookies'
 import { getErrorMessage } from '@/utils/formErrors'
 
 interface AcceptInvitationFormProps {
@@ -92,7 +92,8 @@ export function AcceptInvitationForm({ token, invitationData }: AcceptInvitation
 
       toast.success(t('auth.acceptInvitation.success'))
 
-      // Step 4: Redirect to dashboard (use window.location for full reload)
+      // Step 4: Set active role to management_company and redirect
+      setActiveRoleCookie('management_company')
       window.location.href = '/dashboard'
     } catch (err) {
       // Check if it's an HTTP error from the API

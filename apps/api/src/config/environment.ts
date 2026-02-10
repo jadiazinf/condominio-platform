@@ -26,6 +26,9 @@ const envSchema = z.object({
   APP_URL: z.url('APP_URL must be a valid URL'),
   // Superadmin
   SUPERADMIN_EMAIL_DOMAIN: z.string().optional().default('@latorre.com'),
+  // Test-only flags (middleware bypass control)
+  TEST_AUTH_MIDDLEWARE: z.string().optional(),
+  TEST_REQUIRE_ROLE_MIDDLEWARE: z.string().optional(),
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -157,6 +160,8 @@ if (isTestMode) {
     RESEND_FROM_EMAIL: 'Condominio App <noreply@resend.dev>',
     APP_URL: 'http://localhost:3000',
     SUPERADMIN_EMAIL_DOMAIN: '@latorre.com',
+    TEST_AUTH_MIDDLEWARE: Bun.env.TEST_AUTH_MIDDLEWARE || process.env.TEST_AUTH_MIDDLEWARE,
+    TEST_REQUIRE_ROLE_MIDDLEWARE: Bun.env.TEST_REQUIRE_ROLE_MIDDLEWARE || process.env.TEST_REQUIRE_ROLE_MIDDLEWARE,
   }
   env = testDefaults
 } else {

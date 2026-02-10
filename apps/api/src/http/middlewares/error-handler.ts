@@ -1,6 +1,7 @@
 import type { Context, Next, Hono, ErrorHandler } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import { AppError, ErrorCode, isAppError, parseDbError } from '@errors/index'
+import { env } from '@config/environment'
 
 /**
  * Global error handler for Hono.
@@ -40,7 +41,7 @@ function handleError(c: Context, error: unknown): Response {
     }
 
     // In development, include the original error message
-    if (process.env.NODE_ENV === 'development') {
+    if (env.NODE_ENV === 'development') {
       const appError = AppError.internal(error.message)
       return formatErrorResponse(c, appError)
     }

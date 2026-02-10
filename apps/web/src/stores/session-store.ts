@@ -7,6 +7,8 @@ import type {
   TPermission,
   TAllPermissionModule,
   TPermissionAction,
+  TUserManagementCompanyAccess,
+  TActiveRoleType,
 } from '@packages/domain'
 
 import { create } from 'zustand'
@@ -28,6 +30,15 @@ import {
   setSuperadminPermissionsCookie,
   clearAllSuperadminCookies,
 } from '@/libs/cookies/superadmin-cookie'
+import {
+  setManagementCompaniesCookie,
+  getManagementCompaniesCookie,
+  clearManagementCompaniesCookie,
+  setActiveRoleCookie,
+  getActiveRoleCookie,
+  clearActiveRoleCookie,
+  clearAllManagementCompanyCookies,
+} from '@/libs/cookies/management-company-cookie'
 
 // ============================================================================
 // TYPES
@@ -60,6 +71,21 @@ interface SuperadminSlice {
   clearSuperadmin: () => void
 }
 
+interface ManagementCompanySlice {
+  managementCompanies: TUserManagementCompanyAccess[]
+  setManagementCompanies: (companies: TUserManagementCompanyAccess[]) => void
+  clearManagementCompanies: () => void
+}
+
+interface ActiveRoleSlice {
+  activeRole: TActiveRoleType | null
+  setActiveRole: (role: TActiveRoleType) => void
+  clearActiveRole: () => void
+  availableRoles: () => TActiveRoleType[]
+  needsRoleSelection: () => boolean
+  isAdmin: () => boolean
+}
+
 interface SessionActions {
   // Computed properties
   hasMultipleCondominiums: () => boolean
@@ -82,10 +108,12 @@ interface SessionActions {
     selectedCondominium?: TUserCondominiumAccess | null
     superadmin?: TUserRole | null
     permissions?: TPermission[]
+    managementCompanies?: TUserManagementCompanyAccess[]
+    activeRole?: TActiveRoleType | null
   }) => void
 }
 
-export type SessionStore = UserSlice & CondominiumSlice & SuperadminSlice & SessionActions
+export type SessionStore = UserSlice & CondominiumSlice & SuperadminSlice & ManagementCompanySlice & ActiveRoleSlice & SessionActions
 
 // ============================================================================
 // STORE
@@ -163,6 +191,55 @@ export const useSessionStore = create<SessionStore>()(
       },
 
       // ─────────────────────────────────────────────────────────────────────────
+      // Management Company Slice
+      // ─────────────────────────────────────────────────────────────────────────
+      managementCompanies: [],
+
+      setManagementCompanies: managementCompanies => {
+        set({ managementCompanies })
+        setManagementCompaniesCookie(managementCompanies)
+      },
+
+      clearManagementCompanies: () => {
+        set({ managementCompanies: [] })
+        clearManagementCompaniesCookie()
+      },
+
+      // ─────────────────────────────────────────────────────────────────────────
+      // Active Role Slice
+      // ─────────────────────────────────────────────────────────────────────────
+      activeRole: null,
+
+      setActiveRole: activeRole => {
+        set({ activeRole })
+        setActiveRoleCookie(activeRole)
+      },
+
+      clearActiveRole: () => {
+        set({ activeRole: null })
+        clearActiveRoleCookie()
+      },
+
+      availableRoles: () => {
+        const state = get()
+        const roles: TActiveRoleType[] = []
+        if (state.superadmin?.isActive) roles.push('superadmin')
+        if (state.managementCompanies.length > 0) roles.push('management_company')
+        if (state.condominiums.length > 0) roles.push('condominium')
+        return roles
+      },
+
+      needsRoleSelection: () => {
+        const { activeRole, availableRoles } = get()
+        const roles = availableRoles()
+        return roles.length > 1 && !activeRole
+      },
+
+      isAdmin: () => {
+        return get().activeRole === 'management_company'
+      },
+
+      // ─────────────────────────────────────────────────────────────────────────
       // Computed Properties (as functions to avoid stale closures)
       // ─────────────────────────────────────────────────────────────────────────
       hasMultipleCondominiums: () => get().condominiums.length > 1,
@@ -199,12 +276,15 @@ export const useSessionStore = create<SessionStore>()(
           selectedCondominium: null,
           superadmin: null,
           permissions: [],
+          managementCompanies: [],
+          activeRole: null,
           isUserLoading: false,
           isCondominiumLoading: false,
         })
         clearUserCookie()
         clearAllCondominiumCookies()
         clearAllSuperadminCookies()
+        clearAllManagementCompanyCookies()
       },
 
       hydrateFromCookies: () => {
@@ -213,6 +293,8 @@ export const useSessionStore = create<SessionStore>()(
         const selectedCondominium = getSelectedCondominiumCookie()
         const superadmin = getSuperadminCookie()
         const permissions = getSuperadminPermissionsCookie() ?? []
+        const managementCompanies = getManagementCompaniesCookie() ?? []
+        const activeRole = getActiveRoleCookie()
 
         set({
           user,
@@ -220,6 +302,8 @@ export const useSessionStore = create<SessionStore>()(
           selectedCondominium,
           superadmin,
           permissions,
+          managementCompanies,
+          activeRole,
         })
       },
 
@@ -232,6 +316,8 @@ export const useSessionStore = create<SessionStore>()(
           selectedCondominium: data.selectedCondominium ?? currentState.selectedCondominium,
           superadmin: data.superadmin ?? currentState.superadmin,
           permissions: data.permissions ?? currentState.permissions,
+          managementCompanies: data.managementCompanies ?? currentState.managementCompanies,
+          activeRole: data.activeRole ?? currentState.activeRole,
         })
 
         // Sync cookies with server data
@@ -240,6 +326,8 @@ export const useSessionStore = create<SessionStore>()(
         if (data.selectedCondominium) setSelectedCondominiumCookie(data.selectedCondominium)
         if (data.superadmin) setSuperadminCookie(data.superadmin)
         if (data.permissions) setSuperadminPermissionsCookie(data.permissions)
+        if (data.managementCompanies) setManagementCompaniesCookie(data.managementCompanies)
+        if (data.activeRole) setActiveRoleCookie(data.activeRole)
       },
     }),
     {
@@ -252,6 +340,8 @@ export const useSessionStore = create<SessionStore>()(
         selectedCondominium: state.selectedCondominium,
         superadmin: state.superadmin,
         permissions: state.permissions,
+        managementCompanies: state.managementCompanies,
+        activeRole: state.activeRole,
       }),
     }
   )
@@ -268,6 +358,8 @@ export const selectSuperadmin = (state: SessionStore) => state.superadmin
 export const selectPermissions = (state: SessionStore) => state.permissions
 export const selectIsUserLoading = (state: SessionStore) => state.isUserLoading
 export const selectIsCondominiumLoading = (state: SessionStore) => state.isCondominiumLoading
+export const selectManagementCompanies = (state: SessionStore) => state.managementCompanies
+export const selectActiveRole = (state: SessionStore) => state.activeRole
 
 // ============================================================================
 // HOOKS (for backwards compatibility with existing context usage)
@@ -339,5 +431,42 @@ export function useSuperadmin() {
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
+  }
+}
+
+/**
+ * Hook for management company-related state.
+ */
+export function useManagementCompany() {
+  const managementCompanies = useSessionStore(selectManagementCompanies)
+  const setManagementCompanies = useSessionStore(s => s.setManagementCompanies)
+  const clearManagementCompanies = useSessionStore(s => s.clearManagementCompanies)
+  const isAdmin = useSessionStore(s => s.isAdmin)
+
+  return {
+    managementCompanies,
+    setManagementCompanies,
+    clearManagementCompanies,
+    isAdmin: isAdmin(),
+    hasManagementCompanies: managementCompanies.length > 0,
+  }
+}
+
+/**
+ * Hook for active role state.
+ */
+export function useActiveRole() {
+  const activeRole = useSessionStore(selectActiveRole)
+  const setActiveRole = useSessionStore(s => s.setActiveRole)
+  const clearActiveRole = useSessionStore(s => s.clearActiveRole)
+  const availableRoles = useSessionStore(s => s.availableRoles)
+  const needsRoleSelection = useSessionStore(s => s.needsRoleSelection)
+
+  return {
+    activeRole,
+    setActiveRole,
+    clearActiveRole,
+    availableRoles: availableRoles(),
+    needsRoleSelection: needsRoleSelection(),
   }
 }

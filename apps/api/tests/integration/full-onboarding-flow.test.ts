@@ -76,6 +76,13 @@ beforeEach(async () => {
     VALUES (${MOCK_SUPERADMIN_ID}, 'firebase-uid-superadmin', 'superadmin@test.com', 'Superadmin', 'Super', 'Admin', true, true, 'es')
   `)
 
+  // Insert the USER role (required for user role assignment during invitation acceptance)
+  await db.execute(sql`
+    INSERT INTO roles (name, description, is_system_role)
+    VALUES ('USER', 'Standard user role', true)
+    ON CONFLICT (name) DO NOTHING
+  `)
+
   // Create repositories
   const adminInvitationsRepo = new AdminInvitationsRepository(db)
   const userInvitationsRepo = new UserInvitationsRepository(db)
@@ -98,7 +105,9 @@ beforeEach(async () => {
     usersRepo,
     companiesRepo,
     membersRepo,
-    subscriptionsRepo
+    subscriptionsRepo,
+    userRolesRepo,
+    rolesRepo
   )
 
   const userInvController = new UserInvitationsController(
@@ -228,6 +237,7 @@ describe('Full Onboarding Flow — End-to-End', function () {
       bankAccountType: null,
       isActive: true,
       metadata: null,
+      createdBy: null,
     })
     expect(building.id).toBeTruthy()
     expect(building.name).toBe('Torre A')
@@ -247,6 +257,7 @@ describe('Full Onboarding Flow — End-to-End', function () {
       aliquotPercentage: '2.50',
       isActive: true,
       metadata: null,
+      createdBy: null,
     })
     expect(unit1.id).toBeTruthy()
     expect(unit1.unitNumber).toBe('101')
@@ -265,6 +276,7 @@ describe('Full Onboarding Flow — End-to-End', function () {
       aliquotPercentage: '2.75',
       isActive: true,
       metadata: null,
+      createdBy: null,
     })
     expect(unit2.id).toBeTruthy()
 

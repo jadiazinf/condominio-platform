@@ -1223,7 +1223,7 @@ export async function stopTestContainer(): Promise<void> {
  * Cleans all data from tables (for test isolation).
  * Uses a single TRUNCATE command for better performance.
  */
-export async function cleanDatabase(testDb: TTestDrizzleClient): Promise<void> {
+export async function cleanDatabase(testDb: TTestDrizzleClient | import('@database/repositories/interfaces').TDrizzleClient): Promise<void> {
   const start = performance.now()
   // Truncate all tables in one command for better performance
   await testDb.execute(sql`

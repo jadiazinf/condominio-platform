@@ -4,15 +4,16 @@ import { NavbarContent, NavbarItem } from '@heroui/navbar'
 import { Button } from '@/ui/components/button'
 import { Link } from '@/ui/components/link'
 
-import { useTranslation, useAuth } from '@/contexts'
+import { useTranslation } from '@/contexts'
 import { ThemeSwitch } from '@/ui/components/themeSwitch/ThemeSwitch'
 import { LanguageSwitcher } from '@/ui/components/language-switcher'
 
-export function NavbarActions() {
-  const { t } = useTranslation()
-  const { user } = useAuth()
+interface NavbarActionsProps {
+  isAuthenticated?: boolean
+}
 
-  const isAuthenticated = user !== null
+export function NavbarActions({ isAuthenticated = false }: NavbarActionsProps) {
+  const { t } = useTranslation()
 
   return (
     <NavbarContent className="items-center gap-2" justify="end">

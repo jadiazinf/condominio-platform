@@ -44,9 +44,19 @@
     "settings": "Settings",
     "logout": "Log Out",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "switchRole": "Switch role",
+    "getStarted": "Get Started"
   },
   "landing": {
+    "nav": {
+      "home": "Home",
+      "problems": "Problems",
+      "benefits": "Benefits",
+      "howItWorks": "Process",
+      "cta": "Start",
+      "footer": "Contact"
+    },
     "hero": {
       "title": "Managing your condo",
       "titleHighlight": "doesn't have to be a headache anymore",
@@ -190,6 +200,16 @@
       "googleSuccess": "Successfully signed in with Google",
       "error": "Error signing in",
       "googleError": "Error signing in with Google"
+    },
+    "unified": {
+      "noAccount": "Create your account",
+      "signUpSubtitle": "Sign up for free and start managing your condo in minutes. No credit card required.",
+      "goToSignUp": "Sign Up",
+      "alreadyHaveAccount": "Welcome back",
+      "signInSubtitle": "Sign in to access your management dashboard and manage your condo.",
+      "goToSignIn": "Sign In",
+      "noAccountMobile": "Don't have an account? Sign up",
+      "alreadyHaveAccountMobile": "Already have an account? Sign in"
     },
     "signUpCTA": {
       "title": "Don't have an account?",
@@ -2420,6 +2440,15 @@
       "expenses": "Expenses",
       "amenities": "Amenities"
     },
+    "company": {
+      "nav": {
+        "dashboard": "Dashboard",
+        "condominiums": "Condominiums",
+        "members": "Members",
+        "billing": "Billing",
+        "tickets": "Support Tickets"
+      }
+    },
     "quotas": {
       "title": "Quotas",
       "subtitle": "Manage condominium quotas and fees",
@@ -2637,6 +2666,24 @@
       "noAmenities": "No amenities found",
       "saveSuccess": "Amenity saved",
       "deleteSuccess": "Amenity deleted"
+    }
+  },
+  "role": {
+    "selection": {
+      "title": "Select your role",
+      "subtitle": "You have access to multiple roles. Select which one you want to start with.",
+      "superadmin": {
+        "title": "Superadmin",
+        "description": "Platform administration"
+      },
+      "admin": {
+        "title": "Management Company",
+        "description": "Management company administration"
+      },
+      "condominium": {
+        "title": "My Condominiums",
+        "description": "Access your condominiums as a resident or administrator"
+      }
     }
   }
 }

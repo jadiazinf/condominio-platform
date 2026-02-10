@@ -7,6 +7,8 @@ import type {
   ManagementCompaniesRepository,
   ManagementCompanyMembersRepository,
   ManagementCompanySubscriptionsRepository,
+  UserRolesRepository,
+  RolesRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { HttpContext } from '../../context'
@@ -128,20 +130,25 @@ export class AdminInvitationsController {
     private readonly usersRepository: UsersRepository,
     private readonly managementCompaniesRepository: ManagementCompaniesRepository,
     private readonly membersRepository: ManagementCompanyMembersRepository,
-    private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository
+    private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository,
+    private readonly userRolesRepository: UserRolesRepository,
+    private readonly rolesRepository: RolesRepository
   ) {
     this.createCompanyWithAdminService = new CreateCompanyWithAdminService(
       db,
       invitationsRepository,
       usersRepository,
-      managementCompaniesRepository
+      managementCompaniesRepository,
+      membersRepository
     )
     this.createCompanyWithExistingAdminService = new CreateCompanyWithExistingAdminService(
       db,
       usersRepository,
       managementCompaniesRepository,
       membersRepository,
-      subscriptionsRepository
+      subscriptionsRepository,
+      userRolesRepository,
+      rolesRepository
     )
     this.validateInvitationTokenService = new ValidateInvitationTokenService(
       invitationsRepository,
@@ -154,7 +161,9 @@ export class AdminInvitationsController {
       usersRepository,
       managementCompaniesRepository,
       membersRepository,
-      subscriptionsRepository
+      subscriptionsRepository,
+      userRolesRepository,
+      rolesRepository
     )
     this.cancelInvitationService = new CancelInvitationService(invitationsRepository)
     this.sendInvitationEmailService = new SendInvitationEmailService()
@@ -302,6 +311,7 @@ export class AdminInvitationsController {
         data: {
           company: result.data.company,
           admin: result.data.admin,
+          member: result.data.member,
           invitation: result.data.invitation,
           emailSent: emailResult.success,
           // Include the token for development/testing purposes

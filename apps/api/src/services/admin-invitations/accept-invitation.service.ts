@@ -1,6 +1,7 @@
 import type {
   TAdminInvitation,
   TUser,
+  TUserRole,
   TManagementCompany,
   TManagementCompanyMember,
   TManagementCompanySubscription,
@@ -11,6 +12,8 @@ import type {
   ManagementCompaniesRepository,
   ManagementCompanyMembersRepository,
   ManagementCompanySubscriptionsRepository,
+  UserRolesRepository,
+  RolesRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
@@ -26,6 +29,7 @@ export interface IAcceptInvitationResult {
   managementCompany: TManagementCompany
   member: TManagementCompanyMember
   subscription: TManagementCompanySubscription
+  userRole: TUserRole
 }
 
 /**
@@ -41,7 +45,9 @@ export class AcceptInvitationService {
     private readonly usersRepository: UsersRepository,
     private readonly managementCompaniesRepository: ManagementCompaniesRepository,
     private readonly membersRepository: ManagementCompanyMembersRepository,
-    private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository
+    private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository,
+    private readonly userRolesRepository: UserRolesRepository,
+    private readonly rolesRepository: RolesRepository
   ) {}
 
   async execute(
@@ -94,6 +100,13 @@ export class AcceptInvitationService {
       )
     }
 
+    // Look up the USER role before starting the transaction (read-only, avoids
+    // acquiring a second connection inside the tx which can deadlock in test containers)
+    const userRole = await this.rolesRepository.getByName('USER')
+    if (!userRole) {
+      return failure('USER role not found in system', 'INTERNAL_ERROR')
+    }
+
     // All writes inside a transaction for atomicity
     return await this.db.transaction(async (tx) => {
       const txUsersRepo = this.usersRepository.withTx(tx)
@@ -101,6 +114,7 @@ export class AcceptInvitationService {
       const txInvitationsRepo = this.invitationsRepository.withTx(tx)
       const txMembersRepo = this.membersRepository.withTx(tx)
       const txSubscriptionsRepo = this.subscriptionsRepository.withTx(tx)
+      const txUserRolesRepo = this.userRolesRepository.withTx(tx)
 
       // Update user: set Firebase UID, activate, and verify email
       const updatedUser = await txUsersRepo.update(user.id, {
@@ -132,28 +146,63 @@ export class AcceptInvitationService {
         return failure('Failed to accept invitation', 'INTERNAL_ERROR')
       }
 
-      // Create member with primary admin role
-      const member = await txMembersRepo.create({
-        managementCompanyId: managementCompany.id,
+      // Activate existing member (created during company setup with isActive=false)
+      const existingMember = await txMembersRepo.getByCompanyAndUser(
+        managementCompany.id,
+        updatedUser.id
+      )
+
+      let member: TManagementCompanyMember
+      if (existingMember) {
+        const activated = await txMembersRepo.update(existingMember.id, {
+          isActive: true,
+          joinedAt: new Date(),
+        })
+        if (!activated) {
+          return failure('Failed to activate member', 'INTERNAL_ERROR')
+        }
+        member = activated
+      } else {
+        // Fallback: create member if it wasn't created during company setup
+        const created = await txMembersRepo.create({
+          managementCompanyId: managementCompany.id,
+          userId: updatedUser.id,
+          roleName: 'admin',
+          permissions: {
+            can_change_subscription: true,
+            can_manage_members: true,
+            can_create_tickets: true,
+            can_view_invoices: true,
+          },
+          isPrimaryAdmin: true,
+          joinedAt: new Date(),
+          invitedAt: invitation.createdAt,
+          invitedBy: invitation.createdBy,
+          isActive: true,
+          deactivatedAt: null,
+          deactivatedBy: null,
+        })
+        if (!created) {
+          return failure('Failed to create member', 'INTERNAL_ERROR')
+        }
+        member = created
+      }
+
+      // Assign USER role in user_roles table (system-level access)
+      const userRoleAssignment = await txUserRolesRepo.create({
         userId: updatedUser.id,
-        roleName: 'admin',
-        permissions: {
-          can_change_subscription: true,
-          can_manage_members: true,
-          can_create_tickets: true,
-          can_view_invoices: true,
-        },
-        isPrimaryAdmin: true,
-        joinedAt: new Date(),
-        invitedAt: invitation.createdAt,
-        invitedBy: invitation.createdBy,
+        roleId: userRole.id,
+        condominiumId: null,
+        buildingId: null,
         isActive: true,
-        deactivatedAt: null,
-        deactivatedBy: null,
+        notes: 'Assigned via admin invitation acceptance',
+        assignedBy: invitation.createdBy,
+        registeredBy: invitation.createdBy,
+        expiresAt: null,
       })
 
-      if (!member) {
-        return failure('Failed to create member', 'INTERNAL_ERROR')
+      if (!userRoleAssignment) {
+        return failure('Failed to assign user role', 'INTERNAL_ERROR')
       }
 
       // Create trial subscription (30 days)
@@ -207,6 +256,7 @@ export class AcceptInvitationService {
         managementCompany: updatedCompany,
         member,
         subscription,
+        userRole: userRoleAssignment,
       })
     })
   }

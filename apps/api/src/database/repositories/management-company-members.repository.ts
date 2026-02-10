@@ -8,7 +8,7 @@ import type {
   TPaginatedResponse,
   TManagementCompanyMembersQuerySchema,
 } from '@packages/domain'
-import { managementCompanyMembers, users } from '@database/drizzle/schema'
+import { managementCompanyMembers, users, managementCompanies } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -25,6 +25,16 @@ export type TMemberUserInfo = {
 
 export type TManagementCompanyMemberWithUser = Omit<TManagementCompanyMember, 'user' | 'managementCompany' | 'invitedByUser' | 'deactivatedByUser'> & {
   user: TMemberUserInfo | null
+}
+
+export type TMemberCompanyInfo = {
+  id: string
+  name: string
+  logoUrl: string | null
+}
+
+export type TManagementCompanyMemberWithCompany = TManagementCompanyMember & {
+  managementCompanyInfo: TMemberCompanyInfo
 }
 
 /**
@@ -379,5 +389,39 @@ export class ManagementCompanyMembersRepository
     }
 
     return this.mapToEntity(results[0])
+  }
+
+  /**
+   * Get all active memberships for a user, with management company info.
+   * Used by /me/management-companies to discover which companies a user belongs to.
+   */
+  async listByUserIdWithCompany(userId: string): Promise<TManagementCompanyMemberWithCompany[]> {
+    const results = await this.db
+      .select({
+        member: managementCompanyMembers,
+        company: {
+          id: managementCompanies.id,
+          name: managementCompanies.name,
+          logoUrl: managementCompanies.logoUrl,
+        },
+      })
+      .from(managementCompanyMembers)
+      .innerJoin(
+        managementCompanies,
+        eq(managementCompanyMembers.managementCompanyId, managementCompanies.id)
+      )
+      .where(
+        and(
+          eq(managementCompanyMembers.userId, userId),
+          eq(managementCompanyMembers.isActive, true),
+          eq(managementCompanies.isActive, true)
+        )
+      )
+      .orderBy(desc(managementCompanyMembers.isPrimaryAdmin), desc(managementCompanyMembers.joinedAt))
+
+    return results.map(({ member, company }) => ({
+      ...this.mapToEntity(member),
+      managementCompanyInfo: company,
+    }))
   }
 }

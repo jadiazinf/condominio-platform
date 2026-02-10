@@ -5,6 +5,7 @@ import type {
   TUserCreate,
   TManagementCompany,
   TManagementCompanyCreate,
+  TManagementCompanyMember,
 } from '@packages/domain'
 import { CreateCompanyWithAdminService } from '@src/services/admin-invitations'
 
@@ -24,6 +25,11 @@ type TMockCompaniesRepository = {
   withTx: (tx: unknown) => TMockCompaniesRepository
 }
 
+type TMockMembersRepository = {
+  create: (data: any) => Promise<TManagementCompanyMember>
+  withTx: (tx: unknown) => TMockMembersRepository
+}
+
 // Mock db that executes the transaction callback immediately (no real DB)
 const mockDb = {
   transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn({}),
@@ -34,6 +40,7 @@ describe('CreateCompanyWithAdminService', function () {
   let mockInvitationsRepository: TMockInvitationsRepository
   let mockUsersRepository: TMockUsersRepository
   let mockCompaniesRepository: TMockCompaniesRepository
+  let mockMembersRepository: TMockMembersRepository
   let existingUser: TUser | null
 
   const creatorId = '550e8400-e29b-41d4-a716-446655440099'
@@ -123,11 +130,34 @@ describe('CreateCompanyWithAdminService', function () {
       withTx() { return this },
     }
 
+    mockMembersRepository = {
+      create: async function (data: any) {
+        return {
+          id: '550e8400-e29b-41d4-a716-446655440010',
+          managementCompanyId: data.managementCompanyId,
+          userId: data.userId,
+          roleName: data.roleName,
+          permissions: data.permissions,
+          isPrimaryAdmin: data.isPrimaryAdmin,
+          joinedAt: data.joinedAt,
+          invitedAt: data.invitedAt,
+          invitedBy: data.invitedBy,
+          isActive: data.isActive,
+          deactivatedAt: null,
+          deactivatedBy: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as TManagementCompanyMember
+      },
+      withTx() { return this },
+    }
+
     service = new CreateCompanyWithAdminService(
       mockDb,
       mockInvitationsRepository as never,
       mockUsersRepository as never,
-      mockCompaniesRepository as never
+      mockCompaniesRepository as never,
+      mockMembersRepository as never
     )
   })
 
@@ -152,6 +182,14 @@ describe('CreateCompanyWithAdminService', function () {
         expect(result.data.admin.isActive).toBe(false)
         expect(result.data.admin.isEmailVerified).toBe(false)
         expect(result.data.admin.firebaseUid).toContain('pending_')
+
+        // Verify member was created with admin role (inactive until invitation accepted)
+        expect(result.data.member).toBeDefined()
+        expect(result.data.member.roleName).toBe('admin')
+        expect(result.data.member.isPrimaryAdmin).toBe(true)
+        expect(result.data.member.isActive).toBe(false)
+        expect(result.data.member.userId).toBe(result.data.admin.id)
+        expect(result.data.member.managementCompanyId).toBe(result.data.company.id)
 
         // Verify invitation
         expect(result.data.invitation.id).toBeDefined()

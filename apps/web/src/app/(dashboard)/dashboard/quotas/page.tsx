@@ -11,8 +11,7 @@ import { QuotasTableSkeleton } from './components/QuotasTableSkeleton'
 async function QuotasContent() {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
 
-  // Admins and superadmins can access
-  if (!session.superadmin?.isActive && !session.condominiums?.length) {
+  if (!session.condominiums?.length) {
     redirect('/dashboard')
   }
 

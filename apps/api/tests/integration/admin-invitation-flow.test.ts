@@ -24,6 +24,8 @@ import {
   ManagementCompaniesRepository,
   ManagementCompanyMembersRepository,
   ManagementCompanySubscriptionsRepository,
+  UserRolesRepository,
+  RolesRepository,
 } from '@database/repositories'
 import { AdminInvitationsController } from '@http/controllers/admin-invitations/admin-invitations.controller'
 
@@ -44,6 +46,8 @@ let usersRepo: UsersRepository
 let companiesRepo: ManagementCompaniesRepository
 let membersRepo: ManagementCompanyMembersRepository
 let subscriptionsRepo: ManagementCompanySubscriptionsRepository
+let userRolesRepo: UserRolesRepository
+let rolesRepo: RolesRepository
 
 beforeAll(async () => {
   // Clear Resend API key to force EmailService test bypass
@@ -64,12 +68,21 @@ beforeEach(async () => {
     VALUES (${MOCK_SUPERADMIN_ID}, 'firebase-uid-superadmin', 'superadmin@test.com', 'Superadmin User', 'Super', 'Admin', true, true, 'es')
   `)
 
+  // Insert the USER role (required for user role assignment during invitation acceptance)
+  await db.execute(sql`
+    INSERT INTO roles (name, description, is_system_role)
+    VALUES ('USER', 'Standard user role', true)
+    ON CONFLICT (name) DO NOTHING
+  `)
+
   // Create repositories for direct DB verification
   invitationsRepo = new AdminInvitationsRepository(db)
   usersRepo = new UsersRepository(db)
   companiesRepo = new ManagementCompaniesRepository(db)
   membersRepo = new ManagementCompanyMembersRepository(db)
   subscriptionsRepo = new ManagementCompanySubscriptionsRepository(db)
+  userRolesRepo = new UserRolesRepository(db)
+  rolesRepo = new RolesRepository(db)
 
   // Create controller with real repositories
   const controller = new AdminInvitationsController(
@@ -78,7 +91,9 @@ beforeEach(async () => {
     usersRepo,
     companiesRepo,
     membersRepo,
-    subscriptionsRepo
+    subscriptionsRepo,
+    userRolesRepo,
+    rolesRepo
   )
 
   // Create test app
@@ -257,17 +272,27 @@ describe('Admin Invitation Flow — Integration Tests', function () {
       // Member
       const membersByCompany = await membersRepo.listByCompanyId(company.id)
       expect(membersByCompany.length).toBe(1)
-      expect(membersByCompany[0].userId).toBe(admin.id)
-      expect(membersByCompany[0].isPrimaryAdmin).toBe(true)
-      expect(membersByCompany[0].roleName).toBe('admin')
-      expect(membersByCompany[0].isActive).toBe(true)
+      expect(membersByCompany[0]!.userId).toBe(admin.id)
+      expect(membersByCompany[0]!.isPrimaryAdmin).toBe(true)
+      expect(membersByCompany[0]!.roleName).toBe('admin')
+      expect(membersByCompany[0]!.isActive).toBe(true)
 
       // Subscription
       const subs = await subscriptionsRepo.getByCompanyId(company.id)
       expect(subs.length).toBe(1)
-      expect(subs[0].status).toBe('trial')
-      expect(subs[0].basePrice).toBe(0)
-      expect(subs[0].trialEndsAt).not.toBeNull()
+      expect(subs[0]!.status).toBe('trial')
+      expect(subs[0]!.basePrice).toBe(0)
+      expect(subs[0]!.trialEndsAt).not.toBeNull()
+
+      // User Role — verify the USER role was assigned in user_roles table
+      const userRoles = await userRolesRepo.getByUserId(admin.id)
+      expect(userRoles.length).toBeGreaterThanOrEqual(1)
+      const userRole = await rolesRepo.getByName('USER')
+      expect(userRole).not.toBeNull()
+      const matchingRole = userRoles.find(ur => ur.roleId === userRole!.id)
+      expect(matchingRole).toBeDefined()
+      expect(matchingRole!.isActive).toBe(true)
+      expect(matchingRole!.condominiumId).toBeNull()
     })
   })
 

@@ -4,11 +4,13 @@ import type {
   TUserCreate,
   TManagementCompany,
   TManagementCompanyCreate,
+  TManagementCompanyMember,
 } from '@packages/domain'
 import type {
   AdminInvitationsRepository,
   UsersRepository,
   ManagementCompaniesRepository,
+  ManagementCompanyMembersRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
@@ -25,6 +27,7 @@ export interface ICreateCompanyWithAdminInput {
 export interface ICreateCompanyWithAdminResult {
   company: TManagementCompany
   admin: TUser
+  member: TManagementCompanyMember
   invitation: TAdminInvitation
   invitationToken: string // Plain text token to send via email
 }
@@ -46,7 +49,8 @@ export class CreateCompanyWithAdminService {
     private readonly db: TDrizzleClient,
     private readonly invitationsRepository: AdminInvitationsRepository,
     private readonly usersRepository: UsersRepository,
-    private readonly managementCompaniesRepository: ManagementCompaniesRepository
+    private readonly managementCompaniesRepository: ManagementCompaniesRepository,
+    private readonly membersRepository: ManagementCompanyMembersRepository
   ) {}
 
   async execute(
@@ -80,6 +84,7 @@ export class CreateCompanyWithAdminService {
       const txUsersRepo = this.usersRepository.withTx(tx)
       const txCompaniesRepo = this.managementCompaniesRepository.withTx(tx)
       const txInvitationsRepo = this.invitationsRepository.withTx(tx)
+      const txMembersRepo = this.membersRepository.withTx(tx)
 
       // Create user with isActive=false
       const userData: TUserCreate = {
@@ -114,23 +119,45 @@ export class CreateCompanyWithAdminService {
         createdBy: input.createdBy,
       })
 
+      // Create member with primary admin role (inactive until invitation is accepted)
+      const member = await txMembersRepo.create({
+        managementCompanyId: company.id,
+        userId: admin.id,
+        roleName: 'admin',
+        permissions: {
+          can_change_subscription: true,
+          can_manage_members: true,
+          can_create_tickets: true,
+          can_view_invoices: true,
+        },
+        isPrimaryAdmin: true,
+        joinedAt: null,
+        invitedAt: new Date(),
+        invitedBy: input.createdBy,
+        isActive: false,
+        deactivatedAt: null,
+        deactivatedBy: null,
+      })
+
       logger.info(
         {
           invitationId: invitation.id,
           userId: admin.id,
           companyId: company.id,
+          memberId: member.id,
           email: admin.email,
           tokenLength: token.length,
           tokenPrefix: token.substring(0, 8),
           storedTokenPrefix: invitation.token.substring(0, 8),
           tokenMatch: token === invitation.token,
         },
-        'Admin invitation created successfully'
+        'Admin invitation created successfully with member role'
       )
 
       return success({
         company,
         admin,
+        member,
         invitation,
         invitationToken: token,
       })

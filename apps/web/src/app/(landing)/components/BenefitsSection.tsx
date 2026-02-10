@@ -1,53 +1,65 @@
-import { getTranslations } from '@/libs/i18n/server'
-import { Typography } from '@/ui/components/typography'
+'use client'
+
+import { motion, useInView } from 'framer-motion'
+import { useRef } from 'react'
+import { useTranslation } from '@/contexts'
+import { ScrollSection } from './ScrollSection'
 
 const benefitKeys = ['paperwork', 'collections', 'informed', 'transparency'] as const
 
-const benefitIcons: Record<(typeof benefitKeys)[number], string> = {
-  paperwork: '📋',
-  collections: '💸',
-  informed: '📱',
-  transparency: '✨',
+const benefitNumbers: Record<(typeof benefitKeys)[number], string> = {
+  paperwork: '01',
+  collections: '02',
+  informed: '03',
+  transparency: '04',
 }
 
-export async function BenefitsSection() {
-  const { t } = await getTranslations()
+export function BenefitsSection() {
+  const { t } = useTranslation()
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { amount: 0.3 })
 
   return (
-    <section className="flex flex-col gap-10" id="beneficios">
-      <div className="text-center">
-        <Typography className="mb-2" color="secondary" variant="overline">
-          {t('landing.benefits.label')}
-        </Typography>
-        <Typography gutterBottom variant="h2">
-          {t('landing.benefits.title')}
-        </Typography>
-      </div>
+    <ScrollSection id="benefits" className="bg-content2 dark:bg-[#1E1F22]">
+      <div ref={ref} className="max-w-7xl mx-auto px-8 md:px-16 py-24">
+        {/* Section header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="mb-16"
+        >
+          <div className="h-[2px] w-12 bg-brick mb-6" />
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground leading-tight">
+            {t('landing.benefits.title')}
+          </h2>
+        </motion.div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {benefitKeys.map(key => (
-          <div key={key} className="benefit-card">
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-                <span className="text-3xl">{benefitIcons[key]}</span>
-              </div>
-              <div className="flex-1">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
-                  <Typography as="h3" variant="h4">
-                    {t(`landing.benefits.items.${key}.title`)}
-                  </Typography>
-                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-secondary/10 text-secondary w-fit">
-                    {t(`landing.benefits.items.${key}.highlight`)}
-                  </span>
-                </div>
-                <Typography color="muted" variant="body2">
-                  {t(`landing.benefits.items.${key}.description`)}
-                </Typography>
-              </div>
-            </div>
-          </div>
-        ))}
+        {/* 2x2 grid with cross dividers */}
+        <div className="grid grid-cols-1 md:grid-cols-2">
+          {benefitKeys.map((key, index) => (
+            <motion.div
+              key={key}
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.5, delay: 0.3 + index * 0.15, ease: 'easeOut' }}
+              className={`p-8 md:p-10 ${
+                index % 2 === 0 ? 'md:border-r border-foreground/10' : ''
+              } ${index < 2 ? 'border-b border-foreground/10' : ''}`}
+            >
+              <span className="text-5xl md:text-6xl font-extralight text-brick/30 leading-none">
+                {benefitNumbers[key]}
+              </span>
+              <h3 className="mt-4 text-xl font-semibold text-foreground">
+                {t(`landing.benefits.items.${key}.title`)}
+              </h3>
+              <p className="mt-2 text-sm text-foreground/60 font-light leading-relaxed">
+                {t(`landing.benefits.items.${key}.description`)}
+              </p>
+            </motion.div>
+          ))}
+        </div>
       </div>
-    </section>
+    </ScrollSection>
   )
 }

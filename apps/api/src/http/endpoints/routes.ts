@@ -6,6 +6,7 @@ import { HealthEndpoint } from './health.endpoint'
 import { AuditLogsEndpoint } from './audit-logs.endpoint'
 import { BuildingsEndpoint } from './buildings.endpoint'
 import { CondominiumsEndpoint } from './condominiums.endpoint'
+import { PlatformCondominiumsEndpoint } from './platform-condominiums.endpoint'
 import { CurrenciesEndpoint } from './currencies.endpoint'
 import { DocumentsEndpoint } from './documents.endpoint'
 import { EntityPaymentGatewaysEndpoint } from './entity-payment-gateways.endpoint'
@@ -79,6 +80,7 @@ export class ApiRoutes {
 
       // Organization structure
       new ManagementCompaniesEndpoint(db),
+      new PlatformCondominiumsEndpoint(db),
       new CondominiumsEndpoint(db),
       new BuildingsEndpoint(db),
       new UnitsEndpoint(db),

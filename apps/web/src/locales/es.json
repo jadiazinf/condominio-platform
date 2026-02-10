@@ -53,9 +53,19 @@
     "settings": "Configuración",
     "logout": "Cerrar Sesión",
     "openMenu": "Abrir menu",
-    "closeMenu": "Cerrar menu"
+    "closeMenu": "Cerrar menu",
+    "switchRole": "Cambiar rol",
+    "getStarted": "Comenzar"
   },
   "landing": {
+    "nav": {
+      "home": "Inicio",
+      "problems": "Problemas",
+      "benefits": "Beneficios",
+      "howItWorks": "Proceso",
+      "cta": "Comienza",
+      "footer": "Contacto"
+    },
     "hero": {
       "title": "Administrar tu condominio",
       "titleHighlight": "ya no tiene que ser un dolor de cabeza",
@@ -199,6 +209,16 @@
       "googleSuccess": "Inicio de sesión con Google exitoso",
       "error": "Error al iniciar sesión",
       "googleError": "Error al iniciar sesión con Google"
+    },
+    "unified": {
+      "noAccount": "Crea tu cuenta",
+      "signUpSubtitle": "Regístrate gratis y comienza a administrar tu condominio en minutos. Sin tarjeta de crédito.",
+      "goToSignUp": "Registrarse",
+      "alreadyHaveAccount": "Bienvenido de vuelta",
+      "signInSubtitle": "Inicia sesión para acceder a tu panel de administración y gestionar tu condominio.",
+      "goToSignIn": "Iniciar sesión",
+      "noAccountMobile": "¿No tienes cuenta? Regístrate",
+      "alreadyHaveAccountMobile": "¿Ya tienes cuenta? Inicia sesión"
     },
     "signUpCTA": {
       "title": "¿No tienes una cuenta?",
@@ -2469,6 +2489,15 @@
       "expenses": "Gastos",
       "amenities": "Amenidades"
     },
+    "company": {
+      "nav": {
+        "dashboard": "Panel",
+        "condominiums": "Condominios",
+        "members": "Miembros",
+        "billing": "Facturación",
+        "tickets": "Tickets de Soporte"
+      }
+    },
     "quotas": {
       "title": "Cuotas",
       "subtitle": "Gestiona las cuotas y cargos del condominio",
@@ -2686,6 +2715,24 @@
       "noAmenities": "No se encontraron amenidades",
       "saveSuccess": "Amenidad guardada",
       "deleteSuccess": "Amenidad eliminada"
+    }
+  },
+  "role": {
+    "selection": {
+      "title": "Selecciona tu rol",
+      "subtitle": "Tienes acceso a múltiples roles. Selecciona con cuál deseas iniciar.",
+      "superadmin": {
+        "title": "Superadmin",
+        "description": "Administración de la plataforma"
+      },
+      "admin": {
+        "title": "Administradora",
+        "description": "Gestión de empresa administradora"
+      },
+      "condominium": {
+        "title": "Mis Condominios",
+        "description": "Accede a tus condominios como residente o administrador"
+      }
     }
   }
 }

@@ -76,6 +76,7 @@ export function Dropdown({
   return (
     <HeroUIDropdown
       className={cn(className)}
+      classNames={{ base: '!z-[60]' }}
       closeOnSelect={closeOnSelect}
       isDisabled={isDisabled}
       placement={placement}

@@ -10,6 +10,7 @@ import { Menu, Shield } from 'lucide-react'
 
 import { NotificationPanel } from '@/ui/components/notifications'
 import { CurrentUserAvatar } from '@/ui/components/avatar'
+import { SwitchRoleButton } from './SwitchRoleButton'
 
 interface SuperadminNavbarProps {
   onToggleSidebar?: () => void
@@ -41,6 +42,9 @@ export function SuperadminNavbar({ onToggleSidebar, initialUser }: SuperadminNav
       </NavbarContent>
 
       <NavbarContent className="items-center gap-2" justify="end">
+        <NavbarItem className="flex">
+          <SwitchRoleButton />
+        </NavbarItem>
         <NavbarItem className="flex">
           <NotificationPanel />
         </NavbarItem>

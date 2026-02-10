@@ -37,6 +37,7 @@ export {
   condominiumsKeys,
   getAllCondominiums,
   getCondominiumsPaginated,
+  getPlatformCondominiumsPaginated,
   createCondominium,
   updateCondominium,
   generateCondominiumCode,

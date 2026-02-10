@@ -90,6 +90,50 @@ export const dashboardSidebarItems: TSidebarItemConfig[] = [
   },
 ]
 
+export const adminSidebarItems: TSidebarItemConfig[] = [
+  {
+    key: 'dashboard',
+    title: 'admin.company.nav.dashboard',
+    icon: LayoutDashboard,
+    href: '/dashboard',
+  },
+  {
+    key: 'condominiums',
+    title: 'admin.company.nav.condominiums',
+    icon: Building2,
+    href: '/dashboard/condominiums',
+  },
+  {
+    key: 'members',
+    title: 'admin.company.nav.members',
+    icon: Users,
+    href: '/dashboard/members',
+  },
+  {
+    key: 'billing',
+    title: 'admin.company.nav.billing',
+    icon: CreditCard,
+    href: '/dashboard/billing',
+  },
+  {
+    key: 'tickets',
+    title: 'admin.company.nav.tickets',
+    icon: MessageSquare,
+    href: '/dashboard/tickets',
+  },
+  {
+    key: 'settings',
+    title: 'nav.settings',
+    icon: Settings,
+    href: '/dashboard/settings',
+  },
+  {
+    key: 'logout',
+    title: 'nav.logout',
+    icon: LogOut,
+  },
+]
+
 export const superadminSidebarItems: TSidebarItemConfig[] = [
   {
     key: 'dashboard',
@@ -138,30 +182,6 @@ export const superadminSidebarItems: TSidebarItemConfig[] = [
     title: 'superadmin.nav.tickets',
     icon: MessageSquare,
     href: '/dashboard/tickets',
-  },
-  {
-    key: 'quotas',
-    title: 'superadmin.nav.quotas',
-    icon: Receipt,
-    href: '/dashboard/quotas',
-  },
-  {
-    key: 'payments',
-    title: 'superadmin.nav.payments',
-    icon: Wallet,
-    href: '/dashboard/payments',
-  },
-  {
-    key: 'expenses',
-    title: 'superadmin.nav.expenses',
-    icon: ClipboardList,
-    href: '/dashboard/expenses',
-  },
-  {
-    key: 'amenities',
-    title: 'superadmin.nav.amenities',
-    icon: Building2,
-    href: '/dashboard/amenities',
   },
   {
     key: 'settings',

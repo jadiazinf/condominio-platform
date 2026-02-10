@@ -25,10 +25,19 @@ export const LocaleDictionary = {
     contact: 'nav.contact',
     signIn: 'nav.signIn',
     signUp: 'nav.signUp',
+    getStarted: 'nav.getStarted',
     dashboard: 'nav.dashboard',
     logout: 'nav.logout',
   },
   landing: {
+    nav: {
+      home: 'landing.nav.home',
+      problems: 'landing.nav.problems',
+      benefits: 'landing.nav.benefits',
+      howItWorks: 'landing.nav.howItWorks',
+      cta: 'landing.nav.cta',
+      footer: 'landing.nav.footer',
+    },
     hero: {
       title: 'landing.hero.title',
       titleHighlight: 'landing.hero.titleHighlight',
@@ -159,6 +168,16 @@ export const LocaleDictionary = {
       googleSuccess: 'auth.signUp.googleSuccess',
       error: 'auth.signUp.error',
       googleError: 'auth.signUp.googleError',
+    },
+    unified: {
+      noAccount: 'auth.unified.noAccount',
+      signUpSubtitle: 'auth.unified.signUpSubtitle',
+      goToSignUp: 'auth.unified.goToSignUp',
+      alreadyHaveAccount: 'auth.unified.alreadyHaveAccount',
+      signInSubtitle: 'auth.unified.signInSubtitle',
+      goToSignIn: 'auth.unified.goToSignIn',
+      noAccountMobile: 'auth.unified.noAccountMobile',
+      alreadyHaveAccountMobile: 'auth.unified.alreadyHaveAccountMobile',
     },
     errors: {
       invalidCredentials: 'auth.errors.invalidCredentials',

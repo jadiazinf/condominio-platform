@@ -8,15 +8,25 @@ import { NavbarLinks } from './NavbarLinks'
 import { NavbarActions } from './NavbarActions'
 import { NavbarMobileMenu } from './NavbarMobileMenu'
 
-export function Navbar() {
+interface NavbarProps {
+  isAuthenticated?: boolean
+  showNavLinks?: boolean
+}
+
+export function Navbar({ isAuthenticated = false, showNavLinks = true }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <HeroUINavbar maxWidth="xl" position="sticky" onMenuOpenChange={setIsMenuOpen}>
+    <HeroUINavbar
+      maxWidth="xl"
+      position="sticky"
+      onMenuOpenChange={setIsMenuOpen}
+      isBordered={false}
+    >
       <NavbarMenuToggleSection isMenuOpen={isMenuOpen} />
-      <NavbarLinks />
-      <NavbarActions />
-      <NavbarMobileMenu />
+      {showNavLinks && <NavbarLinks />}
+      <NavbarActions isAuthenticated={isAuthenticated} />
+      <NavbarMobileMenu isAuthenticated={isAuthenticated} />
     </HeroUINavbar>
   )
 }

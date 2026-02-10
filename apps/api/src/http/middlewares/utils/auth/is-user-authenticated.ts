@@ -7,6 +7,7 @@ import { HttpContext } from '@http/context'
 import { DatabaseService } from '@database/service'
 import { UsersRepository } from '@database/repositories/users.repository'
 import { LocaleDictionary } from '@locales/dictionary'
+import { env } from '@config/environment'
 
 export const AUTHENTICATED_USER_PROP = 'user'
 
@@ -22,7 +23,7 @@ export async function isUserAuthenticated(
 ) {
   // In test mode, bypass Firebase token verification
   // BUT only if we're NOT testing the auth middleware itself
-  if (process.env.NODE_ENV === 'test' && !process.env.TEST_AUTH_MIDDLEWARE) {
+  if (env.NODE_ENV === 'test' && !env.TEST_AUTH_MIDDLEWARE) {
     const authHeader = c.req.header('Authorization')
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
 

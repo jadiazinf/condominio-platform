@@ -9,7 +9,7 @@ import {
   type TUserUpdate,
   type TUserUpdateProfile,
 } from '@packages/domain'
-import type { UsersRepository, UserPermissionsRepository, UserRolesRepository } from '@database/repositories'
+import type { UsersRepository, UserPermissionsRepository, UserRolesRepository, ManagementCompanyMembersRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
@@ -31,6 +31,7 @@ import {
   BatchToggleUserPermissionsService,
   PromoteToSuperadminService,
   DemoteFromSuperadminService,
+  GetUserManagementCompaniesService,
 } from '@src/services/users'
 import { queryValidator } from '../../middlewares/utils/payload-validator'
 import { AppError } from '@errors/index'
@@ -121,12 +122,14 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
   private readonly batchToggleUserPermissionsService: BatchToggleUserPermissionsService
   private readonly promoteToSuperadminService: PromoteToSuperadminService
   private readonly demoteFromSuperadminService: DemoteFromSuperadminService
+  private readonly getUserManagementCompaniesService: GetUserManagementCompaniesService
 
   constructor(
     repository: UsersRepository,
     db: TDrizzleClient,
     userPermissionsRepository: UserPermissionsRepository,
-    userRolesRepository: UserRolesRepository
+    userRolesRepository: UserRolesRepository,
+    managementCompanyMembersRepository: ManagementCompanyMembersRepository
   ) {
     super(repository)
 
@@ -150,6 +153,9 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
       userRolesRepository,
       userPermissionsRepository
     )
+    this.getUserManagementCompaniesService = new GetUserManagementCompaniesService(
+      managementCompanyMembersRepository
+    )
   }
 
   get routes(): TRouteDefinition[] {
@@ -166,6 +172,12 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
         method: 'get',
         path: '/me/condominiums',
         handler: this.getCondominiums,
+        middlewares: [authMiddleware],
+      },
+      {
+        method: 'get',
+        path: '/me/management-companies',
+        handler: this.getManagementCompanies,
         middlewares: [authMiddleware],
       },
       { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
@@ -382,6 +394,24 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
     const user = ctx.getAuthenticatedUser()
 
     const result = await this.getUserCondominiumsService.execute({
+      userId: user.id,
+    })
+
+    if (!result.success) {
+      throw AppError.internal(result.error)
+    }
+
+    return ctx.ok({ data: result.data })
+  }
+
+  /**
+   * Get all management companies the authenticated user is a member of.
+   */
+  private getManagementCompanies = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const user = ctx.getAuthenticatedUser()
+
+    const result = await this.getUserManagementCompaniesService.execute({
       userId: user.id,
     })
 

@@ -1,45 +1,32 @@
 import type { Metadata } from 'next'
-import { Divider } from '@/ui/components/divider'
 
 import { HeroSection } from './components/HeroSection'
-
-export const metadata: Metadata = {
-  title: 'Administra tu Condominio Fácilmente',
-  description:
-    'CondominioApp es la plataforma más fácil para administrar tu condominio. Cobra cuotas, organiza asambleas, mantén informados a los vecinos y lleva las cuentas en orden.',
-  openGraph: {
-    title: 'CondominioApp - Administra tu Condominio Fácilmente',
-    description:
-      'La plataforma más fácil para administrar tu condominio. Cobra cuotas, organiza asambleas y mantén las cuentas en orden.',
-  },
-}
 import { ProblemsSection } from './components/ProblemsSection'
 import { BenefitsSection } from './components/BenefitsSection'
 import { HowItWorksSection } from './components/HowItWorksSection'
 import { CTASection } from './components/CTASection'
+import { Footer } from './components/Footer'
 
-import { PricingSection } from '@/ui/components/pricings'
+export const metadata: Metadata = {
+  title: 'CondominioApp — Administra tu Condominio',
+  description:
+    'La plataforma moderna para administrar tu condominio. Cobra cuotas, comunica avisos y lleva las cuentas en orden.',
+  openGraph: {
+    title: 'CondominioApp — Administra tu Condominio',
+    description:
+      'La plataforma moderna para administrar tu condominio. Cobra cuotas, comunica avisos y lleva las cuentas en orden.',
+  },
+}
 
 export default function Home() {
   return (
     <>
-      <div className="relative z-10 flex flex-col gap-20 pb-16">
-        <HeroSection />
-
-        <ProblemsSection />
-
-        <BenefitsSection />
-
-        <HowItWorksSection />
-
-        <Divider />
-
-        <PricingSection />
-
-        <Divider />
-
-        <CTASection />
-      </div>
+      <HeroSection />
+      <ProblemsSection />
+      <BenefitsSection />
+      <HowItWorksSection />
+      <CTASection />
+      <Footer />
     </>
   )
 }

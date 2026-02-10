@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
 import { isUserAuthenticated } from '@http/middlewares/utils/auth/is-user-authenticated'
+import { env } from '@config/environment'
 import { applyI18nMiddleware } from '@http/middlewares/locales'
 import {
   beginTestTransaction,
@@ -34,7 +35,7 @@ describe('Auth Middleware', () => {
 
   beforeAll(async () => {
     // Enable full auth middleware testing (disable bypass)
-    process.env.TEST_AUTH_MIDDLEWARE = 'true'
+    env.TEST_AUTH_MIDDLEWARE = 'true'
     db = await startTestContainer()
   })
 

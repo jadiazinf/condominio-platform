@@ -10,8 +10,7 @@ import { AmenitiesClient } from './components/AmenitiesClient'
 async function AmenitiesContent() {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
 
-  // Admins and superadmins can access
-  if (!session.superadmin?.isActive && !session.condominiums?.length) {
+  if (!session.condominiums?.length) {
     redirect('/dashboard')
   }
 

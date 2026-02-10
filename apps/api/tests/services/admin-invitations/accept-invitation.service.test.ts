@@ -2,9 +2,11 @@ import { describe, it, expect, beforeEach } from 'bun:test'
 import type {
   TAdminInvitation,
   TUser,
+  TUserRole,
   TManagementCompany,
   TManagementCompanyMember,
   TManagementCompanySubscription,
+  TRole,
 } from '@packages/domain'
 import { AcceptInvitationService } from '@src/services/admin-invitations'
 
@@ -30,12 +32,23 @@ type TMockCompaniesRepository = {
 
 type TMockMembersRepository = {
   create: (data: any) => Promise<TManagementCompanyMember>
+  getByCompanyAndUser: (companyId: string, userId: string) => Promise<TManagementCompanyMember | null>
+  update: (id: string, data: any) => Promise<TManagementCompanyMember | null>
   withTx: (tx: unknown) => TMockMembersRepository
 }
 
 type TMockSubscriptionsRepository = {
   create: (data: any) => Promise<TManagementCompanySubscription>
   withTx: (tx: unknown) => TMockSubscriptionsRepository
+}
+
+type TMockUserRolesRepository = {
+  create: (data: any) => Promise<TUserRole>
+  withTx: (tx: unknown) => TMockUserRolesRepository
+}
+
+type TMockRolesRepository = {
+  getByName: (name: string) => Promise<TRole | null>
 }
 
 // Mock db that executes the transaction callback immediately (no real DB)
@@ -50,6 +63,8 @@ describe('AcceptInvitationService', function () {
   let mockCompaniesRepository: TMockCompaniesRepository
   let mockMembersRepository: TMockMembersRepository
   let mockSubscriptionsRepository: TMockSubscriptionsRepository
+  let mockUserRolesRepository: TMockUserRolesRepository
+  let mockRolesRepository: TMockRolesRepository
   let existingUserWithFirebaseUid: TUser | null
 
   const testUser: TUser = {
@@ -134,6 +149,17 @@ describe('AcceptInvitationService', function () {
   }
 
   const newFirebaseUid = 'new-firebase-uid-12345'
+
+  const userRoleId = '550e8400-e29b-41d4-a716-446655440020'
+  const mockUserRole: TRole = {
+    id: '550e8400-e29b-41d4-a716-446655440030',
+    name: 'USER',
+    description: 'Standard user role',
+    isSystemRole: true,
+    registeredBy: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
 
   beforeEach(function () {
     existingUserWithFirebaseUid = null
@@ -221,6 +247,53 @@ describe('AcceptInvitationService', function () {
           updatedAt: new Date(),
         }
       },
+      getByCompanyAndUser: async function () {
+        // Return existing inactive member (created during company setup)
+        return {
+          id: '550e8400-e29b-41d4-a716-446655440010',
+          managementCompanyId: testCompany.id,
+          userId: testUser.id,
+          roleName: 'admin',
+          permissions: {
+            can_change_subscription: true,
+            can_manage_members: true,
+            can_create_tickets: true,
+            can_view_invoices: true,
+          },
+          isPrimaryAdmin: true,
+          joinedAt: null,
+          invitedAt: new Date(),
+          invitedBy: pendingInvitation.createdBy,
+          isActive: false,
+          deactivatedAt: null,
+          deactivatedBy: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as TManagementCompanyMember
+      },
+      update: async function (id: string, data: any) {
+        return {
+          id,
+          managementCompanyId: testCompany.id,
+          userId: testUser.id,
+          roleName: 'admin',
+          permissions: {
+            can_change_subscription: true,
+            can_manage_members: true,
+            can_create_tickets: true,
+            can_view_invoices: true,
+          },
+          isPrimaryAdmin: true,
+          joinedAt: data.joinedAt ?? new Date(),
+          invitedAt: new Date(),
+          invitedBy: pendingInvitation.createdBy,
+          isActive: data.isActive ?? true,
+          deactivatedAt: null,
+          deactivatedBy: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as TManagementCompanyMember
+      },
       withTx() { return this },
     }
 
@@ -268,13 +341,41 @@ describe('AcceptInvitationService', function () {
       withTx() { return this },
     }
 
+    mockUserRolesRepository = {
+      create: async function (data: any) {
+        return {
+          id: userRoleId,
+          userId: data.userId,
+          roleId: data.roleId,
+          condominiumId: data.condominiumId,
+          buildingId: data.buildingId,
+          isActive: data.isActive,
+          notes: data.notes,
+          assignedAt: new Date(),
+          assignedBy: data.assignedBy,
+          registeredBy: data.registeredBy,
+          expiresAt: data.expiresAt,
+        }
+      },
+      withTx() { return this },
+    }
+
+    mockRolesRepository = {
+      getByName: async function (name: string) {
+        if (name === 'USER') return mockUserRole
+        return null
+      },
+    }
+
     service = new AcceptInvitationService(
       mockDb,
       mockInvitationsRepository as never,
       mockUsersRepository as never,
       mockCompaniesRepository as never,
       mockMembersRepository as never,
-      mockSubscriptionsRepository as never
+      mockSubscriptionsRepository as never,
+      mockUserRolesRepository as never,
+      mockRolesRepository as never
     )
   })
 
@@ -293,6 +394,20 @@ describe('AcceptInvitationService', function () {
         expect(result.data.user.isEmailVerified).toBe(true)
         expect(result.data.user.firebaseUid).toBe(newFirebaseUid)
         expect(result.data.managementCompany.isActive).toBe(true)
+
+        // Verify member was activated (not created new)
+        expect(result.data.member).toBeDefined()
+        expect(result.data.member.isActive).toBe(true)
+        expect(result.data.member.roleName).toBe('admin')
+        expect(result.data.member.isPrimaryAdmin).toBe(true)
+
+        // Verify user role was assigned
+        expect(result.data.userRole).toBeDefined()
+        expect(result.data.userRole.userId).toBe(testUser.id)
+        expect(result.data.userRole.roleId).toBe(mockUserRole.id)
+        expect(result.data.userRole.isActive).toBe(true)
+        expect(result.data.userRole.condominiumId).toBeNull()
+        expect(result.data.userRole.buildingId).toBeNull()
       }
     })
 

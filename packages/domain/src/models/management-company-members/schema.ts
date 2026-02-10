@@ -25,7 +25,7 @@ export const managementCompanyMemberSchema = baseModelSchema.extend({
   permissions: memberPermissionsSchema.nullable(),
 
   isPrimaryAdmin: z.boolean().default(false),
-  joinedAt: z.coerce.date(),
+  joinedAt: z.coerce.date().nullable(),
   invitedAt: z.coerce.date().nullable(),
   invitedBy: z.uuid().nullable(),
   isActive: z.boolean().default(true),

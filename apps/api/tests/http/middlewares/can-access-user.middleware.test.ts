@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
 import { canAccessUser } from '@http/middlewares/utils/auth/can-access-user'
 import { isUserAuthenticated } from '@http/middlewares/utils/auth/is-user-authenticated'
+import { env } from '@config/environment'
 import { applyI18nMiddleware } from '@http/middlewares/locales'
 import {
   cleanDatabase,
@@ -94,7 +95,7 @@ describe('Can Access User Middleware', () => {
 
   beforeAll(async () => {
     // Enable full auth middleware testing (disable bypass)
-    process.env.TEST_AUTH_MIDDLEWARE = 'true'
+    env.TEST_AUTH_MIDDLEWARE = 'true'
     db = await startTestContainer()
   })
 

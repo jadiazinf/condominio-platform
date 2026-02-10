@@ -6,6 +6,7 @@ import { DatabaseService } from '@database/service'
 import { userRoles, roles } from '@database/drizzle/schema'
 import { AUTHENTICATED_USER_PROP } from './is-user-authenticated'
 import { LocaleDictionary } from '@locales/dictionary'
+import { env } from '@config/environment'
 
 export const CONDOMINIUM_ID_PROP = 'condominiumId'
 export const USER_ROLE_PROP = 'userRole'
@@ -38,7 +39,7 @@ export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
   return async (c, next) => {
     // In test mode, bypass DB role check (controller tests use mock repos, no real DB)
     // Set TEST_REQUIRE_ROLE_MIDDLEWARE=true to test the real middleware
-    if (process.env.NODE_ENV === 'test' && !process.env.TEST_REQUIRE_ROLE_MIDDLEWARE) {
+    if (env.NODE_ENV === 'test' && !env.TEST_REQUIRE_ROLE_MIDDLEWARE) {
       const role = allowedRoles[0] || SUPERADMIN_ROLE
       c.set(USER_ROLE_PROP, role)
       if (role !== SUPERADMIN_ROLE) {

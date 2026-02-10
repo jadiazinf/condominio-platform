@@ -88,7 +88,8 @@ export async function getAllCondominiums(token?: string): Promise<TCondominium[]
  */
 export async function getCondominiumsPaginated(
   token: string,
-  query: TCondominiumsQuery
+  query: TCondominiumsQuery,
+  condominiumId?: string
 ): Promise<TApiPaginatedResponse<TCondominium>> {
   const client = getHttpClient()
 
@@ -102,6 +103,38 @@ export async function getCondominiumsPaginated(
 
   const queryString = params.toString()
   const path = `/condominium/condominiums${queryString ? `?${queryString}` : ''}`
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  }
+  if (condominiumId) {
+    headers['x-condominium-id'] = condominiumId
+  }
+
+  const response = await client.get<TApiPaginatedResponse<TCondominium>>(path, { headers })
+
+  return response.data
+}
+
+/**
+ * Server-side function to get ALL condominiums (SUPERADMIN only).
+ * Calls /platform/condominiums which doesn't require x-condominium-id.
+ */
+export async function getPlatformCondominiumsPaginated(
+  token: string,
+  query: TCondominiumsQuery
+): Promise<TApiPaginatedResponse<TCondominium>> {
+  const client = getHttpClient()
+
+  const params = new URLSearchParams()
+  if (query.page) params.set('page', String(query.page))
+  if (query.limit) params.set('limit', String(query.limit))
+  if (query.search) params.set('search', query.search)
+  if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
+  if (query.locationId) params.set('locationId', query.locationId)
+
+  const queryString = params.toString()
+  const path = `/platform/condominiums${queryString ? `?${queryString}` : ''}`
 
   const response = await client.get<TApiPaginatedResponse<TCondominium>>(path, {
     headers: {

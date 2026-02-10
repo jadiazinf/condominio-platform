@@ -4,13 +4,14 @@ import { NavbarMenu, NavbarMenuItem } from '@heroui/navbar'
 import { Link } from '@/ui/components/link'
 
 import { NAV_ITEMS } from './NavbarLinks'
-import { useTranslation, useAuth } from '@/contexts'
+import { useTranslation } from '@/contexts'
 
-export function NavbarMobileMenu() {
+interface NavbarMobileMenuProps {
+  isAuthenticated?: boolean
+}
+
+export function NavbarMobileMenu({ isAuthenticated = false }: NavbarMobileMenuProps) {
   const { t } = useTranslation()
-  const { user } = useAuth()
-
-  const isAuthenticated = user !== null
 
   return (
     <NavbarMenu>

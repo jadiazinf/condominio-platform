@@ -1,5 +1,6 @@
 import type {
   TUser,
+  TUserRole,
   TManagementCompany,
   TManagementCompanyCreate,
   TManagementCompanyMember,
@@ -10,6 +11,8 @@ import type {
   ManagementCompaniesRepository,
   ManagementCompanyMembersRepository,
   ManagementCompanySubscriptionsRepository,
+  UserRolesRepository,
+  RolesRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
@@ -25,6 +28,7 @@ export interface ICreateCompanyWithExistingAdminResult {
   admin: TUser
   member: TManagementCompanyMember
   subscription: TManagementCompanySubscription
+  userRole: TUserRole
 }
 
 /**
@@ -45,7 +49,9 @@ export class CreateCompanyWithExistingAdminService {
     private readonly usersRepository: UsersRepository,
     private readonly managementCompaniesRepository: ManagementCompaniesRepository,
     private readonly membersRepository: ManagementCompanyMembersRepository,
-    private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository
+    private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository,
+    private readonly userRolesRepository: UserRolesRepository,
+    private readonly rolesRepository: RolesRepository
   ) {}
 
   async execute(
@@ -62,11 +68,19 @@ export class CreateCompanyWithExistingAdminService {
       return failure('User is not active', 'BAD_REQUEST')
     }
 
+    // Look up the USER role before starting the transaction (read-only, avoids
+    // acquiring a second connection inside the tx which can deadlock in test containers)
+    const userRole = await this.rolesRepository.getByName('USER')
+    if (!userRole) {
+      return failure('USER role not found in system', 'INTERNAL_ERROR')
+    }
+
     // All writes inside a transaction for atomicity
     return await this.db.transaction(async (tx) => {
       const txCompaniesRepo = this.managementCompaniesRepository.withTx(tx)
       const txMembersRepo = this.membersRepository.withTx(tx)
       const txSubscriptionsRepo = this.subscriptionsRepository.withTx(tx)
+      const txUserRolesRepo = this.userRolesRepository.withTx(tx)
 
       // Create management company (active from the start since admin already exists)
       const companyData: TManagementCompanyCreate = {
@@ -103,6 +117,30 @@ export class CreateCompanyWithExistingAdminService {
 
       if (!member) {
         return failure('Failed to create member', 'INTERNAL_ERROR')
+      }
+
+      // Check if user already has this role (existing users may already have it)
+      const existingRoles = await txUserRolesRepo.getByUserAndRole(user.id, userRole.id, null)
+      let userRoleAssignment: TUserRole
+
+      if (existingRoles.length > 0) {
+        userRoleAssignment = existingRoles[0]!
+      } else {
+        userRoleAssignment = await txUserRolesRepo.create({
+          userId: user.id,
+          roleId: userRole.id,
+          condominiumId: null,
+          buildingId: null,
+          isActive: true,
+          notes: 'Assigned via management company creation with existing admin',
+          assignedBy: input.createdBy,
+          registeredBy: input.createdBy,
+          expiresAt: null,
+        })
+      }
+
+      if (!userRoleAssignment) {
+        return failure('Failed to assign user role', 'INTERNAL_ERROR')
       }
 
       // Create trial subscription (30 days)
@@ -153,6 +191,7 @@ export class CreateCompanyWithExistingAdminService {
         admin: user,
         member,
         subscription,
+        userRole: userRoleAssignment,
       })
     })
   }

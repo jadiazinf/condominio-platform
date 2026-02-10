@@ -98,7 +98,6 @@ function decodeJwtPayload(token: string): string | null {
 
 // Mock Firebase Admin SDK
 mock.module('@libs/firebase/config', () => {
-  console.log('[Preload] Mocking @libs/firebase/config')
   return {
     admin: {
       auth: () => ({

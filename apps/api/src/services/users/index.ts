@@ -45,3 +45,6 @@ export type {
   IBatchToggleUserPermissionsInput,
   IBatchToggleUserPermissionsOutput,
 } from './batch-toggle-user-permissions.service'
+
+export { GetUserManagementCompaniesService } from './get-user-management-companies.service'
+export type { IGetUserManagementCompaniesInput } from './get-user-management-companies.service'

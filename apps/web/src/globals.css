@@ -11,10 +11,10 @@
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Primary - Verde bosque */
-  --color-green-forest: #047857;
-  --color-green-light: #4ade80;
-  --color-green-dark: #15803d;
+  /* Primary - Brick/Terracotta (aliases) */
+  --color-green-forest: #b5451b;
+  --color-green-light: #d97544;
+  --color-green-dark: #9a3a17;
 
   /* Secondary - Dorado */
   --color-gold: #eab308;
@@ -34,15 +34,20 @@
   --color-light-hover: #f4f4f5;
   --color-light-border: #e4e4e7;
 
+  /* Brick/Terracotta */
+  --color-brick: #b5451b;
+  --color-brick-light: #d97544;
+  --color-brick-dark: #9a3a17;
+
   /* Text colors */
   --color-text-primary: #fafafa;
   --color-text-secondary: #a1a1aa;
   --color-text-muted: #71717a;
 }
 
-/* Gradient text - Natural y elegante */
+/* Gradient text - Brick/Terracotta */
 .text-gradient-primary {
-  @apply bg-gradient-to-r from-[#047857] to-[#4ADE80] bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-[#B5451B] to-[#D97544] bg-clip-text text-transparent;
 }
 
 .text-gradient-secondary {
@@ -50,17 +55,31 @@
 }
 
 .text-gradient-elegant {
-  @apply bg-gradient-to-r from-[#047857] via-[#16A34A] to-[#EAB308] bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-[#B5451B] via-[#D97544] to-[#EAB308] bg-clip-text text-transparent;
 }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
+/* Gradient text - Brick */
+.text-gradient-brick {
+  @apply bg-gradient-to-r from-[#B5451B] to-[#D97544] bg-clip-text text-transparent;
+}
+
+/* Scroll-snap container for landing page */
+.snap-container {
+  scroll-snap-type: y mandatory;
+  overflow-y: auto;
+  height: 100vh;
+  position: relative;
+  z-index: 0;
+}
+
+.snap-section {
+  scroll-snap-align: start;
+  min-height: 100vh;
 }
 
 /* Selection color */
 ::selection {
-  background-color: rgba(4, 120, 87, 0.3);
+  background-color: rgba(181, 69, 27, 0.3);
 }
 
 /* Hero gradient background */

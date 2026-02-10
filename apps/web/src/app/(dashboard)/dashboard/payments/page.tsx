@@ -11,7 +11,7 @@ import { PaymentsTableSkeleton } from './components/PaymentsTableSkeleton'
 async function PaymentsContent() {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
 
-  if (!session.superadmin?.isActive && !session.condominiums?.length) {
+  if (!session.condominiums?.length) {
     redirect('/dashboard')
   }
 

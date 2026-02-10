@@ -1,4 +1,4 @@
-import type { TUser, TUserCondominiumAccess, TUserRole, TPermission } from '@packages/domain'
+import type { TUser, TUserCondominiumAccess, TUserRole, TPermission, TUserManagementCompanyAccess, TActiveRoleType } from '@packages/domain'
 
 import { cookies } from 'next/headers'
 
@@ -7,6 +7,8 @@ const CONDOMINIUMS_COOKIE_NAME = '__condominiums'
 const SELECTED_CONDOMINIUM_COOKIE_NAME = '__selected_condominium'
 const SUPERADMIN_COOKIE_NAME = '__superadmin'
 const SUPERADMIN_PERMISSIONS_COOKIE_NAME = '__superadmin_permissions'
+const MANAGEMENT_COMPANIES_COOKIE_NAME = '__management_companies'
+const ACTIVE_ROLE_COOKIE_NAME = '__active_role'
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -165,5 +167,46 @@ export async function setSuperadminPermissionsCookieServer(
 export async function getSuperadminPermissionsCookieServer(): Promise<TPermission[] | null> {
   // Permissions are no longer stored in cookies (too large)
   // They are always fetched fresh from API
+  return null
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Management Companies Cookie (Server-side)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function getManagementCompaniesCookieServer(): Promise<TUserManagementCompanyAccess[] | null> {
+  const cookieStore = await cookies()
+  const cookie = cookieStore.get(MANAGEMENT_COMPANIES_COOKIE_NAME)
+
+  if (!cookie?.value) {
+    return null
+  }
+
+  try {
+    const decodedValue = decodeURIComponent(cookie.value)
+
+    return JSON.parse(decodedValue) as TUserManagementCompanyAccess[]
+  } catch {
+    return null
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Active Role Cookie (Server-side)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function getActiveRoleCookieServer(): Promise<TActiveRoleType | null> {
+  const cookieStore = await cookies()
+  const cookie = cookieStore.get(ACTIVE_ROLE_COOKIE_NAME)
+
+  if (!cookie?.value) {
+    return null
+  }
+
+  const value = cookie.value
+  if (value === 'superadmin' || value === 'management_company' || value === 'condominium') {
+    return value
+  }
+
   return null
 }

@@ -111,7 +111,14 @@ export function Table<T extends { id: string | number }>({
     <HeroUITable
       aria-label={ariaLabel}
       className={cn(className)}
-      classNames={classNames}
+      classNames={{
+        ...classNames,
+        thead: cn('[&>tr]:first:shadow-none', classNames?.thead),
+        th: cn(
+          'bg-transparent border-b border-divider text-default-500 font-medium',
+          classNames?.th
+        ),
+      }}
       color={color}
       disabledKeys={disabledKeys}
       fullWidth={fullWidth}

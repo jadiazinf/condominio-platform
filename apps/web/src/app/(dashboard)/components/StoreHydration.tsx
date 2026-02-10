@@ -1,10 +1,10 @@
 'use client'
 
-import type { TUser, TUserCondominiumAccess, TUserRole, TPermission } from '@packages/domain'
+import type { TUser, TUserCondominiumAccess, TUserRole, TPermission, TUserManagementCompanyAccess, TActiveRoleType } from '@packages/domain'
 
 import { useEffect, useRef } from 'react'
 
-import { useUser, useCondominium, useSuperadmin } from '@/stores/session-store'
+import { useUser, useCondominium, useSuperadmin, useManagementCompany, useActiveRole } from '@/stores/session-store'
 import { getUserCookie, setUserCookie } from '@/libs/cookies/user-cookie'
 import {
   setCondominiumsCookie,
@@ -14,6 +14,10 @@ import {
   setSuperadminCookie,
   setSuperadminPermissionsCookie,
 } from '@/libs/cookies/superadmin-cookie'
+import {
+  setManagementCompaniesCookie,
+  setActiveRoleCookie,
+} from '@/libs/cookies/management-company-cookie'
 import { getProfilePhotoUrl } from '@/libs/firebase'
 
 interface StoreHydrationProps {
@@ -22,6 +26,8 @@ interface StoreHydrationProps {
   selectedCondominium: TUserCondominiumAccess | null
   superadmin?: TUserRole | null
   superadminPermissions?: TPermission[]
+  managementCompanies?: TUserManagementCompanyAccess[]
+  activeRole?: TActiveRoleType | null
   /** True if data was fetched from API (not from cookies) - should update cookies */
   wasFetched?: boolean
 }
@@ -56,6 +62,8 @@ export function StoreHydration({
   selectedCondominium,
   superadmin,
   superadminPermissions,
+  managementCompanies,
+  activeRole,
   wasFetched = false,
 }: StoreHydrationProps) {
   const { setUser } = useUser()
@@ -72,6 +80,13 @@ export function StoreHydration({
     setPermissions,
     clearSuperadmin,
   } = useSuperadmin()
+  const {
+    managementCompanies: currentManagementCompanies,
+    setManagementCompanies,
+  } = useManagementCompany()
+  const {
+    setActiveRole,
+  } = useActiveRole()
 
   const hasHydrated = useRef(false)
   const hasRefreshedPhotoUrl = useRef(false)
@@ -133,23 +148,44 @@ export function StoreHydration({
       setPermissions([])
       setSuperadminPermissionsCookie([])
     }
+
+    // Hydrate management companies
+    if (managementCompanies && managementCompanies.length > 0 &&
+        (!currentManagementCompanies || currentManagementCompanies.length === 0)) {
+      setManagementCompanies(managementCompanies)
+
+      if (wasFetched) {
+        setManagementCompaniesCookie(managementCompanies)
+      }
+    }
+
+    // Hydrate active role
+    if (activeRole) {
+      setActiveRole(activeRole)
+      setActiveRoleCookie(activeRole)
+    }
   }, [
     user,
     condominiums,
     selectedCondominium,
     superadmin,
     superadminPermissions,
+    managementCompanies,
+    activeRole,
     wasFetched,
     currentCondominiums,
     currentSelected,
     currentSuperadmin,
     currentPermissions,
+    currentManagementCompanies,
     setUser,
     setCondominiums,
     selectCondominium,
     setSuperadmin,
     setPermissions,
     clearSuperadmin,
+    setManagementCompanies,
+    setActiveRole,
   ])
 
   // Refresh photo URL from Firebase Storage to ensure it has a valid token

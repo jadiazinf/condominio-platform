@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes'
 import { sql } from 'drizzle-orm'
 import { isUserAuthenticated, AUTHENTICATED_USER_PROP } from '@http/middlewares/utils/auth/is-user-authenticated'
 import { requireRole, CONDOMINIUM_ID_PROP, USER_ROLE_PROP } from '@http/middlewares/utils/auth/require-role'
+import { env } from '@config/environment'
 import { applyI18nMiddleware } from '@http/middlewares/locales'
 import {
   beginTestTransaction,
@@ -41,12 +42,12 @@ describe('requireRole middleware', () => {
 
   beforeAll(async () => {
     // Enable full requireRole middleware testing (disable bypass)
-    process.env.TEST_REQUIRE_ROLE_MIDDLEWARE = 'true'
+    env.TEST_REQUIRE_ROLE_MIDDLEWARE = 'true'
     db = await startTestContainer()
   })
 
   afterAll(async () => {
-    delete process.env.TEST_REQUIRE_ROLE_MIDDLEWARE
+    env.TEST_REQUIRE_ROLE_MIDDLEWARE = undefined
     await stopTestContainer()
   })
 
