@@ -134,6 +134,7 @@ export class CreateUserInvitationService {
       roleId: role.id,
       condominiumId: input.condominiumId ?? null,
       buildingId: null,
+      managementCompanyId: null,
       isActive: false, // Will be activated when invitation is accepted
       notes: 'Created via invitation',
       assignedBy: input.createdBy,
@@ -182,6 +183,7 @@ export class CreateUserInvitationService {
       roleId: roleId,
       condominiumId: input.condominiumId ?? null,
       buildingId: null,
+      managementCompanyId: null,
       isActive: false, // Will be activated when invitation is accepted
       notes: 'Created via invitation',
       assignedBy: input.createdBy,

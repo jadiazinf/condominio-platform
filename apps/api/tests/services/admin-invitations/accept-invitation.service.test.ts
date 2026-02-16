@@ -231,6 +231,7 @@ describe('AcceptInvitationService', function () {
           managementCompanyId: data.managementCompanyId,
           userId: data.userId,
           roleName: data.roleName,
+          userRoleId: null,
           permissions: data.permissions,
           isPrimaryAdmin: data.isPrimaryAdmin,
           joinedAt: new Date(),
@@ -250,6 +251,7 @@ describe('AcceptInvitationService', function () {
           managementCompanyId: testCompany.id,
           userId: testUser.id,
           roleName: 'admin',
+          userRoleId: null,
           permissions: {
             can_change_subscription: true,
             can_manage_members: true,
@@ -273,6 +275,7 @@ describe('AcceptInvitationService', function () {
           managementCompanyId: testCompany.id,
           userId: testUser.id,
           roleName: 'admin',
+          userRoleId: null,
           permissions: {
             can_change_subscription: true,
             can_manage_members: true,

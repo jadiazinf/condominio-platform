@@ -47,6 +47,7 @@ export class PromoteToSuperadminService {
         roleId: superadminRoleId,
         condominiumId: null,
         buildingId: null,
+        managementCompanyId: null,
         isActive: true,
         assignedBy,
         registeredBy: assignedBy,

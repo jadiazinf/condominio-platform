@@ -275,6 +275,7 @@ describe('CreateCompanyWithExistingAdminService', function () {
         roleId: mockUserRole.id,
         condominiumId: null,
         buildingId: null,
+        managementCompanyId: null,
         isActive: true,
         notes: 'Previously assigned',
         assignedAt: new Date(),

@@ -28,7 +28,7 @@ export interface ICondominiumUserUnit {
   unitNumber: string
   buildingId: string
   buildingName: string
-  ownershipType: 'owner' | 'co-owner' | 'tenant'
+  ownershipType: 'owner' | 'co-owner' | 'tenant' | 'family_member' | 'authorized'
   isActive: boolean
 }
 
@@ -109,13 +109,13 @@ export class GetCondominiumUsersService {
       const userIds = [...new Set(usersWithRoles.map(u => u.userId))]
 
       let unitOwnershipsData: Array<{
-        userId: string
+        userId: string | null
         ownershipId: string
         unitId: string
         unitNumber: string
         buildingId: string
         buildingName: string
-        ownershipType: 'owner' | 'co-owner' | 'tenant'
+        ownershipType: 'owner' | 'co-owner' | 'tenant' | 'family_member' | 'authorized'
         isActive: boolean
       }> = []
 
@@ -188,8 +188,9 @@ export class GetCondominiumUsersService {
         })
       }
 
-      // Add unit ownerships to users
+      // Add unit ownerships to users (skip non-registered residents with null userId)
       for (const ownership of unitOwnershipsData) {
+        if (!ownership.userId) continue
         const user = userMap.get(ownership.userId)
         if (user) {
           user.units.push({

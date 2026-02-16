@@ -162,7 +162,7 @@ export class AcceptInvitationService {
           updatedUser.id,
           adminRole.id,
           managementCompany.id,
-          invitation.createdBy
+          invitation.createdBy ?? undefined
         )
       }
 

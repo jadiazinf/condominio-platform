@@ -253,6 +253,7 @@ export class CreateUserWithInvitationService {
       roleId: input.roleId,
       condominiumId: input.condominiumId ?? null,
       buildingId: null,
+      managementCompanyId: null,
       isActive: false, // Activated when invitation is accepted
       notes: 'Created via invitation by superadmin',
       assignedBy: input.createdBy,

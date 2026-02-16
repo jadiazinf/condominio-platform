@@ -14,6 +14,7 @@ export class UserRoleFactory {
       roleId: faker.string.uuid(),
       condominiumId: null,
       buildingId: null,
+      managementCompanyId: null,
       isActive: true,
       notes: null,
       assignedBy: null,
