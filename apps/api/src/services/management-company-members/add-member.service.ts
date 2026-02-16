@@ -3,7 +3,11 @@ import type {
   TMemberRole,
   TMemberPermissions,
 } from '@packages/domain'
-import type { ManagementCompanyMembersRepository } from '@database/repositories'
+import type {
+  ManagementCompanyMembersRepository,
+  UserRolesRepository,
+  RolesRepository,
+} from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 
 export interface IAddMemberInput {
@@ -16,10 +20,24 @@ export interface IAddMemberInput {
 }
 
 /**
+ * Maps a TMemberRole to the unified role name in the roles table.
+ */
+const MEMBER_ROLE_TO_SYSTEM_ROLE: Record<TMemberRole, string> = {
+  admin: 'ADMIN',
+  accountant: 'ACCOUNTANT',
+  support: 'SUPPORT',
+  viewer: 'VIEWER',
+}
+
+/**
  * Service for adding a new member to a management company.
  */
 export class AddMemberService {
-  constructor(private readonly membersRepository: ManagementCompanyMembersRepository) {}
+  constructor(
+    private readonly membersRepository: ManagementCompanyMembersRepository,
+    private readonly userRolesRepository: UserRolesRepository,
+    private readonly rolesRepository: RolesRepository
+  ) {}
 
   async execute(input: IAddMemberInput): Promise<TServiceResult<TManagementCompanyMember>> {
     // Check if primary admin already exists (if trying to add as primary)
@@ -31,17 +49,33 @@ export class AddMemberService {
       }
     }
 
+    // Look up the system role for this member role
+    const systemRoleName = MEMBER_ROLE_TO_SYSTEM_ROLE[input.role]
+    const role = await this.rolesRepository.getByName(systemRoleName)
+    if (!role) {
+      return failure(`${systemRoleName} role not found in system`, 'INTERNAL_ERROR')
+    }
+
+    // Create MC-scoped role in user_roles (unified role system)
+    const mcRoleAssignment = await this.userRolesRepository.createManagementCompanyRole(
+      input.userId,
+      role.id,
+      input.managementCompanyId,
+      input.invitedBy
+    )
+
     // Get default permissions for role if not provided
     const permissions = input.permissions ?? this.getDefaultPermissions(input.role)
 
-    // Add member
+    // Add member with link to unified user_role
     const member = await this.membersRepository.addMember(
       input.managementCompanyId,
       input.userId,
       input.role,
       input.isPrimary ?? false,
       permissions,
-      input.invitedBy
+      input.invitedBy,
+      mcRoleAssignment.id
     )
 
     return success(member)

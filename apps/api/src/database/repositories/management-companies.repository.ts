@@ -100,6 +100,23 @@ export class ManagementCompaniesRepository
   }
 
   /**
+   * Retrieves a management company by email.
+   */
+  async getByEmail(email: string): Promise<TManagementCompany | null> {
+    const results = await this.db
+      .select()
+      .from(managementCompanies)
+      .where(eq(managementCompanies.email, email))
+      .limit(1)
+
+    if (results.length === 0) {
+      return null
+    }
+
+    return this.mapToEntity(results[0])
+  }
+
+  /**
    * Retrieves a management company by tax ID number.
    */
   async getByTaxIdNumber(taxIdNumber: string): Promise<TManagementCompany | null> {

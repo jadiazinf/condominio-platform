@@ -29,6 +29,11 @@ export class UnitOwnershipsRepository
       id: r.id,
       unitId: r.unitId,
       userId: r.userId,
+      fullName: r.fullName,
+      email: r.email,
+      phone: r.phone,
+      phoneCountryCode: r.phoneCountryCode,
+      isRegistered: r.isRegistered ?? false,
       ownershipType: r.ownershipType as TUnitOwnership['ownershipType'],
       ownershipPercentage: r.ownershipPercentage,
       titleDeedNumber: r.titleDeedNumber,
@@ -47,6 +52,11 @@ export class UnitOwnershipsRepository
     return {
       unitId: dto.unitId,
       userId: dto.userId,
+      fullName: dto.fullName,
+      email: dto.email,
+      phone: dto.phone,
+      phoneCountryCode: dto.phoneCountryCode,
+      isRegistered: dto.isRegistered,
       ownershipType: dto.ownershipType,
       ownershipPercentage: dto.ownershipPercentage,
       titleDeedNumber: dto.titleDeedNumber,
@@ -64,6 +74,11 @@ export class UnitOwnershipsRepository
 
     if (dto.unitId !== undefined) values.unitId = dto.unitId
     if (dto.userId !== undefined) values.userId = dto.userId
+    if (dto.fullName !== undefined) values.fullName = dto.fullName
+    if (dto.email !== undefined) values.email = dto.email
+    if (dto.phone !== undefined) values.phone = dto.phone
+    if (dto.phoneCountryCode !== undefined) values.phoneCountryCode = dto.phoneCountryCode
+    if (dto.isRegistered !== undefined) values.isRegistered = dto.isRegistered
     if (dto.ownershipType !== undefined) values.ownershipType = dto.ownershipType
     if (dto.ownershipPercentage !== undefined) values.ownershipPercentage = dto.ownershipPercentage
     if (dto.titleDeedNumber !== undefined) values.titleDeedNumber = dto.titleDeedNumber
@@ -122,6 +137,45 @@ export class UnitOwnershipsRepository
       .from(unitOwnerships)
       .where(and(eq(unitOwnerships.unitId, unitId), eq(unitOwnerships.userId, userId)))
       .limit(1)
+
+    if (results.length === 0) {
+      return null
+    }
+
+    return this.mapToEntity(results[0])
+  }
+
+  /**
+   * Retrieves unregistered residents for a unit (userId is null).
+   */
+  async getUnregisteredByUnit(unitId: string): Promise<TUnitOwnership[]> {
+    const results = await this.db
+      .select()
+      .from(unitOwnerships)
+      .where(
+        and(
+          eq(unitOwnerships.unitId, unitId),
+          eq(unitOwnerships.isActive, true),
+          eq(unitOwnerships.isRegistered, false)
+        )
+      )
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Links a user account to an existing ownership (when a resident registers).
+   */
+  async linkUserToOwnership(ownershipId: string, userId: string): Promise<TUnitOwnership | null> {
+    const results = await this.db
+      .update(unitOwnerships)
+      .set({
+        userId,
+        isRegistered: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(unitOwnerships.id, ownershipId))
+      .returning()
 
     if (results.length === 0) {
       return null

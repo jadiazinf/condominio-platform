@@ -3,6 +3,7 @@ import { users } from './users'
 import { roles } from './roles'
 import { condominiums } from './condominiums'
 import { buildings } from './buildings'
+import { managementCompanies } from './management-companies'
 
 export const userRoles = pgTable(
   'user_roles',
@@ -18,6 +19,9 @@ export const userRoles = pgTable(
       onDelete: 'cascade',
     }),
     buildingId: uuid('building_id').references(() => buildings.id, {
+      onDelete: 'cascade',
+    }),
+    managementCompanyId: uuid('management_company_id').references(() => managementCompanies.id, {
       onDelete: 'cascade',
     }),
     isActive: boolean('is_active').default(true),
@@ -39,11 +43,13 @@ export const userRoles = pgTable(
     index('idx_user_roles_assigned_by').on(table.assignedBy),
     index('idx_user_roles_registered_by').on(table.registeredBy),
     index('idx_user_roles_active').on(table.isActive),
+    index('idx_user_roles_management_company').on(table.managementCompanyId),
     uniqueIndex('idx_user_roles_unique').on(
       table.userId,
       table.roleId,
       table.condominiumId,
-      table.buildingId
+      table.buildingId,
+      table.managementCompanyId
     ),
   ]
 )

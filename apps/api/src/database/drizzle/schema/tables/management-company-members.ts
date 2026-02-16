@@ -11,6 +11,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import { managementCompanies } from './management-companies'
 import { users } from './users'
+import { userRoles } from './user-roles'
 import { memberRoleEnum } from '../enums'
 import { sql } from 'drizzle-orm'
 
@@ -26,7 +27,13 @@ export const managementCompanyMembers = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
 
     // Roles: 'admin' (owner), 'accountant', 'support', 'viewer'
+    // DEPRECATED: Use userRoleId → user_roles → roles for role lookup
     roleName: memberRoleEnum('role_name').notNull(),
+
+    // Link to unified user_roles table for role management
+    userRoleId: uuid('user_role_id').references(() => userRoles.id, {
+      onDelete: 'set null',
+    }),
 
     // Permisos específicos (JSONB para flexibilidad)
     permissions: jsonb('permissions').$type<{

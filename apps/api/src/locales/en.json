@@ -42,7 +42,11 @@
           "notSuperadmin": "You do not have superadmin privileges.",
           "superadminDisabled": "Superadmin account is disabled.",
           "insufficientSuperadminPermissions": "You do not have the required superadmin permissions for this action.",
-          "noTicketAccess": "You do not have permission to access this support ticket."
+          "noTicketAccess": "You do not have permission to access this support ticket.",
+          "missingCondominiumHeader": "Missing required header: x-condominium-id.",
+          "invalidCondominiumHeaderFormat": "Invalid x-condominium-id format.",
+          "missingManagementCompanyParam": "Missing required parameter: managementCompanyId.",
+          "invalidManagementCompanyParamFormat": "Invalid managementCompanyId format."
         }
       }
     },
@@ -120,6 +124,17 @@
       "unknownError": "Unknown error, contact support.",
       "validationError": "Validation error in the submitted data.",
       "malformedBody": "The request body is not valid."
+    },
+    "services": {
+      "subscriptions": {
+        "alreadyHasSubscription": "The management company already has an active subscription.",
+        "companyNotFound": "Management company not found.",
+        "noActiveMembers": "Cannot create subscription: the management company has no active members.",
+        "noPrimaryAdmin": "Cannot create subscription: the management company has no primary administrator.",
+        "primaryAdminNotFound": "The primary administrator user was not found.",
+        "noActiveTerms": "Cannot create subscription: no active terms and conditions found.",
+        "noActiveSubscription": "No active subscription found for this management company."
+      }
     },
     "validation": {
       "Invalid ID format": "Invalid ID format.",

@@ -42,7 +42,11 @@
           "notSuperadmin": "No tiene privilegios de superadministrador.",
           "superadminDisabled": "La cuenta de superadministrador está deshabilitada.",
           "insufficientSuperadminPermissions": "No tiene los permisos de superadministrador necesarios para esta acción.",
-          "noTicketAccess": "No tiene permiso para acceder a este ticket de soporte."
+          "noTicketAccess": "No tiene permiso para acceder a este ticket de soporte.",
+          "missingCondominiumHeader": "Falta el encabezado requerido: x-condominium-id.",
+          "invalidCondominiumHeaderFormat": "Formato inválido de x-condominium-id.",
+          "missingManagementCompanyParam": "Falta el parámetro requerido: managementCompanyId.",
+          "invalidManagementCompanyParamFormat": "Formato inválido de managementCompanyId."
         }
       }
     },
@@ -120,6 +124,17 @@
       "unknownError": "Error desconocido, intente nuevamente.",
       "validationError": "Error de validación en los datos enviados.",
       "malformedBody": "El cuerpo de la solicitud no es válido."
+    },
+    "services": {
+      "subscriptions": {
+        "alreadyHasSubscription": "La empresa administradora ya tiene una suscripción activa.",
+        "companyNotFound": "Empresa administradora no encontrada.",
+        "noActiveMembers": "No se puede crear la suscripción: la empresa administradora no tiene miembros activos.",
+        "noPrimaryAdmin": "No se puede crear la suscripción: la empresa administradora no tiene un administrador principal.",
+        "primaryAdminNotFound": "No se encontró el usuario administrador principal.",
+        "noActiveTerms": "No se puede crear la suscripción: no se encontraron términos y condiciones activos.",
+        "noActiveSubscription": "No se encontró una suscripción activa para esta empresa administradora."
+      }
     },
     "validation": {
       "Invalid ID format": "Formato de ID inválido.",

@@ -22,7 +22,7 @@ export function AdminSidebar({ isCompact = false, onItemSelect }: AdminSidebarPr
     return {
       ...item,
       title: t(item.title),
-      icon: IconComponent ? <IconComponent size={20} /> : undefined,
+      icon: IconComponent ? <IconComponent size={18} /> : undefined,
     }
   })
 
@@ -39,13 +39,6 @@ export function AdminSidebar({ isCompact = false, onItemSelect }: AdminSidebarPr
   }
 
   function handleSelect(key: string) {
-    if (key === 'logout') {
-      router.push('/loading?signout=true')
-      onItemSelect?.()
-
-      return
-    }
-
     const item = adminSidebarItems.find(i => i.key === key)
 
     if (item?.href) {

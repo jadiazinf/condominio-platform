@@ -8,3 +8,5 @@ export type {
   IAutocompleteProps,
   IAutocompleteItem,
 } from './Autocomplete'
+export { AutocompleteMulti } from './AutocompleteMulti'
+export type { IAutocompleteMultiProps, IAutocompleteMultiItem } from './AutocompleteMulti'

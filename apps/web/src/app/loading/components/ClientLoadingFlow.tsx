@@ -260,7 +260,7 @@ export function ClientLoadingFlow() {
 
         toast.error(t('auth.loading.error'))
         flowControl.current.hasRedirected = true
-        router.replace('/signin')
+        router.replace('/auth')
       }
 
       executeErrorHandling()
@@ -278,7 +278,7 @@ export function ClientLoadingFlow() {
 
   async function handleLogout() {
     await performFullCleanup()
-    router.replace('/signin')
+    router.replace('/auth')
   }
 
   // ============================================

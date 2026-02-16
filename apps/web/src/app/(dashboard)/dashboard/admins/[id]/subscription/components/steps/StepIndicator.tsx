@@ -34,7 +34,7 @@ export function StepIndicator({ currentStep, steps, onStepClick }: StepIndicator
               className={cn(
                 'flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-all',
                 isCompleted && 'bg-success-100 text-success-700 hover:bg-success-200',
-                isCurrent && 'bg-primary-100 text-primary-700',
+                isCurrent && 'bg-success-100 text-success-700',
                 !isCompleted && !isCurrent && 'bg-default-100 text-default-400',
                 isClickable && 'cursor-pointer',
                 !isClickable && 'cursor-default'
@@ -44,7 +44,7 @@ export function StepIndicator({ currentStep, steps, onStepClick }: StepIndicator
                 className={cn(
                   'flex h-5 w-5 items-center justify-center rounded-full text-xs',
                   isCompleted && 'bg-success text-white',
-                  isCurrent && 'bg-primary text-white',
+                  isCurrent && 'bg-success text-white',
                   !isCompleted && !isCurrent && 'bg-default-300 text-default-500'
                 )}
               >

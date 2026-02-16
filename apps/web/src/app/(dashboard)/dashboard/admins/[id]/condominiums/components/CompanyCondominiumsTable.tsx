@@ -305,10 +305,12 @@ export function CompanyCondominiumsTable({ companyId, isCompanyActive }: Company
 
   // Show error state
   if (error) {
+    const errorMessage = HttpError.isHttpError(error) ? error.message : t('superadmin.condominiums.error')
+
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-danger-300 py-16">
         <Typography color="danger" variant="body1">
-          {t('superadmin.condominiums.error')}
+          {errorMessage}
         </Typography>
         <Button className="mt-4" color="primary" onPress={() => refetch()}>
           {t('common.retry')}

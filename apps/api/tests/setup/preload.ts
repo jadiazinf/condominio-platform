@@ -167,14 +167,19 @@ const createAuthMock = () => {
     c.set('decodedToken', { uid: 'test-firebase-uid', email: 'test@test.com' })
     await next()
   }
-  // Mock requireRole: sets role and condominiumId in context (mirrors real test bypass)
+  // Mock requireRole: sets role, condominiumId, and managementCompanyId in context
   const mockRequireRole = (...allowedRoles: string[]) => {
     return async (
-      c: { set: (key: string, value: unknown) => void; req: { header: (name: string) => string | undefined } },
+      c: { set: (key: string, value: unknown) => void; req: { header: (name: string) => string | undefined; param: (name: string) => string | undefined } },
       next: () => Promise<void>
     ) => {
       const role = allowedRoles[0] || 'SUPERADMIN'
       c.set('userRole', role)
+      // Set managementCompanyId from route param (unified MC scope)
+      const managementCompanyId = c.req.param('managementCompanyId')
+      if (managementCompanyId) {
+        c.set('managementCompanyId', managementCompanyId)
+      }
       if (role !== 'SUPERADMIN') {
         const condominiumId = c.req.header('x-condominium-id')
         if (condominiumId) {
@@ -192,6 +197,7 @@ const createAuthMock = () => {
     requireRole: mockRequireRole,
     CONDOMINIUM_ID_PROP: 'condominiumId',
     USER_ROLE_PROP: 'userRole',
+    MANAGEMENT_COMPANY_ID_PROP: 'managementCompanyId',
   }
 }
 

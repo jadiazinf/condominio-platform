@@ -1,39 +1,16 @@
-'use client'
-
-import { useState, useEffect } from 'react'
 import { Building2 } from 'lucide-react'
-import { useAuth } from '@/contexts'
+import type { TManagementCompany } from '@packages/domain'
+
 import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
-import { useTranslation } from '@/contexts'
-import { useManagementCompany } from '@packages/http-client'
+import { getTranslations } from '@/libs/i18n/server'
 
 interface CompanyDetailHeaderProps {
-  companyId: string
+  company: TManagementCompany
 }
 
-export function CompanyDetailHeader({ companyId }: CompanyDetailHeaderProps) {
-  const { t } = useTranslation()
-  const { user: firebaseUser } = useAuth()
-  const [token, setToken] = useState<string>('')
-
-  useEffect(() => {
-    if (firebaseUser) {
-      firebaseUser.getIdToken().then(setToken)
-    }
-  }, [firebaseUser])
-
-  const { data } = useManagementCompany({
-    token,
-    id: companyId,
-    enabled: !!token && !!companyId,
-  })
-
-  const company = data?.data
-
-  if (!company) {
-    return null
-  }
+export async function CompanyDetailHeader({ company }: CompanyDetailHeaderProps) {
+  const { t } = await getTranslations()
 
   return (
     <div className="mb-6">

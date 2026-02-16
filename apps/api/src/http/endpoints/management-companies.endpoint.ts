@@ -2,8 +2,10 @@ import type { Hono } from 'hono'
 import {
   ManagementCompaniesRepository,
   ManagementCompanySubscriptionsRepository,
+  ManagementCompanyMembersRepository,
   LocationsRepository,
   UsersRepository,
+  PaymentConceptsRepository,
 } from '@database/repositories'
 import { ManagementCompaniesController } from '../controllers'
 import type { IEndpoint } from './types'
@@ -18,11 +20,15 @@ export class ManagementCompaniesEndpoint implements IEndpoint {
     const subscriptionsRepository = new ManagementCompanySubscriptionsRepository(db)
     const locationsRepository = new LocationsRepository(db)
     const usersRepository = new UsersRepository(db)
+    const membersRepository = new ManagementCompanyMembersRepository(db)
+    const paymentConceptsRepository = new PaymentConceptsRepository(db)
     this.controller = new ManagementCompaniesController(
       repository,
       subscriptionsRepository,
       locationsRepository,
-      usersRepository
+      usersRepository,
+      membersRepository,
+      paymentConceptsRepository
     )
   }
 

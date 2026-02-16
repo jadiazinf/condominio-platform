@@ -3,7 +3,6 @@
 import type { TUser } from '@packages/domain'
 
 import { useDisclosure } from '@/ui/components/modal'
-import { Building } from 'lucide-react'
 
 import { AdminNavbar } from './AdminNavbar'
 import { AdminSidebar } from './AdminSidebar'
@@ -27,12 +26,7 @@ export function AdminShell({ children, initialUser }: IAdminShellProps) {
 
       <main className="flex-1 overflow-y-auto p-6">{children}</main>
 
-      <AppDrawer
-        badge={{ label: 'Admin', icon: <Building size={10} /> }}
-        isOpen={isOpen}
-        onClose={onClose}
-        onOpenChange={onOpenChange}
-      >
+      <AppDrawer isOpen={isOpen} onClose={onClose} onOpenChange={onOpenChange}>
         <AdminSidebar onItemSelect={handleSidebarSelect} />
       </AppDrawer>
     </div>

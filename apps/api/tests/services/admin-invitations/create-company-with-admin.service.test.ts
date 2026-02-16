@@ -3,9 +3,11 @@ import type {
   TAdminInvitation,
   TUser,
   TUserCreate,
+  TUserRole,
   TManagementCompany,
   TManagementCompanyCreate,
   TManagementCompanyMember,
+  TRole,
 } from '@packages/domain'
 import { CreateCompanyWithAdminService } from '@src/services/admin-invitations'
 
@@ -30,6 +32,17 @@ type TMockMembersRepository = {
   withTx: (tx: unknown) => TMockMembersRepository
 }
 
+type TMockUserRolesRepository = {
+  create: (data: any) => Promise<TUserRole>
+  update: (id: string, data: any) => Promise<TUserRole>
+  createManagementCompanyRole: (userId: string, roleId: string, managementCompanyId: string, assignedBy?: string) => Promise<TUserRole>
+  withTx: (tx: unknown) => TMockUserRolesRepository
+}
+
+type TMockRolesRepository = {
+  getByName: (name: string) => Promise<TRole | null>
+}
+
 // Mock db that executes the transaction callback immediately (no real DB)
 const mockDb = {
   transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn({}),
@@ -41,6 +54,8 @@ describe('CreateCompanyWithAdminService', function () {
   let mockUsersRepository: TMockUsersRepository
   let mockCompaniesRepository: TMockCompaniesRepository
   let mockMembersRepository: TMockMembersRepository
+  let mockUserRolesRepository: TMockUserRolesRepository
+  let mockRolesRepository: TMockRolesRepository
   let existingUser: TUser | null
 
   const creatorId = '550e8400-e29b-41d4-a716-446655440099'
@@ -137,6 +152,7 @@ describe('CreateCompanyWithAdminService', function () {
           managementCompanyId: data.managementCompanyId,
           userId: data.userId,
           roleName: data.roleName,
+          userRoleId: data.userRoleId ?? null,
           permissions: data.permissions,
           isPrimaryAdmin: data.isPrimaryAdmin,
           joinedAt: data.joinedAt,
@@ -152,12 +168,82 @@ describe('CreateCompanyWithAdminService', function () {
       withTx() { return this },
     }
 
+    const mcRoleId = '550e8400-e29b-41d4-a716-446655440050'
+    mockUserRolesRepository = {
+      create: async function (data: any) {
+        return {
+          id: mcRoleId,
+          userId: data.userId,
+          roleId: data.roleId,
+          condominiumId: data.condominiumId,
+          buildingId: data.buildingId,
+          managementCompanyId: data.managementCompanyId,
+          isActive: data.isActive ?? true,
+          notes: data.notes,
+          assignedAt: new Date(),
+          assignedBy: data.assignedBy,
+          registeredBy: data.registeredBy,
+          expiresAt: data.expiresAt,
+        }
+      },
+      update: async function (id: string, data: any) {
+        return {
+          id,
+          userId: '',
+          roleId: '',
+          condominiumId: null,
+          buildingId: null,
+          managementCompanyId: null,
+          isActive: data.isActive ?? true,
+          notes: null,
+          assignedAt: new Date(),
+          assignedBy: null,
+          registeredBy: null,
+          expiresAt: null,
+        }
+      },
+      createManagementCompanyRole: async function (userId: string, roleId: string, managementCompanyId: string, assignedBy?: string) {
+        return {
+          id: mcRoleId,
+          userId,
+          roleId,
+          condominiumId: null,
+          buildingId: null,
+          managementCompanyId,
+          isActive: true,
+          notes: null,
+          assignedAt: new Date(),
+          assignedBy: assignedBy ?? null,
+          registeredBy: assignedBy ?? null,
+          expiresAt: null,
+        }
+      },
+      withTx() { return this },
+    }
+
+    mockRolesRepository = {
+      getByName: async function (name: string) {
+        if (name === 'ADMIN') return {
+          id: '550e8400-e29b-41d4-a716-446655440060',
+          name: 'ADMIN',
+          description: 'Admin role',
+          isSystemRole: true,
+          registeredBy: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
+        return null
+      },
+    }
+
     service = new CreateCompanyWithAdminService(
       mockDb,
       mockInvitationsRepository as never,
       mockUsersRepository as never,
       mockCompaniesRepository as never,
-      mockMembersRepository as never
+      mockMembersRepository as never,
+      mockUserRolesRepository as never,
+      mockRolesRepository as never
     )
   })
 

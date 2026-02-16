@@ -4,6 +4,9 @@ import {
   ManagementCompanyMembersRepository,
   ManagementCompaniesRepository,
   UsersRepository,
+  SubscriptionAcceptancesRepository,
+  SubscriptionTermsConditionsRepository,
+  SubscriptionAuditHistoryRepository,
 } from '@database/repositories'
 import { ManagementCompanySubscriptionsController } from '../controllers/management-company-subscriptions/subscriptions.controller'
 import type { IEndpoint } from './types'
@@ -18,11 +21,17 @@ export class ManagementCompanySubscriptionsEndpoint implements IEndpoint {
     const membersRepository = new ManagementCompanyMembersRepository(db)
     const companiesRepository = new ManagementCompaniesRepository(db)
     const usersRepository = new UsersRepository(db)
+    const acceptancesRepository = new SubscriptionAcceptancesRepository(db)
+    const termsRepository = new SubscriptionTermsConditionsRepository(db)
+    const auditRepository = new SubscriptionAuditHistoryRepository(db)
     this.controller = new ManagementCompanySubscriptionsController(
       repository,
       membersRepository,
       companiesRepository,
-      usersRepository
+      usersRepository,
+      acceptancesRepository,
+      termsRepository,
+      auditRepository
     )
   }
 

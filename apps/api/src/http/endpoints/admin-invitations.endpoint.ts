@@ -4,7 +4,6 @@ import {
   UsersRepository,
   ManagementCompaniesRepository,
   ManagementCompanyMembersRepository,
-  ManagementCompanySubscriptionsRepository,
   UserRolesRepository,
   RolesRepository,
 } from '@database/repositories'
@@ -21,7 +20,6 @@ export class AdminInvitationsEndpoint implements IEndpoint {
     const usersRepository = new UsersRepository(db)
     const managementCompaniesRepository = new ManagementCompaniesRepository(db)
     const membersRepository = new ManagementCompanyMembersRepository(db)
-    const subscriptionsRepository = new ManagementCompanySubscriptionsRepository(db)
     const userRolesRepository = new UserRolesRepository(db)
     const rolesRepository = new RolesRepository(db)
     this.controller = new AdminInvitationsController(
@@ -30,7 +28,6 @@ export class AdminInvitationsEndpoint implements IEndpoint {
       usersRepository,
       managementCompaniesRepository,
       membersRepository,
-      subscriptionsRepository,
       userRolesRepository,
       rolesRepository
     )

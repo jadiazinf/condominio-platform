@@ -103,7 +103,7 @@ export function SubscriptionFormModal({
                 <Progress
                   aria-label="Form progress"
                   classNames={{
-                    indicator: 'bg-primary',
+                    indicator: 'bg-success',
                   }}
                   value={progressValue}
                 />
@@ -132,14 +132,14 @@ export function SubscriptionFormModal({
 
                 {isLastStep ? (
                   <Button
-                    color="primary"
+                    color="success"
                     onPress={handleSubmit}
                     isLoading={isSubmitting}
                   >
                     {t('superadmin.companies.subscription.form.submit')}
                   </Button>
                 ) : (
-                  <Button color="primary" onPress={goToNextStep}>
+                  <Button color="success" onPress={goToNextStep}>
                     {t('common.next')}
                   </Button>
                 )}

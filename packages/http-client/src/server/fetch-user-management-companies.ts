@@ -1,3 +1,4 @@
+import { StatusCodes } from 'http-status-codes'
 import type { TUserManagementCompaniesResponse } from '@packages/domain'
 
 import { getEnvConfig } from '../config/env'
@@ -17,7 +18,7 @@ export async function fetchUserManagementCompanies(
     })
 
     if (!response.ok) {
-      if (response.status === 404) {
+      if (response.status === StatusCodes.NOT_FOUND) {
         return null
       }
       throw new Error(`Failed to fetch user management companies: ${response.status}`)

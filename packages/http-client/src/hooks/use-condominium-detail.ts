@@ -44,6 +44,7 @@ export async function getCondominiumDetail(
     {
       headers: {
         Authorization: `Bearer ${token}`,
+        'x-condominium-id': condominiumId,
       },
     }
   )

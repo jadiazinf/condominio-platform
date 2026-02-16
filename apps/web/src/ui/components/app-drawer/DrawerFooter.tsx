@@ -1,8 +1,6 @@
 'use client'
 
 import { DrawerFooter as HeroUIDrawerFooter } from '@heroui/drawer'
-import { Button } from '@/ui/components/button'
-import { Divider } from '@/ui/components/divider'
 import { LogOut } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -22,16 +20,15 @@ export function DrawerFooter({ onClose }: IDrawerFooterProps) {
   }
 
   return (
-    <HeroUIDrawerFooter className="flex-col gap-2 p-4">
-      <Divider className="mb-2" />
-      <Button
-        className="w-full justify-start text-danger"
-        startContent={<LogOut size={18} />}
-        variant="light"
-        onPress={handleLogout}
+    <HeroUIDrawerFooter className="flex-col gap-0 p-0">
+      <div className="h-px w-full bg-divider" />
+      <button
+        className="flex items-center gap-3 w-full px-5 py-3.5 text-danger/70 hover:text-danger hover:bg-danger/5 transition-colors"
+        onClick={handleLogout}
       >
-        {t('nav.logout')}
-      </Button>
+        <LogOut size={18} />
+        <span className="text-small font-medium">{t('nav.logout')}</span>
+      </button>
     </HeroUIDrawerFooter>
   )
 }

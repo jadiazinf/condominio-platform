@@ -12,11 +12,10 @@ export default async function CondominiumLayout({ children, params }: LayoutProp
   const { id } = await params
   const [token, session] = await Promise.all([getServerAuthToken(), getFullSession()])
 
-  // Fetch condominium data server-side
   const condominium = await getCondominiumDetail(token, id)
 
   return (
-    <CondominiumDetailLayout condominium={condominium} currentUserId={session?.user?.id}>
+    <CondominiumDetailLayout condominium={condominium} currentUserId={session?.user?.id} userRole={session?.activeRole}>
       {children}
     </CondominiumDetailLayout>
   )

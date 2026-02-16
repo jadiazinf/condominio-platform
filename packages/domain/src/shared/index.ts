@@ -15,4 +15,7 @@ export {
   type TCondominiumsQuerySchema,
   type TManagementCompanyMembersQuery,
   type TManagementCompanyMembersQuerySchema,
+  paymentConceptsQuerySchema,
+  type TPaymentConceptsQuery,
+  type TPaymentConceptsQuerySchema,
 } from './pagination.types'

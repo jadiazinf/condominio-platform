@@ -50,6 +50,7 @@ export class CondominiumsController extends BaseController<
   TCondominiumCreate,
   TCondominiumUpdate
 > {
+  private readonly condominiumsRepository: CondominiumsRepository
   private readonly getCondominiumByCodeService: GetCondominiumByCodeService
   private readonly generateCondominiumCodeService: GenerateCondominiumCodeService
   private readonly getCondominiumUsersService: GetCondominiumUsersService
@@ -69,6 +70,9 @@ export class CondominiumsController extends BaseController<
     db: TDrizzleClient
   ) {
     super(repository)
+
+    // Store concrete repository for email uniqueness checks
+    this.condominiumsRepository = repository
 
     // Store repositories for middleware use and population
     this.subscriptionsRepository = subscriptionsRepository
@@ -102,19 +106,19 @@ export class CondominiumsController extends BaseController<
         method: 'get',
         path: '/:id/users',
         handler: this.getCondominiumUsers,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN', 'ADMIN'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN', 'ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/generate-code',
         handler: this.generateCode,
-        middlewares: [authMiddleware, requireRole('ADMIN')],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN')],
       },
       {
         method: 'post',
@@ -122,7 +126,7 @@ export class CondominiumsController extends BaseController<
         handler: this.create,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN'),
+          requireRole('SUPERADMIN', 'ADMIN'),
           bodyValidator(condominiumCreateSchema),
           validateSubscriptionLimit('condominium', this.subscriptionsRepository, this.companiesRepository),
         ],
@@ -216,6 +220,35 @@ export class CondominiumsController extends BaseController<
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // Shared: populate condominium relations
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  private async populateCondominium(condominium: TCondominium): Promise<TCondominium> {
+    const [managementCompanies, location, defaultCurrency, createdByUser] = await Promise.all([
+      condominium.managementCompanyIds.length > 0
+        ? Promise.all(condominium.managementCompanyIds.map(id => this.companiesRepository.getById(id, true)))
+        : Promise.resolve([]),
+      condominium.locationId ? this.locationsRepository.getByIdWithHierarchy(condominium.locationId) : Promise.resolve(null),
+      condominium.defaultCurrencyId ? this.currenciesRepository.getById(condominium.defaultCurrencyId) : Promise.resolve(null),
+      condominium.createdBy ? this.usersRepository.getById(condominium.createdBy, true) : Promise.resolve(null),
+    ])
+
+    let enrichedCreatedByUser = createdByUser
+    if (createdByUser) {
+      const isSuperadmin = await this.usersRepository.checkIsSuperadmin(createdByUser.id)
+      enrichedCreatedByUser = { ...createdByUser, isSuperadmin }
+    }
+
+    return {
+      ...condominium,
+      managementCompanies: managementCompanies.filter(c => c !== null),
+      location: location ?? undefined,
+      defaultCurrency: defaultCurrency ?? undefined,
+      createdByUser: enrichedCreatedByUser ?? undefined,
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // Override getById to populate relations
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -223,45 +256,13 @@ export class CondominiumsController extends BaseController<
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
 
     try {
-      // Include inactive condominiums for viewing purposes
       const condominium = await this.repository.getById(ctx.params.id, true)
 
       if (!condominium) {
         return ctx.notFound({ error: 'Condominium not found' })
       }
 
-      // Populate relations
-      const [managementCompanies, location, defaultCurrency, createdByUser] = await Promise.all([
-        // Get management companies (include inactive to show historical relationships)
-        condominium.managementCompanyIds.length > 0
-          ? Promise.all(condominium.managementCompanyIds.map(id => this.companiesRepository.getById(id, true)))
-          : Promise.resolve([]),
-        // Get location with full hierarchy (country -> province -> city)
-        condominium.locationId ? this.locationsRepository.getByIdWithHierarchy(condominium.locationId) : Promise.resolve(null),
-        // Get currency
-        condominium.defaultCurrencyId ? this.currenciesRepository.getById(condominium.defaultCurrencyId) : Promise.resolve(null),
-        // Get created by user (include inactive users to show who created it)
-        condominium.createdBy ? this.usersRepository.getById(condominium.createdBy, true) : Promise.resolve(null),
-      ])
-
-      // Check if created by user is superadmin
-      let enrichedCreatedByUser = createdByUser
-      if (createdByUser) {
-        const isSuperadmin = await this.usersRepository.checkIsSuperadmin(createdByUser.id)
-        enrichedCreatedByUser = {
-          ...createdByUser,
-          isSuperadmin,
-        }
-      }
-
-      const populated: TCondominium = {
-        ...condominium,
-        managementCompanies: managementCompanies.filter(c => c !== null),
-        location: location ?? undefined,
-        defaultCurrency: defaultCurrency ?? undefined,
-        createdByUser: enrichedCreatedByUser ?? undefined,
-      }
-
+      const populated = await this.populateCondominium(condominium)
       return ctx.ok({ data: populated })
     } catch (error) {
       return this.handleError(ctx, error)
@@ -276,11 +277,40 @@ export class CondominiumsController extends BaseController<
     const ctx = this.ctx<TCondominiumCreate>(c)
     const user = ctx.getAuthenticatedUser()
 
+    if (ctx.body.email) {
+      const existingByEmail = await this.condominiumsRepository.getByEmail(ctx.body.email)
+      if (existingByEmail) {
+        throw AppError.alreadyExists('Condominium', 'email')
+      }
+    }
+
     const entity = await this.repository.create({
       ...ctx.body,
       createdBy: user.id,
     })
 
     return ctx.created({ data: entity })
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Override update to check email uniqueness
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected override update = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TCondominiumUpdate, unknown, { id: string }>(c)
+
+    if (ctx.body.email) {
+      const existingByEmail = await this.condominiumsRepository.getByEmail(ctx.body.email)
+      if (existingByEmail && existingByEmail.id !== ctx.params.id) {
+        throw AppError.alreadyExists('Condominium', 'email')
+      }
+    }
+
+    const entity = await this.repository.update(ctx.params.id, ctx.body)
+    if (!entity) {
+      throw AppError.notFound('Condominium', ctx.params.id)
+    }
+
+    return ctx.ok({ data: entity })
   }
 }

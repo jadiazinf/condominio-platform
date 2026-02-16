@@ -245,6 +245,7 @@ describe('Authorization Tests', function () {
       getByTaxIdNumber: (taxIdNumber: string) => Promise<TManagementCompany | null>
       getByLocationId: (locationId: string) => Promise<TManagementCompany[]>
       getUsageStats: (id: string) => Promise<any>
+      getByEmail: (email: string) => Promise<TManagementCompany | null>
     }
     let mockSubscriptionsRepository: any
     let mockLocationsRepository: any
@@ -323,6 +324,13 @@ describe('Authorization Tests', function () {
         },
         getUsageStats: async function () {
           return { condominiums: 0, units: 0, users: 0 }
+        },
+        getByEmail: async function (email: string) {
+          return (
+            testCompanies.find(function (c) {
+              return c.email === email
+            }) || null
+          )
         },
       }
 

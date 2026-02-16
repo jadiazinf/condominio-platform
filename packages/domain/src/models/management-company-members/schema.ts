@@ -19,7 +19,11 @@ export const managementCompanyMemberSchema = baseModelSchema.extend({
   userId: z.uuid(),
 
   // Roles: 'admin' (owner), 'accountant', 'support', 'viewer'
+  // DEPRECATED: Use userRoleId → user_roles → roles for role lookup
   roleName: z.enum(EMemberRole),
+
+  // Link to unified user_roles table
+  userRoleId: z.uuid().nullable(),
 
   // Permisos específicos (JSONB para flexibilidad)
   permissions: memberPermissionsSchema.nullable(),

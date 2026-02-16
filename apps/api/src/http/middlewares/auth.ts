@@ -3,4 +3,9 @@ import { isTokenValid } from './utils/auth/is-token-valid'
 
 export const authMiddleware = isUserAuthenticated
 export const tokenOnlyMiddleware = isTokenValid
-export { requireRole, CONDOMINIUM_ID_PROP, USER_ROLE_PROP } from './utils/auth/require-role'
+export {
+  requireRole,
+  CONDOMINIUM_ID_PROP,
+  USER_ROLE_PROP,
+  MANAGEMENT_COMPANY_ID_PROP,
+} from './utils/auth/require-role'

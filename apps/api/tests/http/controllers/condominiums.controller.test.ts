@@ -24,6 +24,7 @@ type TMockCondominiumsRepository = {
   update: (id: string, data: TCondominiumUpdate) => Promise<TCondominium | null>
   delete: (id: string) => Promise<boolean>
   getByCode: (code: string) => Promise<TCondominium | null>
+  getByEmail: (email: string) => Promise<TCondominium | null>
 }
 
 describe('CondominiumsController', function () {
@@ -94,6 +95,13 @@ describe('CondominiumsController', function () {
         return (
           testCondominiums.find(function (c) {
             return c.code === code
+          }) || null
+        )
+      },
+      getByEmail: async function (email: string) {
+        return (
+          testCondominiums.find(function (c) {
+            return c.email === email
           }) || null
         )
       },

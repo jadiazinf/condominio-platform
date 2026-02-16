@@ -43,6 +43,7 @@ function createUserRole(
     roleId,
     condominiumId: null,
     buildingId: null,
+    managementCompanyId: null,
     assignedBy: null,
     registeredBy: null,
     expiresAt: null,

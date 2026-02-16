@@ -5,7 +5,7 @@ import { Select, type ISelectItem } from '@/ui/components/select'
 import { Tooltip } from '@/ui/components/tooltip'
 import { cn } from '@heroui/theme'
 import { Info } from 'lucide-react'
-import { PHONE_COUNTRY_CODES, DEFAULT_PHONE_COUNTRY_CODE } from '@packages/domain'
+import { PHONE_COUNTRY_CODES, DEFAULT_PHONE_COUNTRY_CODE, PHONE_PLACEHOLDERS, DEFAULT_PHONE_PLACEHOLDER } from '@packages/domain'
 import { useMemo } from 'react'
 
 type TInputSize = 'sm' | 'md' | 'lg'
@@ -50,6 +50,7 @@ export function PhoneInput({
   className,
 }: IPhoneInputProps) {
   const selectedCountryCode = countryCode || DEFAULT_PHONE_COUNTRY_CODE
+  const derivedPlaceholder = placeholder ?? PHONE_PLACEHOLDERS[selectedCountryCode] ?? DEFAULT_PHONE_PLACEHOLDER
   const errorMessage = countryCodeError || phoneNumberError
 
   const countryCodeItems: ISelectItem[] = useMemo(
@@ -100,7 +101,7 @@ export function PhoneInput({
         <HeroUIInput
           className="flex-1"
           type="tel"
-          placeholder={placeholder}
+          placeholder={derivedPlaceholder}
           value={phoneNumber || ''}
           onValueChange={onPhoneNumberChange}
           variant={variant}

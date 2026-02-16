@@ -32,7 +32,7 @@ export function NavbarActions({ isAuthenticated = false }: NavbarActionsProps) {
       ) : (
         <>
           <NavbarItem className="hidden md:flex ml-2">
-            <Link href="/signin">{t('nav.signIn')}</Link>
+            <Link href="/auth">{t('nav.signIn')}</Link>
           </NavbarItem>
           <NavbarItem className="hidden md:flex">
             <Button as={Link} color="primary" href="/signup" variant="flat">

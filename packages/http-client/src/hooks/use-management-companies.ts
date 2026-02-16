@@ -3,6 +3,7 @@ import type {
   TManagementCompanyCreate,
   TManagementCompanyUpdate,
   TManagementCompaniesQuery,
+  TManagementCompanySubscription,
   TUser,
   TUserCreate,
   TSubscriptionLimitValidation,
@@ -456,4 +457,121 @@ export async function getManagementCompanyUsageStats(
   )
 
   return response.data.data
+}
+
+// =============================================================================
+// Member Functions (for management_company role — read-only)
+// =============================================================================
+
+/**
+ * Fetch the authenticated user's own management company detail.
+ */
+export async function getMyCompanyDetail(
+  token: string,
+  managementCompanyId: string
+): Promise<TManagementCompany> {
+  const client = getHttpClient()
+  const response = await client.get<TApiDataResponse<TManagementCompany>>(
+    `/platform/management-companies/${managementCompanyId}/me`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  return response.data.data
+}
+
+/**
+ * Fetch the active subscription for the authenticated user's company.
+ * Returns null if no active subscription exists.
+ */
+export async function getMyCompanySubscription(
+  token: string,
+  managementCompanyId: string
+): Promise<TManagementCompanySubscription | null> {
+  const client = getHttpClient()
+  try {
+    const response = await client.get<TApiDataResponse<TManagementCompanySubscription>>(
+      `/platform/management-companies/${managementCompanyId}/me/subscription`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+
+    return response.data.data
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Fetch usage statistics for the authenticated user's company.
+ */
+export async function getMyCompanyUsageStats(
+  token: string,
+  managementCompanyId: string
+): Promise<TManagementCompanyUsageStats> {
+  const client = getHttpClient()
+  const response = await client.get<TApiDataResponse<TManagementCompanyUsageStats>>(
+    `/platform/management-companies/${managementCompanyId}/me/usage-stats`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  return response.data.data
+}
+
+/**
+ * Fetch paginated subscription history for the authenticated user's company.
+ */
+export async function getMyCompanySubscriptionsPaginated(
+  token: string,
+  managementCompanyId: string,
+  query?: { page?: number; limit?: number; search?: string; startDateFrom?: string; startDateTo?: string }
+): Promise<TApiPaginatedResponse<TManagementCompanySubscription>> {
+  const client = getHttpClient()
+  const params = new URLSearchParams()
+  if (query?.page) params.set('page', String(query.page))
+  if (query?.limit) params.set('limit', String(query.limit))
+  if (query?.search) params.set('search', query.search)
+  if (query?.startDateFrom) params.set('startDateFrom', query.startDateFrom)
+  if (query?.startDateTo) params.set('startDateTo', query.startDateTo)
+
+  const qs = params.toString()
+  const path = `/platform/management-companies/${managementCompanyId}/me/subscriptions${qs ? `?${qs}` : ''}`
+
+  const response = await client.get<TApiPaginatedResponse<TManagementCompanySubscription>>(path, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  return response.data
+}
+
+/**
+ * Cancel the active subscription for the authenticated user's company.
+ */
+export async function cancelMyCompanySubscription(
+  token: string,
+  managementCompanyId: string,
+  data?: { cancellationReason?: string }
+): Promise<void> {
+  const client = getHttpClient()
+  await client.post(
+    `/platform/management-companies/${managementCompanyId}/me/subscription/cancel`,
+    data ?? {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
 }

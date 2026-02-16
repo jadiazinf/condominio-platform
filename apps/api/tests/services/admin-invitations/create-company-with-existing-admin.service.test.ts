@@ -5,7 +5,6 @@ import type {
   TManagementCompany,
   TManagementCompanyCreate,
   TManagementCompanyMember,
-  TManagementCompanySubscription,
   TRole,
 } from '@packages/domain'
 import { CreateCompanyWithExistingAdminService } from '@src/services/admin-invitations'
@@ -24,13 +23,9 @@ type TMockMembersRepository = {
   withTx: (tx: unknown) => TMockMembersRepository
 }
 
-type TMockSubscriptionsRepository = {
-  create: (data: unknown) => Promise<TManagementCompanySubscription | null>
-  withTx: (tx: unknown) => TMockSubscriptionsRepository
-}
-
 type TMockUserRolesRepository = {
   create: (data: any) => Promise<TUserRole>
+  createManagementCompanyRole: (userId: string, roleId: string, managementCompanyId: string, assignedBy?: string) => Promise<TUserRole>
   getByUserAndRole: (userId: string, roleId: string, condominiumId: string | null) => Promise<TUserRole[]>
   withTx: (tx: unknown) => TMockUserRolesRepository
 }
@@ -49,13 +44,11 @@ describe('CreateCompanyWithExistingAdminService', function () {
   let mockUsersRepository: TMockUsersRepository
   let mockCompaniesRepository: TMockCompaniesRepository
   let mockMembersRepository: TMockMembersRepository
-  let mockSubscriptionsRepository: TMockSubscriptionsRepository
   let mockUserRolesRepository: TMockUserRolesRepository
   let mockRolesRepository: TMockRolesRepository
   let existingUser: TUser | null
   let companyCreateResult: TManagementCompany | null
   let memberCreateResult: TManagementCompanyMember | null
-  let subscriptionCreateResult: TManagementCompanySubscription | null
 
   const creatorId = '550e8400-e29b-41d4-a716-446655440099'
   const existingUserId = '550e8400-e29b-41d4-a716-446655440001'
@@ -111,12 +104,10 @@ describe('CreateCompanyWithExistingAdminService', function () {
   }
 
   let lastMemberCreateData: unknown = null
-  let lastSubscriptionCreateData: unknown = null
 
   beforeEach(function () {
     existingUser = activeUser
     lastMemberCreateData = null
-    lastSubscriptionCreateData = null
 
     companyCreateResult = {
       id: '550e8400-e29b-41d4-a716-446655440002',
@@ -149,44 +140,6 @@ describe('CreateCompanyWithExistingAdminService', function () {
       updatedAt: new Date(),
     } as TManagementCompanyMember
 
-    subscriptionCreateResult = {
-      id: '550e8400-e29b-41d4-a716-446655440011',
-      managementCompanyId: '550e8400-e29b-41d4-a716-446655440002',
-      subscriptionName: 'Trial Subscription',
-      billingCycle: 'monthly',
-      basePrice: 0,
-      currencyId: null,
-      maxCondominiums: 9999,
-      maxUnits: 999999,
-      maxUsers: 9999,
-      maxStorageGb: 9999,
-      customFeatures: null,
-      customRules: null,
-      status: 'trial',
-      startDate: new Date(),
-      endDate: null,
-      nextBillingDate: new Date(),
-      trialEndsAt: new Date(),
-      autoRenew: false,
-      notes: 'Automatically created trial subscription',
-      createdBy: creatorId,
-      cancelledAt: null,
-      cancelledBy: null,
-      cancellationReason: null,
-      pricingCondominiumCount: null,
-      pricingUnitCount: null,
-      pricingCondominiumRate: null,
-      pricingUnitRate: null,
-      calculatedPrice: null,
-      discountType: null,
-      discountValue: null,
-      discountAmount: null,
-      pricingNotes: null,
-      rateId: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as TManagementCompanySubscription
-
     mockUsersRepository = {
       getById: async function () {
         return existingUser
@@ -212,13 +165,17 @@ describe('CreateCompanyWithExistingAdminService', function () {
       withTx() { return this },
     }
 
-    mockSubscriptionsRepository = {
-      create: async function (data: unknown) {
-        lastSubscriptionCreateData = data
-        return subscriptionCreateResult
-      },
-      withTx() { return this },
+    const mockAdminRole: TRole = {
+      id: '550e8400-e29b-41d4-a716-446655440060',
+      name: 'ADMIN',
+      description: 'Admin role',
+      isSystemRole: true,
+      registeredBy: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }
+
+    const mcRoleId = '550e8400-e29b-41d4-a716-446655440050'
 
     mockUserRolesRepository = {
       create: async function (data: any) {
@@ -228,12 +185,29 @@ describe('CreateCompanyWithExistingAdminService', function () {
           roleId: data.roleId,
           condominiumId: data.condominiumId,
           buildingId: data.buildingId,
+          managementCompanyId: data.managementCompanyId ?? null,
           isActive: data.isActive,
           notes: data.notes,
           assignedAt: new Date(),
           assignedBy: data.assignedBy,
           registeredBy: data.registeredBy,
           expiresAt: data.expiresAt,
+        }
+      },
+      createManagementCompanyRole: async function (userId: string, roleId: string, managementCompanyId: string, assignedBy?: string) {
+        return {
+          id: mcRoleId,
+          userId,
+          roleId,
+          condominiumId: null,
+          buildingId: null,
+          managementCompanyId,
+          isActive: true,
+          notes: null,
+          assignedAt: new Date(),
+          assignedBy: assignedBy ?? null,
+          registeredBy: assignedBy ?? null,
+          expiresAt: null,
         }
       },
       getByUserAndRole: async function () {
@@ -245,6 +219,7 @@ describe('CreateCompanyWithExistingAdminService', function () {
     mockRolesRepository = {
       getByName: async function (name: string) {
         if (name === 'USER') return mockUserRole
+        if (name === 'ADMIN') return mockAdminRole
         return null
       },
     }
@@ -254,7 +229,6 @@ describe('CreateCompanyWithExistingAdminService', function () {
       mockUsersRepository as never,
       mockCompaniesRepository as never,
       mockMembersRepository as never,
-      mockSubscriptionsRepository as never,
       mockUserRolesRepository as never,
       mockRolesRepository as never
     )
@@ -284,10 +258,6 @@ describe('CreateCompanyWithExistingAdminService', function () {
         expect(result.data.member).toBeDefined()
         expect(result.data.member.isPrimaryAdmin).toBe(true)
         expect(result.data.member.roleName).toBe('admin')
-
-        // Verify subscription was created
-        expect(result.data.subscription).toBeDefined()
-        expect(result.data.subscription.status).toBe('trial')
 
         // Verify user role was assigned
         expect(result.data.userRole).toBeDefined()
@@ -397,22 +367,6 @@ describe('CreateCompanyWithExistingAdminService', function () {
       }
     })
 
-    it('should return INTERNAL_ERROR when subscription creation fails', async function () {
-      subscriptionCreateResult = null
-
-      const result = await service.execute({
-        company: companyInput,
-        existingUserId,
-        createdBy: creatorId,
-      })
-
-      expect(result.success).toBe(false)
-      if (!result.success) {
-        expect(result.code).toBe('INTERNAL_ERROR')
-        expect(result.error).toContain('subscription')
-      }
-    })
-
     it('should create member with full admin permissions', async function () {
       const result = await service.execute({
         company: companyInput,
@@ -436,31 +390,5 @@ describe('CreateCompanyWithExistingAdminService', function () {
       expect(permissions.can_view_invoices).toBe(true)
     })
 
-    it('should create trial subscription with 30-day period', async function () {
-      const before = new Date()
-
-      const result = await service.execute({
-        company: companyInput,
-        existingUserId,
-        createdBy: creatorId,
-      })
-
-      expect(result.success).toBe(true)
-
-      // Verify the data passed to subscriptionsRepository.create
-      const subData = lastSubscriptionCreateData as Record<string, unknown>
-      expect(subData).toBeDefined()
-      expect(subData.status).toBe('trial')
-      expect(subData.basePrice).toBe(0)
-      expect(subData.autoRenew).toBe(false)
-      expect(subData.subscriptionName).toBe('Trial Subscription')
-
-      // Verify trialEndsAt is approximately 30 days from now
-      const trialEndsAt = subData.trialEndsAt as Date
-      const expectedEnd = new Date(before.getTime() + 30 * 24 * 60 * 60 * 1000)
-      // Allow 1 minute tolerance
-      expect(trialEndsAt.getTime()).toBeGreaterThan(expectedEnd.getTime() - 60000)
-      expect(trialEndsAt.getTime()).toBeLessThan(expectedEnd.getTime() + 60000)
-    })
   })
 })

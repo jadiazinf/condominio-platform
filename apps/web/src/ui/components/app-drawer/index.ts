@@ -1,1 +1,1 @@
-export { AppDrawer, type IBadgeConfig } from './AppDrawer'
+export { AppDrawer } from './AppDrawer'

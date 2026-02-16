@@ -56,10 +56,7 @@ export function CompanyDetailClient({
           {t('superadmin.companies.detail.general.basicInfo')}
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoRow
-            label={t('superadmin.companies.detail.general.name')}
-            value={company.name}
-          />
+          <InfoRow label={t('superadmin.companies.detail.general.name')} value={company.name} />
           <InfoRow
             label={t('superadmin.companies.detail.general.legalName')}
             value={company.legalName || noDataText}
@@ -112,18 +109,9 @@ export function CompanyDetailClient({
             value={company.address || noDataText}
             className="md:col-span-2"
           />
-          <InfoRow
-            label={t('common.country')}
-            value={locationParts.country || noDataText}
-          />
-          <InfoRow
-            label={t('common.province')}
-            value={locationParts.state || noDataText}
-          />
-          <InfoRow
-            label={t('common.city')}
-            value={locationParts.city || noDataText}
-          />
+          <InfoRow label={t('common.country')} value={locationParts.country || noDataText} />
+          <InfoRow label={t('common.province')} value={locationParts.state || noDataText} />
+          <InfoRow label={t('common.city')} value={locationParts.city || noDataText} />
         </div>
       </Card>
 
@@ -133,10 +121,7 @@ export function CompanyDetailClient({
           {t('superadmin.companies.detail.general.metadata')}
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoRow
-            label={t('superadmin.companies.table.createdAt')}
-            value={formattedCreatedAt}
-          />
+          <InfoRow label={t('superadmin.companies.table.createdAt')} value={formattedCreatedAt} />
           <InfoRow
             label={t('superadmin.companies.detail.general.createdBy')}
             value={createdByDisplay}

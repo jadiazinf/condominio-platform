@@ -1,3 +1,4 @@
+import { StatusCodes } from 'http-status-codes'
 import type { TUser } from '@packages/domain'
 
 import { getEnvConfig } from '../config/env'
@@ -30,11 +31,11 @@ export async function fetchUserByFirebaseUid(
 
     if (!response.ok) {
       // User not found - return null to allow sync attempt
-      if (response.status === 404) {
+      if (response.status === StatusCodes.NOT_FOUND) {
         return null
       }
       // Rate limiting or server errors - throw retryable error
-      if (response.status === 429 || response.status >= 500) {
+      if (response.status === StatusCodes.TOO_MANY_REQUESTS || response.status >= StatusCodes.INTERNAL_SERVER_ERROR) {
         throw new FetchUserError(
           `Failed to fetch user: ${response.status}`,
           response.status,
@@ -83,11 +84,11 @@ export async function syncUserFirebaseUid(
     })
 
     if (!response.ok) {
-      if (response.status === 404) {
+      if (response.status === StatusCodes.NOT_FOUND) {
         return null
       }
       // Rate limiting or server errors - throw retryable error
-      if (response.status === 429 || response.status >= 500) {
+      if (response.status === StatusCodes.TOO_MANY_REQUESTS || response.status >= StatusCodes.INTERNAL_SERVER_ERROR) {
         throw new FetchUserError(
           `Failed to sync Firebase UID: ${response.status}`,
           response.status,

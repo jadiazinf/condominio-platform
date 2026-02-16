@@ -10,7 +10,7 @@ export const managementCompanies = pgTable(
     legalName: varchar('legal_name', { length: 255 }),
     taxIdType: varchar('tax_id_type', { length: 5 }),
     taxIdNumber: varchar('tax_id_number', { length: 50 }),
-    email: varchar('email', { length: 255 }),
+    email: varchar('email', { length: 255 }).notNull().unique(),
     phoneCountryCode: varchar('phone_country_code', { length: 10 }),
     phone: varchar('phone', { length: 50 }),
     website: varchar('website', { length: 255 }),

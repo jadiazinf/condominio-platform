@@ -4,14 +4,12 @@ import type {
   TUserRole,
   TManagementCompany,
   TManagementCompanyMember,
-  TManagementCompanySubscription,
 } from '@packages/domain'
 import type {
   AdminInvitationsRepository,
   UsersRepository,
   ManagementCompaniesRepository,
   ManagementCompanyMembersRepository,
-  ManagementCompanySubscriptionsRepository,
   UserRolesRepository,
   RolesRepository,
 } from '@database/repositories'
@@ -28,15 +26,13 @@ export interface IAcceptInvitationResult {
   user: TUser
   managementCompany: TManagementCompany
   member: TManagementCompanyMember
-  subscription: TManagementCompanySubscription
   userRole: TUserRole
 }
 
 /**
  * Service for accepting an invitation.
  * Updates the user with Firebase UID, activates user and company,
- * creates member with primary admin role, creates trial subscription,
- * and marks the invitation as accepted.
+ * creates member with primary admin role, and marks the invitation as accepted.
  */
 export class AcceptInvitationService {
   constructor(
@@ -45,7 +41,6 @@ export class AcceptInvitationService {
     private readonly usersRepository: UsersRepository,
     private readonly managementCompaniesRepository: ManagementCompaniesRepository,
     private readonly membersRepository: ManagementCompanyMembersRepository,
-    private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository,
     private readonly userRolesRepository: UserRolesRepository,
     private readonly rolesRepository: RolesRepository
   ) {}
@@ -100,11 +95,16 @@ export class AcceptInvitationService {
       )
     }
 
-    // Look up the USER role before starting the transaction (read-only, avoids
+    // Look up roles before starting the transaction (read-only, avoids
     // acquiring a second connection inside the tx which can deadlock in test containers)
     const userRole = await this.rolesRepository.getByName('USER')
     if (!userRole) {
       return failure('USER role not found in system', 'INTERNAL_ERROR')
+    }
+
+    const adminRole = await this.rolesRepository.getByName('ADMIN')
+    if (!adminRole) {
+      return failure('ADMIN role not found in system', 'INTERNAL_ERROR')
     }
 
     // All writes inside a transaction for atomicity
@@ -113,7 +113,6 @@ export class AcceptInvitationService {
       const txCompaniesRepo = this.managementCompaniesRepository.withTx(tx)
       const txInvitationsRepo = this.invitationsRepository.withTx(tx)
       const txMembersRepo = this.membersRepository.withTx(tx)
-      const txSubscriptionsRepo = this.subscriptionsRepository.withTx(tx)
       const txUserRolesRepo = this.userRolesRepository.withTx(tx)
 
       // Update user: set Firebase UID, activate, and verify email
@@ -146,6 +145,27 @@ export class AcceptInvitationService {
         return failure('Failed to accept invitation', 'INTERNAL_ERROR')
       }
 
+      // Activate or create MC-scoped ADMIN role in user_roles (unified role system)
+      // The role may already exist (inactive) if created during company setup
+      const existingMcRoles = await txUserRolesRepo.getByUserAndManagementCompany(
+        updatedUser.id,
+        managementCompany.id
+      )
+      const existingMcAdminRole = existingMcRoles.find(r => r.roleId === adminRole.id)
+
+      let mcRoleAssignment: TUserRole
+      if (existingMcAdminRole) {
+        const activated = await txUserRolesRepo.update(existingMcAdminRole.id, { isActive: true })
+        mcRoleAssignment = activated ?? existingMcAdminRole
+      } else {
+        mcRoleAssignment = await txUserRolesRepo.createManagementCompanyRole(
+          updatedUser.id,
+          adminRole.id,
+          managementCompany.id,
+          invitation.createdBy
+        )
+      }
+
       // Activate existing member (created during company setup with isActive=false)
       const existingMember = await txMembersRepo.getByCompanyAndUser(
         managementCompany.id,
@@ -157,6 +177,7 @@ export class AcceptInvitationService {
         const activated = await txMembersRepo.update(existingMember.id, {
           isActive: true,
           joinedAt: new Date(),
+          userRoleId: mcRoleAssignment.id,
         })
         if (!activated) {
           return failure('Failed to activate member', 'INTERNAL_ERROR')
@@ -168,6 +189,7 @@ export class AcceptInvitationService {
           managementCompanyId: managementCompany.id,
           userId: updatedUser.id,
           roleName: 'admin',
+          userRoleId: mcRoleAssignment.id,
           permissions: {
             can_change_subscription: true,
             can_manage_members: true,
@@ -194,6 +216,7 @@ export class AcceptInvitationService {
         roleId: userRole.id,
         condominiumId: null,
         buildingId: null,
+        managementCompanyId: null,
         isActive: true,
         notes: 'Assigned via admin invitation acceptance',
         assignedBy: invitation.createdBy,
@@ -205,57 +228,11 @@ export class AcceptInvitationService {
         return failure('Failed to assign user role', 'INTERNAL_ERROR')
       }
 
-      // Create trial subscription (30 days)
-      const trialEndsAt = new Date()
-      trialEndsAt.setDate(trialEndsAt.getDate() + 30)
-
-      const subscription = await txSubscriptionsRepo.create({
-        managementCompanyId: managementCompany.id,
-        subscriptionName: 'Trial Subscription',
-        billingCycle: 'monthly',
-        basePrice: 0, // Free during trial
-        currencyId: null,
-        // Effectively unlimited during trial (large values)
-        maxCondominiums: 9999,
-        maxUnits: 999999,
-        maxUsers: 9999,
-        maxStorageGb: 9999,
-        customFeatures: null,
-        customRules: null,
-        status: 'trial',
-        startDate: new Date(),
-        endDate: null,
-        nextBillingDate: trialEndsAt,
-        trialEndsAt,
-        autoRenew: false,
-        notes: 'Automatically created trial subscription',
-        createdBy: null,
-        cancelledAt: null,
-        cancelledBy: null,
-        cancellationReason: null,
-        // Pricing fields (null for trial)
-        pricingCondominiumCount: null,
-        pricingUnitCount: null,
-        pricingCondominiumRate: null,
-        pricingUnitRate: null,
-        calculatedPrice: null,
-        discountType: null,
-        discountValue: null,
-        discountAmount: null,
-        pricingNotes: null,
-        rateId: null,
-      })
-
-      if (!subscription) {
-        return failure('Failed to create trial subscription', 'INTERNAL_ERROR')
-      }
-
       return success({
         invitation: acceptedInvitation,
         user: updatedUser,
         managementCompany: updatedCompany,
         member,
-        subscription,
         userRole: userRoleAssignment,
       })
     })

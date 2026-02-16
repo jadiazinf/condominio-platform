@@ -1,10 +1,13 @@
-import { and, eq, isNotNull } from 'drizzle-orm'
+import { and, eq, isNotNull, ilike, sql, desc } from 'drizzle-orm'
+import type { SQL } from 'drizzle-orm'
 import type {
   TPaymentConcept,
   TPaymentConceptCreate,
   TPaymentConceptUpdate,
+  TPaginatedResponse,
+  TPaymentConceptsQuerySchema,
 } from '@packages/domain'
-import { paymentConcepts } from '@database/drizzle/schema'
+import { paymentConcepts, condominiumManagementCompanies, condominiums } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -158,5 +161,82 @@ export class PaymentConceptsRepository
     }
 
     return mapped.filter(c => c.isActive)
+  }
+
+  /**
+   * Lists payment concepts across all condominiums of a management company with pagination and filters.
+   */
+  async listByManagementCompanyPaginated(
+    managementCompanyId: string,
+    query: TPaymentConceptsQuerySchema
+  ): Promise<TPaginatedResponse<TPaymentConcept & { condominiumName: string | null }>> {
+    const page = query.page ?? 1
+    const limit = query.limit ?? 20
+    const offset = (page - 1) * limit
+
+    const conditions: SQL[] = [
+      eq(condominiumManagementCompanies.managementCompanyId, managementCompanyId),
+    ]
+
+    // Default to active only
+    if (query.isActive === undefined || query.isActive === true) {
+      conditions.push(eq(paymentConcepts.isActive, true))
+    } else if (query.isActive === false) {
+      conditions.push(eq(paymentConcepts.isActive, false))
+    }
+
+    if (query.search) {
+      conditions.push(ilike(paymentConcepts.name, `%${query.search}%`))
+    }
+
+    if (query.conceptType) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Drizzle schema column type differs from domain union type
+      conditions.push(eq(paymentConcepts.conceptType, query.conceptType as any))
+    }
+
+    if (query.condominiumId) {
+      conditions.push(eq(paymentConcepts.condominiumId, query.condominiumId))
+    }
+
+    if (query.isRecurring !== undefined) {
+      conditions.push(eq(paymentConcepts.isRecurring, query.isRecurring))
+    }
+
+    const whereClause = and(...conditions)
+
+    const results = await this.db
+      .select({
+        concept: paymentConcepts,
+        condominiumName: condominiums.name,
+      })
+      .from(paymentConcepts)
+      .innerJoin(
+        condominiumManagementCompanies,
+        eq(paymentConcepts.condominiumId, condominiumManagementCompanies.condominiumId)
+      )
+      .leftJoin(condominiums, eq(paymentConcepts.condominiumId, condominiums.id))
+      .where(whereClause)
+      .orderBy(desc(paymentConcepts.createdAt))
+      .limit(limit)
+      .offset(offset)
+
+    const countResult = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(paymentConcepts)
+      .innerJoin(
+        condominiumManagementCompanies,
+        eq(paymentConcepts.condominiumId, condominiumManagementCompanies.condominiumId)
+      )
+      .where(whereClause)
+
+    const total = countResult[0]?.count ?? 0
+
+    return {
+      data: results.map(row => ({
+        ...this.mapToEntity(row.concept),
+        condominiumName: row.condominiumName,
+      })),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    }
   }
 }

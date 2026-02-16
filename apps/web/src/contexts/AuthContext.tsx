@@ -129,9 +129,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Redirect to signin with inactivity flag
       if (reason === 'inactivity') {
-        window.location.href = '/signin?inactivity=true'
+        window.location.href = '/auth?inactivity=true'
       } else {
-        window.location.href = '/signin?error=session'
+        window.location.href = '/auth?error=session'
       }
     }
 
@@ -330,14 +330,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Redirect with the reason
       if (reason === 'inactivity') {
-        window.location.href = '/signin?inactivity=true'
+        window.location.href = '/auth?inactivity=true'
       }
     } catch (err) {
       // Even if signout fails, still redirect for inactivity
       if (reason === 'inactivity') {
         clearSessionCookie()
         clearUserCookie()
-        window.location.href = '/signin?inactivity=true'
+        window.location.href = '/auth?inactivity=true'
       } else {
         const errorMessage = getFirebaseErrorMessage(err)
         setError(errorMessage)

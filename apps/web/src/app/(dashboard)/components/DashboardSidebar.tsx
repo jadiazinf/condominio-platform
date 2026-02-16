@@ -24,7 +24,7 @@ export function DashboardSidebar({ isCompact = false, onItemSelect }: DashboardS
     return {
       ...item,
       title: t(item.title),
-      icon: IconComponent ? <IconComponent size={20} /> : undefined,
+      icon: IconComponent ? <IconComponent size={18} /> : undefined,
     }
   })
 
@@ -37,13 +37,6 @@ export function DashboardSidebar({ isCompact = false, onItemSelect }: DashboardS
       .find(item => item.href && pathname.startsWith(item.href))?.key ?? 'dashboard'
 
   function handleSelect(key: string) {
-    if (key === 'logout') {
-      router.push('/loading?signout=true')
-      onItemSelect?.()
-
-      return
-    }
-
     const item = dashboardSidebarItems.find(i => i.key === key)
 
     if (item?.href) {

@@ -35,6 +35,12 @@
       "active": "Activo",
       "inactive": "Inactivo"
     },
+    "roles": {
+      "admin": "Administrador",
+      "accountant": "Contador",
+      "support": "Soporte",
+      "viewer": "Visualizador"
+    },
     "goHome": "Ir al Inicio",
     "login": "Iniciar Sesión"
   },
@@ -1180,12 +1186,12 @@
       },
       "errors": {
         "createError": "Error al crear el condominio",
-        "limitReached": "No puede crear más condominios. Su plan permite {max} condominios y actualmente tiene {current}.",
-        "limitReachedTooltip": "⚠️ Límite alcanzado: Actualmente tienes {current} de {max} condominios permitidos en tu plan. Para crear más condominios, necesitas actualizar tu suscripción a un plan superior.",
-        "noActiveSubscription": "❌ No tienes una suscripción activa. Para crear condominios, necesitas activar o contratar un plan de suscripción.",
+        "limitReached": "No se pueden crear más condominios. El plan de esta administradora permite {max} condominios y actualmente tiene {current}.",
+        "limitReachedTooltip": "⚠️ Límite alcanzado: Esta administradora tiene {current} de {max} condominios permitidos en su plan. Para crear más condominios, se debe actualizar la suscripción a un plan superior.",
+        "noActiveSubscription": "❌ Esta administradora no tiene una suscripción activa. Para crear condominios, se debe activar o contratar un plan de suscripción.",
         "cannotCreate": "⚠️ No se puede crear un condominio en este momento. Por favor, contacta con soporte."
       },
-      "checkingLimit": "⏳ Verificando el límite de condominios de tu suscripción actual...",
+      "checkingLimit": "⏳ Verificando el límite de condominios de la suscripción de esta administradora...",
       "unlimited": "ilimitado",
       "form": {
         "title": "Crear Condominio",
@@ -2495,7 +2501,371 @@
         "condominiums": "Condominios",
         "members": "Miembros",
         "billing": "Facturación",
-        "tickets": "Tickets de Soporte"
+        "tickets": "Tickets de Soporte",
+        "myCompany": "Mi Administradora",
+        "subscription": "Suscripción",
+        "paymentConcepts": "Conceptos"
+      },
+      "myCompany": {
+        "title": "Mi Administradora",
+        "subtitle": "Información de tu empresa administradora",
+        "sidebar": {
+          "general": "Administradora",
+          "members": "Miembros"
+        },
+        "members": {
+          "title": "Miembros",
+          "subtitle": "Gestiona los miembros de tu administradora",
+          "search": "Buscar por nombre o correo...",
+          "filterRole": "Filtrar por rol",
+          "filterStatus": "Filtrar por estado",
+          "filterCondominium": "Filtrar por condominio",
+          "allRoles": "Todos los roles",
+          "allStatuses": "Todos",
+          "allCondominiums": "Todos los condominios",
+          "active": "Activos",
+          "inactive": "Inactivos",
+          "noResults": "No se encontraron resultados",
+          "noResultsHint": "Intenta ajustar los filtros de búsqueda",
+          "noMembers": "No hay miembros",
+          "noMembersHint": "Tu administradora aún no tiene miembros registrados",
+          "addMember": "Nuevo Miembro",
+          "error": "Error al cargar los miembros",
+          "retry": "Reintentar",
+          "columns": {
+            "member": "Miembro",
+            "role": "Rol",
+            "joinedAt": "Fecha de Ingreso",
+            "status": "Estado"
+          },
+          "clear": "Limpiar"
+        },
+        "tabs": {
+          "general": "General",
+          "subscription": "Suscripción"
+        },
+        "general": {
+          "basicInfo": "Información Básica",
+          "contactInfo": "Información de Contacto",
+          "metadata": "Datos Adicionales",
+          "noData": "Sin información"
+        },
+        "subscription": {
+          "title": "Suscripción",
+          "subtitle": "Detalle del plan de suscripción de tu administradora",
+          "noSubscription": "Sin Suscripción Activa",
+          "noSubscriptionDescription": "Tu administradora no tiene una suscripción activa. Contacta al soporte para más información.",
+          "limitsAndUsage": "Límites y Uso",
+          "condominiums": "Condominios",
+          "units": "Unidades",
+          "users": "Usuarios",
+          "storage": "Almacenamiento",
+          "features": "Características Incluidas",
+          "pricingNotes": "Notas de Precios",
+          "notes": "Notas",
+          "autoRenew": "Renovación Automática",
+          "cancellationReason": "Motivo de Cancelación",
+          "cancelledAt": "Cancelada el {date}",
+          "basePrice": "Precio Base",
+          "billingCycle": "Ciclo de Facturación",
+          "startDate": "Fecha de Inicio",
+          "nextBillingDate": "Próxima Facturación",
+          "trialEndsAt": "Fin del Trial",
+          "endDate": "Fecha de Finalización",
+          "status": {
+            "active": "Activa",
+            "trial": "Periodo de Prueba",
+            "inactive": "Inactiva",
+            "cancelled": "Cancelada",
+            "suspended": "Suspendida"
+          },
+          "cycles": {
+            "monthly": "Mensual",
+            "quarterly": "Trimestral",
+            "semi_annual": "Semestral",
+            "annual": "Anual",
+            "custom": "Personalizado"
+          }
+        }
+      }
+    },
+    "subscription": {
+      "title": "Suscripción",
+      "subtitle": "Gestiona tu plan de suscripción y revisa el historial",
+      "sidebar": {
+        "subscription": "Suscripción",
+        "history": "Historial"
+      },
+      "currentPlan": "Plan Actual",
+      "noPlan": "Sin Suscripción Activa",
+      "noPlanDescription": "Tu administradora no tiene una suscripción activa. Contacta al soporte para más información.",
+      "price": "Precio",
+      "startDate": "Fecha de Inicio",
+      "endDate": "Fecha de Finalización",
+      "nextBilling": "Próxima Facturación",
+      "trialEnds": "Fin del Periodo de Prueba",
+      "autoRenew": "Renovación Automática",
+      "yes": "Sí",
+      "no": "No",
+      "limits": "Límites y Uso",
+      "condominiums": "Condominios",
+      "units": "Unidades",
+      "users": "Usuarios",
+      "storage": "Almacenamiento",
+      "features": "Características Incluidas",
+      "notes": "Notas",
+      "cancelledInfo": "Suscripción Cancelada",
+      "cancelledAt": "Cancelada el",
+      "cancellationReason": "Motivo",
+      "status": {
+        "active": "Activa",
+        "trial": "Periodo de Prueba",
+        "inactive": "Inactiva",
+        "cancelled": "Cancelada",
+        "suspended": "Suspendida"
+      },
+      "cancel": {
+        "button": "Cancelar Suscripción",
+        "title": "Cancelar Suscripción",
+        "warning": "Estás a punto de cancelar la suscripción \"{name}\". Esta acción no se puede deshacer.",
+        "reasonLabel": "Motivo de cancelación (opcional)",
+        "reasonPlaceholder": "¿Por qué deseas cancelar?",
+        "passwordPrompt": "Por seguridad, ingresa tu contraseña para confirmar.",
+        "passwordLabel": "Contraseña",
+        "passwordRequired": "La contraseña es requerida",
+        "passwordInvalid": "Contraseña incorrecta",
+        "back": "Volver",
+        "confirm": "Confirmar Cancelación",
+        "success": "Suscripción cancelada exitosamente",
+        "error": "Error al cancelar la suscripción"
+      },
+      "history": {
+        "title": "Historial de Suscripciones",
+        "subtitle": "Revisa todas las suscripciones anteriores de tu administradora",
+        "searchPlaceholder": "Buscar por nombre de plan...",
+        "dateFrom": "Desde",
+        "dateTo": "Hasta",
+        "clear": "Limpiar",
+        "count": "{filtered} suscripciones encontradas",
+        "empty": "Sin historial de suscripciones",
+        "emptyDescription": "No se encontraron suscripciones anteriores.",
+        "startedAt": "Inicio",
+        "cancelledAt": "Cancelada",
+        "columns": {
+          "plan": "Plan",
+          "status": "Estado",
+          "price": "Precio",
+          "startDate": "Fecha de Inicio",
+          "cancelledAt": "Cancelada"
+        }
+      },
+      "detail": {
+        "title": "Detalle de Suscripción"
+      }
+    },
+    "paymentConcepts": {
+      "title": "Conceptos de Pago",
+      "subtitle": "Gestiona los conceptos de pago de todos tus condominios",
+      "search": "Buscar por nombre...",
+      "filterType": "Tipo",
+      "filterCondominium": "Condominio",
+      "filterStatus": "Estado",
+      "filterRecurring": "Recurrente",
+      "allTypes": "Todos los tipos",
+      "allCondominiums": "Todos los condominios",
+      "allStatuses": "Todos",
+      "allRecurring": "Todos",
+      "active": "Activos",
+      "inactive": "Inactivos",
+      "recurringYes": "Sí",
+      "recurringNo": "No",
+      "noResults": "No se encontraron conceptos",
+      "noResultsHint": "Intenta ajustar los filtros de búsqueda",
+      "noConcepts": "No hay conceptos de pago",
+      "noConceptsHint": "Aún no se han configurado conceptos de pago en tus condominios",
+      "addConcept": "Nuevo Concepto",
+      "error": "Error al cargar los conceptos",
+      "retry": "Reintentar",
+      "clear": "Limpiar",
+      "columns": {
+        "name": "Nombre",
+        "condominium": "Condominio",
+        "type": "Tipo",
+        "recurring": "Recurrente",
+        "status": "Estado"
+      },
+      "types": {
+        "maintenance": "Mantenimiento",
+        "condominiumFee": "Cuota de Condominio",
+        "extraordinary": "Extraordinaria",
+        "fine": "Multa",
+        "other": "Otro"
+      },
+      "recurrence": {
+        "monthly": "Mensual",
+        "quarterly": "Trimestral",
+        "yearly": "Anual"
+      }
+    },
+    "dashboard": {
+      "welcome": "Bienvenido, {name}",
+      "subtitle": "Resumen de tu administradora",
+      "kpi": {
+        "condominiums": "Condominios Activos",
+        "viewCondominiums": "Ver Condominios",
+        "monthlyIncome": "Pagos del Mes",
+        "of": "de",
+        "delinquency": "Mora",
+        "viewPayments": "Ver todos",
+        "viewDelinquency": "Ver Mora",
+        "viewQuotas": "Ver Cuotas"
+      },
+      "chart": {
+        "title": "Ingresos",
+        "sixMonths": "6 Meses",
+        "threeMonths": "3 Meses",
+        "thirtyDays": "30 Días",
+        "sevenDays": "7 Días",
+        "collected": "Total cobrado en el periodo"
+      },
+      "condominiums": {
+        "title": "Condominios",
+        "viewAll": "Ver todos",
+        "units": "unidades",
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "empty": "No hay condominios registrados"
+      },
+      "payments": {
+        "title": "Pagos Recientes",
+        "viewAll": "Ver todos",
+        "empty": "No hay pagos recientes",
+        "status": {
+          "completed": "Completado",
+          "pendingVerification": "Por Verificar",
+          "rejected": "Rechazado"
+        }
+      }
+    },
+    "condominiums": {
+      "title": "Mis Condominios",
+      "subtitle": "Gestiona los condominios de tu administradora",
+      "empty": "No hay condominios registrados",
+      "emptyDescription": "Aún no tienes condominios asignados",
+      "noResults": "No se encontraron condominios",
+      "noResultsDescription": "Intenta ajustar los filtros de búsqueda",
+      "count": "{filtered} de {total} condominios",
+      "noAddress": "-",
+      "noContact": "Sin contacto",
+      "table": {
+        "name": "Condominio",
+        "code": "Código",
+        "address": "Dirección",
+        "contact": "Contacto",
+        "status": "Estado"
+      },
+      "status": {
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "all": "Todos"
+      },
+      "filters": {
+        "searchPlaceholder": "Buscar por nombre, código, dirección...",
+        "status": "Estado",
+        "clearFilters": "Limpiar filtros"
+      },
+      "detail": {
+        "sidebar": {
+          "quotas": "Cuotas",
+          "payments": "Pagos",
+          "paymentConcepts": "Conceptos de Pago"
+        },
+        "quotas": {
+          "title": "Cuotas",
+          "subtitle": "Cuotas y cargos del condominio",
+          "empty": "No hay cuotas registradas",
+          "emptyDescription": "Las cuotas aparecerán aquí cuando sean generadas",
+          "table": {
+            "unit": "Unidad",
+            "concept": "Concepto",
+            "period": "Período",
+            "amount": "Monto",
+            "balance": "Saldo",
+            "status": "Estado",
+            "dueDate": "Vencimiento"
+          },
+          "status": {
+            "pending": "Pendiente",
+            "paid": "Pagada",
+            "overdue": "Vencida",
+            "cancelled": "Cancelada"
+          },
+          "filters": {
+            "all": "Todas",
+            "searchPlaceholder": "Buscar por unidad o concepto...",
+            "status": "Estado"
+          }
+        },
+        "payments": {
+          "title": "Pagos",
+          "subtitle": "Pagos realizados en el condominio",
+          "empty": "No hay pagos registrados",
+          "emptyDescription": "Los pagos aparecerán aquí cuando se registren",
+          "table": {
+            "paymentNumber": "Nro. Pago",
+            "unit": "Unidad",
+            "amount": "Monto",
+            "method": "Método",
+            "status": "Estado",
+            "date": "Fecha"
+          },
+          "status": {
+            "pending": "Pendiente",
+            "pendingVerification": "Por Verificar",
+            "completed": "Completado",
+            "failed": "Fallido",
+            "refunded": "Reembolsado",
+            "rejected": "Rechazado"
+          },
+          "methods": {
+            "transfer": "Transferencia",
+            "cash": "Efectivo",
+            "card": "Tarjeta",
+            "mobilePayment": "Pago Móvil",
+            "gateway": "Pasarela",
+            "other": "Otro"
+          },
+          "filters": {
+            "all": "Todos",
+            "searchPlaceholder": "Buscar por número o unidad...",
+            "status": "Estado"
+          }
+        },
+        "paymentConcepts": {
+          "title": "Conceptos de Pago",
+          "subtitle": "Tipos de cargos configurados para el condominio",
+          "empty": "No hay conceptos de pago configurados",
+          "emptyDescription": "Los conceptos de pago definen los tipos de cargos del condominio",
+          "table": {
+            "name": "Nombre",
+            "type": "Tipo",
+            "recurring": "Recurrente",
+            "recurrence": "Periodicidad",
+            "status": "Estado"
+          },
+          "types": {
+            "maintenance": "Mantenimiento",
+            "condominiumFee": "Cuota de Condominio",
+            "extraordinary": "Extraordinaria",
+            "fine": "Multa",
+            "other": "Otro"
+          },
+          "recurrence": {
+            "monthly": "Mensual",
+            "quarterly": "Trimestral",
+            "yearly": "Anual"
+          }
+        }
       }
     },
     "quotas": {

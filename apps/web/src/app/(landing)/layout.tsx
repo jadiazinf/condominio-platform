@@ -1,10 +1,10 @@
-import { getUserCookieServer } from '@/libs/cookies/server'
+import { cookies } from 'next/headers'
 import { LandingNavbar } from './components/LandingNavbar'
 import { SectionNav } from './components/SectionNav'
 
 export default async function LandingLayout({ children }: { children: React.ReactNode }) {
-  const user = await getUserCookieServer()
-  const isAuthenticated = user !== null
+  const cookieStore = await cookies()
+  const isAuthenticated = !!cookieStore.get('__session')?.value
 
   return (
     <div className="relative">

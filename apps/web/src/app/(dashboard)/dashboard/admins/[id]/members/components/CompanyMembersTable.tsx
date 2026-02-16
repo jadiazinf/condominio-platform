@@ -7,9 +7,10 @@ import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
 import { Spinner } from '@/ui/components/spinner'
+import { Tooltip } from '@/ui/components/tooltip'
 import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
-import { User, Plus, Crown, Search, X } from 'lucide-react'
+import { User, Plus, Crown, Search, X, Info } from 'lucide-react'
 import { Avatar } from '@/ui/components/avatar-base'
 import type { TManagementCompanyMembersQuery } from '@packages/domain'
 
@@ -17,7 +18,9 @@ import {
   useManagementCompanyMembersPaginated,
   managementCompanyMemberKeys,
   useQueryClient,
+  useCanCreateResource,
 } from '@packages/http-client'
+import { useAuth } from '@/contexts'
 import { AddMemberModal } from './AddMemberModal'
 
 type TRoleFilter = 'all' | 'admin' | 'accountant' | 'support' | 'viewer'
@@ -55,7 +58,32 @@ function getMemberDisplayName(user: TMemberRow['user']): string {
 
 export function CompanyMembersTable({ companyId, isCompanyActive }: CompanyMembersTableProps) {
   const queryClient = useQueryClient()
+  const { user: firebaseUser } = useAuth()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [token, setToken] = useState<string>('')
+
+  // Get Firebase token
+  useEffect(() => {
+    if (firebaseUser) {
+      firebaseUser.getIdToken().then(setToken)
+    }
+  }, [firebaseUser])
+
+  // Check if can add member based on subscription limits
+  const {
+    data: canCreateData,
+    isLoading: isCheckingLimit,
+    error: canCreateError,
+  } = useCanCreateResource({
+    token,
+    managementCompanyId: companyId,
+    resourceType: 'user',
+    enabled: !!token && !!companyId,
+  })
+
+  const canAddMember = canCreateData?.data?.canCreate ?? false
+  const limitInfo = canCreateData?.data
+  const hasNoSubscription = !!canCreateError
 
   // Filter state
   const [searchInput, setSearchInput] = useState('')
@@ -280,13 +308,36 @@ export function CompanyMembersTable({ companyId, isCompanyActive }: CompanyMembe
             )}
           </div>
           {isCompanyActive && (
-            <Button
-              color="primary"
-              startContent={<Plus size={16} />}
-              onPress={() => setIsAddModalOpen(true)}
-            >
-              Agregar Miembro
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                color="primary"
+                startContent={<Plus size={16} />}
+                onPress={() => setIsAddModalOpen(true)}
+                isLoading={isCheckingLimit}
+                isDisabled={isCheckingLimit || !canAddMember || hasNoSubscription}
+              >
+                Agregar Miembro
+              </Button>
+              {(isCheckingLimit || !canAddMember || hasNoSubscription) && !isCheckingLimit && (
+                <Tooltip
+                  content={
+                    <div className="max-w-xs">
+                      {hasNoSubscription
+                        ? 'No hay una suscripción activa para esta administradora'
+                        : !canAddMember && limitInfo?.limitReached
+                          ? `Límite alcanzado: ${limitInfo.currentCount} de ${limitInfo.maxAllowed ?? 'ilimitados'} miembros`
+                          : 'No se pueden agregar miembros en este momento'}
+                    </div>
+                  }
+                  placement="top"
+                  showArrow
+                >
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-default-100 hover:bg-default-200 transition-colors cursor-help">
+                    <Info className="text-default-500" size={18} />
+                  </div>
+                </Tooltip>
+              )}
+            </div>
           )}
         </div>
 

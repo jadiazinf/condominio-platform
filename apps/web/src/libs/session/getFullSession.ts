@@ -110,13 +110,13 @@ export const getFullSession = cache(async function getFullSession(): Promise<Ful
   const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value
 
   if (!sessionToken) {
-    redirect('/signin')
+    redirect('/auth')
   }
 
   const decodedToken = await verifySessionToken(sessionToken)
 
   if (!decodedToken) {
-    redirect('/signin?expired=true')
+    redirect('/auth?expired=true')
   }
 
   // Try to get user and condominium data from cookies first
@@ -154,7 +154,7 @@ export const getFullSession = cache(async function getFullSession(): Promise<Ful
     } catch (error) {
       // If all retries failed with retryable errors, redirect to signin with temporary error
       if (error instanceof FetchUserError && error.isRetryable) {
-        redirect('/signin?error=temporary')
+        redirect('/auth?error=temporary')
       }
       // For non-retryable errors (like 404), continue to try sync by email
     }
@@ -171,7 +171,7 @@ export const getFullSession = cache(async function getFullSession(): Promise<Ful
       } catch (error) {
         // If all retries failed with retryable errors, redirect to signin with temporary error
         if (error instanceof FetchUserError && error.isRetryable) {
-          redirect('/signin?error=temporary')
+          redirect('/auth?error=temporary')
         }
         // For other errors, continue (fetchedUser will be null)
       }
@@ -181,7 +181,7 @@ export const getFullSession = cache(async function getFullSession(): Promise<Ful
       // User has valid Firebase session but doesn't exist in our database
       // This can happen if: user was deleted, registration was incomplete, or sync failed
       // Redirect to signin with a flag to clear the invalid session
-      redirect('/signin?notfound=true')
+      redirect('/auth?notfound=true')
     }
 
     user = fetchedUser

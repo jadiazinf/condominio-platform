@@ -15,6 +15,7 @@ import { type TServiceResult, success, failure } from '../base.service'
 import { AcceptSubscriptionService } from './accept-subscription.service'
 import type { SubscriptionAuditService } from './subscription-audit.service'
 import type { SendSubscriptionAcceptanceEmailService } from '../email'
+import { LocaleDictionary } from '../../locales/dictionary'
 
 // Default features that all subscriptions should have enabled
 const DEFAULT_FEATURES = {
@@ -116,7 +117,7 @@ export class CreateSubscriptionService {
 
     if (existingSubscription) {
       return failure(
-        `Management company already has an ${existingSubscription.status} subscription`,
+        LocaleDictionary.http.services.subscriptions.alreadyHasSubscription,
         'CONFLICT'
       )
     }
@@ -131,7 +132,7 @@ export class CreateSubscriptionService {
     const company = await this.companiesRepository!.getById(companyId)
 
     if (!company) {
-      return failure('Management company not found', 'NOT_FOUND')
+      return failure(LocaleDictionary.http.services.subscriptions.companyNotFound, 'NOT_FOUND')
     }
 
     // 3. Validate company has at least one active member
@@ -139,7 +140,7 @@ export class CreateSubscriptionService {
 
     if (members.length === 0) {
       return failure(
-        'Cannot create subscription: management company has no active members',
+        LocaleDictionary.http.services.subscriptions.noActiveMembers,
         'BAD_REQUEST'
       )
     }
@@ -149,7 +150,7 @@ export class CreateSubscriptionService {
 
     if (!primaryAdmin) {
       return failure(
-        'Cannot create subscription: management company has no primary admin',
+        LocaleDictionary.http.services.subscriptions.noPrimaryAdmin,
         'BAD_REQUEST'
       )
     }
@@ -158,7 +159,7 @@ export class CreateSubscriptionService {
     const primaryAdminUser = await this.usersRepository!.getById(primaryAdmin.userId)
 
     if (!primaryAdminUser) {
-      return failure('Primary admin user not found', 'NOT_FOUND')
+      return failure(LocaleDictionary.http.services.subscriptions.primaryAdminNotFound, 'NOT_FOUND')
     }
 
     // 5. Get active terms & conditions
@@ -166,7 +167,7 @@ export class CreateSubscriptionService {
 
     if (!activeTerms) {
       return failure(
-        'Cannot create subscription: no active terms and conditions found',
+        LocaleDictionary.http.services.subscriptions.noActiveTerms,
         'BAD_REQUEST'
       )
     }

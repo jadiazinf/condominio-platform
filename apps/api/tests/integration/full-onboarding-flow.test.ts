@@ -3,7 +3,7 @@
  *
  * Tests the complete platform onboarding lifecycle:
  * 1. Superadmin creates management company with admin (admin invitation)
- * 2. Admin accepts invitation → company/user activated, member/subscription created
+ * 2. Admin accepts invitation → company/user activated, member created
  * 3. Admin creates a condominium under the management company
  * 4. Admin creates a building in the condominium
  * 5. Admin creates units in the building
@@ -76,10 +76,15 @@ beforeEach(async () => {
     VALUES (${MOCK_SUPERADMIN_ID}, 'firebase-uid-superadmin', 'superadmin@test.com', 'Superadmin', 'Super', 'Admin', true, true, 'es')
   `)
 
-  // Insert the USER role (required for user role assignment during invitation acceptance)
+  // Insert roles required for invitation services
   await db.execute(sql`
     INSERT INTO roles (name, description, is_system_role)
     VALUES ('USER', 'Standard user role', true)
+    ON CONFLICT (name) DO NOTHING
+  `)
+  await db.execute(sql`
+    INSERT INTO roles (name, description, is_system_role)
+    VALUES ('ADMIN', 'Admin role', true)
     ON CONFLICT (name) DO NOTHING
   `)
 
@@ -105,7 +110,6 @@ beforeEach(async () => {
     usersRepo,
     companiesRepo,
     membersRepo,
-    subscriptionsRepo,
     userRolesRepo,
     rolesRepo
   )
@@ -197,12 +201,9 @@ describe('Full Onboarding Flow — End-to-End', function () {
     expect(acceptAdminJson.data.user.isActive).toBe(true)
     expect(acceptAdminJson.data.managementCompany.isActive).toBe(true)
 
-    // Verify member and subscription were created
+    // Verify member was created
     const members = await membersRepo.listByCompanyId(companyId)
     expect(members.length).toBeGreaterThan(0)
-
-    const subscriptions = await subscriptionsRepo.getByCompanyId(companyId)
-    expect(subscriptions.length).toBeGreaterThan(0)
 
     // ─── Step 3: Create condominium (via repository) ─────────────────────
     const condominium = await condominiumsRepo.create({
@@ -411,7 +412,7 @@ describe('Full Onboarding Flow — End-to-End', function () {
     expect(inviteRes.status).toBeGreaterThanOrEqual(400)
   })
 
-  it('admin invitation creates subscription that enables condominium creation', async function () {
+  it('admin invitation creates company without auto-subscription', async function () {
     // Step 1: Create company with admin
     const createRes = await request('/platform/admin-invitations/create-with-admin', {
       method: 'POST',
@@ -446,12 +447,8 @@ describe('Full Onboarding Flow — End-to-End', function () {
     })
     expect(acceptRes.status).toBe(200)
 
-    // Step 3: Verify subscription exists
+    // Step 3: Verify NO subscription was auto-created
     const subscriptions = await subscriptionsRepo.getByCompanyId(createJson.data.company.id)
-    expect(subscriptions.length).toBeGreaterThan(0)
-    expect(subscriptions[0]!.status).toBe('trial')
-
-    // Step 4: Verify company can have condominiums (subscription max_condominiums)
-    expect(subscriptions[0]!.maxCondominiums).toBeGreaterThan(0)
+    expect(subscriptions.length).toBe(0)
   })
 })

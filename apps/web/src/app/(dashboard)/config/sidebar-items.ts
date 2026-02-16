@@ -3,7 +3,6 @@ import type { TSidebarItem } from '@/ui/components/sidebar'
 
 import {
   Settings,
-  LogOut,
   LayoutDashboard,
   Users,
   Building2,
@@ -16,6 +15,7 @@ import {
   Wallet,
   ClipboardList,
   CalendarDays,
+  FileText,
 } from 'lucide-react'
 
 type TSidebarItemConfig = Omit<TSidebarItem, 'icon'> & {
@@ -83,11 +83,6 @@ export const dashboardSidebarItems: TSidebarItemConfig[] = [
     icon: Settings,
     href: '/dashboard/settings',
   },
-  {
-    key: 'logout',
-    title: 'nav.logout',
-    icon: LogOut,
-  },
 ]
 
 export const adminSidebarItems: TSidebarItemConfig[] = [
@@ -104,33 +99,28 @@ export const adminSidebarItems: TSidebarItemConfig[] = [
     href: '/dashboard/condominiums',
   },
   {
-    key: 'members',
-    title: 'admin.company.nav.members',
-    icon: Users,
-    href: '/dashboard/members',
+    key: 'my-management-company',
+    title: 'admin.company.nav.myCompany',
+    icon: Building,
+    href: '/dashboard/my-management-company',
   },
   {
-    key: 'billing',
-    title: 'admin.company.nav.billing',
+    key: 'subscription',
+    title: 'admin.company.nav.subscription',
     icon: CreditCard,
-    href: '/dashboard/billing',
+    href: '/dashboard/subscription',
   },
   {
-    key: 'tickets',
-    title: 'admin.company.nav.tickets',
-    icon: MessageSquare,
-    href: '/dashboard/tickets',
+    key: 'payment-concepts',
+    title: 'admin.company.nav.paymentConcepts',
+    icon: FileText,
+    href: '/dashboard/payment-concepts',
   },
   {
     key: 'settings',
     title: 'nav.settings',
     icon: Settings,
     href: '/dashboard/settings',
-  },
-  {
-    key: 'logout',
-    title: 'nav.logout',
-    icon: LogOut,
   },
 ]
 
@@ -170,12 +160,6 @@ export const superadminSidebarItems: TSidebarItemConfig[] = [
     title: 'superadmin.nav.currencies',
     icon: Coins,
     href: '/dashboard/currencies',
-  },
-  {
-    key: 'billing',
-    title: 'superadmin.nav.billing',
-    icon: CreditCard,
-    href: '/dashboard/billing',
   },
   {
     key: 'tickets',

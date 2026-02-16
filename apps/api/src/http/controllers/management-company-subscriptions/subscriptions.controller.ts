@@ -1,4 +1,5 @@
 import type { Context } from 'hono'
+import { useTranslation } from '@intlify/hono'
 import {
   managementCompanySubscriptionCreateSchema,
   managementCompanySubscriptionUpdateSchema,
@@ -11,6 +12,9 @@ import type {
   ManagementCompanyMembersRepository,
   ManagementCompaniesRepository,
   UsersRepository,
+  SubscriptionAcceptancesRepository,
+  SubscriptionTermsConditionsRepository,
+  SubscriptionAuditHistoryRepository,
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
@@ -24,11 +28,13 @@ import {
   CancelSubscriptionService,
   RenewSubscriptionService,
   CalculatePricingService,
+  SubscriptionAuditService,
 } from '../../../services/subscriptions'
-import { SendSubscriptionCancellationEmailService } from '../../../services/email'
+import { SendSubscriptionCancellationEmailService, SendSubscriptionAcceptanceEmailService } from '../../../services/email'
 import { DatabaseService } from '@database/service'
 import { isUserAuthenticated } from '../../middlewares/utils/auth/is-user-authenticated'
 import { requireRole } from '../../middlewares/auth'
+import { LocaleDictionary } from '../../../locales/dictionary'
 
 const CompanyIdParamSchema = z.object({
   companyId: z.string().uuid('Invalid company ID format'),
@@ -106,11 +112,23 @@ export class ManagementCompanySubscriptionsController extends BaseController<
     repository: ManagementCompanySubscriptionsRepository,
     membersRepository: ManagementCompanyMembersRepository,
     companiesRepository: ManagementCompaniesRepository,
-    usersRepository: UsersRepository
+    usersRepository: UsersRepository,
+    acceptancesRepository?: SubscriptionAcceptancesRepository,
+    termsRepository?: SubscriptionTermsConditionsRepository,
+    auditRepository?: SubscriptionAuditHistoryRepository
   ) {
     super(repository)
     const db = DatabaseService.getInstance().getDb()
-    this.createService = new CreateSubscriptionService(repository)
+    const auditService = auditRepository ? new SubscriptionAuditService(auditRepository) : undefined
+    this.createService = new CreateSubscriptionService(repository, {
+      membersRepository,
+      companiesRepository,
+      acceptancesRepository,
+      termsRepository,
+      usersRepository,
+      auditService,
+      emailService: new SendSubscriptionAcceptanceEmailService(),
+    })
     this.updateService = new UpdateSubscriptionService(repository)
     this.cancelService = new CancelSubscriptionService(repository, {
       membersRepository,
@@ -222,13 +240,14 @@ export class ManagementCompanySubscriptionsController extends BaseController<
 
   private getActiveSubscription = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TCompanyIdParam>(c)
+    const t = useTranslation(c)
     const repo = this.repository as ManagementCompanySubscriptionsRepository
 
     try {
       const subscription = await repo.getActiveByCompanyId(ctx.params.companyId)
 
       if (!subscription) {
-        return ctx.notFound({ error: 'No active subscription found' })
+        return ctx.notFound({ error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription) })
       }
 
       return ctx.ok({ data: subscription })
@@ -288,6 +307,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
 
   private createSubscription = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TManagementCompanySubscriptionCreate, unknown, TCompanyIdParam>(c)
+    const t = useTranslation(c)
 
     try {
       const result = await this.createService.execute({
@@ -296,7 +316,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
       })
 
       if (!result.success) {
-        return ctx.badRequest({ error: result.error })
+        return ctx.badRequest({ error: t(result.error) })
       }
 
       return ctx.created({ data: result.data })
@@ -307,6 +327,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
 
   private updateActiveSubscription = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TManagementCompanySubscriptionUpdate, unknown, TCompanyIdParam>(c)
+    const t = useTranslation(c)
     const repo = this.repository as ManagementCompanySubscriptionsRepository
 
     try {
@@ -314,7 +335,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
       const subscription = await repo.getActiveByCompanyId(ctx.params.companyId)
 
       if (!subscription) {
-        return ctx.notFound({ error: 'No active subscription found' })
+        return ctx.notFound({ error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription) })
       }
 
       const result = await this.updateService.execute({
@@ -334,6 +355,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
 
   private cancelSubscription = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TCancelSubscriptionBody, unknown, TCompanyIdParam>(c)
+    const t = useTranslation(c)
     const repo = this.repository as ManagementCompanySubscriptionsRepository
 
     try {
@@ -341,7 +363,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
       const subscription = await repo.getActiveByCompanyId(ctx.params.companyId)
 
       if (!subscription) {
-        return ctx.notFound({ error: 'No active subscription found' })
+        return ctx.notFound({ error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription) })
       }
 
       const result = await this.cancelService.execute({
@@ -362,6 +384,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
 
   private renewSubscription = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TRenewSubscriptionBody, unknown, TCompanyIdParam>(c)
+    const t = useTranslation(c)
     const repo = this.repository as ManagementCompanySubscriptionsRepository
 
     try {
@@ -369,7 +392,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
       const subscription = await repo.getActiveByCompanyId(ctx.params.companyId)
 
       if (!subscription) {
-        return ctx.notFound({ error: 'No active subscription found' })
+        return ctx.notFound({ error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription) })
       }
 
       const result = await this.renewService.execute({

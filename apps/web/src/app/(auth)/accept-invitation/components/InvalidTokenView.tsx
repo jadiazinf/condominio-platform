@@ -25,7 +25,7 @@ export function InvalidTokenView({ message }: InvalidTokenViewProps) {
         <p className="text-default-500 mb-8">{message}</p>
 
         <div className="flex gap-3">
-          <Button href="/signin" variant="flat">
+          <Button href="/auth" variant="flat">
             {t('auth.acceptInvitation.goToSignIn')}
           </Button>
           <Button href="/" color="primary">

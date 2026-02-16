@@ -22,7 +22,7 @@ export function SuperadminSidebar({ isCompact = false, onItemSelect }: Superadmi
     return {
       ...item,
       title: t(item.title),
-      icon: IconComponent ? <IconComponent size={20} /> : undefined,
+      icon: IconComponent ? <IconComponent size={18} /> : undefined,
     }
   })
 
@@ -39,13 +39,6 @@ export function SuperadminSidebar({ isCompact = false, onItemSelect }: Superadmi
   }
 
   function handleSelect(key: string) {
-    if (key === 'logout') {
-      router.push('/loading?signout=true')
-      onItemSelect?.()
-
-      return
-    }
-
     const item = superadminSidebarItems.find(i => i.key === key)
 
     if (item?.href) {

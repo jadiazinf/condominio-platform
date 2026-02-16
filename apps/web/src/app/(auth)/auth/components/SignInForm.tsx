@@ -74,7 +74,7 @@ export function SignInForm() {
         })
 
         // Clean the URL by removing the expired parameter
-        router.replace('/signin')
+        router.replace('/auth')
       }
     },
     [searchParams, router, signOut]
@@ -102,7 +102,7 @@ export function SignInForm() {
         toast.error(t('auth.errors.temporaryError'))
 
         // Clean the URL by removing the error parameter
-        router.replace('/signin')
+        router.replace('/auth')
       }
     },
     [searchParams, router, signOut, toast, t]
@@ -130,7 +130,7 @@ export function SignInForm() {
         toast.error(t('auth.errors.userNotFound'))
 
         // Clean the URL by removing the notfound parameter
-        router.replace('/signin')
+        router.replace('/auth')
       }
     },
     [searchParams, router, signOut, toast, t]
@@ -158,7 +158,7 @@ export function SignInForm() {
         toast.show(t('auth.errors.sessionExpiredInactivity'))
 
         // Clean the URL by removing the inactivity parameter
-        router.replace('/signin')
+        router.replace('/auth')
       }
     },
     [searchParams, router, signOut, toast, t]

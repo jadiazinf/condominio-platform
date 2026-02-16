@@ -29,7 +29,7 @@ export default function SelectRolePage() {
 
     if (!firebaseUser) {
       hasRedirected.current = true
-      router.replace('/signin')
+      router.replace('/auth')
       return
     }
 

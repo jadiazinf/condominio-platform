@@ -29,12 +29,17 @@ type TMockUnitOwnershipsRepository = {
 
 function createUnitOwnership(
   unitId: string,
-  userId: string,
+  userId: string | null,
   overrides: Partial<TUnitOwnershipCreate> = {}
 ): TUnitOwnershipCreate {
   return {
     unitId,
     userId,
+    fullName: 'Test Owner',
+    email: null,
+    phone: null,
+    phoneCountryCode: null,
+    isRegistered: userId !== null,
     ownershipType: 'owner',
     ownershipPercentage: '100.000000',
     titleDeedNumber: null,

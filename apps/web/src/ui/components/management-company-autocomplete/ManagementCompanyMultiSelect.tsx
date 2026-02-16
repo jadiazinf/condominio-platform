@@ -1,13 +1,11 @@
 'use client'
 
 import { useMemo, useState, useCallback, useRef } from 'react'
-import { Select, SelectItem } from '@heroui/select'
-import { Chip } from '@heroui/chip'
-import { Tooltip } from '@heroui/tooltip'
-import { Building2, Info } from 'lucide-react'
+import { Building2 } from 'lucide-react'
 import type { TManagementCompany } from '@packages/domain'
 
 import { useAuth, useTranslation } from '@/contexts'
+import { AutocompleteMulti, type IAutocompleteMultiItem } from '@/ui/components/autocomplete'
 import { useManagementCompaniesPaginated } from '@packages/http-client'
 
 interface IManagementCompanyMultiSelectProps {
@@ -38,6 +36,7 @@ export function ManagementCompanyMultiSelect({
   const { t } = useTranslation()
   const { user: firebaseUser, loading: isAuthLoading } = useAuth()
   const [token, setToken] = useState<string | null>(null)
+  const [searchInput, setSearchInput] = useState('')
   // Store selected companies to ensure they're always in the items list
   const selectedCompaniesRef = useRef<Map<string, TManagementCompany>>(new Map())
 
@@ -48,10 +47,11 @@ export function ManagementCompanyMultiSelect({
     }
   }, [firebaseUser, token])
 
-  // Fetch management companies
+  // Fetch management companies with search filter
   const { data: companiesData, isLoading: isLoadingCompanies } = useManagementCompaniesPaginated({
     token: token || '',
     query: {
+      search: searchInput || undefined,
       limit: 50,
       isActive: true,
     },
@@ -70,21 +70,29 @@ export function ManagementCompanyMultiSelect({
     }
   }, [value, companiesData])
 
-  const items = useMemo(() => {
+  const items: IAutocompleteMultiItem[] = useMemo(() => {
     const companies = companiesData?.data || []
-
-    // Build items list from fetched companies
-    const itemsMap = new Map<string, TManagementCompany>()
+    const itemsMap = new Map<string, IAutocompleteMultiItem>()
 
     // Add fetched companies
     companies.forEach((company) => {
-      itemsMap.set(company.id, company)
+      itemsMap.set(company.id, {
+        key: company.id,
+        label: company.name,
+        description: company.email || undefined,
+        startContent: <Building2 className="text-default-400" size={16} />,
+      })
     })
 
     // Ensure selected companies are always in the list
     selectedCompaniesRef.current.forEach((company) => {
       if (!itemsMap.has(company.id)) {
-        itemsMap.set(company.id, company)
+        itemsMap.set(company.id, {
+          key: company.id,
+          label: company.name,
+          description: company.email || undefined,
+          startContent: <Building2 className="text-default-400" size={16} />,
+        })
       }
     })
 
@@ -92,96 +100,48 @@ export function ManagementCompanyMultiSelect({
   }, [companiesData])
 
   const handleSelectionChange = useCallback(
-    (keys: 'all' | Set<React.Key>) => {
-      if (keys === 'all') return
-
-      const selectedIds = Array.from(keys) as string[]
-
+    (selectedIds: string[]) => {
       // Update the ref to keep track of selected companies
-      items.forEach((company) => {
-        if (selectedIds.includes(company.id)) {
+      const selectedSet = new Set(selectedIds)
+      items.forEach((item) => {
+        const company = companiesData?.data?.find((c) => c.id === item.key)
+        if (company && selectedSet.has(company.id)) {
           selectedCompaniesRef.current.set(company.id, company)
-        } else {
-          selectedCompaniesRef.current.delete(company.id)
+        }
+      })
+      // Remove deselected
+      Array.from(selectedCompaniesRef.current.keys()).forEach((key) => {
+        if (!selectedSet.has(key)) {
+          selectedCompaniesRef.current.delete(key)
         }
       })
 
       onChange?.(selectedIds)
     },
-    [onChange, items]
+    [onChange, items, companiesData]
   )
 
-  // Build label with required indicator and tooltip
-  const labelContent = label ? (
-    <span className="flex items-center gap-1.5">
-      {isRequired && <span className="text-danger">*</span>}
-      {label}
-      {tooltip && (
-        <Tooltip
-          content={tooltip}
-          placement="right"
-          showArrow
-          classNames={{
-            content: 'max-w-xs text-sm',
-          }}
-        >
-          <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
-        </Tooltip>
-      )}
-    </span>
-  ) : undefined
-
-  // Custom render for selected items (chips)
-  const renderValue = (selectedItems: any) => {
-    return (
-      <div className="flex flex-wrap gap-1">
-        {selectedItems.map((item: any) => (
-          <Chip key={item.key} size="sm" variant="flat" color="primary">
-            {item.textValue}
-          </Chip>
-        ))}
-      </div>
-    )
-  }
+  const handleInputChange = useCallback((value: string) => {
+    setSearchInput(value)
+  }, [])
 
   return (
-    <Select
+    <AutocompleteMulti
       aria-label={label || t('common.managementCompanies')}
       className={className}
-      classNames={{
-        trigger: 'min-h-12',
-      }}
-      description={tooltip ? undefined : description}
+      description={description}
+      emptyContent={t('superadmin.condominiums.form.fields.noCompaniesFound') || 'No se encontraron administradoras'}
       errorMessage={errorMessage}
       isDisabled={isDisabled || isAuthLoading}
-      isInvalid={!!errorMessage}
       isLoading={isLoadingCompanies}
-      isRequired={false}
+      isRequired={isRequired}
       items={items}
-      label={labelContent}
-      labelPlacement="outside"
-      placeholder={placeholder || t('superadmin.condominiums.form.fields.managementCompanyPlaceholder')}
-      radius="sm"
-      renderValue={renderValue}
-      selectedKeys={new Set(value)}
-      selectionMode="multiple"
-      variant="bordered"
+      label={label}
+      onInputChange={handleInputChange}
       onSelectionChange={handleSelectionChange}
-    >
-      {(company) => (
-        <SelectItem
-          key={company.id}
-          startContent={<Building2 className="text-default-400" size={16} />}
-          textValue={company.name}
-        >
-          <div className="flex flex-col">
-            <span className="text-sm">{company.name}</span>
-            {company.email && (
-              <span className="text-xs text-default-400">{company.email}</span>
-            )}
-          </div>
-        </SelectItem>
-      )}
-    </Select>
+      placeholder={placeholder || t('superadmin.condominiums.form.fields.managementCompanyPlaceholder')}
+      selectedKeys={value}
+      tooltip={tooltip}
+    />
   )
 }

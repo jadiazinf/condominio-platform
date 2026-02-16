@@ -64,7 +64,7 @@ export const siteConfig = {
     },
     {
       label: 'Iniciar Sesión',
-      href: '/signin',
+      href: '/auth',
     },
     {
       label: 'Registrarse',

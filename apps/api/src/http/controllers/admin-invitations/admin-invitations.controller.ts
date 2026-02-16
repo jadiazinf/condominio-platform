@@ -6,7 +6,6 @@ import type {
   UsersRepository,
   ManagementCompaniesRepository,
   ManagementCompanyMembersRepository,
-  ManagementCompanySubscriptionsRepository,
   UserRolesRepository,
   RolesRepository,
 } from '@database/repositories'
@@ -130,7 +129,6 @@ export class AdminInvitationsController {
     private readonly usersRepository: UsersRepository,
     private readonly managementCompaniesRepository: ManagementCompaniesRepository,
     private readonly membersRepository: ManagementCompanyMembersRepository,
-    private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository,
     private readonly userRolesRepository: UserRolesRepository,
     private readonly rolesRepository: RolesRepository
   ) {
@@ -139,14 +137,15 @@ export class AdminInvitationsController {
       invitationsRepository,
       usersRepository,
       managementCompaniesRepository,
-      membersRepository
+      membersRepository,
+      userRolesRepository,
+      rolesRepository
     )
     this.createCompanyWithExistingAdminService = new CreateCompanyWithExistingAdminService(
       db,
       usersRepository,
       managementCompaniesRepository,
       membersRepository,
-      subscriptionsRepository,
       userRolesRepository,
       rolesRepository
     )
@@ -161,7 +160,6 @@ export class AdminInvitationsController {
       usersRepository,
       managementCompaniesRepository,
       membersRepository,
-      subscriptionsRepository,
       userRolesRepository,
       rolesRepository
     )
@@ -357,7 +355,6 @@ export class AdminInvitationsController {
           company: result.data.company,
           admin: result.data.admin,
           member: result.data.member,
-          subscription: result.data.subscription,
         },
       })
     } catch (error) {

@@ -5,8 +5,8 @@ import type {
   ManagementCompanySubscriptionsRepository,
   SubscriptionAuditHistoryRepository,
 } from '@database/repositories'
-import { DatabaseService } from '@database/service'
 import { paramsValidator, bodyValidator, getParams, getBody } from '../../middlewares/utils/payload-validator'
+import { createRouter } from '../create-router'
 import type { TRouteDefinition } from '../types'
 import { AcceptSubscriptionService, SubscriptionAuditService } from '../../../services/subscriptions'
 
@@ -67,6 +67,10 @@ export class SubscriptionAcceptancesController {
         ],
       },
     ]
+  }
+
+  createRouter() {
+    return createRouter(this.routes)
   }
 
   /**

@@ -1,11 +1,9 @@
 import { getTranslations } from '@/libs/i18n/server'
 import { getCondominiumDetail } from '@packages/http-client/hooks'
-import { getServerAuthToken } from '@/libs/session'
+import { getServerAuthToken, getFullSession } from '@/libs/session'
 import { Card } from '@/ui/components/card'
 import { Typography } from '@/ui/components/typography'
-import Link from 'next/link'
-import { Button } from '@/ui/components/button'
-import { Eye } from 'lucide-react'
+import { ManagementCompaniesTable } from './components/ManagementCompaniesTable'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -13,7 +11,8 @@ interface PageProps {
 
 export default async function CondominiumGeneralPage({ params }: PageProps) {
   const { id } = await params
-  const [{ t }, token] = await Promise.all([getTranslations(), getServerAuthToken()])
+  const [{ t }, token, session] = await Promise.all([getTranslations(), getServerAuthToken(), getFullSession()])
+  const isAdmin = session?.activeRole === 'management_company'
 
   const condominium = await getCondominiumDetail(token, id)
 
@@ -141,43 +140,21 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
         </div>
       </Card>
 
-      {/* Management Companies */}
-      <Card className="p-6">
-        <Typography variant="h4" className="mb-4">
-          {t('superadmin.condominiums.detail.general.managementCompanies')}
-        </Typography>
-        {condominium.managementCompanies && condominium.managementCompanies.length > 0 ? (
-          <div className="space-y-4">
-            {condominium.managementCompanies.map((company) => (
-              <div key={company.id} className="flex items-center gap-4 p-4 bg-default-50 rounded-lg">
-                <div className="flex-1">
-                  <InfoRow
-                    label={t('superadmin.condominiums.detail.general.companyName')}
-                    value={company.name}
-                  />
-                </div>
-                <div className="flex-1">
-                  <InfoRow
-                    label={t('superadmin.condominiums.detail.general.companyEmail')}
-                    value={company.email || noDataText}
-                  />
-                </div>
-                <div className="flex-shrink-0">
-                  <Link href={`/dashboard/admins/${company.id}`}>
-                    <Button size="sm" variant="flat" color="primary" startContent={<Eye className="h-4 w-4" />}>
-                      {t('superadmin.condominiums.actions.view')}
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <Typography color="muted" variant="body2">
-            {noDataText}
+      {/* Management Companies — superadmin only */}
+      {!isAdmin && (
+        <Card className="p-6">
+          <Typography variant="h4" className="mb-4">
+            {t('superadmin.condominiums.detail.general.managementCompanies')}
           </Typography>
-        )}
-      </Card>
+          {condominium.managementCompanies && condominium.managementCompanies.length > 0 ? (
+            <ManagementCompaniesTable companies={condominium.managementCompanies} />
+          ) : (
+            <Typography color="muted" variant="body2">
+              {noDataText}
+            </Typography>
+          )}
+        </Card>
+      )}
 
       {/* Metadata */}
       <Card className="p-6">
@@ -193,10 +170,12 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
             label={t('superadmin.condominiums.detail.general.updatedAt')}
             value={formatDate(condominium.updatedAt)}
           />
-          <InfoRow
-            label={t('superadmin.condominiums.detail.general.createdBy')}
-            value={getCreatedByDisplay()}
-          />
+          {!isAdmin && (
+            <InfoRow
+              label={t('superadmin.condominiums.detail.general.createdBy')}
+              value={getCreatedByDisplay()}
+            />
+          )}
         </div>
       </Card>
     </div>

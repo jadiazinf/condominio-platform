@@ -6,7 +6,13 @@ import { pgEnum } from 'drizzle-orm/pg-core'
 
 export const locationTypeEnum = pgEnum('location_type', ['country', 'province', 'city'])
 
-export const ownershipTypeEnum = pgEnum('ownership_type', ['owner', 'co-owner', 'tenant'])
+export const ownershipTypeEnum = pgEnum('ownership_type', [
+  'owner',
+  'co-owner',
+  'tenant',
+  'family_member',
+  'authorized',
+])
 
 // ============================================================================
 // PAYMENT ENUMS

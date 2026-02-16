@@ -63,6 +63,7 @@ export class UserRolesRepository
       roleId: r.roleId,
       condominiumId: r.condominiumId,
       buildingId: r.buildingId,
+      managementCompanyId: r.managementCompanyId,
       isActive: r.isActive ?? true,
       notes: r.notes,
       assignedAt: r.assignedAt ?? new Date(),
@@ -78,6 +79,7 @@ export class UserRolesRepository
       roleId: dto.roleId,
       condominiumId: dto.condominiumId,
       buildingId: dto.buildingId,
+      managementCompanyId: dto.managementCompanyId,
       isActive: dto.isActive,
       notes: dto.notes,
       assignedBy: dto.assignedBy,
@@ -96,6 +98,7 @@ export class UserRolesRepository
     if (dto.isActive !== undefined) values.isActive = dto.isActive
     if (dto.notes !== undefined) values.notes = dto.notes
     if (dto.assignedBy !== undefined) values.assignedBy = dto.assignedBy
+    if (dto.managementCompanyId !== undefined) values.managementCompanyId = dto.managementCompanyId
     if (dto.registeredBy !== undefined) values.registeredBy = dto.registeredBy
     if (dto.expiresAt !== undefined) values.expiresAt = dto.expiresAt
 
@@ -453,6 +456,66 @@ export class UserRolesRepository
         totalPages,
       },
     }
+  }
+
+  // ==========================================================================
+  // MANAGEMENT COMPANY METHODS
+  // ==========================================================================
+
+  /**
+   * Retrieves user roles scoped to a specific management company.
+   */
+  async getByUserAndManagementCompany(
+    userId: string,
+    managementCompanyId: string
+  ): Promise<TUserRole[]> {
+    const results = await this.db
+      .select()
+      .from(userRoles)
+      .where(
+        and(
+          eq(userRoles.userId, userId),
+          eq(userRoles.managementCompanyId, managementCompanyId)
+        )
+      )
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Creates a management company–scoped role for a user.
+   */
+  async createManagementCompanyRole(
+    userId: string,
+    roleId: string,
+    managementCompanyId: string,
+    assignedBy?: string
+  ): Promise<TUserRole> {
+    return this.create({
+      userId,
+      roleId,
+      condominiumId: null,
+      buildingId: null,
+      managementCompanyId,
+      isActive: true,
+      assignedBy: assignedBy ?? null,
+      registeredBy: assignedBy ?? null,
+      notes: null,
+      expiresAt: null,
+    })
+  }
+
+  /**
+   * Gets the role ID by role name.
+   */
+  async getRoleIdByName(roleName: string): Promise<string | null> {
+    const result = await this.db
+      .select({ id: roles.id })
+      .from(roles)
+      .where(eq(roles.name, roleName))
+      .limit(1)
+
+    return result[0]?.id ?? null
   }
 
   /**

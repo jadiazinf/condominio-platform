@@ -1,3 +1,5 @@
+import { StatusCodes } from 'http-status-codes'
+
 import { getEnvConfig } from '../config/env'
 import type { HttpMethod, RequestConfig, ApiResponse, ApiError } from '../types/http'
 import { HttpError } from '../types/http'
@@ -144,11 +146,17 @@ export function createHttpClient(config: HttpClientConfig = {}) {
       })
 
       // Handle 401 Unauthorized - attempt token refresh and retry once
-      if (response.status === 401 && !isRetry && config.onTokenRefresh) {
+      if (response.status === StatusCodes.UNAUTHORIZED && !isRetry && config.onTokenRefresh) {
         try {
           await config.onTokenRefresh()
-          // Retry the request with the new token
-          return await request<T>(method, path, body, requestConfig, true)
+          // Strip manual Authorization header so the retry uses getAuthToken()
+          // which reads the freshly refreshed token from cookies
+          let retryConfig = requestConfig
+          if (requestConfig?.headers?.['Authorization'] || requestConfig?.headers?.['authorization']) {
+            const { Authorization, authorization, ...restHeaders } = requestConfig.headers as Record<string, string>
+            retryConfig = { ...requestConfig, headers: restHeaders }
+          }
+          return await request<T>(method, path, body, retryConfig, true)
         } catch (refreshError) {
           // If refresh fails, continue with the original error response
         }

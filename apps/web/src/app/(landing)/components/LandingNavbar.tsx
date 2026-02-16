@@ -30,7 +30,7 @@ export function LandingNavbar({ isAuthenticated = false }: LandingNavbarProps) {
             <ThemeSwitch />
 
             <Link
-              href={isAuthenticated ? '/dashboard' : '/signin'}
+              href={isAuthenticated ? '/dashboard' : '/auth'}
               className="text-xs font-medium tracking-widest uppercase px-6 py-2 border border-foreground/20 text-foreground/90 hover:bg-foreground/5 hover:border-brick/40 transition-all ml-2"
             >
               {isAuthenticated ? t('nav.dashboard') : t('nav.getStarted')}

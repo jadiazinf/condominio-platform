@@ -262,7 +262,6 @@ export function CreateCondominiumForm() {
                 isRequired
                 label={t('superadmin.condominiums.form.fields.phone')}
                 tooltip={t('superadmin.condominiums.form.fields.phoneDescription')}
-                placeholder={t('superadmin.condominiums.form.fields.phonePlaceholder')}
                 translateError={translateError}
               />
             </div>

@@ -4,13 +4,11 @@ import type {
   TManagementCompany,
   TManagementCompanyCreate,
   TManagementCompanyMember,
-  TManagementCompanySubscription,
 } from '@packages/domain'
 import type {
   UsersRepository,
   ManagementCompaniesRepository,
   ManagementCompanyMembersRepository,
-  ManagementCompanySubscriptionsRepository,
   UserRolesRepository,
   RolesRepository,
 } from '@database/repositories'
@@ -27,7 +25,6 @@ export interface ICreateCompanyWithExistingAdminResult {
   company: TManagementCompany
   admin: TUser
   member: TManagementCompanyMember
-  subscription: TManagementCompanySubscription
   userRole: TUserRole
 }
 
@@ -41,7 +38,6 @@ export interface ICreateCompanyWithExistingAdminResult {
  * 1. Validates the existing user is active
  * 2. Creates the management company (isActive=true, since admin is already confirmed)
  * 3. Creates the member with primary admin role and full permissions
- * 4. Creates a trial subscription (30 days)
  */
 export class CreateCompanyWithExistingAdminService {
   constructor(
@@ -49,7 +45,6 @@ export class CreateCompanyWithExistingAdminService {
     private readonly usersRepository: UsersRepository,
     private readonly managementCompaniesRepository: ManagementCompaniesRepository,
     private readonly membersRepository: ManagementCompanyMembersRepository,
-    private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository,
     private readonly userRolesRepository: UserRolesRepository,
     private readonly rolesRepository: RolesRepository
   ) {}
@@ -68,18 +63,22 @@ export class CreateCompanyWithExistingAdminService {
       return failure('User is not active', 'BAD_REQUEST')
     }
 
-    // Look up the USER role before starting the transaction (read-only, avoids
+    // Look up roles before starting the transaction (read-only, avoids
     // acquiring a second connection inside the tx which can deadlock in test containers)
     const userRole = await this.rolesRepository.getByName('USER')
     if (!userRole) {
       return failure('USER role not found in system', 'INTERNAL_ERROR')
     }
 
+    const adminRole = await this.rolesRepository.getByName('ADMIN')
+    if (!adminRole) {
+      return failure('ADMIN role not found in system', 'INTERNAL_ERROR')
+    }
+
     // All writes inside a transaction for atomicity
     return await this.db.transaction(async (tx) => {
       const txCompaniesRepo = this.managementCompaniesRepository.withTx(tx)
       const txMembersRepo = this.membersRepository.withTx(tx)
-      const txSubscriptionsRepo = this.subscriptionsRepository.withTx(tx)
       const txUserRolesRepo = this.userRolesRepository.withTx(tx)
 
       // Create management company (active from the start since admin already exists)
@@ -95,11 +94,20 @@ export class CreateCompanyWithExistingAdminService {
         return failure('Failed to create management company', 'INTERNAL_ERROR')
       }
 
-      // Create member with primary admin role
+      // Create MC-scoped ADMIN role in user_roles (unified role system)
+      const mcRoleAssignment = await txUserRolesRepo.createManagementCompanyRole(
+        user.id,
+        adminRole.id,
+        company.id,
+        input.createdBy
+      )
+
+      // Create member with primary admin role, linked to unified user_role
       const member = await txMembersRepo.create({
         managementCompanyId: company.id,
         userId: user.id,
         roleName: 'admin',
+        userRoleId: mcRoleAssignment.id,
         permissions: {
           can_change_subscription: true,
           can_manage_members: true,
@@ -119,7 +127,7 @@ export class CreateCompanyWithExistingAdminService {
         return failure('Failed to create member', 'INTERNAL_ERROR')
       }
 
-      // Check if user already has this role (existing users may already have it)
+      // Assign system-level USER role (no scope)
       const existingRoles = await txUserRolesRepo.getByUserAndRole(user.id, userRole.id, null)
       let userRoleAssignment: TUserRole
 
@@ -131,6 +139,7 @@ export class CreateCompanyWithExistingAdminService {
           roleId: userRole.id,
           condominiumId: null,
           buildingId: null,
+          managementCompanyId: null,
           isActive: true,
           notes: 'Assigned via management company creation with existing admin',
           assignedBy: input.createdBy,
@@ -143,54 +152,10 @@ export class CreateCompanyWithExistingAdminService {
         return failure('Failed to assign user role', 'INTERNAL_ERROR')
       }
 
-      // Create trial subscription (30 days)
-      const trialEndsAt = new Date()
-      trialEndsAt.setDate(trialEndsAt.getDate() + 30)
-
-      const subscription = await txSubscriptionsRepo.create({
-        managementCompanyId: company.id,
-        subscriptionName: 'Trial Subscription',
-        billingCycle: 'monthly',
-        basePrice: 0,
-        currencyId: null,
-        maxCondominiums: 9999,
-        maxUnits: 999999,
-        maxUsers: 9999,
-        maxStorageGb: 9999,
-        customFeatures: null,
-        customRules: null,
-        status: 'trial',
-        startDate: new Date(),
-        endDate: null,
-        nextBillingDate: trialEndsAt,
-        trialEndsAt,
-        autoRenew: false,
-        notes: 'Automatically created trial subscription',
-        createdBy: input.createdBy,
-        cancelledAt: null,
-        cancelledBy: null,
-        cancellationReason: null,
-        pricingCondominiumCount: null,
-        pricingUnitCount: null,
-        pricingCondominiumRate: null,
-        pricingUnitRate: null,
-        calculatedPrice: null,
-        discountType: null,
-        discountValue: null,
-        discountAmount: null,
-        pricingNotes: null,
-        rateId: null,
-      })
-
-      if (!subscription) {
-        return failure('Failed to create trial subscription', 'INTERNAL_ERROR')
-      }
-
       return success({
         company,
         admin: user,
         member,
-        subscription,
         userRole: userRoleAssignment,
       })
     })

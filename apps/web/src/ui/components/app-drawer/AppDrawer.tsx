@@ -5,26 +5,20 @@ import { Drawer, DrawerContent, DrawerBody } from '@heroui/drawer'
 import { DrawerHeader } from './DrawerHeader'
 import { DrawerFooter } from './DrawerFooter'
 
-export interface IBadgeConfig {
-  label: string
-  icon?: React.ReactNode
-}
-
 interface IAppDrawerProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   onClose: () => void
-  badge?: IBadgeConfig
   children: React.ReactNode
 }
 
-export function AppDrawer({ isOpen, onOpenChange, onClose, badge, children }: IAppDrawerProps) {
+export function AppDrawer({ isOpen, onOpenChange, onClose, children }: IAppDrawerProps) {
   return (
     <Drawer
       classNames={{
-        base: 'max-w-[300px]',
+        base: 'max-w-[280px] bg-background',
         body: 'p-0',
-        footer: 'border-t border-divider',
+        footer: 'p-0',
       }}
       hideCloseButton
       isOpen={isOpen}
@@ -32,8 +26,8 @@ export function AppDrawer({ isOpen, onOpenChange, onClose, badge, children }: IA
       onOpenChange={onOpenChange}
     >
       <DrawerContent>
-        <DrawerHeader badge={badge} onClose={onClose} />
-        <DrawerBody className="py-4 px-3">{children}</DrawerBody>
+        <DrawerHeader onClose={onClose} />
+        <DrawerBody className="py-3 px-0">{children}</DrawerBody>
         <DrawerFooter onClose={onClose} />
       </DrawerContent>
     </Drawer>

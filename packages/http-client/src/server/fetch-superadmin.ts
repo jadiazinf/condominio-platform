@@ -1,3 +1,4 @@
+import { StatusCodes } from 'http-status-codes'
 import type { TUserRole, TPermission, TUser } from '@packages/domain'
 
 import { getEnvConfig } from '../config/env'
@@ -59,7 +60,7 @@ export async function fetchSuperadminSession(
     })
 
     if (!response.ok) {
-      if (response.status === 404) {
+      if (response.status === StatusCodes.NOT_FOUND) {
         return null
       }
       throw new Error(`Failed to fetch superadmin session: ${response.status}`)

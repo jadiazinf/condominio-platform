@@ -9,7 +9,11 @@ import {
   type TManagementCompanyMembersQuerySchema,
   memberPermissionsSchema,
 } from '@packages/domain'
-import type { ManagementCompanyMembersRepository } from '@database/repositories'
+import type {
+  ManagementCompanyMembersRepository,
+  UserRolesRepository,
+  RolesRepository,
+} from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
@@ -69,11 +73,14 @@ export class ManagementCompanyMembersController extends BaseController<
   private readonly addMemberService: AddMemberService
   private readonly updatePermissionsService: UpdateMemberPermissionsService
 
-  constructor(repository: ManagementCompanyMembersRepository) {
+  constructor(
+    repository: ManagementCompanyMembersRepository,
+    userRolesRepository: UserRolesRepository,
+    rolesRepository: RolesRepository
+  ) {
     super(repository)
-    this.addMemberService = new AddMemberService(repository)
+    this.addMemberService = new AddMemberService(repository, userRolesRepository, rolesRepository)
     this.updatePermissionsService = new UpdateMemberPermissionsService(repository)
-
   }
 
   get routes(): TRouteDefinition[] {

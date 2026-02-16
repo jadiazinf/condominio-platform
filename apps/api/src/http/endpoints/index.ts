@@ -39,6 +39,7 @@ export { UserInvitationsEndpoint } from './user-invitations.endpoint'
 export { ManagementCompanySubscriptionsEndpoint } from './management-company-subscriptions.endpoint'
 export { SubscriptionInvoicesEndpoint } from './subscription-invoices.endpoint'
 export { ManagementCompanyMembersEndpoint } from './management-company-members.endpoint'
+export { SubscriptionAcceptancesEndpoint } from './subscription-acceptances.endpoint'
 
 // Support Tickets
 export { SupportTicketsEndpoint } from './support-tickets.endpoint'

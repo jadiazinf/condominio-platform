@@ -65,14 +65,14 @@ export async function getAuthenticatedSession(): Promise<AuthenticatedSession> {
   const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value
 
   if (!sessionToken) {
-    redirect('/signin')
+    redirect('/auth')
   }
 
   const decodedToken = await verifySessionToken(sessionToken)
 
   if (!decodedToken) {
     // Token is invalid/expired - redirect with flag to clear cookies on client
-    redirect('/signin?expired=true')
+    redirect('/auth?expired=true')
   }
 
   // Try to get user from cookies first (faster, no API call)

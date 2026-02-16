@@ -5,7 +5,6 @@ import type {
   TUserRole,
   TManagementCompany,
   TManagementCompanyMember,
-  TManagementCompanySubscription,
   TRole,
 } from '@packages/domain'
 import { AcceptInvitationService } from '@src/services/admin-invitations'
@@ -37,13 +36,11 @@ type TMockMembersRepository = {
   withTx: (tx: unknown) => TMockMembersRepository
 }
 
-type TMockSubscriptionsRepository = {
-  create: (data: any) => Promise<TManagementCompanySubscription>
-  withTx: (tx: unknown) => TMockSubscriptionsRepository
-}
-
 type TMockUserRolesRepository = {
   create: (data: any) => Promise<TUserRole>
+  createManagementCompanyRole: (userId: string, roleId: string, managementCompanyId: string, assignedBy?: string) => Promise<TUserRole>
+  getByUserAndManagementCompany: (userId: string, managementCompanyId: string) => Promise<TUserRole[]>
+  update: (id: string, data: any) => Promise<TUserRole | null>
   withTx: (tx: unknown) => TMockUserRolesRepository
 }
 
@@ -62,7 +59,6 @@ describe('AcceptInvitationService', function () {
   let mockUsersRepository: TMockUsersRepository
   let mockCompaniesRepository: TMockCompaniesRepository
   let mockMembersRepository: TMockMembersRepository
-  let mockSubscriptionsRepository: TMockSubscriptionsRepository
   let mockUserRolesRepository: TMockUserRolesRepository
   let mockRolesRepository: TMockRolesRepository
   let existingUserWithFirebaseUid: TUser | null
@@ -297,48 +293,15 @@ describe('AcceptInvitationService', function () {
       withTx() { return this },
     }
 
-    mockSubscriptionsRepository = {
-      create: async function (data: any) {
-        return {
-          id: '550e8400-e29b-41d4-a716-446655440011',
-          managementCompanyId: data.managementCompanyId,
-          subscriptionName: data.subscriptionName,
-          billingCycle: data.billingCycle,
-          basePrice: data.basePrice,
-          currencyId: data.currencyId,
-          maxCondominiums: data.maxCondominiums,
-          maxUnits: data.maxUnits,
-          maxUsers: data.maxUsers,
-          maxStorageGb: data.maxStorageGb,
-          customFeatures: data.customFeatures,
-          customRules: data.customRules,
-          status: data.status,
-          startDate: data.startDate,
-          endDate: data.endDate,
-          nextBillingDate: data.nextBillingDate,
-          trialEndsAt: data.trialEndsAt,
-          autoRenew: data.autoRenew,
-          notes: data.notes,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          createdBy: data.createdBy,
-          cancelledAt: null,
-          cancelledBy: null,
-          cancellationReason: null,
-          // Pricing fields
-          pricingCondominiumCount: data.pricingCondominiumCount ?? null,
-          pricingUnitCount: data.pricingUnitCount ?? null,
-          pricingCondominiumRate: data.pricingCondominiumRate ?? null,
-          pricingUnitRate: data.pricingUnitRate ?? null,
-          calculatedPrice: data.calculatedPrice ?? null,
-          discountType: data.discountType ?? null,
-          discountValue: data.discountValue ?? null,
-          discountAmount: data.discountAmount ?? null,
-          pricingNotes: data.pricingNotes ?? null,
-          rateId: data.rateId ?? null,
-        }
-      },
-      withTx() { return this },
+    const mcRoleId = '550e8400-e29b-41d4-a716-446655440050'
+    const mockAdminRole: TRole = {
+      id: '550e8400-e29b-41d4-a716-446655440060',
+      name: 'ADMIN',
+      description: 'Admin role',
+      isSystemRole: true,
+      registeredBy: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }
 
     mockUserRolesRepository = {
@@ -349,6 +312,7 @@ describe('AcceptInvitationService', function () {
           roleId: data.roleId,
           condominiumId: data.condominiumId,
           buildingId: data.buildingId,
+          managementCompanyId: data.managementCompanyId ?? null,
           isActive: data.isActive,
           notes: data.notes,
           assignedAt: new Date(),
@@ -357,12 +321,48 @@ describe('AcceptInvitationService', function () {
           expiresAt: data.expiresAt,
         }
       },
+      createManagementCompanyRole: async function (userId: string, roleId: string, managementCompanyId: string, assignedBy?: string) {
+        return {
+          id: mcRoleId,
+          userId,
+          roleId,
+          condominiumId: null,
+          buildingId: null,
+          managementCompanyId,
+          isActive: true,
+          notes: null,
+          assignedAt: new Date(),
+          assignedBy: assignedBy ?? null,
+          registeredBy: assignedBy ?? null,
+          expiresAt: null,
+        }
+      },
+      getByUserAndManagementCompany: async function () {
+        return [] // No existing MC role by default
+      },
+      update: async function (id: string, data: any) {
+        return {
+          id,
+          userId: testUser.id,
+          roleId: mockAdminRole.id,
+          condominiumId: null,
+          buildingId: null,
+          managementCompanyId: testCompany.id,
+          isActive: data.isActive ?? true,
+          notes: null,
+          assignedAt: new Date(),
+          assignedBy: null,
+          registeredBy: null,
+          expiresAt: null,
+        }
+      },
       withTx() { return this },
     }
 
     mockRolesRepository = {
       getByName: async function (name: string) {
         if (name === 'USER') return mockUserRole
+        if (name === 'ADMIN') return mockAdminRole
         return null
       },
     }
@@ -373,7 +373,6 @@ describe('AcceptInvitationService', function () {
       mockUsersRepository as never,
       mockCompaniesRepository as never,
       mockMembersRepository as never,
-      mockSubscriptionsRepository as never,
       mockUserRolesRepository as never,
       mockRolesRepository as never
     )

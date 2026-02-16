@@ -11,6 +11,8 @@ import type {
   UsersRepository,
   ManagementCompaniesRepository,
   ManagementCompanyMembersRepository,
+  UserRolesRepository,
+  RolesRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
@@ -50,7 +52,9 @@ export class CreateCompanyWithAdminService {
     private readonly invitationsRepository: AdminInvitationsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly managementCompaniesRepository: ManagementCompaniesRepository,
-    private readonly membersRepository: ManagementCompanyMembersRepository
+    private readonly membersRepository: ManagementCompanyMembersRepository,
+    private readonly userRolesRepository: UserRolesRepository,
+    private readonly rolesRepository: RolesRepository
   ) {}
 
   async execute(
@@ -79,12 +83,19 @@ export class CreateCompanyWithAdminService {
     const tokenHash = hashToken(token)
     const expiresAt = calculateExpirationDate(input.expirationDays ?? 7)
 
+    // Look up ADMIN role before starting the transaction (read-only)
+    const adminRole = await this.rolesRepository.getByName('ADMIN')
+    if (!adminRole) {
+      return failure('ADMIN role not found in system', 'INTERNAL_ERROR')
+    }
+
     // All writes inside a transaction for atomicity
     return await this.db.transaction(async (tx) => {
       const txUsersRepo = this.usersRepository.withTx(tx)
       const txCompaniesRepo = this.managementCompaniesRepository.withTx(tx)
       const txInvitationsRepo = this.invitationsRepository.withTx(tx)
       const txMembersRepo = this.membersRepository.withTx(tx)
+      const txUserRolesRepo = this.userRolesRepository.withTx(tx)
 
       // Create user with isActive=false
       const userData: TUserCreate = {
@@ -119,11 +130,22 @@ export class CreateCompanyWithAdminService {
         createdBy: input.createdBy,
       })
 
+      // Create MC-scoped ADMIN role (inactive — activated when invitation is accepted)
+      const mcRoleAssignment = await txUserRolesRepo.createManagementCompanyRole(
+        admin.id,
+        adminRole.id,
+        company.id,
+        input.createdBy
+      )
+      // Mark as inactive until invitation is accepted
+      await txUserRolesRepo.update(mcRoleAssignment.id, { isActive: false })
+
       // Create member with primary admin role (inactive until invitation is accepted)
       const member = await txMembersRepo.create({
         managementCompanyId: company.id,
         userId: admin.id,
         roleName: 'admin',
+        userRoleId: mcRoleAssignment.id,
         permissions: {
           can_change_subscription: true,
           can_manage_members: true,

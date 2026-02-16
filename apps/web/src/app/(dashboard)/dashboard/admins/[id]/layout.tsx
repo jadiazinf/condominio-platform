@@ -1,10 +1,10 @@
-import { Suspense } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { redirect, notFound } from 'next/navigation'
 
 import { Button } from '@/ui/components/button'
 import { getTranslations } from '@/libs/i18n/server'
-import { getFullSession } from '@/libs/session'
+import { getFullSession, getServerAuthToken } from '@/libs/session'
+import { getManagementCompanyById } from '@packages/http-client/hooks'
 
 import { CompanySidebar } from './components/CompanySidebar'
 import { CompanyDetailHeader } from './components/CompanyDetailHeader'
@@ -16,7 +16,7 @@ interface LayoutProps {
 
 export default async function CompanyDetailLayout({ children, params }: LayoutProps) {
   const { id } = await params
-  const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
+  const [{ t }, session, token] = await Promise.all([getTranslations(), getFullSession(), getServerAuthToken()])
 
   // Only superadmins can access this page
   if (!session.superadmin?.isActive) {
@@ -26,6 +26,8 @@ export default async function CompanyDetailLayout({ children, params }: LayoutPr
   if (!id) {
     notFound()
   }
+
+  const company = await getManagementCompanyById(token, id)
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -38,9 +40,7 @@ export default async function CompanyDetailLayout({ children, params }: LayoutPr
         {t('common.backToList')}
       </Button>
 
-      <Suspense fallback={<div className="h-32 animate-pulse rounded bg-default-200" />}>
-        <CompanyDetailHeader companyId={id} />
-      </Suspense>
+      <CompanyDetailHeader company={company} />
 
       <div className="flex flex-col md:flex-row gap-8 mt-6">
         <CompanySidebar companyId={id} />

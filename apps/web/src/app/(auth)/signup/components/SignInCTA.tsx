@@ -19,7 +19,7 @@ export async function SignInCTA() {
           </Typography>
           <Button
             className="font-semibold text-white border-white/50 hover:bg-white/10"
-            href="/signin"
+            href="/auth"
             size="lg"
             variant="bordered"
           >

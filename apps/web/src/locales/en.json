@@ -27,6 +27,12 @@
     "status": {
       "active": "Active",
       "inactive": "Inactive"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "accountant": "Accountant",
+      "support": "Support",
+      "viewer": "Viewer"
     }
   },
   "nav": {
@@ -1167,12 +1173,12 @@
       },
       "errors": {
         "createError": "Error creating condominium",
-        "limitReached": "Cannot create more condominiums. Your plan allows {max} condominiums and you currently have {current}.",
-        "limitReachedTooltip": "⚠️ Limit reached: You currently have {current} of {max} allowed condominiums on your plan. To create more condominiums, you need to upgrade your subscription to a higher plan.",
-        "noActiveSubscription": "❌ You don't have an active subscription. To create condominiums, you need to activate or purchase a subscription plan.",
+        "limitReached": "Cannot create more condominiums. This company's plan allows {max} condominiums and currently has {current}.",
+        "limitReachedTooltip": "⚠️ Limit reached: This company has {current} of {max} allowed condominiums on their plan. To create more condominiums, the subscription must be upgraded to a higher plan.",
+        "noActiveSubscription": "❌ This company does not have an active subscription. To create condominiums, a subscription plan must be activated or purchased.",
         "cannotCreate": "⚠️ Cannot create a condominium at this time. Please contact support."
       },
-      "checkingLimit": "⏳ Checking your subscription's condominium limit...",
+      "checkingLimit": "⏳ Checking this company's subscription condominium limit...",
       "unlimited": "unlimited",
       "form": {
         "title": "Create Condominium",
@@ -2446,7 +2452,371 @@
         "condominiums": "Condominiums",
         "members": "Members",
         "billing": "Billing",
-        "tickets": "Support Tickets"
+        "tickets": "Support Tickets",
+        "myCompany": "My Company",
+        "subscription": "Subscription",
+        "paymentConcepts": "Concepts"
+      },
+      "myCompany": {
+        "title": "My Company",
+        "subtitle": "Your management company information",
+        "sidebar": {
+          "general": "Company",
+          "members": "Members"
+        },
+        "members": {
+          "title": "Members",
+          "subtitle": "Manage your management company members",
+          "search": "Search by name or email...",
+          "filterRole": "Filter by role",
+          "filterStatus": "Filter by status",
+          "filterCondominium": "Filter by condominium",
+          "allRoles": "All roles",
+          "allStatuses": "All",
+          "allCondominiums": "All condominiums",
+          "active": "Active",
+          "inactive": "Inactive",
+          "noResults": "No results found",
+          "noResultsHint": "Try adjusting the search filters",
+          "noMembers": "No members",
+          "noMembersHint": "Your management company has no registered members yet",
+          "addMember": "New Member",
+          "error": "Error loading members",
+          "retry": "Retry",
+          "columns": {
+            "member": "Member",
+            "role": "Role",
+            "joinedAt": "Joined Date",
+            "status": "Status"
+          },
+          "clear": "Clear"
+        },
+        "tabs": {
+          "general": "General",
+          "subscription": "Subscription"
+        },
+        "general": {
+          "basicInfo": "Basic Information",
+          "contactInfo": "Contact Information",
+          "metadata": "Additional Data",
+          "noData": "No information"
+        },
+        "subscription": {
+          "title": "Subscription",
+          "subtitle": "Your management company subscription plan details",
+          "noSubscription": "No Active Subscription",
+          "noSubscriptionDescription": "Your management company does not have an active subscription. Contact support for more information.",
+          "limitsAndUsage": "Limits & Usage",
+          "condominiums": "Condominiums",
+          "units": "Units",
+          "users": "Users",
+          "storage": "Storage",
+          "features": "Included Features",
+          "pricingNotes": "Pricing Notes",
+          "notes": "Notes",
+          "autoRenew": "Auto Renewal",
+          "cancellationReason": "Cancellation Reason",
+          "cancelledAt": "Cancelled on {date}",
+          "basePrice": "Base Price",
+          "billingCycle": "Billing Cycle",
+          "startDate": "Start Date",
+          "nextBillingDate": "Next Billing Date",
+          "trialEndsAt": "Trial Ends",
+          "endDate": "End Date",
+          "status": {
+            "active": "Active",
+            "trial": "Trial",
+            "inactive": "Inactive",
+            "cancelled": "Cancelled",
+            "suspended": "Suspended"
+          },
+          "cycles": {
+            "monthly": "Monthly",
+            "quarterly": "Quarterly",
+            "semi_annual": "Semi-Annual",
+            "annual": "Annual",
+            "custom": "Custom"
+          }
+        }
+      }
+    },
+    "subscription": {
+      "title": "Subscription",
+      "subtitle": "Manage your subscription plan and review history",
+      "sidebar": {
+        "subscription": "Subscription",
+        "history": "History"
+      },
+      "currentPlan": "Current Plan",
+      "noPlan": "No Active Subscription",
+      "noPlanDescription": "Your company does not have an active subscription. Contact support for more information.",
+      "price": "Price",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "nextBilling": "Next Billing",
+      "trialEnds": "Trial Ends",
+      "autoRenew": "Auto Renew",
+      "yes": "Yes",
+      "no": "No",
+      "limits": "Limits & Usage",
+      "condominiums": "Condominiums",
+      "units": "Units",
+      "users": "Users",
+      "storage": "Storage",
+      "features": "Included Features",
+      "notes": "Notes",
+      "cancelledInfo": "Subscription Cancelled",
+      "cancelledAt": "Cancelled on",
+      "cancellationReason": "Reason",
+      "status": {
+        "active": "Active",
+        "trial": "Trial",
+        "inactive": "Inactive",
+        "cancelled": "Cancelled",
+        "suspended": "Suspended"
+      },
+      "cancel": {
+        "button": "Cancel Subscription",
+        "title": "Cancel Subscription",
+        "warning": "You are about to cancel the \"{name}\" subscription. This action cannot be undone.",
+        "reasonLabel": "Cancellation reason (optional)",
+        "reasonPlaceholder": "Why do you want to cancel?",
+        "passwordPrompt": "For security, enter your password to confirm.",
+        "passwordLabel": "Password",
+        "passwordRequired": "Password is required",
+        "passwordInvalid": "Incorrect password",
+        "back": "Back",
+        "confirm": "Confirm Cancellation",
+        "success": "Subscription cancelled successfully",
+        "error": "Error cancelling subscription"
+      },
+      "history": {
+        "title": "Subscription History",
+        "subtitle": "Review all previous subscriptions for your management company",
+        "searchPlaceholder": "Search by plan name...",
+        "dateFrom": "From",
+        "dateTo": "To",
+        "clear": "Clear",
+        "count": "{filtered} subscriptions found",
+        "empty": "No subscription history",
+        "emptyDescription": "No previous subscriptions found.",
+        "startedAt": "Started",
+        "cancelledAt": "Cancelled",
+        "columns": {
+          "plan": "Plan",
+          "status": "Status",
+          "price": "Price",
+          "startDate": "Start Date",
+          "cancelledAt": "Cancelled"
+        }
+      },
+      "detail": {
+        "title": "Subscription Detail"
+      }
+    },
+    "paymentConcepts": {
+      "title": "Payment Concepts",
+      "subtitle": "Manage payment concepts across all your condominiums",
+      "search": "Search by name...",
+      "filterType": "Type",
+      "filterCondominium": "Condominium",
+      "filterStatus": "Status",
+      "filterRecurring": "Recurring",
+      "allTypes": "All types",
+      "allCondominiums": "All condominiums",
+      "allStatuses": "All",
+      "allRecurring": "All",
+      "active": "Active",
+      "inactive": "Inactive",
+      "recurringYes": "Yes",
+      "recurringNo": "No",
+      "noResults": "No concepts found",
+      "noResultsHint": "Try adjusting the search filters",
+      "noConcepts": "No payment concepts",
+      "noConceptsHint": "No payment concepts have been configured for your condominiums yet",
+      "addConcept": "New Concept",
+      "error": "Error loading concepts",
+      "retry": "Retry",
+      "clear": "Clear",
+      "columns": {
+        "name": "Name",
+        "condominium": "Condominium",
+        "type": "Type",
+        "recurring": "Recurring",
+        "status": "Status"
+      },
+      "types": {
+        "maintenance": "Maintenance",
+        "condominiumFee": "Condominium Fee",
+        "extraordinary": "Extraordinary",
+        "fine": "Fine",
+        "other": "Other"
+      },
+      "recurrence": {
+        "monthly": "Monthly",
+        "quarterly": "Quarterly",
+        "yearly": "Yearly"
+      }
+    },
+    "dashboard": {
+      "welcome": "Welcome, {name}",
+      "subtitle": "Your management company overview",
+      "kpi": {
+        "condominiums": "Active Condominiums",
+        "viewCondominiums": "View Condominiums",
+        "monthlyIncome": "Monthly Income",
+        "of": "of",
+        "delinquency": "Delinquency",
+        "viewPayments": "View all",
+        "viewDelinquency": "View Delinquency",
+        "viewQuotas": "View Quotas"
+      },
+      "chart": {
+        "title": "Income",
+        "sixMonths": "6 Months",
+        "threeMonths": "3 Months",
+        "thirtyDays": "30 Days",
+        "sevenDays": "7 Days",
+        "collected": "Total collected in period"
+      },
+      "condominiums": {
+        "title": "Condominiums",
+        "viewAll": "View all",
+        "units": "units",
+        "active": "Active",
+        "inactive": "Inactive",
+        "empty": "No condominiums registered"
+      },
+      "payments": {
+        "title": "Recent Payments",
+        "viewAll": "View all",
+        "empty": "No recent payments",
+        "status": {
+          "completed": "Completed",
+          "pendingVerification": "Pending Verification",
+          "rejected": "Rejected"
+        }
+      }
+    },
+    "condominiums": {
+      "title": "My Condominiums",
+      "subtitle": "Manage your company's condominiums",
+      "empty": "No condominiums registered",
+      "emptyDescription": "You don't have any condominiums assigned yet",
+      "noResults": "No condominiums found",
+      "noResultsDescription": "Try adjusting the search filters",
+      "count": "{filtered} of {total} condominiums",
+      "noAddress": "-",
+      "noContact": "No contact",
+      "table": {
+        "name": "Condominium",
+        "code": "Code",
+        "address": "Address",
+        "contact": "Contact",
+        "status": "Status"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "all": "All"
+      },
+      "filters": {
+        "searchPlaceholder": "Search by name, code, address...",
+        "status": "Status",
+        "clearFilters": "Clear filters"
+      },
+      "detail": {
+        "sidebar": {
+          "quotas": "Quotas",
+          "payments": "Payments",
+          "paymentConcepts": "Payment Concepts"
+        },
+        "quotas": {
+          "title": "Quotas",
+          "subtitle": "Condominium quotas and fees",
+          "empty": "No quotas registered",
+          "emptyDescription": "Quotas will appear here when they are generated",
+          "table": {
+            "unit": "Unit",
+            "concept": "Concept",
+            "period": "Period",
+            "amount": "Amount",
+            "balance": "Balance",
+            "status": "Status",
+            "dueDate": "Due Date"
+          },
+          "status": {
+            "pending": "Pending",
+            "paid": "Paid",
+            "overdue": "Overdue",
+            "cancelled": "Cancelled"
+          },
+          "filters": {
+            "all": "All",
+            "searchPlaceholder": "Search by unit or concept...",
+            "status": "Status"
+          }
+        },
+        "payments": {
+          "title": "Payments",
+          "subtitle": "Payments made in the condominium",
+          "empty": "No payments registered",
+          "emptyDescription": "Payments will appear here when they are recorded",
+          "table": {
+            "paymentNumber": "Payment #",
+            "unit": "Unit",
+            "amount": "Amount",
+            "method": "Method",
+            "status": "Status",
+            "date": "Date"
+          },
+          "status": {
+            "pending": "Pending",
+            "pendingVerification": "Pending Verification",
+            "completed": "Completed",
+            "failed": "Failed",
+            "refunded": "Refunded",
+            "rejected": "Rejected"
+          },
+          "methods": {
+            "transfer": "Transfer",
+            "cash": "Cash",
+            "card": "Card",
+            "mobilePayment": "Mobile Payment",
+            "gateway": "Gateway",
+            "other": "Other"
+          },
+          "filters": {
+            "all": "All",
+            "searchPlaceholder": "Search by number or unit...",
+            "status": "Status"
+          }
+        },
+        "paymentConcepts": {
+          "title": "Payment Concepts",
+          "subtitle": "Fee types configured for the condominium",
+          "empty": "No payment concepts configured",
+          "emptyDescription": "Payment concepts define the types of fees for the condominium",
+          "table": {
+            "name": "Name",
+            "type": "Type",
+            "recurring": "Recurring",
+            "recurrence": "Recurrence",
+            "status": "Status"
+          },
+          "types": {
+            "maintenance": "Maintenance",
+            "condominiumFee": "Condominium Fee",
+            "extraordinary": "Extraordinary",
+            "fine": "Fine",
+            "other": "Other"
+          },
+          "recurrence": {
+            "monthly": "Monthly",
+            "quarterly": "Quarterly",
+            "yearly": "Yearly"
+          }
+        }
       }
     },
     "quotas": {

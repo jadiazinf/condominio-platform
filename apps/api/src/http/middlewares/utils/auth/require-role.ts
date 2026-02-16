@@ -10,11 +10,13 @@ import { env } from '@config/environment'
 
 export const CONDOMINIUM_ID_PROP = 'condominiumId'
 export const USER_ROLE_PROP = 'userRole'
+export const MANAGEMENT_COMPANY_ID_PROP = 'managementCompanyId'
 
 declare module 'hono' {
   interface ContextVariableMap {
     [CONDOMINIUM_ID_PROP]: string
     [USER_ROLE_PROP]: string
+    [MANAGEMENT_COMPANY_ID_PROP]: string
   }
 }
 
@@ -27,13 +29,16 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
  * Middleware factory that verifies the authenticated user has one of the allowed roles.
  * Must be used AFTER authMiddleware in the middleware chain.
  *
- * For SUPERADMIN: checks user_roles for SUPERADMIN role with condominiumId IS NULL.
- * For condominium roles: reads `x-condominium-id` header and checks user_roles
- * for a matching role in that condominium.
+ * Scope detection order:
+ * 1. SUPERADMIN: checks user_roles for global SUPERADMIN role (all scope cols NULL).
+ * 2. Management Company: if `:managementCompanyId` route param exists, checks user_roles
+ *    for a matching role scoped to that management company.
+ * 3. Condominium: reads `x-condominium-id` header and checks user_roles
+ *    for a matching role in that condominium.
  *
- * Sets `condominiumId` and `userRole` in the Hono context on success.
+ * Sets `condominiumId`/`managementCompanyId` and `userRole` in the Hono context on success.
  *
- * @param allowedRoles - Uppercase role names: 'SUPERADMIN', 'ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'
+ * @param allowedRoles - Uppercase role names: 'SUPERADMIN', 'ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER', 'VIEWER'
  */
 export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
   return async (c, next) => {
@@ -43,9 +48,15 @@ export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
       const role = allowedRoles[0] || SUPERADMIN_ROLE
       c.set(USER_ROLE_PROP, role)
       if (role !== SUPERADMIN_ROLE) {
-        const condominiumId = c.req.header('x-condominium-id')
-        if (condominiumId) {
-          c.set(CONDOMINIUM_ID_PROP, condominiumId)
+        // Check for management company scope first
+        const managementCompanyId = c.req.param('managementCompanyId')
+        if (managementCompanyId) {
+          c.set(MANAGEMENT_COMPANY_ID_PROP, managementCompanyId)
+        } else {
+          const condominiumId = c.req.header('x-condominium-id')
+          if (condominiumId) {
+            c.set(CONDOMINIUM_ID_PROP, condominiumId)
+          }
         }
       }
       await next()
@@ -75,23 +86,68 @@ export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
             eq(userRoles.userId, user.id),
             eq(roles.name, SUPERADMIN_ROLE),
             isNull(userRoles.condominiumId),
-            isNull(userRoles.buildingId)
+            isNull(userRoles.buildingId),
+            isNull(userRoles.managementCompanyId)
           )
         )
         .limit(1)
 
       if (superadminResult[0] && superadminResult[0].isActive) {
-        // SUPERADMIN authenticated — no condominiumId needed
+        // SUPERADMIN authenticated — set managementCompanyId if route param exists
         c.set(USER_ROLE_PROP, SUPERADMIN_ROLE)
+        const managementCompanyId = c.req.param('managementCompanyId')
+        if (managementCompanyId) {
+          c.set(MANAGEMENT_COMPANY_ID_PROP, managementCompanyId)
+        }
         await next()
         return
       }
     }
 
-    // --- Condominium roles path ---
-    const condominiumRoles = allowedRoles.filter(r => r !== SUPERADMIN_ROLE)
+    const nonSuperadminRoles = allowedRoles.filter(r => r !== SUPERADMIN_ROLE)
 
-    if (condominiumRoles.length === 0) {
+    // --- Management Company path ---
+    // Detect MC scope from route param :managementCompanyId
+    const managementCompanyId = c.req.param('managementCompanyId')
+
+    if (managementCompanyId) {
+      if (!UUID_REGEX.test(managementCompanyId)) {
+        return ctx.badRequest({
+          error: t(LocaleDictionary.http.middlewares.utils.auth.invalidManagementCompanyParamFormat),
+        })
+      }
+
+      if (nonSuperadminRoles.length > 0) {
+        const mcResult = await db
+          .select({ roleName: roles.name })
+          .from(userRoles)
+          .innerJoin(roles, eq(userRoles.roleId, roles.id))
+          .where(
+            and(
+              eq(userRoles.userId, user.id),
+              eq(userRoles.managementCompanyId, managementCompanyId),
+              eq(userRoles.isActive, true),
+              inArray(roles.name, nonSuperadminRoles)
+            )
+          )
+          .limit(1)
+
+        if (mcResult[0]) {
+          c.set(MANAGEMENT_COMPANY_ID_PROP, managementCompanyId)
+          c.set(USER_ROLE_PROP, mcResult[0].roleName.toUpperCase())
+          await next()
+          return
+        }
+      }
+
+      // MC route param exists but user has no matching role
+      return ctx.forbidden({
+        error: t(LocaleDictionary.http.middlewares.utils.auth.insufficientRoles),
+      })
+    }
+
+    // --- Condominium roles path ---
+    if (nonSuperadminRoles.length === 0) {
       // Only SUPERADMIN was allowed and user is not one
       return ctx.forbidden({
         error: t(LocaleDictionary.http.middlewares.utils.auth.insufficientRoles),
@@ -103,13 +159,13 @@ export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
 
     if (!condominiumId) {
       return ctx.badRequest({
-        error: 'Missing required header: x-condominium-id',
+        error: t(LocaleDictionary.http.middlewares.utils.auth.missingCondominiumHeader),
       })
     }
 
     if (!UUID_REGEX.test(condominiumId)) {
       return ctx.badRequest({
-        error: 'Invalid x-condominium-id format',
+        error: t(LocaleDictionary.http.middlewares.utils.auth.invalidCondominiumHeaderFormat),
       })
     }
 
@@ -123,7 +179,7 @@ export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
           eq(userRoles.userId, user.id),
           eq(userRoles.condominiumId, condominiumId),
           eq(userRoles.isActive, true),
-          inArray(roles.name, condominiumRoles)
+          inArray(roles.name, nonSuperadminRoles)
         )
       )
       .limit(1)

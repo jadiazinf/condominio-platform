@@ -18,7 +18,11 @@ import { sql } from 'drizzle-orm'
 import { startTestContainer, cleanDatabase } from '../setup/test-container'
 import { createTestApp } from '../http/controllers/test-utils'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
-import { ManagementCompanyMembersRepository } from '@database/repositories'
+import {
+  ManagementCompanyMembersRepository,
+  UserRolesRepository,
+  RolesRepository,
+} from '@database/repositories'
 import { ManagementCompanyMembersController } from '@http/controllers/management-company-members/members.controller'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -63,9 +67,21 @@ beforeEach(async () => {
   `) as unknown as { id: string }[]
   companyId = companyResult[0]!.id
 
+  // Insert roles required by AddMemberService
+  await db.execute(sql`
+    INSERT INTO roles (name, description, is_system_role)
+    VALUES ('ADMIN', 'Admin role', true),
+           ('ACCOUNTANT', 'Accountant role', true),
+           ('SUPPORT', 'Support role', true),
+           ('VIEWER', 'Viewer role', true)
+    ON CONFLICT (name) DO NOTHING
+  `)
+
   // Create repository and controller
   membersRepo = new ManagementCompanyMembersRepository(db)
-  const controller = new ManagementCompanyMembersController(membersRepo)
+  const userRolesRepo = new UserRolesRepository(db)
+  const rolesRepo = new RolesRepository(db)
+  const controller = new ManagementCompanyMembersController(membersRepo, userRolesRepo, rolesRepo)
 
   // Mount with empty prefix since routes already have full paths
   app = createTestApp()
@@ -273,6 +289,14 @@ describe('ManagementCompanyMembersController — Integration', function () {
         await db.execute(sql`
           INSERT INTO users (id, firebase_uid, email, display_name, first_name, last_name, is_active, is_email_verified, preferred_language)
           VALUES (${SECOND_USER_ID}, 'firebase-uid-2', 'member@test.com', 'Test Member', 'Member', 'User', true, true, 'es')
+        `)
+        await db.execute(sql`
+          INSERT INTO roles (name, description, is_system_role)
+          VALUES ('ADMIN', 'Admin role', true),
+                 ('ACCOUNTANT', 'Accountant role', true),
+                 ('SUPPORT', 'Support role', true),
+                 ('VIEWER', 'Viewer role', true)
+          ON CONFLICT (name) DO NOTHING
         `)
         const cRes = await db.execute(sql`
           INSERT INTO management_companies (name, created_by)

@@ -19,14 +19,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
     },
     {
-      url: `${baseUrl}/signin`,
+      url: `${baseUrl}/auth`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,
       alternates: {
         languages: {
-          es: `${baseUrl}/signin`,
-          en: `${baseUrl}/en/signin`,
+          es: `${baseUrl}/auth`,
+          en: `${baseUrl}/en/auth`,
         },
       },
     },

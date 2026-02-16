@@ -22,6 +22,16 @@ import { SendUserInvitationEmailService } from '../email/send-user-invitation-em
 import { SendManagementCompanyMemberNotificationService } from '../email/send-management-company-member-notification.service'
 
 /**
+ * Maps a TMemberRole to the unified role name in the roles table.
+ */
+const MEMBER_ROLE_TO_SYSTEM_ROLE: Record<TMemberRole, string> = {
+  admin: 'ADMIN',
+  accountant: 'ACCOUNTANT',
+  support: 'SUPPORT',
+  viewer: 'VIEWER',
+}
+
+/**
  * Input for creating a management company member with invitation
  */
 export interface ICreateMemberWithInvitationInput {
@@ -141,7 +151,7 @@ export class CreateMemberWithInvitationService {
     const { invitation, token } = invitationResult.data
 
     // Step 6: Add user as member to management company
-    const memberResult = await this.addMember(user.id, input)
+    const memberResult = await this.addMember(user.id, input, userRole.id)
     if (!memberResult.success) {
       // Rollback: delete invitation, role, and user
       await this.invitationsRepository.markAsCancelled(invitation.id)
@@ -181,10 +191,11 @@ export class CreateMemberWithInvitationService {
       return failure('Management company not found', 'NOT_FOUND')
     }
 
-    // Get USER role (default role for new users)
-    const role = await this.rolesRepository.getByName('USER')
+    // Get the system role matching the member role (ADMIN, ACCOUNTANT, SUPPORT, VIEWER)
+    const systemRoleName = MEMBER_ROLE_TO_SYSTEM_ROLE[input.memberRole]
+    const role = await this.rolesRepository.getByName(systemRoleName)
     if (!role) {
-      return failure('USER role not found in system', 'NOT_FOUND')
+      return failure(`${systemRoleName} role not found in system`, 'NOT_FOUND')
     }
 
     // Check if primary admin already exists (if trying to add as primary)
@@ -250,7 +261,7 @@ export class CreateMemberWithInvitationService {
   }
 
   /**
-   * Creates a user-role assignment
+   * Creates an MC-scoped user-role assignment (unified role system)
    */
   private async createUserRole(
     userId: string,
@@ -262,6 +273,7 @@ export class CreateMemberWithInvitationService {
       roleId,
       condominiumId: null,
       buildingId: null,
+      managementCompanyId: input.managementCompanyId,
       isActive: false, // Activated when invitation is accepted
       notes: 'Created via management company member invitation',
       assignedBy: input.createdBy,
@@ -307,7 +319,8 @@ export class CreateMemberWithInvitationService {
    */
   private async addMember(
     userId: string,
-    input: ICreateMemberWithInvitationInput
+    input: ICreateMemberWithInvitationInput,
+    userRoleId: string
   ): Promise<TServiceResult<TManagementCompanyMember>> {
     const permissions = input.memberPermissions ?? this.getDefaultPermissions(input.memberRole)
 
@@ -316,7 +329,9 @@ export class CreateMemberWithInvitationService {
       userId,
       input.memberRole,
       input.isPrimaryAdmin ?? false,
-      permissions
+      permissions,
+      input.createdBy,
+      userRoleId
     )
 
     return success(member)

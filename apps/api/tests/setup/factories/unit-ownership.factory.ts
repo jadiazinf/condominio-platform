@@ -12,6 +12,11 @@ export class UnitOwnershipFactory {
     return {
       unitId: faker.string.uuid(),
       userId: faker.string.uuid(),
+      fullName: faker.person.fullName(),
+      email: faker.internet.email(),
+      phone: faker.phone.number(),
+      phoneCountryCode: '+58',
+      isRegistered: true,
       ownershipType: 'owner',
       ownershipPercentage: '100.00',
       titleDeedNumber: null,

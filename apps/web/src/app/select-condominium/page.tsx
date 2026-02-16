@@ -61,8 +61,8 @@ export default function SelectCondominiumPage() {
       if (!firebaseUser) {
         hasRedirected.current = true
         const signinUrl = redirectUrl !== '/dashboard'
-          ? `/signin?redirect=${encodeURIComponent(redirectUrl)}`
-          : '/signin'
+          ? `/auth?redirect=${encodeURIComponent(redirectUrl)}`
+          : '/auth'
         router.replace(signinUrl)
 
         return

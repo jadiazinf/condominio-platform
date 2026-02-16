@@ -3,15 +3,17 @@ import type { TCondominium, TCondominiumCreate, TCondominiumUpdate, TCondominium
 import type { CondominiumsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
-import { queryValidator } from '../../middlewares/utils/payload-validator'
+import { queryValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { condominiumsQuerySchema } from '@packages/domain'
+import { ManagementCompanyIdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 
 /**
  * Platform-level controller for condominiums.
- * SUPERADMIN only — lists all condominiums in the system with pagination.
  *
- * Path: /platform/condominiums
+ * Routes:
+ * - GET /                                        SUPERADMIN — list all condominiums (paginated)
+ * - GET /management-company/:managementCompanyId  Management company member — list company condominiums (paginated)
  */
 export class PlatformCondominiumsController extends BaseController<
   TCondominium,
@@ -26,6 +28,17 @@ export class PlatformCondominiumsController extends BaseController<
         handler: this.listPaginated,
         middlewares: [authMiddleware, requireRole('SUPERADMIN'), queryValidator(condominiumsQuerySchema)],
       },
+      {
+        method: 'get',
+        path: '/management-company/:managementCompanyId',
+        handler: this.listByManagementCompany,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ManagementCompanyIdParamSchema),
+          requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'VIEWER'),
+          queryValidator(condominiumsQuerySchema),
+        ],
+      },
     ]
   }
 
@@ -33,6 +46,13 @@ export class PlatformCondominiumsController extends BaseController<
     const ctx = this.ctx<unknown, TCondominiumsQuerySchema>(c)
     const repo = this.repository as CondominiumsRepository
     const result = await repo.listPaginated(ctx.query)
+    return ctx.ok(result)
+  }
+
+  private listByManagementCompany = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, TCondominiumsQuerySchema, { managementCompanyId: string }>(c)
+    const repo = this.repository as CondominiumsRepository
+    const result = await repo.listByManagementCompanyPaginated(ctx.params.managementCompanyId, ctx.query)
     return ctx.ok(result)
   }
 }

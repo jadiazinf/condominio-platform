@@ -76,7 +76,7 @@ export function AuthPageContent({ initialMode = 'signin' }: AuthPageContentProps
       clearSessionCookie()
       clearUserCookie()
       signOut().catch(() => {})
-      router.replace('/signin')
+      router.replace('/auth')
     }
   }, [searchParams, router, signOut])
 
@@ -88,7 +88,7 @@ export function AuthPageContent({ initialMode = 'signin' }: AuthPageContentProps
       clearUserCookie()
       signOut().catch(() => {})
       toast.error(t('auth.errors.temporaryError'))
-      router.replace('/signin')
+      router.replace('/auth')
     }
   }, [searchParams, router, signOut, toast, t])
 
@@ -100,7 +100,7 @@ export function AuthPageContent({ initialMode = 'signin' }: AuthPageContentProps
       clearUserCookie()
       signOut().catch(() => {})
       toast.error(t('auth.errors.userNotFound'))
-      router.replace('/signin')
+      router.replace('/auth')
     }
   }, [searchParams, router, signOut, toast, t])
 
@@ -112,7 +112,7 @@ export function AuthPageContent({ initialMode = 'signin' }: AuthPageContentProps
       clearUserCookie()
       signOut().catch(() => {})
       toast.show(t('auth.errors.sessionExpiredInactivity'))
-      router.replace('/signin')
+      router.replace('/auth')
     }
   }, [searchParams, router, signOut, toast, t])
 
@@ -222,6 +222,7 @@ export function AuthPageContent({ initialMode = 'signin' }: AuthPageContentProps
           <div className="w-1/2 flex items-center justify-center px-16">
             <motion.div
               className="w-full max-w-sm"
+              initial={false}
               animate={{ opacity: isSignIn ? 1 : 0, x: isSignIn ? 0 : -30 }}
               transition={{ duration: 0.5, ease: EASE }}
             >
@@ -244,6 +245,7 @@ export function AuthPageContent({ initialMode = 'signin' }: AuthPageContentProps
           <div className="w-1/2 flex items-center justify-center px-16">
             <motion.div
               className="w-full max-w-sm"
+              initial={false}
               animate={{ opacity: !isSignIn ? 1 : 0, x: !isSignIn ? 0 : 30 }}
               transition={{ duration: 0.5, ease: EASE }}
             >
@@ -266,6 +268,7 @@ export function AuthPageContent({ initialMode = 'signin' }: AuthPageContentProps
         {/* Sliding overlay panel */}
         <motion.div
           className="absolute top-0 bottom-0 w-1/2 bg-content2 dark:bg-[#1a1b1e] z-10 flex items-center justify-center"
+          initial={false}
           animate={{ x: isSignIn ? '100%' : '0%' }}
           transition={{ duration: 0.6, ease: EASE }}
         >

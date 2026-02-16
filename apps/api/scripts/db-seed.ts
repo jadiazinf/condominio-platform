@@ -427,6 +427,7 @@ async function seedRoles(db: Database): Promise<string> {
     { name: 'USER', description: 'General user with basic platform access', isSystemRole: true },
     { name: 'ACCOUNTANT', description: 'Financial management access', isSystemRole: true },
     { name: 'SUPPORT', description: 'Customer support access', isSystemRole: true },
+    { name: 'VIEWER', description: 'Read-only access', isSystemRole: true },
   ]
 
   let superadminRoleId = ''

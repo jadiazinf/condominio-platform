@@ -42,7 +42,7 @@ export function ForgotPasswordForm() {
   }
 
   function handleBackToSignIn() {
-    router.push('/signin')
+    router.push('/auth')
   }
 
   return (

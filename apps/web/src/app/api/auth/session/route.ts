@@ -29,14 +29,14 @@ export async function GET(request: NextRequest): Promise<NextResponse<SessionRes
   const sessionToken = cookieStore.get('__session')?.value
 
   if (!sessionToken) {
-    return NextResponse.json({ redirectTo: '/signin' })
+    return NextResponse.json({ redirectTo: '/auth' })
   }
 
   // Validate token
   const decodedToken = await verifySessionToken(sessionToken)
 
   if (!decodedToken) {
-    return NextResponse.json({ redirectTo: '/signin?expired=true' })
+    return NextResponse.json({ redirectTo: '/auth?expired=true' })
   }
 
   // Fetch user first
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<SessionRes
   ])
 
   if (!condominiumsResponse) {
-    return NextResponse.json({ redirectTo: '/signin' })
+    return NextResponse.json({ redirectTo: '/auth' })
   }
 
   const condominiums = condominiumsResponse.condominiums

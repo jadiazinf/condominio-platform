@@ -8,7 +8,7 @@ import type {
   TPaginatedResponse,
   TManagementCompanyMembersQuerySchema,
 } from '@packages/domain'
-import { managementCompanyMembers, users, managementCompanies } from '@database/drizzle/schema'
+import { managementCompanyMembers, users, managementCompanies, userRoles, condominiumManagementCompanies } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -61,6 +61,7 @@ export class ManagementCompanyMembersRepository
       managementCompanyId: r.managementCompanyId,
       userId: r.userId,
       roleName: r.roleName,
+      userRoleId: r.userRoleId,
       permissions: r.permissions as TMemberPermissions | null,
       isPrimaryAdmin: r.isPrimaryAdmin ?? false,
       joinedAt: r.joinedAt ?? new Date(),
@@ -79,6 +80,7 @@ export class ManagementCompanyMembersRepository
       managementCompanyId: dto.managementCompanyId,
       userId: dto.userId,
       roleName: dto.roleName,
+      userRoleId: dto.userRoleId,
       permissions: dto.permissions,
       isPrimaryAdmin: dto.isPrimaryAdmin,
       joinedAt: dto.joinedAt,
@@ -103,6 +105,7 @@ export class ManagementCompanyMembersRepository
     if (dto.invitedBy !== undefined) values.invitedBy = dto.invitedBy
     if (dto.isActive !== undefined) values.isActive = dto.isActive
     if (dto.deactivatedAt !== undefined) values.deactivatedAt = dto.deactivatedAt
+    if (dto.userRoleId !== undefined) values.userRoleId = dto.userRoleId
     if (dto.deactivatedBy !== undefined) values.deactivatedBy = dto.deactivatedBy
 
     return values
@@ -177,7 +180,7 @@ export class ManagementCompanyMembersRepository
     companyId: string,
     query: TManagementCompanyMembersQuerySchema
   ): Promise<TPaginatedResponse<TManagementCompanyMemberWithUser>> {
-    const { page = 1, limit = 20, search, roleName, isActive } = query
+    const { page = 1, limit = 20, search, roleName, isActive, condominiumId } = query
     const offset = (page - 1) * limit
 
     // Build conditions for members table
@@ -205,30 +208,79 @@ export class ManagementCompanyMembersRepository
       )
     }
 
-    // Combine conditions
-    const whereClause = searchCondition
-      ? and(...memberConditions, searchCondition)
-      : and(...memberConditions)
+    // Filter by condominiumId: members who have a user_role in the specified condominium
+    let condominiumCondition
+    if (condominiumId) {
+      condominiumCondition = and(
+        eq(userRoles.condominiumId, condominiumId),
+        eq(userRoles.isActive, true)
+      )
+    }
 
-    // Get paginated data ordered by isPrimaryAdmin DESC (primary first), then joinedAt DESC
-    const results = await this.db
-      .select({
-        member: managementCompanyMembers,
-        user: users,
+    // Combine conditions
+    const allConditions = [...memberConditions]
+    if (searchCondition) allConditions.push(searchCondition)
+    if (condominiumCondition) allConditions.push(condominiumCondition)
+    const whereClause = and(...allConditions)
+
+    // Build base query — conditionally join userRoles when filtering by condominium
+    // When condominiumId is set, the join to userRoles can produce duplicates,
+    // so we use DISTINCT ON (which requires id first in ORDER BY).
+    // Otherwise, we use a simple select with desired ordering.
+    let results: { member: typeof managementCompanyMembers.$inferSelect; user: typeof users.$inferSelect | null }[]
+
+    if (condominiumId) {
+      const baseQuery = this.db
+        .selectDistinctOn([managementCompanyMembers.id], {
+          member: managementCompanyMembers,
+          user: users,
+        })
+        .from(managementCompanyMembers)
+        .leftJoin(users, eq(managementCompanyMembers.userId, users.id))
+        .innerJoin(userRoles, eq(managementCompanyMembers.userId, userRoles.userId))
+
+      results = await baseQuery
+        .where(whereClause)
+        .orderBy(managementCompanyMembers.id, desc(managementCompanyMembers.isPrimaryAdmin), desc(managementCompanyMembers.joinedAt))
+        .limit(limit)
+        .offset(offset)
+
+      // Re-sort in memory since DISTINCT ON forces id-first ordering
+      results.sort((a, b) => {
+        if (a.member.isPrimaryAdmin !== b.member.isPrimaryAdmin) {
+          return a.member.isPrimaryAdmin ? -1 : 1
+        }
+        const aDate = a.member.joinedAt?.getTime() ?? 0
+        const bDate = b.member.joinedAt?.getTime() ?? 0
+        return bDate - aDate
       })
-      .from(managementCompanyMembers)
-      .leftJoin(users, eq(managementCompanyMembers.userId, users.id))
-      .where(whereClause)
-      .orderBy(desc(managementCompanyMembers.isPrimaryAdmin), desc(managementCompanyMembers.joinedAt))
-      .limit(limit)
-      .offset(offset)
+    } else {
+      const baseQuery = this.db
+        .select({
+          member: managementCompanyMembers,
+          user: users,
+        })
+        .from(managementCompanyMembers)
+        .leftJoin(users, eq(managementCompanyMembers.userId, users.id))
+
+      results = await baseQuery
+        .where(whereClause)
+        .orderBy(desc(managementCompanyMembers.isPrimaryAdmin), desc(managementCompanyMembers.joinedAt))
+        .limit(limit)
+        .offset(offset)
+    }
 
     // Get total count
-    const countResult = await this.db
-      .select({ count: sql<number>`count(*)::int` })
+    const countQuery = this.db
+      .select({ count: sql<number>`count(distinct ${managementCompanyMembers.id})::int` })
       .from(managementCompanyMembers)
       .leftJoin(users, eq(managementCompanyMembers.userId, users.id))
-      .where(whereClause)
+
+    if (condominiumId) {
+      countQuery.innerJoin(userRoles, eq(managementCompanyMembers.userId, userRoles.userId))
+    }
+
+    const countResult = await countQuery.where(whereClause)
 
     const total = countResult[0]?.count ?? 0
     const totalPages = Math.ceil(total / limit)
@@ -310,12 +362,14 @@ export class ManagementCompanyMembersRepository
     role: TMemberRole,
     isPrimary: boolean,
     permissions: TMemberPermissions | null,
-    invitedBy?: string | null
+    invitedBy?: string | null,
+    userRoleId?: string | null
   ): Promise<TManagementCompanyMember> {
     const dto: TManagementCompanyMemberCreate = {
       managementCompanyId: companyId,
       userId,
       roleName: role,
+      userRoleId: userRoleId ?? null,
       isPrimaryAdmin: isPrimary,
       permissions,
       isActive: true,

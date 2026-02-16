@@ -1,152 +1,197 @@
 'use client'
 
 import React from 'react'
-import {
-  Listbox,
-  ListboxItem,
-  ListboxSection,
-  type ListboxProps,
-  type ListboxSectionProps,
-} from '@heroui/listbox'
 import { cn } from '@heroui/theme'
 
-import { SidebarIcon } from './SidebarIcon'
-import { SidebarCompactItem } from './SidebarCompactItem'
-import { SidebarNestItem } from './SidebarNestItem'
 import { SidebarItemType, type TSidebarItem } from './types'
 
 export { SidebarItemType, type TSidebarItem }
 
-export type SidebarProps = Omit<ListboxProps<TSidebarItem>, 'children' | 'onSelect'> & {
+export type SidebarProps = {
   items: TSidebarItem[]
   isCompact?: boolean
   hideEndContent?: boolean
-  sectionClasses?: ListboxSectionProps['classNames']
-  classNames?: ListboxProps['classNames']
   defaultSelectedKey: string
   onSelect?: (key: string) => void
+  className?: string
 }
 
 export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(function Sidebar(
-  {
-    items,
-    isCompact,
-    defaultSelectedKey,
-    onSelect,
-    hideEndContent,
-    sectionClasses: sectionClassesProp = {},
-    itemClasses: itemClassesProp = {},
-    classNames,
-    className,
-    ...props
-  },
+  { items, isCompact, defaultSelectedKey, onSelect, hideEndContent, className },
   ref
 ) {
   const [selected, setSelected] = React.useState<string>(defaultSelectedKey)
+  const [expandedSections, setExpandedSections] = React.useState<Set<string>>(new Set())
 
   React.useEffect(() => {
     setSelected(defaultSelectedKey)
   }, [defaultSelectedKey])
 
-  function handleSelectionChange(keys: 'all' | Set<React.Key>) {
-    const key = Array.from(keys)[0] as string
+  function handleSelect(key: string) {
     setSelected(key)
     onSelect?.(key)
   }
 
-  const sectionClasses = {
-    ...sectionClassesProp,
-    base: cn(sectionClassesProp?.base, 'w-full', { 'p-0 max-w-[44px]': isCompact }),
-    group: cn(sectionClassesProp?.group, { 'flex flex-col gap-1': isCompact }),
-    heading: cn(sectionClassesProp?.heading, { hidden: isCompact }),
+  function toggleSection(key: string) {
+    setExpandedSections(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
+      return next
+    })
   }
 
-  const itemClasses = {
-    ...itemClassesProp,
-    base: cn(itemClassesProp?.base, { 'w-11 h-11 gap-0 p-0': isCompact }),
-  }
+  return (
+    <nav ref={ref} className={cn('flex flex-col gap-0.5 px-2', className)}>
+      {items.map(item => {
+        // Section with children (group header)
+        if (item.items && item.items.length > 0 && item.type !== SidebarItemType.Nest) {
+          return (
+            <div key={item.key} className="mt-4 first:mt-0">
+              {!isCompact && (
+                <span className="text-tiny font-semibold text-default-300 px-3 mb-1.5 block">
+                  {item.title}
+                </span>
+              )}
+              <div className="flex flex-col gap-0.5">
+                {item.items.map(child => (
+                  <SidebarItem
+                    key={child.key}
+                    item={child}
+                    isSelected={selected === child.key}
+                    isCompact={isCompact}
+                    hideEndContent={hideEndContent}
+                    onSelect={handleSelect}
+                  />
+                ))}
+              </div>
+            </div>
+          )
+        }
 
-  function renderItem(item: TSidebarItem) {
-    const isNestType = item.items && item.items.length > 0 && item.type === SidebarItemType.Nest
+        // Nest type (accordion)
+        if (item.items && item.items.length > 0 && item.type === SidebarItemType.Nest) {
+          const isExpanded = expandedSections.has(item.key)
+          return (
+            <div key={item.key}>
+              <button
+                className="flex items-center gap-3 w-full px-3 py-2 text-default-500 hover:bg-default-100 transition-colors cursor-pointer group"
+                onClick={() => toggleSection(item.key)}
+              >
+                {item.icon && (
+                  <span className="text-default-400 group-hover:text-default-500 transition-colors">
+                    {item.icon}
+                  </span>
+                )}
+                {!isCompact && (
+                  <>
+                    <span className="text-small font-medium flex-1 text-left">{item.title}</span>
+                    <svg
+                      className={cn(
+                        'w-3.5 h-3.5 text-default-300 transition-transform duration-200',
+                        isExpanded && 'rotate-180'
+                      )}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </>
+                )}
+              </button>
+              {isExpanded && !isCompact && (
+                <div className="ml-4 pl-3 border-l-2 border-default-200 flex flex-col gap-0.5 my-1">
+                  {item.items.map(child => (
+                    <SidebarItem
+                      key={child.key}
+                      item={child}
+                      isSelected={selected === child.key}
+                      isCompact={isCompact}
+                      hideEndContent={hideEndContent}
+                      onSelect={handleSelect}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        }
 
-    if (isNestType) {
-      return (
-        <SidebarNestItem
-          key={item.key}
-          hideEndContent={hideEndContent}
-          isCompact={isCompact}
-          item={item}
-        />
-      )
-    }
+        // Regular item
+        return (
+          <SidebarItem
+            key={item.key}
+            item={item}
+            isSelected={selected === item.key}
+            isCompact={isCompact}
+            hideEndContent={hideEndContent}
+            onSelect={handleSelect}
+          />
+        )
+      })}
+    </nav>
+  )
+})
 
+/* ──────────── Sidebar Item ──────────── */
+
+interface SidebarItemProps {
+  item: TSidebarItem
+  isSelected: boolean
+  isCompact?: boolean
+  hideEndContent?: boolean
+  onSelect: (key: string) => void
+}
+
+function SidebarItem({ item, isSelected, isCompact, hideEndContent, onSelect }: SidebarItemProps) {
+  if (isCompact) {
     return (
-      <ListboxItem
-        key={item.key}
-        endContent={isCompact || hideEndContent ? null : (item.endContent ?? null)}
-        startContent={isCompact ? null : <SidebarIcon icon={item.icon} />}
-        textValue={item.title}
-        title={isCompact ? null : item.title}
+      <button
+        className={cn(
+          'flex items-center justify-center w-11 h-11 transition-colors cursor-pointer',
+          isSelected
+            ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'
+            : 'text-default-400 hover:text-default-600 hover:bg-default-100'
+        )}
+        onClick={() => onSelect(item.key)}
+        title={item.title}
       >
-        {isCompact ? <SidebarCompactItem item={item} /> : null}
-      </ListboxItem>
+        {item.icon}
+      </button>
     )
   }
 
   return (
-    <Listbox
-      key={isCompact ? 'compact' : 'default'}
-      ref={ref}
-      hideSelectedIcon
-      as="nav"
-      className={cn('list-none', className)}
-      classNames={{ ...classNames, list: cn('items-center', classNames?.list) }}
-      color="default"
-      itemClasses={{
-        ...itemClasses,
-        base: cn(
-          'px-3 min-h-11 rounded-large h-[44px] data-[selected=true]:bg-default-100',
-          itemClasses?.base
-        ),
-        title: cn(
-          'text-small font-medium text-default-500 group-data-[selected=true]:text-foreground',
-          itemClasses?.title
-        ),
-      }}
-      items={items}
-      selectedKeys={new Set([selected])}
-      selectionMode="single"
-      variant="flat"
-      onSelectionChange={handleSelectionChange}
-      {...props}
+    <button
+      className={cn(
+        'flex items-center gap-3 w-full px-3 py-2 transition-colors cursor-pointer group',
+        isSelected
+          ? 'bg-emerald-500/10 text-foreground'
+          : 'text-default-500 hover:text-foreground hover:bg-default-100'
+      )}
+      onClick={() => onSelect(item.key)}
     >
-      {item => {
-        if (item.items && item.items.length > 0 && item.type === SidebarItemType.Nest) {
-          return (
-            <SidebarNestItem
-              key={item.key}
-              hideEndContent={hideEndContent}
-              isCompact={isCompact}
-              item={item}
-            />
-          )
-        }
+      {item.icon && (
+        <span
+          className={cn(
+            'transition-colors',
+            isSelected ? 'text-emerald-600 dark:text-emerald-400' : 'text-default-400 group-hover:text-default-500'
+          )}
+        >
+          {item.icon}
+        </span>
+      )}
 
-        if (item.items && item.items.length > 0) {
-          return (
-            <ListboxSection
-              key={item.key}
-              classNames={sectionClasses}
-              showDivider={isCompact}
-              title={item.title}
-            >
-              {item.items.map(renderItem)}
-            </ListboxSection>
-          )
-        }
+      <span className="text-small font-medium flex-1 text-left">{item.title}</span>
 
-        return renderItem(item)
-      }}
-    </Listbox>
+      {!hideEndContent && item.endContent && (
+        <span className="text-default-300">{item.endContent}</span>
+      )}
+    </button>
   )
-})
+}

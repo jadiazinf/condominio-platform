@@ -16,6 +16,10 @@ export const LocaleDictionary = {
           insufficientSuperadminPermissions:
             'http.middlewares.utils.auth.insufficientSuperadminPermissions',
           noTicketAccess: 'http.middlewares.utils.auth.noTicketAccess',
+          missingCondominiumHeader: 'http.middlewares.utils.auth.missingCondominiumHeader',
+          invalidCondominiumHeaderFormat: 'http.middlewares.utils.auth.invalidCondominiumHeaderFormat',
+          missingManagementCompanyParam: 'http.middlewares.utils.auth.missingManagementCompanyParam',
+          invalidManagementCompanyParamFormat: 'http.middlewares.utils.auth.invalidManagementCompanyParamFormat',
         },
       },
     },
@@ -77,6 +81,17 @@ export const LocaleDictionary = {
       unknownError: 'http.locales.unknownError',
       validationError: 'http.locales.validationError',
       malformedBody: 'http.locales.malformedBody',
+    },
+    services: {
+      subscriptions: {
+        alreadyHasSubscription: 'http.services.subscriptions.alreadyHasSubscription',
+        companyNotFound: 'http.services.subscriptions.companyNotFound',
+        noActiveMembers: 'http.services.subscriptions.noActiveMembers',
+        noPrimaryAdmin: 'http.services.subscriptions.noPrimaryAdmin',
+        primaryAdminNotFound: 'http.services.subscriptions.primaryAdminNotFound',
+        noActiveTerms: 'http.services.subscriptions.noActiveTerms',
+        noActiveSubscription: 'http.services.subscriptions.noActiveSubscription',
+      },
     },
     validation: {
       invalidIdFormat: 'http.validation.invalidIdFormat',

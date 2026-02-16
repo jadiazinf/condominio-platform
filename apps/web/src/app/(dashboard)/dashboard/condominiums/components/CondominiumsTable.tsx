@@ -6,8 +6,8 @@ import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
 import { Card, CardBody } from '@/ui/components/card'
-import { Home, Search, X, MapPin, Plus, Building } from 'lucide-react'
-import type { TCondominium, TCondominiumsQuery, TPaginationMeta } from '@packages/domain'
+import { Home, Search, MapPin, Plus, Building } from 'lucide-react'
+import type { TCondominium, TCondominiumsQuery, TPaginationMeta, TActiveRoleType } from '@packages/domain'
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
@@ -15,6 +15,7 @@ import { Pagination } from '@/ui/components/pagination'
 import { LocationSelector } from '@/ui/components/location-selector'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
+import { ClearFiltersButton } from '@/ui/components/filters'
 
 type TStatusFilter = 'all' | 'active' | 'inactive'
 
@@ -24,16 +25,22 @@ interface CondominiumsTableProps {
   condominiums: TCondominium[]
   pagination?: TPaginationMeta
   initialQuery: TCondominiumsQuery
+  role?: TActiveRoleType | null
 }
 
 export function CondominiumsTable({
   condominiums,
   pagination,
   initialQuery,
+  role,
 }: CondominiumsTableProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  const isAdmin = role === 'management_company'
+  const tp = isAdmin ? 'admin.condominiums' : 'superadmin.condominiums'
+
   const resolvedPagination: TPaginationMeta = pagination ?? {
     page: 1,
     limit: 10,
@@ -56,31 +63,34 @@ export function CondominiumsTable({
   // Status filter items
   const statusFilterItems: ISelectItem[] = useMemo(
     () => [
-      { key: 'all', label: t('superadmin.condominiums.status.all') },
-      { key: 'active', label: t('superadmin.condominiums.status.active') },
-      { key: 'inactive', label: t('superadmin.condominiums.status.inactive') },
+      { key: 'all', label: t(`${tp}.status.all`) },
+      { key: 'active', label: t(`${tp}.status.active`) },
+      { key: 'inactive', label: t(`${tp}.status.inactive`) },
     ],
-    [t]
+    [t, tp]
   )
 
-  // Table columns
-  const tableColumns: ITableColumn<TCondominiumRow>[] = useMemo(
-    () => [
-      { key: 'name', label: t('superadmin.condominiums.table.name') },
-      { key: 'company', label: t('superadmin.condominiums.table.company') },
-      { key: 'address', label: t('superadmin.condominiums.table.address') },
-      { key: 'contact', label: t('superadmin.condominiums.table.contact') },
-      { key: 'status', label: t('superadmin.condominiums.table.status') },
-    ],
-    [t]
-  )
+  // Table columns — admin doesn't see "Company" column
+  const tableColumns: ITableColumn<TCondominiumRow>[] = useMemo(() => {
+    const columns: ITableColumn<TCondominiumRow>[] = [
+      { key: 'name', label: t(`${tp}.table.name`) },
+    ]
+    if (!isAdmin) {
+      columns.push({ key: 'company', label: t(`${tp}.table.company`) })
+    }
+    columns.push(
+      { key: 'address', label: t(`${tp}.table.address`) },
+      { key: 'contact', label: t(`${tp}.table.contact`) },
+      { key: 'status', label: t(`${tp}.table.status`) },
+    )
+    return columns
+  }, [t, tp, isAdmin])
 
   // Update URL with new query params
   const updateUrl = useCallback(
     (updates: Partial<TCondominiumsQuery>) => {
       const params = new URLSearchParams(searchParams.toString())
 
-      // Update or remove params based on values
       if (updates.page !== undefined) {
         if (updates.page === 1) {
           params.delete('page')
@@ -212,7 +222,7 @@ export function CondominiumsTable({
               </div>
               {condominium.code && (
                 <span className="text-xs text-default-500 ml-6">
-                  {t('superadmin.condominiums.table.code')}: {condominium.code}
+                  {t(`${tp}.table.code`)}: {condominium.code}
                 </span>
               )}
             </div>
@@ -240,7 +250,7 @@ export function CondominiumsTable({
             </div>
           ) : (
             <span className="text-sm text-default-400">
-              {t('superadmin.condominiums.noAddress')}
+              {t(`${tp}.noAddress`)}
             </span>
           )
         case 'contact':
@@ -254,7 +264,7 @@ export function CondominiumsTable({
               )}
               {!condominium.email && !condominium.phone && (
                 <span className="text-xs text-default-400">
-                  {t('superadmin.condominiums.noContact')}
+                  {t(`${tp}.noContact`)}
                 </span>
               )}
             </div>
@@ -263,8 +273,8 @@ export function CondominiumsTable({
           return (
             <Chip color={condominium.isActive ? 'success' : 'default'} variant="flat">
               {condominium.isActive
-                ? t('superadmin.condominiums.status.active')
-                : t('superadmin.condominiums.status.inactive')}
+                ? t(`${tp}.status.active`)
+                : t(`${tp}.status.inactive`)}
             </Chip>
           )
         default:
@@ -272,7 +282,7 @@ export function CondominiumsTable({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t]
+    [t, tp]
   )
 
   return (
@@ -283,48 +293,49 @@ export function CondominiumsTable({
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end flex-1">
             <Input
               className="w-full sm:max-w-xs"
-              placeholder={t('superadmin.condominiums.filters.searchPlaceholder')}
+              placeholder={t(`${tp}.filters.searchPlaceholder`)}
               startContent={<Search className="text-default-400" size={16} />}
               value={searchInput}
               onValueChange={setSearchInput}
             />
             <Select
-              aria-label={t('superadmin.condominiums.filters.status')}
-              placeholder={t('superadmin.condominiums.filters.status')}
+              aria-label={t(`${tp}.filters.status`)}
+              placeholder={t(`${tp}.filters.status`)}
               className="w-full sm:w-40"
               items={statusFilterItems}
               value={statusFilter}
               onChange={handleStatusChange}
               variant="bordered"
             />
+            {hasActiveFilters && (
+              <ClearFiltersButton onClear={handleClearFilters} />
+            )}
           </div>
-          <Button
-            color="primary"
-            startContent={<Plus size={16} />}
-            onPress={() => router.push('/dashboard/condominiums/new')}
-          >
-            {t('superadmin.condominiums.create')}
-          </Button>
+          {!isAdmin && (
+            <Button
+              color="primary"
+              startContent={<Plus size={16} />}
+              onPress={() => router.push('/dashboard/condominiums/new')}
+            >
+              {t('superadmin.condominiums.create')}
+            </Button>
+          )}
         </div>
 
-        {/* Location Filter */}
-        <LocationSelector
-          value={locationFilter}
-          onChange={handleLocationChange}
-          label={t('superadmin.condominiums.filters.location')}
-        />
-
-        {hasActiveFilters && (
-          <Button startContent={<X size={14} />} variant="flat" onPress={handleClearFilters}>
-            {t('superadmin.condominiums.filters.clearFilters')}
-          </Button>
+        {/* Location Filter — only for superadmin */}
+        {!isAdmin && (
+          <LocationSelector
+            value={locationFilter}
+            onChange={handleLocationChange}
+            label={t('superadmin.condominiums.filters.location')}
+          />
         )}
       </div>
 
       {/* Results info */}
       <div className="flex items-center justify-between">
         <Typography color="muted" variant="body2">
-          {t('superadmin.condominiums.count', {
+          {t(`${tp}.count`, {
             filtered: resolvedPagination.total || condominiums.length,
             total: resolvedPagination.total || condominiums.length,
           })}
@@ -337,13 +348,13 @@ export function CondominiumsTable({
           <Home className="mb-4 text-default-300" size={48} />
           <Typography color="muted" variant="body1">
             {resolvedPagination.total === 0
-              ? t('superadmin.condominiums.empty')
-              : t('superadmin.condominiums.noResults')}
+              ? t(`${tp}.empty`)
+              : t(`${tp}.noResults`)}
           </Typography>
           <Typography className="mt-1" color="muted" variant="body2">
             {resolvedPagination.total === 0
-              ? t('superadmin.condominiums.emptyDescription')
-              : t('superadmin.condominiums.noResultsDescription')}
+              ? t(`${tp}.emptyDescription`)
+              : t(`${tp}.noResultsDescription`)}
           </Typography>
         </div>
       ) : (
@@ -365,33 +376,36 @@ export function CondominiumsTable({
                         <p className="font-medium truncate">{condominium.name}</p>
                         {condominium.code && (
                           <p className="text-xs text-default-500">
-                            {t('superadmin.condominiums.table.code')}: {condominium.code}
+                            {t(`${tp}.table.code`)}: {condominium.code}
                           </p>
                         )}
                       </div>
                     </div>
                     <Chip color={condominium.isActive ? 'success' : 'default'} variant="flat" size="sm">
                       {condominium.isActive
-                        ? t('superadmin.condominiums.status.active')
-                        : t('superadmin.condominiums.status.inactive')}
+                        ? t(`${tp}.status.active`)
+                        : t(`${tp}.status.inactive`)}
                     </Chip>
                   </div>
 
                   <div className="flex-1 space-y-2 overflow-hidden">
-                    {condominium.managementCompanies && condominium.managementCompanies.length > 0 ? (
-                      <div className="flex flex-col gap-1">
-                        {condominium.managementCompanies.map((company) => (
-                          <div key={company.id} className="flex items-center gap-2 text-xs text-default-500">
-                            <Building size={14} className="shrink-0" />
-                            <span className="truncate">{company.name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 text-xs text-default-400">
-                        <Building size={14} className="shrink-0" />
-                        <span>{t('superadmin.condominiums.noCompany')}</span>
-                      </div>
+                    {/* Company info — only for superadmin */}
+                    {!isAdmin && (
+                      condominium.managementCompanies && condominium.managementCompanies.length > 0 ? (
+                        <div className="flex flex-col gap-1">
+                          {condominium.managementCompanies.map((company) => (
+                            <div key={company.id} className="flex items-center gap-2 text-xs text-default-500">
+                              <Building size={14} className="shrink-0" />
+                              <span className="truncate">{company.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs text-default-400">
+                          <Building size={14} className="shrink-0" />
+                          <span>{t('superadmin.condominiums.noCompany')}</span>
+                        </div>
+                      )
                     )}
 
                     {condominium.address ? (
@@ -402,7 +416,7 @@ export function CondominiumsTable({
                     ) : (
                       <div className="flex items-center gap-2 text-xs text-default-400">
                         <MapPin size={14} className="shrink-0" />
-                        <span>{t('superadmin.condominiums.noAddress')}</span>
+                        <span>{t(`${tp}.noAddress`)}</span>
                       </div>
                     )}
                   </div>
@@ -414,7 +428,7 @@ export function CondominiumsTable({
           {/* Desktop Table View */}
           <div className="hidden md:block">
             <Table<TCondominiumRow>
-              aria-label={t('superadmin.condominiums.title')}
+              aria-label={t(`${tp}.title`)}
               columns={tableColumns}
               rows={condominiums}
               renderCell={renderCell}

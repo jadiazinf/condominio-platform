@@ -21,8 +21,12 @@ export const unitOwnerships = pgTable(
       .notNull()
       .references(() => units.id, { onDelete: 'cascade' }),
     userId: uuid('user_id')
-      .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
+    fullName: varchar('full_name', { length: 255 }).notNull(),
+    email: varchar('email', { length: 255 }),
+    phone: varchar('phone', { length: 50 }),
+    phoneCountryCode: varchar('phone_country_code', { length: 10 }),
+    isRegistered: boolean('is_registered').default(false),
     ownershipType: ownershipTypeEnum('ownership_type').notNull(),
     ownershipPercentage: decimal('ownership_percentage', {
       precision: 5,

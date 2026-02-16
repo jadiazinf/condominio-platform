@@ -33,7 +33,7 @@ export function NavbarMobileMenu({ isAuthenticated = false }: NavbarMobileMenuPr
       ) : (
         <>
           <NavbarMenuItem>
-            <Link className="w-full" color="foreground" href="/signin" size="lg">
+            <Link className="w-full" color="foreground" href="/auth" size="lg">
               {t('nav.signIn')}
             </Link>
           </NavbarMenuItem>

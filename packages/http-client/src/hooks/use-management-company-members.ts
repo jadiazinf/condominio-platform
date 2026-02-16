@@ -29,6 +29,8 @@ export const managementCompanyMemberKeys = {
   list: (companyId: string) => [...managementCompanyMemberKeys.lists(), companyId] as const,
   paginated: (companyId: string, query: TManagementCompanyMembersQuery) =>
     [...managementCompanyMemberKeys.all, 'paginated', companyId, query] as const,
+  myCompanyPaginated: (companyId: string, query: TManagementCompanyMembersQuery) =>
+    [...managementCompanyMemberKeys.all, 'my-company-paginated', companyId, query] as const,
   details: () => [...managementCompanyMemberKeys.all, 'detail'] as const,
   detail: (id: string) => [...managementCompanyMemberKeys.details(), id] as const,
   primaryAdmin: (companyId: string) =>
@@ -159,6 +161,38 @@ export async function getManagementCompanyMembersPaginated(
   const response = await client.get<TApiPaginatedResponse<TManagementCompanyMember>>(path)
 
   return response.data
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hooks - My Company Members (for management company admins)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Hook to fetch members of the authenticated user's own management company.
+ * Uses the /me/members endpoint which requires admin role.
+ */
+export function useMyCompanyMembersPaginated(
+  options: IUseManagementCompanyMembersPaginatedOptions
+) {
+  const { companyId, query, enabled = true } = options
+
+  // Build query string
+  const params = new URLSearchParams()
+  if (query.page) params.set('page', String(query.page))
+  if (query.limit) params.set('limit', String(query.limit))
+  if (query.search) params.set('search', query.search)
+  if (query.roleName) params.set('roleName', query.roleName)
+  if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
+  if (query.condominiumId) params.set('condominiumId', query.condominiumId)
+
+  const queryString = params.toString()
+  const path = `/platform/management-companies/${companyId}/me/members${queryString ? `?${queryString}` : ''}`
+
+  return useApiQuery<TApiPaginatedResponse<TManagementCompanyMember>>({
+    path,
+    queryKey: managementCompanyMemberKeys.myCompanyPaginated(companyId, query),
+    enabled: enabled && !!companyId,
+  })
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

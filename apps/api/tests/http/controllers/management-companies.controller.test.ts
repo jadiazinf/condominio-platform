@@ -39,6 +39,7 @@ type TMockManagementCompaniesRepository = {
   delete: (id: string) => Promise<boolean>
   getByTaxIdNumber: (taxIdNumber: string) => Promise<TManagementCompany | null>
   getByLocationId: (locationId: string) => Promise<TManagementCompany[]>
+  getByEmail: (email: string) => Promise<TManagementCompany | null>
 }
 
 describe('ManagementCompaniesController', function () {
@@ -113,6 +114,13 @@ describe('ManagementCompaniesController', function () {
         return testCompanies.filter(function (c) {
           return c.locationId === locationId
         })
+      },
+      getByEmail: async function (email: string) {
+        return (
+          testCompanies.find(function (c) {
+            return c.email === email
+          }) || null
+        )
       },
     }
 

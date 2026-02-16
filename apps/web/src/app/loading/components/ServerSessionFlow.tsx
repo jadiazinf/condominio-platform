@@ -28,7 +28,7 @@ export function ServerSessionFlow() {
 
         router.replace(data.redirectTo)
       } catch {
-        router.replace('/signin')
+        router.replace('/auth')
       }
     }
 

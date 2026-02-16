@@ -23,7 +23,6 @@ import {
   UsersRepository,
   ManagementCompaniesRepository,
   ManagementCompanyMembersRepository,
-  ManagementCompanySubscriptionsRepository,
   UserRolesRepository,
   RolesRepository,
 } from '@database/repositories'
@@ -45,7 +44,6 @@ let invitationsRepo: AdminInvitationsRepository
 let usersRepo: UsersRepository
 let companiesRepo: ManagementCompaniesRepository
 let membersRepo: ManagementCompanyMembersRepository
-let subscriptionsRepo: ManagementCompanySubscriptionsRepository
 let userRolesRepo: UserRolesRepository
 let rolesRepo: RolesRepository
 
@@ -68,10 +66,15 @@ beforeEach(async () => {
     VALUES (${MOCK_SUPERADMIN_ID}, 'firebase-uid-superadmin', 'superadmin@test.com', 'Superadmin User', 'Super', 'Admin', true, true, 'es')
   `)
 
-  // Insert the USER role (required for user role assignment during invitation acceptance)
+  // Insert roles required for invitation services
   await db.execute(sql`
     INSERT INTO roles (name, description, is_system_role)
     VALUES ('USER', 'Standard user role', true)
+    ON CONFLICT (name) DO NOTHING
+  `)
+  await db.execute(sql`
+    INSERT INTO roles (name, description, is_system_role)
+    VALUES ('ADMIN', 'Admin role', true)
     ON CONFLICT (name) DO NOTHING
   `)
 
@@ -80,7 +83,6 @@ beforeEach(async () => {
   usersRepo = new UsersRepository(db)
   companiesRepo = new ManagementCompaniesRepository(db)
   membersRepo = new ManagementCompanyMembersRepository(db)
-  subscriptionsRepo = new ManagementCompanySubscriptionsRepository(db)
   userRolesRepo = new UserRolesRepository(db)
   rolesRepo = new RolesRepository(db)
 
@@ -91,7 +93,6 @@ beforeEach(async () => {
     usersRepo,
     companiesRepo,
     membersRepo,
-    subscriptionsRepo,
     userRolesRepo,
     rolesRepo
   )
@@ -277,22 +278,22 @@ describe('Admin Invitation Flow — Integration Tests', function () {
       expect(membersByCompany[0]!.roleName).toBe('admin')
       expect(membersByCompany[0]!.isActive).toBe(true)
 
-      // Subscription
-      const subs = await subscriptionsRepo.getByCompanyId(company.id)
-      expect(subs.length).toBe(1)
-      expect(subs[0]!.status).toBe('trial')
-      expect(subs[0]!.basePrice).toBe(0)
-      expect(subs[0]!.trialEndsAt).not.toBeNull()
-
       // User Role — verify the USER role was assigned in user_roles table
       const userRoles = await userRolesRepo.getByUserId(admin.id)
-      expect(userRoles.length).toBeGreaterThanOrEqual(1)
+      expect(userRoles.length).toBeGreaterThanOrEqual(2) // USER + ADMIN(MC-scoped)
       const userRole = await rolesRepo.getByName('USER')
       expect(userRole).not.toBeNull()
       const matchingRole = userRoles.find(ur => ur.roleId === userRole!.id)
       expect(matchingRole).toBeDefined()
       expect(matchingRole!.isActive).toBe(true)
       expect(matchingRole!.condominiumId).toBeNull()
+
+      // ADMIN MC-scoped role — verify it was created in user_roles
+      const adminRole = await rolesRepo.getByName('ADMIN')
+      expect(adminRole).not.toBeNull()
+      const mcAdminRole = userRoles.find(ur => ur.roleId === adminRole!.id && ur.managementCompanyId === company.id)
+      expect(mcAdminRole).toBeDefined()
+      expect(mcAdminRole!.isActive).toBe(true)
     })
   })
 
@@ -577,7 +578,6 @@ describe('Admin Invitation Flow — Integration Tests', function () {
           company: { name: string; isActive: boolean }
           admin: { id: string; isActive: boolean }
           member: { isPrimaryAdmin: boolean }
-          subscription: { status: string }
         }
       }
 
@@ -585,7 +585,6 @@ describe('Admin Invitation Flow — Integration Tests', function () {
       expect(secondJson.data.company.isActive).toBe(true)
       expect(secondJson.data.admin.isActive).toBe(true)
       expect(secondJson.data.member.isPrimaryAdmin).toBe(true)
-      expect(secondJson.data.subscription.status).toBe('trial')
     })
   })
 

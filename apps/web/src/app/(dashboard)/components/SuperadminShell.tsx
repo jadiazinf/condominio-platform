@@ -3,7 +3,6 @@
 import type { TUser } from '@packages/domain'
 
 import { useDisclosure } from '@/ui/components/modal'
-import { Shield } from 'lucide-react'
 
 import { SuperadminNavbar } from './SuperadminNavbar'
 import { SuperadminSidebar } from './SuperadminSidebar'
@@ -11,7 +10,6 @@ import { AppDrawer } from '@/ui/components/app-drawer'
 
 interface ISuperadminShellProps {
   children: React.ReactNode
-  /** Initial user data from server to prevent avatar flash */
   initialUser?: TUser | null
 }
 
@@ -28,12 +26,7 @@ export function SuperadminShell({ children, initialUser }: ISuperadminShellProps
 
       <main className="flex-1 overflow-y-auto p-6">{children}</main>
 
-      <AppDrawer
-        badge={{ label: 'Superadmin', icon: <Shield size={10} /> }}
-        isOpen={isOpen}
-        onClose={onClose}
-        onOpenChange={onOpenChange}
-      >
+      <AppDrawer isOpen={isOpen} onClose={onClose} onOpenChange={onOpenChange}>
         <SuperadminSidebar onItemSelect={handleSidebarSelect} />
       </AppDrawer>
     </div>

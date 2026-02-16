@@ -106,7 +106,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     END $$;
 
     DO $$ BEGIN
-      CREATE TYPE ownership_type AS ENUM ('owner', 'co-owner', 'tenant');
+      CREATE TYPE ownership_type AS ENUM ('owner', 'co-owner', 'tenant', 'family_member', 'authorized');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -446,6 +446,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
       condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
       building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
+      management_company_id UUID REFERENCES management_companies(id) ON DELETE CASCADE,
       is_active BOOLEAN DEFAULT true,
       notes TEXT,
       assigned_at TIMESTAMP DEFAULT NOW(),
@@ -476,7 +477,12 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     CREATE TABLE IF NOT EXISTS unit_ownerships (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
-      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+      full_name VARCHAR(255) NOT NULL,
+      email VARCHAR(255),
+      phone VARCHAR(50),
+      phone_country_code VARCHAR(10),
+      is_registered BOOLEAN DEFAULT false,
       ownership_type ownership_type NOT NULL,
       ownership_percentage DECIMAL(5, 2),
       title_deed_number VARCHAR(100),
@@ -885,6 +891,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       management_company_id UUID NOT NULL REFERENCES management_companies(id) ON DELETE CASCADE,
       user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       role_name member_role NOT NULL,
+      user_role_id UUID REFERENCES user_roles(id) ON DELETE SET NULL,
       permissions JSONB,
       is_primary_admin BOOLEAN DEFAULT false,
       joined_at TIMESTAMP DEFAULT NOW(),

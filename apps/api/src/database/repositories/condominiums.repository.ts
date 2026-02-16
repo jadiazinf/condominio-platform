@@ -264,6 +264,25 @@ export class CondominiumsRepository
   }
 
   /**
+   * Retrieves a condominium by email.
+   */
+  async getByEmail(email: string): Promise<TCondominium | null> {
+    const results = await this.db
+      .select()
+      .from(condominiums)
+      .where(eq(condominiums.email, email))
+      .limit(1)
+
+    const record = results[0]
+    if (!record) {
+      return null
+    }
+
+    const managementCompanyIds = await this.getManagementCompanyIds(record.id)
+    return this.mapToEntity(record, managementCompanyIds)
+  }
+
+  /**
    * Retrieves a condominium by code.
    */
   async getByCode(code: string): Promise<TCondominium | null> {
