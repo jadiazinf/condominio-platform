@@ -52,10 +52,26 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
+function hasSessionIssueInUrl(): boolean {
+  if (typeof window === 'undefined') return false
+  const params = new URLSearchParams(window.location.search)
+  return (
+    params.get('notfound') === 'true' ||
+    params.get('expired') === 'true' ||
+    params.get('error') === 'temporary' ||
+    params.get('inactivity') === 'true'
+  )
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Suppress cookie recreation during session issue flows and sign-out.
+  // Initialized during render (before useEffect) so onAuthStateChanged
+  // won't recreate the cookie that middleware just deleted.
+  const suppressCookieRef = useRef(hasSessionIssueInUrl())
 
   useEffect(() => {
     const auth = getFirebaseAuth()
@@ -63,9 +79,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(firebaseUser)
       setLoading(false)
 
-      if (firebaseUser) {
+      if (firebaseUser && !suppressCookieRef.current) {
         await setSessionCookie(firebaseUser)
-      } else {
+      } else if (!firebaseUser) {
         clearSessionCookie()
       }
     })
@@ -77,7 +93,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const auth = getFirebaseAuth()
     const unsubscribe = onIdTokenChanged(auth, async firebaseUser => {
-      if (firebaseUser) {
+      if (firebaseUser && !suppressCookieRef.current) {
         // Token changed - update cookies
         await setSessionCookie(firebaseUser)
         console.log('[Auth] Token refreshed and saved to cookies')
@@ -241,6 +257,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setError(null)
       setLoading(true)
+      suppressCookieRef.current = false
       const auth = getFirebaseAuth()
 
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
@@ -259,6 +276,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setError(null)
       setLoading(true)
+      suppressCookieRef.current = false
       const auth = getFirebaseAuth()
 
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
@@ -276,6 +294,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setError(null)
       setLoading(true)
+      suppressCookieRef.current = false
       const auth = getFirebaseAuth()
       const provider = new GoogleAuthProvider()
 
@@ -299,6 +318,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setError(null)
       const auth = getFirebaseAuth()
 
+      // Suppress cookie recreation before signing out
+      suppressCookieRef.current = true
+
       // Reset the token refresh manager
       tokenRefreshManager.reset()
 
@@ -320,6 +342,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setError(null)
       const auth = getFirebaseAuth()
+
+      // Suppress cookie recreation before signing out
+      suppressCookieRef.current = true
 
       // Reset the token refresh manager
       tokenRefreshManager.reset()

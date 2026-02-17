@@ -236,7 +236,6 @@ export function AdminStepForm({
               lastName: t('superadmin.companies.form.fields.adminLastName'),
               lastNamePlaceholder: t('superadmin.companies.form.fields.adminLastNamePlaceholder'),
               phone: t('superadmin.companies.form.fields.adminPhone'),
-              phonePlaceholder: t('superadmin.companies.form.fields.adminPhonePlaceholder'),
               idDocument: t('superadmin.companies.form.fields.adminIdDocument'),
               idDocumentTypePlaceholder: t('superadmin.companies.form.fields.adminIdDocumentTypePlaceholder'),
               idDocumentNumberPlaceholder: t('superadmin.companies.form.fields.adminIdDocumentNumberPlaceholder'),

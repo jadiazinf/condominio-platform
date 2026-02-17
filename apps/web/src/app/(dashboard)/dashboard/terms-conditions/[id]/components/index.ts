@@ -1,0 +1,1 @@
+export { EditTermsForm } from './EditTermsForm'

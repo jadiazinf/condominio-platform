@@ -16,6 +16,7 @@ import {
   ClipboardList,
   CalendarDays,
   FileText,
+  ScrollText,
 } from 'lucide-react'
 
 type TSidebarItemConfig = Omit<TSidebarItem, 'icon'> & {
@@ -160,6 +161,12 @@ export const superadminSidebarItems: TSidebarItemConfig[] = [
     title: 'superadmin.nav.currencies',
     icon: Coins,
     href: '/dashboard/currencies',
+  },
+  {
+    key: 'terms-conditions',
+    title: 'superadmin.nav.terms',
+    icon: ScrollText,
+    href: '/dashboard/terms-conditions',
   },
   {
     key: 'tickets',

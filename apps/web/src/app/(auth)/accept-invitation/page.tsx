@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import { DashboardTheme } from '@/app/(dashboard)/components/DashboardTheme'
 import { AcceptInvitationContent } from './components/AcceptInvitationContent'
 
 export const metadata: Metadata = {
@@ -19,8 +20,10 @@ export default async function AcceptInvitationPage({ searchParams }: AcceptInvit
   const { token } = await searchParams
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8">
-      <AcceptInvitationContent token={token} />
-    </div>
+    <DashboardTheme>
+      <div className="min-h-screen flex items-center justify-center p-8">
+        <AcceptInvitationContent token={token} />
+      </div>
+    </DashboardTheme>
   )
 }

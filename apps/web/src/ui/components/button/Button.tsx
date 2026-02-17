@@ -9,7 +9,7 @@ type TButtonColor = 'default' | 'primary' | 'secondary' | 'success' | 'warning' 
 
 type TButtonSize = 'sm' | 'md' | 'lg'
 
-type TButtonVariant = 'solid' | 'bordered' | 'light' | 'flat' | 'faded' | 'shadow' | 'ghost'
+type TButtonVariant = 'solid' | 'bordered' | 'light' | 'flat' | 'faded' | 'shadow' | 'ghost' | 'text'
 
 type TButtonRadius = 'none' | 'sm' | 'md' | 'lg' | 'full'
 
@@ -66,6 +66,28 @@ export const Button = forwardRef<HTMLButtonElement, IButtonProps>(function Butto
   },
   ref
 ) {
+  // "text" variant: renders as a plain inline button styled like text
+  if (variant === 'text') {
+    const colorClass = color === 'primary' ? 'text-primary'
+      : color === 'danger' ? 'text-danger'
+      : color === 'success' ? 'text-success'
+      : color === 'warning' ? 'text-warning'
+      : color === 'secondary' ? 'text-secondary'
+      : 'text-current'
+
+    return (
+      <button
+        ref={ref}
+        type={type}
+        disabled={isDisabled}
+        className={cn('inline underline cursor-pointer hover:opacity-80', colorClass, className)}
+        onClick={rest.onClick ?? (onPress ? () => onPress() : undefined)}
+      >
+        {children}
+      </button>
+    )
+  }
+
   const buttonProps = {
     ref,
     color,
@@ -82,7 +104,7 @@ export const Button = forwardRef<HTMLButtonElement, IButtonProps>(function Butto
     spinnerPlacement,
     disableRipple,
     disableAnimation,
-    className: cn(className),
+    className: cn(className, 'cursor-pointer'),
     onPress,
     type,
     ...rest,

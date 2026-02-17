@@ -10,6 +10,7 @@ interface CondominiumsPageClientProps {
   pagination: TPaginationMeta
   initialQuery: TCondominiumsQuery
   role?: TActiveRoleType | null
+  canCreateCondominium?: boolean
 }
 
 export function CondominiumsPageClient({
@@ -17,6 +18,7 @@ export function CondominiumsPageClient({
   pagination,
   initialQuery,
   role,
+  canCreateCondominium,
 }: CondominiumsPageClientProps) {
   const { t } = useTranslation()
 
@@ -39,6 +41,7 @@ export function CondominiumsPageClient({
         pagination={pagination}
         initialQuery={initialQuery}
         role={role}
+        canCreateCondominium={canCreateCondominium}
       />
     </div>
   )

@@ -3,7 +3,7 @@ export { getEnvConfig, setEnvConfig, resetEnvConfig } from './config/index'
 export type { EnvConfig } from './config/index'
 
 // Client
-export { createHttpClient, getHttpClient, setHttpClient, setGlobalLocale, setGlobalAuthToken, setGlobalCondominiumId } from './client/index'
+export { createHttpClient, getHttpClient, setHttpClient, setGlobalLocale, setGlobalAuthToken, setGlobalCondominiumId, setGlobalManagementCompanyId } from './client/index'
 export type { HttpClient, HttpClientConfig } from './client/index'
 
 // Hooks
@@ -316,6 +316,16 @@ export {
   rejectReservation,
   cancelReservation,
   amenityReservationKeys,
+  // Subscription Terms & Conditions
+  useSubscriptionTermsList,
+  useSubscriptionTermsDetail,
+  useActiveSubscriptionTerms,
+  useCreateSubscriptionTerms,
+  useUpdateSubscriptionTerms,
+  useDeactivateSubscriptionTerms,
+  getSubscriptionTermsList,
+  getSubscriptionTermsDetail,
+  subscriptionTermsKeys,
   // Reports / Export
   downloadAccountStatement,
   downloadDebtorsReport,
@@ -475,6 +485,12 @@ export type {
   TReportFormat,
   IAccountStatementExportParams,
   IDebtorsReportExportParams,
+  ITermsListQuery,
+  IUseSubscriptionTermsListOptions,
+  IUseSubscriptionTermsDetailOptions,
+  ICreateSubscriptionTermsOptions,
+  IUpdateSubscriptionTermsOptions,
+  IDeactivateSubscriptionTermsOptions,
 } from './hooks/index'
 
 // Types

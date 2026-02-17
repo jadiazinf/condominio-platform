@@ -107,8 +107,8 @@ export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
     const nonSuperadminRoles = allowedRoles.filter(r => r !== SUPERADMIN_ROLE)
 
     // --- Management Company path ---
-    // Detect MC scope from route param :managementCompanyId
-    const managementCompanyId = c.req.param('managementCompanyId')
+    // Detect MC scope from route param :managementCompanyId or x-management-company-id header
+    const managementCompanyId = c.req.param('managementCompanyId') || c.req.header('x-management-company-id')
 
     if (managementCompanyId) {
       if (!UUID_REGEX.test(managementCompanyId)) {
@@ -140,7 +140,7 @@ export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
         }
       }
 
-      // MC route param exists but user has no matching role
+      // MC route param/header exists but user has no matching role
       return ctx.forbidden({
         error: t(LocaleDictionary.http.middlewares.utils.auth.insufficientRoles),
       })

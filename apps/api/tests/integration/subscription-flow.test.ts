@@ -78,7 +78,7 @@ beforeEach(async () => {
 
   app = createTestApp()
   app.route('', ratesController.createRouter())
-  app.route('', termsController.createRouter())
+  app.route('/subscription-terms', termsController.createRouter())
   app.route('', invoicesController.createRouter())
   app.route('', createRouter(acceptancesController.routes))
 

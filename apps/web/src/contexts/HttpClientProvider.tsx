@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useRef, type ReactNode } from 'react'
-import { setGlobalAuthToken, setGlobalCondominiumId, setReportAuthToken, createHttpClient, setHttpClient } from '@packages/http-client'
+import { setGlobalAuthToken, setGlobalCondominiumId, setGlobalManagementCompanyId, setReportAuthToken, createHttpClient, setHttpClient } from '@packages/http-client'
 
 import { getFirebaseAuth } from '@/libs/firebase'
-import { setSessionCookie, getSessionCookie, getSelectedCondominiumCookie } from '@/libs/cookies'
+import { setSessionCookie, getSessionCookie, getSelectedCondominiumCookie, getManagementCompaniesCookie, getActiveRoleCookie } from '@/libs/cookies'
 import { getLocaleCookie } from '@/libs/i18n/utils'
 import { tokenRefreshManager } from '@/libs/auth'
 
@@ -48,6 +48,14 @@ function initializeHttpClient() {
     return selected?.condominium?.id ?? null
   })
 
+  // Set global management company ID getter for x-management-company-id header
+  setGlobalManagementCompanyId(() => {
+    const activeRole = getActiveRoleCookie()
+    if (activeRole !== 'management_company') return null
+    const companies = getManagementCompaniesCookie()
+    return companies?.[0]?.managementCompanyId ?? null
+  })
+
   // Share the same token getter with the report download utility
   setReportAuthToken(authTokenGetter)
 
@@ -66,6 +74,12 @@ function initializeHttpClient() {
     getCondominiumId: () => {
       const selected = getSelectedCondominiumCookie()
       return selected?.condominium?.id ?? null
+    },
+    getManagementCompanyId: () => {
+      const activeRole = getActiveRoleCookie()
+      if (activeRole !== 'management_company') return null
+      const companies = getManagementCompaniesCookie()
+      return companies?.[0]?.managementCompanyId ?? null
     },
     onTokenRefresh: async () => {
       // Use the manager to handle refresh with queuing

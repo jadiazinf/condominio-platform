@@ -108,7 +108,6 @@ export function CompanyStepForm({ translateError, shouldShowError }: CompanyStep
             phoneNumberFieldName="company.phone"
             label={t('superadmin.companies.form.fields.phone')}
             tooltip={t('superadmin.companies.form.fields.phoneDescription')}
-            placeholder={t('superadmin.companies.form.fields.phonePlaceholder')}
             isRequired
             translateError={translateError}
           />

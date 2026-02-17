@@ -8,7 +8,9 @@ import {
   date,
   jsonb,
   index,
+  check,
 } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 import { units } from './units'
 import { users } from './users'
 import { ownershipTypeEnum } from '../enums'
@@ -20,9 +22,8 @@ export const unitOwnerships = pgTable(
     unitId: uuid('unit_id')
       .notNull()
       .references(() => units.id, { onDelete: 'cascade' }),
-    userId: uuid('user_id')
-      .references(() => users.id, { onDelete: 'cascade' }),
-    fullName: varchar('full_name', { length: 255 }).notNull(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    fullName: varchar('full_name', { length: 255 }),
     email: varchar('email', { length: 255 }),
     phone: varchar('phone', { length: 50 }),
     phoneCountryCode: varchar('phone_country_code', { length: 10 }),
@@ -47,5 +48,11 @@ export const unitOwnerships = pgTable(
     index('idx_unit_ownerships_user').on(table.userId),
     index('idx_unit_ownerships_type').on(table.ownershipType),
     index('idx_unit_ownerships_active').on(table.isActive),
+    index('idx_unit_ownerships_registered').on(table.isRegistered),
+    // Unregistered residents must have fullName and at least email or phone
+    check(
+      'chk_unregistered_contact',
+      sql`${table.userId} IS NOT NULL OR (${table.fullName} IS NOT NULL AND (${table.email} IS NOT NULL OR ${table.phone} IS NOT NULL))`
+    ),
   ]
 )

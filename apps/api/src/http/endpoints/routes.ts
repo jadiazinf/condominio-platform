@@ -46,6 +46,7 @@ import { SupportTicketsEndpoint } from './support-tickets.endpoint'
 import { SupportTicketMessagesEndpoint } from './support-ticket-messages.endpoint'
 import { SubscriptionRatesEndpoint } from './subscription-rates.endpoint'
 import { SubscriptionAcceptancesEndpoint } from './subscription-acceptances.endpoint'
+import { SubscriptionTermsConditionsEndpoint } from './subscription-terms-conditions.endpoint'
 import { AmenitiesEndpoint } from './amenities.endpoint'
 import { AmenityReservationsEndpoint } from './amenity-reservations.endpoint'
 import { WebSocketEndpoint } from './websocket.endpoint'
@@ -134,6 +135,7 @@ export class ApiRoutes {
       new ManagementCompanyMembersEndpoint(db),
       new SubscriptionRatesEndpoint(db),
       new SubscriptionAcceptancesEndpoint(db),
+      new SubscriptionTermsConditionsEndpoint(db),
 
       // Support Tickets
       new SupportTicketsEndpoint(db),

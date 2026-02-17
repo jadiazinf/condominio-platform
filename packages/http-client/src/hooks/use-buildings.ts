@@ -190,6 +190,56 @@ export function useToggleBuildingStatus(options: UseToggleBuildingStatusOptions 
 }
 
 // ============================================================================
+// Direct Creation Functions (for wizard flows without global context)
+// ============================================================================
+
+/**
+ * Create a building directly with explicit condominium context.
+ * Used in the condominium creation wizard where no global condominium ID is set.
+ */
+export async function createBuildingDirect(
+  token: string,
+  condominiumId: string,
+  data: Omit<TCreateBuildingVariables, 'condominiumId'>
+): Promise<TBuilding> {
+  const client = getHttpClient()
+  const response = await client.post<TApiDataResponse<TBuilding>>(
+    '/condominium/buildings',
+    { ...data, condominiumId },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'x-condominium-id': condominiumId,
+      },
+    }
+  )
+  return response.data.data
+}
+
+/**
+ * Create multiple buildings in a single bulk request.
+ * Used in the condominium creation wizard to avoid N individual requests.
+ */
+export async function createBuildingsBulk(
+  token: string,
+  condominiumId: string,
+  buildings: Omit<TCreateBuildingVariables, 'condominiumId'>[]
+): Promise<TBuilding[]> {
+  const client = getHttpClient()
+  const response = await client.post<TApiDataResponse<TBuilding[]>>(
+    '/condominium/buildings/bulk',
+    { buildings },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'x-condominium-id': condominiumId,
+      },
+    }
+  )
+  return response.data.data
+}
+
+// ============================================================================
 // Server-side Functions
 // ============================================================================
 

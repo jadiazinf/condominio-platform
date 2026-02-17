@@ -26,6 +26,7 @@ interface CondominiumsTableProps {
   pagination?: TPaginationMeta
   initialQuery: TCondominiumsQuery
   role?: TActiveRoleType | null
+  canCreateCondominium?: boolean
 }
 
 export function CondominiumsTable({
@@ -33,6 +34,7 @@ export function CondominiumsTable({
   pagination,
   initialQuery,
   role,
+  canCreateCondominium,
 }: CondominiumsTableProps) {
   const { t } = useTranslation()
   const router = useRouter()
@@ -318,6 +320,18 @@ export function CondominiumsTable({
               onPress={() => router.push('/dashboard/condominiums/new')}
             >
               {t('superadmin.condominiums.create')}
+            </Button>
+          )}
+          {isAdmin && (
+            <Button
+              color="primary"
+              startContent={<Plus size={16} />}
+              isDisabled={canCreateCondominium === false}
+              onPress={() => router.push('/dashboard/condominiums/new')}
+            >
+              {canCreateCondominium === false
+                ? t('admin.condominiums.limitReached')
+                : t('admin.condominiums.create')}
             </Button>
           )}
         </div>

@@ -12,10 +12,17 @@ import { CreateCondominiumForm } from './components'
 async function CreateCondominiumContent() {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
 
-  // Only superadmins can access this page
-  if (!session.superadmin?.isActive) {
+  const isSuperadmin = session.superadmin?.isActive
+  const isAdmin = session.activeRole === 'management_company'
+  const adminCompanyId = isAdmin ? session.managementCompanies?.[0]?.managementCompanyId : undefined
+  const adminCompanyName = isAdmin ? session.managementCompanies?.[0]?.managementCompanyName : undefined
+
+  // Only superadmins and management company admins can access this page
+  if (!isSuperadmin && !isAdmin) {
     redirect('/dashboard')
   }
+
+  const tp = isAdmin ? 'admin.condominiums' : 'superadmin.condominiums'
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -25,15 +32,18 @@ async function CreateCondominiumContent() {
           <ArrowLeft size={18} />
         </Button>
         <div>
-          <Typography variant="h2">{t('superadmin.condominiums.form.createTitle')}</Typography>
+          <Typography variant="h2">{t(`${tp}.form.createTitle`)}</Typography>
           <Typography className="mt-1" color="muted" variant="body2">
-            {t('superadmin.condominiums.form.createSubtitle')}
+            {t(`${tp}.form.createSubtitle`)}
           </Typography>
         </div>
       </div>
 
       {/* Form */}
-      <CreateCondominiumForm />
+      <CreateCondominiumForm
+        adminCompanyId={adminCompanyId}
+        adminCompanyName={adminCompanyName}
+      />
     </div>
   )
 }

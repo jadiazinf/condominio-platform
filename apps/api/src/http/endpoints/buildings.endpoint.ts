@@ -10,7 +10,7 @@ export class BuildingsEndpoint implements IEndpoint {
 
   constructor(db: TDrizzleClient) {
     const repository = new BuildingsRepository(db)
-    this.controller = new BuildingsController(repository)
+    this.controller = new BuildingsController(repository, db)
   }
 
   getRouter(): Hono {

@@ -8,7 +8,7 @@ import { Eye, EyeOff, Lock, Building2, Mail, User } from 'lucide-react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
 import { acceptInvitation, type TValidateInvitationResult, HttpError } from '@packages/http-client'
 
 import { useTranslation, useUser, getFirebaseErrorKey } from '@/contexts'
@@ -74,10 +74,22 @@ export function AcceptInvitationForm({ token, invitationData }: AcceptInvitation
     try {
       setIsSubmitting(true)
 
-      // Step 1: Create Firebase account with the user's email
+      // Step 1: Create or sign into Firebase account
       const auth = getAuth()
-      const userCredential = await createUserWithEmailAndPassword(auth, user.email, data.password)
-      const firebaseUser = userCredential.user
+      let firebaseUser
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, user.email, data.password)
+        firebaseUser = userCredential.user
+      } catch (firebaseErr) {
+        // If email already has a Firebase account, sign in with the provided password
+        if ((firebaseErr as any).code === 'auth/email-already-in-use') {
+          const userCredential = await signInWithEmailAndPassword(auth, user.email, data.password)
+          firebaseUser = userCredential.user
+        } else {
+          throw firebaseErr
+        }
+      }
 
       // Step 2: Accept the invitation with the Firebase UID
       const result = await acceptInvitation(token, {
@@ -132,7 +144,7 @@ export function AcceptInvitationForm({ token, invitationData }: AcceptInvitation
               {t('auth.acceptInvitation.yourEmail')}
             </Typography>
             <Input
-              isReadOnly
+              isDisabled
               size="lg"
               startContent={<Mail className="w-5 h-5 text-default-400" />}
               value={user.email}

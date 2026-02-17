@@ -169,7 +169,6 @@ export function EditCompanyForm({ isOpen, onClose, company, onSuccess }: EditCom
                   countryCodeFieldName="phoneCountryCode"
                   phoneNumberFieldName="phone"
                   label={t('superadmin.companies.form.fields.phone')}
-                  placeholder={t('superadmin.companies.form.fields.phonePlaceholder')}
                   translateError={(message) => (message ? t(message as any) : undefined)}
                 />
 

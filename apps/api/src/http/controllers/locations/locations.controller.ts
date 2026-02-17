@@ -51,24 +51,24 @@ export class LocationsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
       {
         method: 'get',
         path: '/type/:type',
         handler: this.getByType,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(LocationTypeParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(LocationTypeParamSchema)],
       },
       {
         method: 'get',
         path: '/parent/:parentId',
         handler: this.getByParentId,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(ParentIdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(ParentIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',

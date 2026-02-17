@@ -84,6 +84,7 @@ export interface HttpClientConfig {
   getAuthToken?: () => string | null | Promise<string | null>
   getLocale?: () => string | null | Promise<string | null>
   getCondominiumId?: () => string | null | Promise<string | null>
+  getManagementCompanyId?: () => string | null | Promise<string | null>
   onTokenRefresh?: () => Promise<void>
 }
 
@@ -130,6 +131,13 @@ export function createHttpClient(config: HttpClientConfig = {}) {
       const condominiumId = await config.getCondominiumId()
       if (condominiumId) {
         headers['x-condominium-id'] = condominiumId
+      }
+    }
+
+    if (config.getManagementCompanyId) {
+      const managementCompanyId = await config.getManagementCompanyId()
+      if (managementCompanyId) {
+        headers['x-management-company-id'] = managementCompanyId
       }
     }
 
@@ -241,6 +249,18 @@ export function setGlobalCondominiumId(
   }
 }
 
+// Global management company ID getter (can be set by the app)
+let globalManagementCompanyIdGetter: (() => string | null | Promise<string | null>) | null = null
+
+export function setGlobalManagementCompanyId(
+  managementCompanyIdGetter: () => string | null | Promise<string | null>
+): void {
+  globalManagementCompanyIdGetter = managementCompanyIdGetter
+  if (defaultClient) {
+    defaultClient = null
+  }
+}
+
 // Default client instance (uses env config)
 let defaultClient: HttpClient | null = null
 
@@ -250,6 +270,7 @@ export function getHttpClient(): HttpClient {
       getLocale: globalLocaleGetter ?? undefined,
       getAuthToken: globalAuthTokenGetter ?? undefined,
       getCondominiumId: globalCondominiumIdGetter ?? undefined,
+      getManagementCompanyId: globalManagementCompanyIdGetter ?? undefined,
     })
   }
   return defaultClient

@@ -4,7 +4,8 @@ import { Controller, useFormContext } from 'react-hook-form'
 import { Input, type IInputProps } from './Input'
 import { getTranslatedError } from '@/utils/formErrors'
 
-interface IInputFieldProps extends Omit<IInputProps, 'value' | 'onValueChange' | 'onChange' | 'isInvalid'> {
+interface IInputFieldProps
+  extends Omit<IInputProps, 'value' | 'onValueChange' | 'onChange' | 'isInvalid'> {
   name: string
   translateError?: (message: string | undefined) => string | undefined
 }
@@ -28,7 +29,10 @@ export function InputField({
   errorMessage: customErrorMessage,
   ...props
 }: IInputFieldProps) {
-  const { control, formState: { errors } } = useFormContext()
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext()
 
   const formErrorMessage = getTranslatedError(errors, name, translateError)
   const finalErrorMessage = customErrorMessage || formErrorMessage

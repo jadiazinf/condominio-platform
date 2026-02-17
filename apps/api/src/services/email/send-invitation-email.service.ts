@@ -22,7 +22,7 @@ export interface ISendInvitationEmailResult {
 export class SendInvitationEmailService
   implements IService<ISendInvitationEmailInput, TServiceResult<ISendInvitationEmailResult>>
 {
-  constructor(private readonly emailService: EmailService = new EmailService()) {}
+  constructor(private readonly emailService: EmailService = EmailService.getInstance()) {}
 
   async execute(
     input: ISendInvitationEmailInput

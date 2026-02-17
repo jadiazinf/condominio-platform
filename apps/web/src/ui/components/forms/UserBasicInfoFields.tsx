@@ -21,7 +21,7 @@ interface IUserBasicInfoFieldsProps {
     lastNamePlaceholder: string
     lastNameTooltip?: string
     phone: string
-    phonePlaceholder: string
+    phonePlaceholder?: string
     phoneTooltip?: string
     idDocument: string
     idDocumentTypePlaceholder: string
@@ -96,7 +96,6 @@ export function UserBasicInfoFields({
         countryCodeFieldName={getFieldName('phoneCountryCode')}
         phoneNumberFieldName={getFieldName('phoneNumber')}
         label={labels.phone}
-        placeholder={labels.phonePlaceholder}
         tooltip={labels.phoneTooltip}
         isRequired
         translateError={translateError}

@@ -137,7 +137,7 @@ describe('Authorization Tests', function () {
         },
       }
 
-      const controller = new BuildingsController(mockRepository as unknown as BuildingsRepository)
+      const controller = new BuildingsController(mockRepository as unknown as BuildingsRepository, {} as any)
 
       app = createTestApp()
       app.route('/buildings', controller.createRouter())

@@ -1,3 +1,3 @@
-import { unitOwnershipCreateSchema } from './createDto'
+import { unitOwnershipCreateBaseSchema } from './createDto'
 
-export const unitOwnershipUpdateSchema = unitOwnershipCreateSchema.partial()
+export const unitOwnershipUpdateSchema = unitOwnershipCreateBaseSchema.partial()

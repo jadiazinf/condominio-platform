@@ -7,6 +7,7 @@ import {
   type TUnitUpdate,
 } from '@packages/domain'
 import type { UnitsRepository } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
@@ -18,6 +19,11 @@ import {
   GetUnitByBuildingAndNumberService,
   GetUnitsByFloorService,
 } from '@src/services/units'
+import { BulkCreateUnitsService } from '@src/services/units'
+
+const unitBulkCreateSchema = z.object({
+  units: z.array(unitCreateSchema).min(1),
+})
 
 const BuildingIdParamSchema = z.object({
   buildingId: z.string().uuid('Invalid building ID format'),
@@ -56,15 +62,16 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
   private readonly getUnitsByBuildingService: GetUnitsByBuildingService
   private readonly getUnitByBuildingAndNumberService: GetUnitByBuildingAndNumberService
   private readonly getUnitsByFloorService: GetUnitsByFloorService
+  private readonly bulkCreateService: BulkCreateUnitsService
 
-  constructor(repository: UnitsRepository) {
+  constructor(repository: UnitsRepository, db: TDrizzleClient) {
     super(repository)
 
     // Initialize services
     this.getUnitsByBuildingService = new GetUnitsByBuildingService(repository)
     this.getUnitByBuildingAndNumberService = new GetUnitByBuildingAndNumberService(repository)
     this.getUnitsByFloorService = new GetUnitsByFloorService(repository)
-
+    this.bulkCreateService = new BulkCreateUnitsService(db, repository)
   }
 
   get routes(): TRouteDefinition[] {
@@ -96,9 +103,15 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
       },
       {
         method: 'post',
+        path: '/bulk',
+        handler: this.bulkCreate,
+        middlewares: [authMiddleware, requireRole('SUPERADMIN', 'ADMIN'), bodyValidator(unitBulkCreateSchema)],
+      },
+      {
+        method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(unitCreateSchema)],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN', 'ADMIN'), bodyValidator(unitCreateSchema)],
       },
       {
         method: 'patch',
@@ -106,7 +119,7 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN'),
+          requireRole('SUPERADMIN', 'ADMIN'),
           paramsValidator(IdParamSchema),
           bodyValidator(unitUpdateSchema),
         ],
@@ -135,6 +148,20 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
+
+  private bulkCreate = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<z.infer<typeof unitBulkCreateSchema>>(c)
+
+    const result = await this.bulkCreateService.execute({
+      units: ctx.body.units,
+    })
+
+    if (!result.success) {
+      return ctx.internalError({ error: result.error })
+    }
+
+    return ctx.created({ data: result.data })
+  }
 
   private getByBuildingId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)

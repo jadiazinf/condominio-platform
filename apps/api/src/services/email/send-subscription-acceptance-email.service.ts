@@ -39,7 +39,7 @@ export interface ISendSubscriptionAcceptanceEmailResult {
 export class SendSubscriptionAcceptanceEmailService
   implements IService<ISendSubscriptionAcceptanceEmailInput, TServiceResult<ISendSubscriptionAcceptanceEmailResult>>
 {
-  constructor(private readonly emailService: EmailService = new EmailService()) {}
+  constructor(private readonly emailService: EmailService = EmailService.getInstance()) {}
 
   async execute(
     input: ISendSubscriptionAcceptanceEmailInput

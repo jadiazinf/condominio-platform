@@ -153,6 +153,22 @@ export abstract class BaseRepository<TTable extends PgTable, TEntity, TCreateDto
   }
 
   /**
+   * Creates multiple records in a single INSERT statement.
+   * Returns all created entities with their generated IDs.
+   */
+  async createBulk(datas: TCreateDto[]): Promise<TEntity[]> {
+    if (datas.length === 0) return []
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic PgTable requires any for Drizzle operations
+    const tableAny = this.table as any
+    const insertValues = datas.map((dto) => this.mapToInsertValues(dto))
+
+    const results = (await this.db.insert(tableAny).values(insertValues).returning()) as unknown[]
+
+    return results.map((record) => this.mapToEntity(record))
+  }
+
+  /**
    * Updates an existing record.
    */
   async update(id: string, data: TUpdateDto): Promise<TEntity | null> {

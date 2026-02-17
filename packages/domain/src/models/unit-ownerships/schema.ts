@@ -11,7 +11,7 @@ export const EOwnershipTypes = ['owner', 'co-owner', 'tenant', 'family_member', 
 export const unitOwnershipSchema = baseModelSchema.extend({
   unitId: z.uuid({ error: d.unitId.invalid }),
   userId: z.uuid({ error: d.userId.invalid }).nullable(),
-  fullName: z.string().min(1).max(255),
+  fullName: z.string().min(1).max(255).nullable(),
   email: z.string().email().max(255).nullable(),
   phone: z.string().max(50).nullable(),
   phoneCountryCode: z.string().max(10).nullable(),

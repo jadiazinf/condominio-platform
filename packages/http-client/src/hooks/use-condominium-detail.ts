@@ -35,18 +35,23 @@ export function useCondominiumDetail(options: UseCondominiumDetailOptions) {
  */
 export async function getCondominiumDetail(
   token: string,
-  condominiumId: string
+  condominiumId: string,
+  managementCompanyId?: string
 ): Promise<TCondominium> {
   const client = getHttpClient()
 
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    'x-condominium-id': condominiumId,
+  }
+
+  if (managementCompanyId) {
+    headers['x-management-company-id'] = managementCompanyId
+  }
+
   const response = await client.get<TApiDataResponse<TCondominium>>(
     `/condominium/condominiums/${condominiumId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'x-condominium-id': condominiumId,
-      },
-    }
+    { headers }
   )
 
   return response.data.data

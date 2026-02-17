@@ -122,6 +122,9 @@ export const Input = forwardRef<HTMLInputElement, IInputProps>(({
       id={id}
       name={name}
       className={cn(className)}
+      classNames={{
+        input: 'placeholder:text-default-400 placeholder:opacity-70',
+      }}
       color={color}
       defaultValue={defaultValue}
       description={tooltip ? undefined : description}
@@ -138,7 +141,7 @@ export const Input = forwardRef<HTMLInputElement, IInputProps>(({
       maxLength={maxLength}
       minLength={minLength}
       pattern={pattern}
-      placeholder={placeholder}
+      placeholder={placeholder || (labelPlacement !== 'inside' ? ' ' : undefined)}
       radius={radius}
       size={size}
       startContent={startContent}

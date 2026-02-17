@@ -192,6 +192,56 @@ export function useToggleUnitStatus(options: UseToggleUnitStatusOptions = {}) {
 }
 
 // ============================================================================
+// Direct Creation Functions (for wizard flows without global context)
+// ============================================================================
+
+/**
+ * Create a unit directly with explicit condominium context.
+ * Used in the condominium creation wizard where no global condominium ID is set.
+ */
+export async function createUnitDirect(
+  token: string,
+  condominiumId: string,
+  data: TCreateUnitVariables
+): Promise<TUnit> {
+  const client = getHttpClient()
+  const response = await client.post<TApiDataResponse<TUnit>>(
+    '/condominium/units',
+    data,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'x-condominium-id': condominiumId,
+      },
+    }
+  )
+  return response.data.data
+}
+
+/**
+ * Create multiple units in a single bulk request.
+ * Used in the condominium creation wizard to avoid N individual requests.
+ */
+export async function createUnitsBulk(
+  token: string,
+  condominiumId: string,
+  units: TCreateUnitVariables[]
+): Promise<TUnit[]> {
+  const client = getHttpClient()
+  const response = await client.post<TApiDataResponse<TUnit[]>>(
+    '/condominium/units/bulk',
+    { units },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'x-condominium-id': condominiumId,
+      },
+    }
+  )
+  return response.data.data
+}
+
+// ============================================================================
 // Server-side Functions
 // ============================================================================
 

@@ -12,7 +12,11 @@ export default async function CondominiumLayout({ children, params }: LayoutProp
   const { id } = await params
   const [token, session] = await Promise.all([getServerAuthToken(), getFullSession()])
 
-  const condominium = await getCondominiumDetail(token, id)
+  const managementCompanyId = session?.activeRole === 'management_company'
+    ? session.managementCompanies?.[0]?.managementCompanyId
+    : undefined
+
+  const condominium = await getCondominiumDetail(token, id, managementCompanyId)
 
   return (
     <CondominiumDetailLayout condominium={condominium} currentUserId={session?.user?.id} userRole={session?.activeRole}>
@@ -23,10 +27,14 @@ export default async function CondominiumLayout({ children, params }: LayoutProp
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [{ t }, token] = await Promise.all([getTranslations(), getServerAuthToken()])
+  const [{ t }, token, session] = await Promise.all([getTranslations(), getServerAuthToken(), getFullSession()])
+
+  const mcId = session?.activeRole === 'management_company'
+    ? session.managementCompanies?.[0]?.managementCompanyId
+    : undefined
 
   try {
-    const condominium = await getCondominiumDetail(token, id)
+    const condominium = await getCondominiumDetail(token, id, mcId)
     return {
       title: `${condominium.name} | ${t('superadmin.condominiums.detail.title')}`,
     }

@@ -6,3 +6,5 @@ export type { IGetUnitByBuildingAndNumberInput } from './get-unit-by-building-an
 
 export { GetUnitsByFloorService } from './get-units-by-floor.service'
 export type { IGetUnitsByFloorInput } from './get-units-by-floor.service'
+
+export { BulkCreateUnitsService } from './bulk-create-units.service'

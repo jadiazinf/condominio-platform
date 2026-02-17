@@ -29,7 +29,7 @@ export interface ISendTicketAssignmentEmailResult {
 export class SendTicketAssignmentEmailService
   implements IService<ISendTicketAssignmentEmailInput, TServiceResult<ISendTicketAssignmentEmailResult>>
 {
-  constructor(private readonly emailService: EmailService = new EmailService()) {}
+  constructor(private readonly emailService: EmailService = EmailService.getInstance()) {}
 
   async execute(
     input: ISendTicketAssignmentEmailInput

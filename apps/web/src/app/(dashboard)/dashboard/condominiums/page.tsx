@@ -2,6 +2,8 @@ import {
   getCondominiumsPaginated,
   getPlatformCondominiumsPaginated,
   getCompanyCondominiumsPaginated,
+  getMyCompanySubscription,
+  getMyCompanyUsageStats,
 } from '@packages/http-client'
 import type { TCondominiumsQuery } from '@packages/domain'
 
@@ -51,11 +53,38 @@ export default async function CondominiumsPage({ searchParams }: CondominiumsPag
     // Superadmin: fetch ALL condominiums via /platform/condominiums
     // Admin (management_company): fetch company condominiums via /platform/condominiums/management-company/:id
     // Condominium users: fetch scoped via /condominium/condominiums
-    const response = isSuperadmin
-      ? await getPlatformCondominiumsPaginated(session.sessionToken, query)
+    const condominiumsPromise = isSuperadmin
+      ? getPlatformCondominiumsPaginated(session.sessionToken, query)
       : isAdmin && companyId
-        ? await getCompanyCondominiumsPaginated(session.sessionToken, companyId, query)
-        : await getCondominiumsPaginated(session.sessionToken, query, condominiumId)
+        ? getCompanyCondominiumsPaginated(session.sessionToken, companyId, query)
+        : getCondominiumsPaginated(session.sessionToken, query, condominiumId)
+
+    // For admin users, also fetch subscription + usage stats to check creation limits
+    let canCreateCondominium: boolean | undefined
+    if (isAdmin && companyId) {
+      const [response, subscription, usageStats] = await Promise.all([
+        condominiumsPromise,
+        getMyCompanySubscription(session.sessionToken, companyId).catch(() => null),
+        getMyCompanyUsageStats(session.sessionToken, companyId).catch(() => null),
+      ])
+
+      if (subscription && usageStats) {
+        canCreateCondominium = subscription.maxCondominiums === null
+          || usageStats.condominiumsCount < subscription.maxCondominiums
+      }
+
+      return (
+        <CondominiumsPageClient
+          condominiums={response.data}
+          pagination={response.pagination}
+          initialQuery={query}
+          role={session.activeRole}
+          canCreateCondominium={canCreateCondominium}
+        />
+      )
+    }
+
+    const response = await condominiumsPromise
 
     return (
       <CondominiumsPageClient

@@ -33,13 +33,22 @@ const TABLES_TO_CLEAN = [
   'support_ticket_messages',
   'support_tickets',
 
+  // Amenities & Reservations
+  'amenity_reservations',
+  'amenities',
+
   // Subscriptions
+  'subscription_acceptances',
+  'subscription_audit_history',
   'subscription_invoices',
   'management_company_subscriptions',
+  'subscription_rates',
+  'subscription_terms_conditions',
 
   // Members & Invitations
   'management_company_members',
   'admin_invitations',
+  'user_invitations',
 
   // Communication
   'notifications',
@@ -65,17 +74,16 @@ const TABLES_TO_CLEAN = [
 
   // Buildings & Condominiums
   'buildings',
+  'condominium_management_companies',
   'condominiums',
 
-  // User roles
+  // User roles & Permissions
   'user_roles',
+  'user_permissions',
   'role_permissions',
 
   // Organizations
   'management_companies',
-
-  // Superadmin
-  'superadmin_users',
 
   // Audit
   'audit_logs',

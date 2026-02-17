@@ -848,16 +848,47 @@ async function seedUnits(
         unitCount++
 
         if (faker.datatype.boolean({ probability: 0.7 })) {
-          const randomUserId = userIds[faker.number.int({ min: 0, max: userIds.length - 1 })]
+          const isRegistered = faker.datatype.boolean({ probability: 0.7 })
 
-          const ownershipData: UnitOwnershipInsert = {
-            unitId: insertedUnit.id,
-            userId: randomUserId,
-            ownershipType: faker.helpers.arrayElement(['owner', 'tenant', 'co-owner']),
-            ownershipPercentage: '100.00',
-            startDate: faker.date.past({ years: 2 }).toISOString().split('T')[0],
-            isActive: true,
-            isPrimaryResidence: true,
+          let ownershipData: UnitOwnershipInsert
+
+          if (isRegistered) {
+            // Registered resident — linked to a user
+            const randomUserId = userIds[faker.number.int({ min: 0, max: userIds.length - 1 })]
+            const ownerUser = await db.query.users.findFirst({
+              where: (u, { eq }) => eq(u.id, randomUserId),
+            })
+
+            ownershipData = {
+              unitId: insertedUnit.id,
+              userId: randomUserId,
+              fullName: `${ownerUser?.firstName ?? ''} ${ownerUser?.lastName ?? ''}`.trim(),
+              email: ownerUser?.email,
+              phone: ownerUser?.phoneNumber,
+              phoneCountryCode: ownerUser?.phoneCountryCode,
+              isRegistered: true,
+              ownershipType: faker.helpers.arrayElement(['owner', 'tenant', 'co-owner']),
+              ownershipPercentage: '100.00',
+              startDate: faker.date.past({ years: 2 }).toISOString().split('T')[0],
+              isActive: true,
+              isPrimaryResidence: true,
+            }
+          } else {
+            // Unregistered resident — no user account yet
+            ownershipData = {
+              unitId: insertedUnit.id,
+              userId: null,
+              fullName: faker.person.fullName(),
+              email: faker.internet.email().toLowerCase(),
+              phone: faker.string.numeric(10),
+              phoneCountryCode: '+58',
+              isRegistered: false,
+              ownershipType: faker.helpers.arrayElement(['owner', 'tenant', 'co-owner']),
+              ownershipPercentage: '100.00',
+              startDate: faker.date.past({ years: 2 }).toISOString().split('T')[0],
+              isActive: true,
+              isPrimaryResidence: faker.datatype.boolean({ probability: 0.5 }),
+            }
           }
 
           await db.insert(schema.unitOwnerships).values(ownershipData)
@@ -870,12 +901,59 @@ async function seedUnits(
   console.log(`    ${unitCount} units and ${ownershipCount} ownerships ready.`)
 }
 
+async function seedSubscriptionTerms(db: Database, superadminId: string): Promise<void> {
+  console.log('\n  Step 11: Creating subscription terms & conditions...')
+
+  await db.insert(schema.subscriptionTermsConditions).values({
+    version: '1.0',
+    title: 'Términos y Condiciones del Servicio de Suscripción',
+    content: `# Términos y Condiciones del Servicio
+
+## 1. Objeto del Servicio
+CondominioApp proporciona una plataforma de gestión para administradoras de condominios que incluye herramientas de facturación, gestión de pagos, comunicación con residentes y administración general.
+
+## 2. Suscripción y Facturación
+- La suscripción se factura según el ciclo seleccionado (mensual o anual).
+- El precio puede variar según la cantidad de condominios y unidades gestionadas.
+- Los pagos deben realizarse dentro de los primeros 5 días del período de facturación.
+
+## 3. Uso Aceptable
+- El servicio debe utilizarse únicamente para la gestión legítima de condominios.
+- Está prohibido el uso del servicio para actividades ilegales o fraudulentas.
+- Cada cuenta de administradora es intransferible.
+
+## 4. Protección de Datos
+- Los datos personales se manejan conforme a nuestra Política de Privacidad.
+- La administradora es responsable de la protección de los datos de sus residentes.
+- CondominioApp implementa medidas de seguridad estándar de la industria.
+
+## 5. Disponibilidad del Servicio
+- Se garantiza un uptime del 99.5% mensual.
+- El mantenimiento programado se notificará con al menos 48 horas de anticipación.
+
+## 6. Cancelación
+- La suscripción puede cancelarse en cualquier momento.
+- No se realizan reembolsos por períodos parciales.
+- Los datos se mantienen disponibles por 30 días después de la cancelación.
+
+## 7. Modificaciones
+- CondominioApp se reserva el derecho de modificar estos términos con previo aviso de 30 días.
+- El uso continuado del servicio después de las modificaciones implica aceptación.`,
+    summary: 'Términos y condiciones estándar para el servicio de suscripción de CondominioApp.',
+    effectiveFrom: new Date(),
+    isActive: true,
+    createdBy: superadminId,
+  })
+
+  console.log('    1 active terms & conditions (v1.0) ready.')
+}
+
 async function seedSupportTickets(
   db: Database,
   companyIds: string[],
   superadminId: string
 ): Promise<void> {
-  console.log('\n  Step 11: Creating support tickets...')
+  console.log('\n  Step 12: Creating support tickets...')
 
   const ticketTemplates = [
     {
@@ -1015,6 +1093,7 @@ async function seedDatabase(databaseUrl: string): Promise<void> {
     const condominiumIds = await seedCondominiums(db, companyIds, superadminId)
     const buildingIds = await seedBuildings(db, condominiumIds, superadminId)
     await seedUnits(db, buildingIds, userIds, superadminId)
+    await seedSubscriptionTerms(db, superadminId)
     await seedSupportTickets(db, companyIds, superadminId)
 
     console.log('\n' + '='.repeat(60))

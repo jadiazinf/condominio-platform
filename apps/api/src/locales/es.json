@@ -133,7 +133,9 @@
         "noPrimaryAdmin": "No se puede crear la suscripción: la empresa administradora no tiene un administrador principal.",
         "primaryAdminNotFound": "No se encontró el usuario administrador principal.",
         "noActiveTerms": "No se puede crear la suscripción: no se encontraron términos y condiciones activos.",
-        "noActiveSubscription": "No se encontró una suscripción activa para esta empresa administradora."
+        "noActiveSubscription": "No se encontró una suscripción activa para esta empresa administradora.",
+        "subscriptionLimitReached": "Se ha alcanzado el límite de la suscripción.",
+        "managementCompanyRequired": "Se requiere el ID de la empresa administradora."
       }
     },
     "validation": {

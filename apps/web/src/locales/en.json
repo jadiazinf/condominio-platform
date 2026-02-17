@@ -16,6 +16,7 @@
     "clearFilters": "Clear filters",
     "close": "Close",
     "confirm": "Confirm",
+    "optional": "Optional",
     "back": "Back",
     "backToHome": "Go to home",
     "next": "Next",
@@ -576,7 +577,8 @@
       "quotas": "Quotas",
       "payments": "Payments",
       "expenses": "Expenses",
-      "amenities": "Amenities"
+      "amenities": "Amenities",
+      "terms": "Terms & Conditions"
     },
     "dashboard": {
       "title": "Superadmin Dashboard",
@@ -1270,6 +1272,144 @@
           }
         }
       },
+      "wizard": {
+        "steps": {
+          "condominiumInfo": "Condominium",
+          "buildings": "Buildings",
+          "units": "Units",
+          "review": "Review"
+        },
+        "buildings": {
+          "title": "Condominium buildings",
+          "subtitle": "Add the buildings that make up the condominium",
+          "add": "Add building",
+          "edit": "Edit building",
+          "remove": "Remove building",
+          "removeConfirm": "Remove this building and its units?",
+          "empty": "No buildings added",
+          "emptyDescription": "Add at least one building to continue",
+          "floorsLabel": "floors",
+          "nameRequired": "Building name is required",
+          "codeRequired": "Building code is required",
+          "floorsRequired": "Number of floors is required",
+          "floorsInteger": "Number of floors must be a whole number",
+          "clearAll": "Clear all",
+          "editBulk": "Edit generation",
+          "existingUnitsWarning": "This building has {count} units. Generating new ones will replace them."
+        },
+        "bulkBuildings": {
+          "title": "Generate buildings",
+          "generate": "Generate {count} buildings",
+          "prefix": "Prefix",
+          "count": "Count",
+          "namingPattern": "Naming pattern",
+          "patternPrefixLetter": "Prefix + Letter",
+          "patternPrefixNumber": "Prefix + Number",
+          "patternLetterOnly": "Letter only",
+          "patternNumberOnly": "Number only",
+          "defaultFloors": "Default floors",
+          "defaultFloorsHint": "Will be applied to all generated buildings (optional)",
+          "prefixRequired": "Prefix is required",
+          "countRequired": "Count is required",
+          "maxLetterBuildings": "Maximum 26 buildings with letter pattern",
+          "codeConfig": "Code configuration",
+          "codeConfigHint": "Generate a unique code for each building",
+          "codePrefix": "Code prefix",
+          "codePrefixRequired": "Code prefix is required",
+          "codePatternNumber": "Padded number (001, 002...)",
+          "codePatternLetter": "Letter (A, B, C...)",
+          "codePatternTripleLetter": "Triple letter (AAA, AAB, AAC...)",
+          "generateUnits": "Also generate units",
+          "generateUnitsHint": "Automatically generate units for each building",
+          "floorsRequiredForUnits": "Floors count is required to generate units"
+        },
+        "units": {
+          "title": "Units per building",
+          "subtitle": "Add units to each building",
+          "add": "Add unit",
+          "edit": "Edit unit",
+          "remove": "Remove unit",
+          "empty": "No units added",
+          "clearAll": "Clear all",
+          "emptyDescription": "Add at least one unit per building",
+          "label": "units",
+          "numberRequired": "Unit number is required"
+        },
+        "review": {
+          "title": "Final review",
+          "subtitle": "Verify all information before creating the condominium",
+          "condominiumSection": "Condominium information",
+          "buildingsSection": "Buildings and units",
+          "editStep": "Edit"
+        },
+        "submission": {
+          "creating": "Creating condominium...",
+          "creatingCondominium": "Creating condominium",
+          "creatingBuildings": "Creating buildings",
+          "creatingUnits": "Creating units",
+          "complete": "Condominium created successfully!",
+          "partialError": "Some items could not be created",
+          "goToCondominium": "Go to condominium",
+          "retryFailed": "Retry failed"
+        },
+        "bulk": {
+          "title": "Generate units",
+          "floorRange": "Floor range",
+          "floorFrom": "From floor",
+          "floorTo": "To floor",
+          "unitsPerFloor": "Units per floor",
+          "namingPattern": "Naming pattern",
+          "patternFloorLetter": "Floor + Letter",
+          "patternFloorSequence": "Floor + Sequence",
+          "patternSequential": "Sequential",
+          "patternBldgSequential": "Building + Sequential",
+          "patternBldgFloorNumber": "Building + Floor + Number",
+          "patternBldgFloorLetter": "Building + Floor + Letter",
+          "separator": "Separator",
+          "defaultValues": "Default values (optional)",
+          "defaultValuesHint": "These values will be applied to all generated units. You can edit them individually later.",
+          "preview": "Preview",
+          "generate": "Generate units",
+          "more": "more",
+          "floorFromRequired": "Starting floor is required",
+          "floorToRequired": "Ending floor is required",
+          "floorRangeError": "Ending floor must be greater than or equal to starting floor",
+          "unitsPerFloorRequired": "Number of units per floor is required",
+          "maxLetterUnits": "Letter pattern supports a maximum of 26 units per floor",
+          "floorGroups": "Floor groups",
+          "floorGroupsHint": "Define different characteristics per floor range",
+          "addFloorGroup": "Add group",
+          "floorGroupRequired": "At least one floor group is required",
+          "floorOverlap": "Floor ranges must not overlap",
+          "unitPrefix": "Prefix"
+        },
+        "csv": {
+          "title": "Import units from CSV",
+          "importButton": "Import CSV",
+          "instructions": "File format",
+          "instructionsDesc": "The file must be CSV (comma or semicolon separated). The first row can be a header (auto-detected). Only the unitNumber column is required.",
+          "columns": "Available columns:",
+          "colUnitNumber": "Unit number (required)",
+          "colFloor": "Floor (number)",
+          "colArea": "Area in m²",
+          "colBedrooms": "Bedrooms (number)",
+          "colBathrooms": "Bathrooms (number)",
+          "colParking": "Parking spaces (number)",
+          "colStorage": "Storage identifier",
+          "colAliquot": "Aliquot percentage",
+          "notes": "Tip: You can use Excel or Google Sheets to create the file and export it as CSV. Empty fields are ignored.",
+          "downloadTemplate": "Download CSV template",
+          "selectFile": "Select CSV file",
+          "errors": "Errors found",
+          "warnings": "Warnings",
+          "unitsFound": "units found",
+          "import": "Import units",
+          "error": {
+            "csv.empty": "The file is empty",
+            "csv.noValidRows": "No valid rows found"
+          }
+        }
+      },
       "detail": {
         "title": "Condominium Details",
         "backToList": "Back to list",
@@ -1390,6 +1530,21 @@
           "status": {
             "active": "Active",
             "inactive": "Inactive"
+          },
+          "form": {
+            "createTitle": "Create Unit",
+            "editTitle": "Edit Unit",
+            "unitNumber": "Unit Number",
+            "unitNumberPlaceholder": "e.g. 101",
+            "floor": "Floor",
+            "area": "Area (m²)",
+            "bedrooms": "Bedrooms",
+            "bathrooms": "Bathrooms",
+            "parkingSpaces": "Parking Spaces",
+            "parkingIdentifiers": "Parking Identifiers",
+            "parkingIdentifiersPlaceholder": "e.g. P-01, P-02",
+            "storageIdentifier": "Storage Identifier",
+            "aliquotPercentage": "Aliquot Percentage"
           },
           "modal": {
             "createTitle": "Create Unit",
@@ -2024,6 +2179,66 @@
             "effectiveDate": "Effective date is required"
           }
         }
+      }
+    },
+    "terms": {
+      "title": "Terms & Conditions",
+      "subtitle": "Manage subscription terms and conditions",
+      "table": {
+        "version": "Version",
+        "title": "Title",
+        "effectiveFrom": "Effective from",
+        "effectiveUntil": "Effective until",
+        "status": "Status",
+        "actions": "Actions",
+        "active": "Active",
+        "inactive": "Inactive",
+        "noTerms": "No terms registered",
+        "noTermsDescription": "Create the first terms to get started",
+        "edit": "View / Edit"
+      },
+      "create": {
+        "button": "New Terms",
+        "title": "Create Terms",
+        "subtitle": "Define new terms and conditions",
+        "success": "Terms created successfully",
+        "error": "Error creating terms"
+      },
+      "edit": {
+        "title": "Edit Terms",
+        "subtitle": "Modify terms and conditions",
+        "success": "Terms updated successfully",
+        "error": "Error updating terms"
+      },
+      "deactivate": {
+        "title": "Deactivate",
+        "confirm": "Are you sure you want to deactivate this version?",
+        "success": "Terms deactivated successfully",
+        "error": "Error deactivating terms"
+      },
+      "form": {
+        "basicInfo": "Basic Information",
+        "dates": "Effective Dates",
+        "version": "Version",
+        "versionPlaceholder": "E.g.: 2.0",
+        "titleLabel": "Title",
+        "titlePlaceholder": "E.g.: General Terms and Conditions",
+        "content": "Content (Markdown)",
+        "contentPlaceholder": "Write the terms in Markdown format...",
+        "summary": "Summary",
+        "summaryPlaceholder": "Brief description of the terms",
+        "effectiveFrom": "Effective from",
+        "effectiveUntil": "Effective until (optional)",
+        "isActive": "Active",
+        "cancel": "Cancel",
+        "save": "Save",
+        "create": "Create"
+      },
+      "filters": {
+        "all": "All",
+        "active": "Active",
+        "inactive": "Inactive",
+        "clearFilters": "Clear filters"
       }
     },
     "payments": {
@@ -2720,6 +2935,12 @@
         "inactive": "Inactive",
         "all": "All"
       },
+      "create": "Register Condominium",
+      "limitReached": "Limit reached",
+      "form": {
+        "createTitle": "Register Condominium",
+        "createSubtitle": "Register a new condominium for your management company"
+      },
       "filters": {
         "searchPlaceholder": "Search by name, code, address...",
         "status": "Status",
@@ -3036,6 +3257,37 @@
       "noAmenities": "No amenities found",
       "saveSuccess": "Amenity saved",
       "deleteSuccess": "Amenity deleted"
+    }
+  },
+  "subscription": {
+    "accept": {
+      "validating": "Validating acceptance link...",
+      "title": "Accept Subscription",
+      "description": "By accepting, you confirm that you have read and agree to the subscription terms and conditions.",
+      "loginRequired": "You must log in to accept this subscription.",
+      "loggedInAs": "Logged in as",
+      "termsCheckbox": "I have read and accept the ",
+      "termsCheckboxLink": "terms and conditions",
+      "termsCheckboxSuffix": " of the subscription",
+      "termsModalTitle": "Terms and Conditions",
+      "termsModalClose": "Close",
+      "acceptButton": "Accept and Activate Subscription",
+      "loginToAccept": "Log In to Accept",
+      "success": "Subscription accepted and activated successfully",
+      "invalidTitle": "Invalid Link",
+      "expiredTitle": "Expired Link",
+      "expiredDescription": "The acceptance link has expired.",
+      "expiredHelp": "Contact the administrator to request a new acceptance link.",
+      "errors": {
+        "noToken": "No acceptance token was provided.",
+        "invalid": "The acceptance link is not valid or has already been used.",
+        "expired": "The acceptance link has expired.",
+        "failed": "Error accepting the subscription. Please try again.",
+        "mustAcceptTerms": "You must accept the terms and conditions to continue.",
+        "mustBeLoggedIn": "You must log in to accept this subscription.",
+        "userNotFound": "No account found with this email address.",
+        "unknown": "An unexpected error occurred. Please try again."
+      }
     }
   },
   "role": {

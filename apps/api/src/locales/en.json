@@ -133,7 +133,9 @@
         "noPrimaryAdmin": "Cannot create subscription: the management company has no primary administrator.",
         "primaryAdminNotFound": "The primary administrator user was not found.",
         "noActiveTerms": "Cannot create subscription: no active terms and conditions found.",
-        "noActiveSubscription": "No active subscription found for this management company."
+        "noActiveSubscription": "No active subscription found for this management company.",
+        "subscriptionLimitReached": "Subscription limit reached.",
+        "managementCompanyRequired": "Management company ID is required."
       }
     },
     "validation": {

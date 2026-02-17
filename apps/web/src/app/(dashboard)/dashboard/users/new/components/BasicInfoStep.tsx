@@ -46,7 +46,6 @@ export function BasicInfoStep({ translateError }: BasicInfoStepProps) {
           lastNamePlaceholder: t('superadmin.users.create.fields.lastNamePlaceholder'),
           lastNameTooltip: t('superadmin.users.create.fields.lastNameDescription'),
           phone: t('superadmin.users.create.fields.phone'),
-          phonePlaceholder: t('superadmin.users.create.fields.phoneNumberPlaceholder'),
           phoneTooltip: t('superadmin.users.create.fields.phoneDescription'),
           idDocument: t('superadmin.users.create.fields.idDocument'),
           idDocumentTypePlaceholder: t('superadmin.users.create.fields.idDocumentTypePlaceholder'),

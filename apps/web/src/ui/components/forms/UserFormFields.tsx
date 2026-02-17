@@ -38,7 +38,6 @@ interface IUserFormFieldsProps {
   displayNamePlaceholder?: string
   documentTypePlaceholder?: string
   documentNumberPlaceholder?: string
-  phonePlaceholder?: string
 
   // Descriptions
   displayNameDescription?: string
@@ -115,7 +114,6 @@ export function UserFormFields({
   displayNamePlaceholder = 'John Doe',
   documentTypePlaceholder = 'Type',
   documentNumberPlaceholder = 'Number',
-  phonePlaceholder = '1234567890',
 
   // Descriptions
   displayNameDescription,
@@ -250,7 +248,6 @@ export function UserFormFields({
             countryCodeFieldName={phoneCountryCodeFieldName}
             phoneNumberFieldName={phoneNumberFieldName}
             label={phoneLabel}
-            placeholder={phonePlaceholder}
             isRequired={isPhoneRequired}
             translateError={translateError}
             className="sm:col-span-2"

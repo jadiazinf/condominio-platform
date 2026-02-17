@@ -3,3 +3,5 @@ export type { IGetBuildingsByCondominiumInput } from './get-buildings-by-condomi
 
 export { GetBuildingByCondominiumAndCodeService } from './get-building-by-condominium-and-code.service'
 export type { IGetBuildingByCondominiumAndCodeInput } from './get-building-by-condominium-and-code.service'
+
+export { BulkCreateBuildingsService } from './bulk-create-buildings.service'

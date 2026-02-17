@@ -14,7 +14,11 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
   const [{ t }, token, session] = await Promise.all([getTranslations(), getServerAuthToken(), getFullSession()])
   const isAdmin = session?.activeRole === 'management_company'
 
-  const condominium = await getCondominiumDetail(token, id)
+  const managementCompanyId = isAdmin
+    ? session.managementCompanies?.[0]?.managementCompanyId
+    : undefined
+
+  const condominium = await getCondominiumDetail(token, id, managementCompanyId)
 
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return t('superadmin.condominiums.detail.general.noData')

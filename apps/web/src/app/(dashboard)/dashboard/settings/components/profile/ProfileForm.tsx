@@ -68,7 +68,6 @@ export function ProfileForm() {
             countryCodeFieldName="phoneCountryCode"
             phoneNumberFieldName="phoneNumber"
             label={t('settings.profile.phone')}
-            placeholder={t('settings.profile.phonePlaceholder')}
             translateError={translateError}
           />
         </FormField>

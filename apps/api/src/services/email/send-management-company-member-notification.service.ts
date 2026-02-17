@@ -22,7 +22,7 @@ export interface ISendManagementCompanyMemberNotificationResult {
 export class SendManagementCompanyMemberNotificationService
   implements IService<ISendManagementCompanyMemberNotificationInput, TServiceResult<ISendManagementCompanyMemberNotificationResult>>
 {
-  constructor(private readonly emailService: EmailService = new EmailService()) {}
+  constructor(private readonly emailService: EmailService = EmailService.getInstance()) {}
 
   async execute(
     input: ISendManagementCompanyMemberNotificationInput

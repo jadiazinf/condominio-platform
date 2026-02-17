@@ -1,4 +1,5 @@
 import type { Context, Next, MiddlewareHandler } from 'hono'
+import { useTranslation } from '@intlify/hono'
 import { StatusCodes } from 'http-status-codes'
 import {
   ValidateSubscriptionLimitsService,
@@ -8,6 +9,7 @@ import type {
   ManagementCompanySubscriptionsRepository,
   ManagementCompaniesRepository,
 } from '@database/repositories'
+import { LocaleDictionary } from '@locales/dictionary'
 import { getBody } from './payload-validator'
 
 /**
@@ -41,12 +43,13 @@ export function validateSubscriptionLimit(
       const managementCompanyId = body.managementCompanyIds?.[0]
 
       if (!managementCompanyId) {
+        const t = useTranslation(c)
         return c.json(
           {
             success: false,
             error: {
               code: 'BAD_REQUEST',
-              message: 'Management company ID is required',
+              message: t(LocaleDictionary.http.services.subscriptions.managementCompanyRequired),
             },
           },
           StatusCodes.BAD_REQUEST
@@ -74,12 +77,13 @@ export function validateSubscriptionLimit(
 
       // Check if creation is allowed
       if (!result.data.canCreate) {
+        const t = useTranslation(c)
         return c.json(
           {
             success: false,
             error: {
               code: 'SUBSCRIPTION_LIMIT_REACHED',
-              message: 'Subscription limit reached',
+              message: t(LocaleDictionary.http.services.subscriptions.subscriptionLimitReached),
               details: {
                 resourceType,
                 currentCount: result.data.currentCount,

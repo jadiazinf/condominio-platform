@@ -21,9 +21,9 @@ interface IUnitFormProps {
 
 export function UnitForm({ translateError, translations }: IUnitFormProps) {
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-8">
       {/* Basic Information */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-x-4 gap-y-8 sm:grid-cols-2">
         <InputField
           name="unitNumber"
           label={translations.unitNumber}
@@ -39,7 +39,7 @@ export function UnitForm({ translateError, translations }: IUnitFormProps) {
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-x-4 gap-y-8 sm:grid-cols-3">
         <InputField name="areaM2" label={translations.area} translateError={translateError} />
         <InputField
           name="bedrooms"
@@ -56,7 +56,7 @@ export function UnitForm({ translateError, translations }: IUnitFormProps) {
       </div>
 
       {/* Parking & Storage */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-x-4 gap-y-8 sm:grid-cols-2">
         <InputField
           name="parkingSpaces"
           label={translations.parkingSpaces}

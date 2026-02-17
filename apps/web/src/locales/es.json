@@ -16,6 +16,7 @@
     "clearFilters": "Limpiar filtros",
     "close": "Cerrar",
     "confirm": "Confirmar",
+    "optional": "Opcional",
     "back": "Volver",
     "backToHome": "Ir a inicio",
     "backToList": "Volver a la lista",
@@ -585,7 +586,8 @@
       "quotas": "Cuotas",
       "payments": "Pagos",
       "expenses": "Gastos",
-      "amenities": "Amenidades"
+      "amenities": "Amenidades",
+      "terms": "Términos y Condiciones"
     },
     "dashboard": {
       "title": "Panel de Superadmin",
@@ -1280,6 +1282,144 @@
           },
           "address": {
             "required": "La dirección es requerida"
+          }
+        }
+      },
+      "wizard": {
+        "steps": {
+          "condominiumInfo": "Condominio",
+          "buildings": "Edificios",
+          "units": "Unidades",
+          "review": "Revisión"
+        },
+        "buildings": {
+          "title": "Edificios del condominio",
+          "subtitle": "Agrega los edificios que conforman el condominio",
+          "add": "Agregar edificio",
+          "edit": "Editar edificio",
+          "remove": "Eliminar edificio",
+          "removeConfirm": "¿Eliminar este edificio y sus unidades?",
+          "empty": "No hay edificios agregados",
+          "emptyDescription": "Agrega al menos un edificio para continuar",
+          "floorsLabel": "pisos",
+          "nameRequired": "El nombre del edificio es requerido",
+          "codeRequired": "El código del edificio es requerido",
+          "floorsRequired": "El número de pisos es requerido",
+          "floorsInteger": "El número de pisos debe ser un número entero",
+          "clearAll": "Limpiar todo",
+          "editBulk": "Editar generación",
+          "existingUnitsWarning": "Este edificio tiene {count} unidades. Si generas nuevas, las actuales serán reemplazadas."
+        },
+        "bulkBuildings": {
+          "title": "Generar edificios",
+          "generate": "Generar {count} edificios",
+          "prefix": "Prefijo",
+          "count": "Cantidad",
+          "namingPattern": "Patrón de nombres",
+          "patternPrefixLetter": "Prefijo + Letra",
+          "patternPrefixNumber": "Prefijo + Número",
+          "patternLetterOnly": "Solo letra",
+          "patternNumberOnly": "Solo número",
+          "defaultFloors": "Pisos por defecto",
+          "defaultFloorsHint": "Se aplicará a todos los edificios generados (opcional)",
+          "prefixRequired": "El prefijo es requerido",
+          "countRequired": "La cantidad es requerida",
+          "maxLetterBuildings": "Máximo 26 edificios con patrón de letras",
+          "codeConfig": "Configuración de código",
+          "codeConfigHint": "Genera un código único para cada edificio",
+          "codePrefix": "Prefijo de código",
+          "codePrefixRequired": "El prefijo de código es requerido",
+          "codePatternNumber": "Número con ceros (001, 002...)",
+          "codePatternLetter": "Letra (A, B, C...)",
+          "codePatternTripleLetter": "Triple letra (AAA, AAB, AAC...)",
+          "generateUnits": "Generar unidades también",
+          "generateUnitsHint": "Genera automáticamente las unidades para cada edificio",
+          "floorsRequiredForUnits": "Se requiere la cantidad de pisos para generar unidades"
+        },
+        "units": {
+          "title": "Unidades por edificio",
+          "subtitle": "Agrega las unidades de cada edificio",
+          "add": "Agregar unidad",
+          "edit": "Editar unidad",
+          "remove": "Eliminar unidad",
+          "empty": "No hay unidades agregadas",
+          "clearAll": "Limpiar todo",
+          "emptyDescription": "Agrega al menos una unidad por edificio",
+          "label": "unidades",
+          "numberRequired": "El número de unidad es requerido"
+        },
+        "review": {
+          "title": "Revisión final",
+          "subtitle": "Verifica toda la información antes de crear el condominio",
+          "condominiumSection": "Información del condominio",
+          "buildingsSection": "Edificios y unidades",
+          "editStep": "Editar"
+        },
+        "submission": {
+          "creating": "Creando condominio...",
+          "creatingCondominium": "Creando condominio",
+          "creatingBuildings": "Creando edificios",
+          "creatingUnits": "Creando unidades",
+          "complete": "¡Condominio creado exitosamente!",
+          "partialError": "Algunos elementos no pudieron crearse",
+          "goToCondominium": "Ir al condominio",
+          "retryFailed": "Reintentar fallidos"
+        },
+        "bulk": {
+          "title": "Generar unidades",
+          "floorRange": "Rango de pisos",
+          "floorFrom": "Desde piso",
+          "floorTo": "Hasta piso",
+          "unitsPerFloor": "Unidades por piso",
+          "namingPattern": "Patrón de numeración",
+          "patternFloorLetter": "Piso + Letra",
+          "patternFloorSequence": "Piso + Secuencia",
+          "patternSequential": "Secuencial",
+          "patternBldgSequential": "Edificio + Secuencial",
+          "patternBldgFloorNumber": "Edificio + Piso + Número",
+          "patternBldgFloorLetter": "Edificio + Piso + Letra",
+          "separator": "Separador",
+          "defaultValues": "Valores por defecto (opcionales)",
+          "defaultValuesHint": "Se aplicarán a todas las unidades generadas. Puedes editarlas individualmente después.",
+          "preview": "Vista previa",
+          "generate": "Generar unidades",
+          "more": "más",
+          "floorFromRequired": "El piso inicial es requerido",
+          "floorToRequired": "El piso final es requerido",
+          "floorRangeError": "El piso final debe ser mayor o igual al piso inicial",
+          "unitsPerFloorRequired": "El número de unidades por piso es requerido",
+          "maxLetterUnits": "El patrón de letras soporta máximo 26 unidades por piso",
+          "floorGroups": "Grupos de pisos",
+          "floorGroupsHint": "Define diferentes características por rango de pisos",
+          "addFloorGroup": "Agregar grupo",
+          "floorGroupRequired": "Se requiere al menos un grupo de pisos",
+          "floorOverlap": "Los rangos de pisos no deben solaparse",
+          "unitPrefix": "Prefijo"
+        },
+        "csv": {
+          "title": "Importar unidades desde CSV",
+          "importButton": "Importar CSV",
+          "instructions": "Formato del archivo",
+          "instructionsDesc": "El archivo debe ser CSV (separado por comas o punto y coma). La primera fila puede ser un encabezado (se detecta automáticamente). Solo la columna unitNumber es obligatoria.",
+          "columns": "Columnas disponibles:",
+          "colUnitNumber": "Número de unidad (obligatorio)",
+          "colFloor": "Piso (número)",
+          "colArea": "Área en m²",
+          "colBedrooms": "Habitaciones (número)",
+          "colBathrooms": "Baños (número)",
+          "colParking": "Estacionamientos (número)",
+          "colStorage": "Identificador de depósito",
+          "colAliquot": "Porcentaje de alícuota",
+          "notes": "Tip: Puedes usar Excel o Google Sheets para crear el archivo y exportarlo como CSV. Los campos vacíos se ignoran.",
+          "downloadTemplate": "Descargar plantilla CSV",
+          "selectFile": "Seleccionar archivo CSV",
+          "errors": "Errores encontrados",
+          "warnings": "Advertencias",
+          "unitsFound": "unidades encontradas",
+          "import": "Importar unidades",
+          "error": {
+            "csv.empty": "El archivo está vacío",
+            "csv.noValidRows": "No se encontraron filas válidas"
           }
         }
       },
@@ -2049,6 +2189,66 @@
         }
       }
     },
+    "terms": {
+      "title": "Términos y Condiciones",
+      "subtitle": "Gestiona los términos y condiciones de las suscripciones",
+      "table": {
+        "version": "Versión",
+        "title": "Título",
+        "effectiveFrom": "Vigente desde",
+        "effectiveUntil": "Vigente hasta",
+        "status": "Estado",
+        "actions": "Acciones",
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "noTerms": "No hay términos registrados",
+        "noTermsDescription": "Crea el primer término para comenzar",
+        "edit": "Ver / Editar"
+      },
+      "create": {
+        "button": "Nuevos Términos",
+        "title": "Crear Términos",
+        "subtitle": "Define nuevos términos y condiciones",
+        "success": "Términos creados exitosamente",
+        "error": "Error al crear los términos"
+      },
+      "edit": {
+        "title": "Editar Términos",
+        "subtitle": "Modifica los términos y condiciones",
+        "success": "Términos actualizados exitosamente",
+        "error": "Error al actualizar los términos"
+      },
+      "deactivate": {
+        "title": "Desactivar",
+        "confirm": "¿Estás seguro de que deseas desactivar esta versión?",
+        "success": "Términos desactivados exitosamente",
+        "error": "Error al desactivar los términos"
+      },
+      "form": {
+        "basicInfo": "Información Básica",
+        "dates": "Fechas de Vigencia",
+        "version": "Versión",
+        "versionPlaceholder": "Ej: 2.0",
+        "titleLabel": "Título",
+        "titlePlaceholder": "Ej: Términos y Condiciones Generales",
+        "content": "Contenido (Markdown)",
+        "contentPlaceholder": "Escribe los términos en formato Markdown...",
+        "summary": "Resumen",
+        "summaryPlaceholder": "Descripción breve de los términos",
+        "effectiveFrom": "Vigente desde",
+        "effectiveUntil": "Vigente hasta (opcional)",
+        "isActive": "Activo",
+        "cancel": "Cancelar",
+        "save": "Guardar",
+        "create": "Crear"
+      },
+      "filters": {
+        "all": "Todos",
+        "active": "Activos",
+        "inactive": "Inactivos",
+        "clearFilters": "Limpiar filtros"
+      }
+    },
     "payments": {
       "title": "Pagos",
       "subtitle": "Gestiona y verifica los pagos de la plataforma",
@@ -2469,7 +2669,11 @@
       "description": "Al aceptar, confirmas que has leído y estás de acuerdo con los términos y condiciones de la suscripción.",
       "loginRequired": "Debes iniciar sesión para aceptar esta suscripción.",
       "loggedInAs": "Conectado como",
-      "termsCheckbox": "He leído y acepto los términos y condiciones de la suscripción",
+      "termsCheckbox": "He leído y acepto los ",
+      "termsCheckboxLink": "términos y condiciones",
+      "termsCheckboxSuffix": " de la suscripción",
+      "termsModalTitle": "Términos y Condiciones",
+      "termsModalClose": "Cerrar",
       "acceptButton": "Aceptar y Activar Suscripción",
       "loginToAccept": "Iniciar Sesión para Aceptar",
       "success": "Suscripción aceptada y activada exitosamente",
@@ -2484,6 +2688,7 @@
         "failed": "Error al aceptar la suscripción. Intenta de nuevo.",
         "mustAcceptTerms": "Debes aceptar los términos y condiciones para continuar.",
         "mustBeLoggedIn": "Debes iniciar sesión para aceptar esta suscripción.",
+        "userNotFound": "No se encontró una cuenta asociada a este correo electrónico.",
         "unknown": "Ocurrió un error inesperado. Intenta de nuevo."
       }
     }
@@ -2768,6 +2973,12 @@
         "active": "Activo",
         "inactive": "Inactivo",
         "all": "Todos"
+      },
+      "create": "Registrar Condominio",
+      "limitReached": "Límite alcanzado",
+      "form": {
+        "createTitle": "Registrar Condominio",
+        "createSubtitle": "Registra un nuevo condominio para tu administradora"
       },
       "filters": {
         "searchPlaceholder": "Buscar por nombre, código, dirección...",

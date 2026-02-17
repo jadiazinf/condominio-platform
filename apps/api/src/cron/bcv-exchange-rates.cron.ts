@@ -60,7 +60,7 @@ async function notifySuperadmins(error: unknown): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : String(error)
     const timestamp = new Date().toLocaleString('es-VE', { timeZone: 'America/Caracas' })
 
-    const emailService = new EmailService()
+    const emailService = EmailService.getInstance()
     await emailService.execute({
       to: emails,
       subject: '[CondominioApp] Fallo en sincronización de tasas BCV',

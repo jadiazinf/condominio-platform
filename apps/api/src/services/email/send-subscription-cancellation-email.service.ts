@@ -26,7 +26,7 @@ export interface ISendSubscriptionCancellationEmailResult {
 export class SendSubscriptionCancellationEmailService
   implements IService<ISendSubscriptionCancellationEmailInput, TServiceResult<ISendSubscriptionCancellationEmailResult>>
 {
-  constructor(private readonly emailService: EmailService = new EmailService()) {}
+  constructor(private readonly emailService: EmailService = EmailService.getInstance()) {}
 
   async execute(
     input: ISendSubscriptionCancellationEmailInput

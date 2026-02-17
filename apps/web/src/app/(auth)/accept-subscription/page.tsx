@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import { DashboardTheme } from '@/app/(dashboard)/components/DashboardTheme'
 import { AcceptSubscriptionContent } from './components/AcceptSubscriptionContent'
 
 export const metadata: Metadata = {
@@ -19,8 +20,10 @@ export default async function AcceptSubscriptionPage({ searchParams }: AcceptSub
   const { token } = await searchParams
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8">
-      <AcceptSubscriptionContent token={token} />
-    </div>
+    <DashboardTheme>
+      <div className="min-h-screen w-full flex items-center justify-center px-4 py-8 overflow-hidden">
+        <AcceptSubscriptionContent token={token} />
+      </div>
+    </DashboardTheme>
   )
 }

@@ -18,11 +18,13 @@ export interface ISendEmailResult {
 
 /**
  * Service for sending emails using Resend.
+ * Uses singleton pattern to avoid creating multiple Resend client instances.
  */
 export class EmailService implements IService<ISendEmailInput, TServiceResult<ISendEmailResult>> {
+  private static instance: EmailService | null = null
   private resend: Resend | null = null
 
-  constructor() {
+  private constructor() {
     // Use env.RESEND_API_KEY or fallback to Bun.env directly (Railway compatibility)
     const apiKey = env.RESEND_API_KEY || Bun.env.RESEND_API_KEY
 
@@ -35,6 +37,13 @@ export class EmailService implements IService<ISendEmailInput, TServiceResult<IS
         'EmailService: RESEND_API_KEY not configured'
       )
     }
+  }
+
+  static getInstance(): EmailService {
+    if (!EmailService.instance) {
+      EmailService.instance = new EmailService()
+    }
+    return EmailService.instance
   }
 
   async execute(input: ISendEmailInput): Promise<TServiceResult<ISendEmailResult>> {

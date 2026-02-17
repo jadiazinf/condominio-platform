@@ -118,7 +118,7 @@ export class CondominiumsController extends BaseController<
         method: 'post',
         path: '/generate-code',
         handler: this.generateCode,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN')],
+        middlewares: [authMiddleware, requireRole('SUPERADMIN', 'ADMIN')],
       },
       {
         method: 'post',

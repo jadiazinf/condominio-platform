@@ -91,7 +91,7 @@ describe('BuildingsController', function () {
     }
 
     // Create controller with mock repository
-    const controller = new BuildingsController(mockRepository as unknown as BuildingsRepository)
+    const controller = new BuildingsController(mockRepository as unknown as BuildingsRepository, {} as any)
 
     // Create Hono app with controller routes
     app = createTestApp()

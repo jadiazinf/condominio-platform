@@ -91,6 +91,8 @@ export const LocaleDictionary = {
         primaryAdminNotFound: 'http.services.subscriptions.primaryAdminNotFound',
         noActiveTerms: 'http.services.subscriptions.noActiveTerms',
         noActiveSubscription: 'http.services.subscriptions.noActiveSubscription',
+        subscriptionLimitReached: 'http.services.subscriptions.subscriptionLimitReached',
+        managementCompanyRequired: 'http.services.subscriptions.managementCompanyRequired',
       },
     },
     validation: {

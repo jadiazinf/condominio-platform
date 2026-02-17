@@ -32,6 +32,17 @@ const CreateTermsSchema = z.object({
 
 type TCreateTermsBody = z.infer<typeof CreateTermsSchema>
 
+const UpdateTermsSchema = z.object({
+  title: z.string().max(255).optional(),
+  content: z.string().optional(),
+  summary: z.string().optional(),
+  effectiveFrom: z.coerce.date().optional(),
+  effectiveUntil: z.coerce.date().optional(),
+  isActive: z.boolean().optional(),
+})
+
+type TUpdateTermsBody = z.infer<typeof UpdateTermsSchema>
+
 const TermsQuerySchema = z.object({
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
@@ -44,11 +55,13 @@ type TTermsQuery = z.infer<typeof TermsQuerySchema>
  * Controller for managing subscription terms and conditions.
  *
  * Endpoints:
- * - GET  /subscription-terms/active        Get current active terms (public)
- * - GET  /subscription-terms/:version      Get terms by version (public)
- * - GET  /subscription-terms               List all terms (superadmin)
- * - POST /subscription-terms               Create new terms version (superadmin)
- * - PATCH /subscription-terms/:id/deactivate  Deactivate terms (superadmin)
+ * - GET  /active                Get current active terms (public)
+ * - GET  /version/:version      Get terms by version (superadmin)
+ * - GET  /                      List all terms (superadmin)
+ * - GET  /:id                   Get terms by ID (superadmin)
+ * - POST /                      Create new terms version (superadmin)
+ * - PATCH /:id                  Update terms (superadmin)
+ * - PATCH /:id/deactivate       Deactivate terms (superadmin)
  */
 export class SubscriptionTermsConditionsController extends BaseController<
   TSubscriptionTermsConditions,
@@ -64,21 +77,21 @@ export class SubscriptionTermsConditionsController extends BaseController<
       // Public: Get active terms
       {
         method: 'get',
-        path: '/subscription-terms/active',
+        path: '/active',
         handler: this.getActiveTerms,
         middlewares: [],
       },
       // Superadmin: Get terms by version
       {
         method: 'get',
-        path: '/subscription-terms/version/:version',
+        path: '/version/:version',
         handler: this.getByVersion,
         middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), paramsValidator(VersionParamSchema)],
       },
       // Superadmin: List all terms
       {
         method: 'get',
-        path: '/subscription-terms',
+        path: '/',
         handler: this.getAllTerms,
         middlewares: [
           isUserAuthenticated,
@@ -86,10 +99,21 @@ export class SubscriptionTermsConditionsController extends BaseController<
           queryValidator(TermsQuerySchema),
         ],
       },
+      // Superadmin: Get terms by ID
+      {
+        method: 'get',
+        path: '/:id',
+        handler: this.getTermsById,
+        middlewares: [
+          isUserAuthenticated,
+          requireRole('SUPERADMIN'),
+          paramsValidator(IdParamSchema),
+        ],
+      },
       // Superadmin: Create new terms
       {
         method: 'post',
-        path: '/subscription-terms',
+        path: '/',
         handler: this.createTerms,
         middlewares: [
           isUserAuthenticated,
@@ -97,10 +121,22 @@ export class SubscriptionTermsConditionsController extends BaseController<
           bodyValidator(CreateTermsSchema),
         ],
       },
+      // Superadmin: Update terms
+      {
+        method: 'patch',
+        path: '/:id',
+        handler: this.updateTerms,
+        middlewares: [
+          isUserAuthenticated,
+          requireRole('SUPERADMIN'),
+          paramsValidator(IdParamSchema),
+          bodyValidator(UpdateTermsSchema),
+        ],
+      },
       // Superadmin: Deactivate terms
       {
         method: 'patch',
-        path: '/subscription-terms/:id/deactivate',
+        path: '/:id/deactivate',
         handler: this.deactivateTerms,
         middlewares: [
           isUserAuthenticated,
@@ -136,7 +172,7 @@ export class SubscriptionTermsConditionsController extends BaseController<
   }
 
   /**
-   * Get terms by version (public)
+   * Get terms by version (superadmin)
    */
   private getByVersion = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TVersionParam>(c)
@@ -176,6 +212,26 @@ export class SubscriptionTermsConditionsController extends BaseController<
   }
 
   /**
+   * Get terms by ID (superadmin only)
+   */
+  private getTermsById = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, { id: string }>(c)
+    const repo = this.repository as SubscriptionTermsConditionsRepository
+
+    try {
+      const terms = await repo.getById(ctx.params.id)
+
+      if (!terms) {
+        return ctx.notFound({ error: 'Terms not found' })
+      }
+
+      return ctx.ok({ data: terms })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  /**
    * Create new terms version (superadmin only)
    */
   private createTerms = async (c: Context): Promise<Response> => {
@@ -201,6 +257,27 @@ export class SubscriptionTermsConditionsController extends BaseController<
       })
 
       return ctx.created({ data: terms })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  /**
+   * Update terms (superadmin only)
+   */
+  private updateTerms = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TUpdateTermsBody, unknown, { id: string }>(c)
+    const repo = this.repository as SubscriptionTermsConditionsRepository
+
+    try {
+      const existing = await repo.getById(ctx.params.id)
+      if (!existing) {
+        return ctx.notFound({ error: 'Terms not found' })
+      }
+
+      const terms = await repo.update(ctx.params.id, ctx.body)
+
+      return ctx.ok({ data: terms })
     } catch (error) {
       return this.handleError(ctx, error)
     }

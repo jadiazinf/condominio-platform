@@ -37,33 +37,33 @@ export const PHONE_COUNTRY_CODES: IPhoneCountryCode[] = [
 export const DEFAULT_PHONE_COUNTRY_CODE = '+58'
 
 export const PHONE_PLACEHOLDERS: Record<string, string> = {
-  '+49': '151 1234 5678',       // Alemania
-  '+54': '11 2345-6789',        // Argentina
-  '+591': '7123 4567',          // Bolivia
-  '+55': '11 91234-5678',       // Brasil
-  '+56': '9 1234 5678',         // Chile
-  '+57': '300 123 4567',        // Colombia
-  '+506': '8123 4567',          // Costa Rica
-  '+53': '5 123 4567',          // Cuba
-  '+593': '99 123 4567',        // Ecuador
-  '+503': '7012 3456',          // El Salvador
-  '+34': '612 345 678',         // España
-  '+1': '(555) 123-4567',       // Estados Unidos/Canadá
-  '+33': '6 12 34 56 78',       // Francia
-  '+502': '5123 4567',          // Guatemala
-  '+504': '9123 4567',          // Honduras
-  '+39': '312 345 6789',        // Italia
-  '+52': '55 1234 5678',        // México
-  '+505': '8123 4567',          // Nicaragua
-  '+507': '6123 4567',          // Panamá
-  '+595': '981 123 456',        // Paraguay
-  '+51': '987 654 321',         // Perú
-  '+351': '912 345 678',        // Portugal
-  '+1787': '(787) 123-4567',    // Puerto Rico
-  '+44': '7911 123456',         // Reino Unido
-  '+1809': '(809) 123-4567',    // República Dominicana
-  '+598': '94 123 456',         // Uruguay
-  '+58': '(412) 123-4567',      // Venezuela
+  '+49': '15112345678', // Alemania
+  '+54': '1123456789', // Argentina
+  '+591': '71234567', // Bolivia
+  '+55': '11912345678', // Brasil
+  '+56': '912345678', // Chile
+  '+57': '3001234567', // Colombia
+  '+506': '81234567', // Costa Rica
+  '+53': '51234567', // Cuba
+  '+593': '991234567', // Ecuador
+  '+503': '70123456', // El Salvador
+  '+34': '612345678', // España
+  '+1': '5551234567', // Estados Unidos/Canadá
+  '+33': '612345678', // Francia
+  '+502': '51234567', // Guatemala
+  '+504': '91234567', // Honduras
+  '+39': '3123456789', // Italia
+  '+52': '5512345678', // México
+  '+505': '81234567', // Nicaragua
+  '+507': '61234567', // Panamá
+  '+595': '981123456', // Paraguay
+  '+51': '987654321', // Perú
+  '+351': '912345678', // Portugal
+  '+1787': '7871234567', // Puerto Rico
+  '+44': '7911123456', // Reino Unido
+  '+1809': '8091234567', // República Dominicana
+  '+598': '94123456', // Uruguay
+  '+58': '4121234567', // Venezuela
 }
 
 export const DEFAULT_PHONE_PLACEHOLDER = '000 000 0000'
