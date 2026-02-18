@@ -18,7 +18,6 @@ interface CreateCondominiumFormProps {
   onClose: () => void
   managementCompanyId: string
   createdBy: string
-  token: string
 }
 
 export function CreateCondominiumForm({
@@ -26,7 +25,6 @@ export function CreateCondominiumForm({
   onClose,
   managementCompanyId,
   createdBy,
-  token,
 }: CreateCondominiumFormProps) {
   const { t } = useTranslation()
 
@@ -46,7 +44,6 @@ export function CreateCondominiumForm({
   } = useCondominiumForm({
     managementCompanyId,
     createdBy,
-    token,
     onClose,
     onSuccess: () => {
       // Additional success callback if needed

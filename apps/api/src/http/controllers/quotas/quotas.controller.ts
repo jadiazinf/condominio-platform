@@ -43,6 +43,16 @@ const DateParamSchema = z.object({
 
 type TDateParam = z.infer<typeof DateParamSchema>
 
+const PaginatedByUnitQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)').optional(),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)').optional(),
+  status: z.enum(['pending', 'paid', 'overdue', 'cancelled']).optional(),
+})
+
+type TPaginatedByUnitQuery = z.infer<typeof PaginatedByUnitQuerySchema>
+
 const PeriodQuerySchema = z.object({
   year: z.coerce.number().int().min(2000).max(2100),
   month: z.coerce.number().int().min(1).max(12).optional(),
@@ -92,6 +102,17 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
         path: '/unit/:unitId',
         handler: this.getByUnitId,
         middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(UnitIdParamSchema)],
+      },
+      {
+        method: 'get',
+        path: '/unit/:unitId/paginated',
+        handler: this.getByUnitIdPaginated,
+        middlewares: [
+          authMiddleware,
+          requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'),
+          paramsValidator(UnitIdParamSchema),
+          queryValidator(PaginatedByUnitQuerySchema),
+        ],
       },
       {
         method: 'get',
@@ -164,6 +185,25 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
+
+  private getByUnitIdPaginated = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, TPaginatedByUnitQuery, TUnitIdParam>(c)
+
+    try {
+      const repo = this.repository as QuotasRepository
+      const result = await repo.listPaginatedByUnit(ctx.params.unitId, {
+        page: ctx.query.page,
+        limit: ctx.query.limit,
+        startDate: ctx.query.startDate,
+        endDate: ctx.query.endDate,
+        status: ctx.query.status,
+      })
+
+      return ctx.ok(result)
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
 
   private getByUnitId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)

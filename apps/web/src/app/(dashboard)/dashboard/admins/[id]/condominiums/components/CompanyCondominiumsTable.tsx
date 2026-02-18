@@ -26,7 +26,7 @@ import {
   companyCondominiumsKeys,
   useCanCreateResource,
 } from '@packages/http-client'
-import { useUser, useAuth } from '@/contexts'
+import { useUser } from '@/contexts'
 import { CreateCondominiumForm } from './CreateCondominiumForm'
 
 type TStatusFilter = 'all' | 'active' | 'inactive'
@@ -44,7 +44,6 @@ export function CompanyCondominiumsTable({ companyId, isCompanyActive }: Company
   const toast = useToast()
   const queryClient = useQueryClient()
   const { user } = useUser()
-  const { user: firebaseUser } = useAuth()
 
   // Filter state
   const [searchInput, setSearchInput] = useState('')
@@ -54,17 +53,9 @@ export function CompanyCondominiumsTable({ companyId, isCompanyActive }: Company
   const [limit, setLimit] = useState(10)
   const [isToggling, setIsToggling] = useState<string | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [token, setToken] = useState<string>('')
 
   const isFirstRender = useRef(true)
   const debounceTimer = useRef<NodeJS.Timeout | null>(null)
-
-  // Get Firebase token
-  useEffect(() => {
-    if (firebaseUser) {
-      firebaseUser.getIdToken().then(setToken)
-    }
-  }, [firebaseUser])
 
   // Check if can create condominium
   const {
@@ -72,10 +63,9 @@ export function CompanyCondominiumsTable({ companyId, isCompanyActive }: Company
     isLoading: isCheckingLimit,
     error: canCreateError,
   } = useCanCreateResource({
-    token,
     managementCompanyId: companyId,
     resourceType: 'condominium',
-    enabled: !!token && !!companyId,
+    enabled: !!companyId,
   })
 
   const canCreate = canCreateData?.data?.canCreate ?? false
@@ -432,13 +422,12 @@ export function CompanyCondominiumsTable({ companyId, isCompanyActive }: Company
       )}
 
       {/* Create Condominium Modal */}
-      {user && token && (
+      {user && (
         <CreateCondominiumForm
           isOpen={isFormOpen}
           onClose={() => setIsFormOpen(false)}
           managementCompanyId={companyId}
           createdBy={user.id}
-          token={token}
         />
       )}
     </div>

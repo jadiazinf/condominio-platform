@@ -1,4 +1,6 @@
 import type { Context } from 'hono'
+import { useTranslation } from '@intlify/hono'
+import { LocaleDictionary } from '@locales/dictionary'
 import {
   managementCompanyCreateSchema,
   managementCompanyUpdateSchema,
@@ -428,7 +430,8 @@ export class ManagementCompaniesController extends BaseController<
       const subscription = await this.subscriptionsRepository.getActiveByCompanyId(ctx.params.managementCompanyId)
 
       if (!subscription) {
-        return ctx.notFound({ error: 'No active subscription found' })
+        const t = useTranslation(c)
+        return ctx.notFound({ error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription) })
       }
 
       return ctx.ok({ data: subscription })
@@ -470,7 +473,8 @@ export class ManagementCompaniesController extends BaseController<
       )
 
       if (!subscription) {
-        return ctx.notFound({ error: 'No active subscription found' })
+        const t = useTranslation(c)
+        return ctx.notFound({ error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription) })
       }
 
       const result = await this.cancelService.execute({

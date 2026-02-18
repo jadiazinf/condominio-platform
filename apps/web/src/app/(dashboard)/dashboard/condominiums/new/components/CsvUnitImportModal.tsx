@@ -25,7 +25,6 @@ interface ParsedRow {
   bedrooms: number | null
   bathrooms: number | null
   parkingSpaces: number | undefined
-  storageIdentifier: string | null
   aliquotPercentage: string | null
 }
 
@@ -42,15 +41,14 @@ const CSV_HEADERS = [
   'bedrooms',
   'bathrooms',
   'parkingSpaces',
-  'storageIdentifier',
   'aliquotPercentage',
 ]
 
-const CSV_TEMPLATE = `unitNumber,floor,areaM2,bedrooms,bathrooms,parkingSpaces,storageIdentifier,aliquotPercentage
-1A,1,75.5,2,1,1,D-1,0.85
-1B,1,90,3,2,1,D-2,1.05
-2A,2,75.5,2,1,1,,0.85
-2B,2,90,3,2,1,,1.05`
+const CSV_TEMPLATE = `unitNumber,floor,areaM2,bedrooms,bathrooms,parkingSpaces,aliquotPercentage
+1A,1,75.5,2,1,1,0.85
+1B,1,90,3,2,1,1.05
+2A,2,75.5,2,1,1,0.85
+2B,2,90,3,2,1,1.05`
 
 function parseCsvContent(content: string): ParseResult {
   const rows: ParsedRow[] = []
@@ -98,8 +96,7 @@ function parseCsvContent(content: string): ParseResult {
     const bedrooms = fields[3] ? Number(fields[3]) : null
     const bathrooms = fields[4] ? Number(fields[4]) : null
     const parkingSpaces = fields[5] ? Number(fields[5]) : undefined
-    const storageIdentifier = fields[6] || null
-    const aliquotPercentage = fields[7] || null
+    const aliquotPercentage = fields[6] || null
 
     rows.push({
       unitNumber,
@@ -108,7 +105,6 @@ function parseCsvContent(content: string): ParseResult {
       bedrooms: bedrooms !== null && !isNaN(bedrooms) ? bedrooms : null,
       bathrooms: bathrooms !== null && !isNaN(bathrooms) ? bathrooms : null,
       parkingSpaces: parkingSpaces !== undefined && !isNaN(parkingSpaces) ? parkingSpaces : undefined,
-      storageIdentifier,
       aliquotPercentage,
     })
   }
@@ -176,7 +172,7 @@ export function CsvUnitImportModal({
       bathrooms: row.bathrooms,
       parkingSpaces: row.parkingSpaces,
       parkingIdentifiers: null,
-      storageIdentifier: row.storageIdentifier,
+      storageIdentifier: null,
       aliquotPercentage: row.aliquotPercentage,
     }))
 
@@ -238,10 +234,6 @@ export function CsvUnitImportModal({
                     <div>
                       <span className="font-mono font-medium">parkingSpaces</span>
                       <span className="text-default-400"> — {t('superadmin.condominiums.wizard.csv.colParking')}</span>
-                    </div>
-                    <div>
-                      <span className="font-mono font-medium">storageIdentifier</span>
-                      <span className="text-default-400"> — {t('superadmin.condominiums.wizard.csv.colStorage')}</span>
                     </div>
                     <div>
                       <span className="font-mono font-medium">aliquotPercentage</span>

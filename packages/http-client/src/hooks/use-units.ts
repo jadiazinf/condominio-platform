@@ -29,7 +29,7 @@ export function useBuildingUnits(options: UseBuildingUnitsOptions) {
   const { token, buildingId, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TUnit[]>>({
-    path: `/condominium/units?buildingId=${buildingId}`,
+    path: `/condominium/units/building/${buildingId}`,
     queryKey: unitsKeys.list(buildingId),
     config: {
       headers: {
@@ -198,9 +198,9 @@ export function useToggleUnitStatus(options: UseToggleUnitStatusOptions = {}) {
 /**
  * Create a unit directly with explicit condominium context.
  * Used in the condominium creation wizard where no global condominium ID is set.
+ * Auth is handled automatically by the HttpClient via session cookies.
  */
 export async function createUnitDirect(
-  token: string,
   condominiumId: string,
   data: TCreateUnitVariables
 ): Promise<TUnit> {
@@ -210,7 +210,6 @@ export async function createUnitDirect(
     data,
     {
       headers: {
-        Authorization: `Bearer ${token}`,
         'x-condominium-id': condominiumId,
       },
     }
@@ -221,9 +220,9 @@ export async function createUnitDirect(
 /**
  * Create multiple units in a single bulk request.
  * Used in the condominium creation wizard to avoid N individual requests.
+ * Auth is handled automatically by the HttpClient via session cookies.
  */
 export async function createUnitsBulk(
-  token: string,
   condominiumId: string,
   units: TCreateUnitVariables[]
 ): Promise<TUnit[]> {
@@ -233,7 +232,6 @@ export async function createUnitsBulk(
     { units },
     {
       headers: {
-        Authorization: `Bearer ${token}`,
         'x-condominium-id': condominiumId,
       },
     }
@@ -248,13 +246,26 @@ export async function createUnitsBulk(
 /**
  * Server-side function to get all units for a building.
  */
-export async function getBuildingUnits(token: string, buildingId: string): Promise<TUnit[]> {
+export async function getBuildingUnits(
+  token: string,
+  buildingId: string,
+  condominiumId?: string,
+  managementCompanyId?: string
+): Promise<TUnit[]> {
   const client = getHttpClient()
 
-  const response = await client.get<TApiDataResponse<TUnit[]>>(`/condominium/units?buildingId=${buildingId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  }
+  if (condominiumId) {
+    headers['x-condominium-id'] = condominiumId
+  }
+  if (managementCompanyId) {
+    headers['x-management-company-id'] = managementCompanyId
+  }
+
+  const response = await client.get<TApiDataResponse<TUnit[]>>(`/condominium/units/building/${buildingId}`, {
+    headers,
   })
 
   return response.data.data
@@ -263,13 +274,26 @@ export async function getBuildingUnits(token: string, buildingId: string): Promi
 /**
  * Server-side function to get unit details.
  */
-export async function getUnitDetail(token: string, unitId: string): Promise<TUnit> {
+export async function getUnitDetail(
+  token: string,
+  unitId: string,
+  condominiumId?: string,
+  managementCompanyId?: string
+): Promise<TUnit> {
   const client = getHttpClient()
 
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  }
+  if (condominiumId) {
+    headers['x-condominium-id'] = condominiumId
+  }
+  if (managementCompanyId) {
+    headers['x-management-company-id'] = managementCompanyId
+  }
+
   const response = await client.get<TApiDataResponse<TUnit>>(`/condominium/units/${unitId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
   })
 
   return response.data.data

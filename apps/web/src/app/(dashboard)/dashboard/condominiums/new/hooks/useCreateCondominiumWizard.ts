@@ -9,15 +9,13 @@ import { z } from 'zod'
 import { useAuth, useTranslation } from '@/contexts'
 import type { TBulkGenerationConfig } from '../components/BulkBuildingGeneratorModal'
 import { useToast } from '@/ui/components/toast'
+import { translateApiError } from '@/utils/translateApiError'
 import {
-  useCreateCondominium,
   useGenerateCondominiumCode,
-  HttpError,
 } from '@packages/http-client'
 import {
-  createBuildingsBulk,
-  createUnitsBulk,
-  type TCreateUnitVariables,
+  createCondominiumWizard,
+  type TWizardBuildingInput,
 } from '@packages/http-client/hooks'
 
 // ============================================================================
@@ -76,7 +74,9 @@ const condominiumStepSchema = z.object({
     .array(z.string().uuid())
     .min(1, 'superadmin.condominiums.form.validation.managementCompany.required'),
   address: z.string().min(1, 'superadmin.condominiums.form.validation.address.required').max(500),
-  locationId: z.string().uuid('superadmin.condominiums.form.validation.location.required'),
+  locationId: z
+    .string({ error: 'superadmin.condominiums.form.validation.location.required' })
+    .uuid('superadmin.condominiums.form.validation.location.required'),
   email: z
     .string()
     .min(1, 'superadmin.condominiums.form.validation.email.required')
@@ -111,7 +111,6 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
   const toast = useToast()
   const router = useRouter()
 
-  const [token, setToken] = useState<string>('')
   const [currentStep, setCurrentStep] = useState<TWizardStep>('condominium')
   const [buildings, setBuildings] = useState<TLocalBuilding[]>([])
   const [units, setUnits] = useState<Map<string, TLocalUnit[]>>(new Map())
@@ -132,13 +131,6 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
     errors: [],
   })
 
-  // Get token on mount
-  useEffect(() => {
-    if (firebaseUser) {
-      firebaseUser.getIdToken().then(setToken)
-    }
-  }, [firebaseUser])
-
   const form = useForm<TCondominiumFormValues>({
     resolver: zodResolver(condominiumStepSchema) as Resolver<TCondominiumFormValues>,
     defaultValues: {
@@ -154,31 +146,20 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
     mode: 'onBlur',
   })
 
-  // Create condominium mutation
-  const createCondominiumMutation = useCreateCondominium({
-    token,
-  })
-
   // Generate code mutation
   const generateCodeMutation = useGenerateCondominiumCode({
-    token,
     onSuccess: (data) => {
       form.setValue('code', data.code, { shouldValidate: true })
       toast.success(t('superadmin.condominiums.form.codeGenerated'))
     },
     onError: (error: Error) => {
-      if (HttpError.isHttpError(error)) {
-        toast.error(error.message)
-      } else {
-        toast.error(t('superadmin.condominiums.form.codeGenerateError'))
-      }
+      toast.error(translateApiError(error, t))
     },
   })
 
   const handleGenerateCode = useCallback(() => {
-    if (!token) return
     generateCodeMutation.mutate()
-  }, [token, generateCodeMutation])
+  }, [generateCodeMutation])
 
   const currentStepIndex = STEPS.indexOf(currentStep)
   const isFirstStep = currentStepIndex === 0
@@ -391,12 +372,9 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
   // ============================================================================
 
   const handleSubmit = useCallback(async () => {
-    if (!firebaseUser || !token) return
+    if (!firebaseUser) return
 
     const condominiumData = form.getValues()
-    const allErrors: string[] = []
-
-    // Calculate totals
     const totalUnits = getTotalUnitsCount()
 
     setSubmissionState({
@@ -413,121 +391,62 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
     })
 
     try {
-      // 1. Create condominium
-      const response = await createCondominiumMutation.mutateAsync({
-        name: condominiumData.name,
-        code: condominiumData.code,
-        managementCompanyIds: condominiumData.managementCompanyIds,
-        address: condominiumData.address,
-        locationId: condominiumData.locationId,
-        email: condominiumData.email,
-        phone: condominiumData.phone,
-        phoneCountryCode: condominiumData.phoneCountryCode,
-        defaultCurrencyId: null,
-        isActive: true,
-        metadata: null,
-        createdBy: null,
-      })
-
-      const condominiumId = response.data.data.id
-
-      setSubmissionState((prev) => ({
-        ...prev,
-        condominiumId,
-        currentAction: t('superadmin.condominiums.wizard.submission.creatingBuildings'),
-        progress: { ...prev.progress, condominiumCreated: true },
-      }))
-
-      // 2. Create all buildings in a single bulk request
-      const buildingTempToRealIdMap = new Map<string, string>()
-
-      const createdBuildings = await createBuildingsBulk(
-        token,
-        condominiumId,
-        buildings.map(({ tempId, ...data }) => data)
-      )
-
-      // Map tempIds to real IDs (order is preserved by the API)
-      buildings.forEach((local, i) => {
-        if (createdBuildings[i]) {
-          buildingTempToRealIdMap.set(local.tempId, createdBuildings[i].id)
+      // Build wizard payload: condominium + buildings with nested units
+      const wizardBuildings: TWizardBuildingInput[] = buildings.map(({ tempId, ...b }) => {
+        const buildingUnits = units.get(tempId) || []
+        return {
+          ...b,
+          units: buildingUnits.map(({ tempId: _uid, buildingTempId: _btid, parkingIdentifiers: _pi, storageIdentifier: _si, ...unit }) => unit),
         }
       })
 
-      setSubmissionState((prev) => ({
-        ...prev,
-        currentAction: t('superadmin.condominiums.wizard.submission.creatingUnits'),
-        progress: { ...prev.progress, buildingsCreated: createdBuildings.length },
-      }))
+      const result = await createCondominiumWizard({
+        condominium: {
+          name: condominiumData.name,
+          code: condominiumData.code,
+          managementCompanyIds: condominiumData.managementCompanyIds,
+          address: condominiumData.address,
+          locationId: condominiumData.locationId,
+          email: condominiumData.email,
+          phone: condominiumData.phone,
+          phoneCountryCode: condominiumData.phoneCountryCode,
+          defaultCurrencyId: null,
+          isActive: true,
+          metadata: null,
+          createdBy: null,
+        },
+        buildings: wizardBuildings,
+      })
 
-      // 3. Create all units in a single bulk request
-      const allUnits: TCreateUnitVariables[] = []
-
-      for (const building of buildings) {
-        const realBuildingId = buildingTempToRealIdMap.get(building.tempId)
-        if (!realBuildingId) continue
-
-        const buildingUnits = units.get(building.tempId) || []
-        for (const unit of buildingUnits) {
-          allUnits.push({
-            buildingId: realBuildingId,
-            unitNumber: unit.unitNumber,
-            floor: unit.floor,
-            areaM2: unit.areaM2,
-            bedrooms: unit.bedrooms,
-            bathrooms: unit.bathrooms,
-            parkingSpaces: unit.parkingSpaces,
-            parkingIdentifiers: unit.parkingIdentifiers,
-            storageIdentifier: unit.storageIdentifier,
-            aliquotPercentage: unit.aliquotPercentage,
-          })
-        }
-      }
-
-      if (allUnits.length > 0) {
-        const createdUnits = await createUnitsBulk(token, condominiumId, allUnits)
-        setSubmissionState((prev) => ({
-          ...prev,
-          progress: { ...prev.progress, unitsCreated: createdUnits.length },
-        }))
-      }
-
-      // 4. Final state
-      if (allErrors.length === 0) {
-        setSubmissionState((prev) => ({
-          ...prev,
-          status: 'success',
-          currentAction: t('superadmin.condominiums.wizard.submission.complete'),
-        }))
-        toast.success(t('superadmin.condominiums.wizard.submission.complete'))
-      } else {
-        setSubmissionState((prev) => ({
-          ...prev,
-          status: 'partial_error',
-          currentAction: t('superadmin.condominiums.wizard.submission.partialError'),
-          errors: allErrors,
-        }))
-        toast.error(t('superadmin.condominiums.wizard.submission.partialError'))
-      }
+      setSubmissionState({
+        status: 'success',
+        condominiumId: result.condominium.id,
+        currentAction: t('superadmin.condominiums.wizard.submission.complete'),
+        progress: {
+          condominiumCreated: true,
+          buildingsTotal: buildings.length,
+          buildingsCreated: result.buildingsCreated,
+          unitsTotal: totalUnits,
+          unitsCreated: result.unitsCreated,
+        },
+        errors: [],
+      })
+      toast.success(t('superadmin.condominiums.wizard.submission.complete'))
     } catch (err) {
-      // Condominium creation itself failed
-      const errorMessage = HttpError.isHttpError(err) ? err.message : t('superadmin.condominiums.form.error')
-      allErrors.push(errorMessage)
+      const errorMessage = translateApiError(err, t)
       setSubmissionState((prev) => ({
         ...prev,
         status: 'error',
         currentAction: '',
-        errors: allErrors,
+        errors: [errorMessage],
       }))
       toast.error(errorMessage)
     }
   }, [
     firebaseUser,
-    token,
     form,
     buildings,
     units,
-    createCondominiumMutation,
     getTotalUnitsCount,
     toast,
     t,

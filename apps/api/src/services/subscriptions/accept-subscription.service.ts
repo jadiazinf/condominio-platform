@@ -111,6 +111,14 @@ export class AcceptSubscriptionService {
   }
 
   /**
+   * Get a subscription by ID (used by controller for authorization checks)
+   */
+  async getSubscriptionById(subscriptionId: string): Promise<TManagementCompanySubscription | null> {
+    const subscription = await this.subscriptionsRepository.getById(subscriptionId)
+    return subscription ?? null
+  }
+
+  /**
    * Generate a secure token for acceptance
    */
   static generateToken(): { token: string; tokenHash: string } {

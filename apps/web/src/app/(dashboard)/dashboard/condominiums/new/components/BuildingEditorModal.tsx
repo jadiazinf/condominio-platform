@@ -318,13 +318,6 @@ export function BuildingEditorModal({
       })
       hasError = true
     }
-    if (!values.code || values.code.trim() === '') {
-      form.setError('code', {
-        type: 'manual',
-        message: 'superadmin.condominiums.wizard.buildings.codeRequired',
-      })
-      hasError = true
-    }
     if (!values.floorsCount) {
       form.setError('floorsCount', {
         type: 'manual',
@@ -391,7 +384,7 @@ export function BuildingEditorModal({
     const floorsNum = Number(values.floorsCount)
     const buildingData: Omit<TLocalBuilding, 'tempId'> = {
       name: values.name.trim(),
-      code: values.code.trim(),
+      code: values.code.trim() || null,
       floorsCount: floorsNum,
     }
 
@@ -454,8 +447,7 @@ export function BuildingEditorModal({
                   <InputField
                     name="code"
                     label={t('superadmin.condominiums.detail.buildings.form.code')}
-                    placeholder={t('superadmin.condominiums.detail.buildings.form.codePlaceholder')}
-                    isRequired
+                    placeholder={t('common.optional')}
                     translateError={translateError}
                   />
                 </div>

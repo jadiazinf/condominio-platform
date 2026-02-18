@@ -31,6 +31,7 @@ interface BulkGeneratorFormValues {
   bedrooms: string
   bathrooms: string
   parkingSpaces: string
+  aliquotPercentage: string
 }
 
 function generateUnitNumber(
@@ -95,6 +96,7 @@ export function BulkUnitGeneratorModal({
       bedrooms: '',
       bathrooms: '',
       parkingSpaces: '',
+      aliquotPercentage: '',
     },
   })
 
@@ -110,6 +112,7 @@ export function BulkUnitGeneratorModal({
         bedrooms: '',
         bathrooms: '',
         parkingSpaces: '',
+        aliquotPercentage: '',
       })
     }
   }, [isOpen, buildingFloors, form])
@@ -185,7 +188,7 @@ export function BulkUnitGeneratorModal({
           parkingSpaces: values.parkingSpaces ? Number(values.parkingSpaces) : undefined,
           parkingIdentifiers: null,
           storageIdentifier: null,
-          aliquotPercentage: null,
+          aliquotPercentage: values.aliquotPercentage || null,
         })
       }
     }
@@ -332,6 +335,30 @@ export function BulkUnitGeneratorModal({
                     type="number"
                     translateError={translateError}
                   />
+                </div>
+                <div className="flex items-end gap-2 mt-4">
+                  <div className="flex-1">
+                    <InputField
+                      name="aliquotPercentage"
+                      label={t('superadmin.condominiums.wizard.bulk.aliquot')}
+                      placeholder="%"
+                      translateError={translateError}
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="flat"
+                    color="success"
+                    className="mb-0.5"
+                    isDisabled={totalUnits === 0}
+                    onPress={() => {
+                      if (totalUnits > 0) {
+                        form.setValue('aliquotPercentage', (100 / totalUnits).toFixed(4))
+                      }
+                    }}
+                  >
+                    {t('superadmin.condominiums.wizard.bulk.aliquotAuto')}
+                  </Button>
                 </div>
               </div>
 

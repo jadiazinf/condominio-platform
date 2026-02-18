@@ -1,5 +1,5 @@
-import { and, eq, desc, gte, lte } from 'drizzle-orm'
-import type { TPayment, TPaymentCreate, TPaymentUpdate } from '@packages/domain'
+import { and, eq, desc, gte, lte, type SQL } from 'drizzle-orm'
+import type { TPayment, TPaymentCreate, TPaymentUpdate, TPaginatedResponse } from '@packages/domain'
 import { payments } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
 import { BaseRepository } from './base'
@@ -110,6 +110,28 @@ export class PaymentsRepository
    */
   override async delete(id: string): Promise<boolean> {
     return this.hardDelete(id)
+  }
+
+  /**
+   * Retrieves paginated payments for a unit with optional filters.
+   */
+  async listPaginatedByUnit(
+    unitId: string,
+    options: { page?: number; limit?: number; startDate?: string; endDate?: string; status?: string }
+  ): Promise<TPaginatedResponse<TPayment>> {
+    const conditions: SQL[] = [eq(payments.unitId, unitId)]
+
+    if (options.startDate) {
+      conditions.push(gte(payments.paymentDate, options.startDate))
+    }
+    if (options.endDate) {
+      conditions.push(lte(payments.paymentDate, options.endDate))
+    }
+    if (options.status) {
+      conditions.push(eq(payments.status, options.status as TPayment['status']))
+    }
+
+    return this.listPaginated({ page: options.page, limit: options.limit }, conditions)
   }
 
   /**

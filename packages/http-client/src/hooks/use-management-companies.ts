@@ -81,7 +81,6 @@ export interface UseManagementCompanyUsageStatsOptions {
 export type TResourceType = 'condominium' | 'unit' | 'user'
 
 export interface UseCanCreateResourceOptions {
-  token: string
   managementCompanyId: string
   resourceType: TResourceType
   enabled?: boolean
@@ -179,17 +178,12 @@ export function useManagementCompanyUsageStats(options: UseManagementCompanyUsag
  * based on their subscription limits.
  */
 export function useCanCreateResource(options: UseCanCreateResourceOptions) {
-  const { token, managementCompanyId, resourceType, enabled = true } = options
+  const { managementCompanyId, resourceType, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TSubscriptionLimitValidation>>({
     path: `/platform/management-companies/${managementCompanyId}/subscription/can-create/${resourceType}`,
     queryKey: ['management-companies', managementCompanyId, 'can-create', resourceType],
-    config: {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-    enabled: enabled && !!token && !!managementCompanyId && !!resourceType,
+    enabled: enabled && !!managementCompanyId && !!resourceType,
   })
 }
 

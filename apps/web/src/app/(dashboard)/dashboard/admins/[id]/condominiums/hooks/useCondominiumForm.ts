@@ -35,7 +35,6 @@ export interface ICondominiumFormData {
 interface UseCondominiumFormProps {
   managementCompanyId: string
   createdBy: string
-  token: string
   onClose: () => void
   onSuccess?: () => void
 }
@@ -45,7 +44,6 @@ const STEPS: TCondominiumStep[] = ['basic', 'location', 'contact', 'confirmation
 export function useCondominiumForm({
   managementCompanyId,
   createdBy,
-  token,
   onClose,
   onSuccess,
 }: UseCondominiumFormProps) {
@@ -86,7 +84,6 @@ export function useCondominiumForm({
   const totalSteps = STEPS.length
 
   const { mutate: createCondominium, isPending: isCreating } = useCreateCondominium({
-    token,
     onSuccess: () => {
       toast.success(t('condominiums.success.created'))
       // Invalidate company condominiums list

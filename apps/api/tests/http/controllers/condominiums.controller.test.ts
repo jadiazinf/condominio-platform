@@ -134,6 +134,14 @@ describe('CondominiumsController', function () {
       getById: async () => null,
       checkIsSuperadmin: async () => false,
     } as any
+    const mockBuildingsRepository = {
+      createBulk: async () => [],
+      withTx: () => mockBuildingsRepository,
+    } as any
+    const mockUnitsRepository = {
+      createBulk: async () => [],
+      withTx: () => mockUnitsRepository,
+    } as any
     const mockDb = {} as any
 
     // Create controller with mock repository
@@ -144,6 +152,8 @@ describe('CondominiumsController', function () {
       mockLocationsRepository,
       mockCurrenciesRepository,
       mockUsersRepository,
+      mockBuildingsRepository,
+      mockUnitsRepository,
       mockDb
     )
 

@@ -163,7 +163,7 @@ export function SubmissionProgressModal({ state, onNavigate, onClose }: Submissi
           {isComplete && (
             <>
               {state.status !== 'error' && (
-                <Button color="primary" onPress={onNavigate}>
+                <Button color="success" onPress={onNavigate}>
                   {t('superadmin.condominiums.wizard.submission.goToCondominium')}
                 </Button>
               )}

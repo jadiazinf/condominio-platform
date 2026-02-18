@@ -22,12 +22,7 @@ import {
 const buildingFormSchema = z.object({
   name: z.string().min(1, 'required').max(255),
   code: z.string().max(50).optional().nullable(),
-  address: z.string().max(500).optional().nullable(),
   floorsCount: z.number().int().optional().nullable(),
-  bankAccountHolder: z.string().max(255).optional().nullable(),
-  bankName: z.string().max(100).optional().nullable(),
-  bankAccountNumber: z.string().max(100).optional().nullable(),
-  bankAccountType: z.enum(['Corriente', 'Ahorro']).optional().nullable(),
 })
 
 type TBuildingFormValues = z.infer<typeof buildingFormSchema>
@@ -48,18 +43,7 @@ interface IBuildingModalProps {
       namePlaceholder: string
       code: string
       codePlaceholder: string
-      address: string
-      addressPlaceholder: string
       floors: string
-      bankInfo: string
-      bankAccountHolder: string
-      bankName: string
-      bankAccountNumber: string
-      bankAccountType: string
-      accountTypes: {
-        corriente: string
-        ahorro: string
-      }
     }
     success: {
       created: string
@@ -90,12 +74,7 @@ export function BuildingModal({
     defaultValues: {
       name: '',
       code: null,
-      address: null,
       floorsCount: null,
-      bankAccountHolder: null,
-      bankName: null,
-      bankAccountNumber: null,
-      bankAccountType: null,
     },
   })
 
@@ -132,23 +111,13 @@ export function BuildingModal({
         methods.reset({
           name: building.name,
           code: building.code,
-          address: building.address,
           floorsCount: building.floorsCount,
-          bankAccountHolder: building.bankAccountHolder,
-          bankName: building.bankName,
-          bankAccountNumber: building.bankAccountNumber,
-          bankAccountType: building.bankAccountType,
         })
       } else {
         methods.reset({
           name: '',
           code: null,
-          address: null,
           floorsCount: null,
-          bankAccountHolder: null,
-          bankName: null,
-          bankAccountNumber: null,
-          bankAccountType: null,
         })
       }
     }
@@ -166,12 +135,7 @@ export function BuildingModal({
         condominiumId,
         name: data.name,
         code: data.code,
-        address: data.address,
         floorsCount: data.floorsCount,
-        bankAccountHolder: data.bankAccountHolder,
-        bankName: data.bankName,
-        bankAccountNumber: data.bankAccountNumber,
-        bankAccountType: data.bankAccountType,
       }
       createMutation.mutate(createData)
     }
@@ -185,7 +149,7 @@ export function BuildingModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="2xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} onClose={handleClose} size="lg" scrollBehavior="inside">
       <ModalContent>
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit}>

@@ -16,6 +16,8 @@ export const paymentKeys = {
   byNumber: (paymentNumber: string) => [...paymentKeys.all, 'number', paymentNumber] as const,
   byUser: (userId: string) => [...paymentKeys.all, 'user', userId] as const,
   byUnit: (unitId: string) => [...paymentKeys.all, 'unit', unitId] as const,
+  byUnitPaginated: (unitId: string, query: IPaymentsByUnitQuery) =>
+    [...paymentKeys.all, 'unit', unitId, 'paginated', query] as const,
   byStatus: (status: string) => [...paymentKeys.all, 'status', status] as const,
   byDateRange: (startDate: string, endDate: string) =>
     [...paymentKeys.all, 'date-range', startDate, endDate] as const,
@@ -40,6 +42,14 @@ export interface IPaymentsQuery {
 export interface IUsePaymentsOptions {
   query?: IPaymentsQuery
   enabled?: boolean
+}
+
+export interface IPaymentsByUnitQuery {
+  page?: number
+  limit?: number
+  startDate?: string
+  endDate?: string
+  status?: string
 }
 
 export interface IUsePaymentDetailOptions {
@@ -170,6 +180,35 @@ export function usePaymentsByUnit(unitId: string, options?: { enabled?: boolean 
     queryKey: paymentKeys.byUnit(unitId),
     config: {},
     enabled: options?.enabled !== false && !!unitId,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hooks - Get Payments by Unit (Paginated)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function usePaymentsByUnitPaginated(options: {
+  query: IPaymentsByUnitQuery & { unitId: string }
+  enabled?: boolean
+}) {
+  const { query, enabled = true } = options
+  const { unitId, ...filters } = query
+
+  const params = new URLSearchParams()
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+  if (filters.startDate) params.set('startDate', filters.startDate)
+  if (filters.endDate) params.set('endDate', filters.endDate)
+  if (filters.status) params.set('status', filters.status)
+
+  const queryString = params.toString()
+  const path = `/condominium/payments/unit/${unitId}/paginated${queryString ? `?${queryString}` : ''}`
+
+  return useApiQuery<TApiPaginatedResponse<TPayment>>({
+    path,
+    queryKey: paymentKeys.byUnitPaginated(unitId, filters),
+    config: {},
+    enabled: enabled && !!unitId,
   })
 }
 
@@ -346,6 +385,26 @@ export async function getPaymentsByUser(userId: string): Promise<TPayment[]> {
 export async function getPaymentsByUnit(unitId: string): Promise<TPayment[]> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TPayment[]>>(`/condominium/payments/unit/${unitId}`)
+  return response.data.data
+}
+
+export async function getPaymentsByUnitServer(
+  token: string,
+  unitId: string,
+  condominiumId?: string,
+  managementCompanyId?: string
+): Promise<TPayment[]> {
+  const client = getHttpClient()
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  }
+  if (condominiumId) {
+    headers['x-condominium-id'] = condominiumId
+  }
+  if (managementCompanyId) {
+    headers['x-management-company-id'] = managementCompanyId
+  }
+  const response = await client.get<TApiDataResponse<TPayment[]>>(`/condominium/payments/unit/${unitId}`, { headers })
   return response.data.data
 }
 

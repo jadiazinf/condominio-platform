@@ -1228,7 +1228,7 @@
           "namePlaceholder": "Ej: Residencial Vista Hermosa",
           "nameDescription": "Nombre oficial del condominio",
           "code": "Código",
-          "codePlaceholder": "Auto-generado si se deja vacío",
+          "codePlaceholder": "Ej: VH-001",
           "codeDescription": "Código único de identificación del condominio",
           "generateCode": "Generar código automáticamente",
           "status": {
@@ -1326,14 +1326,14 @@
           "countRequired": "La cantidad es requerida",
           "maxLetterBuildings": "Máximo 26 edificios con patrón de letras",
           "codeConfig": "Configuración de código",
-          "codeConfigHint": "Genera un código único para cada edificio",
+          "codeConfigHint": "Genera un código único para cada edificio. Útil para identificar edificios en reportes y documentos oficiales. Si no se activa, se puede asignar manualmente después.",
           "codePrefix": "Prefijo de código",
           "codePrefixRequired": "El prefijo de código es requerido",
           "codePatternNumber": "Número con ceros (001, 002...)",
           "codePatternLetter": "Letra (A, B, C...)",
           "codePatternTripleLetter": "Triple letra (AAA, AAB, AAC...)",
           "generateUnits": "Generar unidades también",
-          "generateUnitsHint": "Genera automáticamente las unidades para cada edificio",
+          "generateUnitsHint": "Genera automáticamente las unidades (apartamentos/locales) para cada edificio. Configura cuántas unidades por piso, el patrón de nombres y las características por grupo de pisos.",
           "floorsRequiredForUnits": "Se requiere la cantidad de pisos para generar unidades"
         },
         "units": {
@@ -1346,7 +1346,9 @@
           "clearAll": "Limpiar todo",
           "emptyDescription": "Agrega al menos una unidad por edificio",
           "label": "unidades",
-          "numberRequired": "El número de unidad es requerido"
+          "numberRequired": "El número de unidad es requerido",
+          "aliquotOk": "Alícuota: 100%",
+          "aliquotWarning": "Alícuota: {sum}% (debe ser 100%)"
         },
         "review": {
           "title": "Revisión final",
@@ -1380,7 +1382,7 @@
           "patternBldgFloorLetter": "Edificio + Piso + Letra",
           "separator": "Separador",
           "defaultValues": "Valores por defecto (opcionales)",
-          "defaultValuesHint": "Se aplicarán a todas las unidades generadas. Puedes editarlas individualmente después.",
+          "defaultValuesHint": "Estos valores se aplicarán como predeterminados a todas las unidades generadas. Después puedes editarlos individualmente en el paso de Unidades.",
           "preview": "Vista previa",
           "generate": "Generar unidades",
           "more": "más",
@@ -1390,11 +1392,23 @@
           "unitsPerFloorRequired": "El número de unidades por piso es requerido",
           "maxLetterUnits": "El patrón de letras soporta máximo 26 unidades por piso",
           "floorGroups": "Grupos de pisos",
-          "floorGroupsHint": "Define diferentes características por rango de pisos",
+          "floorGroupsHint": "Permite definir diferentes características para cada rango de pisos. Por ejemplo: pisos 1-3 con 2 habitaciones y pisos 4-10 con 3 habitaciones. Los rangos no deben solaparse entre sí.",
           "addFloorGroup": "Agregar grupo",
           "floorGroupRequired": "Se requiere al menos un grupo de pisos",
           "floorOverlap": "Los rangos de pisos no deben solaparse",
-          "unitPrefix": "Prefijo"
+          "unitPrefix": "Prefijo",
+          "aliquot": "Porcentaje de Alícuota",
+          "aliquotHint": "El porcentaje de alícuota determina qué proporción de los gastos comunes del condominio debe pagar cada unidad. La suma de todas las alícuotas de un edificio debe ser igual al 100%.",
+          "aliquotNone": "No asignar",
+          "aliquotNoneHint": "Se puede asignar después individualmente",
+          "aliquotEqual": "Distribuir equitativamente",
+          "aliquotEqualHint": "Cada unidad recibe {percentage}%",
+          "aliquotByArea": "Proporcional al área (m²)",
+          "aliquotByAreaHint": "Las unidades con mayor área pagan un mayor porcentaje. Se calcula: (área unidad / área total) × 100. Requiere que todos los grupos tengan el campo de área definido.",
+          "aliquotByAreaMissingArea": "Todos los grupos de pisos deben tener el campo de área (m²) para calcular la alícuota proporcional",
+          "aliquotCustom": "Personalizado por grupo",
+          "aliquotCustomHint": "Define un porcentaje fijo por grupo de pisos",
+          "aliquotAuto": "Auto"
         },
         "csv": {
           "title": "Importar unidades desde CSV",
@@ -1514,6 +1528,126 @@
             "statusChange": "Error al cambiar el estado del edificio"
           }
         },
+        "buildingDetail": {
+          "back": "Volver a edificios",
+          "code": "Código",
+          "address": "Dirección",
+          "floors": "Pisos",
+          "units": "Unidades",
+          "status": "Estado",
+          "active": "Activo",
+          "inactive": "Inactivo",
+          "bankInfo": "Información Bancaria",
+          "bankAccountHolder": "Titular",
+          "bankName": "Banco",
+          "bankAccountNumber": "Número de Cuenta",
+          "bankAccountType": "Tipo de Cuenta",
+          "noBankInfo": "Sin información bancaria"
+        },
+        "unitDetail": {
+          "back": "Volver al edificio",
+          "info": "Información",
+          "area": "Área",
+          "bedrooms": "Habitaciones",
+          "bathrooms": "Baños",
+          "parking": "Estacionamientos",
+          "aliquot": "Alícuota",
+          "registeredAt": "Fecha de registro",
+          "floor": "Piso",
+          "financialSummary": "Resumen Financiero",
+          "totalDebt": "Deuda Total",
+          "pendingQuotas": "Cuotas Pendientes",
+          "lastPayment": "Último Pago",
+          "noPayments": "Sin pagos",
+          "owners": "Propietarios / Residentes",
+          "noOwners": "No hay propietarios registrados",
+          "ownershipTypes": {
+            "owner": "Propietario",
+            "co-owner": "Copropietario",
+            "tenant": "Inquilino",
+            "family_member": "Familiar",
+            "authorized": "Autorizado"
+          },
+          "recentQuotas": "Cuotas Recientes",
+          "noQuotas": "No hay cuotas registradas",
+          "quotaTable": {
+            "concept": "Concepto",
+            "period": "Período",
+            "amount": "Monto",
+            "paid": "Pagado",
+            "balance": "Saldo",
+            "status": "Estado"
+          },
+          "recentPayments": "Últimos Pagos",
+          "noPaymentsRegistered": "No hay pagos registrados",
+          "paymentTable": {
+            "number": "#",
+            "date": "Fecha",
+            "amount": "Monto",
+            "method": "Método",
+            "status": "Estado"
+          },
+          "paymentMethods": {
+            "transfer": "Transferencia",
+            "cash": "Efectivo",
+            "card": "Tarjeta",
+            "mobile_payment": "Pago móvil",
+            "gateway": "Pasarela",
+            "other": "Otro"
+          },
+          "quotaStatuses": {
+            "pending": "Pendiente",
+            "paid": "Pagado",
+            "overdue": "Vencido",
+            "cancelled": "Cancelado"
+          },
+          "paymentStatuses": {
+            "pending": "Pendiente",
+            "pending_verification": "Por verificar",
+            "completed": "Completado",
+            "failed": "Fallido",
+            "refunded": "Reembolsado",
+            "rejected": "Rechazado"
+          },
+          "registered": "Registrado el",
+          "viewAll": "Ver todos",
+          "allQuotasTitle": "Todas las Cuotas",
+          "allPaymentsTitle": "Todos los Pagos",
+          "filters": {
+            "dateFrom": "Desde",
+            "dateTo": "Hasta",
+            "status": "Estado",
+            "allStatuses": "Todos",
+            "clear": "Limpiar"
+          },
+          "addOwner": "Agregar",
+          "addOwnerTitle": "Agregar Propietario / Residente",
+          "ownerTable": {
+            "name": "Nombre",
+            "type": "Tipo",
+            "percentage": "%",
+            "startDate": "Inicio",
+            "primaryResidence": "Residencia",
+            "status": "Estado"
+          },
+          "ownerForm": {
+            "fullName": "Nombre completo",
+            "email": "Correo electrónico",
+            "phone": "Teléfono",
+            "ownershipType": "Tipo de relación",
+            "ownershipPercentage": "Porcentaje de propiedad",
+            "startDate": "Fecha de inicio",
+            "isPrimaryResidence": "Residencia principal"
+          },
+          "ownerSuccess": {
+            "created": "Propietario agregado exitosamente"
+          },
+          "ownerError": {
+            "create": "Error al agregar propietario"
+          },
+          "yes": "Sí",
+          "no": "No"
+        },
         "units": {
           "title": "Unidades",
           "addUnit": "Agregar Unidad",
@@ -1550,12 +1684,14 @@
           "success": {
             "created": "Unidad creada exitosamente",
             "updated": "Unidad actualizada exitosamente",
-            "deleted": "Unidad eliminada exitosamente"
+            "deleted": "Unidad eliminada exitosamente",
+            "statusChanged": "Estado de la unidad actualizado"
           },
           "error": {
             "create": "Error al crear la unidad",
             "update": "Error al actualizar la unidad",
-            "delete": "Error al eliminar la unidad"
+            "delete": "Error al eliminar la unidad",
+            "statusChange": "Error al cambiar el estado de la unidad"
           }
         },
         "users": {
@@ -2678,6 +2814,8 @@
       "loginToAccept": "Iniciar Sesión para Aceptar",
       "success": "Suscripción aceptada y activada exitosamente",
       "invalidTitle": "Enlace Inválido",
+      "unauthorizedTitle": "Acceso No Autorizado",
+      "unauthorizedDescription": "Solo el administrador principal de la empresa puede acceder a este enlace. Si crees que esto es un error, contacta al administrador de la plataforma.",
       "expiredTitle": "Enlace Expirado",
       "expiredDescription": "El enlace de aceptación ha expirado.",
       "expiredHelp": "Contacta al administrador para solicitar un nuevo enlace de aceptación.",
@@ -3315,5 +3453,32 @@
         "description": "Accede a tus condominios como residente o administrador"
       }
     }
+  },
+  "apiErrors": {
+    "ALREADY_EXISTS": "Ya existe un registro con este dato",
+    "ALREADY_EXISTS.Condominium.email": "Ya existe un condominio con este correo electrónico",
+    "ALREADY_EXISTS.Condominium.code": "Ya existe un condominio con este código",
+    "ALREADY_EXISTS.Condominium.name": "Ya existe un condominio con este nombre",
+    "ALREADY_EXISTS.Building.name": "Ya existe un edificio con este nombre",
+    "ALREADY_EXISTS.Building.code": "Ya existe un edificio con este código",
+    "ALREADY_EXISTS.Unit.unitNumber": "Ya existe una unidad con este número",
+    "ALREADY_EXISTS.User.email": "Ya existe un usuario con este correo electrónico",
+    "NOT_FOUND": "Recurso no encontrado",
+    "NOT_FOUND.Condominium": "Condominio no encontrado",
+    "NOT_FOUND.Building": "Edificio no encontrado",
+    "NOT_FOUND.Unit": "Unidad no encontrada",
+    "VALIDATION_ERROR": "Error de validación en los datos enviados",
+    "DUPLICATE_KEY": "Ya existe un registro con este valor",
+    "UNAUTHORIZED": "Autenticación requerida",
+    "FORBIDDEN": "No tienes permisos para realizar esta acción",
+    "TOKEN_EXPIRED": "La sesión ha expirado. Por favor inicia sesión nuevamente",
+    "INVALID_TOKEN": "Token inválido",
+    "INTERNAL_ERROR": "Ocurrió un error inesperado. Intenta de nuevo más tarde",
+    "RATE_LIMITED": "Demasiadas solicitudes. Intenta de nuevo más tarde",
+    "CONFLICT": "Conflicto al procesar la solicitud",
+    "SERVICE_UNAVAILABLE": "El servicio no está disponible temporalmente",
+    "FOREIGN_KEY_VIOLATION": "No se puede realizar la operación: existen registros relacionados",
+    "DATABASE_ERROR": "Error en la base de datos",
+    "unknown": "Ocurrió un error inesperado"
   }
 }

@@ -6,6 +6,8 @@ import {
   LocationsRepository,
   CurrenciesRepository,
   UsersRepository,
+  BuildingsRepository,
+  UnitsRepository,
 } from '@database/repositories'
 import { CondominiumsController } from '../controllers'
 import type { IEndpoint } from './types'
@@ -22,6 +24,8 @@ export class CondominiumsEndpoint implements IEndpoint {
     const locationsRepository = new LocationsRepository(db)
     const currenciesRepository = new CurrenciesRepository(db)
     const usersRepository = new UsersRepository(db)
+    const buildingsRepository = new BuildingsRepository(db)
+    const unitsRepository = new UnitsRepository(db)
     this.controller = new CondominiumsController(
       condominiumsRepository,
       subscriptionsRepository,
@@ -29,6 +33,8 @@ export class CondominiumsEndpoint implements IEndpoint {
       locationsRepository,
       currenciesRepository,
       usersRepository,
+      buildingsRepository,
+      unitsRepository,
       db
     )
   }

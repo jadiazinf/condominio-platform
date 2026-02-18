@@ -4,8 +4,11 @@ import type {
   SubscriptionAcceptancesRepository,
   ManagementCompanySubscriptionsRepository,
   SubscriptionAuditHistoryRepository,
+  ManagementCompanyMembersRepository,
 } from '@database/repositories'
-import { paramsValidator, bodyValidator, getParams, getBody } from '../../middlewares/utils/payload-validator'
+import { paramsValidator, getParams } from '../../middlewares/utils/payload-validator'
+import { authMiddleware } from '../../middlewares/auth'
+import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
 import { createRouter } from '../create-router'
 import type { TRouteDefinition } from '../types'
 import { AcceptSubscriptionService, SubscriptionAuditService } from '../../../services/subscriptions'
@@ -16,27 +19,25 @@ const TokenParamSchema = z.object({
 
 type TTokenParam = z.infer<typeof TokenParamSchema>
 
-const AcceptSubscriptionBodySchema = z.object({
-  userId: z.string().uuid('Invalid user ID format'),
-  email: z.string().email('Invalid email format'),
-})
-
-type TAcceptSubscriptionBody = z.infer<typeof AcceptSubscriptionBodySchema>
-
 /**
- * Controller for public subscription acceptance endpoints.
+ * Controller for subscription acceptance endpoints.
+ *
+ * Both endpoints require authentication and verify the user is the
+ * primary admin of the management company that owns the subscription.
  *
  * Endpoints:
- * - GET  /subscription-accept/validate/:token   Validate acceptance token
+ * - GET  /subscription-accept/validate/:token   Validate token + authorization check
  * - POST /subscription-accept/:token            Accept subscription
  */
 export class SubscriptionAcceptancesController {
   private readonly acceptService: AcceptSubscriptionService
+  private readonly membersRepository: ManagementCompanyMembersRepository
 
   constructor(
     acceptancesRepository: SubscriptionAcceptancesRepository,
     subscriptionsRepository: ManagementCompanySubscriptionsRepository,
-    auditRepository: SubscriptionAuditHistoryRepository
+    auditRepository: SubscriptionAuditHistoryRepository,
+    membersRepository: ManagementCompanyMembersRepository
   ) {
     const auditService = new SubscriptionAuditService(auditRepository)
     this.acceptService = new AcceptSubscriptionService(
@@ -44,27 +45,24 @@ export class SubscriptionAcceptancesController {
       subscriptionsRepository,
       auditService
     )
-
+    this.membersRepository = membersRepository
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      // Public: Validate acceptance token
+      // Authenticated: Validate acceptance token (primary admin only)
       {
         method: 'get',
         path: '/subscription-accept/validate/:token',
         handler: this.validateToken,
-        middlewares: [paramsValidator(TokenParamSchema)],
+        middlewares: [authMiddleware, paramsValidator(TokenParamSchema)],
       },
-      // Public: Accept subscription
+      // Authenticated: Accept subscription (primary admin only)
       {
         method: 'post',
         path: '/subscription-accept/:token',
         handler: this.acceptSubscription,
-        middlewares: [
-          paramsValidator(TokenParamSchema),
-          bodyValidator(AcceptSubscriptionBodySchema),
-        ],
+        middlewares: [authMiddleware, paramsValidator(TokenParamSchema)],
       },
     ]
   }
@@ -74,28 +72,63 @@ export class SubscriptionAcceptancesController {
   }
 
   /**
-   * Validate an acceptance token (public endpoint)
+   * Validate token and verify the user is the primary admin.
+   * Returns 403 if the user is not authorized.
+   */
+  private validateAndAuthorize = async (token: string, userId: string) => {
+    const result = await this.acceptService.validateToken({ token })
+
+    if (!result.success) {
+      return { authorized: false as const, tokenResult: result }
+    }
+
+    const acceptance = result.data
+    const subscription = await this.acceptService.getSubscriptionById(acceptance.subscriptionId)
+
+    if (!subscription) {
+      return { authorized: false as const, tokenResult: { success: false as const, error: 'Subscription not found', code: 'NOT_FOUND' } }
+    }
+
+    const primaryAdmin = await this.membersRepository.getPrimaryAdmin(subscription.managementCompanyId)
+
+    if (!primaryAdmin || primaryAdmin.userId !== userId) {
+      return { authorized: false as const, forbidden: true as const }
+    }
+
+    return { authorized: true as const, acceptance, subscription, tokenResult: result }
+  }
+
+  /**
+   * Validate an acceptance token (authenticated, primary admin only)
    */
   private validateToken = async (c: Context): Promise<Response> => {
     const params = getParams<TTokenParam>(c)
+    const user = c.get(AUTHENTICATED_USER_PROP)
 
     try {
-      const result = await this.acceptService.validateToken({ token: params.token })
+      const auth = await this.validateAndAuthorize(params.token, user.id)
 
-      if (!result.success) {
-        if (result.code === 'NOT_FOUND') {
-          return c.json({ success: false, error: result.error }, 404)
-        }
-        return c.json({ success: false, error: result.error }, 400)
+      if ('forbidden' in auth) {
+        return c.json(
+          { success: false, error: 'Solo el administrador principal de la empresa puede acceder a este enlace' },
+          403
+        )
       }
 
-      // Return limited info (don't expose full acceptance data)
+      if (!auth.authorized) {
+        const code = auth.tokenResult.code
+        if (code === 'NOT_FOUND') {
+          return c.json({ success: false, error: auth.tokenResult.error }, 404)
+        }
+        return c.json({ success: false, error: auth.tokenResult.error }, 400)
+      }
+
       return c.json({
         success: true,
         data: {
-          subscriptionId: result.data.subscriptionId,
-          status: result.data.status,
-          expiresAt: result.data.expiresAt,
+          subscriptionId: auth.acceptance.subscriptionId,
+          status: auth.acceptance.status,
+          expiresAt: auth.acceptance.expiresAt,
         },
       })
     } catch (error) {
@@ -105,21 +138,37 @@ export class SubscriptionAcceptancesController {
   }
 
   /**
-   * Accept subscription using token (public endpoint)
+   * Accept subscription using token (authenticated, primary admin only)
    */
   private acceptSubscription = async (c: Context): Promise<Response> => {
     const params = getParams<TTokenParam>(c)
-    const body = getBody<TAcceptSubscriptionBody>(c)
+    const user = c.get(AUTHENTICATED_USER_PROP)
 
-    // Get client info
     const ipAddress = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || null
     const userAgent = c.req.header('user-agent') || null
 
     try {
+      const auth = await this.validateAndAuthorize(params.token, user.id)
+
+      if ('forbidden' in auth) {
+        return c.json(
+          { success: false, error: 'Solo el administrador principal de la empresa puede aceptar la suscripción' },
+          403
+        )
+      }
+
+      if (!auth.authorized) {
+        const code = auth.tokenResult.code
+        if (code === 'NOT_FOUND') {
+          return c.json({ success: false, error: auth.tokenResult.error }, 404)
+        }
+        return c.json({ success: false, error: auth.tokenResult.error }, 400)
+      }
+
       const result = await this.acceptService.accept({
         token: params.token,
-        userId: body.userId,
-        email: body.email,
+        userId: user.id,
+        email: user.email,
         ipAddress,
         userAgent,
       })
@@ -145,7 +194,6 @@ export class SubscriptionAcceptancesController {
             acceptedAt: result.data.acceptance.acceptedAt,
           },
         },
-        message: 'Subscription accepted successfully',
       })
     } catch (error) {
       console.error('Error accepting subscription:', error)

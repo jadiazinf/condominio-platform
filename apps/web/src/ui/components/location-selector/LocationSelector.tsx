@@ -75,8 +75,9 @@ export function LocationSelector({
   const [selectedProvinceId, setSelectedProvinceId] = useState<string | null>(null)
   const [selectedCityId, setSelectedCityId] = useState<string | null>(null)
 
-  // Track initialization state
-  const [isInitializing, setIsInitializing] = useState(false)
+  // Track initialization state — start as true when there's a value to prevent
+  // the onChange effect from wiping the form value before initialization completes
+  const [isInitializing, setIsInitializing] = useState(!!value)
   const lastInitializedValueRef = useRef<string | null>(null)
 
   // Get token

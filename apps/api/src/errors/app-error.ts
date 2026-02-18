@@ -225,38 +225,81 @@ export function isAppError(error: unknown): error is AppError {
 }
 
 /**
+ * PostgreSQL error codes.
+ * @see https://www.postgresql.org/docs/current/errcodes-appendix.html
+ */
+const PG_CODES = {
+  UNIQUE_VIOLATION: '23505',
+  FOREIGN_KEY_VIOLATION: '23503',
+  NOT_NULL_VIOLATION: '23502',
+  CHECK_VIOLATION: '23514',
+} as const
+
+/**
+ * Extracts a field name from a PostgreSQL error detail string.
+ * e.g. 'Key (email)=(test@test.com) already exists.' → 'email'
+ */
+function extractFieldFromDetail(detail?: string): string | null {
+  if (!detail) return null
+  const match = detail.match(/Key \(([^)]+)\)=/)
+  return match?.[1] ?? null
+}
+
+/**
  * Parses database errors and converts them to AppError.
- * Handles common PostgreSQL error patterns.
+ * Handles PostgreSQL error codes (from pg/drizzle) and message-based patterns.
  */
 export function parseDbError(error: unknown): AppError {
   if (error instanceof AppError) {
     return error
   }
 
+  // Handle PostgreSQL-style errors (have a numeric `code` property like "23505")
+  const pgError = error as { code?: string; message?: string; detail?: string } | null
+  const pgCode = pgError?.code
+  const detail = pgError?.detail
+
+  if (pgCode === PG_CODES.UNIQUE_VIOLATION) {
+    const field = extractFieldFromDetail(detail) ?? 'field'
+    return AppError.duplicateKey(field)
+  }
+
+  if (pgCode === PG_CODES.FOREIGN_KEY_VIOLATION) {
+    const refMatch = detail?.match(/referenced by table "([^"]+)"/) ??
+      (pgError?.message?.match(/referenced by table "([^"]+)"/) || null)
+    const reference = refMatch?.[1] ?? 'related resource'
+    return AppError.foreignKeyViolation(reference)
+  }
+
+  if (pgCode === PG_CODES.NOT_NULL_VIOLATION) {
+    return AppError.validation('Required field is missing')
+  }
+
+  if (pgCode === PG_CODES.CHECK_VIOLATION) {
+    return AppError.validation('Data validation failed')
+  }
+
+  // Fallback: message-based pattern matching for non-pg errors
   if (error instanceof Error) {
     const message = error.message.toLowerCase()
 
-    // Duplicate key / unique constraint violation
     if (message.includes('duplicate key') || message.includes('unique constraint')) {
-      // Try to extract field name from error message
-      const fieldMatch = error.message.match(/Key \(([^)]+)\)=/)
-      const field = fieldMatch?.[1] ?? 'field'
+      const field = extractFieldFromDetail((error as { detail?: string }).detail)
+        ?? error.message.match(/Key \(([^)]+)\)=/)?.[1]
+        ?? 'field'
       return AppError.duplicateKey(field)
     }
 
-    // Foreign key violation
     if (message.includes('foreign key') || message.includes('violates foreign key')) {
       const refMatch = error.message.match(/referenced by table "([^"]+)"/)
       const reference = refMatch?.[1] ?? 'related resource'
       return AppError.foreignKeyViolation(reference)
     }
 
-    // Not null violation
     if (message.includes('not-null constraint') || message.includes('null value')) {
       return AppError.validation('Required field is missing')
     }
 
-    // Check constraint violation
     if (message.includes('check constraint')) {
       return AppError.validation('Data validation failed')
     }

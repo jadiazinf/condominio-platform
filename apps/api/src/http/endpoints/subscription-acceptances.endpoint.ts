@@ -3,6 +3,7 @@ import {
   SubscriptionAcceptancesRepository,
   ManagementCompanySubscriptionsRepository,
   SubscriptionAuditHistoryRepository,
+  ManagementCompanyMembersRepository,
 } from '@database/repositories'
 import { SubscriptionAcceptancesController } from '../controllers/subscription-acceptances/acceptances.controller'
 import type { IEndpoint } from './types'
@@ -16,10 +17,12 @@ export class SubscriptionAcceptancesEndpoint implements IEndpoint {
     const acceptancesRepository = new SubscriptionAcceptancesRepository(db)
     const subscriptionsRepository = new ManagementCompanySubscriptionsRepository(db)
     const auditRepository = new SubscriptionAuditHistoryRepository(db)
+    const membersRepository = new ManagementCompanyMembersRepository(db)
     this.controller = new SubscriptionAcceptancesController(
       acceptancesRepository,
       subscriptionsRepository,
-      auditRepository
+      auditRepository,
+      membersRepository
     )
   }
 

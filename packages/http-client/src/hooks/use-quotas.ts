@@ -1,6 +1,6 @@
 import { useApiMutation, useApiQuery } from './use-api-query'
 import { getHttpClient } from '../client/http-client'
-import type { TApiDataResponse } from '../types/api-responses'
+import type { TApiDataResponse, TApiPaginatedResponse } from '../types/api-responses'
 import type { ApiResponse } from '../types/http'
 import type { TQuota, TQuotaCreate, TQuotaUpdate } from '@packages/domain'
 
@@ -13,6 +13,8 @@ export const quotaKeys = {
   lists: () => [...quotaKeys.all, 'list'] as const,
   list: (query: IQuotasQuery) => [...quotaKeys.lists(), query] as const,
   byUnit: (unitId: string) => [...quotaKeys.all, 'unit', unitId] as const,
+  byUnitPaginated: (unitId: string, query: IQuotasByUnitQuery) =>
+    [...quotaKeys.all, 'unit', unitId, 'paginated', query] as const,
   pendingByUnit: (unitId: string) => [...quotaKeys.all, 'unit', unitId, 'pending'] as const,
   byStatus: (status: string) => [...quotaKeys.all, 'status', status] as const,
   overdue: (date: string) => [...quotaKeys.all, 'overdue', date] as const,
@@ -37,6 +39,14 @@ export interface IQuotasQuery {
 export interface IUseQuotasOptions {
   query?: IQuotasQuery
   enabled?: boolean
+}
+
+export interface IQuotasByUnitQuery {
+  page?: number
+  limit?: number
+  startDate?: string
+  endDate?: string
+  status?: string
 }
 
 export interface IUseQuotaDetailOptions {
@@ -81,6 +91,35 @@ export function useQuotasByUnit(unitId: string, options?: { enabled?: boolean })
     queryKey: quotaKeys.byUnit(unitId),
     config: {},
     enabled: options?.enabled !== false && !!unitId,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hooks - Get Quotas by Unit (Paginated)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useQuotasByUnitPaginated(options: {
+  query: IQuotasByUnitQuery & { unitId: string }
+  enabled?: boolean
+}) {
+  const { query, enabled = true } = options
+  const { unitId, ...filters } = query
+
+  const params = new URLSearchParams()
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+  if (filters.startDate) params.set('startDate', filters.startDate)
+  if (filters.endDate) params.set('endDate', filters.endDate)
+  if (filters.status) params.set('status', filters.status)
+
+  const queryString = params.toString()
+  const path = `/condominium/quotas/unit/${unitId}/paginated${queryString ? `?${queryString}` : ''}`
+
+  return useApiQuery<TApiPaginatedResponse<TQuota>>({
+    path,
+    queryKey: quotaKeys.byUnitPaginated(unitId, filters),
+    config: {},
+    enabled: enabled && !!unitId,
   })
 }
 
@@ -214,6 +253,26 @@ export async function getQuotas(): Promise<TQuota[]> {
 export async function getQuotasByUnit(unitId: string): Promise<TQuota[]> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TQuota[]>>(`/condominium/quotas/unit/${unitId}`)
+  return response.data.data
+}
+
+export async function getQuotasByUnitServer(
+  token: string,
+  unitId: string,
+  condominiumId?: string,
+  managementCompanyId?: string
+): Promise<TQuota[]> {
+  const client = getHttpClient()
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  }
+  if (condominiumId) {
+    headers['x-condominium-id'] = condominiumId
+  }
+  if (managementCompanyId) {
+    headers['x-management-company-id'] = managementCompanyId
+  }
+  const response = await client.get<TApiDataResponse<TQuota[]>>(`/condominium/quotas/unit/${unitId}`, { headers })
   return response.data.data
 }
 

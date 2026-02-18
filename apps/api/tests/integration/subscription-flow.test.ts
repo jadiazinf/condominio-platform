@@ -23,6 +23,7 @@ import {
   SubscriptionAcceptancesRepository,
   ManagementCompanySubscriptionsRepository,
   SubscriptionAuditHistoryRepository,
+  ManagementCompanyMembersRepository,
 } from '@database/repositories'
 import { SubscriptionRatesController } from '@http/controllers/subscription-rates/rates.controller'
 import { SubscriptionTermsConditionsController } from '@http/controllers/subscription-terms-conditions/terms.controller'
@@ -70,11 +71,12 @@ beforeEach(async () => {
   const acceptancesRepo = new SubscriptionAcceptancesRepository(db)
   const subscriptionsRepo = new ManagementCompanySubscriptionsRepository(db)
   const auditRepo = new SubscriptionAuditHistoryRepository(db)
+  const membersRepo = new ManagementCompanyMembersRepository(db)
 
   const ratesController = new SubscriptionRatesController(ratesRepo)
   const termsController = new SubscriptionTermsConditionsController(termsRepo)
   const invoicesController = new SubscriptionInvoicesController(invoicesRepo)
-  const acceptancesController = new SubscriptionAcceptancesController(acceptancesRepo, subscriptionsRepo, auditRepo)
+  const acceptancesController = new SubscriptionAcceptancesController(acceptancesRepo, subscriptionsRepo, auditRepo, membersRepo)
 
   app = createTestApp()
   app.route('', ratesController.createRouter())
@@ -482,6 +484,14 @@ describe('Subscription System', () => {
       const subscriptionId = await insertSubscription({ status: 'inactive' })
       const terms = await createTerms()
 
+      // Insert mock user as primary admin of the company
+      await db.execute(sql`
+        INSERT INTO management_company_members
+          (management_company_id, user_id, role_name, is_primary_admin, is_active)
+        VALUES
+          (${companyId}, ${MOCK_USER_ID}, 'admin', true, true)
+      `)
+
       // Generate token and hash
       const token = crypto.randomBytes(32).toString('hex')
       const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
@@ -507,6 +517,14 @@ describe('Subscription System', () => {
       const subscriptionId = await insertSubscription({ status: 'inactive' })
       const terms = await createTerms()
 
+      // Insert mock user as primary admin of the company
+      await db.execute(sql`
+        INSERT INTO management_company_members
+          (management_company_id, user_id, role_name, is_primary_admin, is_active)
+        VALUES
+          (${companyId}, ${MOCK_USER_ID}, 'admin', true, true)
+      `)
+
       const token = crypto.randomBytes(32).toString('hex')
       const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
 
@@ -520,10 +538,7 @@ describe('Subscription System', () => {
       const res = await request(`/subscription-accept/${token}`, {
         method: 'POST',
         headers: JSON_HEADERS,
-        body: JSON.stringify({
-          userId: MOCK_USER_ID,
-          email: 'admin@test.com',
-        }),
+        body: JSON.stringify({}),
       })
 
       expect(res.status).toBe(200)
@@ -531,6 +546,82 @@ describe('Subscription System', () => {
       expect(json.success).toBe(true)
       expect(json.data.subscription.status).toBe('active')
       expect(json.data.acceptance.status).toBe('accepted')
+    })
+
+    it('returns 403 when non-primary-admin validates token', async () => {
+      const subscriptionId = await insertSubscription({ status: 'inactive' })
+      const terms = await createTerms()
+
+      // Insert a DIFFERENT user as the primary admin (not the mock user)
+      const realAdminId = '660e8400-e29b-41d4-a716-446655440001'
+      await db.execute(sql`
+        INSERT INTO users (id, firebase_uid, email, display_name, first_name, last_name, is_active, is_email_verified, preferred_language)
+        VALUES (${realAdminId}, 'firebase-uid-2', 'realadmin@test.com', 'Real Admin', 'Real', 'Admin', true, true, 'es')
+      `)
+
+      await db.execute(sql`
+        INSERT INTO management_company_members
+          (management_company_id, user_id, role_name, is_primary_admin, is_active)
+        VALUES
+          (${companyId}, ${realAdminId}, 'admin', true, true)
+      `)
+
+      const token = crypto.randomBytes(32).toString('hex')
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
+
+      await db.execute(sql`
+        INSERT INTO subscription_acceptances
+          (subscription_id, terms_conditions_id, token, token_hash, status, expires_at)
+        VALUES
+          (${subscriptionId}, ${terms.id as string}, ${token}, ${tokenHash}, 'pending', NOW() + INTERVAL '7 days')
+      `)
+
+      // Request uses mock user (MOCK_USER_ID) which is NOT the primary admin
+      const res = await request(`/subscription-accept/validate/${token}`)
+
+      expect(res.status).toBe(403)
+      const json = await res.json() as { success: boolean; error: string }
+      expect(json.success).toBe(false)
+    })
+
+    it('returns 403 when non-primary-admin tries to accept', async () => {
+      const subscriptionId = await insertSubscription({ status: 'inactive' })
+      const terms = await createTerms()
+
+      // Insert a DIFFERENT user as the primary admin (not the mock user)
+      const realAdminId = '660e8400-e29b-41d4-a716-446655440001'
+      await db.execute(sql`
+        INSERT INTO users (id, firebase_uid, email, display_name, first_name, last_name, is_active, is_email_verified, preferred_language)
+        VALUES (${realAdminId}, 'firebase-uid-2', 'realadmin@test.com', 'Real Admin', 'Real', 'Admin', true, true, 'es')
+      `)
+
+      await db.execute(sql`
+        INSERT INTO management_company_members
+          (management_company_id, user_id, role_name, is_primary_admin, is_active)
+        VALUES
+          (${companyId}, ${realAdminId}, 'admin', true, true)
+      `)
+
+      const token = crypto.randomBytes(32).toString('hex')
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
+
+      await db.execute(sql`
+        INSERT INTO subscription_acceptances
+          (subscription_id, terms_conditions_id, token, token_hash, status, expires_at)
+        VALUES
+          (${subscriptionId}, ${terms.id as string}, ${token}, ${tokenHash}, 'pending', NOW() + INTERVAL '7 days')
+      `)
+
+      // Mock user (MOCK_USER_ID) is NOT the primary admin → should get 403
+      const res = await request(`/subscription-accept/${token}`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({}),
+      })
+
+      expect(res.status).toBe(403)
+      const json = await res.json() as { success: boolean; error: string }
+      expect(json.success).toBe(false)
     })
 
     it('rejects expired acceptance token', async () => {

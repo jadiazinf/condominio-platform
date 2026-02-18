@@ -63,12 +63,13 @@ export function validateSubscriptionLimit(
       })
 
       if (!result.success) {
+        const t = useTranslation(c)
         return c.json(
           {
             success: false,
             error: {
               code: result.code,
-              message: result.error,
+              message: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription),
             },
           },
           StatusCodes.NOT_FOUND

@@ -22,18 +22,7 @@ interface IBuildingsPageClientProps {
         namePlaceholder: string
         code: string
         codePlaceholder: string
-        address: string
-        addressPlaceholder: string
         floors: string
-        bankInfo: string
-        bankAccountHolder: string
-        bankName: string
-        bankAccountNumber: string
-        bankAccountType: string
-        accountTypes: {
-          corriente: string
-          ahorro: string
-        }
       }
       success: {
         created: string

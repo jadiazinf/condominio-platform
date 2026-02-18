@@ -13,7 +13,7 @@ export const condominiums = pgTable(
     locationId: uuid('location_id').references(() => locations.id, {
       onDelete: 'set null',
     }),
-    email: varchar('email', { length: 255 }).notNull().unique(),
+    email: varchar('email', { length: 255 }),
     phone: varchar('phone', { length: 50 }),
     phoneCountryCode: varchar('phone_country_code', { length: 10 }),
     defaultCurrencyId: uuid('default_currency_id').references(() => currencies.id, {

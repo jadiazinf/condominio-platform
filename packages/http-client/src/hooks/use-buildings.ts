@@ -196,9 +196,9 @@ export function useToggleBuildingStatus(options: UseToggleBuildingStatusOptions 
 /**
  * Create a building directly with explicit condominium context.
  * Used in the condominium creation wizard where no global condominium ID is set.
+ * Auth is handled automatically by the HttpClient via session cookies.
  */
 export async function createBuildingDirect(
-  token: string,
   condominiumId: string,
   data: Omit<TCreateBuildingVariables, 'condominiumId'>
 ): Promise<TBuilding> {
@@ -208,7 +208,6 @@ export async function createBuildingDirect(
     { ...data, condominiumId },
     {
       headers: {
-        Authorization: `Bearer ${token}`,
         'x-condominium-id': condominiumId,
       },
     }
@@ -219,9 +218,9 @@ export async function createBuildingDirect(
 /**
  * Create multiple buildings in a single bulk request.
  * Used in the condominium creation wizard to avoid N individual requests.
+ * Auth is handled automatically by the HttpClient via session cookies.
  */
 export async function createBuildingsBulk(
-  token: string,
   condominiumId: string,
   buildings: Omit<TCreateBuildingVariables, 'condominiumId'>[]
 ): Promise<TBuilding[]> {
@@ -231,7 +230,6 @@ export async function createBuildingsBulk(
     { buildings },
     {
       headers: {
-        Authorization: `Bearer ${token}`,
         'x-condominium-id': condominiumId,
       },
     }
@@ -248,17 +246,23 @@ export async function createBuildingsBulk(
  */
 export async function getCondominiumBuildings(
   token: string,
-  condominiumId: string
+  condominiumId: string,
+  managementCompanyId?: string
 ): Promise<TBuilding[]> {
   const client = getHttpClient()
 
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    'x-condominium-id': condominiumId,
+  }
+
+  if (managementCompanyId) {
+    headers['x-management-company-id'] = managementCompanyId
+  }
+
   const response = await client.get<TApiDataResponse<TBuilding[]>>(
     '/condominium/buildings',
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
+    { headers }
   )
 
   return response.data.data
@@ -267,13 +271,26 @@ export async function getCondominiumBuildings(
 /**
  * Server-side function to get building details.
  */
-export async function getBuildingDetail(token: string, buildingId: string): Promise<TBuilding> {
+export async function getBuildingDetail(
+  token: string,
+  buildingId: string,
+  condominiumId?: string,
+  managementCompanyId?: string
+): Promise<TBuilding> {
   const client = getHttpClient()
 
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  }
+  if (condominiumId) {
+    headers['x-condominium-id'] = condominiumId
+  }
+  if (managementCompanyId) {
+    headers['x-management-company-id'] = managementCompanyId
+  }
+
   const response = await client.get<TApiDataResponse<TBuilding>>(`/condominium/buildings/${buildingId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers,
   })
 
   return response.data.data

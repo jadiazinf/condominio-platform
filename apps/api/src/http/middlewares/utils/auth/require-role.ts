@@ -93,11 +93,15 @@ export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
         .limit(1)
 
       if (superadminResult[0] && superadminResult[0].isActive) {
-        // SUPERADMIN authenticated — set managementCompanyId if route param exists
+        // SUPERADMIN authenticated — propagate scope IDs from params/headers
         c.set(USER_ROLE_PROP, SUPERADMIN_ROLE)
         const managementCompanyId = c.req.param('managementCompanyId')
         if (managementCompanyId) {
           c.set(MANAGEMENT_COMPANY_ID_PROP, managementCompanyId)
+        }
+        const condominiumId = c.req.header('x-condominium-id')
+        if (condominiumId) {
+          c.set(CONDOMINIUM_ID_PROP, condominiumId)
         }
         await next()
         return
@@ -135,6 +139,10 @@ export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
         if (mcResult[0]) {
           c.set(MANAGEMENT_COMPANY_ID_PROP, managementCompanyId)
           c.set(USER_ROLE_PROP, mcResult[0].roleName.toUpperCase())
+          const condominiumId = c.req.header('x-condominium-id')
+          if (condominiumId) {
+            c.set(CONDOMINIUM_ID_PROP, condominiumId)
+          }
           await next()
           return
         }

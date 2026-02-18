@@ -150,25 +150,20 @@ export async function getPlatformCondominiumsPaginated(
 // ============================================
 
 export interface UseCreateCondominiumOptions {
-  token: string
   onSuccess?: (data: TCondominium) => void
   onError?: (error: Error) => void
 }
 
 /**
  * Hook to create a new condominium.
+ * Auth is handled automatically by the HttpClient via session cookies.
  */
-export function useCreateCondominium(options: UseCreateCondominiumOptions) {
-  const { token, onSuccess, onError } = options
+export function useCreateCondominium(options: UseCreateCondominiumOptions = {}) {
+  const { onSuccess, onError } = options
 
   return useApiMutation<TApiDataResponse<TCondominium>, TCondominiumCreate>({
     path: '/condominium/condominiums',
     method: 'POST',
-    config: {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
     invalidateKeys: [condominiumsKeys.all],
     onSuccess: (response: ApiResponse<TApiDataResponse<TCondominium>>) => {
       onSuccess?.(response.data.data)
@@ -204,25 +199,20 @@ export interface TGenerateCondominiumCodeResponse {
 }
 
 export interface UseGenerateCondominiumCodeOptions {
-  token: string
   onSuccess?: (data: TGenerateCondominiumCodeResponse) => void
   onError?: (error: Error) => void
 }
 
 /**
  * Hook to generate a unique condominium code.
+ * Auth is handled automatically by the HttpClient via session cookies.
  */
 export function useGenerateCondominiumCode(options: UseGenerateCondominiumCodeOptions) {
-  const { token, onSuccess, onError } = options
+  const { onSuccess, onError } = options
 
   return useApiMutation<TApiDataResponse<TGenerateCondominiumCodeResponse>, void>({
     path: '/condominium/condominiums/generate-code',
     method: 'POST',
-    config: {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
     onSuccess: (response: ApiResponse<TApiDataResponse<TGenerateCondominiumCodeResponse>>) => {
       onSuccess?.(response.data.data)
     },
@@ -294,6 +284,57 @@ export async function updateCondominium(
   const client = getHttpClient()
 
   const response = await client.patch<TApiDataResponse<TCondominium>>(`/condominium/condominiums/${id}`, data)
+
+  return response.data.data
+}
+
+// ============================================
+// WIZARD: CREATE CONDOMINIUM + BUILDINGS + UNITS
+// ============================================
+
+export type TWizardBuildingInput = {
+  name: string
+  code?: string | null
+  address?: string | null
+  floorsCount?: number | null
+  unitsCount?: number | null
+  isActive?: boolean
+  units: TWizardUnitInput[]
+}
+
+export type TWizardUnitInput = {
+  unitNumber: string
+  floor?: number | null
+  areaM2?: string | null
+  bedrooms?: number | null
+  bathrooms?: number | null
+  parkingSpaces?: number
+  aliquotPercentage?: string | null
+}
+
+export type TWizardInput = {
+  condominium: TCondominiumCreate
+  buildings: TWizardBuildingInput[]
+}
+
+export type TWizardResult = {
+  condominium: TCondominium
+  buildingsCreated: number
+  unitsCreated: number
+}
+
+/**
+ * Creates a condominium with all buildings and units in a single transaction.
+ */
+export async function createCondominiumWizard(
+  data: TWizardInput
+): Promise<TWizardResult> {
+  const client = getHttpClient()
+
+  const response = await client.post<TApiDataResponse<TWizardResult>>(
+    '/condominium/condominiums/wizard',
+    data
+  )
 
   return response.data.data
 }

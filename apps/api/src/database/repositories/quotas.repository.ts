@@ -1,5 +1,5 @@
-import { and, eq, desc, lte, gte } from 'drizzle-orm'
-import type { TQuota, TQuotaCreate, TQuotaUpdate } from '@packages/domain'
+import { and, eq, desc, lte, gte, type SQL } from 'drizzle-orm'
+import type { TQuota, TQuotaCreate, TQuotaUpdate, TPaginatedResponse } from '@packages/domain'
 import { quotas } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
 import { BaseRepository } from './base'
@@ -113,6 +113,28 @@ export class QuotasRepository
       .returning()
 
     return results.length > 0
+  }
+
+  /**
+   * Retrieves paginated quotas for a unit with optional filters.
+   */
+  async listPaginatedByUnit(
+    unitId: string,
+    options: { page?: number; limit?: number; startDate?: string; endDate?: string; status?: string }
+  ): Promise<TPaginatedResponse<TQuota>> {
+    const conditions: SQL[] = [eq(quotas.unitId, unitId)]
+
+    if (options.startDate) {
+      conditions.push(gte(quotas.dueDate, options.startDate))
+    }
+    if (options.endDate) {
+      conditions.push(lte(quotas.dueDate, options.endDate))
+    }
+    if (options.status) {
+      conditions.push(eq(quotas.status, options.status as TQuota['status']))
+    }
+
+    return this.listPaginated({ page: options.page, limit: options.limit }, conditions)
   }
 
   /**

@@ -8,7 +8,6 @@ import { Spinner } from '@/ui/components/spinner'
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { useToast } from '@/ui/components/toast'
 import { useTranslation, useAuth } from '@/contexts'
-import { useSessionStore } from '@/stores/session-store'
 import { getHttpClient, HttpError, useActiveSubscriptionTerms } from '@packages/http-client'
 
 interface AcceptSubscriptionFormProps {
@@ -25,7 +24,6 @@ export function AcceptSubscriptionForm({
   const { t } = useTranslation()
   const toast = useToast()
   const { user: firebaseUser } = useAuth()
-  const dbUser = useSessionStore(s => s.user)
   const [isAccepting, setIsAccepting] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false)
@@ -39,24 +37,11 @@ export function AcceptSubscriptionForm({
       return
     }
 
-    if (!firebaseUser) {
-      toast.error(t('subscription.accept.errors.mustBeLoggedIn'))
-      return
-    }
-
-    if (!dbUser) {
-      toast.error(t('subscription.accept.errors.userNotFound'))
-      return
-    }
-
     setIsAccepting(true)
 
     try {
       const client = getHttpClient()
-      await client.post(`/subscription-accept/${token}`, {
-        userId: dbUser.id,
-        email: firebaseUser.email,
-      })
+      await client.post(`/subscription-accept/${token}`, {})
 
       toast.success(t('subscription.accept.success'))
       onSuccess()
@@ -70,8 +55,6 @@ export function AcceptSubscriptionForm({
       setIsAccepting(false)
     }
   }
-
-  const redirectUrl = encodeURIComponent(`/accept-subscription?token=${token}`)
 
   return (
     <>
@@ -97,59 +80,41 @@ export function AcceptSubscriptionForm({
         <CardBody className="flex flex-col gap-6">
           <p className="text-default-500 text-center">{t('subscription.accept.description')}</p>
 
-          {!firebaseUser && (
-            <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
-              <p className="text-warning-600 text-sm text-center">
-                {t('subscription.accept.loginRequired')}
-              </p>
-            </div>
-          )}
+          <div className="bg-default-100 rounded-lg p-4">
+            <p className="text-sm text-default-600">
+              <strong>{t('subscription.accept.loggedInAs')}:</strong> {firebaseUser?.email}
+            </p>
+          </div>
 
-          {firebaseUser && (
-            <>
-              <div className="bg-default-100 rounded-lg p-4">
-                <p className="text-sm text-default-600">
-                  <strong>{t('subscription.accept.loggedInAs')}:</strong> {firebaseUser.email}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  isSelected={termsAccepted}
-                  onValueChange={setTermsAccepted}
-                />
-                <p className="text-sm text-default-600">
-                  {t('subscription.accept.termsCheckbox')}
-                  <Button
-                    variant="text"
-                    color="primary"
-                    className="text-sm"
-                    onPress={() => setIsTermsModalOpen(true)}
-                  >
-                    {t('subscription.accept.termsCheckboxLink')}
-                  </Button>
-                  {t('subscription.accept.termsCheckboxSuffix')}
-                </p>
-              </div>
-            </>
-          )}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              isSelected={termsAccepted}
+              onValueChange={setTermsAccepted}
+            />
+            <p className="text-sm text-default-600">
+              {t('subscription.accept.termsCheckbox')}
+              <Button
+                variant="text"
+                color="primary"
+                className="text-sm"
+                onPress={() => setIsTermsModalOpen(true)}
+              >
+                {t('subscription.accept.termsCheckboxLink')}
+              </Button>
+              {t('subscription.accept.termsCheckboxSuffix')}
+            </p>
+          </div>
         </CardBody>
         <CardFooter className="flex justify-center gap-4">
-          {firebaseUser ? (
-            <Button
-              color="primary"
-              size="lg"
-              isLoading={isAccepting}
-              isDisabled={!termsAccepted || !dbUser}
-              onPress={handleAccept}
-            >
-              {t('subscription.accept.acceptButton')}
-            </Button>
-          ) : (
-            <Button as="a" href={`/auth?redirect=${redirectUrl}`} color="primary" size="lg">
-              {t('subscription.accept.loginToAccept')}
-            </Button>
-          )}
+          <Button
+            color="primary"
+            size="lg"
+            isLoading={isAccepting}
+            isDisabled={!termsAccepted}
+            onPress={handleAccept}
+          >
+            {t('subscription.accept.acceptButton')}
+          </Button>
         </CardFooter>
       </Card>
 

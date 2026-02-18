@@ -13,6 +13,8 @@ import type {
   LocationsRepository,
   CurrenciesRepository,
   UsersRepository,
+  BuildingsRepository,
+  UnitsRepository,
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
@@ -24,6 +26,8 @@ import {
   GetCondominiumByCodeService,
   GenerateCondominiumCodeService,
   GetCondominiumUsersService,
+  CreateCondominiumWizardService,
+  type TCreateCondominiumWizardInput,
 } from '@src/services/condominiums'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { AppError } from '@errors/index'
@@ -54,6 +58,7 @@ export class CondominiumsController extends BaseController<
   private readonly getCondominiumByCodeService: GetCondominiumByCodeService
   private readonly generateCondominiumCodeService: GenerateCondominiumCodeService
   private readonly getCondominiumUsersService: GetCondominiumUsersService
+  private readonly wizardService: CreateCondominiumWizardService
   private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository
   private readonly companiesRepository: ManagementCompaniesRepository
   private readonly locationsRepository: LocationsRepository
@@ -67,6 +72,8 @@ export class CondominiumsController extends BaseController<
     locationsRepository: LocationsRepository,
     currenciesRepository: CurrenciesRepository,
     usersRepository: UsersRepository,
+    buildingsRepository: BuildingsRepository,
+    unitsRepository: UnitsRepository,
     db: TDrizzleClient
   ) {
     super(repository)
@@ -85,7 +92,7 @@ export class CondominiumsController extends BaseController<
     this.getCondominiumByCodeService = new GetCondominiumByCodeService(repository)
     this.generateCondominiumCodeService = new GenerateCondominiumCodeService(repository)
     this.getCondominiumUsersService = new GetCondominiumUsersService(db)
-
+    this.wizardService = new CreateCondominiumWizardService(db, repository, buildingsRepository, unitsRepository)
   }
 
   get routes(): TRouteDefinition[] {
@@ -130,6 +137,12 @@ export class CondominiumsController extends BaseController<
           bodyValidator(condominiumCreateSchema),
           validateSubscriptionLimit('condominium', this.subscriptionsRepository, this.companiesRepository),
         ],
+      },
+      {
+        method: 'post',
+        path: '/wizard',
+        handler: this.wizard,
+        middlewares: [authMiddleware, requireRole('SUPERADMIN', 'ADMIN')],
       },
       {
         method: 'patch',
@@ -277,13 +290,6 @@ export class CondominiumsController extends BaseController<
     const ctx = this.ctx<TCondominiumCreate>(c)
     const user = ctx.getAuthenticatedUser()
 
-    if (ctx.body.email) {
-      const existingByEmail = await this.condominiumsRepository.getByEmail(ctx.body.email)
-      if (existingByEmail) {
-        throw AppError.alreadyExists('Condominium', 'email')
-      }
-    }
-
     const entity = await this.repository.create({
       ...ctx.body,
       createdBy: user.id,
@@ -293,24 +299,26 @@ export class CondominiumsController extends BaseController<
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Override update to check email uniqueness
+  // Wizard: create condominium + buildings + units in a single transaction
   // ─────────────────────────────────────────────────────────────────────────────
 
-  protected override update = async (c: Context): Promise<Response> => {
-    const ctx = this.ctx<TCondominiumUpdate, unknown, { id: string }>(c)
+  private wizard = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const user = ctx.getAuthenticatedUser()
+    const body = await c.req.json<TCreateCondominiumWizardInput>()
 
-    if (ctx.body.email) {
-      const existingByEmail = await this.condominiumsRepository.getByEmail(ctx.body.email)
-      if (existingByEmail && existingByEmail.id !== ctx.params.id) {
-        throw AppError.alreadyExists('Condominium', 'email')
-      }
+    const result = await this.wizardService.execute({
+      condominium: {
+        ...body.condominium,
+        createdBy: user.id,
+      },
+      buildings: body.buildings,
+    })
+
+    if (!result.success) {
+      return ctx.internalError({ error: result.error })
     }
 
-    const entity = await this.repository.update(ctx.params.id, ctx.body)
-    if (!entity) {
-      throw AppError.notFound('Condominium', ctx.params.id)
-    }
-
-    return ctx.ok({ data: entity })
+    return ctx.created({ data: result.data })
   }
 }

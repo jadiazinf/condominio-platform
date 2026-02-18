@@ -112,6 +112,14 @@ export function ReviewStep({ wizard }: ReviewStepProps) {
           <div className="space-y-4">
             {buildings.map((building, index) => {
               const buildingUnits = getUnitsForBuilding(building.tempId)
+              const hasAliquots = buildingUnits.some((u) => u.aliquotPercentage)
+              const aliquotSum = hasAliquots
+                ? buildingUnits.reduce((sum, u) => {
+                    const pct = parseFloat(u.aliquotPercentage || '0')
+                    return sum + (isNaN(pct) ? 0 : pct)
+                  }, 0)
+                : 0
+              const aliquotOk = hasAliquots && Math.abs(aliquotSum - 100) < 0.01
 
               return (
                 <div key={building.tempId}>
@@ -121,13 +129,20 @@ export function ReviewStep({ wizard }: ReviewStepProps) {
                       <Building2 className="h-4 w-4 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Typography variant="subtitle2" className="font-medium">
                           {building.name}
                         </Typography>
                         {building.code && (
                           <Chip size="sm" variant="flat">
                             {building.code}
+                          </Chip>
+                        )}
+                        {hasAliquots && (
+                          <Chip size="sm" variant="flat" color={aliquotOk ? 'success' : 'warning'}>
+                            {aliquotOk
+                              ? t('superadmin.condominiums.wizard.units.aliquotOk')
+                              : t('superadmin.condominiums.wizard.units.aliquotWarning', { sum: aliquotSum.toFixed(2) })}
                           </Chip>
                         )}
                       </div>

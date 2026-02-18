@@ -136,7 +136,10 @@ export class SendSubscriptionAcceptanceEmailService
     }).format(amount)
   }
 
-  private generatePricingBreakdownHtml(details: ISendSubscriptionAcceptanceEmailInput['pricingDetails']): string {
+  private generatePricingBreakdownHtml(
+    details: ISendSubscriptionAcceptanceEmailInput['pricingDetails'],
+    basePrice?: number
+  ): string {
     if (!details) return ''
 
     let html = `
@@ -184,6 +187,16 @@ export class SendSubscriptionAcceptanceEmailService
       `
     }
 
+    // Show final price when it differs from subtotal (discount applied or manual override)
+    if (basePrice !== undefined && details.calculatedPrice && basePrice !== details.calculatedPrice) {
+      html += `
+        <tr style="border-top: 2px solid #e4e4e7;">
+          <td style="padding: 12px 0 8px; font-weight: 700; font-size: 15px; color: #18181b;">Precio final</td>
+          <td style="padding: 12px 0 8px; text-align: right; font-weight: 700; font-size: 15px; color: #18181b;">${this.formatCurrency(basePrice)}</td>
+        </tr>
+      `
+    }
+
     html += `
         </table>
       </div>
@@ -219,7 +232,7 @@ export class SendSubscriptionAcceptanceEmailService
       expiresAtFormatted,
     } = params
 
-    const pricingBreakdown = this.generatePricingBreakdownHtml(pricingDetails)
+    const pricingBreakdown = this.generatePricingBreakdownHtml(pricingDetails, basePrice)
 
     return `
 <!DOCTYPE html>

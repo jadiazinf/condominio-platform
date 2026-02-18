@@ -20,7 +20,6 @@ import {
   useQueryClient,
   useCanCreateResource,
 } from '@packages/http-client'
-import { useAuth } from '@/contexts'
 import { AddMemberModal } from './AddMemberModal'
 
 type TRoleFilter = 'all' | 'admin' | 'accountant' | 'support' | 'viewer'
@@ -58,27 +57,16 @@ function getMemberDisplayName(user: TMemberRow['user']): string {
 
 export function CompanyMembersTable({ companyId, isCompanyActive }: CompanyMembersTableProps) {
   const queryClient = useQueryClient()
-  const { user: firebaseUser } = useAuth()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-  const [token, setToken] = useState<string>('')
-
-  // Get Firebase token
-  useEffect(() => {
-    if (firebaseUser) {
-      firebaseUser.getIdToken().then(setToken)
-    }
-  }, [firebaseUser])
-
   // Check if can add member based on subscription limits
   const {
     data: canCreateData,
     isLoading: isCheckingLimit,
     error: canCreateError,
   } = useCanCreateResource({
-    token,
     managementCompanyId: companyId,
     resourceType: 'user',
-    enabled: !!token && !!companyId,
+    enabled: !!companyId,
   })
 
   const canAddMember = canCreateData?.data?.canCreate ?? false

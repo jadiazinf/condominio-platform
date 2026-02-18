@@ -1215,7 +1215,7 @@
           "namePlaceholder": "e.g. Beautiful View Residences",
           "nameDescription": "Official name of the condominium",
           "code": "Code",
-          "codePlaceholder": "Auto-generated if left empty",
+          "codePlaceholder": "e.g. VH-001",
           "codeDescription": "Unique identification code for the condominium",
           "generateCode": "Generate code automatically",
           "status": {
@@ -1313,14 +1313,14 @@
           "countRequired": "Count is required",
           "maxLetterBuildings": "Maximum 26 buildings with letter pattern",
           "codeConfig": "Code configuration",
-          "codeConfigHint": "Generate a unique code for each building",
+          "codeConfigHint": "Generate a unique code for each building. Useful for identifying buildings in reports and official documents. If not enabled, codes can be assigned manually later.",
           "codePrefix": "Code prefix",
           "codePrefixRequired": "Code prefix is required",
           "codePatternNumber": "Padded number (001, 002...)",
           "codePatternLetter": "Letter (A, B, C...)",
           "codePatternTripleLetter": "Triple letter (AAA, AAB, AAC...)",
           "generateUnits": "Also generate units",
-          "generateUnitsHint": "Automatically generate units for each building",
+          "generateUnitsHint": "Automatically generate units (apartments/commercial spaces) for each building. Configure how many units per floor, the naming pattern, and the characteristics per floor group.",
           "floorsRequiredForUnits": "Floors count is required to generate units"
         },
         "units": {
@@ -1333,7 +1333,9 @@
           "clearAll": "Clear all",
           "emptyDescription": "Add at least one unit per building",
           "label": "units",
-          "numberRequired": "Unit number is required"
+          "numberRequired": "Unit number is required",
+          "aliquotOk": "Aliquot: 100%",
+          "aliquotWarning": "Aliquot: {sum}% (must be 100%)"
         },
         "review": {
           "title": "Final review",
@@ -1367,7 +1369,7 @@
           "patternBldgFloorLetter": "Building + Floor + Letter",
           "separator": "Separator",
           "defaultValues": "Default values (optional)",
-          "defaultValuesHint": "These values will be applied to all generated units. You can edit them individually later.",
+          "defaultValuesHint": "These values will be applied as defaults to all generated units. You can edit them individually later in the Units step.",
           "preview": "Preview",
           "generate": "Generate units",
           "more": "more",
@@ -1377,11 +1379,23 @@
           "unitsPerFloorRequired": "Number of units per floor is required",
           "maxLetterUnits": "Letter pattern supports a maximum of 26 units per floor",
           "floorGroups": "Floor groups",
-          "floorGroupsHint": "Define different characteristics per floor range",
+          "floorGroupsHint": "Define different characteristics for each floor range. For example: floors 1-3 with 2 bedrooms and floors 4-10 with 3 bedrooms. Ranges must not overlap.",
           "addFloorGroup": "Add group",
           "floorGroupRequired": "At least one floor group is required",
           "floorOverlap": "Floor ranges must not overlap",
-          "unitPrefix": "Prefix"
+          "unitPrefix": "Prefix",
+          "aliquot": "Aliquot Percentage",
+          "aliquotHint": "The aliquot percentage determines what proportion of the condominium's common expenses each unit must pay. The sum of all aliquots in a building must equal 100%.",
+          "aliquotNone": "Don't assign",
+          "aliquotNoneHint": "Can be assigned later individually",
+          "aliquotEqual": "Distribute equally",
+          "aliquotEqualHint": "Each unit receives {percentage}%",
+          "aliquotByArea": "Proportional to area (m²)",
+          "aliquotByAreaHint": "Units with larger area pay a higher percentage. Calculated as: (unit area / total area) × 100. Requires all floor groups to have the area field defined.",
+          "aliquotByAreaMissingArea": "All floor groups must have the area (m²) field to calculate proportional aliquot",
+          "aliquotCustom": "Custom per group",
+          "aliquotCustomHint": "Define a fixed percentage per floor group",
+          "aliquotAuto": "Auto"
         },
         "csv": {
           "title": "Import units from CSV",
@@ -1513,6 +1527,126 @@
             "error": "Error updating building status"
           }
         },
+        "buildingDetail": {
+          "back": "Back to buildings",
+          "code": "Code",
+          "address": "Address",
+          "floors": "Floors",
+          "units": "Units",
+          "status": "Status",
+          "active": "Active",
+          "inactive": "Inactive",
+          "bankInfo": "Bank Information",
+          "bankAccountHolder": "Account Holder",
+          "bankName": "Bank",
+          "bankAccountNumber": "Account Number",
+          "bankAccountType": "Account Type",
+          "noBankInfo": "No bank information"
+        },
+        "unitDetail": {
+          "back": "Back to building",
+          "info": "Information",
+          "area": "Area",
+          "bedrooms": "Bedrooms",
+          "bathrooms": "Bathrooms",
+          "parking": "Parking Spaces",
+          "aliquot": "Aliquot",
+          "registeredAt": "Registration Date",
+          "floor": "Floor",
+          "financialSummary": "Financial Summary",
+          "totalDebt": "Total Debt",
+          "pendingQuotas": "Pending Quotas",
+          "lastPayment": "Last Payment",
+          "noPayments": "No payments",
+          "owners": "Owners / Residents",
+          "noOwners": "No owners registered",
+          "ownershipTypes": {
+            "owner": "Owner",
+            "co-owner": "Co-owner",
+            "tenant": "Tenant",
+            "family_member": "Family Member",
+            "authorized": "Authorized"
+          },
+          "recentQuotas": "Recent Quotas",
+          "noQuotas": "No quotas registered",
+          "quotaTable": {
+            "concept": "Concept",
+            "period": "Period",
+            "amount": "Amount",
+            "paid": "Paid",
+            "balance": "Balance",
+            "status": "Status"
+          },
+          "recentPayments": "Recent Payments",
+          "noPaymentsRegistered": "No payments registered",
+          "paymentTable": {
+            "number": "#",
+            "date": "Date",
+            "amount": "Amount",
+            "method": "Method",
+            "status": "Status"
+          },
+          "paymentMethods": {
+            "transfer": "Transfer",
+            "cash": "Cash",
+            "card": "Card",
+            "mobile_payment": "Mobile Payment",
+            "gateway": "Gateway",
+            "other": "Other"
+          },
+          "quotaStatuses": {
+            "pending": "Pending",
+            "paid": "Paid",
+            "overdue": "Overdue",
+            "cancelled": "Cancelled"
+          },
+          "paymentStatuses": {
+            "pending": "Pending",
+            "pending_verification": "Pending Verification",
+            "completed": "Completed",
+            "failed": "Failed",
+            "refunded": "Refunded",
+            "rejected": "Rejected"
+          },
+          "registered": "Registered on",
+          "viewAll": "View all",
+          "allQuotasTitle": "All Quotas",
+          "allPaymentsTitle": "All Payments",
+          "filters": {
+            "dateFrom": "From",
+            "dateTo": "To",
+            "status": "Status",
+            "allStatuses": "All",
+            "clear": "Clear"
+          },
+          "addOwner": "Add",
+          "addOwnerTitle": "Add Owner / Resident",
+          "ownerTable": {
+            "name": "Name",
+            "type": "Type",
+            "percentage": "%",
+            "startDate": "Start",
+            "primaryResidence": "Residence",
+            "status": "Status"
+          },
+          "ownerForm": {
+            "fullName": "Full name",
+            "email": "Email",
+            "phone": "Phone",
+            "ownershipType": "Relationship type",
+            "ownershipPercentage": "Ownership percentage",
+            "startDate": "Start date",
+            "isPrimaryResidence": "Primary residence"
+          },
+          "ownerSuccess": {
+            "created": "Owner added successfully"
+          },
+          "ownerError": {
+            "create": "Error adding owner"
+          },
+          "yes": "Yes",
+          "no": "No"
+        },
         "units": {
           "title": "Units",
           "addUnit": "Add Unit",
@@ -1582,6 +1716,12 @@
             "deleting": "Deleting...",
             "success": "Unit deleted successfully",
             "error": "Error deleting unit"
+          },
+          "success": {
+            "statusChanged": "Unit status updated"
+          },
+          "error": {
+            "statusChange": "Error changing unit status"
           }
         },
         "users": {
@@ -3275,6 +3415,8 @@
       "loginToAccept": "Log In to Accept",
       "success": "Subscription accepted and activated successfully",
       "invalidTitle": "Invalid Link",
+      "unauthorizedTitle": "Unauthorized Access",
+      "unauthorizedDescription": "Only the primary administrator of the company can access this link. If you believe this is an error, contact the platform administrator.",
       "expiredTitle": "Expired Link",
       "expiredDescription": "The acceptance link has expired.",
       "expiredHelp": "Contact the administrator to request a new acceptance link.",
@@ -3307,5 +3449,32 @@
         "description": "Access your condominiums as a resident or administrator"
       }
     }
+  },
+  "apiErrors": {
+    "ALREADY_EXISTS": "A record with this value already exists",
+    "ALREADY_EXISTS.Condominium.email": "A condominium with this email already exists",
+    "ALREADY_EXISTS.Condominium.code": "A condominium with this code already exists",
+    "ALREADY_EXISTS.Condominium.name": "A condominium with this name already exists",
+    "ALREADY_EXISTS.Building.name": "A building with this name already exists",
+    "ALREADY_EXISTS.Building.code": "A building with this code already exists",
+    "ALREADY_EXISTS.Unit.unitNumber": "A unit with this number already exists",
+    "ALREADY_EXISTS.User.email": "A user with this email already exists",
+    "NOT_FOUND": "Resource not found",
+    "NOT_FOUND.Condominium": "Condominium not found",
+    "NOT_FOUND.Building": "Building not found",
+    "NOT_FOUND.Unit": "Unit not found",
+    "VALIDATION_ERROR": "Validation error in the submitted data",
+    "DUPLICATE_KEY": "A record with this value already exists",
+    "UNAUTHORIZED": "Authentication required",
+    "FORBIDDEN": "You do not have permission to perform this action",
+    "TOKEN_EXPIRED": "Session expired. Please sign in again",
+    "INVALID_TOKEN": "Invalid token",
+    "INTERNAL_ERROR": "An unexpected error occurred. Please try again later",
+    "RATE_LIMITED": "Too many requests. Please try again later",
+    "CONFLICT": "Conflict while processing the request",
+    "SERVICE_UNAVAILABLE": "Service is temporarily unavailable",
+    "FOREIGN_KEY_VIOLATION": "Cannot perform the operation: related records exist",
+    "DATABASE_ERROR": "Database error",
+    "unknown": "An unexpected error occurred"
   }
 }

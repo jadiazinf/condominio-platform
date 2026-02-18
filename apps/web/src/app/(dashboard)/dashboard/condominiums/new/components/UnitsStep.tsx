@@ -113,17 +113,32 @@ export function UnitsStep({ wizard }: UnitsStepProps) {
       <Accordion variant="bordered" selectionMode="multiple" defaultExpandedKeys={buildings.map((b) => b.tempId)}>
         {buildings.map((building) => {
           const buildingUnits = getUnitsForBuilding(building.tempId)
+          const hasAliquots = buildingUnits.some((u) => u.aliquotPercentage)
+          const aliquotSum = hasAliquots
+            ? buildingUnits.reduce((sum, u) => {
+                const pct = parseFloat(u.aliquotPercentage || '0')
+                return sum + (isNaN(pct) ? 0 : pct)
+              }, 0)
+            : 0
+          const aliquotOk = hasAliquots && Math.abs(aliquotSum - 100) < 0.01
 
           return (
             <AccordionItem
               key={building.tempId}
               title={
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Building2 size={16} className="text-primary" />
                   <span className="font-medium">{building.name}</span>
                   <Chip size="sm" variant="flat" color={buildingUnits.length > 0 ? 'success' : 'warning'}>
                     {buildingUnits.length} {t('superadmin.condominiums.wizard.units.label')}
                   </Chip>
+                  {hasAliquots && (
+                    <Chip size="sm" variant="flat" color={aliquotOk ? 'success' : 'warning'}>
+                      {aliquotOk
+                        ? t('superadmin.condominiums.wizard.units.aliquotOk')
+                        : t('superadmin.condominiums.wizard.units.aliquotWarning', { sum: aliquotSum.toFixed(2) })}
+                    </Chip>
+                  )}
                 </div>
               }
             >

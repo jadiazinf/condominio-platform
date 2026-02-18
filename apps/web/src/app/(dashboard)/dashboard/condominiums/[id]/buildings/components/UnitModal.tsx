@@ -26,8 +26,6 @@ const unitFormSchema = z.object({
   bedrooms: z.number().int().optional().nullable(),
   bathrooms: z.number().int().optional().nullable(),
   parkingSpaces: z.number().int(),
-  parkingIdentifiers: z.string().optional().nullable(), // Will be split into array
-  storageIdentifier: z.string().max(50).optional().nullable(),
   aliquotPercentage: z.string().optional().nullable(),
 })
 
@@ -52,9 +50,6 @@ interface IUnitModalProps {
       bedrooms: string
       bathrooms: string
       parkingSpaces: string
-      parkingIdentifiers: string
-      parkingIdentifiersPlaceholder: string
-      storageIdentifier: string
       aliquotPercentage: string
     }
     success: {
@@ -90,8 +85,6 @@ export function UnitModal({
       bedrooms: null,
       bathrooms: null,
       parkingSpaces: 0,
-      parkingIdentifiers: null,
-      storageIdentifier: null,
       aliquotPercentage: null,
     },
   })
@@ -133,8 +126,6 @@ export function UnitModal({
           bedrooms: unit.bedrooms,
           bathrooms: unit.bathrooms,
           parkingSpaces: unit.parkingSpaces ?? 0,
-          parkingIdentifiers: unit.parkingIdentifiers?.join(', ') ?? null,
-          storageIdentifier: unit.storageIdentifier,
           aliquotPercentage: unit.aliquotPercentage,
         })
       } else {
@@ -145,8 +136,6 @@ export function UnitModal({
           bedrooms: null,
           bathrooms: null,
           parkingSpaces: 0,
-          parkingIdentifiers: null,
-          storageIdentifier: null,
           aliquotPercentage: null,
         })
       }
@@ -154,14 +143,6 @@ export function UnitModal({
   }, [isOpen, unit, methods])
 
   const handleSubmit = methods.handleSubmit(data => {
-    // Parse parking identifiers from comma-separated string
-    const parkingIdentifiers = data.parkingIdentifiers
-      ? data.parkingIdentifiers
-          .split(',')
-          .map((s: string) => s.trim())
-          .filter(Boolean)
-      : null
-
     if (isEditing && unit) {
       const updateData: TUpdateUnitVariables = {
         unitId: unit.id,
@@ -171,8 +152,6 @@ export function UnitModal({
         bedrooms: data.bedrooms,
         bathrooms: data.bathrooms,
         parkingSpaces: data.parkingSpaces,
-        parkingIdentifiers,
-        storageIdentifier: data.storageIdentifier,
         aliquotPercentage: data.aliquotPercentage,
       }
       updateMutation.mutate(updateData)
@@ -185,8 +164,6 @@ export function UnitModal({
         bedrooms: data.bedrooms,
         bathrooms: data.bathrooms,
         parkingSpaces: data.parkingSpaces,
-        parkingIdentifiers,
-        storageIdentifier: data.storageIdentifier,
         aliquotPercentage: data.aliquotPercentage,
       }
       createMutation.mutate(createData)

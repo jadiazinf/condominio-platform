@@ -12,9 +12,6 @@ interface IUnitFormProps {
     bedrooms: string
     bathrooms: string
     parkingSpaces: string
-    parkingIdentifiers: string
-    parkingIdentifiersPlaceholder: string
-    storageIdentifier: string
     aliquotPercentage: string
   }
 }
@@ -55,7 +52,6 @@ export function UnitForm({ translateError, translations }: IUnitFormProps) {
         />
       </div>
 
-      {/* Parking & Storage */}
       <div className="grid gap-x-4 gap-y-8 sm:grid-cols-2">
         <InputField
           name="parkingSpaces"
@@ -64,25 +60,11 @@ export function UnitForm({ translateError, translations }: IUnitFormProps) {
           translateError={translateError}
         />
         <InputField
-          name="storageIdentifier"
-          label={translations.storageIdentifier}
+          name="aliquotPercentage"
+          label={translations.aliquotPercentage}
           translateError={translateError}
         />
       </div>
-
-      <InputField
-        name="parkingIdentifiers"
-        label={translations.parkingIdentifiers}
-        placeholder={translations.parkingIdentifiersPlaceholder}
-        translateError={translateError}
-      />
-
-      {/* Aliquot */}
-      <InputField
-        name="aliquotPercentage"
-        label={translations.aliquotPercentage}
-        translateError={translateError}
-      />
     </div>
   )
 }

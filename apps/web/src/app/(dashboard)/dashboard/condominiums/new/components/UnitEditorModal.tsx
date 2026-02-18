@@ -39,8 +39,6 @@ export function UnitEditorModal({
       bedrooms: undefined,
       bathrooms: undefined,
       parkingSpaces: undefined,
-      parkingIdentifiers: undefined,
-      storageIdentifier: '',
       aliquotPercentage: '',
     },
   })
@@ -58,8 +56,6 @@ export function UnitEditorModal({
               bedrooms: editingUnit.bedrooms ?? undefined,
               bathrooms: editingUnit.bathrooms ?? undefined,
               parkingSpaces: editingUnit.parkingSpaces ?? undefined,
-              parkingIdentifiers: editingUnit.parkingIdentifiers ?? undefined,
-              storageIdentifier: editingUnit.storageIdentifier ?? '',
               aliquotPercentage: editingUnit.aliquotPercentage ?? '',
             }
           : {
@@ -70,8 +66,6 @@ export function UnitEditorModal({
               bedrooms: undefined,
               bathrooms: undefined,
               parkingSpaces: undefined,
-              parkingIdentifiers: undefined,
-              storageIdentifier: '',
               aliquotPercentage: '',
             }
       )
@@ -106,8 +100,8 @@ export function UnitEditorModal({
       bedrooms: values.bedrooms ? Number(values.bedrooms) : null,
       bathrooms: values.bathrooms ? Number(values.bathrooms) : null,
       parkingSpaces: values.parkingSpaces ? Number(values.parkingSpaces) : undefined,
-      parkingIdentifiers: values.parkingIdentifiers || null,
-      storageIdentifier: values.storageIdentifier || null,
+      parkingIdentifiers: null,
+      storageIdentifier: null,
       aliquotPercentage: values.aliquotPercentage || null,
     })
 
@@ -130,9 +124,6 @@ export function UnitEditorModal({
     bedrooms: t('superadmin.condominiums.detail.units.form.bedrooms'),
     bathrooms: t('superadmin.condominiums.detail.units.form.bathrooms'),
     parkingSpaces: t('superadmin.condominiums.detail.units.form.parkingSpaces'),
-    parkingIdentifiers: t('superadmin.condominiums.detail.units.form.parkingIdentifiers'),
-    parkingIdentifiersPlaceholder: t('superadmin.condominiums.detail.units.form.parkingIdentifiersPlaceholder'),
-    storageIdentifier: t('superadmin.condominiums.detail.units.form.storageIdentifier'),
     aliquotPercentage: t('superadmin.condominiums.detail.units.form.aliquotPercentage'),
   }
 

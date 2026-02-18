@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Building2, Plus, Pencil, Trash2, Zap, RotateCcw } from 'lucide-react'
+import { Building2, Zap, Pencil, Trash2, RotateCcw, Check, X } from 'lucide-react'
 import { Button } from '@heroui/button'
 import { Card, CardBody } from '@/ui/components/card'
+import { Input } from '@/ui/components/input'
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
-import { BuildingEditorModal } from './BuildingEditorModal'
 import { BulkBuildingGeneratorModal, type TBulkGenerationResult } from './BulkBuildingGeneratorModal'
 import type { TLocalBuilding, TLocalUnit, TUseCreateCondominiumWizard } from '../hooks/useCreateCondominiumWizard'
 
@@ -19,62 +19,36 @@ export function BuildingsStep({ wizard }: BuildingsStepProps) {
   const { t } = useTranslation()
   const {
     buildings,
-    addBuilding,
     addBulkBuildings,
     addBulkUnits,
-    addUnit,
     updateBuilding,
     removeBuilding,
     clearAllBuildings,
-    clearUnitsForBuilding,
     bulkConfig,
     setBulkConfig,
     getUnitsForBuilding,
   } = wizard
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false)
-  const [editingBuilding, setEditingBuilding] = useState<TLocalBuilding | null>(null)
+  const [editingBuildingId, setEditingBuildingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editCode, setEditCode] = useState('')
 
-  const handleAdd = useCallback(() => {
-    setEditingBuilding(null)
-    setIsModalOpen(true)
+  const handleStartEdit = useCallback((building: TLocalBuilding) => {
+    setEditingBuildingId(building.tempId)
+    setEditName(building.name)
+    setEditCode(building.code ?? '')
   }, [])
 
-  const handleEdit = useCallback((building: TLocalBuilding) => {
-    setEditingBuilding(building)
-    setIsModalOpen(true)
+  const handleSaveEdit = useCallback(() => {
+    if (!editingBuildingId || !editName.trim()) return
+    updateBuilding(editingBuildingId, { name: editName.trim(), code: editCode.trim() || null })
+    setEditingBuildingId(null)
+  }, [editingBuildingId, editName, editCode, updateBuilding])
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingBuildingId(null)
   }, [])
-
-  const handleSave = useCallback(
-    (data: Omit<TLocalBuilding, 'tempId'>, units?: Omit<TLocalUnit, 'tempId' | 'buildingTempId'>[]) => {
-      let buildingTempId: string
-      if (editingBuilding) {
-        updateBuilding(editingBuilding.tempId, data)
-        buildingTempId = editingBuilding.tempId
-      } else {
-        buildingTempId = addBuilding(data)
-      }
-
-      if (units) {
-        clearUnitsForBuilding(buildingTempId)
-        for (const unit of units) {
-          addUnit({ ...unit, buildingTempId })
-        }
-      }
-
-      setIsModalOpen(false)
-      setEditingBuilding(null)
-    },
-    [editingBuilding, addBuilding, updateBuilding, clearUnitsForBuilding, addUnit]
-  )
-
-  const handleRemove = useCallback(
-    (tempId: string) => {
-      removeBuilding(tempId)
-    },
-    [removeBuilding]
-  )
 
   const [bulkEditMode, setBulkEditMode] = useState(false)
 
@@ -120,41 +94,36 @@ export function BuildingsStep({ wizard }: BuildingsStepProps) {
             {t('superadmin.condominiums.wizard.buildings.subtitle')}
           </Typography>
         </div>
-        <div className="flex gap-2">
-          {buildings.length > 0 && (
-            <>
+        {buildings.length > 0 && (
+          <div className="flex gap-2">
+            <Button
+              color="danger"
+              variant="light"
+              startContent={<Trash2 size={16} />}
+              onPress={clearAllBuildings}
+            >
+              {t('superadmin.condominiums.wizard.buildings.clearAll')}
+            </Button>
+            {bulkConfig && (
               <Button
-                color="danger"
-                variant="light"
-                startContent={<Trash2 size={16} />}
-                onPress={clearAllBuildings}
+                color="warning"
+                variant="flat"
+                startContent={<RotateCcw size={16} />}
+                onPress={handleBulkEdit}
               >
-                {t('superadmin.condominiums.wizard.buildings.clearAll')}
+                {t('superadmin.condominiums.wizard.buildings.editBulk')}
               </Button>
-              {bulkConfig && (
-                <Button
-                  color="warning"
-                  variant="flat"
-                  startContent={<RotateCcw size={16} />}
-                  onPress={handleBulkEdit}
-                >
-                  {t('superadmin.condominiums.wizard.buildings.editBulk')}
-                </Button>
-              )}
-            </>
-          )}
-          <Button
-            color="success"
-            variant="bordered"
-            startContent={<Zap size={16} />}
-            onPress={() => setIsBulkModalOpen(true)}
-          >
-            {t('superadmin.condominiums.wizard.bulkBuildings.title')}
-          </Button>
-          <Button color="success" variant="flat" startContent={<Plus size={16} />} onPress={handleAdd}>
-            {t('superadmin.condominiums.wizard.buildings.add')}
-          </Button>
-        </div>
+            )}
+            <Button
+              color="success"
+              variant="flat"
+              startContent={<Zap size={16} />}
+              onPress={() => setIsBulkModalOpen(true)}
+            >
+              {t('superadmin.condominiums.wizard.bulkBuildings.title')}
+            </Button>
+          </div>
+        )}
       </div>
 
       {buildings.length === 0 ? (
@@ -171,85 +140,121 @@ export function BuildingsStep({ wizard }: BuildingsStepProps) {
           <Button
             color="success"
             variant="flat"
-            startContent={<Plus size={16} />}
+            startContent={<Zap size={16} />}
             className="mt-4"
-            onPress={handleAdd}
+            onPress={() => setIsBulkModalOpen(true)}
           >
-            {t('superadmin.condominiums.wizard.buildings.add')}
+            {t('superadmin.condominiums.wizard.bulkBuildings.title')}
           </Button>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {buildings.map((building) => {
             const unitCount = getUnitsForBuilding(building.tempId).length
+            const isEditing = editingBuildingId === building.tempId
+
             return (
               <Card key={building.tempId} className="border border-default-200" shadow="none">
                 <CardBody className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100 shrink-0">
-                        <Building2 className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="min-w-0">
-                        <Typography variant="subtitle2" className="font-semibold truncate">
-                          {building.name}
-                        </Typography>
-                        {building.code && (
-                          <Typography variant="caption" className="text-default-500">
-                            {building.code}
-                          </Typography>
-                        )}
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {building.floorsCount && (
-                            <span className="inline-flex items-center rounded-full bg-default-100 px-2 py-0.5 text-xs text-default-600">
-                              {building.floorsCount} {t('superadmin.condominiums.wizard.buildings.floorsLabel')}
-                            </span>
-                          )}
-                          {unitCount > 0 && (
-                            <span className="inline-flex items-center rounded-full bg-success-100 px-2 py-0.5 text-xs text-success-700">
-                              {unitCount} {t('superadmin.condominiums.wizard.units.label')}
-                            </span>
-                          )}
+                  {isEditing ? (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100 shrink-0">
+                          <Building2 className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex-1 flex flex-col gap-2">
+                          <Input
+                            size="sm"
+                            label={t('superadmin.condominiums.detail.buildings.form.name')}
+                            value={editName}
+                            onValueChange={setEditName}
+                          />
+                          <Input
+                            size="sm"
+                            label={t('superadmin.condominiums.detail.buildings.form.code')}
+                            value={editCode}
+                            onValueChange={setEditCode}
+                            placeholder={t('common.optional')}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1 shrink-0">
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="flat"
+                            color="success"
+                            onPress={handleSaveEdit}
+                            isDisabled={!editName.trim()}
+                          >
+                            <Check size={14} />
+                          </Button>
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            onPress={handleCancelEdit}
+                          >
+                            <X size={14} />
+                          </Button>
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-1 shrink-0">
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="light"
-                        onPress={() => handleEdit(building)}
-                      >
-                        <Pencil size={14} />
-                      </Button>
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="light"
-                        color="danger"
-                        onPress={() => handleRemove(building.tempId)}
-                      >
-                        <Trash2 size={14} />
-                      </Button>
+                  ) : (
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100 shrink-0">
+                          <Building2 className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <Typography variant="subtitle2" className="font-semibold truncate">
+                            {building.name}
+                          </Typography>
+                          {building.code && (
+                            <Typography variant="caption" className="text-default-500">
+                              {building.code}
+                            </Typography>
+                          )}
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {building.floorsCount && (
+                              <span className="inline-flex items-center rounded-full bg-default-100 px-2 py-0.5 text-xs text-default-600">
+                                {building.floorsCount} {t('superadmin.condominiums.wizard.buildings.floorsLabel')}
+                              </span>
+                            )}
+                            {unitCount > 0 && (
+                              <span className="inline-flex items-center rounded-full bg-success-100 px-2 py-0.5 text-xs text-success-700">
+                                {unitCount} {t('superadmin.condominiums.wizard.units.label')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="light"
+                          onPress={() => handleStartEdit(building)}
+                        >
+                          <Pencil size={14} />
+                        </Button>
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="light"
+                          color="danger"
+                          onPress={() => removeBuilding(building.tempId)}
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </CardBody>
               </Card>
             )
           })}
         </div>
       )}
-
-      <BuildingEditorModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false)
-          setEditingBuilding(null)
-        }}
-        onSave={handleSave}
-        editingBuilding={editingBuilding}
-        existingUnitCount={editingBuilding ? getUnitsForBuilding(editingBuilding.tempId).length : 0}
-      />
 
       <BulkBuildingGeneratorModal
         isOpen={isBulkModalOpen}

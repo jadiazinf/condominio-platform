@@ -1,32 +1,26 @@
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import type { TUnit } from '@packages/domain'
-import { Home, Plus, Edit2, Trash2 } from 'lucide-react'
+import { Home, Plus, Power } from 'lucide-react'
 
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
-import {
-  useDisclosure,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from '@/ui/components/modal'
+import { useDisclosure } from '@/ui/components/modal'
 import { useToast } from '@/ui/components/toast'
-import { useRouter } from 'next/navigation'
 
 import { UnitModal } from './UnitModal'
-import { useDeleteUnit } from '@packages/http-client/hooks'
+import { useToggleUnitStatus } from '@packages/http-client/hooks'
 
 type TUnitRow = TUnit & { id: string }
 
 interface IUnitsTableProps {
   units: TUnit[]
   buildingId: string
+  condominiumId: string
   translations: {
     title: string
     addUnit: string
@@ -59,9 +53,6 @@ interface IUnitsTableProps {
         bedrooms: string
         bathrooms: string
         parkingSpaces: string
-        parkingIdentifiers: string
-        parkingIdentifiersPlaceholder: string
-        storageIdentifier: string
         aliquotPercentage: string
       }
       success: {
@@ -73,12 +64,7 @@ interface IUnitsTableProps {
         update: string
       }
     }
-    delete: {
-      title: string
-      confirm: string
-      cancel: string
-      delete: string
-      deleting: string
+    statusToggle: {
       success: string
       error: string
     }
@@ -86,11 +72,9 @@ interface IUnitsTableProps {
   translateError?: (message: string | undefined) => string | undefined
 }
 
-export function UnitsTable({ units, buildingId, translations, translateError }: IUnitsTableProps) {
+export function UnitsTable({ units, buildingId, condominiumId, translations, translateError }: IUnitsTableProps) {
   const router = useRouter()
   const toast = useToast()
-  const [selectedUnit, setSelectedUnit] = useState<TUnit | null>(null)
-  const [unitToDelete, setUnitToDelete] = useState<TUnit | null>(null)
 
   const {
     isOpen: isCreateModalOpen,
@@ -98,51 +82,32 @@ export function UnitsTable({ units, buildingId, translations, translateError }: 
     onClose: onCreateModalClose,
   } = useDisclosure()
 
-  const {
-    isOpen: isEditModalOpen,
-    onOpen: onEditModalOpen,
-    onClose: onEditModalClose,
-  } = useDisclosure()
-
-  const {
-    isOpen: isDeleteModalOpen,
-    onOpen: onDeleteModalOpen,
-    onClose: onDeleteModalClose,
-  } = useDisclosure()
-
-  const deleteMutation = useDeleteUnit({
+  const toggleStatusMutation = useToggleUnitStatus({
     onSuccess: () => {
-      toast.success(translations.delete.success)
-      onDeleteModalClose()
-      setUnitToDelete(null)
+      toast.success(translations.statusToggle.success)
       router.refresh()
     },
     onError: error => {
-      toast.error(error.message || translations.delete.error)
+      toast.error(error.message || translations.statusToggle.error)
     },
   })
 
-  const handleEdit = useCallback(
+  const handleToggleStatus = useCallback(
     (unit: TUnit) => {
-      setSelectedUnit(unit)
-      onEditModalOpen()
+      toggleStatusMutation.mutate({
+        unitId: unit.id,
+        isActive: !unit.isActive,
+      })
     },
-    [onEditModalOpen]
+    [toggleStatusMutation]
   )
 
-  const handleDelete = useCallback(
+  const handleRowClick = useCallback(
     (unit: TUnit) => {
-      setUnitToDelete(unit)
-      onDeleteModalOpen()
+      router.push(`/dashboard/condominiums/${condominiumId}/buildings/${buildingId}/units/${unit.id}`)
     },
-    [onDeleteModalOpen]
+    [router, condominiumId, buildingId]
   )
-
-  const confirmDelete = useCallback(() => {
-    if (unitToDelete) {
-      deleteMutation.mutate({ unitId: unitToDelete.id })
-    }
-  }, [unitToDelete, deleteMutation])
 
   const columns: ITableColumn<TUnitRow>[] = useMemo(
     () => [
@@ -187,17 +152,17 @@ export function UnitsTable({ units, buildingId, translations, translateError }: 
         case 'actions':
           return (
             <div className="flex items-center justify-end gap-1">
-              <Button isIconOnly size="sm" variant="light" onPress={() => handleEdit(unit)}>
-                <Edit2 size={14} />
-              </Button>
               <Button
                 isIconOnly
                 size="sm"
                 variant="light"
-                color="danger"
-                onPress={() => handleDelete(unit)}
+                onPress={() => handleToggleStatus(unit)}
+                isDisabled={toggleStatusMutation.isPending}
               >
-                <Trash2 size={14} />
+                <Power
+                  size={14}
+                  className={unit.isActive ? 'text-success' : 'text-default-400'}
+                />
               </Button>
             </div>
           )
@@ -205,7 +170,7 @@ export function UnitsTable({ units, buildingId, translations, translateError }: 
           return null
       }
     },
-    [translations.status, handleEdit, handleDelete]
+    [translations.status, handleToggleStatus, toggleStatusMutation.isPending]
   )
 
   if (units.length === 0) {
@@ -257,6 +222,7 @@ export function UnitsTable({ units, buildingId, translations, translateError }: 
         columns={columns}
         rows={units}
         renderCell={renderCell}
+        onRowClick={handleRowClick}
         classNames={{
           wrapper: 'shadow-none border',
           tr: 'hover:bg-default-50',
@@ -271,45 +237,6 @@ export function UnitsTable({ units, buildingId, translations, translateError }: 
         translations={translations.modal}
         translateError={translateError}
       />
-
-      {/* Edit Modal */}
-      <UnitModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          onEditModalClose()
-          setSelectedUnit(null)
-        }}
-        buildingId={buildingId}
-        unit={selectedUnit}
-        translations={translations.modal}
-        translateError={translateError}
-      />
-
-      {/* Delete Confirmation Modal */}
-      <Modal isOpen={isDeleteModalOpen} onClose={onDeleteModalClose} size="sm">
-        <ModalContent>
-          <ModalHeader>
-            <Typography variant="h4">{translations.delete.title}</Typography>
-          </ModalHeader>
-          <ModalBody>
-            <Typography variant="body2">
-              {translations.delete.confirm} <strong>{unitToDelete?.unitNumber}</strong>?
-            </Typography>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              variant="bordered"
-              onPress={onDeleteModalClose}
-              isDisabled={deleteMutation.isPending}
-            >
-              {translations.delete.cancel}
-            </Button>
-            <Button color="danger" onPress={confirmDelete} isLoading={deleteMutation.isPending}>
-              {deleteMutation.isPending ? translations.delete.deleting : translations.delete.delete}
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
     </div>
   )
 }

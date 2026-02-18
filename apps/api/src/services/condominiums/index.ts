@@ -1,3 +1,10 @@
+export { CreateCondominiumWizardService } from './create-condominium-wizard.service'
+export type {
+  TCreateCondominiumWizardInput,
+  TCreateCondominiumWizardOutput,
+  TWizardBuilding,
+} from './create-condominium-wizard.service'
+
 export { GetCondominiumByCodeService } from './get-condominium-by-code.service'
 export type { IGetCondominiumByCodeInput } from './get-condominium-by-code.service'
 

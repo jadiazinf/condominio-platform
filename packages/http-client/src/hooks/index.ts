@@ -47,6 +47,11 @@ export {
   type UseUpdateCondominiumOptions,
   type UseGenerateCondominiumCodeOptions,
   type TGenerateCondominiumCodeResponse,
+  createCondominiumWizard,
+  type TWizardInput,
+  type TWizardBuildingInput,
+  type TWizardUnitInput,
+  type TWizardResult,
 } from './use-condominiums'
 export {
   useCondominiumDetail,
@@ -490,6 +495,7 @@ export {
 export {
   useQuotas,
   useQuotasByUnit,
+  useQuotasByUnitPaginated,
   useQuotasPendingByUnit,
   useQuotasByStatus,
   useQuotasOverdue,
@@ -510,11 +516,13 @@ export {
   deleteQuota,
   quotaKeys,
   type IQuotasQuery,
+  type IQuotasByUnitQuery,
   type IUseQuotasOptions,
   type IUseQuotaDetailOptions,
   type ICreateQuotaOptions,
   type IUpdateQuotaOptions,
   type IDeleteQuotaOptions,
+  getQuotasByUnitServer,
 } from './use-quotas'
 export {
   usePayments,
@@ -523,6 +531,7 @@ export {
   usePaymentByNumber,
   usePaymentsByUser,
   usePaymentsByUnit,
+  usePaymentsByUnitPaginated,
   usePaymentsByStatus,
   usePaymentsByDateRange,
   usePaymentDetail,
@@ -548,6 +557,7 @@ export {
   deletePayment,
   paymentKeys,
   type IPaymentsQuery,
+  type IPaymentsByUnitQuery,
   type IUsePaymentsOptions,
   type IUsePaymentDetailOptions,
   type ICreatePaymentOptions,
@@ -558,6 +568,7 @@ export {
   type IDeletePaymentOptions,
   type IVerifyPaymentData,
   type IRejectPaymentData,
+  getPaymentsByUnitServer,
 } from './use-payments'
 export {
   useExpenses,
@@ -684,6 +695,8 @@ export {
   type IAccountStatementExportParams,
   type IDebtorsReportExportParams,
 } from './use-reports'
+
+export { getUnitOwnerships, useCreateUnitOwnership } from './use-unit-ownerships'
 
 // Re-export commonly used TanStack Query hooks
 export {
