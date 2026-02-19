@@ -2,15 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { getAuth } from 'firebase/auth'
 import { Card, CardBody } from '@/ui/components/card'
 import { Spinner } from '@/ui/components/spinner'
-import {
-  validateUserInvitationToken,
-  acceptUserInvitation,
-  type TValidateUserInvitationResult,
-  HttpError,
-} from '@packages/http-client'
+import { HttpError } from '@packages/http-client'
 
 import { InvalidTokenView } from '../../accept-invitation/components/InvalidTokenView'
 import { ExpiredTokenView } from '../../accept-invitation/components/ExpiredTokenView'
@@ -20,6 +14,11 @@ import { useAuth } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
 import { setSessionCookie, setUserCookie, setActiveRoleCookie } from '@/libs/cookies'
 import { useUser } from '@/contexts'
+import {
+  acceptUserInvitation,
+  TValidateUserInvitationResult,
+  validateUserInvitationToken,
+} from '@packages/http-client/hooks'
 
 interface AcceptUserInvitationContentProps {
   token?: string

@@ -8,6 +8,8 @@ import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { ArrowLeft } from 'lucide-react'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
 
 const STATUS_COLOR_MAP: Record<string, 'warning' | 'success' | 'danger' | 'default'> = {
   pending: 'warning',
@@ -28,17 +30,6 @@ export default function QuotaDetailPage() {
 
   const { data, isLoading, error } = useQuotaDetail(params.id)
   const quota = data?.data
-
-  const formatCurrency = (value: number | string, symbol?: string | null) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value
-    const currencySymbol = symbol || '$'
-    return `${currencySymbol}${num.toFixed(2)}`
-  }
-
-  const formatDate = (date: Date | string) => {
-    const d = typeof date === 'string' ? new Date(date) : date
-    return d.toLocaleDateString()
-  }
 
   const formatPeriod = (year: number, month: number | null) => {
     if (month && month >= 1 && month <= 12) {
@@ -74,7 +65,7 @@ export default function QuotaDetailPage() {
     )
   }
 
-  const currencySymbol = quota.currency?.symbol
+  const currencyCode = quota.currency?.code
 
   return (
     <div className="space-y-6">
@@ -159,7 +150,7 @@ export default function QuotaDetailPage() {
               {t('admin.quotas.detail.baseAmount')}
             </Typography>
             <Typography variant="body1" className="font-semibold">
-              {formatCurrency(quota.baseAmount, currencySymbol)}
+              {formatCurrency(quota.baseAmount, { currency: currencyCode })}
             </Typography>
           </div>
           <div>
@@ -167,7 +158,7 @@ export default function QuotaDetailPage() {
               {t('admin.quotas.detail.interestAmount')}
             </Typography>
             <Typography variant="body1" className="font-semibold">
-              {formatCurrency(quota.interestAmount, currencySymbol)}
+              {formatCurrency(quota.interestAmount, { currency: currencyCode })}
             </Typography>
           </div>
           <div>
@@ -175,7 +166,7 @@ export default function QuotaDetailPage() {
               {t('admin.quotas.detail.paidAmount')}
             </Typography>
             <Typography variant="body1" className="font-semibold text-success">
-              {formatCurrency(quota.paidAmount, currencySymbol)}
+              {formatCurrency(quota.paidAmount, { currency: currencyCode })}
             </Typography>
           </div>
           <div>
@@ -183,7 +174,7 @@ export default function QuotaDetailPage() {
               {t('admin.quotas.detail.balance')}
             </Typography>
             <Typography variant="body1" className="font-semibold">
-              {formatCurrency(quota.balance, currencySymbol)}
+              {formatCurrency(quota.balance, { currency: currencyCode })}
             </Typography>
           </div>
         </div>
@@ -200,7 +191,7 @@ export default function QuotaDetailPage() {
               {t('admin.quotas.detail.issueDate')}
             </Typography>
             <Typography variant="body1">
-              {formatDate(quota.issueDate)}
+              {formatShortDate(quota.issueDate)}
             </Typography>
           </div>
           <div>
@@ -208,7 +199,7 @@ export default function QuotaDetailPage() {
               {t('admin.quotas.detail.dueDate')}
             </Typography>
             <Typography variant="body1">
-              {formatDate(quota.dueDate)}
+              {formatShortDate(quota.dueDate)}
             </Typography>
           </div>
         </div>

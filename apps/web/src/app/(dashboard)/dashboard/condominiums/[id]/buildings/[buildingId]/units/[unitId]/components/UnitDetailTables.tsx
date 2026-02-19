@@ -8,21 +8,15 @@ import { Tooltip } from '@/ui/components/tooltip'
 import { useToast } from '@/ui/components/toast'
 import { Modal, ModalContent, ModalHeader, ModalBody, useDisclosure } from '@/ui/components/modal'
 import { Divider } from '@/ui/components/divider'
-import { useResendOwnerInvitation } from '@packages/http-client/hooks'
 import { Mail, User, Phone, FileText, Calendar } from 'lucide-react'
 import type { TQuota, TPayment, TUnitOwnership } from '@packages/domain'
+import { useResendOwnerInvitation } from '@packages/http-client/hooks'
+import { formatAmount } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared helpers
 // ─────────────────────────────────────────────────────────────────────────────
-
-const formatDate = (date: string | Date) =>
-  new Date(date).toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' })
-
-const formatCurrency = (amount: string | number) => {
-  const num = typeof amount === 'string' ? parseFloat(amount) : amount
-  return num.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
 
 const tableClassNames = {
   wrapper: 'shadow-none border-none p-0',
@@ -52,7 +46,13 @@ interface QuotasTableProps {
 
 type TQuotaRow = TQuota & { id: string }
 
-export function QuotasTable({ quotas, ariaLabel, columns, statusColors, statusLabels }: QuotasTableProps) {
+export function QuotasTable({
+  quotas,
+  ariaLabel,
+  columns,
+  statusColors,
+  statusLabels,
+}: QuotasTableProps) {
   const tableColumns: ITableColumn<TQuotaRow>[] = [
     { key: 'concept', label: columns.concept },
     { key: 'period', label: columns.period },
@@ -68,24 +68,34 @@ export function QuotasTable({ quotas, ariaLabel, columns, statusColors, statusLa
         return quota.paymentConcept?.name || quota.periodDescription || '-'
       case 'period': {
         if (quota.periodMonth) {
-          const monthName = new Date(quota.periodYear, quota.periodMonth - 1).toLocaleDateString('es-VE', { month: 'short' })
+          const monthName = new Date(quota.periodYear, quota.periodMonth - 1).toLocaleDateString(
+            'es-VE',
+            { month: 'short' }
+          )
           return `${monthName} ${quota.periodYear}`
         }
         return quota.periodDescription || `${quota.periodYear}`
       }
       case 'amount':
-        return formatCurrency(quota.baseAmount)
+        return formatAmount(quota.baseAmount)
       case 'paid':
-        return formatCurrency(quota.paidAmount)
+        return formatAmount(quota.paidAmount)
       case 'balance':
         return (
           <span className={parseFloat(quota.balance) > 0 ? 'text-danger font-medium' : ''}>
-            {formatCurrency(quota.balance)}
+            {formatAmount(quota.balance)}
           </span>
         )
       case 'status':
         return (
-          <Chip color={(statusColors[quota.status] as 'success' | 'warning' | 'danger' | 'default') || 'default'} variant="flat" size="sm">
+          <Chip
+            color={
+              (statusColors[quota.status] as 'success' | 'warning' | 'danger' | 'default') ||
+              'default'
+            }
+            variant="flat"
+            size="sm"
+          >
             {statusLabels[quota.status] || quota.status}
           </Chip>
         )
@@ -126,7 +136,14 @@ interface PaymentsTableProps {
 
 type TPaymentRow = TPayment & { id: string }
 
-export function PaymentsTable({ payments, ariaLabel, columns, statusColors, statusLabels, methodLabels }: PaymentsTableProps) {
+export function PaymentsTable({
+  payments,
+  ariaLabel,
+  columns,
+  statusColors,
+  statusLabels,
+  methodLabels,
+}: PaymentsTableProps) {
   const tableColumns: ITableColumn<TPaymentRow>[] = [
     { key: 'number', label: columns.number },
     { key: 'date', label: columns.date },
@@ -140,14 +157,25 @@ export function PaymentsTable({ payments, ariaLabel, columns, statusColors, stat
       case 'number':
         return payment.paymentNumber || '-'
       case 'date':
-        return formatDate(payment.paymentDate)
+        return formatFullDate(payment.paymentDate)
       case 'amount':
-        return formatCurrency(payment.amount)
+        return formatAmount(payment.amount)
       case 'method':
         return methodLabels[payment.paymentMethod] || payment.paymentMethod
       case 'status':
         return (
-          <Chip color={(statusColors[payment.status] as 'success' | 'warning' | 'danger' | 'default' | 'primary') || 'default'} variant="flat" size="sm">
+          <Chip
+            color={
+              (statusColors[payment.status] as
+                | 'success'
+                | 'warning'
+                | 'danger'
+                | 'default'
+                | 'primary') || 'default'
+            }
+            variant="flat"
+            size="sm"
+          >
             {statusLabels[payment.status] || payment.status}
           </Chip>
         )
@@ -239,10 +267,14 @@ export function OwnersTable({
   const renderCell = (ownership: TUnitOwnership, columnKey: string) => {
     switch (columnKey) {
       case 'name':
-        return ownership.fullName
-          || (ownership.user?.firstName ? `${ownership.user.firstName} ${ownership.user.lastName || ''}`.trim() : null)
-          || ownership.email
-          || '-'
+        return (
+          ownership.fullName ||
+          (ownership.user?.firstName
+            ? `${ownership.user.firstName} ${ownership.user.lastName || ''}`.trim()
+            : null) ||
+          ownership.email ||
+          '-'
+        )
       case 'type':
         return (
           <Chip variant="flat" size="sm">
@@ -250,7 +282,7 @@ export function OwnersTable({
           </Chip>
         )
       case 'startDate':
-        return formatDate(ownership.startDate)
+        return formatFullDate(ownership.startDate)
       case 'status':
         return (
           <Chip color={ownership.isActive ? 'success' : 'default'} variant="flat" size="sm">
@@ -271,7 +303,7 @@ export function OwnersTable({
               {noLabel}
             </Chip>
             {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-            <div onClick={(e) => e.stopPropagation()}>
+            <div onClick={e => e.stopPropagation()}>
               <Tooltip content={columns.resendTooltip}>
                 <Button
                   isIconOnly
@@ -295,10 +327,12 @@ export function OwnersTable({
   }
 
   const ownerName = selectedOwner
-    ? (selectedOwner.fullName
-      || (selectedOwner.user?.firstName ? `${selectedOwner.user.firstName} ${selectedOwner.user.lastName || ''}`.trim() : null)
-      || selectedOwner.email
-      || '-')
+    ? selectedOwner.fullName ||
+      (selectedOwner.user?.firstName
+        ? `${selectedOwner.user.firstName} ${selectedOwner.user.lastName || ''}`.trim()
+        : null) ||
+      selectedOwner.email ||
+      '-'
     : ''
 
   const ownerEmail = selectedOwner?.email || selectedOwner?.user?.email || null
@@ -306,18 +340,18 @@ export function OwnersTable({
     if (!selectedOwner) return null
     const phone = selectedOwner.phone || selectedOwner.user?.phoneNumber || null
     if (!phone) return null
-    const countryCode = selectedOwner.phoneCountryCode || selectedOwner.user?.phoneCountryCode || null
+    const countryCode =
+      selectedOwner.phoneCountryCode || selectedOwner.user?.phoneCountryCode || null
     const code = countryCode?.startsWith('+') ? countryCode : countryCode ? `+${countryCode}` : null
     return code ? `${code} ${phone}` : phone
   })()
 
-  const idDoc = selectedOwner?.user?.idDocumentType && selectedOwner?.user?.idDocumentNumber
-    ? `${selectedOwner.user.idDocumentType}-${selectedOwner.user.idDocumentNumber}`
-    : null
+  const idDoc =
+    selectedOwner?.user?.idDocumentType && selectedOwner?.user?.idDocumentNumber
+      ? `${selectedOwner.user.idDocumentType}-${selectedOwner.user.idDocumentNumber}`
+      : null
 
-  const joinDate = selectedOwner?.user?.createdAt
-    ? formatDate(selectedOwner.user.createdAt)
-    : null
+  const joinDate = selectedOwner?.user?.createdAt ? formatFullDate(selectedOwner.user.createdAt) : null
 
   return (
     <>
@@ -327,7 +361,7 @@ export function OwnersTable({
         rows={ownerships}
         renderCell={renderCell}
         classNames={tableClassNames}
-        onRowClick={(row) => {
+        onRowClick={row => {
           setSelectedOwner(row)
           onOpen()
         }}

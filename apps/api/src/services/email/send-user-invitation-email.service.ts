@@ -11,6 +11,10 @@ export interface ISendUserInvitationEmailInput {
   roleName: string
   invitationToken: string
   expiresAt: Date
+  inviterName?: string
+  inviterEmail?: string
+  managementCompanyName?: string
+  managementCompanyContact?: string
 }
 
 export interface ISendUserInvitationEmailResult {

@@ -11,6 +11,8 @@ import { AlertTriangle, Lock, Eye, EyeOff, Calendar, DollarSign, RefreshCw } fro
 import { useToast } from '@/ui/components/toast'
 import { useTranslation } from '@/contexts'
 import { useAuth } from '@/contexts/AuthContext'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
 import type { TManagementCompanySubscription } from '@packages/domain'
 
 interface ReplaceSubscriptionModalProps {
@@ -39,20 +41,7 @@ export function ReplaceSubscriptionModal({
 
   const formatDate = (date: Date | string | null) => {
     if (!date) return '-'
-    const d = typeof date === 'string' ? new Date(date) : date
-    return d.toLocaleDateString('es-VE', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  }
-
-  const formatCurrency = (amount: number | null) => {
-    if (amount === null || amount === undefined) return '-'
-    return new Intl.NumberFormat('es-VE', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount)
+    return formatFullDate(date)
   }
 
   const getBillingCycleLabel = (cycle: string) => {

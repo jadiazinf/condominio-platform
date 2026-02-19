@@ -9,6 +9,8 @@ import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
 import { useQuery, getHttpClient, quotaKeys } from '@packages/http-client'
 import type { TApiDataResponse } from '@packages/http-client'
+import { formatAmount } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
 import type { TQuota, TQuotaStatus } from '@packages/domain'
 import {
   AlertCircle,
@@ -82,15 +84,14 @@ function useQuotasByMultipleUnits(unitIds: string[]) {
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-function formatAmount(amount: string, currencySymbol: string): string {
+function formatQuotaAmount(amount: string, currencySymbol: string): string {
   const num = parseFloat(amount)
   if (isNaN(num)) return `${currencySymbol} 0.00`
-  return `${currencySymbol} ${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  return `${currencySymbol} ${formatAmount(amount)}`
 }
 
 function formatDate(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date
-  return d.toLocaleDateString()
+  return formatShortDate(date)
 }
 
 function formatPeriod(year: number, month: number | null, description: string | null): string {
@@ -246,7 +247,7 @@ export function MyQuotasClient({ unitIds, userId: _userId }: IMyQuotasClientProp
                 {t('resident.myQuotas.totalPending')}
               </Typography>
               <Typography variant="h3">
-                {formatAmount(String(stats.totalPending), stats.currency)}
+                {formatQuotaAmount(String(stats.totalPending), stats.currency)}
               </Typography>
             </div>
           </CardBody>
@@ -353,7 +354,7 @@ export function MyQuotasClient({ unitIds, userId: _userId }: IMyQuotasClientProp
                     {/* Right: Amount + Status */}
                     <div className="flex shrink-0 flex-col items-end gap-1">
                       <Typography variant="body1">
-                        {formatAmount(quota.baseAmount, currencySymbol)}
+                        {formatQuotaAmount(quota.baseAmount, currencySymbol)}
                       </Typography>
                       <Chip color={chipColor} size="sm" variant="flat">
                         {t(`resident.myQuotas.status.${quota.status}`)}

@@ -13,6 +13,8 @@ import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
 import { Spinner } from '@/ui/components/spinner'
 import { X } from 'lucide-react'
+import { formatAmount } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
 
 interface AllPaymentsModalProps {
   isOpen: boolean
@@ -83,19 +85,6 @@ export function AllPaymentsModal({ isOpen, onClose, unitId, translations: t }: A
 
   const hasFilters = startDate || endDate || status
 
-  const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleDateString('es-VE', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
-  }
-
-  const formatCurrency = (amount: string | number) => {
-    const num = typeof amount === 'string' ? parseFloat(amount) : amount
-    return num.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  }
-
   const columns: ITableColumn<TPaymentRow>[] = [
     { key: 'number', label: t.table.number },
     { key: 'date', label: t.table.date },
@@ -109,9 +98,9 @@ export function AllPaymentsModal({ isOpen, onClose, unitId, translations: t }: A
       case 'number':
         return payment.paymentNumber || '-'
       case 'date':
-        return formatDate(payment.paymentDate)
+        return formatFullDate(payment.paymentDate)
       case 'amount':
-        return formatCurrency(payment.amount)
+        return formatAmount(payment.amount)
       case 'method':
         return t.methods[payment.paymentMethod] || payment.paymentMethod
       case 'status':

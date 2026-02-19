@@ -38,6 +38,29 @@ export async function getUnitOwnerships(
   return response.data.data
 }
 
+interface UseResendOwnerInvitationOptions {
+  onSuccess?: () => void
+  onError?: (error: Error) => void
+}
+
+interface ResendOwnerInvitationVariables {
+  ownershipId: string
+}
+
+export function useResendOwnerInvitation(options: UseResendOwnerInvitationOptions = {}) {
+  const { onSuccess, onError } = options
+
+  return useApiMutation<TApiDataResponse<unknown>, ResendOwnerInvitationVariables>({
+    path: (variables) => `/condominium/unit-ownerships/${variables.ownershipId}/resend-invitation`,
+    method: 'POST',
+    invalidateKeys: [unitOwnershipKeys.all],
+    onSuccess: () => {
+      onSuccess?.()
+    },
+    onError,
+  })
+}
+
 interface UseCreateUnitOwnershipOptions {
   onSuccess?: (response: TApiDataResponse<TUnitOwnership>) => void
   onError?: (error: Error) => void

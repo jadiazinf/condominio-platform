@@ -16,6 +16,11 @@
       "types": "./src/dates/index.ts",
       "import": "./src/dates/index.ts",
       "default": "./src/dates/index.ts"
+    },
+    "./currency": {
+      "types": "./src/currency/index.ts",
+      "import": "./src/currency/index.ts",
+      "default": "./src/currency/index.ts"
     }
   },
   "scripts": {

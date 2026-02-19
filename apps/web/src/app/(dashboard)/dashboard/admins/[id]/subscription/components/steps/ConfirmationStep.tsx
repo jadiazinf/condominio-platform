@@ -5,6 +5,8 @@ import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
 import { DollarSign, Calendar, HardDrive, Users, Building2, Home, Check } from 'lucide-react'
 import { useTranslation } from '@/contexts'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
 import type { ISubscriptionFormData } from '../../hooks'
 
 interface ConfirmationStepProps {
@@ -16,19 +18,7 @@ export function ConfirmationStep({ data }: ConfirmationStepProps) {
 
   const formatDate = (date: string) => {
     if (!date) return '-'
-    return new Date(date).toLocaleDateString('es-VE', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  }
-
-  const formatCurrency = (amount: string) => {
-    const num = parseFloat(amount) || 0
-    return new Intl.NumberFormat('es-VE', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(num)
+    return formatFullDate(date)
   }
 
   const getBillingCycleLabel = (cycle: string) => {

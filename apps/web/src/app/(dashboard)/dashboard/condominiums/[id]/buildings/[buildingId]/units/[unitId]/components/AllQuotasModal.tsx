@@ -13,6 +13,7 @@ import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
 import { Spinner } from '@/ui/components/spinner'
 import { X } from 'lucide-react'
+import { formatAmount } from '@packages/utils/currency'
 
 interface AllQuotasModalProps {
   isOpen: boolean
@@ -90,11 +91,6 @@ export function AllQuotasModal({ isOpen, onClose, unitId, translations: t }: All
     { key: 'status', label: t.table.status },
   ]
 
-  const formatCurrency = (amount: string | number) => {
-    const num = typeof amount === 'string' ? parseFloat(amount) : amount
-    return num.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  }
-
   const renderCell = (quota: TQuota, columnKey: string) => {
     switch (columnKey) {
       case 'concept':
@@ -107,13 +103,13 @@ export function AllQuotasModal({ isOpen, onClose, unitId, translations: t }: All
         return quota.periodDescription || `${quota.periodYear}`
       }
       case 'amount':
-        return formatCurrency(quota.baseAmount)
+        return formatAmount(quota.baseAmount)
       case 'paid':
-        return formatCurrency(quota.paidAmount)
+        return formatAmount(quota.paidAmount)
       case 'balance':
         return (
           <span className={parseFloat(quota.balance) > 0 ? 'text-danger font-medium' : ''}>
-            {formatCurrency(quota.balance)}
+            {formatAmount(quota.balance)}
           </span>
         )
       case 'status':

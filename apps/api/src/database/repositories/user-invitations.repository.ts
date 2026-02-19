@@ -1,4 +1,4 @@
-import { eq, and, lt, desc } from 'drizzle-orm'
+import { eq, and, lt, or, desc } from 'drizzle-orm'
 import type {
   TUserInvitation,
   TUserInvitationCreate,
@@ -234,18 +234,52 @@ export class UserInvitationsRepository extends BaseRepository<
   async regenerateToken(
     id: string,
     newToken: string,
-    newTokenHash: string
+    newTokenHash: string,
+    newExpiresAt?: Date
   ): Promise<TUserInvitation | null> {
+    const setValues: Record<string, unknown> = {
+      token: newToken,
+      tokenHash: newTokenHash,
+      emailError: null,
+      updatedAt: new Date(),
+    }
+    if (newExpiresAt) {
+      setValues.expiresAt = newExpiresAt
+    }
+
     const results = await this.db
       .update(userInvitations)
-      .set({
-        token: newToken,
-        tokenHash: newTokenHash,
-        emailError: null,
-        updatedAt: new Date(),
-      })
+      .set(setValues)
       .where(eq(userInvitations.id, id))
       .returning()
+
+    if (results.length === 0) {
+      return null
+    }
+
+    return this.mapToEntity(results[0])
+  }
+
+  /**
+   * Retrieves the most recent resendable invitation (pending or expired) for a user+condominium.
+   * Used when resending invitations.
+   */
+  async getResendableByUserAndCondominium(
+    userId: string,
+    condominiumId: string
+  ): Promise<TUserInvitation | null> {
+    const results = await this.db
+      .select()
+      .from(userInvitations)
+      .where(
+        and(
+          eq(userInvitations.userId, userId),
+          eq(userInvitations.condominiumId, condominiumId),
+          or(eq(userInvitations.status, 'pending'), eq(userInvitations.status, 'expired'))
+        )
+      )
+      .orderBy(desc(userInvitations.createdAt))
+      .limit(1)
 
     if (results.length === 0) {
       return null

@@ -696,7 +696,7 @@ export {
   type IDebtorsReportExportParams,
 } from './use-reports'
 
-export { getUnitOwnerships, useCreateUnitOwnership } from './use-unit-ownerships'
+export { getUnitOwnerships, useCreateUnitOwnership, useResendOwnerInvitation } from './use-unit-ownerships'
 
 // Re-export commonly used TanStack Query hooks
 export {

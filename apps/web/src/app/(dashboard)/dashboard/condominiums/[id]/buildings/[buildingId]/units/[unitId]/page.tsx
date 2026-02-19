@@ -15,18 +15,13 @@ import { getUnitOwnerships } from '@packages/http-client/hooks'
 import { getQuotasByUnitServer } from '@packages/http-client/hooks'
 import { getPaymentsByUnitServer } from '@packages/http-client/hooks'
 
+import { formatAmount } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
+
 import { ViewAllQuotasButton, ViewAllPaymentsButton, AddOwnershipButton } from './components/UnitDetailClient'
 
 interface PageProps {
   params: Promise<{ id: string; buildingId: string; unitId: string }>
-}
-
-const formatDate = (date: string | Date) =>
-  new Date(date).toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' })
-
-const formatCurrency = (amount: string | number) => {
-  const num = typeof amount === 'string' ? parseFloat(amount) : amount
-  return num.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 export default async function UnitDetailPage({ params }: PageProps) {
@@ -187,13 +182,13 @@ export default async function UnitDetailPage({ params }: PageProps) {
         return quota.periodDescription || `${quota.periodYear}`
       }
       case 'amount':
-        return formatCurrency(quota.baseAmount)
+        return formatAmount(quota.baseAmount)
       case 'paid':
-        return formatCurrency(quota.paidAmount)
+        return formatAmount(quota.paidAmount)
       case 'balance':
         return (
           <span className={parseFloat(quota.balance) > 0 ? 'text-danger font-medium' : ''}>
-            {formatCurrency(quota.balance)}
+            {formatAmount(quota.balance)}
           </span>
         )
       case 'status':
@@ -212,9 +207,9 @@ export default async function UnitDetailPage({ params }: PageProps) {
       case 'number':
         return payment.paymentNumber || '-'
       case 'date':
-        return formatDate(payment.paymentDate)
+        return formatFullDate(payment.paymentDate)
       case 'amount':
-        return formatCurrency(payment.amount)
+        return formatAmount(payment.amount)
       case 'method':
         return paymentMethodLabels[payment.paymentMethod] || payment.paymentMethod
       case 'status':
@@ -256,7 +251,7 @@ export default async function UnitDetailPage({ params }: PageProps) {
       case 'percentage':
         return ownership.ownershipPercentage ? `${ownership.ownershipPercentage}%` : '-'
       case 'startDate':
-        return formatDate(ownership.startDate)
+        return formatFullDate(ownership.startDate)
       case 'primaryResidence':
         return (
           <Chip color={ownership.isPrimaryResidence ? 'success' : 'default'} variant="flat" size="sm">
@@ -319,7 +314,7 @@ export default async function UnitDetailPage({ params }: PageProps) {
 
           {/* Row 3: Registration date */}
           <Typography variant="body2" color="muted" className="mt-0.5 ml-12 text-xs">
-            {t(`${ud}.registered`)} {formatDate(unit.createdAt)}
+            {t(`${ud}.registered`)} {formatFullDate(unit.createdAt)}
           </Typography>
 
           {/* Financial summary */}
@@ -328,7 +323,7 @@ export default async function UnitDetailPage({ params }: PageProps) {
             <div className="text-center">
               <Typography variant="body2" color="muted" className="text-xs">{t(`${ud}.totalDebt`)}</Typography>
               <Typography variant="h4" className={`mt-0.5 ${totalDebt > 0 ? 'text-danger' : 'text-success'}`}>
-                ${formatCurrency(totalDebt)}
+                ${formatAmount(totalDebt)}
               </Typography>
             </div>
             <div className="text-center">
@@ -340,7 +335,7 @@ export default async function UnitDetailPage({ params }: PageProps) {
             <div className="text-center">
               <Typography variant="body2" color="muted" className="text-xs">{t(`${ud}.lastPayment`)}</Typography>
               <Typography variant="h4" className="mt-0.5 text-base">
-                {lastPayment ? formatDate(lastPayment.paymentDate) : t(`${ud}.noPayments`)}
+                {lastPayment ? formatFullDate(lastPayment.paymentDate) : t(`${ud}.noPayments`)}
               </Typography>
             </div>
           </div>

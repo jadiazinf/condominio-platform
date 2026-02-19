@@ -9,6 +9,8 @@ import { Typography } from '@/ui/components/typography'
 import { Input } from '@/ui/components/input'
 import { CreditCard, Search } from 'lucide-react'
 import type { TPayment } from '@packages/domain'
+import { formatAmount } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
 
 type TPaymentStatusFilter = 'all' | 'pending' | 'pending_verification' | 'completed' | 'failed' | 'refunded' | 'rejected'
 
@@ -110,19 +112,6 @@ export function PaymentsTable({ payments, translations: t }: PaymentsTableProps)
     if (key) setStatusFilter(key as TPaymentStatusFilter)
   }, [])
 
-  const formatCurrency = (amount: string | number) => {
-    const num = typeof amount === 'string' ? parseFloat(amount) : amount
-    return `$ ${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-  }
-
-  const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
   const renderCell = useCallback(
     (payment: TPayment, columnKey: string) => {
       switch (columnKey) {
@@ -141,7 +130,7 @@ export function PaymentsTable({ payments, translations: t }: PaymentsTableProps)
         case 'amount':
           return (
             <span className="text-sm font-medium">
-              {formatCurrency(payment.amount)}
+              {formatAmount(payment.amount)}
             </span>
           )
         case 'method':
@@ -163,7 +152,7 @@ export function PaymentsTable({ payments, translations: t }: PaymentsTableProps)
         case 'date':
           return (
             <span className="text-sm text-default-600">
-              {formatDate(payment.paymentDate)}
+              {formatShortDate(payment.paymentDate)}
             </span>
           )
         default:
@@ -229,10 +218,10 @@ export function PaymentsTable({ payments, translations: t }: PaymentsTableProps)
               </div>
               <div className="flex items-center justify-between text-xs text-default-500">
                 <span>{t.methods[payment.paymentMethod as keyof typeof t.methods] || payment.paymentMethod}</span>
-                <span>{formatDate(payment.paymentDate)}</span>
+                <span>{formatShortDate(payment.paymentDate)}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{formatCurrency(payment.amount)}</span>
+                <span className="text-sm font-medium">{formatAmount(payment.amount)}</span>
               </div>
             </CardBody>
           </Card>

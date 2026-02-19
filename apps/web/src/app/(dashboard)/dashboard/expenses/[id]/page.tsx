@@ -8,6 +8,8 @@ import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { ArrowLeft } from 'lucide-react'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
 
 const STATUS_COLOR_MAP: Record<string, 'warning' | 'success' | 'danger' | 'primary' | 'default'> = {
   pending: 'warning',
@@ -23,17 +25,6 @@ export default function ExpenseDetailPage() {
 
   const { data, isLoading, error } = useExpenseDetail(params.id)
   const expense = data?.data
-
-  const formatCurrency = (value: number | string, symbol?: string | null) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value
-    const currencySymbol = symbol || '$'
-    return `${currencySymbol}${num.toFixed(2)}`
-  }
-
-  const formatDate = (date: Date | string) => {
-    const d = typeof date === 'string' ? new Date(date) : date
-    return d.toLocaleDateString()
-  }
 
   if (isLoading) {
     return (
@@ -62,7 +53,7 @@ export default function ExpenseDetailPage() {
     )
   }
 
-  const currencySymbol = expense.currency?.symbol
+  const currencyCode = expense.currency?.code
 
   return (
     <div className="space-y-6">
@@ -139,7 +130,7 @@ export default function ExpenseDetailPage() {
               {t('admin.expenses.table.amount')}
             </Typography>
             <Typography variant="body1" className="font-semibold">
-              {formatCurrency(expense.amount, currencySymbol)}
+              {formatCurrency(expense.amount, { currency: currencyCode })}
             </Typography>
           </div>
           <div>
@@ -189,7 +180,7 @@ export default function ExpenseDetailPage() {
               {t('admin.expenses.detail.expenseDate')}
             </Typography>
             <Typography variant="body1">
-              {formatDate(expense.expenseDate)}
+              {formatShortDate(expense.expenseDate)}
             </Typography>
           </div>
         </div>

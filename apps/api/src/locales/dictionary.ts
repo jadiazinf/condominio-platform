@@ -76,6 +76,18 @@ export const LocaleDictionary = {
         pendingInvitationExists: 'http.controllers.userInvitations.pendingInvitationExists',
         userActiveUseAssignRole: 'http.controllers.userInvitations.userActiveUseAssignRole',
       },
+      unitOwnerships: {
+        unitNotFound: 'http.controllers.unitOwnerships.unitNotFound',
+        roleNotFound: 'http.controllers.unitOwnerships.roleNotFound',
+        ownershipNotFound: 'http.controllers.unitOwnerships.ownershipNotFound',
+        duplicateOwnership: 'http.controllers.unitOwnerships.duplicateOwnership',
+        userNotFound: 'http.controllers.unitOwnerships.userNotFound',
+        userIdRequired: 'http.controllers.unitOwnerships.userIdRequired',
+        fullNameRequired: 'http.controllers.unitOwnerships.fullNameRequired',
+        documentRequired: 'http.controllers.unitOwnerships.documentRequired',
+        emailAlreadyRegistered: 'http.controllers.unitOwnerships.emailAlreadyRegistered',
+        documentAlreadyRegistered: 'http.controllers.unitOwnerships.documentAlreadyRegistered',
+      },
     },
     locales: {
       unknownError: 'http.locales.unknownError',

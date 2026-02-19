@@ -15,6 +15,8 @@ import { useAuth } from '@/contexts'
 import { getMyCompanySubscriptionsPaginated, useQuery } from '@packages/http-client'
 import type { TApiPaginationMeta } from '@packages/http-client'
 import type { TManagementCompanySubscription } from '@packages/domain'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
 import { SubscriptionDetailModal } from '../../components/SubscriptionDetailModal'
 
 const statusColorMap: Record<string, 'success' | 'primary' | 'default' | 'warning' | 'danger'> = {
@@ -23,21 +25,6 @@ const statusColorMap: Record<string, 'success' | 'primary' | 'default' | 'warnin
   inactive: 'default',
   cancelled: 'warning',
   suspended: 'danger',
-}
-
-function formatCurrency(amount: number | string | null): string {
-  if (amount === null || amount === undefined) return '$0.00'
-  const num = typeof amount === 'string' ? parseFloat(amount) : amount
-  return new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'USD' }).format(num)
-}
-
-function formatDate(date: Date | string | null): string {
-  if (!date) return '-'
-  return new Intl.DateTimeFormat('es-VE', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(new Date(date))
 }
 
 const billingCycleLabels: Record<string, string> = {
@@ -156,13 +143,13 @@ export function SubscriptionHistoryPage({ companyId }: SubscriptionHistoryPagePr
         case 'startDate':
           return (
             <p className="text-sm text-default-600">
-              {formatDate(sub.startDate)}
+              {formatFullDate(sub.startDate)}
             </p>
           )
         case 'cancelledAt':
           return sub.cancelledAt ? (
             <p className="text-sm text-warning">
-              {formatDate(sub.cancelledAt)}
+              {formatFullDate(sub.cancelledAt)}
             </p>
           ) : (
             <p className="text-sm text-default-400">-</p>

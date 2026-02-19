@@ -249,6 +249,25 @@ export class UsersRepository
   }
 
   /**
+   * Retrieves a user by email or document number.
+   * Used to check for existing users during registration mode.
+   */
+  async getByEmailOrDocument(emailOrDocument: string): Promise<TUser | null> {
+    const results = await this.db
+      .select()
+      .from(users)
+      .where(or(eq(users.email, emailOrDocument), eq(users.idDocumentNumber, emailOrDocument)))
+      .limit(1)
+
+    const record = results[0]
+    if (!record) {
+      return null
+    }
+
+    return this.mapToEntity(record)
+  }
+
+  /**
    * Updates the last login timestamp.
    */
   async updateLastLogin(id: string): Promise<TUser | null> {

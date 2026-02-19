@@ -11,6 +11,8 @@ import { ClearFiltersButton } from '@/ui/components/filters'
 import { Receipt, MoreVertical, Eye, Download } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { TExpense } from '@packages/domain'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
 
 import { useTranslation, useCondominium } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
@@ -127,17 +129,6 @@ export function ExpensesTable() {
     [router]
   )
 
-  const formatCurrency = (value: number | string, symbol?: string | null) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value
-    const currencySymbol = symbol || '$'
-    return `${currencySymbol}${num.toFixed(2)}`
-  }
-
-  const formatDate = (date: Date | string) => {
-    const d = typeof date === 'string' ? new Date(date) : date
-    return d.toLocaleDateString()
-  }
-
   const renderCell = useCallback(
     (expense: TExpense, columnKey: string) => {
       switch (columnKey) {
@@ -161,11 +152,11 @@ export function ExpensesTable() {
         case 'amount':
           return (
             <span className="text-sm font-medium">
-              {formatCurrency(expense.amount, expense.currency?.symbol)}
+              {formatCurrency(expense.amount, { currency: expense.currency?.code })}
             </span>
           )
         case 'expenseDate':
-          return <span className="text-sm">{formatDate(expense.expenseDate)}</span>
+          return <span className="text-sm">{formatShortDate(expense.expenseDate)}</span>
         case 'vendor':
           return (
             <span className="text-sm">

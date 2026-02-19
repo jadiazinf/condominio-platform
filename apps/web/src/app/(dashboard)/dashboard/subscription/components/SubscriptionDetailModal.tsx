@@ -7,6 +7,8 @@ import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
 import type { TManagementCompanySubscription } from '@packages/domain'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
 
 function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
@@ -28,21 +30,6 @@ const statusColorMap: Record<string, 'success' | 'primary' | 'default' | 'warnin
   inactive: 'default',
   cancelled: 'warning',
   suspended: 'danger',
-}
-
-function formatCurrency(amount: number | string | null): string {
-  if (amount === null || amount === undefined) return '$0.00'
-  const num = typeof amount === 'string' ? parseFloat(amount) : amount
-  return new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'USD' }).format(num)
-}
-
-function formatDate(date: Date | string | null): string {
-  if (!date) return '-'
-  return new Intl.DateTimeFormat('es-VE', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(date))
 }
 
 const billingCycleLabels: Record<string, string> = {
@@ -107,27 +94,27 @@ export function SubscriptionDetailModal({
             <InfoRow
               icon={<Calendar className="text-primary" size={18} />}
               label={t(`${tp}.startDate`)}
-              value={formatDate(subscription.startDate)}
+              value={formatFullDate(subscription.startDate)}
             />
             {subscription.endDate && (
               <InfoRow
                 icon={<Calendar className="text-danger" size={18} />}
                 label={t(`${tp}.endDate`)}
-                value={formatDate(subscription.endDate)}
+                value={formatFullDate(subscription.endDate)}
               />
             )}
             {subscription.nextBillingDate && (
               <InfoRow
                 icon={<Clock className="text-warning" size={18} />}
                 label={t(`${tp}.nextBilling`)}
-                value={formatDate(subscription.nextBillingDate)}
+                value={formatFullDate(subscription.nextBillingDate)}
               />
             )}
             {subscription.trialEndsAt && (
               <InfoRow
                 icon={<Clock className="text-primary" size={18} />}
                 label={t(`${tp}.trialEnds`)}
-                value={formatDate(subscription.trialEndsAt)}
+                value={formatFullDate(subscription.trialEndsAt)}
               />
             )}
             <InfoRow
@@ -211,7 +198,7 @@ export function SubscriptionDetailModal({
                 </Typography>
               </div>
               <Typography variant="caption" color="muted">
-                {t(`${tp}.cancelledAt`)}: {formatDate(subscription.cancelledAt)}
+                {t(`${tp}.cancelledAt`)}: {formatFullDate(subscription.cancelledAt)}
               </Typography>
               {subscription.cancellationReason && (
                 <Typography variant="caption" color="muted" className="mt-1 block">

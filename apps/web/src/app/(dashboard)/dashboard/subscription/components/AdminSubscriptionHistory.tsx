@@ -14,6 +14,8 @@ import { useAuth } from '@/contexts'
 import { getMyCompanySubscriptionsPaginated, useQuery } from '@packages/http-client'
 import type { TApiPaginationMeta } from '@packages/http-client'
 import type { TManagementCompanySubscription } from '@packages/domain'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
 import { SubscriptionDetailModal } from './SubscriptionDetailModal'
 
 const statusColorMap: Record<string, 'success' | 'primary' | 'default' | 'warning' | 'danger'> = {
@@ -22,21 +24,6 @@ const statusColorMap: Record<string, 'success' | 'primary' | 'default' | 'warnin
   inactive: 'default',
   cancelled: 'warning',
   suspended: 'danger',
-}
-
-function formatCurrency(amount: number | string | null): string {
-  if (amount === null || amount === undefined) return '$0.00'
-  const num = typeof amount === 'string' ? parseFloat(amount) : amount
-  return new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'USD' }).format(num)
-}
-
-function formatDate(date: Date | string | null): string {
-  if (!date) return '-'
-  return new Intl.DateTimeFormat('es-VE', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(new Date(date))
 }
 
 const billingCycleLabels: Record<string, string> = {
@@ -166,9 +153,9 @@ export function AdminSubscriptionHistory({ companyId }: AdminSubscriptionHistory
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-default-500">
                       <span>{formatCurrency(sub.basePrice)} / {billingCycleLabels[sub.billingCycle] || sub.billingCycle}</span>
-                      <span>{t(`${tp}.startedAt`)}: {formatDate(sub.startDate)}</span>
+                      <span>{t(`${tp}.startedAt`)}: {formatFullDate(sub.startDate)}</span>
                       {sub.cancelledAt && (
-                        <span className="text-warning">{t(`${tp}.cancelledAt`)}: {formatDate(sub.cancelledAt)}</span>
+                        <span className="text-warning">{t(`${tp}.cancelledAt`)}: {formatFullDate(sub.cancelledAt)}</span>
                       )}
                     </div>
                   </div>

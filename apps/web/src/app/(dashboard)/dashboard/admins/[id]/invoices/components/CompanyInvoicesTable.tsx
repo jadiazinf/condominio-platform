@@ -16,6 +16,8 @@ import {
   useQueryClient,
 } from '@packages/http-client'
 import { useAuth } from '@/contexts'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
 
 type TInvoiceStatus = 'pending' | 'paid' | 'overdue' | 'cancelled' | 'refunded' | 'sent' | 'draft'
 
@@ -108,20 +110,7 @@ export function CompanyInvoicesTable({ companyId }: CompanyInvoicesTableProps) {
 
   const invoices = data?.data || []
 
-  const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('es-VE', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-VE', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount)
-  }
+  const formatDate = (date: Date | string) => formatShortDate(date)
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {

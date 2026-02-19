@@ -10,6 +10,8 @@ import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { CreditCard, Plus } from 'lucide-react'
 import { usePaymentsByUser } from '@packages/http-client'
+import { formatAmount } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
 import type { TPayment, TPaymentStatus } from '@packages/domain'
 import type { TChipColor } from '@/ui/components/chip'
 
@@ -48,14 +50,12 @@ function getStatusColor(status: TPaymentStatus): TChipColor {
 
 function formatDate(date: Date | string | null): string {
   if (!date) return '-'
-  const d = typeof date === 'string' ? new Date(date) : date
-  return d.toLocaleDateString()
+  return formatShortDate(date)
 }
 
-function formatAmount(amount: string | null): string {
+function formatPaymentAmount(amount: string | null): string {
   if (!amount) return '-'
-  const num = parseFloat(amount)
-  return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return formatAmount(amount)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -162,7 +162,7 @@ export function MyPaymentsClient({ userId }: IMyPaymentsClientProps) {
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                       <Typography variant="subtitle1" weight="semibold">
-                        {payment.currency?.symbol ?? ''}{formatAmount(payment.amount)}
+                        {payment.currency?.symbol ?? ''}{formatPaymentAmount(payment.amount)}
                       </Typography>
                       {payment.currency && (
                         <Typography color="muted" variant="caption">

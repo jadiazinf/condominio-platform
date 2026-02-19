@@ -11,6 +11,8 @@ import { Spinner } from '@/ui/components/spinner'
 import { ClearFiltersButton } from '@/ui/components/filters'
 import { DollarSign, Search, MoreVertical, Power } from 'lucide-react'
 import type { TSubscriptionRate } from '@packages/domain'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
@@ -127,16 +129,6 @@ export function RatesTable() {
     [activateMutation, deactivateMutation]
   )
 
-  const formatCurrency = (value: number | string) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value
-    return `$${num.toFixed(2)}`
-  }
-
-  const formatDate = (date: Date | string) => {
-    const d = typeof date === 'string' ? new Date(date) : date
-    return d.toLocaleDateString()
-  }
-
   const renderCell = useCallback(
     (rate: TSubscriptionRate, columnKey: string) => {
       switch (columnKey) {
@@ -168,7 +160,7 @@ export function RatesTable() {
             </Chip>
           )
         case 'effectiveFrom':
-          return <span className="text-sm">{formatDate(rate.effectiveFrom)}</span>
+          return <span className="text-sm">{formatShortDate(rate.effectiveFrom)}</span>
         case 'actions':
           return (
             <div onClick={e => e.stopPropagation()}>

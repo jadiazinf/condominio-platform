@@ -11,6 +11,8 @@ import { ClearFiltersButton } from '@/ui/components/filters'
 import { Receipt, MoreVertical, Eye, Download } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { TQuota } from '@packages/domain'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
 
 import { useTranslation, useCondominium } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
@@ -134,17 +136,6 @@ export function QuotasTable() {
     [router]
   )
 
-  const formatCurrency = (value: number | string, symbol?: string | null) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value
-    const currencySymbol = symbol || '$'
-    return `${currencySymbol}${num.toFixed(2)}`
-  }
-
-  const formatDate = (date: Date | string) => {
-    const d = typeof date === 'string' ? new Date(date) : date
-    return d.toLocaleDateString()
-  }
-
   const formatPeriod = (year: number, month: number | null) => {
     if (month && month >= 1 && month <= 12) {
       return `${MONTH_NAMES[month - 1]} ${year}`
@@ -183,11 +174,11 @@ export function QuotasTable() {
         case 'amount':
           return (
             <span className="text-sm font-medium">
-              {formatCurrency(quota.baseAmount, quota.currency?.symbol)}
+              {formatCurrency(quota.baseAmount, { currency: quota.currency?.code })}
             </span>
           )
         case 'dueDate':
-          return <span className="text-sm">{formatDate(quota.dueDate)}</span>
+          return <span className="text-sm">{formatShortDate(quota.dueDate)}</span>
         case 'status':
           return (
             <Chip
@@ -200,7 +191,7 @@ export function QuotasTable() {
         case 'balance':
           return (
             <span className="text-sm font-medium">
-              {formatCurrency(quota.balance, quota.currency?.symbol)}
+              {formatCurrency(quota.balance, { currency: quota.currency?.code })}
             </span>
           )
         case 'actions':

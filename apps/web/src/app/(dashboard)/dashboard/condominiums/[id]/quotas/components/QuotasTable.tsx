@@ -9,6 +9,8 @@ import { Typography } from '@/ui/components/typography'
 import { Input } from '@/ui/components/input'
 import { Receipt, Search, Calendar } from 'lucide-react'
 import type { TQuota } from '@packages/domain'
+import { formatAmount } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
 
 type TQuotaStatusFilter = 'all' | 'pending' | 'paid' | 'overdue' | 'cancelled'
 
@@ -98,19 +100,6 @@ export function QuotasTable({ quotas, translations: t }: QuotasTableProps) {
     if (key) setStatusFilter(key as TQuotaStatusFilter)
   }, [])
 
-  const formatCurrency = (amount: string | number) => {
-    const num = typeof amount === 'string' ? parseFloat(amount) : amount
-    return `$ ${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-  }
-
-  const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
   const renderCell = useCallback(
     (quota: TQuota, columnKey: string) => {
       switch (columnKey) {
@@ -138,13 +127,13 @@ export function QuotasTable({ quotas, translations: t }: QuotasTableProps) {
         case 'amount':
           return (
             <span className="text-sm font-medium">
-              {formatCurrency(quota.baseAmount)}
+              {formatAmount(quota.baseAmount)}
             </span>
           )
         case 'balance':
           return (
             <span className="text-sm font-medium text-default-600">
-              {formatCurrency(quota.balance)}
+              {formatAmount(quota.balance)}
             </span>
           )
         case 'status':
@@ -160,7 +149,7 @@ export function QuotasTable({ quotas, translations: t }: QuotasTableProps) {
         case 'dueDate':
           return (
             <span className="text-sm text-default-600">
-              {formatDate(quota.dueDate)}
+              {formatShortDate(quota.dueDate)}
             </span>
           )
         default:
@@ -226,12 +215,12 @@ export function QuotasTable({ quotas, translations: t }: QuotasTableProps) {
               </div>
               <div className="flex items-center justify-between text-xs text-default-500">
                 <span>{quota.periodDescription || `${quota.periodYear}/${quota.periodMonth}`}</span>
-                <span>{formatDate(quota.dueDate)}</span>
+                <span>{formatShortDate(quota.dueDate)}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{formatCurrency(quota.baseAmount)}</span>
+                <span className="text-sm font-medium">{formatAmount(quota.baseAmount)}</span>
                 <span className="text-xs text-default-500">
-                  {t.table.balance}: {formatCurrency(quota.balance)}
+                  {t.table.balance}: {formatAmount(quota.balance)}
                 </span>
               </div>
             </CardBody>

@@ -25,6 +25,7 @@ import { Button } from '@/ui/components/button'
 import { useToast } from '@/ui/components/toast'
 import { useTranslation } from '@/contexts'
 import { useSubscriptionPricing, type IPricingQuery } from '@packages/http-client'
+import { formatCurrency } from '@packages/utils/currency'
 import type { ISubscriptionFormData } from '../../hooks'
 import { useSubscriptionRates } from '@packages/http-client/hooks'
 
@@ -209,13 +210,6 @@ export function PricingStepForm({
       }
     })
   }, [ratesData])
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-VE', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount)
-  }
 
   const getBillingMonthsLabel = () => {
     switch (billingCycle) {
