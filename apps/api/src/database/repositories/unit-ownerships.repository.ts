@@ -1,6 +1,6 @@
-import { and, eq } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 import type { TUnitOwnership, TUnitOwnershipCreate, TUnitOwnershipUpdate } from '@packages/domain'
-import { unitOwnerships } from '@database/drizzle/schema'
+import { unitOwnerships, units, buildings } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -182,6 +182,30 @@ export class UnitOwnershipsRepository
     }
 
     return this.mapToEntity(results[0])
+  }
+
+  /**
+   * Marks all active, unregistered ownerships for a user in a condominium as registered.
+   * Used when a user accepts an invitation — confirms their ownership.
+   */
+  async markAsRegisteredByUserAndCondominium(userId: string, condominiumId: string): Promise<void> {
+    const condominiumUnitIds = this.db
+      .select({ id: units.id })
+      .from(units)
+      .innerJoin(buildings, eq(units.buildingId, buildings.id))
+      .where(eq(buildings.condominiumId, condominiumId))
+
+    await this.db
+      .update(unitOwnerships)
+      .set({ isRegistered: true, updatedAt: new Date() })
+      .where(
+        and(
+          eq(unitOwnerships.userId, userId),
+          eq(unitOwnerships.isRegistered, false),
+          eq(unitOwnerships.isActive, true),
+          inArray(unitOwnerships.unitId, condominiumUnitIds)
+        )
+      )
   }
 
   /**

@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
+import { ESystemRole } from '@packages/domain'
 import { GetUserFullDetailsService } from '@src/services/users'
 import type { TUserFullDetails } from '@database/repositories'
 
@@ -31,7 +32,7 @@ describe('GetUserFullDetailsService', function () {
       {
         id: 'user-role-1',
         roleId: 'role-1',
-        roleName: 'SUPERADMIN',
+        roleName: ESystemRole.SUPERADMIN,
         roleDescription: 'Super Administrator',
         isSystemRole: true,
         condominiumId: null,

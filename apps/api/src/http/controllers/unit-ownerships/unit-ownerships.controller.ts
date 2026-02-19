@@ -5,6 +5,7 @@ import {
   type TUnitOwnership,
   type TUnitOwnershipCreate,
   type TUnitOwnershipUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { UnitOwnershipsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -58,54 +59,54 @@ export class UnitOwnershipsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)] },
       {
         method: 'get',
         path: '/unit/:unitId',
         handler: this.getByUnitId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(UnitIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(UnitIdParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'USER'), paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.USER), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId/primary',
         handler: this.getPrimaryResidenceByUser,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'USER'), paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.USER), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/unit/:unitId/user/:userId',
         handler: this.getByUnitAndUser,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(UnitAndUserParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(UnitAndUserParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'USER'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.USER), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(unitOwnershipCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(unitOwnershipCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema), bodyValidator(unitOwnershipUpdateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema), bodyValidator(unitOwnershipUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

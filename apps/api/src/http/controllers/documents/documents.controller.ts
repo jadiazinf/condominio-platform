@@ -5,6 +5,7 @@ import {
   type TDocument,
   type TDocumentCreate,
   type TDocumentUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { DocumentsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -98,61 +99,61 @@ export class DocumentsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER)] },
       { method: 'get', path: '/public', handler: this.getPublicDocuments },
       {
         method: 'get',
         path: '/type/:documentType',
         handler: this.getByType,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(DocumentTypeParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(DocumentTypeParamSchema)],
       },
       {
         method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(BuildingIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(BuildingIdParamSchema)],
       },
       {
         method: 'get',
         path: '/unit/:unitId',
         handler: this.getByUnitId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(UnitIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(UnitIdParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/payment/:paymentId',
         handler: this.getByPaymentId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(PaymentIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(PaymentIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(documentCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(documentCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema), bodyValidator(documentUpdateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema), bodyValidator(documentUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

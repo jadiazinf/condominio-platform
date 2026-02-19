@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { auditLogCreateSchema, type TAuditLog, type TAuditLogCreate } from '@packages/domain'
+import { auditLogCreateSchema, type TAuditLog, type TAuditLogCreate, ESystemRole } from '@packages/domain'
 import type { AuditLogsRepository } from '@database/repositories'
 import { HttpContext } from '../../context'
 import {
@@ -72,54 +72,54 @@ export class AuditLogsController {
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)] },
       {
         method: 'get',
         path: '/table/:tableName',
         handler: this.getByTableName,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(TableNameParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(TableNameParamSchema)],
       },
       {
         method: 'get',
         path: '/record/:recordId',
         handler: this.getByRecordId,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(RecordIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(RecordIdParamSchema)],
       },
       {
         method: 'get',
         path: '/table/:tableName/record/:recordId',
         handler: this.getByTableAndRecord,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(TableAndRecordParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(TableAndRecordParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/action/:action',
         handler: this.getByAction,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(ActionParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(ActionParamSchema)],
       },
       {
         method: 'get',
         path: '/date-range',
         handler: this.getByDateRange,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), queryValidator(DateRangeQuerySchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), queryValidator(DateRangeQuerySchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(auditLogCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), bodyValidator(auditLogCreateSchema)],
       },
     ]
   }

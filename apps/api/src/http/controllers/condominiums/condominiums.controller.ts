@@ -5,6 +5,7 @@ import {
   type TCondominium,
   type TCondominiumCreate,
   type TCondominiumUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type {
   CondominiumsRepository,
@@ -101,31 +102,31 @@ export class CondominiumsController extends BaseController<
         method: 'get',
         path: '/',
         handler: this.list,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER')],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER)],
       },
       {
         method: 'get',
         path: '/code/:code',
         handler: this.getByCode,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(CodeParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(CodeParamSchema)],
       },
       {
         method: 'get',
         path: '/:id/users',
         handler: this.getCondominiumUsers,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN', 'ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN', 'ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/generate-code',
         handler: this.generateCode,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN', 'ADMIN')],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN)],
       },
       {
         method: 'post',
@@ -133,7 +134,7 @@ export class CondominiumsController extends BaseController<
         handler: this.create,
         middlewares: [
           authMiddleware,
-          requireRole('SUPERADMIN', 'ADMIN'),
+          requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN),
           bodyValidator(condominiumCreateSchema),
           validateSubscriptionLimit('condominium', this.subscriptionsRepository, this.companiesRepository),
         ],
@@ -142,7 +143,7 @@ export class CondominiumsController extends BaseController<
         method: 'post',
         path: '/wizard',
         handler: this.wizard,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN', 'ADMIN')],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN)],
       },
       {
         method: 'patch',
@@ -150,7 +151,7 @@ export class CondominiumsController extends BaseController<
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN'),
+          requireRole(ESystemRole.ADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(condominiumUpdateSchema),
         ],
@@ -159,7 +160,7 @@ export class CondominiumsController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

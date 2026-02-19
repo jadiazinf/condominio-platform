@@ -1,13 +1,14 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
-import type {
-  TAdminInvitation,
-  TUser,
-  TUserCreate,
-  TUserRole,
-  TManagementCompany,
-  TManagementCompanyCreate,
-  TManagementCompanyMember,
-  TRole,
+import {
+  type TAdminInvitation,
+  type TUser,
+  type TUserCreate,
+  type TUserRole,
+  type TManagementCompany,
+  type TManagementCompanyCreate,
+  type TManagementCompanyMember,
+  type TRole,
+  ESystemRole,
 } from '@packages/domain'
 import { CreateCompanyWithAdminService } from '@src/services/admin-invitations'
 
@@ -223,9 +224,9 @@ describe('CreateCompanyWithAdminService', function () {
 
     mockRolesRepository = {
       getByName: async function (name: string) {
-        if (name === 'ADMIN') return {
+        if (name === ESystemRole.ADMIN) return {
           id: '550e8400-e29b-41d4-a716-446655440060',
-          name: 'ADMIN',
+          name: ESystemRole.ADMIN,
           description: 'Admin role',
           isSystemRole: true,
           registeredBy: null,

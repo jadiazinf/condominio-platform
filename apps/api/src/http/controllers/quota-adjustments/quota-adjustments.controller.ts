@@ -4,6 +4,7 @@ import {
   EAdjustmentTypes,
   type TQuotaAdjustment,
   type TQuotaAdjustmentCreate,
+  ESystemRole,
 } from '@packages/domain'
 import type { QuotasRepository, QuotaAdjustmentsRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
@@ -83,30 +84,30 @@ export class QuotaAdjustmentsController {
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)] },
       {
         method: 'get',
         path: '/quota/:quotaId',
         handler: this.getByQuotaId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(QuotaIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(QuotaIdParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/type/:type',
         handler: this.getByType,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(AdjustmentTypeParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(AdjustmentTypeParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
@@ -114,7 +115,7 @@ export class QuotaAdjustmentsController {
         handler: this.adjustQuota,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN', 'ACCOUNTANT'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
           paramsValidator(QuotaIdParamSchema),
           bodyValidator(AdjustQuotaBodySchema),
         ],

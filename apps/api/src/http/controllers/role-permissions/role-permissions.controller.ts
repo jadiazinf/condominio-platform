@@ -5,6 +5,7 @@ import {
   type TRolePermission,
   type TRolePermissionCreate,
   type TRolePermissionUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { RolePermissionsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -58,54 +59,54 @@ export class RolePermissionsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)] },
       {
         method: 'get',
         path: '/role/:roleId',
         handler: this.getByRoleId,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(RoleIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(RoleIdParamSchema)],
       },
       {
         method: 'get',
         path: '/permission/:permissionId',
         handler: this.getByPermissionId,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(PermissionIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(PermissionIdParamSchema)],
       },
       {
         method: 'get',
         path: '/role/:roleId/permission/:permissionId/exists',
         handler: this.checkExists,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(RoleAndPermissionParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(RoleAndPermissionParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(rolePermissionCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), bodyValidator(rolePermissionCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(rolePermissionUpdateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(rolePermissionUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'delete',
         path: '/role/:roleId/permission/:permissionId',
         handler: this.removeByRoleAndPermission,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(RoleAndPermissionParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(RoleAndPermissionParamSchema)],
       },
     ]
   }

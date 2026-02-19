@@ -1,9 +1,10 @@
 import type { Context } from 'hono'
 import { z } from 'zod'
-import type {
-  TSubscriptionRate,
-  TSubscriptionRateCreate,
-  TSubscriptionRateUpdate,
+import {
+  type TSubscriptionRate,
+  type TSubscriptionRateCreate,
+  type TSubscriptionRateUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { SubscriptionRatesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -98,7 +99,7 @@ export class SubscriptionRatesController extends BaseController<
         handler: this.getByVersion,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(VersionParamSchema),
         ],
       },
@@ -109,7 +110,7 @@ export class SubscriptionRatesController extends BaseController<
         handler: this.getAllRates,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           queryValidator(RatesQuerySchema),
         ],
       },
@@ -120,7 +121,7 @@ export class SubscriptionRatesController extends BaseController<
         handler: this.getRateById,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
         ],
       },
@@ -131,7 +132,7 @@ export class SubscriptionRatesController extends BaseController<
         handler: this.createRate,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
 
           bodyValidator(CreateRateSchema),
         ],
@@ -143,7 +144,7 @@ export class SubscriptionRatesController extends BaseController<
         handler: this.updateRate,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
 
           paramsValidator(IdParamSchema),
           bodyValidator(UpdateRateSchema),
@@ -156,7 +157,7 @@ export class SubscriptionRatesController extends BaseController<
         handler: this.activateRate,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
 
           paramsValidator(IdParamSchema),
         ],
@@ -168,7 +169,7 @@ export class SubscriptionRatesController extends BaseController<
         handler: this.deactivateRate,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
 
           paramsValidator(IdParamSchema),
         ],

@@ -6,6 +6,7 @@ import { isUserAuthenticated, AUTHENTICATED_USER_PROP } from '@http/middlewares/
 import { requireRole, CONDOMINIUM_ID_PROP, USER_ROLE_PROP } from '@http/middlewares/utils/auth/require-role'
 import { env } from '@config/environment'
 import { applyI18nMiddleware } from '@http/middlewares/locales'
+import { ESystemRole, type TSystemRole } from '@packages/domain'
 import {
   beginTestTransaction,
   startTestContainer,
@@ -64,11 +65,11 @@ describe('requireRole middleware', () => {
     userRolesRepo = new UserRolesRepository(db)
 
     // Seed the five system roles (UPPERCASE names as required)
-    const superadminRole = await rolesRepo.create(RoleFactory.systemRole({ name: 'SUPERADMIN' }))
-    const adminRole = await rolesRepo.create(RoleFactory.systemRole({ name: 'ADMIN' }))
-    const accountantRole = await rolesRepo.create(RoleFactory.systemRole({ name: 'ACCOUNTANT' }))
-    const supportRole = await rolesRepo.create(RoleFactory.systemRole({ name: 'SUPPORT' }))
-    const userRole = await rolesRepo.create(RoleFactory.systemRole({ name: 'USER' }))
+    const superadminRole = await rolesRepo.create(RoleFactory.systemRole({ name: ESystemRole.SUPERADMIN }))
+    const adminRole = await rolesRepo.create(RoleFactory.systemRole({ name: ESystemRole.ADMIN }))
+    const accountantRole = await rolesRepo.create(RoleFactory.systemRole({ name: ESystemRole.ACCOUNTANT }))
+    const supportRole = await rolesRepo.create(RoleFactory.systemRole({ name: ESystemRole.SUPPORT }))
+    const userRole = await rolesRepo.create(RoleFactory.systemRole({ name: ESystemRole.USER }))
 
     superadminRoleId = superadminRole.id
     adminRoleId = adminRole.id
@@ -82,7 +83,7 @@ describe('requireRole middleware', () => {
   })
 
   // Helper: build a Hono app with i18n + isUserAuthenticated + requireRole
-  function buildApp(...allowedRoles: string[]): Hono {
+  function buildApp(...allowedRoles: TSystemRole[]): Hono {
     const app = new Hono()
     applyI18nMiddleware(app)
     app.use('/protected', isUserAuthenticated)
@@ -136,14 +137,14 @@ describe('requireRole middleware', () => {
     it('should return 400 (missing header) for mock user on condominium route', async () => {
       // No Bearer UUID → mock user fallback → mock user has no roles
       // requireRole('ADMIN') tries condominium path → missing x-condominium-id → 400
-      const app = buildApp('ADMIN')
+      const app = buildApp(ESystemRole.ADMIN)
       const res = await app.request('/protected')
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
 
     it('should return 403 for mock user on SUPERADMIN-only route', async () => {
       // Mock user has no SUPERADMIN role in DB → 403
-      const app = buildApp('SUPERADMIN')
+      const app = buildApp(ESystemRole.SUPERADMIN)
       const res = await app.request('/protected')
       expect(res.status).toBe(StatusCodes.FORBIDDEN)
     })
@@ -155,7 +156,7 @@ describe('requireRole middleware', () => {
   describe('with non-existent user UUID', () => {
     it('should return 403 when UUID does not match a real user (mock user fallback)', async () => {
       const condoId = await createCondominium()
-      const app = buildApp('ADMIN')
+      const app = buildApp(ESystemRole.ADMIN)
       const fakeUserId = crypto.randomUUID()
       const res = await app.request('/protected', {
         headers: {
@@ -176,7 +177,7 @@ describe('requireRole middleware', () => {
       const user = await createUser()
       await assignRole(user.id, superadminRoleId) // global, no condominiumId
 
-      const app = buildApp('SUPERADMIN')
+      const app = buildApp(ESystemRole.SUPERADMIN)
       const res = await app.request('/protected', {
         headers: { Authorization: `Bearer ${user.id}` },
       })
@@ -195,7 +196,7 @@ describe('requireRole middleware', () => {
       const condoId = await createCondominium()
 
       // Route only allows ADMIN
-      const app = buildApp('ADMIN')
+      const app = buildApp(ESystemRole.ADMIN)
       const res = await app.request('/protected', {
         headers: {
           Authorization: `Bearer ${user.id}`,
@@ -211,7 +212,7 @@ describe('requireRole middleware', () => {
       const user = await createUser()
       await assignRole(user.id, superadminRoleId, null, false) // inactive
 
-      const app = buildApp('SUPERADMIN')
+      const app = buildApp(ESystemRole.SUPERADMIN)
       const res = await app.request('/protected', {
         headers: { Authorization: `Bearer ${user.id}` },
       })
@@ -225,7 +226,7 @@ describe('requireRole middleware', () => {
       await assignRole(user.id, superadminRoleId)
 
       // Route allows both SUPERADMIN and ADMIN
-      const app = buildApp('SUPERADMIN', 'ADMIN')
+      const app = buildApp(ESystemRole.SUPERADMIN, ESystemRole.ADMIN)
       const res = await app.request('/protected', {
         headers: { Authorization: `Bearer ${user.id}` },
         // No x-condominium-id header
@@ -246,7 +247,7 @@ describe('requireRole middleware', () => {
       const condoId = await createCondominium()
       await assignRole(user.id, adminRoleId, condoId)
 
-      const app = buildApp('ADMIN')
+      const app = buildApp(ESystemRole.ADMIN)
       const res = await app.request('/protected', {
         headers: { Authorization: `Bearer ${user.id}` },
         // Missing x-condominium-id
@@ -260,7 +261,7 @@ describe('requireRole middleware', () => {
     it('should return 400 when x-condominium-id is not a valid UUID', async () => {
       const user = await createUser()
 
-      const app = buildApp('ADMIN')
+      const app = buildApp(ESystemRole.ADMIN)
       const res = await app.request('/protected', {
         headers: {
           Authorization: `Bearer ${user.id}`,
@@ -283,7 +284,7 @@ describe('requireRole middleware', () => {
       const condoId = await createCondominium()
       await assignRole(user.id, userRoleId, condoId)
 
-      const app = buildApp('ADMIN')
+      const app = buildApp(ESystemRole.ADMIN)
       const res = await app.request('/protected', {
         headers: {
           Authorization: `Bearer ${user.id}`,
@@ -299,7 +300,7 @@ describe('requireRole middleware', () => {
       const condoId = await createCondominium()
       await assignRole(user.id, userRoleId, condoId)
 
-      const app = buildApp('ADMIN', 'ACCOUNTANT')
+      const app = buildApp(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)
       const res = await app.request('/protected', {
         headers: {
           Authorization: `Bearer ${user.id}`,
@@ -315,7 +316,7 @@ describe('requireRole middleware', () => {
       const condoId = await createCondominium()
       await assignRole(user.id, supportRoleId, condoId)
 
-      const app = buildApp('ADMIN')
+      const app = buildApp(ESystemRole.ADMIN)
       const res = await app.request('/protected', {
         headers: {
           Authorization: `Bearer ${user.id}`,
@@ -336,7 +337,7 @@ describe('requireRole middleware', () => {
       const condoId = await createCondominium()
       await assignRole(user.id, adminRoleId, condoId)
 
-      const app = buildApp('ADMIN')
+      const app = buildApp(ESystemRole.ADMIN)
       const res = await app.request('/protected', {
         headers: {
           Authorization: `Bearer ${user.id}`,
@@ -356,7 +357,7 @@ describe('requireRole middleware', () => {
       const condoId = await createCondominium()
       await assignRole(user.id, accountantRoleId, condoId)
 
-      const app = buildApp('ADMIN', 'ACCOUNTANT')
+      const app = buildApp(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)
       const res = await app.request('/protected', {
         headers: {
           Authorization: `Bearer ${user.id}`,
@@ -375,7 +376,7 @@ describe('requireRole middleware', () => {
       const condoId = await createCondominium()
       await assignRole(user.id, supportRoleId, condoId)
 
-      const app = buildApp('ADMIN', 'SUPPORT')
+      const app = buildApp(ESystemRole.ADMIN, ESystemRole.SUPPORT)
       const res = await app.request('/protected', {
         headers: {
           Authorization: `Bearer ${user.id}`,
@@ -393,7 +394,7 @@ describe('requireRole middleware', () => {
       const condoId = await createCondominium()
       await assignRole(user.id, userRoleId, condoId)
 
-      const app = buildApp('ADMIN', 'USER')
+      const app = buildApp(ESystemRole.ADMIN, ESystemRole.USER)
       const res = await app.request('/protected', {
         headers: {
           Authorization: `Bearer ${user.id}`,
@@ -416,7 +417,7 @@ describe('requireRole middleware', () => {
       const condoId = await createCondominium()
       await assignRole(user.id, adminRoleId, condoId, false) // inactive
 
-      const app = buildApp('ADMIN')
+      const app = buildApp(ESystemRole.ADMIN)
       const res = await app.request('/protected', {
         headers: {
           Authorization: `Bearer ${user.id}`,
@@ -438,7 +439,7 @@ describe('requireRole middleware', () => {
       const condoB = await createCondominium()
       await assignRole(user.id, adminRoleId, condoA)
 
-      const app = buildApp('ADMIN')
+      const app = buildApp(ESystemRole.ADMIN)
       const res = await app.request('/protected', {
         headers: {
           Authorization: `Bearer ${user.id}`,
@@ -460,7 +461,7 @@ describe('requireRole middleware', () => {
       const condoId = await createCondominium()
 
       // Route only allows ADMIN, ACCOUNTANT — no SUPERADMIN
-      const app = buildApp('ADMIN', 'ACCOUNTANT')
+      const app = buildApp(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)
       const res = await app.request('/protected', {
         headers: {
           Authorization: `Bearer ${user.id}`,
@@ -481,7 +482,7 @@ describe('requireRole middleware', () => {
       const user = await createUser()
       const condoId = await createCondominium()
 
-      const app = buildApp('ADMIN', 'USER')
+      const app = buildApp(ESystemRole.ADMIN, ESystemRole.USER)
       const res = await app.request('/protected', {
         headers: {
           Authorization: `Bearer ${user.id}`,
@@ -495,7 +496,7 @@ describe('requireRole middleware', () => {
     it('should return 403 for SUPERADMIN-only route when user has no roles', async () => {
       const user = await createUser()
 
-      const app = buildApp('SUPERADMIN')
+      const app = buildApp(ESystemRole.SUPERADMIN)
       const res = await app.request('/protected', {
         headers: { Authorization: `Bearer ${user.id}` },
       })
@@ -515,7 +516,7 @@ describe('requireRole middleware', () => {
       await assignRole(user.id, userRoleId, condoId)
       await assignRole(user.id, adminRoleId, condoId)
 
-      const app = buildApp('ADMIN')
+      const app = buildApp(ESystemRole.ADMIN)
       const res = await app.request('/protected', {
         headers: {
           Authorization: `Bearer ${user.id}`,

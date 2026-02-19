@@ -1,4 +1,5 @@
 import { afterAll, mock } from 'bun:test'
+import { ESystemRole } from '@packages/domain'
 import { stopTestContainer } from './test-container'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -173,14 +174,14 @@ const createAuthMock = () => {
       c: { set: (key: string, value: unknown) => void; req: { header: (name: string) => string | undefined; param: (name: string) => string | undefined } },
       next: () => Promise<void>
     ) => {
-      const role = allowedRoles[0] || 'SUPERADMIN'
+      const role = allowedRoles[0] || ESystemRole.SUPERADMIN
       c.set('userRole', role)
       // Set managementCompanyId from route param (unified MC scope)
       const managementCompanyId = c.req.param('managementCompanyId')
       if (managementCompanyId) {
         c.set('managementCompanyId', managementCompanyId)
       }
-      if (role !== 'SUPERADMIN') {
+      if (role !== ESystemRole.SUPERADMIN) {
         const condominiumId = c.req.header('x-condominium-id')
         if (condominiumId) {
           c.set('condominiumId', condominiumId)

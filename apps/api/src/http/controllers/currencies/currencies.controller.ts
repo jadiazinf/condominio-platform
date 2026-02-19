@@ -5,6 +5,7 @@ import {
   type TCurrency,
   type TCurrencyCreate,
   type TCurrencyUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { CurrenciesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -36,37 +37,37 @@ export class CurrenciesController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
-      { method: 'get', path: '/base', handler: this.getBaseCurrency, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)] },
+      { method: 'get', path: '/base', handler: this.getBaseCurrency, middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)] },
       {
         method: 'get',
         path: '/code/:code',
         handler: this.getByCode,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(CodeParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(CodeParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(currencyCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), bodyValidator(currencyCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(currencyUpdateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(currencyUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

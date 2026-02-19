@@ -5,6 +5,7 @@ import {
   type TMessage,
   type TMessageCreate,
   type TMessageUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { MessagesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -80,60 +81,60 @@ export class MessagesController extends BaseController<TMessage, TMessageCreate,
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT)] },
       {
         method: 'get',
         path: '/sender/:senderId',
         handler: this.getBySenderId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT'), paramsValidator(SenderIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT), paramsValidator(SenderIdParamSchema)],
       },
       {
         method: 'get',
         path: '/recipient/:recipientUserId',
         handler: this.getByRecipientUserId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT'), paramsValidator(RecipientUserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT), paramsValidator(RecipientUserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/recipient/:recipientUserId/unread',
         handler: this.getUnreadByUserId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT', 'USER'), paramsValidator(RecipientUserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(RecipientUserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/type/:messageType',
         handler: this.getByType,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT'), paramsValidator(MessageTypeParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT), paramsValidator(MessageTypeParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/:id/read',
         handler: this.markAsRead,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT'), bodyValidator(messageCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT), bodyValidator(messageCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT'), paramsValidator(IdParamSchema), bodyValidator(messageUpdateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT), paramsValidator(IdParamSchema), bodyValidator(messageUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

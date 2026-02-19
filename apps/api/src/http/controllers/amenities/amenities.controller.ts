@@ -5,6 +5,7 @@ import {
   type TAmenity,
   type TAmenityCreate,
   type TAmenityUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { AmenitiesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -39,18 +40,18 @@ export class AmenitiesController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT', 'USER')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER)] },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(amenityCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(amenityCreateSchema)],
       },
       {
         method: 'patch',
@@ -58,7 +59,7 @@ export class AmenitiesController extends BaseController<
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN'),
+          requireRole(ESystemRole.ADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(amenityUpdateSchema),
         ],
@@ -67,7 +68,7 @@ export class AmenitiesController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

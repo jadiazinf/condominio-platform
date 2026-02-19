@@ -18,6 +18,7 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'bun:test'
 import { Hono } from 'hono'
 import { sql } from 'drizzle-orm'
+import { ESystemRole } from '@packages/domain'
 import { startTestContainer, cleanDatabase } from '../setup/test-container'
 import { createTestApp } from '../http/controllers/test-utils'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
@@ -579,7 +580,7 @@ describe('Document & Role Flow -- Integration', function () {
     describe('GET /system (getSystemRoles)', function () {
 
       it('returns only system roles', async function () {
-        await createRole({ name: 'ADMIN', isSystemRole: true })
+        await createRole({ name: ESystemRole.ADMIN, isSystemRole: true })
         await createRole({ name: 'CUSTOM_ROLE', isSystemRole: false })
 
         const res = await request('/platform/roles/system', { headers: superadminHeaders() })
@@ -603,9 +604,9 @@ describe('Document & Role Flow -- Integration', function () {
     describe('GET /assignable (getAssignableRoles)', function () {
 
       it('returns all roles except SUPERADMIN', async function () {
-        await createRole({ name: 'SUPERADMIN', isSystemRole: true })
-        await createRole({ name: 'ADMIN', isSystemRole: true })
-        await createRole({ name: 'USER', isSystemRole: false })
+        await createRole({ name: ESystemRole.SUPERADMIN, isSystemRole: true })
+        await createRole({ name: ESystemRole.ADMIN, isSystemRole: true })
+        await createRole({ name: ESystemRole.USER, isSystemRole: false })
 
         const res = await request('/platform/roles/assignable', { headers: superadminHeaders() })
         expect(res.status).toBe(200)
@@ -621,7 +622,7 @@ describe('Document & Role Flow -- Integration', function () {
     describe('GET /name/:name (getByName)', function () {
 
       it('returns a role by name', async function () {
-        await createRole({ name: 'ADMIN', description: 'Administrator role' })
+        await createRole({ name: ESystemRole.ADMIN, description: 'Administrator role' })
 
         const res = await request('/platform/roles/name/ADMIN', { headers: superadminHeaders() })
         expect(res.status).toBe(200)

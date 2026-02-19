@@ -13,6 +13,7 @@ import {
   type TManagementCompaniesQuerySchema,
   type TManagementCompanyMembersQuerySchema,
   type TPaymentConceptsQuerySchema,
+  ESystemRole,
 } from '@packages/domain'
 import type {
   ManagementCompaniesRepository,
@@ -138,104 +139,104 @@ export class ManagementCompaniesController extends BaseController<
         method: 'get',
         path: '/',
         handler: this.listPaginated,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), queryValidator(managementCompaniesQuerySchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), queryValidator(managementCompaniesQuerySchema)],
       },
       {
         method: 'get',
         path: '/tax-id-number/:taxIdNumber',
         handler: this.getByTaxIdNumber,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(TaxIdNumberParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(TaxIdNumberParamSchema)],
       },
       {
         method: 'get',
         path: '/location/:locationId',
         handler: this.getByLocationId,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(LocationIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(LocationIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id/usage-stats',
         handler: this.getUsageStats,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id/subscription/can-create/:resourceType',
         handler: this.checkCanCreateResource,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(CheckLimitParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(CheckLimitParamSchema)],
       },
       // ── Member routes (for management company members via unified role system) ──
       {
         method: 'get',
         path: '/:managementCompanyId/me',
         handler: this.getMyCompany,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'VIEWER')],
+        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER)],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/subscription',
         handler: this.getMyCompanySubscription,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'VIEWER')],
+        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER)],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/usage-stats',
         handler: this.getMyCompanyUsageStats,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'VIEWER')],
+        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER)],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/subscriptions',
         handler: this.getMyCompanySubscriptions,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'VIEWER'), queryValidator(MemberSubscriptionHistoryQuerySchema)],
+        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER), queryValidator(MemberSubscriptionHistoryQuerySchema)],
       },
       {
         method: 'post',
         path: '/:managementCompanyId/me/subscription/cancel',
         handler: this.cancelMyCompanySubscription,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole('ADMIN'), bodyValidator(MemberCancelSubscriptionBodySchema)],
+        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN), bodyValidator(MemberCancelSubscriptionBodySchema)],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/members',
         handler: this.getMyCompanyMembers,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole('ADMIN'), queryValidator(managementCompanyMembersQuerySchema)],
+        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN), queryValidator(managementCompanyMembersQuerySchema)],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/payment-concepts',
         handler: this.getMyCompanyPaymentConcepts,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'VIEWER'), queryValidator(paymentConceptsQuerySchema)],
+        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER), queryValidator(paymentConceptsQuerySchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(managementCompanyCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), bodyValidator(managementCompanyCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(managementCompanyUpdateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(managementCompanyUpdateSchema)],
       },
       {
         method: 'patch',
         path: '/:id/toggle-active',
         handler: this.toggleActive,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(ToggleActiveBodySchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(ToggleActiveBodySchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -532,7 +533,7 @@ export class ManagementCompaniesController extends BaseController<
         return ctx.badRequest({ error: 'Members repository not configured' })
       }
 
-      // requireRole('ADMIN') middleware already ensures only admins reach this handler
+      // requireRole(ESystemRole.ADMIN) middleware already ensures only admins reach this handler
       const result = await this.membersRepository.listByCompanyIdPaginated(
         ctx.params.managementCompanyId,
         ctx.query

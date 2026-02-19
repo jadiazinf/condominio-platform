@@ -5,6 +5,7 @@ import {
   type TPaymentApplication,
   type TPaymentApplicationCreate,
   type TPaymentApplicationUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { PaymentApplicationsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -49,30 +50,30 @@ export class PaymentApplicationsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)] },
       {
         method: 'get',
         path: '/payment/:paymentId',
         handler: this.getByPaymentId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(PaymentIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(PaymentIdParamSchema)],
       },
       {
         method: 'get',
         path: '/quota/:quotaId',
         handler: this.getByQuotaId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(QuotaIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(QuotaIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), bodyValidator(paymentApplicationCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), bodyValidator(paymentApplicationCreateSchema)],
       },
       {
         method: 'patch',
@@ -80,7 +81,7 @@ export class PaymentApplicationsController extends BaseController<
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN', 'ACCOUNTANT'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
           paramsValidator(IdParamSchema),
           bodyValidator(paymentApplicationUpdateSchema),
         ],
@@ -89,7 +90,7 @@ export class PaymentApplicationsController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

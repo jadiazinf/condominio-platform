@@ -5,6 +5,7 @@ import {
   type TPaymentGateway,
   type TPaymentGatewayCreate,
   type TPaymentGatewayUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { PaymentGatewaysRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -50,43 +51,43 @@ export class PaymentGatewaysController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
-      { method: 'get', path: '/production', handler: this.getProductionGateways, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)] },
+      { method: 'get', path: '/production', handler: this.getProductionGateways, middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)] },
       {
         method: 'get',
         path: '/name/:name',
         handler: this.getByName,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(NameParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(NameParamSchema)],
       },
       {
         method: 'get',
         path: '/type/:gatewayType',
         handler: this.getByType,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(GatewayTypeParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(GatewayTypeParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(paymentGatewayCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), bodyValidator(paymentGatewayCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(paymentGatewayUpdateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(paymentGatewayUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

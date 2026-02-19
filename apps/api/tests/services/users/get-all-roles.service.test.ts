@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
+import { ESystemRole } from '@packages/domain'
 import { GetAllRolesService, type IRoleOption } from '@src/services/users'
 
 type TMockRepository = {
@@ -12,7 +13,7 @@ describe('GetAllRolesService', function () {
   const mockRoles: IRoleOption[] = [
     {
       id: 'role-1',
-      name: 'SUPERADMIN',
+      name: ESystemRole.SUPERADMIN,
       isSystemRole: true,
     },
     {

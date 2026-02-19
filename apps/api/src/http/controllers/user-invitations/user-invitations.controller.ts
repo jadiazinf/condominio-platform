@@ -2,7 +2,7 @@ import type { Context } from 'hono'
 import { z } from 'zod'
 import { useTranslation } from '@intlify/hono'
 import { admin } from '@libs/firebase/config'
-import { EIdDocumentTypes } from '@packages/domain'
+import { EIdDocumentTypes, ESystemRole } from '@packages/domain'
 import type {
   UserInvitationsRepository,
   UsersRepository,
@@ -11,6 +11,7 @@ import type {
   RolesRepository,
   CondominiumsRepository,
   PermissionsRepository,
+  UnitOwnershipsRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { HttpContext } from '../../context'
@@ -108,7 +109,8 @@ export class UserInvitationsController {
     private readonly userPermissionsRepository: UserPermissionsRepository,
     private readonly rolesRepository: RolesRepository,
     private readonly condominiumsRepository: CondominiumsRepository,
-    private readonly permissionsRepository: PermissionsRepository
+    private readonly permissionsRepository: PermissionsRepository,
+    private readonly unitOwnershipsRepository?: UnitOwnershipsRepository
   ) {
     this.createUserInvitationService = new CreateUserInvitationService(
       invitationsRepository,
@@ -137,7 +139,8 @@ export class UserInvitationsController {
       db,
       invitationsRepository,
       usersRepository,
-      userRolesRepository
+      userRolesRepository,
+      unitOwnershipsRepository
     )
     this.sendUserInvitationEmailService = new SendUserInvitationEmailService()
   }
@@ -148,19 +151,19 @@ export class UserInvitationsController {
         method: 'post',
         path: '/',
         handler: this.createInvitation,
-        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(CreateUserInvitationSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(CreateUserInvitationSchema)],
       },
       {
         method: 'post',
         path: '/create-user',
         handler: this.createUserWithInvitation,
-        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(CreateUserWithInvitationSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(CreateUserWithInvitationSchema)],
       },
       {
         method: 'post',
         path: '/:id/resend-email',
         handler: this.resendEmail,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'get',
@@ -178,7 +181,7 @@ export class UserInvitationsController {
         method: 'delete',
         path: '/:id',
         handler: this.cancelInvitation,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }
@@ -452,6 +455,7 @@ export class UserInvitationsController {
           lastName: result.data.user.lastName,
           phoneCountryCode: result.data.user.phoneCountryCode,
           phoneNumber: result.data.user.phoneNumber,
+          isActive: result.data.user.isActive,
         },
         condominium: result.data.condominium
           ? {

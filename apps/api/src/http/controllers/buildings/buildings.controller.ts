@@ -5,6 +5,7 @@ import {
   type TBuilding,
   type TBuildingCreate,
   type TBuildingUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { BuildingsRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
@@ -63,30 +64,30 @@ export class BuildingsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT)] },
       {
         method: 'get',
         path: '/code/:code',
         handler: this.getByCondominiumAndCode,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT'), paramsValidator(CodeParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT), paramsValidator(CodeParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/bulk',
         handler: this.bulkCreate,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN', 'ADMIN'), bodyValidator(buildingBulkCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN), bodyValidator(buildingBulkCreateSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN', 'ADMIN'), bodyValidator(buildingCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN), bodyValidator(buildingCreateSchema)],
       },
       {
         method: 'patch',
@@ -94,7 +95,7 @@ export class BuildingsController extends BaseController<
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('SUPERADMIN', 'ADMIN'),
+          requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(buildingUpdateSchema),
         ],
@@ -103,7 +104,7 @@ export class BuildingsController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

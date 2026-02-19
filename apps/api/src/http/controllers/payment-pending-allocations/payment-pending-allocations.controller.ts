@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import { z } from 'zod'
-import { EAllocationStatuses, type TPaymentPendingAllocation } from '@packages/domain'
+import { EAllocationStatuses, type TPaymentPendingAllocation, ESystemRole } from '@packages/domain'
 import type { PaymentPendingAllocationsRepository, QuotasRepository } from '@database/repositories'
 import { HttpContext } from '../../context'
 import {
@@ -95,19 +95,19 @@ export class PaymentPendingAllocationsController {
         method: 'get',
         path: '/',
         handler: this.listPending,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), queryValidator(StatusQuerySchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), queryValidator(StatusQuerySchema)],
       },
       {
         method: 'get',
         path: '/payment/:paymentId',
         handler: this.getByPaymentId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(PaymentIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(PaymentIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
@@ -115,7 +115,7 @@ export class PaymentPendingAllocationsController {
         handler: this.allocateToQuota,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN', 'ACCOUNTANT'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
           paramsValidator(IdParamSchema),
           bodyValidator(AllocateToQuotaBodySchema),
         ],
@@ -126,7 +126,7 @@ export class PaymentPendingAllocationsController {
         handler: this.refund,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN', 'ACCOUNTANT'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
           paramsValidator(IdParamSchema),
           bodyValidator(RefundBodySchema),
         ],

@@ -303,10 +303,11 @@
       "title": "Complete your registration",
       "subtitle": "You've been invited to manage {companyName}",
       "validating": "Validating invitation...",
+      "accepting": "Accepting invitation...",
       "yourEmail": "Your email",
       "setPassword": "Create a password to access your account",
       "submit": "Complete registration",
-      "success": "Registration completed successfully",
+      "success": "Invitation accepted successfully",
       "invalidTitle": "Invalid invitation",
       "expiredTitle": "Invitation expired",
       "expiredDescription": "The invitation to manage {companyName} has expired.",
@@ -319,6 +320,9 @@
         "unknown": "An error occurred while validating the invitation.",
         "firebaseCreateFailed": "Error creating account. Please try again."
       }
+    },
+    "acceptUserInvitation": {
+      "subtitle": "You've been invited to join {condominiumName}"
     }
   },
   "validation": {

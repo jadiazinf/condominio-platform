@@ -9,6 +9,7 @@ import {
   ALLOWED_MIME_TYPES,
   validateFileSize,
   type TAttachment,
+  ESystemRole,
 } from '@packages/domain'
 import type { SupportTicketMessagesRepository, SupportTicketsRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
@@ -63,7 +64,7 @@ export class SupportTicketMessagesController extends BaseController<
         handler: this.getMessagesByTicket,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(TicketIdParamSchema),
           canAccessTicketByTicketId,
         ],
@@ -75,7 +76,7 @@ export class SupportTicketMessagesController extends BaseController<
         handler: this.createMessage,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(TicketIdParamSchema),
           canAccessTicketByTicketId,
           bodyValidator(supportTicketMessageCreateSchema.omit({ ticketId: true, userId: true })),
@@ -86,7 +87,7 @@ export class SupportTicketMessagesController extends BaseController<
         method: 'delete',
         path: '/platform/support-ticket-messages/:id',
         handler: this.delete,
-        middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [isUserAuthenticated, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

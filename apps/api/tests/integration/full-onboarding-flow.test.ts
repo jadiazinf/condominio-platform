@@ -17,6 +17,7 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'bun:test'
 import { Hono } from 'hono'
 import { sql } from 'drizzle-orm'
+import { ESystemRole } from '@packages/domain'
 import { startTestContainer, cleanDatabase } from '../setup/test-container'
 import { createTestApp } from '../http/controllers/test-utils'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
@@ -79,12 +80,12 @@ beforeEach(async () => {
   // Insert roles required for invitation services
   await db.execute(sql`
     INSERT INTO roles (name, description, is_system_role)
-    VALUES ('USER', 'Standard user role', true)
+    VALUES (${ESystemRole.USER}, 'Standard user role', true)
     ON CONFLICT (name) DO NOTHING
   `)
   await db.execute(sql`
     INSERT INTO roles (name, description, is_system_role)
-    VALUES ('ADMIN', 'Admin role', true)
+    VALUES (${ESystemRole.ADMIN}, 'Admin role', true)
     ON CONFLICT (name) DO NOTHING
   `)
 

@@ -7,6 +7,7 @@ import { userRoles, roles } from '@database/drizzle/schema'
 import { AUTHENTICATED_USER_PROP } from './is-user-authenticated'
 import { LocaleDictionary } from '@locales/dictionary'
 import { env } from '@config/environment'
+import { ESystemRole, type TSystemRole } from '@packages/domain'
 
 export const CONDOMINIUM_ID_PROP = 'condominiumId'
 export const USER_ROLE_PROP = 'userRole'
@@ -19,8 +20,6 @@ declare module 'hono' {
     [MANAGEMENT_COMPANY_ID_PROP]: string
   }
 }
-
-const SUPERADMIN_ROLE = 'SUPERADMIN'
 
 // UUID v4 regex for basic validation
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -40,14 +39,14 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
  *
  * @param allowedRoles - Uppercase role names: 'SUPERADMIN', 'ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER', 'VIEWER'
  */
-export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
+export function requireRole(...allowedRoles: TSystemRole[]): MiddlewareHandler {
   return async (c, next) => {
     // In test mode, bypass DB role check (controller tests use mock repos, no real DB)
     // Set TEST_REQUIRE_ROLE_MIDDLEWARE=true to test the real middleware
     if (env.NODE_ENV === 'test' && !env.TEST_REQUIRE_ROLE_MIDDLEWARE) {
-      const role = allowedRoles[0] || SUPERADMIN_ROLE
+      const role = allowedRoles[0] || ESystemRole.SUPERADMIN
       c.set(USER_ROLE_PROP, role)
-      if (role !== SUPERADMIN_ROLE) {
+      if (role !== ESystemRole.SUPERADMIN) {
         // Check for management company scope first
         const managementCompanyId = c.req.param('managementCompanyId')
         if (managementCompanyId) {
@@ -76,7 +75,7 @@ export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
     const db = DatabaseService.getInstance().getDb()
 
     // --- SUPERADMIN path ---
-    if (allowedRoles.includes(SUPERADMIN_ROLE)) {
+    if (allowedRoles.includes(ESystemRole.SUPERADMIN)) {
       const superadminResult = await db
         .select({ roleName: roles.name, isActive: userRoles.isActive })
         .from(userRoles)
@@ -84,7 +83,7 @@ export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
         .where(
           and(
             eq(userRoles.userId, user.id),
-            eq(roles.name, SUPERADMIN_ROLE),
+            eq(roles.name, ESystemRole.SUPERADMIN),
             isNull(userRoles.condominiumId),
             isNull(userRoles.buildingId),
             isNull(userRoles.managementCompanyId)
@@ -94,7 +93,7 @@ export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
 
       if (superadminResult[0] && superadminResult[0].isActive) {
         // SUPERADMIN authenticated — propagate scope IDs from params/headers
-        c.set(USER_ROLE_PROP, SUPERADMIN_ROLE)
+        c.set(USER_ROLE_PROP, ESystemRole.SUPERADMIN)
         const managementCompanyId = c.req.param('managementCompanyId')
         if (managementCompanyId) {
           c.set(MANAGEMENT_COMPANY_ID_PROP, managementCompanyId)
@@ -108,7 +107,7 @@ export function requireRole(...allowedRoles: string[]): MiddlewareHandler {
       }
     }
 
-    const nonSuperadminRoles = allowedRoles.filter(r => r !== SUPERADMIN_ROLE)
+    const nonSuperadminRoles = allowedRoles.filter(r => r !== ESystemRole.SUPERADMIN)
 
     // --- Management Company path ---
     // Detect MC scope from route param :managementCompanyId or x-management-company-id header

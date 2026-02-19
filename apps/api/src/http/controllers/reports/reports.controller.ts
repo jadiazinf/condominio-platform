@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { z } from 'zod'
 import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
+import { ESystemRole } from '@packages/domain'
 import { queryValidator, getQuery } from '../../middlewares/utils/payload-validator'
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
 import { DatabaseService } from '@database/service'
@@ -49,7 +50,7 @@ export class ReportsController {
     router.get(
       '/account-statement',
       authMiddleware,
-      requireRole('ADMIN', 'ACCOUNTANT'),
+      requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
       queryValidator(AccountStatementQuerySchema),
       this.getAccountStatement
     )
@@ -57,7 +58,7 @@ export class ReportsController {
     router.get(
       '/debtors',
       authMiddleware,
-      requireRole('ADMIN', 'ACCOUNTANT'),
+      requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
       queryValidator(DebtorsReportQuerySchema),
       this.getDebtorsReport
     )

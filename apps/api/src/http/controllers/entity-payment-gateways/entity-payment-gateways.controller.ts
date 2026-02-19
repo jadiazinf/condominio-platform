@@ -5,6 +5,7 @@ import {
   type TEntityPaymentGateway,
   type TEntityPaymentGatewayCreate,
   type TEntityPaymentGatewayUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { EntityPaymentGatewaysRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -50,30 +51,30 @@ export class EntityPaymentGatewaysController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN)] },
       {
         method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(BuildingIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(BuildingIdParamSchema)],
       },
       {
         method: 'get',
         path: '/gateway/:paymentGatewayId',
         handler: this.getByPaymentGatewayId,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(PaymentGatewayIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(PaymentGatewayIdParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(entityPaymentGatewayCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(entityPaymentGatewayCreateSchema)],
       },
       {
         method: 'patch',
@@ -81,7 +82,7 @@ export class EntityPaymentGatewaysController extends BaseController<
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN'),
+          requireRole(ESystemRole.ADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(entityPaymentGatewayUpdateSchema),
         ],
@@ -90,7 +91,7 @@ export class EntityPaymentGatewaysController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

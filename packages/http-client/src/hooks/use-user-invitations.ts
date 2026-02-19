@@ -136,6 +136,7 @@ export interface TValidateUserInvitationResult {
     lastName: string | null
     phoneCountryCode: string | null
     phoneNumber: string | null
+    isActive: boolean
   }
   condominium: TValidationCondominium | null
   role: TValidationRole
@@ -227,10 +228,10 @@ export async function acceptUserInvitation(
 
   const response = await client.post<TApiDataResponse<TAcceptUserInvitationResult>>(
     `/condominium/user-invitations/accept/${invitationToken}`,
+    {},
     {
       headers: {
         Authorization: `Bearer ${firebaseToken}`,
-        'Content-Type': 'application/json',
       },
     }
   )
@@ -249,10 +250,10 @@ export async function resendUserInvitationEmail(
 
   const response = await client.post<TApiDataResponse<{ success: boolean; message: string }>>(
     `/condominium/user-invitations/${invitationId}/resend-email`,
+    {},
     {
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
       },
     }
   )

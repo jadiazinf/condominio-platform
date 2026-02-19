@@ -6,6 +6,7 @@ import {
   type TUserRole,
   type TUserRoleCreate,
   type TUserRoleUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { UserRolesRepository, TSuperadminUsersQuery } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -106,7 +107,7 @@ export class UserRolesController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN)] },
       // Superadmin endpoints (must be before :id to avoid conflicts)
       {
         method: 'get',
@@ -149,13 +150,13 @@ export class UserRolesController extends BaseController<
         method: 'get',
         path: '/user/:userId/condominium/:condominiumId',
         handler: this.getByUserAndCondominium,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(UserAndCondominiumParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(UserAndCondominiumParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId/building/:buildingId',
         handler: this.getByUserAndBuilding,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(UserAndBuildingParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(UserAndBuildingParamSchema)],
       },
       {
         method: 'get',
@@ -163,7 +164,7 @@ export class UserRolesController extends BaseController<
         handler: this.checkUserHasRole,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN'),
+          requireRole(ESystemRole.ADMIN),
           paramsValidator(UserIdParamSchema),
           queryValidator(CheckRoleQuerySchema),
         ],
@@ -172,13 +173,13 @@ export class UserRolesController extends BaseController<
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(userRoleCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(userRoleCreateSchema)],
       },
       {
         method: 'patch',
@@ -186,7 +187,7 @@ export class UserRolesController extends BaseController<
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN'),
+          requireRole(ESystemRole.ADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(userRoleUpdateSchema),
         ],
@@ -195,7 +196,7 @@ export class UserRolesController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

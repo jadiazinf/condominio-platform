@@ -1,12 +1,14 @@
-import type {
-  TManagementCompanyMember,
-  TMemberRole,
-  TMemberPermissions,
-  TUser,
-  TUserInvitation,
-  TUserRole,
-  TUserCreate,
-  TUserRoleCreate,
+import {
+  type TManagementCompanyMember,
+  type TMemberRole,
+  type TMemberPermissions,
+  type TUser,
+  type TUserInvitation,
+  type TUserRole,
+  type TUserCreate,
+  type TUserRoleCreate,
+  type TSystemRole,
+  ESystemRole,
 } from '@packages/domain'
 import type {
   ManagementCompanyMembersRepository,
@@ -24,11 +26,11 @@ import { SendManagementCompanyMemberNotificationService } from '../email/send-ma
 /**
  * Maps a TMemberRole to the unified role name in the roles table.
  */
-const MEMBER_ROLE_TO_SYSTEM_ROLE: Record<TMemberRole, string> = {
-  admin: 'ADMIN',
-  accountant: 'ACCOUNTANT',
-  support: 'SUPPORT',
-  viewer: 'VIEWER',
+const MEMBER_ROLE_TO_SYSTEM_ROLE: Record<TMemberRole, TSystemRole> = {
+  admin: ESystemRole.ADMIN,
+  accountant: ESystemRole.ACCOUNTANT,
+  support: ESystemRole.SUPPORT,
+  viewer: ESystemRole.VIEWER,
 }
 
 /**

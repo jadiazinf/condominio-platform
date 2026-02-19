@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import { z } from 'zod'
-import { EFormulaTypes, type TQuotaFormula } from '@packages/domain'
+import { EFormulaTypes, type TQuotaFormula, ESystemRole } from '@packages/domain'
 import type {
   QuotaFormulasRepository,
   CondominiumsRepository,
@@ -120,19 +120,19 @@ export class QuotaFormulasController {
         method: 'get',
         path: '/',
         handler: this.list,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), queryValidator(IncludeInactiveQuerySchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), queryValidator(IncludeInactiveQuerySchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), bodyValidator(CreateQuotaFormulaBodySchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), bodyValidator(CreateQuotaFormulaBodySchema)],
       },
       {
         method: 'put',
@@ -140,7 +140,7 @@ export class QuotaFormulasController {
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN', 'ACCOUNTANT'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
           paramsValidator(IdParamSchema),
           bodyValidator(UpdateQuotaFormulaBodySchema),
         ],
@@ -149,7 +149,7 @@ export class QuotaFormulasController {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
@@ -157,7 +157,7 @@ export class QuotaFormulasController {
         handler: this.calculateAmount,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN', 'ACCOUNTANT'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
           paramsValidator(IdParamSchema),
           bodyValidator(CalculateAmountBodySchema),
         ],

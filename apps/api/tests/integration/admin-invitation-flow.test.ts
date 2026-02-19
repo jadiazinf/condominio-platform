@@ -15,6 +15,7 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'bun:test'
 import { Hono } from 'hono'
 import { sql } from 'drizzle-orm'
+import { ESystemRole } from '@packages/domain'
 import { startTestContainer, cleanDatabase } from '../setup/test-container'
 import { createTestApp } from '../http/controllers/test-utils'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
@@ -69,12 +70,12 @@ beforeEach(async () => {
   // Insert roles required for invitation services
   await db.execute(sql`
     INSERT INTO roles (name, description, is_system_role)
-    VALUES ('USER', 'Standard user role', true)
+    VALUES (${ESystemRole.USER}, 'Standard user role', true)
     ON CONFLICT (name) DO NOTHING
   `)
   await db.execute(sql`
     INSERT INTO roles (name, description, is_system_role)
-    VALUES ('ADMIN', 'Admin role', true)
+    VALUES (${ESystemRole.ADMIN}, 'Admin role', true)
     ON CONFLICT (name) DO NOTHING
   `)
 
@@ -281,7 +282,7 @@ describe('Admin Invitation Flow — Integration Tests', function () {
       // User Role — verify the USER role was assigned in user_roles table
       const userRoles = await userRolesRepo.getByUserId(admin.id)
       expect(userRoles.length).toBeGreaterThanOrEqual(2) // USER + ADMIN(MC-scoped)
-      const userRole = await rolesRepo.getByName('USER')
+      const userRole = await rolesRepo.getByName(ESystemRole.USER)
       expect(userRole).not.toBeNull()
       const matchingRole = userRoles.find(ur => ur.roleId === userRole!.id)
       expect(matchingRole).toBeDefined()
@@ -289,7 +290,7 @@ describe('Admin Invitation Flow — Integration Tests', function () {
       expect(matchingRole!.condominiumId).toBeNull()
 
       // ADMIN MC-scoped role — verify it was created in user_roles
-      const adminRole = await rolesRepo.getByName('ADMIN')
+      const adminRole = await rolesRepo.getByName(ESystemRole.ADMIN)
       expect(adminRole).not.toBeNull()
       const mcAdminRole = userRoles.find(ur => ur.roleId === adminRole!.id && ur.managementCompanyId === company.id)
       expect(mcAdminRole).toBeDefined()

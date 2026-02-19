@@ -5,6 +5,7 @@ import {
   type TInterestConfiguration,
   type TInterestConfigurationCreate,
   type TInterestConfigurationUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { InterestConfigurationsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -50,30 +51,30 @@ export class InterestConfigurationsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN)] },
       {
         method: 'get',
         path: '/payment-concept/:paymentConceptId',
         handler: this.getByPaymentConceptId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(PaymentConceptIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(PaymentConceptIdParamSchema)],
       },
       {
         method: 'get',
         path: '/payment-concept/:paymentConceptId/active/:date',
         handler: this.getActiveForDate,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(ActiveForDateParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(ActiveForDateParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(interestConfigurationCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(interestConfigurationCreateSchema)],
       },
       {
         method: 'patch',
@@ -81,7 +82,7 @@ export class InterestConfigurationsController extends BaseController<
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN'),
+          requireRole(ESystemRole.ADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(interestConfigurationUpdateSchema),
         ],
@@ -90,7 +91,7 @@ export class InterestConfigurationsController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

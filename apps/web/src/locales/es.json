@@ -312,10 +312,11 @@
       "title": "Completa tu registro",
       "subtitle": "Has sido invitado a administrar {companyName}",
       "validating": "Validando invitación...",
+      "accepting": "Aceptando invitación...",
       "yourEmail": "Tu correo electrónico",
       "setPassword": "Crea una contraseña para acceder a tu cuenta",
       "submit": "Completar registro",
-      "success": "Registro completado exitosamente",
+      "success": "Invitación aceptada exitosamente",
       "invalidTitle": "Invitación no válida",
       "expiredTitle": "Invitación expirada",
       "expiredDescription": "La invitación para administrar {companyName} ha expirado.",
@@ -328,6 +329,9 @@
         "unknown": "Ocurrió un error al validar la invitación.",
         "firebaseCreateFailed": "Error al crear la cuenta. Por favor intenta de nuevo."
       }
+    },
+    "acceptUserInvitation": {
+      "subtitle": "Has sido invitado a unirte al condominio {condominiumName}"
     }
   },
   "validation": {

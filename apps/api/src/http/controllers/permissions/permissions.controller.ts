@@ -5,6 +5,7 @@ import {
   type TPermission,
   type TPermissionCreate,
   type TPermissionUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { PermissionsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -50,30 +51,30 @@ export class PermissionsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)] },
       {
         method: 'get',
         path: '/module/:module',
         handler: this.getByModule,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(ModuleParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(ModuleParamSchema)],
       },
       {
         method: 'get',
         path: '/module/:module/action/:action',
         handler: this.getByModuleAndAction,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(ModuleAndActionParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(ModuleAndActionParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(permissionCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), bodyValidator(permissionCreateSchema)],
       },
       {
         method: 'patch',
@@ -81,7 +82,7 @@ export class PermissionsController extends BaseController<
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(permissionUpdateSchema),
         ],
@@ -90,7 +91,7 @@ export class PermissionsController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

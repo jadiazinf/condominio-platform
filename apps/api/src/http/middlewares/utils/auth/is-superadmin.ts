@@ -10,7 +10,7 @@ import { env } from '@src/config/environment'
 
 export const SUPERADMIN_USER_PROP = 'superadminUser'
 
-const SUPERADMIN_ROLE_NAME = 'SUPERADMIN'
+import { ESystemRole } from '@packages/domain'
 
 declare module 'hono' {
   interface ContextVariableMap {
@@ -53,7 +53,7 @@ export const isSuperadmin: MiddlewareHandler = async (c, next) => {
   const superadminRoleResult = await db
     .select({ id: roles.id })
     .from(roles)
-    .where(eq(roles.name, SUPERADMIN_ROLE_NAME))
+    .where(eq(roles.name, ESystemRole.SUPERADMIN))
     .limit(1)
 
   if (!superadminRoleResult[0]) {

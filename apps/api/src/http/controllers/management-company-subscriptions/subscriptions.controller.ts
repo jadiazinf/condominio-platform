@@ -6,6 +6,7 @@ import {
   type TManagementCompanySubscription,
   type TManagementCompanySubscriptionCreate,
   type TManagementCompanySubscriptionUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type {
   ManagementCompanySubscriptionsRepository,
@@ -151,7 +152,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
         handler: this.getActiveSubscription,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(CompanyIdParamSchema),
         ],
       },
@@ -162,7 +163,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
         handler: this.getAllSubscriptions,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(CompanyIdParamSchema),
           queryValidator(SubscriptionHistoryQuerySchema),
         ],
@@ -174,7 +175,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
         handler: this.calculatePricing,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(CompanyIdParamSchema),
           queryValidator(CalculatePricingQuerySchema),
         ],
@@ -186,7 +187,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
         handler: this.createSubscription,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
 
           paramsValidator(CompanyIdParamSchema),
           bodyValidator(managementCompanySubscriptionCreateSchema),
@@ -199,7 +200,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
         handler: this.updateActiveSubscription,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
 
           paramsValidator(CompanyIdParamSchema),
           bodyValidator(managementCompanySubscriptionUpdateSchema),
@@ -212,7 +213,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
         handler: this.cancelSubscription,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
 
           paramsValidator(CompanyIdParamSchema),
           bodyValidator(CancelSubscriptionBodySchema),
@@ -225,7 +226,7 @@ export class ManagementCompanySubscriptionsController extends BaseController<
         handler: this.renewSubscription,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
 
           paramsValidator(CompanyIdParamSchema),
           bodyValidator(RenewSubscriptionBodySchema),

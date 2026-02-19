@@ -4,7 +4,7 @@ import type { CondominiumsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { queryValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
-import { condominiumsQuerySchema } from '@packages/domain'
+import { condominiumsQuerySchema, ESystemRole } from '@packages/domain'
 import { ManagementCompanyIdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 
@@ -26,7 +26,7 @@ export class PlatformCondominiumsController extends BaseController<
         method: 'get',
         path: '/',
         handler: this.listPaginated,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), queryValidator(condominiumsQuerySchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), queryValidator(condominiumsQuerySchema)],
       },
       {
         method: 'get',
@@ -35,7 +35,7 @@ export class PlatformCondominiumsController extends BaseController<
         middlewares: [
           authMiddleware,
           paramsValidator(ManagementCompanyIdParamSchema),
-          requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'VIEWER'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER),
           queryValidator(condominiumsQuerySchema),
         ],
       },

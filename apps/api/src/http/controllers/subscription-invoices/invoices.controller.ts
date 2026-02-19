@@ -5,6 +5,7 @@ import {
   type TSubscriptionInvoice,
   type TSubscriptionInvoiceCreate,
   type TSubscriptionInvoiceUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { SubscriptionInvoicesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -66,19 +67,19 @@ export class SubscriptionInvoicesController extends BaseController<
         method: 'get',
         path: '/platform/management-companies/:companyId/invoices',
         handler: this.getInvoicesByCompany,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(CompanyIdParamSchema), queryValidator(InvoicesQuerySchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(CompanyIdParamSchema), queryValidator(InvoicesQuerySchema)],
       },
       {
         method: 'get',
         path: '/platform/subscription-invoices/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'patch',
         path: '/platform/subscription-invoices/:id/mark-paid',
         handler: this.markInvoicePaid,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(MarkPaidBodySchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(MarkPaidBodySchema)],
       },
     ]
   }

@@ -13,7 +13,7 @@ import { BaseRepository } from './base'
 
 type TUserRoleRecord = typeof userRoles.$inferSelect
 
-const SUPERADMIN_ROLE_NAME = 'SUPERADMIN'
+import { ESystemRole } from '@packages/domain'
 
 /**
  * Type for superadmin user with user details
@@ -233,7 +233,7 @@ export class UserRolesRepository
     const result = await this.db
       .select({ id: roles.id })
       .from(roles)
-      .where(eq(roles.name, SUPERADMIN_ROLE_NAME))
+      .where(eq(roles.name, ESystemRole.SUPERADMIN))
       .limit(1)
 
     return result[0]?.id ?? null

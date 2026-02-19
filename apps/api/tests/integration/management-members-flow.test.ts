@@ -15,6 +15,7 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'bun:test'
 import { Hono } from 'hono'
 import { sql } from 'drizzle-orm'
+import { ESystemRole } from '@packages/domain'
 import { startTestContainer, cleanDatabase } from '../setup/test-container'
 import { createTestApp } from '../http/controllers/test-utils'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
@@ -70,10 +71,10 @@ beforeEach(async () => {
   // Insert roles required by AddMemberService
   await db.execute(sql`
     INSERT INTO roles (name, description, is_system_role)
-    VALUES ('ADMIN', 'Admin role', true),
-           ('ACCOUNTANT', 'Accountant role', true),
-           ('SUPPORT', 'Support role', true),
-           ('VIEWER', 'Viewer role', true)
+    VALUES (${ESystemRole.ADMIN}, 'Admin role', true),
+           (${ESystemRole.ACCOUNTANT}, 'Accountant role', true),
+           (${ESystemRole.SUPPORT}, 'Support role', true),
+           (${ESystemRole.VIEWER}, 'Viewer role', true)
     ON CONFLICT (name) DO NOTHING
   `)
 
@@ -292,10 +293,10 @@ describe('ManagementCompanyMembersController — Integration', function () {
         `)
         await db.execute(sql`
           INSERT INTO roles (name, description, is_system_role)
-          VALUES ('ADMIN', 'Admin role', true),
-                 ('ACCOUNTANT', 'Accountant role', true),
-                 ('SUPPORT', 'Support role', true),
-                 ('VIEWER', 'Viewer role', true)
+          VALUES (${ESystemRole.ADMIN}, 'Admin role', true),
+                 (${ESystemRole.ACCOUNTANT}, 'Accountant role', true),
+                 (${ESystemRole.SUPPORT}, 'Support role', true),
+                 (${ESystemRole.VIEWER}, 'Viewer role', true)
           ON CONFLICT (name) DO NOTHING
         `)
         const cRes = await db.execute(sql`

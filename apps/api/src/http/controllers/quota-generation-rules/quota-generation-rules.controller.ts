@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import { z } from 'zod'
-import type { TQuotaGenerationRule } from '@packages/domain'
+import { type TQuotaGenerationRule, ESystemRole } from '@packages/domain'
 import type {
   QuotaGenerationRulesRepository,
   CondominiumsRepository,
@@ -151,7 +151,7 @@ export class QuotaGenerationRulesController {
         method: 'get',
         path: '/',
         handler: this.list,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), queryValidator(IncludeInactiveQuerySchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), queryValidator(IncludeInactiveQuerySchema)],
       },
       {
         method: 'get',
@@ -159,7 +159,7 @@ export class QuotaGenerationRulesController {
         handler: this.getApplicableRule,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN', 'ACCOUNTANT'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
           queryValidator(GetApplicableRuleQuerySchema),
         ],
       },
@@ -169,7 +169,7 @@ export class QuotaGenerationRulesController {
         handler: this.getEffectiveRules,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN', 'ACCOUNTANT'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
           queryValidator(GetEffectiveRulesQuerySchema),
         ],
       },
@@ -177,13 +177,13 @@ export class QuotaGenerationRulesController {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('ADMIN'), bodyValidator(CreateQuotaGenerationRuleBodySchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(CreateQuotaGenerationRuleBodySchema)],
       },
       {
         method: 'put',
@@ -191,7 +191,7 @@ export class QuotaGenerationRulesController {
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN'),
+          requireRole(ESystemRole.ADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(UpdateQuotaGenerationRuleBodySchema),
         ],
@@ -200,7 +200,7 @@ export class QuotaGenerationRulesController {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

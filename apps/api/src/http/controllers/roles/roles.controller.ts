@@ -5,6 +5,7 @@ import {
   type TRole,
   type TRoleCreate,
   type TRoleUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { RolesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -44,36 +45,36 @@ export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpd
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)] },
       {
         method: 'get',
         path: '/system',
         handler: this.getSystemRoles,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN')],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)],
       },
       {
         method: 'get',
         path: '/assignable',
         handler: this.getAssignableRoles,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN')],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)],
       },
       {
         method: 'get',
         path: '/name/:name',
         handler: this.getByName,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(NameParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(NameParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(roleCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), bodyValidator(roleCreateSchema)],
       },
       {
         method: 'patch',
@@ -81,7 +82,7 @@ export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpd
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(roleUpdateSchema),
         ],
@@ -90,7 +91,7 @@ export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpd
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

@@ -7,6 +7,7 @@ import {
   type TSupportTicketCreate,
   type TSupportTicketUpdate,
   type TTicketStatus,
+  ESystemRole,
 } from '@packages/domain'
 import type { SupportTicketsRepository } from '@database/repositories'
 import {
@@ -138,7 +139,7 @@ export class SupportTicketsController extends BaseController<
         method: 'get',
         path: '/platform/support-tickets',
         handler: this.getAllTickets,
-        middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), queryValidator(TicketsQuerySchema)],
+        middlewares: [isUserAuthenticated, requireRole(ESystemRole.SUPERADMIN), queryValidator(TicketsQuerySchema)],
       },
       // Superadmin: Get tickets by company
       {
@@ -147,7 +148,7 @@ export class SupportTicketsController extends BaseController<
         handler: this.getTicketsByCompany,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(CompanyIdParamSchema),
           queryValidator(TicketsQuerySchema),
         ],
@@ -157,7 +158,7 @@ export class SupportTicketsController extends BaseController<
         method: 'get',
         path: '/platform/support-tickets/:id',
         handler: this.getById,
-        middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), canAccessTicket],
+        middlewares: [isUserAuthenticated, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), canAccessTicket],
       },
       // Superadmin: Create new ticket
       {
@@ -166,7 +167,7 @@ export class SupportTicketsController extends BaseController<
         handler: this.createTicket,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(CompanyIdParamSchema),
           bodyValidator(supportTicketCreateSchema),
         ],
@@ -178,7 +179,7 @@ export class SupportTicketsController extends BaseController<
         handler: this.update,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(supportTicketUpdateSchema),
         ],
@@ -190,7 +191,7 @@ export class SupportTicketsController extends BaseController<
         handler: this.assignTicket,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(AssignTicketBodySchema),
         ],
@@ -202,7 +203,7 @@ export class SupportTicketsController extends BaseController<
         handler: this.resolveTicket,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(ResolveTicketBodySchema),
         ],
@@ -214,7 +215,7 @@ export class SupportTicketsController extends BaseController<
         handler: this.closeTicket,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(CloseTicketBodySchema),
         ],
@@ -226,7 +227,7 @@ export class SupportTicketsController extends BaseController<
         handler: this.updateTicketStatus,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(UpdateStatusBodySchema),
         ],

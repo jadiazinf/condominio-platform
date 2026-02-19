@@ -1,7 +1,9 @@
-import type {
-  TManagementCompanyMember,
-  TMemberRole,
-  TMemberPermissions,
+import {
+  type TManagementCompanyMember,
+  type TMemberRole,
+  type TMemberPermissions,
+  type TSystemRole,
+  ESystemRole,
 } from '@packages/domain'
 import type {
   ManagementCompanyMembersRepository,
@@ -22,11 +24,11 @@ export interface IAddMemberInput {
 /**
  * Maps a TMemberRole to the unified role name in the roles table.
  */
-const MEMBER_ROLE_TO_SYSTEM_ROLE: Record<TMemberRole, string> = {
-  admin: 'ADMIN',
-  accountant: 'ACCOUNTANT',
-  support: 'SUPPORT',
-  viewer: 'VIEWER',
+const MEMBER_ROLE_TO_SYSTEM_ROLE: Record<TMemberRole, TSystemRole> = {
+  admin: ESystemRole.ADMIN,
+  accountant: ESystemRole.ACCOUNTANT,
+  support: ESystemRole.SUPPORT,
+  viewer: ESystemRole.VIEWER,
 }
 
 /**

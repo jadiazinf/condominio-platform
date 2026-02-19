@@ -5,6 +5,7 @@ import {
   type TAmenityReservation,
   type TAmenityReservationCreate,
   type TAmenityReservationUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { AmenityReservationsRepository, AmenitiesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -98,36 +99,36 @@ export class AmenityReservationsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT)] },
       {
         method: 'get',
         path: '/amenity/:amenityId',
         handler: this.getByAmenityId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT'), paramsValidator(AmenityIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT), paramsValidator(AmenityIdParamSchema)],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT', 'USER'), paramsValidator(UserIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(UserIdParamSchema)],
       },
       {
         method: 'get',
         path: '/check-availability',
         handler: this.checkAvailability,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT', 'USER'), queryValidator(CheckAvailabilityQuerySchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), queryValidator(CheckAvailabilityQuerySchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.createReservation,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT', 'USER'), bodyValidator(amenityReservationCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), bodyValidator(amenityReservationCreateSchema)],
       },
       {
         method: 'patch',
@@ -135,7 +136,7 @@ export class AmenityReservationsController extends BaseController<
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN', 'SUPPORT'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT),
           paramsValidator(IdParamSchema),
           bodyValidator(amenityReservationUpdateSchema),
         ],
@@ -146,7 +147,7 @@ export class AmenityReservationsController extends BaseController<
         handler: this.approveReservation,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN', 'SUPPORT'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT),
           paramsValidator(IdParamSchema),
           bodyValidator(ApproveBodySchema),
         ],
@@ -157,7 +158,7 @@ export class AmenityReservationsController extends BaseController<
         handler: this.rejectReservation,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN', 'SUPPORT'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT),
           paramsValidator(IdParamSchema),
           bodyValidator(RejectBodySchema),
         ],
@@ -166,13 +167,13 @@ export class AmenityReservationsController extends BaseController<
         method: 'patch',
         path: '/:id/cancel',
         handler: this.cancelReservation,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

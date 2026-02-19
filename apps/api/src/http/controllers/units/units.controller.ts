@@ -5,6 +5,7 @@ import {
   type TUnit,
   type TUnitCreate,
   type TUnitUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { UnitsRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
@@ -76,42 +77,42 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT)] },
       {
         method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT'), paramsValidator(BuildingIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT), paramsValidator(BuildingIdParamSchema)],
       },
       {
         method: 'get',
         path: '/building/:buildingId/number/:unitNumber',
         handler: this.getByBuildingAndNumber,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT'), paramsValidator(BuildingAndNumberParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT), paramsValidator(BuildingAndNumberParamSchema)],
       },
       {
         method: 'get',
         path: '/building/:buildingId/floor/:floor',
         handler: this.getByFloor,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT'), paramsValidator(BuildingAndFloorParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT), paramsValidator(BuildingAndFloorParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/bulk',
         handler: this.bulkCreate,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN', 'ADMIN'), bodyValidator(unitBulkCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN), bodyValidator(unitBulkCreateSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN', 'ADMIN'), bodyValidator(unitCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN), bodyValidator(unitCreateSchema)],
       },
       {
         method: 'patch',
@@ -119,7 +120,7 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('SUPERADMIN', 'ADMIN'),
+          requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(unitUpdateSchema),
         ],
@@ -128,7 +129,7 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

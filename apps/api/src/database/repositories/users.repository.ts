@@ -14,7 +14,7 @@ import { BaseRepository } from './base'
 
 type TUserRecord = typeof users.$inferSelect
 
-const SUPERADMIN_ROLE_NAME = 'SUPERADMIN'
+import { ESystemRole } from '@packages/domain'
 
 /**
  * Query parameters for listing all users
@@ -295,7 +295,7 @@ export class UsersRepository
       .where(
         and(
           eq(userRoles.userId, userId),
-          eq(roles.name, SUPERADMIN_ROLE_NAME),
+          eq(roles.name, ESystemRole.SUPERADMIN),
           isNull(userRoles.condominiumId),
           isNull(userRoles.buildingId),
           or(eq(userRoles.isActive, true), isNull(userRoles.isActive))
@@ -528,7 +528,7 @@ export class UsersRepository
     // Check if user is superadmin (has SUPERADMIN role with no condominium/building scope)
     const superadminRole = userRolesResults.find(
       role =>
-        role.roleName === SUPERADMIN_ROLE_NAME &&
+        role.roleName === ESystemRole.SUPERADMIN &&
         role.condominiumId === null &&
         role.buildingId === null &&
         (role.isActive ?? true)

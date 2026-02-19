@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import { z } from 'zod'
-import { ETaxIdTypes, EIdDocumentTypes, EPreferredLanguages } from '@packages/domain'
+import { ETaxIdTypes, EIdDocumentTypes, EPreferredLanguages, ESystemRole } from '@packages/domain'
 import type {
   AdminInvitationsRepository,
   UsersRepository,
@@ -173,7 +173,7 @@ export class AdminInvitationsController {
         method: 'post',
         path: '/create-with-admin',
         handler: this.createWithAdmin,
-        middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), bodyValidator(CreateCompanyWithAdminSchema)],
+        middlewares: [isUserAuthenticated, requireRole(ESystemRole.SUPERADMIN), bodyValidator(CreateCompanyWithAdminSchema)],
       },
       {
         method: 'post',
@@ -181,7 +181,7 @@ export class AdminInvitationsController {
         handler: this.createWithExistingAdmin,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           bodyValidator(CreateCompanyWithExistingAdminSchema),
         ],
       },
@@ -189,7 +189,7 @@ export class AdminInvitationsController {
         method: 'post',
         path: '/:id/resend-email',
         handler: this.resendEmail,
-        middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [isUserAuthenticated, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'get',
@@ -207,7 +207,7 @@ export class AdminInvitationsController {
         method: 'delete',
         path: '/:id',
         handler: this.cancelInvitation,
-        middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [isUserAuthenticated, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

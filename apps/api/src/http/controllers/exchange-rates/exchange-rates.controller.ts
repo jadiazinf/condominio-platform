@@ -5,6 +5,7 @@ import {
   type TExchangeRate,
   type TExchangeRateCreate,
   type TExchangeRateUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { ExchangeRatesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -61,44 +62,44 @@ export class ExchangeRatesController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
-      { method: 'get', path: '/paginated', handler: this.listPaginated, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
-      { method: 'get', path: '/latest', handler: this.getLatestRates, middlewares: [authMiddleware, requireRole('SUPERADMIN')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)] },
+      { method: 'get', path: '/paginated', handler: this.listPaginated, middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)] },
+      { method: 'get', path: '/latest', handler: this.getLatestRates, middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)] },
       {
         method: 'get',
         path: '/date/:date',
         handler: this.getByDate,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(DateParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(DateParamSchema)],
       },
       {
         method: 'get',
         path: '/latest/:fromCurrencyId/:toCurrencyId',
         handler: this.getLatestRate,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(CurrencyPairParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(CurrencyPairParamSchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), bodyValidator(exchangeRateCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), bodyValidator(exchangeRateCreateSchema)],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema), bodyValidator(exchangeRateUpdateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(exchangeRateUpdateSchema)],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('SUPERADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

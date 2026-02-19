@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
-import type {
-  TUser,
-  TUserRole,
-  TManagementCompany,
-  TManagementCompanyCreate,
-  TManagementCompanyMember,
-  TRole,
+import {
+  type TUser,
+  type TUserRole,
+  type TManagementCompany,
+  type TManagementCompanyCreate,
+  type TManagementCompanyMember,
+  type TRole,
+  ESystemRole,
 } from '@packages/domain'
 import { CreateCompanyWithExistingAdminService } from '@src/services/admin-invitations'
 
@@ -95,7 +96,7 @@ describe('CreateCompanyWithExistingAdminService', function () {
   const userRoleId = '550e8400-e29b-41d4-a716-446655440020'
   const mockUserRole: TRole = {
     id: '550e8400-e29b-41d4-a716-446655440030',
-    name: 'USER',
+    name: ESystemRole.USER,
     description: 'Standard user role',
     isSystemRole: true,
     registeredBy: null,
@@ -167,7 +168,7 @@ describe('CreateCompanyWithExistingAdminService', function () {
 
     const mockAdminRole: TRole = {
       id: '550e8400-e29b-41d4-a716-446655440060',
-      name: 'ADMIN',
+      name: ESystemRole.ADMIN,
       description: 'Admin role',
       isSystemRole: true,
       registeredBy: null,
@@ -218,8 +219,8 @@ describe('CreateCompanyWithExistingAdminService', function () {
 
     mockRolesRepository = {
       getByName: async function (name: string) {
-        if (name === 'USER') return mockUserRole
-        if (name === 'ADMIN') return mockAdminRole
+        if (name === ESystemRole.USER) return mockUserRole
+        if (name === ESystemRole.ADMIN) return mockAdminRole
         return null
       },
     }

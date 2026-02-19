@@ -24,6 +24,7 @@ import { faker } from '@faker-js/faker/locale/es_MX'
 import { eq, and, isNull } from 'drizzle-orm'
 import * as readline from 'readline'
 import * as schema from '../src/database/drizzle/schema'
+import { ESystemRole } from '@packages/domain'
 
 // ============================================================================
 // Configuration
@@ -38,7 +39,6 @@ const SUPERADMIN_FIREBASE_UID = 'du7YtYB3Xeet88oTLNHUX20DACt2'
 // const SUPERADMIN_EMAIL = 'jesusdesk@gmail.com'
 // const SUPERADMIN_FIREBASE_UID = 'mbh2opMCerYPGwLNFDSGhL372aN2'
 
-const SUPERADMIN_ROLE_NAME = 'SUPERADMIN'
 
 // Superadmin permission modules
 const SUPERADMIN_PERMISSION_MODULES = [
@@ -419,15 +419,15 @@ async function seedRoles(db: Database): Promise<string> {
 
   const rolesList: Omit<RoleInsert, 'id'>[] = [
     {
-      name: SUPERADMIN_ROLE_NAME,
+      name: ESystemRole.SUPERADMIN,
       description: 'Platform administrator with full access',
       isSystemRole: true,
     },
-    { name: 'ADMIN', description: 'Management company administrator', isSystemRole: true },
-    { name: 'USER', description: 'General user with basic platform access', isSystemRole: true },
-    { name: 'ACCOUNTANT', description: 'Financial management access', isSystemRole: true },
-    { name: 'SUPPORT', description: 'Customer support access', isSystemRole: true },
-    { name: 'VIEWER', description: 'Read-only access', isSystemRole: true },
+    { name: ESystemRole.ADMIN, description: 'Management company administrator', isSystemRole: true },
+    { name: ESystemRole.USER, description: 'General user with basic platform access', isSystemRole: true },
+    { name: ESystemRole.ACCOUNTANT, description: 'Financial management access', isSystemRole: true },
+    { name: ESystemRole.SUPPORT, description: 'Customer support access', isSystemRole: true },
+    { name: ESystemRole.VIEWER, description: 'Read-only access', isSystemRole: true },
   ]
 
   let superadminRoleId = ''
@@ -438,7 +438,7 @@ async function seedRoles(db: Database): Promise<string> {
     })
 
     if (existing) {
-      if (role.name === SUPERADMIN_ROLE_NAME) {
+      if (role.name === ESystemRole.SUPERADMIN) {
         superadminRoleId = existing.id
       }
       continue
@@ -446,7 +446,7 @@ async function seedRoles(db: Database): Promise<string> {
 
     const [inserted] = await db.insert(schema.roles).values(role).returning()
 
-    if (role.name === SUPERADMIN_ROLE_NAME) {
+    if (role.name === ESystemRole.SUPERADMIN) {
       superadminRoleId = inserted.id
     }
   }
@@ -1100,7 +1100,7 @@ async function seedDatabase(databaseUrl: string): Promise<void> {
     console.log('\n  Seed completed successfully!')
     console.log('\n  Superadmin account:')
     console.log(`    Email: ${SUPERADMIN_EMAIL}`)
-    console.log(`    Role: ${SUPERADMIN_ROLE_NAME}`)
+    console.log(`    Role: ${ESystemRole.SUPERADMIN}`)
     console.log('\n  You can now login to the application.\n')
   } finally {
     await pool.end()

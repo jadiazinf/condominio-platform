@@ -7,6 +7,7 @@ import {
   RolesRepository,
   CondominiumsRepository,
   PermissionsRepository,
+  UnitOwnershipsRepository,
 } from '@database/repositories'
 import { UserInvitationsController } from '../controllers'
 import type { IEndpoint } from './types'
@@ -24,6 +25,7 @@ export class UserInvitationsEndpoint implements IEndpoint {
     const rolesRepository = new RolesRepository(db)
     const condominiumsRepository = new CondominiumsRepository(db)
     const permissionsRepository = new PermissionsRepository(db)
+    const unitOwnershipsRepository = new UnitOwnershipsRepository(db)
     this.controller = new UserInvitationsController(
       db,
       invitationsRepository,
@@ -32,7 +34,8 @@ export class UserInvitationsEndpoint implements IEndpoint {
       userPermissionsRepository,
       rolesRepository,
       condominiumsRepository,
-      permissionsRepository
+      permissionsRepository,
+      unitOwnershipsRepository
     )
   }
 

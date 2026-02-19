@@ -1,9 +1,10 @@
 import type { Context } from 'hono'
 import { z } from 'zod'
-import type {
-  TSubscriptionTermsConditions,
-  TSubscriptionTermsConditionsCreate,
-  TSubscriptionTermsConditionsUpdate,
+import {
+  type TSubscriptionTermsConditions,
+  type TSubscriptionTermsConditionsCreate,
+  type TSubscriptionTermsConditionsUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { SubscriptionTermsConditionsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -86,7 +87,7 @@ export class SubscriptionTermsConditionsController extends BaseController<
         method: 'get',
         path: '/version/:version',
         handler: this.getByVersion,
-        middlewares: [isUserAuthenticated, requireRole('SUPERADMIN'), paramsValidator(VersionParamSchema)],
+        middlewares: [isUserAuthenticated, requireRole(ESystemRole.SUPERADMIN), paramsValidator(VersionParamSchema)],
       },
       // Superadmin: List all terms
       {
@@ -95,7 +96,7 @@ export class SubscriptionTermsConditionsController extends BaseController<
         handler: this.getAllTerms,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           queryValidator(TermsQuerySchema),
         ],
       },
@@ -106,7 +107,7 @@ export class SubscriptionTermsConditionsController extends BaseController<
         handler: this.getTermsById,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
         ],
       },
@@ -117,7 +118,7 @@ export class SubscriptionTermsConditionsController extends BaseController<
         handler: this.createTerms,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           bodyValidator(CreateTermsSchema),
         ],
       },
@@ -128,7 +129,7 @@ export class SubscriptionTermsConditionsController extends BaseController<
         handler: this.updateTerms,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
           bodyValidator(UpdateTermsSchema),
         ],
@@ -140,7 +141,7 @@ export class SubscriptionTermsConditionsController extends BaseController<
         handler: this.deactivateTerms,
         middlewares: [
           isUserAuthenticated,
-          requireRole('SUPERADMIN'),
+          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
         ],
       },

@@ -11,6 +11,7 @@ import type { SendSubscriptionCancellationEmailService } from '../email'
 import { users, userRoles, roles } from '@database/drizzle/schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import logger from '@utils/logger'
+import { ESystemRole } from '@packages/domain'
 
 export interface ICancelSubscriptionInput {
   subscriptionId: string
@@ -78,7 +79,6 @@ export class CancelSubscriptionService {
   private async getMainSuperadmin(): Promise<ISuperadminUser | null> {
     if (!this.db) return null
 
-    const SUPERADMIN_ROLE_NAME = 'SUPERADMIN'
 
     try {
       const results = await this.db
@@ -94,7 +94,7 @@ export class CancelSubscriptionService {
         .innerJoin(roles, eq(userRoles.roleId, roles.id))
         .where(
           and(
-            eq(roles.name, SUPERADMIN_ROLE_NAME),
+            eq(roles.name, ESystemRole.SUPERADMIN),
             eq(users.isActive, true),
             eq(userRoles.isActive, true),
             isNull(userRoles.condominiumId),

@@ -1,9 +1,10 @@
-import type {
-  TAdminInvitation,
-  TUser,
-  TUserRole,
-  TManagementCompany,
-  TManagementCompanyMember,
+import {
+  type TAdminInvitation,
+  type TUser,
+  type TUserRole,
+  type TManagementCompany,
+  type TManagementCompanyMember,
+  ESystemRole,
 } from '@packages/domain'
 import type {
   AdminInvitationsRepository,
@@ -97,12 +98,12 @@ export class AcceptInvitationService {
 
     // Look up roles before starting the transaction (read-only, avoids
     // acquiring a second connection inside the tx which can deadlock in test containers)
-    const userRole = await this.rolesRepository.getByName('USER')
+    const userRole = await this.rolesRepository.getByName(ESystemRole.USER)
     if (!userRole) {
       return failure('USER role not found in system', 'INTERNAL_ERROR')
     }
 
-    const adminRole = await this.rolesRepository.getByName('ADMIN')
+    const adminRole = await this.rolesRepository.getByName(ESystemRole.ADMIN)
     if (!adminRole) {
       return failure('ADMIN role not found in system', 'INTERNAL_ERROR')
     }

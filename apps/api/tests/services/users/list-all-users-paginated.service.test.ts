@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
-import type { TPaginatedResponse } from '@packages/domain'
+import { type TPaginatedResponse, ESystemRole } from '@packages/domain'
 import { ListAllUsersPaginatedService } from '@src/services/users'
 import type { TUserWithRoles, TAllUsersQuery } from '@database/repositories'
 
@@ -30,7 +30,7 @@ describe('ListAllUsersPaginatedService', function () {
         {
           id: 'role-1',
           roleId: 'role-id-1',
-          roleName: 'SUPERADMIN',
+          roleName: ESystemRole.SUPERADMIN,
           condominiumId: null,
           condominiumName: null,
           isActive: true,

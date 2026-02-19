@@ -1,9 +1,10 @@
-import type {
-  TUser,
-  TUserRole,
-  TManagementCompany,
-  TManagementCompanyCreate,
-  TManagementCompanyMember,
+import {
+  type TUser,
+  type TUserRole,
+  type TManagementCompany,
+  type TManagementCompanyCreate,
+  type TManagementCompanyMember,
+  ESystemRole,
 } from '@packages/domain'
 import type {
   UsersRepository,
@@ -65,12 +66,12 @@ export class CreateCompanyWithExistingAdminService {
 
     // Look up roles before starting the transaction (read-only, avoids
     // acquiring a second connection inside the tx which can deadlock in test containers)
-    const userRole = await this.rolesRepository.getByName('USER')
+    const userRole = await this.rolesRepository.getByName(ESystemRole.USER)
     if (!userRole) {
       return failure('USER role not found in system', 'INTERNAL_ERROR')
     }
 
-    const adminRole = await this.rolesRepository.getByName('ADMIN')
+    const adminRole = await this.rolesRepository.getByName(ESystemRole.ADMIN)
     if (!adminRole) {
       return failure('ADMIN role not found in system', 'INTERNAL_ERROR')
     }

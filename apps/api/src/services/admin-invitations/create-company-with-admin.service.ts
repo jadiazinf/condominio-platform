@@ -1,10 +1,11 @@
-import type {
-  TAdminInvitation,
-  TUser,
-  TUserCreate,
-  TManagementCompany,
-  TManagementCompanyCreate,
-  TManagementCompanyMember,
+import {
+  type TAdminInvitation,
+  type TUser,
+  type TUserCreate,
+  type TManagementCompany,
+  type TManagementCompanyCreate,
+  type TManagementCompanyMember,
+  ESystemRole,
 } from '@packages/domain'
 import type {
   AdminInvitationsRepository,
@@ -84,7 +85,7 @@ export class CreateCompanyWithAdminService {
     const expiresAt = calculateExpirationDate(input.expirationDays ?? 7)
 
     // Look up ADMIN role before starting the transaction (read-only)
-    const adminRole = await this.rolesRepository.getByName('ADMIN')
+    const adminRole = await this.rolesRepository.getByName(ESystemRole.ADMIN)
     if (!adminRole) {
       return failure('ADMIN role not found in system', 'INTERNAL_ERROR')
     }

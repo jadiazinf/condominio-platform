@@ -3,6 +3,7 @@ import type {
   UserInvitationsRepository,
   UsersRepository,
   UserRolesRepository,
+  UnitOwnershipsRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
@@ -28,7 +29,8 @@ export class AcceptUserInvitationService {
     private readonly db: TDrizzleClient,
     private readonly invitationsRepository: UserInvitationsRepository,
     private readonly usersRepository: UsersRepository,
-    private readonly userRolesRepository: UserRolesRepository
+    private readonly userRolesRepository: UserRolesRepository,
+    private readonly unitOwnershipsRepository?: UnitOwnershipsRepository
   ) {}
 
   async execute(
@@ -102,6 +104,15 @@ export class AcceptUserInvitationService {
 
       if (!acceptedInvitation) {
         return failure('Failed to accept invitation', 'INTERNAL_ERROR')
+      }
+
+      // Mark unit ownerships as registered (user confirmed via invitation)
+      if (this.unitOwnershipsRepository && invitation.condominiumId) {
+        const txOwnershipsRepo = this.unitOwnershipsRepository.withTx(tx)
+        await txOwnershipsRepo.markAsRegisteredByUserAndCondominium(
+          user.id,
+          invitation.condominiumId
+        )
       }
 
       return success({

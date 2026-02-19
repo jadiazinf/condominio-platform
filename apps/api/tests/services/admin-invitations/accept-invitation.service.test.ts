@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
-import type {
-  TAdminInvitation,
-  TUser,
-  TUserRole,
-  TManagementCompany,
-  TManagementCompanyMember,
-  TRole,
+import {
+  type TAdminInvitation,
+  type TUser,
+  type TUserRole,
+  type TManagementCompany,
+  type TManagementCompanyMember,
+  type TRole,
+  ESystemRole,
 } from '@packages/domain'
 import { AcceptInvitationService } from '@src/services/admin-invitations'
 
@@ -149,7 +150,7 @@ describe('AcceptInvitationService', function () {
   const userRoleId = '550e8400-e29b-41d4-a716-446655440020'
   const mockUserRole: TRole = {
     id: '550e8400-e29b-41d4-a716-446655440030',
-    name: 'USER',
+    name: ESystemRole.USER,
     description: 'Standard user role',
     isSystemRole: true,
     registeredBy: null,
@@ -299,7 +300,7 @@ describe('AcceptInvitationService', function () {
     const mcRoleId = '550e8400-e29b-41d4-a716-446655440050'
     const mockAdminRole: TRole = {
       id: '550e8400-e29b-41d4-a716-446655440060',
-      name: 'ADMIN',
+      name: ESystemRole.ADMIN,
       description: 'Admin role',
       isSystemRole: true,
       registeredBy: null,
@@ -364,8 +365,8 @@ describe('AcceptInvitationService', function () {
 
     mockRolesRepository = {
       getByName: async function (name: string) {
-        if (name === 'USER') return mockUserRole
-        if (name === 'ADMIN') return mockAdminRole
+        if (name === ESystemRole.USER) return mockUserRole
+        if (name === ESystemRole.ADMIN) return mockAdminRole
         return null
       },
     }

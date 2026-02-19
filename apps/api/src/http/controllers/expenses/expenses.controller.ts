@@ -5,6 +5,7 @@ import {
   type TExpense,
   type TExpenseCreate,
   type TExpenseUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { ExpensesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -89,48 +90,48 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)] },
       {
         method: 'get',
         path: '/pending-approval',
         handler: this.getPendingApproval,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)],
       },
       {
         method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(BuildingIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(BuildingIdParamSchema)],
       },
       {
         method: 'get',
         path: '/category/:categoryId',
         handler: this.getByCategoryId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(CategoryIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(CategoryIdParamSchema)],
       },
       {
         method: 'get',
         path: '/status/:status',
         handler: this.getByStatus,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(StatusParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(StatusParamSchema)],
       },
       {
         method: 'get',
         path: '/date-range',
         handler: this.getByDateRange,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), queryValidator(DateRangeQuerySchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), queryValidator(DateRangeQuerySchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), bodyValidator(expenseCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), bodyValidator(expenseCreateSchema)],
       },
       {
         method: 'patch',
@@ -138,7 +139,7 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN', 'ACCOUNTANT'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
           paramsValidator(IdParamSchema),
           bodyValidator(expenseUpdateSchema),
         ],
@@ -147,7 +148,7 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }

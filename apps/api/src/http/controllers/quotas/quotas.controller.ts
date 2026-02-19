@@ -5,6 +5,7 @@ import {
   type TQuota,
   type TQuotaCreate,
   type TQuotaUpdate,
+  ESystemRole,
 } from '@packages/domain'
 import type { QuotasRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -96,12 +97,12 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT')] },
+      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)] },
       {
         method: 'get',
         path: '/unit/:unitId',
         handler: this.getByUnitId,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(UnitIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(UnitIdParamSchema)],
       },
       {
         method: 'get',
@@ -109,7 +110,7 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
         handler: this.getByUnitIdPaginated,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER),
           paramsValidator(UnitIdParamSchema),
           queryValidator(PaginatedByUnitQuerySchema),
         ],
@@ -118,37 +119,37 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
         method: 'get',
         path: '/unit/:unitId/pending',
         handler: this.getPendingByUnit,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(UnitIdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(UnitIdParamSchema)],
       },
       {
         method: 'get',
         path: '/status/:status',
         handler: this.getByStatus,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(StatusParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(StatusParamSchema)],
       },
       {
         method: 'get',
         path: '/overdue/:date',
         handler: this.getOverdue,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), paramsValidator(DateParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(DateParamSchema)],
       },
       {
         method: 'get',
         path: '/period',
         handler: this.getByPeriod,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), queryValidator(PeriodQuerySchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), queryValidator(PeriodQuerySchema)],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT', 'SUPPORT', 'USER'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole('ADMIN', 'ACCOUNTANT'), bodyValidator(quotaCreateSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), bodyValidator(quotaCreateSchema)],
       },
       {
         method: 'patch',
@@ -156,7 +157,7 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
         handler: this.update,
         middlewares: [
           authMiddleware,
-          requireRole('ADMIN', 'ACCOUNTANT'),
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
           paramsValidator(IdParamSchema),
           bodyValidator(quotaUpdateSchema),
         ],
@@ -165,7 +166,7 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole('ADMIN'), paramsValidator(IdParamSchema)],
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
       },
     ]
   }
