@@ -15,6 +15,8 @@ export const unitOwnershipSchema = baseModelSchema.extend({
   email: z.string().email().max(255).nullable(),
   phone: z.string().max(50).nullable(),
   phoneCountryCode: z.string().max(10).nullable(),
+  idDocumentType: z.string().max(50).nullable(),
+  idDocumentNumber: z.string().max(50).nullable(),
   isRegistered: z.boolean().default(false),
   ownershipType: z.enum(EOwnershipTypes, { error: d.ownershipType.invalid }),
   ownershipPercentage: z.string().nullable(),

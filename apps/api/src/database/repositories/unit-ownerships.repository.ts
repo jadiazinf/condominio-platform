@@ -1,6 +1,6 @@
 import { and, eq, inArray } from 'drizzle-orm'
 import type { TUnitOwnership, TUnitOwnershipCreate, TUnitOwnershipUpdate } from '@packages/domain'
-import { unitOwnerships, units, buildings } from '@database/drizzle/schema'
+import { unitOwnerships, units, buildings, users, userInvitations } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -33,6 +33,8 @@ export class UnitOwnershipsRepository
       email: r.email,
       phone: r.phone,
       phoneCountryCode: r.phoneCountryCode,
+      idDocumentType: r.idDocumentType,
+      idDocumentNumber: r.idDocumentNumber,
       isRegistered: r.isRegistered ?? false,
       ownershipType: r.ownershipType as TUnitOwnership['ownershipType'],
       ownershipPercentage: r.ownershipPercentage,
@@ -56,6 +58,8 @@ export class UnitOwnershipsRepository
       email: dto.email,
       phone: dto.phone,
       phoneCountryCode: dto.phoneCountryCode,
+      idDocumentType: dto.idDocumentType,
+      idDocumentNumber: dto.idDocumentNumber,
       isRegistered: dto.isRegistered,
       ownershipType: dto.ownershipType,
       ownershipPercentage: dto.ownershipPercentage,
@@ -78,6 +82,8 @@ export class UnitOwnershipsRepository
     if (dto.email !== undefined) values.email = dto.email
     if (dto.phone !== undefined) values.phone = dto.phone
     if (dto.phoneCountryCode !== undefined) values.phoneCountryCode = dto.phoneCountryCode
+    if (dto.idDocumentType !== undefined) values.idDocumentType = dto.idDocumentType
+    if (dto.idDocumentNumber !== undefined) values.idDocumentNumber = dto.idDocumentNumber
     if (dto.isRegistered !== undefined) values.isRegistered = dto.isRegistered
     if (dto.ownershipType !== undefined) values.ownershipType = dto.ownershipType
     if (dto.ownershipPercentage !== undefined) values.ownershipPercentage = dto.ownershipPercentage
@@ -94,14 +100,80 @@ export class UnitOwnershipsRepository
 
   /**
    * Retrieves ownerships by unit.
+   * Derives isRegistered from user_invitations.status (matched by userId + unitId):
+   * - No invitation → directly added user → verified
+   * - Invitation with status='accepted' → verified
+   * - Invitation with any other status → not verified
    */
   async getByUnitId(unitId: string, includeInactive = false): Promise<TUnitOwnership[]> {
     const results = await this.db
-      .select()
+      .select({
+        ownership: unitOwnerships,
+        user: {
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phoneCountryCode: users.phoneCountryCode,
+          phoneNumber: users.phoneNumber,
+          idDocumentType: users.idDocumentType,
+          idDocumentNumber: users.idDocumentNumber,
+          displayName: users.displayName,
+          photoUrl: users.photoUrl,
+        },
+      })
       .from(unitOwnerships)
+      .leftJoin(users, eq(unitOwnerships.userId, users.id))
       .where(eq(unitOwnerships.unitId, unitId))
 
-    const mapped = results.map(record => this.mapToEntity(record))
+    const mapped = results.map(row => {
+      const entity = this.mapToEntity(row.ownership)
+      if (row.user?.email) {
+        entity.user = {
+          ...row.user,
+          idDocumentType: row.user.idDocumentType as 'CI' | 'RIF' | 'Pasaporte' | null,
+        } as TUnitOwnership['user']
+      }
+      return entity
+    })
+
+    // Derive isRegistered from user_invitations.status (matched by userId + unitId)
+    const userIds = mapped.filter(o => o.userId).map(o => o.userId!)
+    if (userIds.length > 0) {
+      const invitations = await this.db
+        .select({
+          userId: userInvitations.userId,
+          unitId: userInvitations.unitId,
+          status: userInvitations.status,
+        })
+        .from(userInvitations)
+        .where(
+          and(
+            inArray(userInvitations.userId, userIds),
+            eq(userInvitations.unitId, unitId)
+          )
+        )
+
+      // Build a map: userId → has any accepted invitation (by status)
+      const invitationMap = new Map<string, boolean>()
+      for (const inv of invitations) {
+        if (inv.status === 'accepted') {
+          invitationMap.set(inv.userId, true)
+        } else if (!invitationMap.has(inv.userId)) {
+          invitationMap.set(inv.userId, false)
+        }
+      }
+
+      for (const ownership of mapped) {
+        if (ownership.userId) {
+          if (invitationMap.has(ownership.userId)) {
+            ownership.isRegistered = invitationMap.get(ownership.userId)!
+          } else {
+            // No invitation = directly added user, always verified
+            ownership.isRegistered = true
+          }
+        }
+      }
+    }
 
     if (includeInactive) {
       return mapped

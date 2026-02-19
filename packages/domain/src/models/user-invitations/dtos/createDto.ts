@@ -4,6 +4,7 @@ import { EUserInvitationStatus } from '../schema'
 export const userInvitationCreateSchema = z.object({
   userId: z.uuid(),
   condominiumId: z.uuid().nullable().optional(),
+  unitId: z.uuid().nullable().optional(),
   roleId: z.uuid(),
   token: z.string().max(128),
   tokenHash: z.string().max(64),

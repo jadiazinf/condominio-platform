@@ -107,7 +107,6 @@ export class AddUnitOwnerService {
 
   /**
    * Resends an invitation for an existing ownership.
-   * Enforces a 48-hour cooldown between resends.
    * If no invitation exists (legacy data or created without email), creates a new one.
    */
   async resendInvitation(
@@ -120,8 +119,8 @@ export class AddUnitOwnerService {
       return failure(L.ownershipNotFound, 'NOT_FOUND')
     }
 
-    if (ownership.isRegistered || !ownership.userId) {
-      return failure(L.duplicateOwnership, 'CONFLICT')
+    if (!ownership.userId) {
+      return failure(L.userIdRequired, 'BAD_REQUEST')
     }
 
     const user = await this.usersRepository.getById(ownership.userId, true)
@@ -129,9 +128,16 @@ export class AddUnitOwnerService {
       return failure(L.userNotFound, 'NOT_FOUND')
     }
 
-    // Look for any resendable invitation (pending or expired)
+    // Block if user already has an accepted invitation for this unit
+    const acceptedInvitation =
+      await this.userInvitationsRepository.getAcceptedByUserAndUnit(user.id, ownership.unitId)
+    if (acceptedInvitation) {
+      return failure(L.duplicateOwnership, 'CONFLICT')
+    }
+
+    // Look for any resendable invitation for this user+unit
     const existingInvitation =
-      await this.userInvitationsRepository.getResendableByUserAndCondominium(user.id, condominiumId)
+      await this.userInvitationsRepository.getResendableByUserAndUnit(user.id, ownership.unitId)
 
     const newToken = generateSecureToken()
     const newTokenHash = hashToken(newToken)
@@ -143,7 +149,9 @@ export class AddUnitOwnerService {
         existingInvitation.id,
         newToken,
         newTokenHash,
-        newExpiresAt
+        newExpiresAt,
+        condominiumId,
+        ownership.unitId
       )
 
       // Send email (non-blocking)
@@ -153,7 +161,8 @@ export class AddUnitOwnerService {
         existingInvitation.roleId,
         newToken,
         newExpiresAt,
-        inviterId
+        inviterId,
+        ownership.unitId
       )
 
       return success({
@@ -170,6 +179,7 @@ export class AddUnitOwnerService {
     const invitation = await this.userInvitationsRepository.create({
       userId: user.id,
       condominiumId,
+      unitId: ownership.unitId,
       roleId: userRole.id,
       token: newToken,
       tokenHash: newTokenHash,
@@ -202,7 +212,7 @@ export class AddUnitOwnerService {
     }
 
     // Send email (non-blocking)
-    this.sendInvitationEmail(user, condominiumId, userRole.id, newToken, newExpiresAt, inviterId)
+    this.sendInvitationEmail(user, condominiumId, userRole.id, newToken, newExpiresAt, inviterId, ownership.unitId)
 
     return success({ invitation })
   }
@@ -230,6 +240,21 @@ export class AddUnitOwnerService {
       user.id
     )
     if (existingOwnership && existingOwnership.isActive) {
+      // Self-heal: if ownership exists but isRegistered is false and user has active role, fix it
+      if (!existingOwnership.isRegistered) {
+        const roles = await this.userRolesRepository.getByUserAndCondominium(user.id, input.condominiumId)
+        if (roles.some(r => r.isActive)) {
+          await this.unitOwnershipsRepository.update(existingOwnership.id, { isRegistered: true })
+          return success({
+            ownership: { ...existingOwnership, isRegistered: true },
+            user,
+            invitation: null,
+            userRole: null,
+            invitationToken: null,
+          })
+        }
+      }
+
       // Duplicate ownership: try to resend existing invitation instead of failing
       const resendResult = await this.handleResendInvitation(
         user,
@@ -264,6 +289,8 @@ export class AddUnitOwnerService {
         email: user.email,
         phone: user.phoneNumber,
         phoneCountryCode: user.phoneCountryCode,
+        idDocumentType: user.idDocumentType ?? null,
+        idDocumentNumber: user.idDocumentNumber ?? null,
         isRegistered: hasActiveRole,
         ownershipType: input.ownershipType,
         ownershipPercentage: null,
@@ -313,6 +340,7 @@ export class AddUnitOwnerService {
       const invitation = await txInvitationsRepo.create({
         userId: user.id,
         condominiumId: input.condominiumId,
+        unitId: input.unitId,
         roleId,
         token,
         tokenHash,
@@ -325,7 +353,7 @@ export class AddUnitOwnerService {
       })
 
       // Send email (outside transaction, non-blocking)
-      this.sendInvitationEmail(user, input.condominiumId, roleId, token, expiresAt, input.createdBy)
+      this.sendInvitationEmail(user, input.condominiumId, roleId, token, expiresAt, input.createdBy, input.unitId)
 
       return success({
         ownership,
@@ -449,6 +477,8 @@ export class AddUnitOwnerService {
         email: input.email ?? null,
         phone: input.phone ?? null,
         phoneCountryCode: input.phoneCountryCode ?? null,
+        idDocumentType: input.idDocumentType ?? null,
+        idDocumentNumber: input.idDocumentNumber ?? null,
         isRegistered: false,
         ownershipType: input.ownershipType,
         ownershipPercentage: null,
@@ -488,6 +518,7 @@ export class AddUnitOwnerService {
         const invitation = await txInvitationsRepo.create({
           userId: user.id,
           condominiumId: input.condominiumId,
+          unitId: input.unitId,
           roleId,
           token,
           tokenHash,
@@ -506,7 +537,8 @@ export class AddUnitOwnerService {
           roleId,
           token,
           expiresAt,
-          input.createdBy
+          input.createdBy,
+          input.unitId
         )
 
         return success({
@@ -541,7 +573,7 @@ export class AddUnitOwnerService {
     inviterId: string
   ): Promise<TServiceResult<IAddUnitOwnerResult> | null> {
     const pendingInvitation =
-      await this.userInvitationsRepository.getResendableByUserAndCondominium(user.id, condominiumId)
+      await this.userInvitationsRepository.getResendableByUserAndUnit(user.id, existingOwnership.unitId)
 
     if (!pendingInvitation) {
       return null
@@ -556,7 +588,9 @@ export class AddUnitOwnerService {
       pendingInvitation.id,
       newToken,
       newTokenHash,
-      newExpiresAt
+      newExpiresAt,
+      condominiumId,
+      existingOwnership.unitId
     )
 
     // Resend email (non-blocking)
@@ -566,7 +600,8 @@ export class AddUnitOwnerService {
       pendingInvitation.roleId,
       newToken,
       newExpiresAt,
-      inviterId
+      inviterId,
+      existingOwnership.unitId
     )
 
     return success({
@@ -580,7 +615,7 @@ export class AddUnitOwnerService {
 
   /**
    * Sends the invitation email asynchronously (fire-and-forget).
-   * Fetches condominium, management company, and inviter info for the email.
+   * Fetches condominium, unit, management company, and inviter info for the email.
    */
   private sendInvitationEmail(
     user: TUser,
@@ -588,17 +623,19 @@ export class AddUnitOwnerService {
     _roleId: string,
     token: string,
     expiresAt: Date,
-    inviterId: string
+    inviterId: string,
+    unitId?: string
   ): void {
     const recipientName = user.displayName || user.firstName || user.email
 
     // Fetch context data async, then send email
-    this.fetchEmailContext(condominiumId, inviterId)
+    this.fetchEmailContext(condominiumId, inviterId, unitId)
       .then(ctx => {
         return this.sendEmailService.execute({
           to: user.email,
           recipientName,
           condominiumName: ctx.condominiumName,
+          unitIdentifier: ctx.unitIdentifier,
           roleName: 'Propietario/Residente',
           invitationToken: token,
           expiresAt,
@@ -615,22 +652,25 @@ export class AddUnitOwnerService {
   }
 
   /**
-   * Fetches context data for the invitation email (condominium, management company, inviter).
+   * Fetches context data for the invitation email (condominium, unit, management company, inviter).
    */
   private async fetchEmailContext(
     condominiumId: string,
-    inviterId: string
+    inviterId: string,
+    unitId?: string
   ): Promise<{
     condominiumName: string | null
+    unitIdentifier: string | null
     inviterName: string | undefined
     inviterEmail: string | undefined
     managementCompanyName: string | undefined
     managementCompanyContact: string | undefined
   }> {
-    // Fetch condominium (include inactive — we just need the name) and inviter in parallel
-    const [condominium, inviter] = await Promise.all([
+    // Fetch condominium, inviter, and unit in parallel
+    const [condominium, inviter, unit] = await Promise.all([
       this.condominiumsRepository.getById(condominiumId, true),
       this.usersRepository.getById(inviterId),
+      unitId ? this.unitsRepository.getById(unitId) : Promise.resolve(null),
     ])
     let mgmtCompanyName: string | undefined
     let mgmtCompanyContact: string | undefined
@@ -656,6 +696,7 @@ export class AddUnitOwnerService {
 
     return {
       condominiumName: condominium?.name ?? null,
+      unitIdentifier: unit?.unitNumber ?? null,
       inviterName:
         inviter?.displayName ||
         (inviter?.firstName ? `${inviter.firstName} ${inviter.lastName || ''}`.trim() : undefined),

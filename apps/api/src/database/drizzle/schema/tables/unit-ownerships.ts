@@ -27,6 +27,8 @@ export const unitOwnerships = pgTable(
     email: varchar('email', { length: 255 }),
     phone: varchar('phone', { length: 50 }),
     phoneCountryCode: varchar('phone_country_code', { length: 10 }),
+    idDocumentType: varchar('id_document_type', { length: 50 }),
+    idDocumentNumber: varchar('id_document_number', { length: 50 }),
     isRegistered: boolean('is_registered').default(false),
     ownershipType: ownershipTypeEnum('ownership_type').notNull(),
     ownershipPercentage: decimal('ownership_percentage', {

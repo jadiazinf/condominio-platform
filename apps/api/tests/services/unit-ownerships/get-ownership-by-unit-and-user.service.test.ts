@@ -29,6 +29,8 @@ describe('GetOwnershipByUnitAndUserService', function () {
     email: null,
     phone: null,
     phoneCountryCode: null,
+    idDocumentType: null,
+    idDocumentNumber: null,
     isRegistered: true,
     metadata: null,
     createdAt: new Date(),

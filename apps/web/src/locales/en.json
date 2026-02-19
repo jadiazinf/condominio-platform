@@ -1628,25 +1628,57 @@
           "ownerTable": {
             "name": "Name",
             "type": "Type",
-            "percentage": "%",
             "startDate": "Start",
-            "primaryResidence": "Residence",
-            "status": "Status"
+            "status": "Status",
+            "verified": "Verified"
+          },
+          "ownerResend": {
+            "tooltip": "Resend invitation",
+            "success": "Invitation resent successfully",
+            "error": "Error resending invitation"
+          },
+          "ownerDetail": {
+            "title": "Owner detail",
+            "fullName": "Full name",
+            "email": "Email",
+            "phone": "Phone",
+            "document": "Identity document",
+            "ownershipType": "Relationship type",
+            "startDate": "Start date",
+            "status": "Status",
+            "primaryResidence": "Primary residence",
+            "noData": "Not available"
+          },
+          "ownerTabs": {
+            "search": "Search user",
+            "register": "Register user"
+          },
+          "ownerSearch": {
+            "placeholder": "Email or identity document",
+            "button": "Search",
+            "searching": "Searching...",
+            "notFound": "User not found",
+            "notFoundHint": "Check the email or document and try again, or register a new user in the other tab.",
+            "userFound": "User found"
           },
           "ownerForm": {
             "fullName": "Full name",
             "email": "Email",
             "phone": "Phone",
+            "phoneCode": "Code",
             "ownershipType": "Relationship type",
-            "ownershipPercentage": "Ownership percentage",
-            "startDate": "Start date",
-            "isPrimaryResidence": "Primary residence"
+            "idDocumentType": "Doc. type",
+            "idDocumentNumber": "Document number"
           },
           "ownerSuccess": {
             "created": "Owner added successfully"
           },
           "ownerError": {
             "create": "Error adding owner"
+          },
+          "ownerValidation": {
+            "required": "This field is required",
+            "email": "Invalid email address"
           },
           "yes": "Yes",
           "no": "No"

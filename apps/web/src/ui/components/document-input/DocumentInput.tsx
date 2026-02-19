@@ -42,7 +42,7 @@ export function DocumentInput({
   onDocumentNumberChange,
   label,
   typePlaceholder,
-  numberPlaceholder,
+  numberPlaceholder = '13245678',
   description,
   tooltip,
   documentTypeError,
@@ -59,7 +59,7 @@ export function DocumentInput({
   const errorMessage = documentTypeError || documentNumberError
 
   const documentTypeItems: ISelectItem[] = useMemo(
-    () => EIdDocumentTypes.map((type) => ({ key: type, label: type })),
+    () => EIdDocumentTypes.map(type => ({ key: type, label: type })),
     []
   )
 
@@ -90,7 +90,7 @@ export function DocumentInput({
           placeholder={typePlaceholder}
           items={documentTypeItems}
           value={documentType || typePlaceholder || undefined}
-          onChange={(key) => onDocumentTypeChange?.((key as TIdDocumentType) || null)}
+          onChange={key => onDocumentTypeChange?.((key as TIdDocumentType) || null)}
           variant={variant}
           radius={radius}
           size={size}
@@ -102,6 +102,9 @@ export function DocumentInput({
         />
         <HeroUIInput
           className="flex-1"
+          classNames={{
+            input: 'placeholder:text-default-400 placeholder:opacity-70',
+          }}
           placeholder={numberPlaceholder}
           value={documentNumber || ''}
           onValueChange={onDocumentNumberChange}

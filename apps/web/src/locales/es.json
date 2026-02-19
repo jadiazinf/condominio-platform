@@ -1629,25 +1629,57 @@
           "ownerTable": {
             "name": "Nombre",
             "type": "Tipo",
-            "percentage": "%",
             "startDate": "Inicio",
-            "primaryResidence": "Residencia",
-            "status": "Estado"
+            "status": "Estado",
+            "verified": "Verificado"
+          },
+          "ownerResend": {
+            "tooltip": "Reenviar invitación",
+            "success": "Invitación reenviada exitosamente",
+            "error": "Error al reenviar la invitación"
+          },
+          "ownerDetail": {
+            "title": "Detalle del propietario",
+            "fullName": "Nombre completo",
+            "email": "Correo electrónico",
+            "phone": "Teléfono",
+            "document": "Documento de identidad",
+            "ownershipType": "Tipo de relación",
+            "startDate": "Fecha de inicio",
+            "status": "Estado",
+            "primaryResidence": "Residencia principal",
+            "noData": "No disponible"
+          },
+          "ownerTabs": {
+            "search": "Buscar usuario",
+            "register": "Registrar usuario"
+          },
+          "ownerSearch": {
+            "placeholder": "Correo electrónico o documento de identidad",
+            "button": "Buscar",
+            "searching": "Buscando...",
+            "notFound": "Usuario no encontrado",
+            "notFoundHint": "Verifica el correo o documento e intenta de nuevo, o registra un nuevo usuario en la otra pestaña.",
+            "userFound": "Usuario encontrado"
           },
           "ownerForm": {
             "fullName": "Nombre completo",
             "email": "Correo electrónico",
             "phone": "Teléfono",
+            "phoneCode": "Código",
             "ownershipType": "Tipo de relación",
-            "ownershipPercentage": "Porcentaje de propiedad",
-            "startDate": "Fecha de inicio",
-            "isPrimaryResidence": "Residencia principal"
+            "idDocumentType": "Tipo doc.",
+            "idDocumentNumber": "Número de documento"
           },
           "ownerSuccess": {
             "created": "Propietario agregado exitosamente"
           },
           "ownerError": {
             "create": "Error al agregar propietario"
+          },
+          "ownerValidation": {
+            "required": "Este campo es requerido",
+            "email": "Correo electrónico inválido"
           },
           "yes": "Sí",
           "no": "No"

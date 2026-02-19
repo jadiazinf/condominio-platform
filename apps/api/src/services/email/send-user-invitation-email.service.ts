@@ -8,6 +8,7 @@ export interface ISendUserInvitationEmailInput {
   to: string
   recipientName: string
   condominiumName: string | null
+  unitIdentifier?: string | null
   roleName: string
   invitationToken: string
   expiresAt: Date
@@ -32,7 +33,7 @@ export class SendUserInvitationEmailService
   async execute(
     input: ISendUserInvitationEmailInput
   ): Promise<TServiceResult<ISendUserInvitationEmailResult>> {
-    const { to, recipientName, condominiumName, roleName, invitationToken, expiresAt } = input
+    const { to, recipientName, condominiumName, unitIdentifier, roleName, invitationToken, expiresAt } = input
 
     const invitationLink = `${env.APP_URL}/accept-user-invitation?token=${invitationToken}`
     const expiresAtFormatted = expiresAt.toLocaleDateString('es-ES', {
@@ -42,9 +43,19 @@ export class SendUserInvitationEmailService
       day: 'numeric',
     })
 
-    const contextText = condominiumName
-      ? `el condominio <strong style="color: #006FEE;">${condominiumName}</strong>`
-      : 'la plataforma'
+    // Build context text with condominium and unit info
+    let contextText: string
+    let contextTextPlain: string
+    if (condominiumName && unitIdentifier) {
+      contextText = `el condominio <strong style="color: #006FEE;">${condominiumName}</strong> (Unidad: <strong>${unitIdentifier}</strong>)`
+      contextTextPlain = `el condominio ${condominiumName} (Unidad: ${unitIdentifier})`
+    } else if (condominiumName) {
+      contextText = `el condominio <strong style="color: #006FEE;">${condominiumName}</strong>`
+      contextTextPlain = `el condominio ${condominiumName}`
+    } else {
+      contextText = 'la plataforma'
+      contextTextPlain = 'la plataforma'
+    }
 
     const subject = condominiumName
       ? `Invitación para unirte a ${condominiumName}`
@@ -60,7 +71,7 @@ export class SendUserInvitationEmailService
 
     const text = this.generateEmailText({
       recipientName,
-      condominiumName,
+      contextText: contextTextPlain,
       roleName,
       invitationLink,
       expiresAtFormatted,
@@ -184,14 +195,12 @@ export class SendUserInvitationEmailService
 
   private generateEmailText(params: {
     recipientName: string
-    condominiumName: string | null
+    contextText: string
     roleName: string
     invitationLink: string
     expiresAtFormatted: string
   }): string {
-    const { recipientName, condominiumName, roleName, invitationLink, expiresAtFormatted } = params
-
-    const contextText = condominiumName ? `el condominio ${condominiumName}` : 'la plataforma'
+    const { recipientName, contextText, roleName, invitationLink, expiresAtFormatted } = params
 
     return `
 Hola ${recipientName},

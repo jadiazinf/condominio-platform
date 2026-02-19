@@ -151,6 +151,10 @@ export function Select({
   }
 
   // Otherwise use the items prop pattern
+  // Support both value/onChange and selectedKeys/onSelectionChange patterns
+  const resolvedSelectedKeys = value !== undefined ? (value ? [value] : []) : (selectedKeys ?? [])
+  const resolvedOnSelectionChange = onChange ? handleSelectionChange : onSelectionChange
+
   return (
     <HeroUISelect
       aria-label={ariaLabel}
@@ -168,10 +172,10 @@ export function Select({
       labelPlacement={labelPlacement}
       placeholder={placeholder}
       radius={radius}
-      selectedKeys={value ? [value] : []}
+      selectedKeys={resolvedSelectedKeys}
       size={size}
       variant={variant}
-      onSelectionChange={handleSelectionChange}
+      onSelectionChange={resolvedOnSelectionChange}
     >
       {items?.map((item) => (
         <HeroUISelectItem

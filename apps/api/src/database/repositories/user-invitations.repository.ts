@@ -1,4 +1,4 @@
-import { eq, and, lt, or, desc } from 'drizzle-orm'
+import { eq, and, lt, ne, desc } from 'drizzle-orm'
 import type {
   TUserInvitation,
   TUserInvitationCreate,
@@ -32,6 +32,7 @@ export class UserInvitationsRepository extends BaseRepository<
       id: r.id,
       userId: r.userId,
       condominiumId: r.condominiumId,
+      unitId: r.unitId,
       roleId: r.roleId,
       token: r.token,
       tokenHash: r.tokenHash,
@@ -50,6 +51,7 @@ export class UserInvitationsRepository extends BaseRepository<
     return {
       userId: dto.userId,
       condominiumId: dto.condominiumId,
+      unitId: dto.unitId,
       roleId: dto.roleId,
       token: dto.token,
       tokenHash: dto.tokenHash,
@@ -235,16 +237,25 @@ export class UserInvitationsRepository extends BaseRepository<
     id: string,
     newToken: string,
     newTokenHash: string,
-    newExpiresAt?: Date
+    newExpiresAt?: Date,
+    condominiumId?: string,
+    unitId?: string
   ): Promise<TUserInvitation | null> {
     const setValues: Record<string, unknown> = {
       token: newToken,
       tokenHash: newTokenHash,
+      status: 'pending',
       emailError: null,
       updatedAt: new Date(),
     }
     if (newExpiresAt) {
       setValues.expiresAt = newExpiresAt
+    }
+    if (condominiumId) {
+      setValues.condominiumId = condominiumId
+    }
+    if (unitId) {
+      setValues.unitId = unitId
     }
 
     const results = await this.db
@@ -261,8 +272,8 @@ export class UserInvitationsRepository extends BaseRepository<
   }
 
   /**
-   * Retrieves the most recent resendable invitation (pending or expired) for a user+condominium.
-   * Used when resending invitations.
+   * Retrieves the most recent resendable invitation for a user+condominium.
+   * Finds any invitation that is not 'accepted' (pending, expired, or cancelled).
    */
   async getResendableByUserAndCondominium(
     userId: string,
@@ -275,10 +286,64 @@ export class UserInvitationsRepository extends BaseRepository<
         and(
           eq(userInvitations.userId, userId),
           eq(userInvitations.condominiumId, condominiumId),
-          or(eq(userInvitations.status, 'pending'), eq(userInvitations.status, 'expired'))
+          ne(userInvitations.status, 'accepted')
         )
       )
       .orderBy(desc(userInvitations.createdAt))
+      .limit(1)
+
+    if (results.length === 0) {
+      return null
+    }
+
+    return this.mapToEntity(results[0])
+  }
+
+  /**
+   * Retrieves the most recent resendable invitation for a user+unit.
+   * Finds any invitation that is not 'accepted' (pending, expired, or cancelled).
+   */
+  async getResendableByUserAndUnit(
+    userId: string,
+    unitId: string
+  ): Promise<TUserInvitation | null> {
+    const results = await this.db
+      .select()
+      .from(userInvitations)
+      .where(
+        and(
+          eq(userInvitations.userId, userId),
+          eq(userInvitations.unitId, unitId),
+          ne(userInvitations.status, 'accepted')
+        )
+      )
+      .orderBy(desc(userInvitations.createdAt))
+      .limit(1)
+
+    if (results.length === 0) {
+      return null
+    }
+
+    return this.mapToEntity(results[0])
+  }
+
+  /**
+   * Checks if a user has an accepted invitation for a specific unit.
+   */
+  async getAcceptedByUserAndUnit(
+    userId: string,
+    unitId: string
+  ): Promise<TUserInvitation | null> {
+    const results = await this.db
+      .select()
+      .from(userInvitations)
+      .where(
+        and(
+          eq(userInvitations.userId, userId),
+          eq(userInvitations.unitId, unitId),
+          eq(userInvitations.status, 'accepted')
+        )
+      )
       .limit(1)
 
     if (results.length === 0) {

@@ -37,7 +37,7 @@ export class UnitOwnershipsEndpoint implements IEndpoint {
       condominiumsRepository
     )
 
-    this.controller = new UnitOwnershipsController(repository, addUnitOwnerService)
+    this.controller = new UnitOwnershipsController(repository, addUnitOwnerService, usersRepository)
   }
 
   getRouter(): Hono {

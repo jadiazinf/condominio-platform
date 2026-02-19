@@ -100,6 +100,9 @@ export function PhoneInput({
         />
         <HeroUIInput
           className="flex-1"
+          classNames={{
+            input: 'placeholder:text-default-400 placeholder:opacity-70',
+          }}
           type="tel"
           placeholder={derivedPlaceholder}
           value={phoneNumber || ''}

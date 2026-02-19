@@ -10,6 +10,7 @@ import { adminInvitationStatusEnum } from '../enums'
 import { users } from './users'
 import { condominiums } from './condominiums'
 import { roles } from './roles'
+import { units } from './units'
 
 /**
  * User Invitations Table
@@ -28,6 +29,10 @@ export const userInvitations = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     // The condominium they will be assigned to (optional - null for global users like superadmins)
     condominiumId: uuid('condominium_id').references(() => condominiums.id, {
+      onDelete: 'cascade',
+    }),
+    // The unit associated with this invitation (for unit ownership invitations)
+    unitId: uuid('unit_id').references(() => units.id, {
       onDelete: 'cascade',
     }),
     // The role they will be assigned
@@ -59,6 +64,7 @@ export const userInvitations = pgTable(
   table => [
     index('idx_user_invitations_user').on(table.userId),
     index('idx_user_invitations_condominium').on(table.condominiumId),
+    index('idx_user_invitations_unit').on(table.unitId),
     index('idx_user_invitations_role').on(table.roleId),
     index('idx_user_invitations_token').on(table.token),
     index('idx_user_invitations_token_hash').on(table.tokenHash),

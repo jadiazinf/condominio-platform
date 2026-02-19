@@ -6,8 +6,9 @@ import {
   type TUnitOwnershipCreate,
   type TUnitOwnershipUpdate,
   ESystemRole,
+  EOwnershipTypes,
 } from '@packages/domain'
-import type { UnitOwnershipsRepository } from '@database/repositories'
+import type { UnitOwnershipsRepository, UsersRepository } from '@database/repositories'
 import type { AddUnitOwnerService } from '@services/unit-ownerships/add-unit-owner.service'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
@@ -15,6 +16,7 @@ import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewa
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
+import { useTranslation } from '@intlify/hono'
 import { z } from 'zod'
 
 const UnitIdParamSchema = z.object({
@@ -35,6 +37,21 @@ const UnitAndUserParamSchema = z.object({
 })
 
 type TUnitAndUserParam = z.infer<typeof UnitAndUserParamSchema>
+
+const AddUnitOwnerSchema = z.object({
+  unitId: z.string().uuid(),
+  mode: z.enum(['search', 'register']),
+  ownershipType: z.enum(EOwnershipTypes),
+  userId: z.string().uuid().optional(),
+  fullName: z.string().min(1).optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().optional(),
+  phoneCountryCode: z.string().optional(),
+  idDocumentType: z.enum(['CI', 'RIF', 'Pasaporte']).nullable().optional(),
+  idDocumentNumber: z.string().optional(),
+})
+
+type TAddUnitOwnerBody = z.infer<typeof AddUnitOwnerSchema>
 
 /**
  * Controller for managing unit ownership resources.
@@ -58,7 +75,8 @@ export class UnitOwnershipsController extends BaseController<
 > {
   constructor(
     repository: UnitOwnershipsRepository,
-    private readonly addUnitOwnerService?: AddUnitOwnerService
+    private readonly addUnitOwnerService?: AddUnitOwnerService,
+    private readonly usersRepository?: UsersRepository
   ) {
     super(repository)
   }
@@ -109,6 +127,22 @@ export class UnitOwnershipsController extends BaseController<
           authMiddleware,
           requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
           paramsValidator(UnitAndUserParamSchema),
+        ],
+      },
+      {
+        method: 'get',
+        path: '/search-user',
+        handler: this.searchUser,
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN)],
+      },
+      {
+        method: 'post',
+        path: '/add-owner',
+        handler: this.addOwner,
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          bodyValidator(AddUnitOwnerSchema),
         ],
       },
       {
@@ -238,6 +272,86 @@ export class UnitOwnershipsController extends BaseController<
     }
   }
 
+  private searchUser = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+
+    if (!this.usersRepository) {
+      return ctx.internalError({ error: 'Service not configured' })
+    }
+
+    try {
+      const query = c.req.query('q')?.trim()
+      if (!query) {
+        return ctx.badRequest({ error: 'Query parameter "q" is required' })
+      }
+
+      const user = await this.usersRepository.getByEmailOrDocument(query)
+      if (!user) {
+        return ctx.ok({ data: null, found: false })
+      }
+
+      return ctx.ok({
+        data: {
+          id: user.id,
+          displayName: user.displayName,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phoneCountryCode: user.phoneCountryCode,
+          phoneNumber: user.phoneNumber,
+          idDocumentType: user.idDocumentType,
+          idDocumentNumber: user.idDocumentNumber,
+          photoUrl: user.photoUrl,
+          isActive: user.isActive,
+        },
+        found: true,
+      })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private addOwner = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TAddUnitOwnerBody>(c)
+
+    if (!this.addUnitOwnerService) {
+      return ctx.internalError({ error: 'Service not configured' })
+    }
+
+    try {
+      const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+      const user = c.get(AUTHENTICATED_USER_PROP)
+      const body = ctx.body
+
+      const result = await this.addUnitOwnerService.execute({
+        unitId: body.unitId,
+        condominiumId,
+        mode: body.mode,
+        ownershipType: body.ownershipType,
+        createdBy: user.id,
+        userId: body.userId,
+        fullName: body.fullName,
+        email: body.email || undefined,
+        phone: body.phone,
+        phoneCountryCode: body.phoneCountryCode,
+        idDocumentType: body.idDocumentType,
+        idDocumentNumber: body.idDocumentNumber,
+      })
+
+      if (!result.success) {
+        const t = useTranslation(c)
+        const msg = t(result.error)
+        if (result.code === 'NOT_FOUND') return ctx.notFound({ error: msg })
+        if (result.code === 'CONFLICT') return ctx.conflict({ error: msg })
+        return ctx.badRequest({ error: msg })
+      }
+
+      return ctx.created({ data: result.data })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
   private resendInvitation = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
 
@@ -256,13 +370,15 @@ export class UnitOwnershipsController extends BaseController<
       )
 
       if (!result.success) {
+        const t = useTranslation(c)
+        const msg = t(result.error)
         if (result.code === 'NOT_FOUND') {
-          return ctx.notFound({ error: result.error })
+          return ctx.notFound({ error: msg })
         }
         if (result.code === 'CONFLICT') {
-          return ctx.conflict({ error: result.error })
+          return ctx.conflict({ error: msg })
         }
-        return ctx.badRequest({ error: result.error })
+        return ctx.badRequest({ error: msg })
       }
 
       return ctx.ok({ data: result.data })

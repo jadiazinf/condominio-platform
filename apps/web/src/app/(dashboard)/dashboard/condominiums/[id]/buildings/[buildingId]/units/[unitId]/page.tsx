@@ -18,7 +18,7 @@ import { getPaymentsByUnitServer } from '@packages/http-client/hooks'
 import { formatAmount } from '@packages/utils/currency'
 import { formatFullDate } from '@packages/utils/dates'
 
-import { ViewAllQuotasButton, ViewAllPaymentsButton, AddOwnershipButton } from './components/UnitDetailClient'
+import { ViewAllQuotasButton, ViewAllPaymentsButton, AddOwnershipButton, OwnersTable } from './components/UnitDetailClient'
 
 interface PageProps {
   params: Promise<{ id: string; buildingId: string; unitId: string }>
@@ -223,52 +223,6 @@ export default async function UnitDetailPage({ params }: PageProps) {
     }
   }
 
-  // Owner table
-  type TOwnerRow = TUnitOwnership & { id: string }
-
-  const ownerColumns: ITableColumn<TOwnerRow>[] = [
-    { key: 'name', label: t(`${ud}.ownerTable.name`) },
-    { key: 'type', label: t(`${ud}.ownerTable.type`) },
-    { key: 'percentage', label: t(`${ud}.ownerTable.percentage`), align: 'end' },
-    { key: 'startDate', label: t(`${ud}.ownerTable.startDate`) },
-    { key: 'primaryResidence', label: t(`${ud}.ownerTable.primaryResidence`) },
-    { key: 'status', label: t(`${ud}.ownerTable.status`) },
-  ]
-
-  const renderOwnerCell = (ownership: TUnitOwnership, columnKey: string) => {
-    switch (columnKey) {
-      case 'name':
-        return ownership.fullName
-          || (ownership.user?.firstName ? `${ownership.user.firstName} ${ownership.user.lastName || ''}`.trim() : null)
-          || ownership.email
-          || '-'
-      case 'type':
-        return (
-          <Chip variant="flat" size="sm">
-            {ownershipTypeLabels[ownership.ownershipType] || ownership.ownershipType}
-          </Chip>
-        )
-      case 'percentage':
-        return ownership.ownershipPercentage ? `${ownership.ownershipPercentage}%` : '-'
-      case 'startDate':
-        return formatFullDate(ownership.startDate)
-      case 'primaryResidence':
-        return (
-          <Chip color={ownership.isPrimaryResidence ? 'success' : 'default'} variant="flat" size="sm">
-            {ownership.isPrimaryResidence ? t(`${ud}.yes`) : t(`${ud}.no`)}
-          </Chip>
-        )
-      case 'status':
-        return (
-          <Chip color={ownership.isActive ? 'success' : 'default'} variant="flat" size="sm">
-            {ownership.isActive ? t('common.status.active') : t('common.status.inactive')}
-          </Chip>
-        )
-      default:
-        return null
-    }
-  }
-
   // Shared filter translations for modals
   const filterTranslations = {
     dateFrom: t(`${ud}.filters.dateFrom`),
@@ -441,37 +395,77 @@ export default async function UnitDetailPage({ params }: PageProps) {
                 cancel: t('common.cancel'),
                 save: t('common.save'),
                 saving: t('common.saving'),
+                tabs: {
+                  search: t(`${ud}.ownerTabs.search`),
+                  register: t(`${ud}.ownerTabs.register`),
+                },
+                search: {
+                  placeholder: t(`${ud}.ownerSearch.placeholder`),
+                  button: t(`${ud}.ownerSearch.button`),
+                  searching: t(`${ud}.ownerSearch.searching`),
+                  notFound: t(`${ud}.ownerSearch.notFound`),
+                  notFoundHint: t(`${ud}.ownerSearch.notFoundHint`),
+                  userFound: t(`${ud}.ownerSearch.userFound`),
+                },
                 form: {
                   fullName: t(`${ud}.ownerForm.fullName`),
                   email: t(`${ud}.ownerForm.email`),
                   phone: t(`${ud}.ownerForm.phone`),
+                  phoneCode: t(`${ud}.ownerForm.phoneCode`),
                   ownershipType: t(`${ud}.ownerForm.ownershipType`),
-                  ownershipPercentage: t(`${ud}.ownerForm.ownershipPercentage`),
-                  startDate: t(`${ud}.ownerForm.startDate`),
-                  isPrimaryResidence: t(`${ud}.ownerForm.isPrimaryResidence`),
+                  idDocumentType: t(`${ud}.ownerForm.idDocumentType`),
+                  idDocumentNumber: t(`${ud}.ownerForm.idDocumentNumber`),
                 },
                 ownershipTypes: ownershipTypeLabels,
+                documentTypes: {
+                  CI: 'CI',
+                  RIF: 'RIF',
+                  Pasaporte: 'Pasaporte',
+                },
                 success: { created: t(`${ud}.ownerSuccess.created`) },
                 error: { create: t(`${ud}.ownerError.create`) },
+                validation: {
+                  'validation.required': t(`${ud}.ownerValidation.required`),
+                  'validation.email': t(`${ud}.ownerValidation.email`),
+                },
               }}
             />
           </div>
-          {ownerships.length === 0 ? (
-            <Typography variant="body2" color="muted" className="text-xs">{t(`${ud}.noOwners`)}</Typography>
-          ) : (
-            <Table<TUnitOwnership & { id: string }>
-              aria-label={t(`${ud}.owners`)}
-              columns={ownerColumns}
-              rows={ownerships}
-              renderCell={renderOwnerCell}
-              classNames={{
-                wrapper: 'shadow-none border-none p-0',
-                tr: 'hover:bg-default-50',
-                th: 'text-xs',
-                td: 'text-sm py-1.5',
-              }}
-            />
-          )}
+          <OwnersTable
+            ownerships={ownerships}
+            translations={{
+              columns: {
+                name: t(`${ud}.ownerTable.name`),
+                type: t(`${ud}.ownerTable.type`),
+                startDate: t(`${ud}.ownerTable.startDate`),
+                status: t(`${ud}.ownerTable.status`),
+                verified: t(`${ud}.ownerTable.verified`),
+              },
+              ownershipTypes: ownershipTypeLabels,
+              yes: t(`${ud}.yes`),
+              no: t(`${ud}.no`),
+              active: t('common.status.active'),
+              inactive: t('common.status.inactive'),
+              noOwners: t(`${ud}.noOwners`),
+              ariaLabel: t(`${ud}.owners`),
+              resendInvitation: t(`${ud}.ownerResend.tooltip`),
+              resendSuccess: t(`${ud}.ownerResend.success`),
+              resendError: t(`${ud}.ownerResend.error`),
+              detail: {
+                title: t(`${ud}.ownerDetail.title`),
+                fullName: t(`${ud}.ownerDetail.fullName`),
+                email: t(`${ud}.ownerDetail.email`),
+                phone: t(`${ud}.ownerDetail.phone`),
+                document: t(`${ud}.ownerDetail.document`),
+                ownershipType: t(`${ud}.ownerDetail.ownershipType`),
+                startDate: t(`${ud}.ownerDetail.startDate`),
+                status: t(`${ud}.ownerDetail.status`),
+                primaryResidence: t(`${ud}.ownerDetail.primaryResidence`),
+                close: t('common.close'),
+                noData: t(`${ud}.ownerDetail.noData`),
+              },
+            }}
+          />
         </CardBody>
       </Card>
     </div>

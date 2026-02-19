@@ -7,6 +7,7 @@ export const EUserInvitationStatus = ['pending', 'accepted', 'expired', 'cancell
 export const userInvitationSchema = baseModelSchema.extend({
   userId: z.uuid(),
   condominiumId: z.uuid().nullable(),
+  unitId: z.uuid().nullable(),
   roleId: z.uuid(),
   token: z.string().max(128),
   tokenHash: z.string().max(64),

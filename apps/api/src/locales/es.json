@@ -118,6 +118,18 @@
         "permissionNotFound": "El permiso especificado no fue encontrado.",
         "pendingInvitationExists": "Ya existe una invitación pendiente para este usuario y condominio.",
         "userActiveUseAssignRole": "El usuario ya existe y está activo. Use la función 'Asignar Rol' en su lugar."
+      },
+      "unitOwnerships": {
+        "unitNotFound": "La unidad no fue encontrada.",
+        "roleNotFound": "El rol no fue encontrado en el sistema.",
+        "ownershipNotFound": "La propiedad no fue encontrada.",
+        "duplicateOwnership": "Este usuario ya está registrado como propietario/residente de esta unidad.",
+        "userNotFound": "El usuario no fue encontrado.",
+        "userIdRequired": "Se requiere el ID del usuario.",
+        "fullNameRequired": "Se requiere el nombre completo.",
+        "documentRequired": "Se requiere el tipo y número de documento de identidad.",
+        "emailAlreadyRegistered": "Ya existe un usuario activo con este correo electrónico.",
+        "documentAlreadyRegistered": "Ya existe un usuario activo con este documento de identidad."
       }
     },
     "locales": {

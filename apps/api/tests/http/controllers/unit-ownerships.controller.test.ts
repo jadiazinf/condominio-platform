@@ -39,6 +39,8 @@ function createUnitOwnership(
     email: null,
     phone: null,
     phoneCountryCode: null,
+    idDocumentType: null,
+    idDocumentNumber: null,
     isRegistered: userId !== null,
     ownershipType: 'owner',
     ownershipPercentage: '100.000000',

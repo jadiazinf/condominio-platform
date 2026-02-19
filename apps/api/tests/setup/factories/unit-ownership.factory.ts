@@ -16,6 +16,8 @@ export class UnitOwnershipFactory {
       email: faker.internet.email(),
       phone: faker.phone.number(),
       phoneCountryCode: '+58',
+      idDocumentType: null,
+      idDocumentNumber: null,
       isRegistered: true,
       ownershipType: 'owner',
       ownershipPercentage: '100.00',

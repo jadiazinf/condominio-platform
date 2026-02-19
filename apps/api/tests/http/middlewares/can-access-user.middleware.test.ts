@@ -74,6 +74,8 @@ function createUnitOwnershipData(unitId: string, userId: string): TUnitOwnership
     email: null,
     phone: null,
     phoneCountryCode: null,
+    idDocumentType: null,
+    idDocumentNumber: null,
     isRegistered: true,
     ownershipType: 'owner',
     ownershipPercentage: null,

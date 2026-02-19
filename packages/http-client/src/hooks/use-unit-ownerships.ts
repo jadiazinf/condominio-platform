@@ -1,8 +1,8 @@
 import { getHttpClient } from '../client/http-client'
 import type { TApiDataResponse } from '../types/api-responses'
 import type { ApiResponse } from '../types/http'
-import type { TUnitOwnership, TUnitOwnershipCreate } from '@packages/domain'
-import { useApiMutation } from './use-api-query'
+import type { TUnitOwnership, TUnitOwnershipCreate, TOwnershipType } from '@packages/domain'
+import { useApiMutation, useApiQuery } from './use-api-query'
 
 const unitOwnershipKeys = {
   all: ['unit-ownerships'] as const,
@@ -75,6 +75,73 @@ export function useCreateUnitOwnership(options: UseCreateUnitOwnershipOptions = 
     invalidateKeys: [unitOwnershipKeys.all],
     onSuccess: (response: ApiResponse<TApiDataResponse<TUnitOwnership>>) => {
       onSuccess?.(response.data)
+    },
+    onError,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Search user for ownership
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface TSearchUserResult {
+  id: string
+  displayName: string | null
+  firstName: string | null
+  lastName: string | null
+  email: string
+  phoneCountryCode: string | null
+  phoneNumber: string | null
+  idDocumentType: 'CI' | 'RIF' | 'Pasaporte' | null
+  idDocumentNumber: string | null
+  photoUrl: string | null
+  isActive: boolean
+}
+
+interface TSearchUserResponse {
+  data: TSearchUserResult | null
+  found: boolean
+}
+
+export function useSearchUserForOwnership(query: string, enabled: boolean) {
+  return useApiQuery<TSearchUserResponse>({
+    path: `/condominium/unit-ownerships/search-user?q=${encodeURIComponent(query)}`,
+    queryKey: [...unitOwnershipKeys.all, 'search-user', query],
+    enabled: enabled && query.length > 0,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Add unit owner (search or register mode)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface TAddUnitOwnerInput {
+  unitId: string
+  mode: 'search' | 'register'
+  ownershipType: TOwnershipType
+  userId?: string
+  fullName?: string
+  email?: string
+  phone?: string
+  phoneCountryCode?: string
+  idDocumentType?: 'CI' | 'RIF' | 'Pasaporte' | null
+  idDocumentNumber?: string
+}
+
+interface UseAddUnitOwnerOptions {
+  onSuccess?: () => void
+  onError?: (error: Error) => void
+}
+
+export function useAddUnitOwner(options: UseAddUnitOwnerOptions = {}) {
+  const { onSuccess, onError } = options
+
+  return useApiMutation<TApiDataResponse<unknown>, TAddUnitOwnerInput>({
+    path: '/condominium/unit-ownerships/add-owner',
+    method: 'POST',
+    invalidateKeys: [unitOwnershipKeys.all],
+    onSuccess: () => {
+      onSuccess?.()
     },
     onError,
   })

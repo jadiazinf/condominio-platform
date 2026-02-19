@@ -118,6 +118,18 @@
         "permissionNotFound": "The specified permission was not found.",
         "pendingInvitationExists": "A pending invitation already exists for this user and condominium.",
         "userActiveUseAssignRole": "User already exists and is active. Use the 'Assign Role' feature instead."
+      },
+      "unitOwnerships": {
+        "unitNotFound": "Unit not found.",
+        "roleNotFound": "Role not found in the system.",
+        "ownershipNotFound": "Ownership not found.",
+        "duplicateOwnership": "This user is already registered as an owner/resident of this unit.",
+        "userNotFound": "User not found.",
+        "userIdRequired": "User ID is required.",
+        "fullNameRequired": "Full name is required.",
+        "documentRequired": "Document type and number are required.",
+        "emailAlreadyRegistered": "An active user with this email already exists.",
+        "documentAlreadyRegistered": "An active user with this document already exists."
       }
     },
     "locales": {
