@@ -9,12 +9,14 @@ export type TResourceType = 'condominium' | 'unit' | 'user'
 export interface IValidateLimitsInput {
   managementCompanyId: string
   resourceType: TResourceType
+  requestedCount?: number
 }
 
 export interface IValidateLimitsResult {
   canCreate: boolean
   currentCount: number
   maxAllowed: number | null // null = unlimited
+  requestedCount: number
   limitReached: boolean
 }
 
@@ -36,7 +38,7 @@ export class ValidateSubscriptionLimitsService {
   ) {}
 
   async execute(input: IValidateLimitsInput): Promise<TServiceResult<IValidateLimitsResult>> {
-    const { managementCompanyId, resourceType } = input
+    const { managementCompanyId, resourceType, requestedCount = 1 } = input
 
     // 1. Get active subscription
     const subscription = await this.subscriptionsRepository.getActiveByCompanyId(managementCompanyId)
@@ -71,13 +73,14 @@ export class ValidateSubscriptionLimitsService {
 
     // 4. Determine if can create
     // null maxAllowed means unlimited
-    const limitReached = maxAllowed !== null && currentCount >= maxAllowed
+    const limitReached = maxAllowed !== null && currentCount + requestedCount > maxAllowed
     const canCreate = !limitReached
 
     return success({
       canCreate,
       currentCount,
       maxAllowed,
+      requestedCount,
       limitReached,
     })
   }

@@ -130,6 +130,14 @@
         "documentRequired": "Document type and number are required.",
         "emailAlreadyRegistered": "An active user with this email already exists.",
         "documentAlreadyRegistered": "An active user with this document already exists."
+      },
+      "subscriptionRates": {
+        "notFound": "Subscription rate not found.",
+        "noActiveRate": "No active subscription rate found.",
+        "versionNotFound": "Rate version not found.",
+        "versionAlreadyExists": "A rate with this version already exists.",
+        "activated": "Rate activated successfully.",
+        "deactivated": "Rate deactivated successfully."
       }
     },
     "locales": {

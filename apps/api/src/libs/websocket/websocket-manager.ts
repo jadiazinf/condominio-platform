@@ -7,14 +7,25 @@ export interface IWebSocketClient {
   ticketId: string
 }
 
+export interface IUserWebSocketClient {
+  ws: ServerWebSocket<unknown>
+  user: TUser
+}
+
 /**
- * WebSocket Manager for handling real-time ticket message updates
- * Manages rooms (one per ticket) and broadcasts messages to connected clients
+ * WebSocket Manager for handling real-time updates.
+ * Manages ticket rooms and user notification channels.
  */
 export class WebSocketManager {
   private static instance: WebSocketManager
+
+  // Ticket rooms
   private clients: Map<ServerWebSocket<unknown>, IWebSocketClient> = new Map()
   private rooms: Map<string, Set<ServerWebSocket<unknown>>> = new Map()
+
+  // User notification channels
+  private userClients: Map<ServerWebSocket<unknown>, IUserWebSocketClient> = new Map()
+  private userRooms: Map<string, Set<ServerWebSocket<unknown>>> = new Map()
 
   private constructor() {}
 
@@ -25,14 +36,14 @@ export class WebSocketManager {
     return WebSocketManager.instance
   }
 
+  // ─── Ticket rooms ───
+
   /**
    * Add a client to a ticket room
    */
   public addClient(ws: ServerWebSocket<unknown>, user: TUser, ticketId: string): void {
-    // Store client info
     this.clients.set(ws, { ws, user, ticketId })
 
-    // Add to room
     if (!this.rooms.has(ticketId)) {
       this.rooms.set(ticketId, new Set())
     }
@@ -40,25 +51,25 @@ export class WebSocketManager {
   }
 
   /**
-   * Remove a client and clean up empty rooms
+   * Remove a ticket client and clean up empty rooms
    */
   public removeClient(ws: ServerWebSocket<unknown>): void {
+    // Check ticket clients
     const client = this.clients.get(ws)
-    if (!client) return
-
-    const { ticketId } = client
-
-    // Remove from room
-    const room = this.rooms.get(ticketId)
-    if (room) {
-      room.delete(ws)
-      if (room.size === 0) {
-        this.rooms.delete(ticketId)
+    if (client) {
+      const room = this.rooms.get(client.ticketId)
+      if (room) {
+        room.delete(ws)
+        if (room.size === 0) {
+          this.rooms.delete(client.ticketId)
+        }
       }
+      this.clients.delete(ws)
+      return
     }
 
-    // Remove client
-    this.clients.delete(ws)
+    // Check user notification clients
+    this.removeUserClient(ws)
   }
 
   /**
@@ -76,30 +87,78 @@ export class WebSocketManager {
       try {
         ws.send(message)
       } catch {
-        // Remove broken connection
         this.removeClient(ws)
       }
     }
   }
 
+  // ─── User notification channels ───
+
   /**
-   * Get the number of clients in a ticket room
+   * Add a client to a user's notification channel
    */
+  public addUserClient(ws: ServerWebSocket<unknown>, user: TUser): void {
+    this.userClients.set(ws, { ws, user })
+
+    if (!this.userRooms.has(user.id)) {
+      this.userRooms.set(user.id, new Set())
+    }
+    this.userRooms.get(user.id)!.add(ws)
+  }
+
+  /**
+   * Remove a user notification client and clean up empty rooms
+   */
+  public removeUserClient(ws: ServerWebSocket<unknown>): void {
+    const client = this.userClients.get(ws)
+    if (!client) return
+
+    const room = this.userRooms.get(client.user.id)
+    if (room) {
+      room.delete(ws)
+      if (room.size === 0) {
+        this.userRooms.delete(client.user.id)
+      }
+    }
+
+    this.userClients.delete(ws)
+  }
+
+  /**
+   * Broadcast a message to all of a user's notification connections
+   */
+  public broadcastToUser(userId: string, event: string, data: unknown): void {
+    const room = this.userRooms.get(userId)
+    if (!room || room.size === 0) {
+      return
+    }
+
+    const message = JSON.stringify({ event, data })
+
+    for (const ws of room) {
+      try {
+        ws.send(message)
+      } catch {
+        this.removeUserClient(ws)
+      }
+    }
+  }
+
+  // ─── Stats ───
+
   public getRoomSize(ticketId: string): number {
     return this.rooms.get(ticketId)?.size ?? 0
   }
 
-  /**
-   * Get total number of connected clients
-   */
   public getTotalClients(): number {
-    return this.clients.size
+    return this.clients.size + this.userClients.size
   }
 
-  /**
-   * Get all active room IDs
-   */
   public getActiveRooms(): string[] {
     return Array.from(this.rooms.keys())
+  }
+
+  public getActiveUserRooms(): string[] {
+    return Array.from(this.userRooms.keys())
   }
 }

@@ -13,6 +13,8 @@ import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { isUserAuthenticated } from '../../middlewares/utils/auth/is-user-authenticated'
 import { requireRole } from '../../middlewares/auth'
+import { useTranslation } from '@intlify/hono'
+import { LocaleDictionary } from '@locales/dictionary'
 
 const VersionParamSchema = z.object({
   version: z.string().min(1, 'Version is required'),
@@ -31,8 +33,6 @@ const CreateRateSchema = z.object({
   isActive: z.boolean().optional().default(false),
   effectiveFrom: z.coerce.date(),
   effectiveUntil: z.coerce.date().optional(),
-  createdBy: z.string().uuid().optional(),
-  updatedBy: z.string().uuid().optional(),
 })
 
 type TCreateRateBody = z.infer<typeof CreateRateSchema>
@@ -47,7 +47,6 @@ const UpdateRateSchema = z.object({
   isActive: z.boolean().optional(),
   effectiveFrom: z.coerce.date().optional(),
   effectiveUntil: z.coerce.date().optional(),
-  updatedBy: z.string().uuid().optional(),
 })
 
 type TUpdateRateBody = z.infer<typeof UpdateRateSchema>
@@ -80,7 +79,6 @@ export class SubscriptionRatesController extends BaseController<
 > {
   constructor(repository: SubscriptionRatesRepository) {
     super(repository)
-
   }
 
   get routes(): TRouteDefinition[] {
@@ -133,7 +131,6 @@ export class SubscriptionRatesController extends BaseController<
         middlewares: [
           isUserAuthenticated,
           requireRole(ESystemRole.SUPERADMIN),
-
           bodyValidator(CreateRateSchema),
         ],
       },
@@ -145,7 +142,6 @@ export class SubscriptionRatesController extends BaseController<
         middlewares: [
           isUserAuthenticated,
           requireRole(ESystemRole.SUPERADMIN),
-
           paramsValidator(IdParamSchema),
           bodyValidator(UpdateRateSchema),
         ],
@@ -158,7 +154,6 @@ export class SubscriptionRatesController extends BaseController<
         middlewares: [
           isUserAuthenticated,
           requireRole(ESystemRole.SUPERADMIN),
-
           paramsValidator(IdParamSchema),
         ],
       },
@@ -170,7 +165,6 @@ export class SubscriptionRatesController extends BaseController<
         middlewares: [
           isUserAuthenticated,
           requireRole(ESystemRole.SUPERADMIN),
-
           paramsValidator(IdParamSchema),
         ],
       },
@@ -187,12 +181,13 @@ export class SubscriptionRatesController extends BaseController<
   private getActiveRate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const repo = this.repository as SubscriptionRatesRepository
+    const t = useTranslation(c)
 
     try {
       const rate = await repo.getActiveRate()
 
       if (!rate) {
-        return ctx.notFound({ error: 'No active subscription rate found' })
+        return ctx.notFound({ error: t(LocaleDictionary.http.controllers.subscriptionRates.noActiveRate) })
       }
 
       return ctx.ok({ data: rate })
@@ -207,12 +202,13 @@ export class SubscriptionRatesController extends BaseController<
   private getByVersion = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TVersionParam>(c)
     const repo = this.repository as SubscriptionRatesRepository
+    const t = useTranslation(c)
 
     try {
       const rate = await repo.getByVersion(ctx.params.version)
 
       if (!rate) {
-        return ctx.notFound({ error: 'Rate version not found' })
+        return ctx.notFound({ error: t(LocaleDictionary.http.controllers.subscriptionRates.versionNotFound) })
       }
 
       return ctx.ok({ data: rate })
@@ -247,12 +243,13 @@ export class SubscriptionRatesController extends BaseController<
   private getRateById = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
     const repo = this.repository as SubscriptionRatesRepository
+    const t = useTranslation(c)
 
     try {
       const rate = await repo.getById(ctx.params.id)
 
       if (!rate) {
-        return ctx.notFound({ error: 'Rate not found' })
+        return ctx.notFound({ error: t(LocaleDictionary.http.controllers.subscriptionRates.notFound) })
       }
 
       return ctx.ok({ data: rate })
@@ -267,13 +264,16 @@ export class SubscriptionRatesController extends BaseController<
   private createRate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TCreateRateBody>(c)
     const repo = this.repository as SubscriptionRatesRepository
+    const t = useTranslation(c)
 
     try {
       // Check if version already exists
       const existing = await repo.getByVersion(ctx.body.version)
       if (existing) {
-        return ctx.badRequest({ error: `Rate version '${ctx.body.version}' already exists` })
+        return ctx.badRequest({ error: t(LocaleDictionary.http.controllers.subscriptionRates.versionAlreadyExists) })
       }
+
+      const user = ctx.getAuthenticatedUser()
 
       const rate = await repo.create({
         name: ctx.body.name,
@@ -288,8 +288,8 @@ export class SubscriptionRatesController extends BaseController<
         isActive: ctx.body.isActive ?? false,
         effectiveFrom: ctx.body.effectiveFrom,
         effectiveUntil: ctx.body.effectiveUntil ?? null,
-        createdBy: ctx.body.createdBy ?? null,
-        updatedBy: ctx.body.updatedBy ?? null,
+        createdBy: user.id,
+        updatedBy: null,
       })
 
       return ctx.created({ data: rate })
@@ -304,13 +304,16 @@ export class SubscriptionRatesController extends BaseController<
   private updateRate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TUpdateRateBody, unknown, { id: string }>(c)
     const repo = this.repository as SubscriptionRatesRepository
+    const t = useTranslation(c)
 
     try {
       // Check rate exists
       const existing = await repo.getById(ctx.params.id)
       if (!existing) {
-        return ctx.notFound({ error: 'Rate not found' })
+        return ctx.notFound({ error: t(LocaleDictionary.http.controllers.subscriptionRates.notFound) })
       }
+
+      const user = ctx.getAuthenticatedUser()
 
       const rate = await repo.update(ctx.params.id, {
         name: ctx.body.name,
@@ -320,7 +323,7 @@ export class SubscriptionRatesController extends BaseController<
         isActive: ctx.body.isActive,
         effectiveFrom: ctx.body.effectiveFrom,
         effectiveUntil: ctx.body.effectiveUntil,
-        updatedBy: ctx.body.updatedBy,
+        updatedBy: user.id,
       })
 
       return ctx.ok({ data: rate })
@@ -335,18 +338,17 @@ export class SubscriptionRatesController extends BaseController<
   private activateRate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
     const repo = this.repository as SubscriptionRatesRepository
+    const t = useTranslation(c)
 
     try {
-      // Get userId from context for audit
-      const userId = c.get('userId') as string | undefined
-
-      const rate = await repo.activate(ctx.params.id, userId ?? '')
+      const user = ctx.getAuthenticatedUser()
+      const rate = await repo.activate(ctx.params.id, user.id)
 
       if (!rate) {
-        return ctx.notFound({ error: 'Rate not found' })
+        return ctx.notFound({ error: t(LocaleDictionary.http.controllers.subscriptionRates.notFound) })
       }
 
-      return ctx.ok({ data: rate, message: 'Rate activated successfully' })
+      return ctx.ok({ data: rate, message: t(LocaleDictionary.http.controllers.subscriptionRates.activated) })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -358,18 +360,17 @@ export class SubscriptionRatesController extends BaseController<
   private deactivateRate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
     const repo = this.repository as SubscriptionRatesRepository
+    const t = useTranslation(c)
 
     try {
-      // Get userId from context for audit
-      const userId = c.get('userId') as string | undefined
-
-      const rate = await repo.deactivate(ctx.params.id, userId ?? '')
+      const user = ctx.getAuthenticatedUser()
+      const rate = await repo.deactivate(ctx.params.id, user.id)
 
       if (!rate) {
-        return ctx.notFound({ error: 'Rate not found' })
+        return ctx.notFound({ error: t(LocaleDictionary.http.controllers.subscriptionRates.notFound) })
       }
 
-      return ctx.ok({ data: rate, message: 'Rate deactivated successfully' })
+      return ctx.ok({ data: rate, message: t(LocaleDictionary.http.controllers.subscriptionRates.deactivated) })
     } catch (error) {
       return this.handleError(ctx, error)
     }

@@ -336,6 +336,7 @@ export {
   type IDeleteTicketMessageOptions,
 } from './use-support-ticket-messages'
 export { useTicketWebSocket } from './use-ticket-websocket'
+export { useNotificationWebSocket } from './use-notification-websocket'
 export {
   useSuperadminUsersPaginated,
   getSuperadminUsersPaginated,
@@ -705,6 +706,52 @@ export {
   type TSearchUserResult,
   type TAddUnitOwnerInput,
 } from './use-unit-ownerships'
+
+// Access Codes & Requests
+export {
+  useActiveAccessCode,
+  useGenerateAccessCode,
+  getActiveAccessCode,
+  accessCodesKeys,
+  type UseActiveAccessCodeOptions,
+  type UseGenerateAccessCodeOptions,
+  type TGenerateAccessCodeVariables,
+} from './use-access-codes'
+export {
+  useCondominiumAccessRequests,
+  usePendingRequestsCount,
+  useReviewAccessRequest,
+  useMyAccessRequests,
+  useValidateAccessCode,
+  useSubmitAccessRequest,
+  getCondominiumAccessRequests,
+  getMyAccessRequests,
+  getPendingRequestsCount,
+  accessRequestsKeys,
+  type UseCondominiumAccessRequestsOptions,
+  type UsePendingRequestsCountOptions,
+  type UseReviewAccessRequestOptions,
+  type UseMyAccessRequestsOptions,
+  type UseValidateAccessCodeOptions,
+  type UseSubmitAccessRequestOptions,
+  type TReviewAccessRequestVariables,
+  type TValidateAccessCodeResponse,
+  type TValidateAccessCodeVariables,
+  type TSubmitAccessRequestVariables,
+} from './use-access-requests'
+
+// Notifications (paginated page)
+export {
+  useMyNotificationsPaginated,
+  useMarkNotificationAsRead,
+  useMarkAllNotificationsAsRead,
+  useDeleteNotification,
+  notificationsKeys,
+  type UseMyNotificationsPaginatedOptions,
+  type UseMarkNotificationAsReadOptions,
+  type UseMarkAllNotificationsAsReadOptions,
+  type UseDeleteNotificationOptions,
+} from './use-notifications'
 
 // Re-export commonly used TanStack Query hooks
 export {

@@ -1,6 +1,15 @@
 import { HttpError } from '@packages/http-client'
 
 /**
+ * Replaces {paramName} placeholders in a template with values from params.
+ */
+function interpolate(template: string, params: Record<string, unknown>): string {
+  return template.replace(/\{(\w+)\}/g, (match, key) =>
+    params[key] !== undefined ? String(params[key]) : match
+  )
+}
+
+/**
  * Translates an API HttpError into a localized message.
  *
  * Resolution order:
@@ -8,6 +17,8 @@ import { HttpError } from '@packages/http-client'
  *  2. Resource key:   apiErrors.{CODE}.{resource}
  *  3. Generic key:    apiErrors.{CODE}
  *  4. Fallback:       apiErrors.unknown
+ *
+ * Supports {param} interpolation from error details.
  */
 export function translateApiError(
   err: unknown,
@@ -19,32 +30,33 @@ export function translateApiError(
 
   const code = err.code
   // The details field contains the full response body:
-  // { success: false, error: { code, message, details: { resource, field } } }
+  // { success: false, error: { code, message, details: { resource, field, ... } } }
   const nested = (err.details as Record<string, unknown>)?.error as
-    | { details?: { resource?: string; field?: string } }
+    | { details?: Record<string, unknown> }
     | undefined
-  const resource = nested?.details?.resource
-  const field = nested?.details?.field
+  const details = nested?.details
+  const resource = (details?.resource ?? details?.resourceType) as string | undefined
+  const field = details?.field as string | undefined
 
   if (code) {
     // 1. Try specific: apiErrors.ALREADY_EXISTS.Condominium.email
     if (resource && field) {
       const specificKey = `apiErrors.${code}.${resource}.${field}`
       const specific = t(specificKey)
-      if (specific !== specificKey) return specific
+      if (specific !== specificKey) return details ? interpolate(specific, details) : specific
     }
 
     // 2. Try resource-only: apiErrors.NOT_FOUND.Condominium
     if (resource) {
       const resourceKey = `apiErrors.${code}.${resource}`
       const resourceTranslation = t(resourceKey)
-      if (resourceTranslation !== resourceKey) return resourceTranslation
+      if (resourceTranslation !== resourceKey) return details ? interpolate(resourceTranslation, details) : resourceTranslation
     }
 
     // 3. Try generic code: apiErrors.ALREADY_EXISTS
     const genericKey = `apiErrors.${code}`
     const generic = t(genericKey)
-    if (generic !== genericKey) return generic
+    if (generic !== genericKey) return details ? interpolate(generic, details) : generic
   }
 
   // 4. Use the API message if available (already localized by the backend)

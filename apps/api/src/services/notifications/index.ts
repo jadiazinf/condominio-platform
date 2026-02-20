@@ -1,6 +1,7 @@
 export { SendNotificationService } from './send-notification.service'
 export { SendTemplatedNotificationService } from './send-templated-notification.service'
 export { GetUserNotificationsService } from './get-user-notifications.service'
+export { GetUserNotificationsPaginatedService } from './get-user-notifications-paginated.service'
 export { GetUnreadCountService } from './get-unread-count.service'
 export { MarkAsReadService } from './mark-as-read.service'
 export { MarkAllAsReadService } from './mark-all-as-read.service'

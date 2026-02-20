@@ -37,3 +37,7 @@ export { AdminInvitationFactory } from './admin-invitation.factory'
 // Support tickets
 export { SupportTicketFactory } from './support-ticket.factory'
 export { SupportTicketMessageFactory } from './support-ticket-message.factory'
+
+// Access Codes & Requests
+export { CondominiumAccessCodeFactory } from './condominium-access-code.factory'
+export { AccessRequestFactory } from './access-request.factory'

@@ -261,6 +261,11 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     END $$;
 
     DO $$ BEGIN
+      CREATE TYPE access_request_status AS ENUM ('pending', 'approved', 'rejected');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
       CREATE TYPE notification_category AS ENUM ('payment', 'quota', 'announcement', 'reminder', 'alert', 'system');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
@@ -1177,6 +1182,32 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       UNIQUE(user_id, category, channel)
     );
 
+    CREATE TABLE IF NOT EXISTS condominium_access_codes (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      code VARCHAR(8) NOT NULL UNIQUE,
+      expires_at TIMESTAMP NOT NULL,
+      is_active BOOLEAN DEFAULT true,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS access_requests (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      access_code_id UUID NOT NULL REFERENCES condominium_access_codes(id) ON DELETE CASCADE,
+      ownership_type ownership_type NOT NULL,
+      status access_request_status DEFAULT 'pending' NOT NULL,
+      admin_notes TEXT,
+      reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      reviewed_at TIMESTAMP,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
     CREATE TABLE IF NOT EXISTS user_fcm_tokens (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -1238,6 +1269,8 @@ export async function cleanDatabase(testDb: TTestDrizzleClient | import('@databa
   // Truncate all tables in one command for better performance
   await testDb.execute(sql`
     TRUNCATE TABLE
+      access_requests,
+      condominium_access_codes,
       user_fcm_tokens,
       user_notification_preferences,
       notification_deliveries,

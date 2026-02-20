@@ -8,7 +8,7 @@ import { Bell } from 'lucide-react'
 import { NotificationItem } from './NotificationItem'
 import { useTranslation } from '@/contexts'
 
-interface NotificationListProps {
+interface INotificationListProps {
   notifications: TNotification[]
   isLoading?: boolean
   onMarkAsRead?: (id: string) => void
@@ -20,12 +20,12 @@ export function NotificationList({
   isLoading,
   onMarkAsRead,
   onDelete,
-}: NotificationListProps) {
+}: INotificationListProps) {
   const { t } = useTranslation()
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
+      <div className="flex items-center justify-center py-12">
         <Spinner />
       </div>
     )
@@ -33,15 +33,15 @@ export function NotificationList({
 
   if (notifications.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 text-default-400">
-        <Bell size={32} className="mb-2" />
-        <p className="text-sm">{t('notifications.empty')}</p>
+      <div className="flex h-full w-full flex-col items-center justify-center gap-2 py-12">
+        <Bell size={36} className="text-default-300" />
+        <p className="text-small text-default-400">{t('notifications.empty')}</p>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col">
       {notifications.map(notification => (
         <NotificationItem
           key={notification.id}

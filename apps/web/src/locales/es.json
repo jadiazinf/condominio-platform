@@ -43,7 +43,13 @@
       "viewer": "Visualizador"
     },
     "goHome": "Ir al Inicio",
-    "login": "Iniciar Sesión"
+    "login": "Iniciar Sesión",
+    "ownershipTypes": {
+      "owner": "Propietario",
+      "tenant": "Inquilino",
+      "family_member": "Familiar",
+      "authorized": "Autorizado"
+    }
   },
   "nav": {
     "home": "Inicio",
@@ -62,7 +68,8 @@
     "openMenu": "Abrir menu",
     "closeMenu": "Cerrar menu",
     "switchRole": "Cambiar rol",
-    "getStarted": "Comenzar"
+    "getStarted": "Comenzar",
+    "notifications": "Notificaciones"
   },
   "landing": {
     "nav": {
@@ -427,7 +434,69 @@
       "myQuotas": "Mis Cuotas",
       "myPayments": "Mis Pagos",
       "reportPayment": "Reportar Pago",
-      "reservations": "Reservaciones"
+      "reservations": "Reservaciones",
+      "joinCondominium": "Unirme a Condominio",
+      "myRequests": "Mis Solicitudes"
+    },
+    "joinCondominium": {
+      "title": "Unirme a un Condominio",
+      "subtitle": "Ingresa el código de acceso proporcionado por tu administrador",
+      "step1": {
+        "label": "Código de acceso",
+        "placeholder": "Ej: ABC123",
+        "validate": "Validar",
+        "validating": "Validando...",
+        "invalidCode": "Código inválido, expirado o inactivo"
+      },
+      "step2": {
+        "condominiumInfo": "Información del Condominio",
+        "selectUnit": "Selecciona tu unidad",
+        "ownershipType": "Tipo de ocupación",
+        "submit": "Enviar Solicitud",
+        "submitting": "Enviando...",
+        "back": "Volver"
+      },
+      "step3": {
+        "title": "¡Solicitud enviada!",
+        "message": "Tu solicitud ha sido enviada. Serás notificado cuando el administrador la revise.",
+        "viewRequests": "Ver mis solicitudes",
+        "submitAnother": "Enviar otra solicitud"
+      },
+      "errors": {
+        "submitFailed": "Error al enviar la solicitud",
+        "profileIncompleteTitle": "Completa tu perfil",
+        "profileIncompleteMessage": "Para enviar una solicitud de acceso, necesitamos verificar tu identidad. Por favor completa los siguientes datos en tu perfil:\n\n• Número de teléfono (con código de área)\n• Documento de identidad (tipo y número)\n\nEsto solo toma un momento y es necesario para que el administrador pueda verificar tu solicitud.",
+        "profileIncompleteGoToSettings": "Ir a Configuración",
+        "alreadyHasOwnership": "Ya tienes una asignación activa para esta unidad",
+        "alreadyHasPendingRequest": "Ya tienes una solicitud pendiente para esta unidad",
+        "accessCodeInactive": "El código de acceso está inactivo",
+        "accessCodeExpired": "El código de acceso ha expirado",
+        "unitNotInCondominium": "La unidad no pertenece a este condominio"
+      }
+    },
+    "myRequests": {
+      "title": "Mis Solicitudes",
+      "subtitle": "Estado de tus solicitudes de acceso a condominios",
+      "noRequests": "No tienes solicitudes de acceso",
+      "joinCondominium": "Unirme a un Condominio",
+      "table": {
+        "condominium": "Condominio",
+        "building": "Edificio",
+        "unit": "Unidad",
+        "ownershipType": "Tipo",
+        "date": "Fecha",
+        "status": "Estado"
+      },
+      "detail": {
+        "title": "Detalle de Solicitud",
+        "adminNotes": "Respuesta del administrador",
+        "noAdminNotes": "Sin respuesta",
+        "statusMessages": {
+          "pending": "Tu solicitud está siendo revisada por el administrador. Te notificaremos cuando haya una respuesta.",
+          "approved": "Tu solicitud fue aprobada. Ya tienes acceso al condominio.",
+          "rejected": "Tu solicitud fue rechazada por el administrador."
+        }
+      }
     },
     "dashboard": {
       "subtitle": "Aquí puedes ver el resumen de tu cuenta y cuotas pendientes",
@@ -456,7 +525,15 @@
       "paymentHistory": "Historial",
       "notifications": "Notificaciones",
       "unit": "Unidad",
-      "building": "Edificio"
+      "building": "Edificio",
+      "newUser": {
+        "subtitle": "Para comenzar, únete a un condominio usando un código de acceso proporcionado por tu administrador",
+        "joinTitle": "Unirme a un Condominio",
+        "joinDescription": "Ingresa el código de acceso que te proporcionó tu administrador",
+        "pendingRequests": "Mis solicitudes de acceso",
+        "noPendingRequests": "No tienes solicitudes de acceso aún",
+        "viewAllRequests": "Ver todas las solicitudes"
+      }
     },
     "myQuotas": {
       "title": "Mis Cuotas",
@@ -547,7 +624,10 @@
       "units": "Unidades",
       "noCondominiums": "No tienes condominios asignados",
       "noCondominiumsDescription": "Aún no tienes acceso a ningún condominio. Contacta a tu administrador para que te asigne a un condominio.",
-      "contactSupport": "Contactar soporte"
+      "contactSupport": "Contactar soporte",
+      "enterAccessCode": "¿Tienes un código de acceso?",
+      "enterCodeDescription": "Si tu administrador te compartió un código, ingrésalo aquí para solicitar acceso a tu condominio.",
+      "validateCode": "Ingresar"
     },
     "loading": {
       "fetchingCondominiums": "Cargando tus condominios..."
@@ -2511,6 +2591,10 @@
     "markAllAsRead": "Marcar todas como leídas",
     "viewAll": "Ver todas",
     "delete": "Eliminar",
+    "tabs": {
+      "all": "Todas",
+      "unread": "No leídas"
+    },
     "time": {
       "justNow": "Ahora mismo",
       "minutesAgo": "Hace {count} min",
@@ -2524,6 +2608,35 @@
       "reminder": "Recordatorio",
       "alert": "Alerta",
       "system": "Sistema"
+    },
+    "content": {
+      "newAccessRequest": {
+        "title": "Nueva solicitud de acceso",
+        "body": "{requesterName} ha enviado una solicitud de acceso a tu condominio."
+      },
+      "accessRequestApproved": {
+        "title": "Solicitud aprobada",
+        "body": "Tu solicitud de acceso ha sido aprobada. Ya tienes acceso al condominio."
+      },
+      "accessRequestRejected": {
+        "title": "Solicitud rechazada",
+        "body": "Tu solicitud de acceso ha sido rechazada.",
+        "bodyWithReason": "Tu solicitud de acceso ha sido rechazada. Motivo: {reason}"
+      }
+    },
+    "page": {
+      "title": "Mis Notificaciones",
+      "subtitle": "Revisa y gestiona todas tus notificaciones",
+      "filters": {
+        "category": "Categoría",
+        "readStatus": "Estado",
+        "all": "Todas",
+        "read": "Leídas",
+        "unread": "No leídas"
+      },
+      "markAllAsRead": "Marcar todas como leídas",
+      "noNotifications": "No tienes notificaciones",
+      "noNotificationsDescription": "Aquí aparecerán tus notificaciones cuando las recibas"
     }
   },
   "network": {
@@ -2874,6 +2987,84 @@
       "expenses": "Gastos",
       "amenities": "Amenidades"
     },
+    "accessCodes": {
+      "title": "Código de Acceso",
+      "noCode": "No hay un código de acceso activo. Genera uno para que los residentes puedan solicitar acceso.",
+      "generate": "Generar Código",
+      "regenerate": "Regenerar",
+      "generating": "Generando...",
+      "expiresLabel": "Expira:",
+      "copiedMessage": "¡Código copiado!",
+      "success": "Código generado exitosamente",
+      "error": "Error al generar el código",
+      "modal": {
+        "title": "Generar Código de Acceso",
+        "warning": "Al generar un nuevo código, el código actual será desactivado.",
+        "validity": "Vigencia del código",
+        "validity1Day": "1 día",
+        "validity7Days": "7 días",
+        "validity1Month": "1 mes",
+        "validity1Year": "1 año"
+      }
+    },
+    "accessRequests": {
+      "title": "Solicitudes de Acceso",
+      "subtitle": "Revisa y gestiona las solicitudes de acceso al condominio",
+      "noRequests": "No hay solicitudes de acceso",
+      "searchPlaceholder": "Buscar por nombre o documento...",
+      "tabs": {
+        "all": "Todas",
+        "pending": "Pendientes",
+        "approved": "Aprobadas",
+        "rejected": "Rechazadas"
+      },
+      "table": {
+        "user": "Usuario",
+        "unit": "Unidad",
+        "building": "Edificio",
+        "ownershipType": "Tipo",
+        "date": "Fecha",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "status": {
+        "pending": "Pendiente",
+        "approved": "Aprobada",
+        "rejected": "Rechazada"
+      },
+      "actions": {
+        "approve": "Aprobar",
+        "reject": "Rechazar",
+        "approveConfirm": "¿Estás seguro de aprobar esta solicitud? Se creará la asignación de unidad y rol para el usuario.",
+        "rejectTitle": "Rechazar Solicitud",
+        "rejectNotesPlaceholder": "Motivo del rechazo (opcional)"
+      },
+      "success": {
+        "approved": "Solicitud aprobada exitosamente",
+        "rejected": "Solicitud rechazada"
+      },
+      "error": {
+        "review": "Error al procesar la solicitud",
+        "notBelongsToCondominium": "La solicitud no pertenece a este condominio",
+        "alreadyReviewed": "La solicitud ya fue procesada anteriormente",
+        "notFound": "Solicitud no encontrada"
+      },
+      "detail": {
+        "title": "Detalle de Solicitud",
+        "name": "Nombre",
+        "email": "Correo electrónico",
+        "phone": "Teléfono",
+        "identityDocument": "Documento de identidad",
+        "building": "Edificio",
+        "unit": "Unidad",
+        "ownershipType": "Tipo de ocupación",
+        "date": "Fecha de solicitud",
+        "status": "Estado",
+        "adminNotes": "Notas del administrador",
+        "noPhone": "No registrado",
+        "noDocument": "No registrado"
+      }
+    },
     "company": {
       "nav": {
         "dashboard": "Panel",
@@ -3163,7 +3354,8 @@
         "sidebar": {
           "quotas": "Cuotas",
           "payments": "Pagos",
-          "paymentConcepts": "Conceptos de Pago"
+          "paymentConcepts": "Conceptos de Pago",
+          "accessRequests": "Solicitudes de Acceso"
         },
         "quotas": {
           "title": "Cuotas",
@@ -3515,6 +3707,10 @@
     "SERVICE_UNAVAILABLE": "El servicio no está disponible temporalmente",
     "FOREIGN_KEY_VIOLATION": "No se puede realizar la operación: existen registros relacionados",
     "DATABASE_ERROR": "Error en la base de datos",
+    "SUBSCRIPTION_LIMIT_REACHED": "Se ha alcanzado el límite de tu suscripción",
+    "SUBSCRIPTION_LIMIT_REACHED.condominium": "Has alcanzado el límite de condominios de tu suscripción ({currentCount}/{maxAllowed})",
+    "SUBSCRIPTION_LIMIT_REACHED.unit": "Has alcanzado el límite de unidades de tu suscripción ({currentCount}/{maxAllowed}). Intentaste agregar {requested}",
+    "NO_ACTIVE_SUBSCRIPTION": "Tu empresa administradora no tiene una suscripción activa",
     "unknown": "Ocurrió un error inesperado"
   }
 }

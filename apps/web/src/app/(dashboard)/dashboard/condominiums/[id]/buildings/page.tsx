@@ -1,12 +1,12 @@
-import type { TBuilding } from '@packages/domain'
+import type { TBuilding, TCondominiumAccessCode } from '@packages/domain'
 
 import { getTranslations } from '@/libs/i18n/server'
 import { getServerAuthToken, getFullSession } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
 
-import { BuildingsTable } from './components'
+import { BuildingsTable, AccessCodeSection } from './components'
 import { BuildingsPageClient } from './BuildingsPageClient'
-import { getCondominiumBuildings } from '@packages/http-client/hooks'
+import { getCondominiumBuildings, getActiveAccessCode } from '@packages/http-client/hooks'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -20,13 +20,21 @@ export default async function CondominiumBuildingsPage({ params }: PageProps) {
     ? session.managementCompanies?.[0]?.managementCompanyId
     : undefined
 
-  // Fetch buildings server-side
+  // Fetch buildings and active access code server-side
   let buildings: TBuilding[] = []
+  let activeAccessCode: TCondominiumAccessCode | null = null
   try {
-    buildings = await getCondominiumBuildings(token, id, managementCompanyId)
+    const [buildingsResult, codeResult] = await Promise.all([
+      getCondominiumBuildings(token, id, managementCompanyId),
+      getActiveAccessCode(token, id, managementCompanyId).catch(() => null),
+    ])
+    buildings = buildingsResult
+    activeAccessCode = codeResult
   } catch (error) {
     console.error('Failed to fetch buildings:', error)
   }
+
+  const isAdmin = session?.activeRole === 'management_company'
 
   // Prepare translations for client components
   const translations = {
@@ -75,6 +83,31 @@ export default async function CondominiumBuildingsPage({ params }: PageProps) {
     },
   }
 
+  const accessCodeTranslations = {
+    title: t('admin.accessCodes.title'),
+    noCode: t('admin.accessCodes.noCode'),
+    generate: t('admin.accessCodes.generate'),
+    regenerate: t('admin.accessCodes.regenerate'),
+    expiresLabel: t('admin.accessCodes.expiresLabel'),
+    copiedMessage: t('admin.accessCodes.copiedMessage'),
+    modal: {
+      title: t('admin.accessCodes.modal.title'),
+      warning: t('admin.accessCodes.modal.warning'),
+      validity: t('admin.accessCodes.modal.validity'),
+      validityOptions: {
+        '1_day': t('admin.accessCodes.modal.validity1Day'),
+        '7_days': t('admin.accessCodes.modal.validity7Days'),
+        '1_month': t('admin.accessCodes.modal.validity1Month'),
+        '1_year': t('admin.accessCodes.modal.validity1Year'),
+      },
+      cancel: t('common.cancel'),
+      generate: t('admin.accessCodes.generate'),
+      generating: t('admin.accessCodes.generating'),
+      success: t('admin.accessCodes.success'),
+      error: t('admin.accessCodes.error'),
+    },
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -88,6 +121,14 @@ export default async function CondominiumBuildingsPage({ params }: PageProps) {
           <BuildingsPageClient condominiumId={id} translations={translations} />
         )}
       </div>
+
+      {isAdmin && (
+        <AccessCodeSection
+          condominiumId={id}
+          initialCode={activeAccessCode}
+          translations={accessCodeTranslations}
+        />
+      )}
 
       <BuildingsTable
         buildings={buildings}

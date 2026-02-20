@@ -1,7 +1,11 @@
 'use client'
 
-import { Button } from '@/ui/components/button'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { KeyRound } from 'lucide-react'
 
+import { Button } from '@/ui/components/button'
+import { Input } from '@/ui/components/input'
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 
@@ -11,6 +15,14 @@ interface NoCondominiumsProps {
 
 export function NoCondominiums({ onContactSupport }: NoCondominiumsProps) {
   const { t } = useTranslation()
+  const router = useRouter()
+  const [accessCode, setAccessCode] = useState('')
+
+  const handleEnterCode = () => {
+    if (accessCode.length >= 6) {
+      router.push(`/dashboard/join-condominium?code=${accessCode.toUpperCase()}`)
+    }
+  }
 
   return (
     <div className="flex flex-col items-center justify-center gap-6 py-12 text-center">
@@ -39,8 +51,36 @@ export function NoCondominiums({ onContactSupport }: NoCondominiumsProps) {
         </Typography>
       </div>
 
+      {/* Access code entry */}
+      <div className="flex flex-col gap-3 w-full max-w-sm">
+        <Typography color="default" variant="body2" className="font-medium">
+          {t('condominium.selection.enterAccessCode')}
+        </Typography>
+        <Typography color="muted" variant="caption">
+          {t('condominium.selection.enterCodeDescription')}
+        </Typography>
+        <div className="flex gap-2">
+          <Input
+            value={accessCode}
+            onValueChange={(val) => setAccessCode(val.toUpperCase())}
+            placeholder="ABC123"
+            maxLength={8}
+            className="font-mono tracking-widest"
+            startContent={<KeyRound size={16} className="text-default-400" />}
+            onKeyDown={(e) => e.key === 'Enter' && handleEnterCode()}
+          />
+          <Button
+            color="primary"
+            onPress={handleEnterCode}
+            isDisabled={accessCode.length < 6}
+          >
+            {t('condominium.selection.validateCode')}
+          </Button>
+        </div>
+      </div>
+
       {onContactSupport && (
-        <Button color="primary" variant="flat" onPress={onContactSupport}>
+        <Button color="default" variant="flat" onPress={onContactSupport}>
           {t('condominium.selection.contactSupport')}
         </Button>
       )}

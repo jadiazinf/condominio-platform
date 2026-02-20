@@ -6,14 +6,12 @@ import { useUserCondominiums, registerUser, HttpError, ApiErrorCodes } from '@pa
 
 import { LoadingView } from './LoadingView'
 
-import { useAuth, useUser, useCondominium, useSuperadmin, useTranslation } from '@/contexts'
+import { useAuth, useUser, useCondominium, useTranslation } from '@/contexts'
+import { useSessionStore } from '@/stores/session-store'
 import {
   setUserCookie,
-  clearUserCookie,
   setCondominiumsCookie,
   setSelectedCondominiumCookie,
-  clearAllCondominiumCookies,
-  clearAllSuperadminCookies,
 } from '@/libs/cookies'
 import { getPendingRegistration, clearPendingRegistration } from '@/libs/storage'
 import { useToast } from '@/ui/components/toast'
@@ -40,9 +38,9 @@ export function ClientLoadingFlow() {
   const toast = useToast()
   const { t } = useTranslation()
   const { user: firebaseUser, signOut, deleteCurrentUser } = useAuth()
-  const { setUser, clearUser } = useUser()
-  const { setCondominiums, selectCondominium, clearAllCondominiums } = useCondominium()
-  const { clearSuperadmin } = useSuperadmin()
+  const { setUser } = useUser()
+  const { setCondominiums, selectCondominium } = useCondominium()
+  const clearSession = useSessionStore(s => s.clearSession)
 
   const flowControl = useRef<FlowControl>({
     hasRedirected: false,
@@ -64,14 +62,9 @@ export function ClientLoadingFlow() {
   // CLEANUP FUNCTION
   // ============================================
   const performFullCleanup = useCallback(async () => {
-    clearUser()
-    clearUserCookie()
-    clearAllCondominiums()
-    clearAllCondominiumCookies()
-    clearSuperadmin()
-    clearAllSuperadminCookies()
+    clearSession()
     await signOut()
-  }, [clearUser, clearAllCondominiums, clearSuperadmin, signOut])
+  }, [clearSession, signOut])
 
   // ============================================
   // SIGNOUT FLOW
@@ -83,12 +76,7 @@ export function ClientLoadingFlow() {
 
         flowControl.current.hasSignedOut = true
 
-        clearUser()
-        clearAllCondominiums()
-        clearUserCookie()
-        clearAllCondominiumCookies()
-        clearSuperadmin()
-        clearAllSuperadminCookies()
+        clearSession()
         await signOut()
 
         flowControl.current.hasRedirected = true
@@ -97,7 +85,7 @@ export function ClientLoadingFlow() {
 
       executeSignOut()
     },
-    [shouldSignOut, signOut, clearUser, clearAllCondominiums, clearSuperadmin, router]
+    [shouldSignOut, signOut, clearSession, router]
   )
 
   // ============================================

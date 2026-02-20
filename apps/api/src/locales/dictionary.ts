@@ -88,6 +88,14 @@ export const LocaleDictionary = {
         emailAlreadyRegistered: 'http.controllers.unitOwnerships.emailAlreadyRegistered',
         documentAlreadyRegistered: 'http.controllers.unitOwnerships.documentAlreadyRegistered',
       },
+      subscriptionRates: {
+        notFound: 'http.controllers.subscriptionRates.notFound',
+        noActiveRate: 'http.controllers.subscriptionRates.noActiveRate',
+        versionNotFound: 'http.controllers.subscriptionRates.versionNotFound',
+        versionAlreadyExists: 'http.controllers.subscriptionRates.versionAlreadyExists',
+        activated: 'http.controllers.subscriptionRates.activated',
+        deactivated: 'http.controllers.subscriptionRates.deactivated',
+      },
     },
     locales: {
       unknownError: 'http.locales.unknownError',

@@ -31,6 +31,7 @@ import {
   clearUserCookie,
 } from '@/libs/cookies'
 import { tokenRefreshManager } from '@/libs/auth'
+import { useSessionStore } from '@/stores/session-store'
 
 interface AuthContextType {
   user: User | null
@@ -132,9 +133,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Reset the manager first
       tokenRefreshManager.reset()
 
-      // Clear cookies
+      // Clear all session state (store + cookies)
+      useSessionStore.getState().clearSession()
       clearSessionCookie()
-      clearUserCookie()
 
       // Sign out from Firebase
       try {
@@ -324,9 +325,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Reset the token refresh manager
       tokenRefreshManager.reset()
 
+      // Clear all session state (store + cookies)
+      useSessionStore.getState().clearSession()
+
       await firebaseSignOut(auth)
       clearSessionCookie()
-      clearUserCookie()
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
       setError(errorMessage)
@@ -349,9 +352,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Reset the token refresh manager
       tokenRefreshManager.reset()
 
+      // Clear all session state (store + cookies)
+      useSessionStore.getState().clearSession()
+
       await firebaseSignOut(auth)
       clearSessionCookie()
-      clearUserCookie()
 
       // Redirect with the reason
       if (reason === 'inactivity') {
@@ -360,8 +365,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (err) {
       // Even if signout fails, still redirect for inactivity
       if (reason === 'inactivity') {
+        useSessionStore.getState().clearSession()
         clearSessionCookie()
-        clearUserCookie()
         window.location.href = '/auth?inactivity=true'
       } else {
         const errorMessage = getFirebaseErrorMessage(err)

@@ -1,11 +1,14 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 
 import { dashboardSidebarItems } from '../config/sidebar-items'
 
 import { Sidebar, type TSidebarItem } from '@/ui/components/sidebar'
-import { useTranslation } from '@/contexts'
+import { useTranslation, useCondominium } from '@/contexts'
+
+const NO_CONDOMINIUM_KEYS = new Set(['dashboard', 'join-condominium', 'my-requests', 'settings'])
 
 interface DashboardSidebarProps {
   isCompact?: boolean
@@ -16,9 +19,21 @@ export function DashboardSidebar({ isCompact = false, onItemSelect }: DashboardS
   const router = useRouter()
   const pathname = usePathname()
   const { t } = useTranslation()
+  const { condominiums } = useCondominium()
+
+  const hasCondominiums = condominiums.length > 0
+
+  // Filter items based on whether user has condominiums
+  const visibleItems = useMemo(
+    () =>
+      hasCondominiums
+        ? dashboardSidebarItems
+        : dashboardSidebarItems.filter(item => NO_CONDOMINIUM_KEYS.has(item.key)),
+    [hasCondominiums]
+  )
 
   // Translate sidebar items and render icons
-  const translatedItems: TSidebarItem[] = dashboardSidebarItems.map(item => {
+  const translatedItems: TSidebarItem[] = visibleItems.map(item => {
     const IconComponent = item.icon
 
     return {
@@ -31,13 +46,13 @@ export function DashboardSidebar({ isCompact = false, onItemSelect }: DashboardS
   // Get current selected key from pathname
   // Sort by href length descending to match more specific paths first
   const currentKey =
-    [...dashboardSidebarItems]
+    [...visibleItems]
       .filter(item => item.href)
       .sort((a, b) => (b.href?.length ?? 0) - (a.href?.length ?? 0))
       .find(item => item.href && pathname.startsWith(item.href))?.key ?? 'dashboard'
 
   function handleSelect(key: string) {
-    const item = dashboardSidebarItems.find(i => i.key === key)
+    const item = visibleItems.find(i => i.key === key)
 
     if (item?.href) {
       router.push(item.href)

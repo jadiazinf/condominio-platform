@@ -34,6 +34,12 @@
       "accountant": "Accountant",
       "support": "Support",
       "viewer": "Viewer"
+    },
+    "ownershipTypes": {
+      "owner": "Owner",
+      "tenant": "Tenant",
+      "family_member": "Family Member",
+      "authorized": "Authorized"
     }
   },
   "nav": {
@@ -53,7 +59,8 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "switchRole": "Switch role",
-    "getStarted": "Get Started"
+    "getStarted": "Get Started",
+    "notifications": "Notifications"
   },
   "landing": {
     "nav": {
@@ -418,7 +425,69 @@
       "myQuotas": "My Quotas",
       "myPayments": "My Payments",
       "reportPayment": "Report Payment",
-      "reservations": "Reservations"
+      "reservations": "Reservations",
+      "joinCondominium": "Join Condominium",
+      "myRequests": "My Requests"
+    },
+    "joinCondominium": {
+      "title": "Join a Condominium",
+      "subtitle": "Enter the access code provided by your administrator",
+      "step1": {
+        "label": "Access code",
+        "placeholder": "E.g: ABC123",
+        "validate": "Validate",
+        "validating": "Validating...",
+        "invalidCode": "Invalid, expired, or inactive code"
+      },
+      "step2": {
+        "condominiumInfo": "Condominium Information",
+        "selectUnit": "Select your unit",
+        "ownershipType": "Occupancy type",
+        "submit": "Submit Request",
+        "submitting": "Submitting...",
+        "back": "Back"
+      },
+      "step3": {
+        "title": "Request submitted!",
+        "message": "Your request has been submitted. You will be notified when the administrator reviews it.",
+        "viewRequests": "View my requests",
+        "submitAnother": "Submit another request"
+      },
+      "errors": {
+        "submitFailed": "Failed to submit request",
+        "profileIncompleteTitle": "Complete your profile",
+        "profileIncompleteMessage": "To submit an access request, we need to verify your identity. Please complete the following information in your profile:\n\n• Phone number (with area code)\n• Identity document (type and number)\n\nThis only takes a moment and is required so the administrator can verify your request.",
+        "profileIncompleteGoToSettings": "Go to Settings",
+        "alreadyHasOwnership": "You already have an active ownership for this unit",
+        "alreadyHasPendingRequest": "You already have a pending request for this unit",
+        "accessCodeInactive": "The access code is inactive",
+        "accessCodeExpired": "The access code has expired",
+        "unitNotInCondominium": "The unit does not belong to this condominium"
+      }
+    },
+    "myRequests": {
+      "title": "My Requests",
+      "subtitle": "Status of your condominium access requests",
+      "noRequests": "You have no access requests",
+      "joinCondominium": "Join a Condominium",
+      "table": {
+        "condominium": "Condominium",
+        "building": "Building",
+        "unit": "Unit",
+        "ownershipType": "Type",
+        "date": "Date",
+        "status": "Status"
+      },
+      "detail": {
+        "title": "Request Detail",
+        "adminNotes": "Administrator response",
+        "noAdminNotes": "No response",
+        "statusMessages": {
+          "pending": "Your request is being reviewed by the administrator. We will notify you when there is a response.",
+          "approved": "Your request was approved. You now have access to the condominium.",
+          "rejected": "Your request was rejected by the administrator."
+        }
+      }
     },
     "dashboard": {
       "subtitle": "Here you can see a summary of your account and pending quotas",
@@ -447,7 +516,15 @@
       "paymentHistory": "History",
       "notifications": "Notifications",
       "unit": "Unit",
-      "building": "Building"
+      "building": "Building",
+      "newUser": {
+        "subtitle": "To get started, join a condominium using an access code provided by your administrator",
+        "joinTitle": "Join a Condominium",
+        "joinDescription": "Enter the access code provided by your administrator",
+        "pendingRequests": "My access requests",
+        "noPendingRequests": "You don't have any access requests yet",
+        "viewAllRequests": "View all requests"
+      }
     },
     "myQuotas": {
       "title": "My Quotas",
@@ -538,7 +615,10 @@
       "units": "Units",
       "noCondominiums": "No condominiums assigned",
       "noCondominiumsDescription": "You don't have access to any condominium yet. Contact your administrator to be assigned to a condominium.",
-      "contactSupport": "Contact support"
+      "contactSupport": "Contact support",
+      "enterAccessCode": "Do you have an access code?",
+      "enterCodeDescription": "If your administrator shared a code with you, enter it here to request access to your condominium.",
+      "validateCode": "Enter"
     },
     "loading": {
       "fetchingCondominiums": "Loading your condominiums..."
@@ -2507,6 +2587,10 @@
     "markAllAsRead": "Mark all as read",
     "viewAll": "View all",
     "delete": "Delete",
+    "tabs": {
+      "all": "All",
+      "unread": "Unread"
+    },
     "time": {
       "justNow": "Just now",
       "minutesAgo": "{count} min ago",
@@ -2520,6 +2604,35 @@
       "reminder": "Reminder",
       "alert": "Alert",
       "system": "System"
+    },
+    "content": {
+      "newAccessRequest": {
+        "title": "New access request",
+        "body": "{requesterName} has submitted an access request for your condominium."
+      },
+      "accessRequestApproved": {
+        "title": "Request approved",
+        "body": "Your access request has been approved. You now have access to the condominium."
+      },
+      "accessRequestRejected": {
+        "title": "Request rejected",
+        "body": "Your access request has been rejected.",
+        "bodyWithReason": "Your access request has been rejected. Reason: {reason}"
+      }
+    },
+    "page": {
+      "title": "My Notifications",
+      "subtitle": "Review and manage all your notifications",
+      "filters": {
+        "category": "Category",
+        "readStatus": "Status",
+        "all": "All",
+        "read": "Read",
+        "unread": "Unread"
+      },
+      "markAllAsRead": "Mark all as read",
+      "noNotifications": "No notifications",
+      "noNotificationsDescription": "Your notifications will appear here when you receive them"
     }
   },
   "network": {
@@ -2837,6 +2950,84 @@
       "expenses": "Expenses",
       "amenities": "Amenities"
     },
+    "accessCodes": {
+      "title": "Access Code",
+      "noCode": "No active access code. Generate one so residents can request access.",
+      "generate": "Generate Code",
+      "regenerate": "Regenerate",
+      "generating": "Generating...",
+      "expiresLabel": "Expires:",
+      "copiedMessage": "Code copied!",
+      "success": "Code generated successfully",
+      "error": "Error generating code",
+      "modal": {
+        "title": "Generate Access Code",
+        "warning": "Generating a new code will deactivate the current one.",
+        "validity": "Code validity",
+        "validity1Day": "1 day",
+        "validity7Days": "7 days",
+        "validity1Month": "1 month",
+        "validity1Year": "1 year"
+      }
+    },
+    "accessRequests": {
+      "title": "Access Requests",
+      "subtitle": "Review and manage condominium access requests",
+      "noRequests": "No access requests",
+      "searchPlaceholder": "Search by name or document...",
+      "tabs": {
+        "all": "All",
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "table": {
+        "user": "User",
+        "unit": "Unit",
+        "building": "Building",
+        "ownershipType": "Type",
+        "date": "Date",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "approveConfirm": "Are you sure you want to approve this request? A unit assignment and role will be created for the user.",
+        "rejectTitle": "Reject Request",
+        "rejectNotesPlaceholder": "Reason for rejection (optional)"
+      },
+      "success": {
+        "approved": "Request approved successfully",
+        "rejected": "Request rejected"
+      },
+      "error": {
+        "review": "Error processing request",
+        "notBelongsToCondominium": "The request does not belong to this condominium",
+        "alreadyReviewed": "The request has already been reviewed",
+        "notFound": "Request not found"
+      },
+      "detail": {
+        "title": "Request Detail",
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "identityDocument": "Identity Document",
+        "building": "Building",
+        "unit": "Unit",
+        "ownershipType": "Ownership Type",
+        "date": "Request Date",
+        "status": "Status",
+        "adminNotes": "Admin Notes",
+        "noPhone": "Not registered",
+        "noDocument": "Not registered"
+      }
+    },
     "company": {
       "nav": {
         "dashboard": "Dashboard",
@@ -3126,7 +3317,8 @@
         "sidebar": {
           "quotas": "Quotas",
           "payments": "Payments",
-          "paymentConcepts": "Payment Concepts"
+          "paymentConcepts": "Payment Concepts",
+          "accessRequests": "Access Requests"
         },
         "quotas": {
           "title": "Quotas",
@@ -3511,6 +3703,10 @@
     "SERVICE_UNAVAILABLE": "Service is temporarily unavailable",
     "FOREIGN_KEY_VIOLATION": "Cannot perform the operation: related records exist",
     "DATABASE_ERROR": "Database error",
+    "SUBSCRIPTION_LIMIT_REACHED": "Subscription limit reached",
+    "SUBSCRIPTION_LIMIT_REACHED.condominium": "You have reached the condominium limit for your subscription ({currentCount}/{maxAllowed})",
+    "SUBSCRIPTION_LIMIT_REACHED.unit": "You have reached the unit limit for your subscription ({currentCount}/{maxAllowed}). You tried to add {requested}",
+    "NO_ACTIVE_SUBSCRIPTION": "Your management company does not have an active subscription",
     "unknown": "An unexpected error occurred"
   }
 }

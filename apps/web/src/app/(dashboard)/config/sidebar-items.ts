@@ -14,9 +14,12 @@ import {
   Receipt,
   Wallet,
   ClipboardList,
+  ClipboardCheck,
   CalendarDays,
   FileText,
   ScrollText,
+  KeyRound,
+  Bell,
 } from 'lucide-react'
 
 type TSidebarItemConfig = Omit<TSidebarItem, 'icon'> & {
@@ -55,6 +58,18 @@ export const dashboardSidebarItems: TSidebarItemConfig[] = [
     href: '/dashboard/amenities',
   },
   {
+    key: 'join-condominium',
+    title: 'resident.nav.joinCondominium',
+    icon: KeyRound,
+    href: '/dashboard/join-condominium',
+  },
+  {
+    key: 'my-requests',
+    title: 'resident.nav.myRequests',
+    icon: ClipboardCheck,
+    href: '/dashboard/my-requests',
+  },
+  {
     key: 'my-quotas',
     title: 'resident.nav.myQuotas',
     icon: Receipt,
@@ -77,6 +92,12 @@ export const dashboardSidebarItems: TSidebarItemConfig[] = [
     title: 'resident.nav.reservations',
     icon: CalendarDays,
     href: '/dashboard/reservations',
+  },
+  {
+    key: 'notifications',
+    title: 'nav.notifications',
+    icon: Bell,
+    href: '/dashboard/notifications',
   },
   {
     key: 'settings',
@@ -116,6 +137,12 @@ export const adminSidebarItems: TSidebarItemConfig[] = [
     title: 'admin.company.nav.paymentConcepts',
     icon: FileText,
     href: '/dashboard/payment-concepts',
+  },
+  {
+    key: 'notifications',
+    title: 'nav.notifications',
+    icon: Bell,
+    href: '/dashboard/notifications',
   },
   {
     key: 'settings',
@@ -173,6 +200,12 @@ export const superadminSidebarItems: TSidebarItemConfig[] = [
     title: 'superadmin.nav.tickets',
     icon: MessageSquare,
     href: '/dashboard/tickets',
+  },
+  {
+    key: 'notifications',
+    title: 'nav.notifications',
+    icon: Bell,
+    href: '/dashboard/notifications',
   },
   {
     key: 'settings',

@@ -9,7 +9,15 @@ type TButtonColor = 'default' | 'primary' | 'secondary' | 'success' | 'warning' 
 
 type TButtonSize = 'sm' | 'md' | 'lg'
 
-type TButtonVariant = 'solid' | 'bordered' | 'light' | 'flat' | 'faded' | 'shadow' | 'ghost' | 'text'
+type TButtonVariant =
+  | 'solid'
+  | 'bordered'
+  | 'light'
+  | 'flat'
+  | 'faded'
+  | 'shadow'
+  | 'ghost'
+  | 'text'
 
 type TButtonRadius = 'none' | 'sm' | 'md' | 'lg' | 'full'
 
@@ -45,7 +53,7 @@ export const Button = forwardRef<HTMLButtonElement, IButtonProps>(function Butto
     color = 'default',
     size = 'md',
     variant = 'solid',
-    radius = 'md',
+    radius = 'sm',
     isDisabled = false,
     isLoading = false,
     isIconOnly = false,
@@ -68,12 +76,18 @@ export const Button = forwardRef<HTMLButtonElement, IButtonProps>(function Butto
 ) {
   // "text" variant: renders as a plain inline button styled like text
   if (variant === 'text') {
-    const colorClass = color === 'primary' ? 'text-primary'
-      : color === 'danger' ? 'text-danger'
-      : color === 'success' ? 'text-success'
-      : color === 'warning' ? 'text-warning'
-      : color === 'secondary' ? 'text-secondary'
-      : 'text-current'
+    const colorClass =
+      color === 'primary'
+        ? 'text-primary'
+        : color === 'danger'
+          ? 'text-danger'
+          : color === 'success'
+            ? 'text-success'
+            : color === 'warning'
+              ? 'text-warning'
+              : color === 'secondary'
+                ? 'text-secondary'
+                : 'text-current'
 
     return (
       <button

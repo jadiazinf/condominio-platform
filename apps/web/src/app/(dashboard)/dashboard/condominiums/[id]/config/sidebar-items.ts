@@ -8,6 +8,7 @@ export type TCondominiumDetailIconName =
   | 'receipt'
   | 'credit-card'
   | 'file-text'
+  | 'user-plus'
 
 export interface ICondominiumDetailMenuItem {
   key: string
@@ -49,6 +50,13 @@ export const CONDOMINIUM_DETAIL_MENU_ITEMS: ICondominiumDetailMenuItem[] = [
     translationKey: 'admin.condominiums.detail.sidebar.paymentConcepts',
     path: '/payment-concepts',
     iconName: 'file-text',
+    roles: ['management_company'],
+  },
+  {
+    key: 'access-requests',
+    translationKey: 'admin.condominiums.detail.sidebar.accessRequests',
+    path: '/access-requests',
+    iconName: 'user-plus',
     roles: ['management_company'],
   },
   {

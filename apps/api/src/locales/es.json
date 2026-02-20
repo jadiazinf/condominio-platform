@@ -130,6 +130,14 @@
         "documentRequired": "Se requiere el tipo y número de documento de identidad.",
         "emailAlreadyRegistered": "Ya existe un usuario activo con este correo electrónico.",
         "documentAlreadyRegistered": "Ya existe un usuario activo con este documento de identidad."
+      },
+      "subscriptionRates": {
+        "notFound": "La tarifa de suscripción no fue encontrada.",
+        "noActiveRate": "No se encontró una tarifa de suscripción activa.",
+        "versionNotFound": "No se encontró la versión de tarifa solicitada.",
+        "versionAlreadyExists": "Ya existe una tarifa con esta versión.",
+        "activated": "Tarifa activada exitosamente.",
+        "deactivated": "Tarifa desactivada exitosamente."
       }
     },
     "locales": {

@@ -176,16 +176,14 @@ const createAuthMock = () => {
     ) => {
       const role = allowedRoles[0] || ESystemRole.SUPERADMIN
       c.set('userRole', role)
-      // Set managementCompanyId from route param (unified MC scope)
+      // Propagate scope IDs from params/headers (matches production SUPERADMIN behavior)
       const managementCompanyId = c.req.param('managementCompanyId')
       if (managementCompanyId) {
         c.set('managementCompanyId', managementCompanyId)
       }
-      if (role !== ESystemRole.SUPERADMIN) {
-        const condominiumId = c.req.header('x-condominium-id')
-        if (condominiumId) {
-          c.set('condominiumId', condominiumId)
-        }
+      const condominiumId = c.req.header('x-condominium-id')
+      if (condominiumId) {
+        c.set('condominiumId', condominiumId)
       }
       await next()
     }

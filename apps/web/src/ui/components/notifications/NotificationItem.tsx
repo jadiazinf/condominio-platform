@@ -1,8 +1,6 @@
 'use client'
 
 import type { TNotification } from '@packages/domain'
-
-import { Button } from '@heroui/button'
 import { cn } from '@heroui/theme'
 import {
   CreditCard,
@@ -11,44 +9,42 @@ import {
   Clock,
   AlertTriangle,
   Settings,
-  Check,
   Trash2,
 } from 'lucide-react'
 
+import { Button } from '@/ui/components/button'
 import { useTranslation } from '@/contexts'
 
-interface NotificationItemProps {
+interface INotificationItemProps {
   notification: TNotification
   onMarkAsRead?: (id: string) => void
   onDelete?: (id: string) => void
 }
 
-const categoryIcons = {
+const CATEGORY_ICONS = {
   payment: CreditCard,
   quota: Receipt,
   announcement: Megaphone,
   reminder: Clock,
   alert: AlertTriangle,
   system: Settings,
-}
+} as const
 
-const categoryColors = {
-  payment: 'text-success',
-  quota: 'text-primary',
-  announcement: 'text-secondary',
-  reminder: 'text-warning',
-  alert: 'text-danger',
-  system: 'text-default-500',
-}
+const CATEGORY_COLORS = {
+  payment: 'bg-success/10 text-success',
+  quota: 'bg-primary/10 text-primary',
+  announcement: 'bg-secondary/10 text-secondary',
+  reminder: 'bg-warning/10 text-warning',
+  alert: 'bg-danger/10 text-danger',
+  system: 'bg-default-100 text-default-500',
+} as const
 
 function formatRelativeTime(date: Date | string, t: (key: string) => string): string {
   const now = new Date()
   const notificationDate = new Date(date)
   const diffInSeconds = Math.floor((now.getTime() - notificationDate.getTime()) / 1000)
 
-  if (diffInSeconds < 60) {
-    return t('notifications.time.justNow')
-  }
+  if (diffInSeconds < 60) return t('notifications.time.justNow')
 
   const diffInMinutes = Math.floor(diffInSeconds / 60)
   if (diffInMinutes < 60) {
@@ -68,61 +64,86 @@ function formatRelativeTime(date: Date | string, t: (key: string) => string): st
   return notificationDate.toLocaleDateString()
 }
 
-export function NotificationItem({ notification, onMarkAsRead, onDelete }: NotificationItemProps) {
+/**
+ * Resolves the display title/body from i18n data if available, otherwise falls back to raw text.
+ */
+function resolveI18nText(
+  notification: TNotification,
+  t: (key: string) => string
+): { title: string; body: string } {
+  const i18n = (notification.data as Record<string, unknown> | null)?.i18n as
+    | { titleKey?: string; bodyKey?: string; params?: Record<string, string> }
+    | undefined
+
+  if (!i18n) {
+    return { title: notification.title, body: notification.body }
+  }
+
+  let title = i18n.titleKey ? t(i18n.titleKey) : notification.title
+  let body = i18n.bodyKey ? t(i18n.bodyKey) : notification.body
+
+  // Replace {param} placeholders with actual values
+  if (i18n.params) {
+    for (const [key, value] of Object.entries(i18n.params)) {
+      title = title.replace(`{${key}}`, value)
+      body = body.replace(`{${key}}`, value)
+    }
+  }
+
+  return { title, body }
+}
+
+export function NotificationItem({ notification, onMarkAsRead, onDelete }: INotificationItemProps) {
   const { t } = useTranslation()
-  const Icon = categoryIcons[notification.category] || Settings
-  const iconColor = categoryColors[notification.category] || 'text-default-500'
+  const Icon = CATEGORY_ICONS[notification.category] ?? Settings
+  const colorClass = CATEGORY_COLORS[notification.category] ?? CATEGORY_COLORS.system
+  const { title, body } = resolveI18nText(notification, t)
+
+  const handleClick = () => {
+    if (!notification.isRead && onMarkAsRead) {
+      onMarkAsRead(notification.id)
+    }
+  }
 
   return (
     <div
       className={cn(
-        'flex gap-3 p-3 rounded-lg transition-colors',
-        notification.isRead ? 'bg-default-50' : 'bg-primary-50/50 dark:bg-primary-900/20'
+        'flex gap-3 border-b border-divider px-4 py-3 cursor-pointer transition-colors hover:bg-default-100/50',
+        !notification.isRead && 'bg-success-50/50'
       )}
+      onClick={handleClick}
     >
-      <div className={cn('mt-0.5 shrink-0', iconColor)}>
-        <Icon size={20} />
+      <div className="relative flex-none">
+        <div className={cn('flex items-center justify-center w-10 h-10 rounded-full', colorClass)}>
+          <Icon size={18} />
+        </div>
+        {!notification.isRead && (
+          <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-success border-2 border-background" />
+        )}
       </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <p className={cn('text-sm font-medium', !notification.isRead && 'text-foreground')}>
-            {notification.title}
-          </p>
-          <span className="text-xs text-default-400 whitespace-nowrap">
-            {formatRelativeTime(notification.createdAt, t)}
-          </span>
-        </div>
-        <p className="text-sm text-default-500 line-clamp-2 mt-0.5">{notification.body}</p>
-
-        <div className="flex items-center gap-1 mt-2">
-          {!notification.isRead && onMarkAsRead && (
-            <Button
-              variant="flat"
-              className="h-7 text-xs"
-              startContent={<Check size={14} />}
-              onPress={() => onMarkAsRead(notification.id)}
-            >
-              {t('notifications.markAsRead')}
-            </Button>
-          )}
-          {onDelete && (
-            <Button
-              variant="light"
-              color="danger"
-              className="h-7 text-xs"
-              isIconOnly
-              onPress={() => onDelete(notification.id)}
-            >
-              <Trash2 size={14} />
-            </Button>
-          )}
-        </div>
+      <div className="flex flex-col gap-1 flex-1 min-w-0">
+        <p className="text-small text-foreground">
+          <strong className="font-medium">{title}</strong>{' '}
+          {body}
+        </p>
+        <time className="text-tiny text-default-400">
+          {formatRelativeTime(notification.createdAt, t)}
+        </time>
       </div>
 
-      {!notification.isRead && (
-        <div className="shrink-0 mt-1.5">
-          <div className="w-2 h-2 rounded-full bg-primary" />
+      {onDelete && (
+        <div className="flex-none self-center">
+          <Button
+            isIconOnly
+            variant="light"
+            color="danger"
+            size="sm"
+            className="h-7 w-7 min-w-0"
+            onPress={() => onDelete(notification.id)}
+          >
+            <Trash2 size={14} />
+          </Button>
         </div>
       )}
     </div>

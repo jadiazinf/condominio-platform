@@ -51,6 +51,10 @@ import { AmenitiesEndpoint } from './amenities.endpoint'
 import { AmenityReservationsEndpoint } from './amenity-reservations.endpoint'
 import { WebSocketEndpoint } from './websocket.endpoint'
 import { ReportsEndpoint } from './reports.endpoint'
+import { AccessCodesEndpoint } from './access-codes.endpoint'
+import { AccessRequestsEndpoint } from './access-requests.endpoint'
+import { MyAccessRequestsEndpoint } from './my-access-requests.endpoint'
+import { MyNotificationsEndpoint } from './my-notifications.endpoint'
 
 /**
  * Central class that manages all API routes.
@@ -119,6 +123,7 @@ export class ApiRoutes {
       new NotificationTemplatesEndpoint(db),
       new UserNotificationPreferencesEndpoint(db),
       new UserFcmTokensEndpoint(db),
+      new MyNotificationsEndpoint(db),
 
       // Audit
       new AuditLogsEndpoint(db),
@@ -128,6 +133,11 @@ export class ApiRoutes {
 
       // User Invitations
       new UserInvitationsEndpoint(db),
+
+      // Access Codes & Requests
+      new AccessCodesEndpoint(db),
+      new AccessRequestsEndpoint(db),
+      new MyAccessRequestsEndpoint(db),
 
       // Subscriptions & Members
       new ManagementCompanySubscriptionsEndpoint(db),

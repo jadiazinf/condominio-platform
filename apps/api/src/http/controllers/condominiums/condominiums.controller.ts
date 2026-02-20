@@ -32,6 +32,10 @@ import {
 } from '@src/services/condominiums'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { AppError } from '@errors/index'
+import { ValidateSubscriptionLimitsService } from '@src/services/subscriptions'
+import { useTranslation } from '@intlify/hono'
+import { StatusCodes } from 'http-status-codes'
+import { LocaleDictionary } from '@locales/dictionary'
 
 /**
  * Controller for managing condominium resources.
@@ -60,6 +64,7 @@ export class CondominiumsController extends BaseController<
   private readonly generateCondominiumCodeService: GenerateCondominiumCodeService
   private readonly getCondominiumUsersService: GetCondominiumUsersService
   private readonly wizardService: CreateCondominiumWizardService
+  private readonly validateSubscriptionService: ValidateSubscriptionLimitsService
   private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository
   private readonly companiesRepository: ManagementCompaniesRepository
   private readonly locationsRepository: LocationsRepository
@@ -94,6 +99,7 @@ export class CondominiumsController extends BaseController<
     this.generateCondominiumCodeService = new GenerateCondominiumCodeService(repository)
     this.getCondominiumUsersService = new GetCondominiumUsersService(db)
     this.wizardService = new CreateCondominiumWizardService(db, repository, buildingsRepository, unitsRepository)
+    this.validateSubscriptionService = new ValidateSubscriptionLimitsService(subscriptionsRepository, companiesRepository)
   }
 
   get routes(): TRouteDefinition[] {
@@ -307,6 +313,80 @@ export class CondominiumsController extends BaseController<
     const ctx = this.ctx(c)
     const user = ctx.getAuthenticatedUser()
     const body = await c.req.json<TCreateCondominiumWizardInput>()
+    const t = useTranslation(c)
+
+    // Validate subscription limits before creating
+    const managementCompanyId = body.condominium.managementCompanyIds?.[0]
+    if (managementCompanyId) {
+      const totalUnits = body.buildings.reduce((sum, b) => sum + (b.units?.length ?? 0), 0)
+
+      // Check condominium limit
+      const condoValidation = await this.validateSubscriptionService.execute({
+        managementCompanyId,
+        resourceType: 'condominium',
+        requestedCount: 1,
+      })
+
+      if (!condoValidation.success) {
+        return c.json(
+          {
+            success: false,
+            error: {
+              code: 'NO_ACTIVE_SUBSCRIPTION',
+              message: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription),
+            },
+          },
+          StatusCodes.FORBIDDEN
+        )
+      }
+
+      if (!condoValidation.data.canCreate) {
+        return c.json(
+          {
+            success: false,
+            error: {
+              code: 'SUBSCRIPTION_LIMIT_REACHED',
+              message: t(LocaleDictionary.http.services.subscriptions.subscriptionLimitReached),
+              details: {
+                resourceType: 'condominium',
+                currentCount: condoValidation.data.currentCount,
+                maxAllowed: condoValidation.data.maxAllowed,
+                requested: 1,
+              },
+            },
+          },
+          StatusCodes.FORBIDDEN
+        )
+      }
+
+      // Check unit limit
+      if (totalUnits > 0) {
+        const unitValidation = await this.validateSubscriptionService.execute({
+          managementCompanyId,
+          resourceType: 'unit',
+          requestedCount: totalUnits,
+        })
+
+        if (unitValidation.success && !unitValidation.data.canCreate) {
+          return c.json(
+            {
+              success: false,
+              error: {
+                code: 'SUBSCRIPTION_LIMIT_REACHED',
+                message: t(LocaleDictionary.http.services.subscriptions.subscriptionLimitReached),
+                details: {
+                  resourceType: 'unit',
+                  currentCount: unitValidation.data.currentCount,
+                  maxAllowed: unitValidation.data.maxAllowed,
+                  requested: totalUnits,
+                },
+              },
+            },
+            StatusCodes.FORBIDDEN
+          )
+        }
+      }
+    }
 
     const result = await this.wizardService.execute({
       condominium: {

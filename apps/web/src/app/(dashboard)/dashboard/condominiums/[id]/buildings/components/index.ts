@@ -1,4 +1,6 @@
 export { BuildingsTable } from './BuildingsTable'
+export { AccessCodeSection } from './AccessCodeSection'
+export { GenerateCodeModal } from './GenerateCodeModal'
 export { BuildingModal } from './BuildingModal'
 export { BuildingForm } from './BuildingForm'
 export { DeleteBuildingModal } from './DeleteBuildingModal'

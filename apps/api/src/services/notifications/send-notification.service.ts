@@ -7,6 +7,7 @@ import type {
 } from '@database/repositories'
 import { type TServiceResult, success } from '../base.service'
 import { SendFcmNotificationService } from './send-fcm-notification.service'
+import { WebSocketManager } from '@libs/websocket/websocket-manager'
 import logger from '@utils/logger'
 
 export interface ISendNotificationInput {
@@ -157,6 +158,17 @@ export class SendNotificationService {
         metadata: null,
       })
       deliveryIds.push(delivery.id)
+    }
+
+    // Broadcast via WebSocket for real-time delivery
+    try {
+      const unreadCount = await this.notificationsRepository.getUnreadCount(input.userId)
+      WebSocketManager.getInstance().broadcastToUser(input.userId, 'new_notification', {
+        notification,
+        unreadCount,
+      })
+    } catch {
+      // Don't break notification flow if WS broadcast fails
     }
 
     return success({ notification, deliveryIds, pushResult })

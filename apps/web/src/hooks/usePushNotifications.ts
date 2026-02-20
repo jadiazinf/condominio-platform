@@ -29,7 +29,7 @@ export function usePushNotifications(options?: { onForegroundMessage?: (payload:
   const unsubscribeRef = useRef<(() => void) | null>(null)
 
   const { mutateAsync: registerToken } = useApiMutation<unknown, { token: string; platform: string }>({
-    path: `/user-fcm-tokens/user/${user?.id}/register`,
+    path: `/me/fcm-tokens/user/${user?.id}/register`,
     method: 'POST',
   })
 

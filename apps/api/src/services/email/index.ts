@@ -24,3 +24,8 @@ export {
   type ISendSubscriptionCancellationEmailInput,
   type ISendSubscriptionCancellationEmailResult,
 } from './send-subscription-cancellation-email.service'
+export {
+  SendAccessRequestApprovedEmailService,
+  type ISendAccessRequestApprovedEmailInput,
+  type ISendAccessRequestApprovedEmailResult,
+} from './send-access-request-approved-email.service'

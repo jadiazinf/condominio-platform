@@ -46,17 +46,14 @@ export function requireRole(...allowedRoles: TSystemRole[]): MiddlewareHandler {
     if (env.NODE_ENV === 'test' && !env.TEST_REQUIRE_ROLE_MIDDLEWARE) {
       const role = allowedRoles[0] || ESystemRole.SUPERADMIN
       c.set(USER_ROLE_PROP, role)
-      if (role !== ESystemRole.SUPERADMIN) {
-        // Check for management company scope first
-        const managementCompanyId = c.req.param('managementCompanyId')
-        if (managementCompanyId) {
-          c.set(MANAGEMENT_COMPANY_ID_PROP, managementCompanyId)
-        } else {
-          const condominiumId = c.req.header('x-condominium-id')
-          if (condominiumId) {
-            c.set(CONDOMINIUM_ID_PROP, condominiumId)
-          }
-        }
+      // Propagate scope IDs from params/headers (matches production SUPERADMIN behavior)
+      const managementCompanyId = c.req.param('managementCompanyId')
+      if (managementCompanyId) {
+        c.set(MANAGEMENT_COMPANY_ID_PROP, managementCompanyId)
+      }
+      const condominiumId = c.req.header('x-condominium-id')
+      if (condominiumId) {
+        c.set(CONDOMINIUM_ID_PROP, condominiumId)
       }
       await next()
       return

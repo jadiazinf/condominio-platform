@@ -1,5 +1,6 @@
 import { and, eq, desc, sql, count } from 'drizzle-orm'
-import type { TNotification, TNotificationCreate, TNotificationUpdate } from '@packages/domain'
+import type { SQL } from 'drizzle-orm'
+import type { TNotification, TNotificationCreate, TNotificationUpdate, TPaginatedResponse } from '@packages/domain'
 import { notifications } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
 import { BaseRepository } from './base'
@@ -179,6 +180,48 @@ export class NotificationsRepository
       .orderBy(desc(notifications.createdAt))
 
     return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Retrieves paginated notifications for a user with optional filters.
+   */
+  async listPaginatedByUserId(
+    userId: string,
+    options: { page?: number; limit?: number; category?: 'payment' | 'quota' | 'announcement' | 'reminder' | 'alert' | 'system'; isRead?: boolean }
+  ): Promise<TPaginatedResponse<TNotification>> {
+    const page = options.page ?? 1
+    const limit = options.limit ?? 20
+    const offset = (page - 1) * limit
+
+    const conditions: SQL[] = [eq(notifications.userId, userId)]
+    if (options.category) {
+      conditions.push(eq(notifications.category, options.category))
+    }
+    if (options.isRead !== undefined) {
+      conditions.push(eq(notifications.isRead, options.isRead))
+    }
+
+    const whereClause = and(...conditions)
+
+    const results = await this.db
+      .select()
+      .from(notifications)
+      .where(whereClause)
+      .orderBy(desc(notifications.createdAt))
+      .limit(limit)
+      .offset(offset)
+
+    const countResult = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(notifications)
+      .where(whereClause)
+
+    const total = countResult[0]?.count ?? 0
+
+    return {
+      data: results.map(record => this.mapToEntity(record)),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    }
   }
 
   /**

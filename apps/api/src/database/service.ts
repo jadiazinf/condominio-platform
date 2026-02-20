@@ -14,6 +14,10 @@ export class DatabaseService {
     this.pool = new Pool({
       connectionString: env.DATABASE_URL,
     })
+    // Ensure all sessions use UTC to avoid timestamp misinterpretation
+    this.pool.on('connect', client => {
+      client.query("SET timezone = 'UTC'")
+    })
     this.db = drizzle(this.pool, { schema })
     logger.info('Database connected successfully')
   }

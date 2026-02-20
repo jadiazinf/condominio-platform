@@ -98,3 +98,7 @@ export { SupportTicketMessagesRepository } from './support-ticket-messages.repos
 // Amenities & Reservations
 export { AmenitiesRepository } from './amenities.repository'
 export { AmenityReservationsRepository } from './amenity-reservations.repository'
+
+// Access Codes & Requests
+export { CondominiumAccessCodesRepository, type TCondominiumAccessCodeInsert } from './condominium-access-codes.repository'
+export { AccessRequestsRepository, type TAccessRequestInsert } from './access-requests.repository'
