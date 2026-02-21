@@ -620,6 +620,90 @@
         "registeredBy": {
           "invalid": "Registered by user ID is not valid."
         }
+      },
+      "bankAccounts": {
+        "displayName": {
+          "required": "Display name is required.",
+          "max": "Display name cannot exceed 255 characters."
+        },
+        "bankName": {
+          "required": "Bank name is required.",
+          "max": "Bank name cannot exceed 255 characters."
+        },
+        "accountHolderName": {
+          "required": "Account holder name is required.",
+          "max": "Account holder name cannot exceed 255 characters."
+        },
+        "currency": {
+          "required": "Currency is required.",
+          "length": "Currency code must be exactly 3 characters."
+        },
+        "acceptedPaymentMethods": {
+          "required": "At least one payment method must be selected."
+        },
+        "accountCategory": {
+          "invalid": "Invalid account category."
+        },
+        "national": {
+          "accountNumber": {
+            "required": "Account number is required.",
+            "length": "Account number must be exactly 20 digits."
+          },
+          "bankCode": {
+            "required": "Bank code is required.",
+            "length": "Bank code must be exactly 4 digits."
+          },
+          "accountType": {
+            "required": "Account type is required."
+          },
+          "identityDocType": {
+            "required": "Identity document type is required."
+          },
+          "identityDocNumber": {
+            "required": "Identity document number is required."
+          },
+          "phoneNumber": {
+            "requiredForPagoMovil": "Phone number is required when Pago Movil is selected."
+          }
+        },
+        "international": {
+          "swiftCode": {
+            "required": "SWIFT code is required for wire transfers."
+          },
+          "accountNumber": {
+            "required": "Account number is required for bank transfers."
+          },
+          "routingNumber": {
+            "required": "Routing number is required for ACH.",
+            "length": "Routing number must be exactly 9 digits."
+          },
+          "accountType": {
+            "required": "Account type is required for ACH."
+          },
+          "accountHolderType": {
+            "required": "Account holder type is required for ACH."
+          },
+          "zelleContact": {
+            "required": "An email address or phone number is required for Zelle."
+          },
+          "paypalEmail": {
+            "required": "PayPal email is required."
+          },
+          "wiseEmail": {
+            "required": "Wise email is required."
+          },
+          "walletAddress": {
+            "required": "Wallet address is required for cryptocurrency."
+          },
+          "cryptoNetwork": {
+            "required": "Crypto network is required."
+          },
+          "cryptoCurrency": {
+            "required": "Cryptocurrency is required."
+          }
+        },
+        "methodNotSupportedByBank": "Payment method '{method}' is not supported by the selected bank.",
+        "bankNotFound": "Selected bank was not found."
       }
     }
   }

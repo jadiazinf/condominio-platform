@@ -121,13 +121,19 @@ export function Select({
     onChange?.(selectedKey || null)
   }
 
+  // Merge default placeholder styling with user classNames
+  const mergedClassNames = {
+    ...classNames,
+    value: cn('group-data-[has-value=false]:text-default-400 group-data-[has-value=false]:opacity-70', classNames?.value),
+  }
+
   // If children are provided, use them directly (HeroUI Select pattern)
   if (children) {
     return (
       <HeroUISelect
         aria-label={ariaLabel}
         className={cn(className)}
-        classNames={classNames}
+        classNames={mergedClassNames}
         color={color}
         defaultSelectedKeys={defaultValue ? [defaultValue] : undefined}
         description={tooltip ? undefined : description}
@@ -138,7 +144,7 @@ export function Select({
         isRequired={false}
         label={labelContent}
         labelPlacement={labelPlacement}
-        placeholder={placeholder}
+        placeholder={placeholder || (labelPlacement !== 'inside' ? ' ' : undefined)}
         radius={radius}
         selectedKeys={selectedKeys}
         size={size}
@@ -159,7 +165,7 @@ export function Select({
     <HeroUISelect
       aria-label={ariaLabel}
       className={cn(className)}
-      classNames={classNames}
+      classNames={mergedClassNames}
       color={color}
       defaultSelectedKeys={defaultValue ? [defaultValue] : undefined}
       description={tooltip ? undefined : description}
@@ -170,7 +176,7 @@ export function Select({
       isRequired={false}
       label={labelContent}
       labelPlacement={labelPlacement}
-      placeholder={placeholder}
+      placeholder={placeholder || (labelPlacement !== 'inside' ? ' ' : undefined)}
       radius={radius}
       selectedKeys={resolvedSelectedKeys}
       size={size}

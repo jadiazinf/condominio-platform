@@ -1,6 +1,6 @@
 import type { TMemberRole } from '@packages/domain'
 
-export type TMyManagementCompanyIconName = 'building' | 'users'
+export type TMyManagementCompanyIconName = 'building' | 'users' | 'credit-card'
 
 export interface IMyManagementCompanyMenuItem {
   key: string
@@ -23,6 +23,12 @@ export const MY_MANAGEMENT_COMPANY_MENU_ITEMS: IMyManagementCompanyMenuItem[] = 
     path: '/members',
     iconName: 'users',
     memberRoles: ['admin'],
+  },
+  {
+    key: 'bank-accounts',
+    translationKey: 'admin.company.myCompany.sidebar.bankAccounts',
+    path: '/bank-accounts',
+    iconName: 'credit-card',
   },
 ]
 

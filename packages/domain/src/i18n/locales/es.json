@@ -857,6 +857,90 @@
             "max": "El tipo MIME debe tener como máximo 100 caracteres."
           }
         }
+      },
+      "bankAccounts": {
+        "displayName": {
+          "required": "El nombre de visualización es requerido.",
+          "max": "El nombre de visualización no puede exceder 255 caracteres."
+        },
+        "bankName": {
+          "required": "El nombre del banco es requerido.",
+          "max": "El nombre del banco no puede exceder 255 caracteres."
+        },
+        "accountHolderName": {
+          "required": "El nombre del titular es requerido.",
+          "max": "El nombre del titular no puede exceder 255 caracteres."
+        },
+        "currency": {
+          "required": "La moneda es requerida.",
+          "length": "El código de moneda debe tener exactamente 3 caracteres."
+        },
+        "acceptedPaymentMethods": {
+          "required": "Debe seleccionar al menos un método de pago."
+        },
+        "accountCategory": {
+          "invalid": "La categoría de cuenta no es válida."
+        },
+        "national": {
+          "accountNumber": {
+            "required": "El número de cuenta es requerido.",
+            "length": "El número de cuenta debe tener exactamente 20 dígitos."
+          },
+          "bankCode": {
+            "required": "El código del banco es requerido.",
+            "length": "El código del banco debe tener exactamente 4 dígitos."
+          },
+          "accountType": {
+            "required": "El tipo de cuenta es requerido."
+          },
+          "identityDocType": {
+            "required": "El tipo de documento de identidad es requerido."
+          },
+          "identityDocNumber": {
+            "required": "El número de documento de identidad es requerido."
+          },
+          "phoneNumber": {
+            "requiredForPagoMovil": "El número de teléfono es requerido cuando se selecciona Pago Móvil."
+          }
+        },
+        "international": {
+          "swiftCode": {
+            "required": "El código SWIFT es requerido para transferencias internacionales."
+          },
+          "accountNumber": {
+            "required": "El número de cuenta es requerido para transferencias bancarias."
+          },
+          "routingNumber": {
+            "required": "El número de ruta (routing number) es requerido para ACH.",
+            "length": "El número de ruta debe tener exactamente 9 dígitos."
+          },
+          "accountType": {
+            "required": "El tipo de cuenta es requerido para ACH."
+          },
+          "accountHolderType": {
+            "required": "El tipo de titular es requerido para ACH."
+          },
+          "zelleContact": {
+            "required": "Debe proporcionar un correo electrónico o número de teléfono para Zelle."
+          },
+          "paypalEmail": {
+            "required": "El correo electrónico de PayPal es requerido."
+          },
+          "wiseEmail": {
+            "required": "El correo electrónico de Wise es requerido."
+          },
+          "walletAddress": {
+            "required": "La dirección de la billetera es requerida para criptomonedas."
+          },
+          "cryptoNetwork": {
+            "required": "La red de criptomoneda es requerida."
+          },
+          "cryptoCurrency": {
+            "required": "La criptomoneda es requerida."
+          }
+        },
+        "methodNotSupportedByBank": "El método de pago '{method}' no es soportado por el banco seleccionado.",
+        "bankNotFound": "El banco seleccionado no fue encontrado."
       }
     }
   }

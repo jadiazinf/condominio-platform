@@ -25,6 +25,7 @@ import { eq, and, isNull } from 'drizzle-orm'
 import * as readline from 'readline'
 import * as schema from '../src/database/drizzle/schema'
 import { ESystemRole } from '@packages/domain'
+import { seedBanks } from '../src/database/seeds/banks.seed'
 
 // ============================================================================
 // Configuration
@@ -1071,6 +1072,12 @@ async function seedSupportTickets(
   console.log(`    ${ticketCount} support tickets ready.`)
 }
 
+async function seedBanksCatalog(db: Database): Promise<void> {
+  console.log('\n  Step 13: Seeding banks catalog...')
+  await seedBanks(db as any)
+  console.log('    Banks catalog ready.')
+}
+
 // ============================================================================
 // Main
 // ============================================================================
@@ -1095,6 +1102,7 @@ async function seedDatabase(databaseUrl: string): Promise<void> {
     await seedUnits(db, buildingIds, userIds, superadminId)
     await seedSubscriptionTerms(db, superadminId)
     await seedSupportTickets(db, companyIds, superadminId)
+    await seedBanksCatalog(db)
 
     console.log('\n' + '='.repeat(60))
     console.log('\n  Seed completed successfully!')

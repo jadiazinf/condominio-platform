@@ -330,6 +330,17 @@ export {
   downloadAccountStatement,
   downloadDebtorsReport,
   setReportAuthToken,
+  // Banks & Bank Accounts
+  useBanks,
+  getBanks,
+  bankKeys,
+  useMyCompanyBankAccountsPaginated,
+  useMyCompanyBankAccountDetail,
+  useCreateBankAccount,
+  useDeactivateBankAccount,
+  getMyCompanyBankAccountsPaginated,
+  getMyCompanyBankAccountDetail,
+  bankAccountKeys,
   useQuery,
   useMutation,
   useQueryClient,
@@ -491,6 +502,13 @@ export type {
   ICreateSubscriptionTermsOptions,
   IUpdateSubscriptionTermsOptions,
   IDeactivateSubscriptionTermsOptions,
+  // Banks & Bank Accounts
+  IUseBanksOptions,
+  IUseMyCompanyBankAccountsPaginatedOptions,
+  IUseMyCompanyBankAccountDetailOptions,
+  ICreateBankAccountOptions,
+  IDeactivateBankAccountOptions,
+  IDeactivateBankAccountVariables,
 } from './hooks/index'
 
 // Types

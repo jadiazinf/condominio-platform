@@ -265,3 +265,26 @@ export const accessRequestStatusEnum = pgEnum('access_request_status', [
   'approved',
   'rejected',
 ])
+
+// ============================================================================
+// BANK ACCOUNT ENUMS
+// ============================================================================
+
+export const bankAccountCategoryEnum = pgEnum('bank_account_category', ['national', 'international'])
+
+export const veAccountTypeEnum = pgEnum('ve_account_type', ['corriente', 'ahorro', 'divisas'])
+
+export const bankPaymentMethodEnum = pgEnum('bank_payment_method', [
+  // National (Venezuela)
+  'transfer',
+  'pago_movil',
+  'interbancario',
+  // International
+  'wire_transfer',
+  'ach',
+  'zelle',
+  'paypal',
+  'wise',
+  'crypto',
+  'other',
+])

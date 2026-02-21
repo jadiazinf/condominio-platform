@@ -988,6 +988,90 @@ export const DomainLocaleDictionary = {
           max: 'validation.models.userFcmTokens.deviceName.max',
         },
       },
+      bankAccounts: {
+        displayName: {
+          required: 'validation.models.bankAccounts.displayName.required',
+          max: 'validation.models.bankAccounts.displayName.max',
+        },
+        bankName: {
+          required: 'validation.models.bankAccounts.bankName.required',
+          max: 'validation.models.bankAccounts.bankName.max',
+        },
+        accountHolderName: {
+          required: 'validation.models.bankAccounts.accountHolderName.required',
+          max: 'validation.models.bankAccounts.accountHolderName.max',
+        },
+        currency: {
+          required: 'validation.models.bankAccounts.currency.required',
+          length: 'validation.models.bankAccounts.currency.length',
+        },
+        acceptedPaymentMethods: {
+          required: 'validation.models.bankAccounts.acceptedPaymentMethods.required',
+        },
+        accountCategory: {
+          invalid: 'validation.models.bankAccounts.accountCategory.invalid',
+        },
+        national: {
+          accountNumber: {
+            required: 'validation.models.bankAccounts.national.accountNumber.required',
+            length: 'validation.models.bankAccounts.national.accountNumber.length',
+          },
+          bankCode: {
+            required: 'validation.models.bankAccounts.national.bankCode.required',
+            length: 'validation.models.bankAccounts.national.bankCode.length',
+          },
+          accountType: {
+            required: 'validation.models.bankAccounts.national.accountType.required',
+          },
+          identityDocType: {
+            required: 'validation.models.bankAccounts.national.identityDocType.required',
+          },
+          identityDocNumber: {
+            required: 'validation.models.bankAccounts.national.identityDocNumber.required',
+          },
+          phoneNumber: {
+            requiredForPagoMovil: 'validation.models.bankAccounts.national.phoneNumber.requiredForPagoMovil',
+          },
+        },
+        international: {
+          swiftCode: {
+            required: 'validation.models.bankAccounts.international.swiftCode.required',
+          },
+          accountNumber: {
+            required: 'validation.models.bankAccounts.international.accountNumber.required',
+          },
+          routingNumber: {
+            required: 'validation.models.bankAccounts.international.routingNumber.required',
+            length: 'validation.models.bankAccounts.international.routingNumber.length',
+          },
+          accountType: {
+            required: 'validation.models.bankAccounts.international.accountType.required',
+          },
+          accountHolderType: {
+            required: 'validation.models.bankAccounts.international.accountHolderType.required',
+          },
+          zelleContact: {
+            required: 'validation.models.bankAccounts.international.zelleContact.required',
+          },
+          paypalEmail: {
+            required: 'validation.models.bankAccounts.international.paypalEmail.required',
+          },
+          wiseEmail: {
+            required: 'validation.models.bankAccounts.international.wiseEmail.required',
+          },
+          walletAddress: {
+            required: 'validation.models.bankAccounts.international.walletAddress.required',
+          },
+          cryptoNetwork: {
+            required: 'validation.models.bankAccounts.international.cryptoNetwork.required',
+          },
+          cryptoCurrency: {
+            required: 'validation.models.bankAccounts.international.cryptoCurrency.required',
+          },
+        },
+        methodNotSupportedByBank: 'validation.models.bankAccounts.methodNotSupportedByBank',
+        bankNotFound: 'validation.models.bankAccounts.bankNotFound',
+      },
     },
   },
 }

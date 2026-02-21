@@ -55,6 +55,8 @@ import { AccessCodesEndpoint } from './access-codes.endpoint'
 import { AccessRequestsEndpoint } from './access-requests.endpoint'
 import { MyAccessRequestsEndpoint } from './my-access-requests.endpoint'
 import { MyNotificationsEndpoint } from './my-notifications.endpoint'
+import { BanksEndpoint } from './banks.endpoint'
+import { BankAccountsEndpoint } from './bank-accounts.endpoint'
 
 /**
  * Central class that manages all API routes.
@@ -138,6 +140,10 @@ export class ApiRoutes {
       new AccessCodesEndpoint(db),
       new AccessRequestsEndpoint(db),
       new MyAccessRequestsEndpoint(db),
+
+      // Banks & Bank Accounts
+      new BanksEndpoint(db),
+      new BankAccountsEndpoint(db),
 
       // Subscriptions & Members
       new ManagementCompanySubscriptionsEndpoint(db),

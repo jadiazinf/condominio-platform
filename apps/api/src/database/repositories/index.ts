@@ -102,3 +102,7 @@ export { AmenityReservationsRepository } from './amenity-reservations.repository
 // Access Codes & Requests
 export { CondominiumAccessCodesRepository, type TCondominiumAccessCodeInsert } from './condominium-access-codes.repository'
 export { AccessRequestsRepository, type TAccessRequestInsert } from './access-requests.repository'
+
+// Banks & Bank Accounts
+export { BanksRepository } from './banks.repository'
+export { BankAccountsRepository } from './bank-accounts.repository'

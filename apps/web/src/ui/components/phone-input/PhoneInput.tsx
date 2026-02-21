@@ -28,6 +28,7 @@ interface IPhoneInputProps {
   isRequired?: boolean
   isDisabled?: boolean
   isReadOnly?: boolean
+  isCountryCodeReadOnly?: boolean
   className?: string
 }
 
@@ -47,6 +48,7 @@ export function PhoneInput({
   isRequired = false,
   isDisabled = false,
   isReadOnly = false,
+  isCountryCodeReadOnly = false,
   className,
 }: IPhoneInputProps) {
   const selectedCountryCode = countryCode || DEFAULT_PHONE_COUNTRY_CODE
@@ -92,7 +94,7 @@ export function PhoneInput({
           variant={variant}
           radius={radius}
           size={size}
-          isDisabled={isDisabled || isReadOnly}
+          isDisabled={isDisabled || isReadOnly || isCountryCodeReadOnly}
           isInvalid={!!countryCodeError}
           classNames={{
             trigger: 'min-h-unit-10',

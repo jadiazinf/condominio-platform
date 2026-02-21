@@ -149,3 +149,51 @@ export const paymentConceptsQuerySchema = paginationQuerySchema.extend({
 })
 
 export type TPaymentConceptsQuerySchema = z.infer<typeof paymentConceptsQuerySchema>
+
+/**
+ * Query parameters for bank accounts list with filters
+ */
+export type TBankAccountsQuery = TPaginationQuery & {
+  search?: string
+  accountCategory?: string
+  isActive?: boolean
+  condominiumId?: string
+}
+
+/**
+ * Zod schema for bank accounts query parameters
+ */
+export const bankAccountsQuerySchema = paginationQuerySchema.extend({
+  search: z.string().optional(),
+  accountCategory: z.enum(['national', 'international']).optional(),
+  isActive: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (val === undefined || val === '') return undefined
+      return val === 'true'
+    }),
+  condominiumId: z.string().uuid().optional(),
+})
+
+export type TBankAccountsQuerySchema = z.infer<typeof bankAccountsQuerySchema>
+
+/**
+ * Query parameters for banks catalog list with filters
+ */
+export type TBanksQuery = {
+  country?: string
+  accountCategory?: string
+  search?: string
+}
+
+/**
+ * Zod schema for banks query parameters
+ */
+export const banksQuerySchema = z.object({
+  country: z.string().length(2).optional(),
+  accountCategory: z.enum(['national', 'international']).optional(),
+  search: z.string().optional(),
+})
+
+export type TBanksQuerySchema = z.infer<typeof banksQuerySchema>

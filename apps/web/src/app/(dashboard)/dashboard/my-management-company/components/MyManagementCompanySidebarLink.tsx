@@ -3,12 +3,13 @@
 import { Link } from '@/ui/components/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/ui/utils'
-import { Building, Users } from 'lucide-react'
+import { Building, CreditCard, Users } from 'lucide-react'
 
 import type { TMyManagementCompanyIconName } from '../config/sidebar-items'
 
 const ICONS = {
   building: Building,
+  'credit-card': CreditCard,
   users: Users,
 } as const
 

@@ -285,6 +285,21 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
+    DO $$ BEGIN
+      CREATE TYPE bank_account_category AS ENUM ('national', 'international');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE ve_account_type AS ENUM ('corriente', 'ahorro', 'divisas');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE bank_payment_method AS ENUM ('transfer', 'pago_movil', 'interbancario', 'wire_transfer', 'ach', 'zelle', 'paypal', 'wise', 'crypto', 'other');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
     CREATE TABLE IF NOT EXISTS locations (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(200) NOT NULL,
@@ -1221,6 +1236,53 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       updated_at TIMESTAMP DEFAULT NOW(),
       UNIQUE(user_id, token)
     );
+
+    CREATE TABLE IF NOT EXISTS banks (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(255) NOT NULL,
+      code VARCHAR(20),
+      swift_code VARCHAR(11),
+      country VARCHAR(2) NOT NULL,
+      account_category bank_account_category NOT NULL,
+      supported_payment_methods bank_payment_method[],
+      logo_url TEXT,
+      is_active BOOLEAN DEFAULT true,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS bank_accounts (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      management_company_id UUID NOT NULL REFERENCES management_companies(id) ON DELETE CASCADE,
+      bank_id UUID REFERENCES banks(id) ON DELETE SET NULL,
+      account_category bank_account_category NOT NULL,
+      display_name VARCHAR(255) NOT NULL,
+      bank_name VARCHAR(255) NOT NULL,
+      account_holder_name VARCHAR(255) NOT NULL,
+      currency VARCHAR(3) NOT NULL,
+      account_details JSONB NOT NULL,
+      accepted_payment_methods bank_payment_method[] NOT NULL,
+      applies_to_all_condominiums BOOLEAN DEFAULT false,
+      is_active BOOLEAN DEFAULT true,
+      notes TEXT,
+      created_by UUID NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+      deactivated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      deactivated_at TIMESTAMP,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS bank_account_condominiums (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      bank_account_id UUID NOT NULL REFERENCES bank_accounts(id) ON DELETE CASCADE,
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      assigned_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      assigned_at TIMESTAMP DEFAULT NOW(),
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(bank_account_id, condominium_id)
+    );
   `)
   const elapsed = performance.now() - start
   console.log(`[TestContainer] createSchema took ${elapsed.toFixed(1)}ms`)
@@ -1269,6 +1331,9 @@ export async function cleanDatabase(testDb: TTestDrizzleClient | import('@databa
   // Truncate all tables in one command for better performance
   await testDb.execute(sql`
     TRUNCATE TABLE
+      bank_account_condominiums,
+      bank_accounts,
+      banks,
       access_requests,
       condominium_access_codes,
       user_fcm_tokens,
