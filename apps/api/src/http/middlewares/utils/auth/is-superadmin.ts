@@ -1,11 +1,11 @@
 import type { MiddlewareHandler } from 'hono'
-import { useTranslation } from '@intlify/hono'
 import { and, eq, isNull } from 'drizzle-orm'
 import { HttpContext } from '@http/context'
 import { DatabaseService } from '@database/service'
 import { userRoles, roles } from '@database/drizzle/schema'
 import { AUTHENTICATED_USER_PROP } from './is-user-authenticated'
 import { LocaleDictionary } from '@locales/dictionary'
+import { safeTranslation } from '@locales/safe-translation'
 import { env } from '@src/config/environment'
 
 export const SUPERADMIN_USER_PROP = 'superadminUser'
@@ -29,7 +29,7 @@ declare module 'hono' {
  */
 export const isSuperadmin: MiddlewareHandler = async (c, next) => {
   const ctx = new HttpContext(c)
-  const t = useTranslation(c)
+  const t = safeTranslation(c)
   const user = c.get(AUTHENTICATED_USER_PROP)
 
   if (!user) {

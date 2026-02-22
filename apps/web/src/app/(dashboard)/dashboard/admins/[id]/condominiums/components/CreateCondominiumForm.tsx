@@ -4,7 +4,7 @@ import { FormProvider } from 'react-hook-form'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Progress } from '@/ui/components/progress'
-import { StepIndicator } from '@/ui/components/forms'
+import { Stepper } from '@/ui/components/stepper'
 import { useTranslation } from '@/contexts'
 
 import { useCondominiumForm } from '../hooks/useCondominiumForm'
@@ -83,10 +83,10 @@ export function CreateCondominiumForm({
                 }}
                 value={progressValue}
               />
-              <StepIndicator
+              <Stepper
                 currentStep={currentStep}
                 steps={steps}
-                onStepClick={goToStep}
+                onStepChange={goToStep}
               />
             </div>
 

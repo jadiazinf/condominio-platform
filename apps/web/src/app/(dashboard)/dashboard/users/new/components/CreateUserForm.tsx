@@ -5,7 +5,9 @@ import { MultiStepFormShell } from '@/ui/components/forms'
 
 import { useTranslation } from '@/contexts'
 import { useCreateUserForm } from '../hooks'
-import { StepIndicator } from './StepIndicator'
+import { User, UserCog, Building, Shield, CheckCircle, FileCheck } from 'lucide-react'
+import { Stepper, type IStepItem } from '@/ui/components/stepper'
+import type { TUserFormStep } from '../hooks/useCreateUserForm'
 import { BasicInfoStep } from './BasicInfoStep'
 import { UserTypeSelectionStep } from './UserTypeSelectionStep'
 import { CondominiumSelectionStep } from './CondominiumSelectionStep'
@@ -132,6 +134,21 @@ export function CreateUserForm() {
 
   const currentStepIndex = steps.indexOf(currentStep)
 
+  const STEP_ICONS: Record<TUserFormStep, React.ReactNode> = {
+    basic: <User size={14} />,
+    userType: <UserCog size={14} />,
+    condominium: <Building size={14} />,
+    role: <Shield size={14} />,
+    permissions: <CheckCircle size={14} />,
+    confirmation: <FileCheck size={14} />,
+  }
+
+  const stepItems: IStepItem<TUserFormStep>[] = steps.map((step) => ({
+    key: step,
+    title: t(`superadmin.users.create.steps.${step}`),
+    icon: STEP_ICONS[step],
+  }))
+
   return (
     <FormProvider {...form}>
       <MultiStepFormShell
@@ -149,11 +166,10 @@ export function CreateUserForm() {
         nextButtonText={t('common.next')}
         submitButtonText={t('superadmin.users.create.submit')}
         stepIndicator={
-          <StepIndicator
+          <Stepper
             currentStep={currentStep}
-            steps={steps}
-            canGoToStep={canGoToStep}
-            onStepClick={goToStep}
+            steps={stepItems}
+            onStepChange={goToStep}
           />
         }
       >

@@ -23,6 +23,8 @@ export * from './unit-ownerships'
 
 // Payments
 export * from './payment-concepts'
+export * from './payment-concept-assignments'
+export * from './payment-concept-bank-accounts'
 export * from './interest-configurations'
 export * from './quotas'
 export * from './quota-generation'

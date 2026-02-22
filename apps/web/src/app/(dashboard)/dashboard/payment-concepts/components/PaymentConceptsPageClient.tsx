@@ -10,6 +10,7 @@ import { Input } from '@/ui/components/input'
 import { Spinner } from '@/ui/components/spinner'
 import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
 import { FileText, Plus, Search, X } from 'lucide-react'
 import { useTranslation } from '@/contexts'
 import type { TPaymentConcept, TPaymentConceptsQuery } from '@packages/domain'
@@ -171,7 +172,9 @@ export function PaymentConceptsPageClient({ managementCompanyId }: PaymentConcep
 
   const handleRowClick = useCallback(
     (concept: TConceptRow) => {
-      router.push(`/dashboard/payment-concepts/${concept.id}`)
+      if (concept.condominiumId) {
+        router.push(`/dashboard/condominiums/${concept.condominiumId}/payment-concepts`)
+      }
     },
     [router]
   )
@@ -297,9 +300,23 @@ export function PaymentConceptsPageClient({ managementCompanyId }: PaymentConcep
             {t('admin.paymentConcepts.subtitle')}
           </Typography>
         </div>
-        <Button color="primary" startContent={<Plus size={16} />} isDisabled>
-          {t('admin.paymentConcepts.addConcept')}
-        </Button>
+        {condominiums.length > 0 && (
+          <Dropdown>
+            <DropdownTrigger>
+              <Button color="primary" startContent={<Plus size={16} />}>
+                {t('admin.paymentConcepts.addConcept')}
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu
+              aria-label={t('admin.paymentConcepts.selectCondominium')}
+              onAction={(key) => router.push(`/dashboard/condominiums/${key}/payment-concepts/create`)}
+            >
+              {condominiums.map((c) => (
+                <DropdownItem key={c.id}>{c.name}</DropdownItem>
+              ))}
+            </DropdownMenu>
+          </Dropdown>
+        )}
       </div>
 
       {/* Filters */}

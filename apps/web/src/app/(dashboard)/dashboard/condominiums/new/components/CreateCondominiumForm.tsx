@@ -4,7 +4,7 @@ import { FormProvider } from 'react-hook-form'
 
 import { useTranslation } from '@/contexts'
 import { MultiStepFormShell } from '@/ui/components/forms/MultiStepFormShell'
-import { StepIndicator, type Step } from '@/ui/components/forms/StepIndicator'
+import { Stepper, type IStepItem } from '@/ui/components/stepper'
 
 import { useCreateCondominiumWizard, type TWizardStep } from '../hooks/useCreateCondominiumWizard'
 import { CondominiumInfoStep } from './CondominiumInfoStep'
@@ -23,11 +23,11 @@ export function CreateCondominiumForm({ adminCompanyId, adminCompanyName }: Crea
 
   const wizard = useCreateCondominiumWizard({ adminCompanyId })
 
-  const steps: Step<TWizardStep>[] = [
-    { key: 'condominium', label: t('superadmin.condominiums.wizard.steps.condominiumInfo') },
-    { key: 'buildings', label: t('superadmin.condominiums.wizard.steps.buildings') },
-    { key: 'units', label: t('superadmin.condominiums.wizard.steps.units') },
-    { key: 'review', label: t('superadmin.condominiums.wizard.steps.review') },
+  const steps: IStepItem<TWizardStep>[] = [
+    { key: 'condominium', title: t('superadmin.condominiums.wizard.steps.condominiumInfo') },
+    { key: 'buildings', title: t('superadmin.condominiums.wizard.steps.buildings') },
+    { key: 'units', title: t('superadmin.condominiums.wizard.steps.units') },
+    { key: 'review', title: t('superadmin.condominiums.wizard.steps.review') },
   ]
 
   return (
@@ -48,10 +48,10 @@ export function CreateCondominiumForm({ adminCompanyId, adminCompanyName }: Crea
         isSubmitDisabled={wizard.isSubmitting}
         minHeight="auto"
         stepIndicator={
-          <StepIndicator<TWizardStep>
+          <Stepper<TWizardStep>
             steps={steps}
             currentStep={wizard.currentStep}
-            onStepClick={wizard.goToStep}
+            onStepChange={wizard.goToStep}
           />
         }
       >

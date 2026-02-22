@@ -57,6 +57,9 @@ import { MyAccessRequestsEndpoint } from './my-access-requests.endpoint'
 import { MyNotificationsEndpoint } from './my-notifications.endpoint'
 import { BanksEndpoint } from './banks.endpoint'
 import { BankAccountsEndpoint } from './bank-accounts.endpoint'
+import { McPaymentConceptsEndpoint } from './mc-payment-concepts.endpoint'
+import { MyCurrenciesEndpoint } from './my-currencies.endpoint'
+import { MyExchangeRatesEndpoint } from './my-exchange-rates.endpoint'
 
 /**
  * Central class that manages all API routes.
@@ -77,6 +80,8 @@ export class ApiRoutes {
 
       // Core entities
       new CurrenciesEndpoint(db),
+      new MyCurrenciesEndpoint(db),
+      new MyExchangeRatesEndpoint(db),
       new LocationsEndpoint(db),
 
       // Users and permissions
@@ -144,6 +149,9 @@ export class ApiRoutes {
       // Banks & Bank Accounts
       new BanksEndpoint(db),
       new BankAccountsEndpoint(db),
+
+      // MC Payment Concepts (management company scoped)
+      new McPaymentConceptsEndpoint(db),
 
       // Subscriptions & Members
       new ManagementCompanySubscriptionsEndpoint(db),

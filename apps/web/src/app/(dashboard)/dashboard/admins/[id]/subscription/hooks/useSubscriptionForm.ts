@@ -353,7 +353,7 @@ export function useSubscriptionForm({
   )
 
   const steps = useMemo(
-    () => STEPS.map((step) => ({ key: step, label: t(`superadmin.companies.subscription.form.steps.${step}`) })),
+    () => STEPS.map((step) => ({ key: step, title: t(`superadmin.companies.subscription.form.steps.${step}`) })),
     [t]
   )
 

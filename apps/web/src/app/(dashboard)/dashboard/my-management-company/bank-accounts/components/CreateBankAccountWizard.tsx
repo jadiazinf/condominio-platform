@@ -10,7 +10,7 @@ import {
 } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Typography } from '@/ui/components/typography'
-import { StepIndicator, type Step } from '@/ui/components/forms'
+import { Stepper, type IStepItem } from '@/ui/components/stepper'
 import { useTranslation } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
 import { useCreateBankAccount, bankAccountKeys, useQueryClient, HttpError, isApiValidationError } from '@packages/http-client'
@@ -39,6 +39,7 @@ export interface IWizardFormData {
   phoneCountryCode?: string
   phoneNumber?: string
   currency: string
+  currencyId?: string
   acceptedPaymentMethods: string[]
   // Step 2 - International
   internationalSubType?: TInternationalSubType
@@ -124,6 +125,7 @@ export function CreateBankAccountWizard({
         updateFormData({
           accountCategory: category,
           currency: category === 'national' ? 'VES' : 'USD',
+          currencyId: undefined,
           acceptedPaymentMethods: [],
           bankName: '',
           bankId: undefined,
@@ -184,6 +186,7 @@ export function CreateBankAccountWizard({
         bankName: formData.bankName,
         accountHolderName: formData.accountHolderName,
         currency: formData.currency,
+        currencyId: formData.currencyId,
         accountDetails,
         acceptedPaymentMethods: formData.acceptedPaymentMethods as any,
         appliesToAllCondominiums: formData.appliesToAllCondominiums,
@@ -213,11 +216,11 @@ export function CreateBankAccountWizard({
     }
   }, [formData, createBankAccount, queryClient, handleClose])
 
-  const wizardSteps: Step<(typeof STEPS)[number]>[] = [
-    { key: 'step1', label: t('admin.company.myCompany.bankAccounts.wizard.step1') },
-    { key: 'step2', label: t('admin.company.myCompany.bankAccounts.wizard.step2') },
-    { key: 'step3', label: t('admin.company.myCompany.bankAccounts.wizard.step3') },
-    { key: 'step4', label: t('admin.company.myCompany.bankAccounts.wizard.step4') },
+  const wizardSteps: IStepItem<(typeof STEPS)[number]>[] = [
+    { key: 'step1', title: t('admin.company.myCompany.bankAccounts.wizard.step1') },
+    { key: 'step2', title: t('admin.company.myCompany.bankAccounts.wizard.step2') },
+    { key: 'step3', title: t('admin.company.myCompany.bankAccounts.wizard.step3') },
+    { key: 'step4', title: t('admin.company.myCompany.bankAccounts.wizard.step4') },
   ]
 
   const renderStepContent = () => {
@@ -306,10 +309,11 @@ export function CreateBankAccountWizard({
           <Typography variant="h4">
             {t('admin.company.myCompany.bankAccounts.wizard.title')}
           </Typography>
-          <StepIndicator
+          <Stepper
             steps={wizardSteps}
             currentStep={STEPS[currentStep]!}
-            onStepClick={(stepKey) => {
+            color="success"
+            onStepChange={(stepKey) => {
               const stepIndex = STEPS.indexOf(stepKey)
               if (stepIndex >= 0 && stepIndex <= currentStep) {
                 setShowErrors(false)

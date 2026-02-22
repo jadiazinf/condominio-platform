@@ -274,6 +274,20 @@ export const bankAccountCategoryEnum = pgEnum('bank_account_category', ['nationa
 
 export const veAccountTypeEnum = pgEnum('ve_account_type', ['corriente', 'ahorro', 'divisas'])
 
+// ============================================================================
+// PAYMENT CONCEPT ASSIGNMENT ENUMS
+// ============================================================================
+
+export const assignmentScopeEnum = pgEnum('assignment_scope', ['condominium', 'building', 'unit'])
+
+export const distributionMethodEnum = pgEnum('distribution_method', [
+  'by_aliquot',
+  'equal_split',
+  'fixed_per_unit',
+])
+
+export const chargeAdjustmentTypeEnum = pgEnum('charge_adjustment_type', ['percentage', 'fixed', 'none'])
+
 export const bankPaymentMethodEnum = pgEnum('bank_payment_method', [
   // National (Venezuela)
   'transfer',

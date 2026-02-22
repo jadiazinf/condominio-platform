@@ -3,7 +3,7 @@ import { getHttpClient } from '@packages/http-client'
 import type { TApiDataResponse } from '@packages/http-client'
 
 import { getTranslations } from '@/libs/i18n/server'
-import { getServerAuthToken } from '@/libs/session'
+import { getServerAuthToken, getFullSession } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
 import { QuotasTable } from './components/QuotasTable'
 
@@ -11,24 +11,30 @@ interface PageProps {
   params: Promise<{ id: string }>
 }
 
-async function getQuotasForCondominium(token: string, condominiumId: string): Promise<TQuota[]> {
+async function getQuotasForCondominium(token: string, condominiumId: string, managementCompanyId?: string): Promise<TQuota[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TQuota[]>>('/condominium/quotas', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'x-condominium-id': condominiumId,
-    },
-  })
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    'x-condominium-id': condominiumId,
+  }
+  if (managementCompanyId) {
+    headers['x-management-company-id'] = managementCompanyId
+  }
+  const response = await client.get<TApiDataResponse<TQuota[]>>('/condominium/quotas', { headers })
   return response.data.data
 }
 
 export default async function CondominiumQuotasPage({ params }: PageProps) {
   const { id } = await params
-  const [{ t }, token] = await Promise.all([getTranslations(), getServerAuthToken()])
+  const [{ t }, token, session] = await Promise.all([getTranslations(), getServerAuthToken(), getFullSession()])
+
+  const managementCompanyId = session?.activeRole === 'management_company'
+    ? session.managementCompanies?.[0]?.managementCompanyId ?? ''
+    : ''
 
   let quotas: TQuota[] = []
   try {
-    quotas = await getQuotasForCondominium(token, id)
+    quotas = await getQuotasForCondominium(token, id, managementCompanyId)
   } catch (error) {
     console.error('Failed to fetch quotas:', error)
   }

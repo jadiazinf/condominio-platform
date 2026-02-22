@@ -1,6 +1,6 @@
-import { and, eq } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 import type { TUnit, TUnitCreate, TUnitUpdate } from '@packages/domain'
-import { units } from '@database/drizzle/schema'
+import { units, buildings } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -108,6 +108,26 @@ export class UnitsRepository
     }
 
     return this.mapToEntity(results[0])
+  }
+
+  /**
+   * Retrieves all units belonging to a condominium (via buildings).
+   */
+  async getByCondominiumId(condominiumId: string): Promise<TUnit[]> {
+    const buildingIds = await this.db
+      .select({ id: buildings.id })
+      .from(buildings)
+      .where(eq(buildings.condominiumId, condominiumId))
+
+    if (buildingIds.length === 0) return []
+
+    const ids = buildingIds.map(b => b.id)
+    const results = await this.db
+      .select()
+      .from(units)
+      .where(inArray(units.buildingId, ids))
+
+    return results.map(record => this.mapToEntity(record))
   }
 
   /**

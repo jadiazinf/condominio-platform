@@ -7,7 +7,7 @@ import { Select, type ISelectItem } from '@/ui/components/select'
 import { PhoneInput } from '@/ui/components/phone-input'
 import { Checkbox } from '@/ui/components/checkbox'
 import { useTranslation } from '@/contexts'
-import { useBanks } from '@packages/http-client'
+import { useBanks, useActiveCurrencies } from '@packages/http-client'
 import {
   CRYPTO_NETWORKS,
   CRYPTO_CURRENCIES,
@@ -95,13 +95,13 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
     [formData.acceptedPaymentMethods, onUpdate]
   )
 
+  // Fetch currencies from API
+  const { data: currenciesData } = useActiveCurrencies()
+  const currencies = currenciesData?.data ?? []
+
   const currencyItems: ISelectItem[] = useMemo(
-    () => [
-      { key: 'USD', label: t(`${W_PREFIX}.currencyUSD`) },
-      { key: 'EUR', label: t(`${W_PREFIX}.currencyEUR`) },
-      { key: 'GBP', label: t(`${W_PREFIX}.currencyGBP`) },
-    ],
-    [t]
+    () => currencies.map(c => ({ key: c.id, label: `${c.name} (${c.symbol})` })),
+    [currencies]
   )
 
   const cryptoNetworkItems: ISelectItem[] = useMemo(
@@ -220,10 +220,17 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
         aria-label={t(`${W_PREFIX}.currency`)}
         label={t(`${W_PREFIX}.currency`)}
         items={currencyItems}
-        value={formData.currency}
-        onChange={v => onUpdate({ currency: v ?? 'USD' })}
+        value={formData.currencyId ?? ''}
+        onChange={v => {
+          const selected = currencies.find(c => c.id === v)
+          if (selected) {
+            onUpdate({ currencyId: selected.id, currency: selected.code })
+          }
+        }}
         placeholder={t(`${W_PREFIX}.selectOption`)}
         isRequired
+        isInvalid={showErrors && !formData.currencyId}
+        errorMessage={showErrors && !formData.currencyId ? t(`${V_PREFIX}.currencyRequired`) : undefined}
       />
 
       {/* Account Number + Routing (shared by Wire & ACH) */}

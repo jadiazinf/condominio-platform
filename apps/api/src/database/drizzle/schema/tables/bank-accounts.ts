@@ -1,6 +1,7 @@
 import { pgTable, uuid, varchar, text, boolean, timestamp, jsonb, index } from 'drizzle-orm/pg-core'
 import { managementCompanies } from './management-companies'
 import { banks } from './banks'
+import { currencies } from './currencies'
 import { users } from './users'
 import { bankAccountCategoryEnum, bankPaymentMethodEnum } from '../enums'
 
@@ -23,6 +24,7 @@ export const bankAccounts = pgTable(
     bankName: varchar('bank_name', { length: 255 }).notNull(),
     accountHolderName: varchar('account_holder_name', { length: 255 }).notNull(),
     currency: varchar('currency', { length: 3 }).notNull(),
+    currencyId: uuid('currency_id').references(() => currencies.id, { onDelete: 'restrict' }),
     accountDetails: jsonb('account_details').notNull(),
     acceptedPaymentMethods: bankPaymentMethodEnum('accepted_payment_methods')
       .array()
@@ -47,5 +49,6 @@ export const bankAccounts = pgTable(
     index('idx_bank_accounts_category').on(table.accountCategory),
     index('idx_bank_accounts_active').on(table.isActive),
     index('idx_bank_accounts_created_by').on(table.createdBy),
+    index('idx_bank_accounts_currency_id').on(table.currencyId),
   ]
 )

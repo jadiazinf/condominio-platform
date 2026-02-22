@@ -300,6 +300,21 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
+    DO $$ BEGIN
+      CREATE TYPE assignment_scope AS ENUM ('condominium', 'building', 'unit');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE distribution_method AS ENUM ('by_aliquot', 'equal_split', 'fixed_per_unit');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE charge_adjustment_type AS ENUM ('percentage', 'fixed', 'none');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
     CREATE TABLE IF NOT EXISTS locations (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(200) NOT NULL,
@@ -528,12 +543,39 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       is_recurring BOOLEAN DEFAULT true,
       recurrence_period VARCHAR(50),
       currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
+      allows_partial_payment BOOLEAN DEFAULT true,
+      late_payment_type charge_adjustment_type DEFAULT 'none',
+      late_payment_value DECIMAL(10,4),
+      late_payment_grace_days INTEGER DEFAULT 0,
+      early_payment_type charge_adjustment_type DEFAULT 'none',
+      early_payment_value DECIMAL(10,4),
+      early_payment_days_before_due INTEGER DEFAULT 0,
+      issue_day INTEGER,
+      due_day INTEGER,
       is_active BOOLEAN DEFAULT true,
       metadata JSONB,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
     );
+
+    CREATE TABLE IF NOT EXISTS payment_concept_assignments (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      payment_concept_id UUID NOT NULL REFERENCES payment_concepts(id) ON DELETE CASCADE,
+      scope_type assignment_scope NOT NULL,
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
+      unit_id UUID REFERENCES units(id) ON DELETE CASCADE,
+      distribution_method distribution_method NOT NULL,
+      amount DECIMAL(15,2) NOT NULL,
+      is_active BOOLEAN DEFAULT true,
+      assigned_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_pca_unique_assignment
+      ON payment_concept_assignments (payment_concept_id, scope_type, COALESCE(building_id, '00000000-0000-0000-0000-000000000000'), COALESCE(unit_id, '00000000-0000-0000-0000-000000000000'));
 
     CREATE TABLE IF NOT EXISTS interest_configurations (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1261,6 +1303,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       bank_name VARCHAR(255) NOT NULL,
       account_holder_name VARCHAR(255) NOT NULL,
       currency VARCHAR(3) NOT NULL,
+      currency_id UUID REFERENCES currencies(id) ON DELETE RESTRICT,
       account_details JSONB NOT NULL,
       accepted_payment_methods bank_payment_method[] NOT NULL,
       applies_to_all_condominiums BOOLEAN DEFAULT false,
@@ -1282,6 +1325,15 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       assigned_at TIMESTAMP DEFAULT NOW(),
       created_at TIMESTAMP DEFAULT NOW(),
       UNIQUE(bank_account_id, condominium_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS payment_concept_bank_accounts (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      payment_concept_id UUID NOT NULL REFERENCES payment_concepts(id) ON DELETE CASCADE,
+      bank_account_id UUID NOT NULL REFERENCES bank_accounts(id) ON DELETE CASCADE,
+      assigned_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(payment_concept_id, bank_account_id)
     );
   `)
   const elapsed = performance.now() - start
@@ -1370,6 +1422,8 @@ export async function cleanDatabase(testDb: TTestDrizzleClient | import('@databa
       quota_adjustments,
       quotas,
       interest_configurations,
+      payment_concept_bank_accounts,
+      payment_concept_assignments,
       payment_concepts,
       unit_ownerships,
       units,

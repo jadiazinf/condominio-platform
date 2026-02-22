@@ -18,6 +18,15 @@ export class PaymentConceptFactory {
       isRecurring: true,
       recurrencePeriod: 'monthly',
       currencyId: faker.string.uuid(),
+      allowsPartialPayment: true,
+      latePaymentType: 'none',
+      latePaymentValue: null,
+      latePaymentGraceDays: 0,
+      earlyPaymentType: 'none',
+      earlyPaymentValue: null,
+      earlyPaymentDaysBeforeDue: 0,
+      issueDay: 1,
+      dueDay: 15,
       isActive: true,
       metadata: null,
       createdBy: null,
@@ -60,6 +69,8 @@ export class PaymentConceptFactory {
       conceptType: 'extraordinary',
       isRecurring: false,
       recurrencePeriod: null,
+      issueDay: null,
+      dueDay: null,
       ...overrides,
     })
   }
@@ -73,6 +84,8 @@ export class PaymentConceptFactory {
       conceptType: 'fine',
       isRecurring: false,
       recurrencePeriod: null,
+      issueDay: null,
+      dueDay: null,
       ...overrides,
     })
   }

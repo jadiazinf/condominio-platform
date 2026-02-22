@@ -80,6 +80,12 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
       { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT)] },
       {
         method: 'get',
+        path: '/by-condominium',
+        handler: this.getByCondominiumId,
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT)],
+      },
+      {
+        method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
         middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT), paramsValidator(BuildingIdParamSchema)],
@@ -149,6 +155,14 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
+
+  private getByCondominiumId = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const repo = this.repository as UnitsRepository
+    const units = await repo.getByCondominiumId(condominiumId)
+    return ctx.ok({ data: units })
+  }
 
   private bulkCreate = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<z.infer<typeof unitBulkCreateSchema>>(c)

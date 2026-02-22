@@ -1,5 +1,4 @@
 import type { MiddlewareHandler } from 'hono'
-import { useTranslation } from '@intlify/hono'
 import { admin } from '@libs/firebase/config'
 import type { TUser } from '@packages/domain'
 import { ApiErrorCodes } from '@packages/http-client'
@@ -7,6 +6,7 @@ import { HttpContext } from '@http/context'
 import { DatabaseService } from '@database/service'
 import { UsersRepository } from '@database/repositories/users.repository'
 import { LocaleDictionary } from '@locales/dictionary'
+import { safeTranslation } from '@locales/safe-translation'
 import { env } from '@config/environment'
 
 export const AUTHENTICATED_USER_PROP = 'user'
@@ -71,7 +71,7 @@ export async function isUserAuthenticated(
   }
 
   const ctx = new HttpContext(c)
-  const t = useTranslation(c)
+  const t = safeTranslation(c)
   const authHeader = c.req.header('Authorization')
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

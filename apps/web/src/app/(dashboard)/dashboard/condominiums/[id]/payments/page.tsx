@@ -3,7 +3,7 @@ import { getHttpClient } from '@packages/http-client'
 import type { TApiDataResponse } from '@packages/http-client'
 
 import { getTranslations } from '@/libs/i18n/server'
-import { getServerAuthToken } from '@/libs/session'
+import { getServerAuthToken, getFullSession } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
 import { PaymentsTable } from './components/PaymentsTable'
 
@@ -11,24 +11,30 @@ interface PageProps {
   params: Promise<{ id: string }>
 }
 
-async function getPaymentsForCondominium(token: string, condominiumId: string): Promise<TPayment[]> {
+async function getPaymentsForCondominium(token: string, condominiumId: string, managementCompanyId?: string): Promise<TPayment[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TPayment[]>>('/condominium/payments', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'x-condominium-id': condominiumId,
-    },
-  })
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    'x-condominium-id': condominiumId,
+  }
+  if (managementCompanyId) {
+    headers['x-management-company-id'] = managementCompanyId
+  }
+  const response = await client.get<TApiDataResponse<TPayment[]>>('/condominium/payments', { headers })
   return response.data.data
 }
 
 export default async function CondominiumPaymentsPage({ params }: PageProps) {
   const { id } = await params
-  const [{ t }, token] = await Promise.all([getTranslations(), getServerAuthToken()])
+  const [{ t }, token, session] = await Promise.all([getTranslations(), getServerAuthToken(), getFullSession()])
+
+  const managementCompanyId = session?.activeRole === 'management_company'
+    ? session.managementCompanies?.[0]?.managementCompanyId ?? ''
+    : ''
 
   let payments: TPayment[] = []
   try {
-    payments = await getPaymentsForCondominium(token, id)
+    payments = await getPaymentsForCondominium(token, id, managementCompanyId)
   } catch (error) {
     console.error('Failed to fetch payments:', error)
   }

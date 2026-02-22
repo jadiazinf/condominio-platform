@@ -209,7 +209,7 @@ export function useCondominiumForm({
     () =>
       STEPS.map(step => ({
         key: step,
-        label: t(`condominiums.form.steps.${step}`),
+        title: t(`condominiums.form.steps.${step}`),
       })),
     [t]
   )

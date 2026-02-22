@@ -106,3 +106,7 @@ export { AccessRequestsRepository, type TAccessRequestInsert } from './access-re
 // Banks & Bank Accounts
 export { BanksRepository } from './banks.repository'
 export { BankAccountsRepository } from './bank-accounts.repository'
+
+// Payment Concept Extensions
+export { PaymentConceptAssignmentsRepository } from './payment-concept-assignments.repository'
+export { PaymentConceptBankAccountsRepository } from './payment-concept-bank-accounts.repository'

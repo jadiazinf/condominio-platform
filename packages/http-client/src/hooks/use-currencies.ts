@@ -58,6 +58,19 @@ export function useCurrencies(options?: IUseCurrenciesOptions) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Hooks - List Active Currencies (any authenticated user)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useActiveCurrencies(options?: IUseCurrenciesOptions) {
+  return useApiQuery<TApiDataResponse<TCurrency[]>>({
+    path: '/me/currencies',
+    queryKey: [...currencyKeys.all, 'active'] as const,
+    config: {},
+    enabled: options?.enabled !== false,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Hooks - Get Currency by ID
 // ─────────────────────────────────────────────────────────────────────────────
 

@@ -18,6 +18,7 @@ const TYPE_COLORS = {
 
 interface PaymentConceptsTableProps {
   paymentConcepts: TPaymentConcept[]
+  onRowClick?: (concept: TPaymentConcept) => void
   translations: {
     title: string
     subtitle: string
@@ -51,7 +52,7 @@ interface PaymentConceptsTableProps {
   }
 }
 
-export function PaymentConceptsTable({ paymentConcepts, translations: t }: PaymentConceptsTableProps) {
+export function PaymentConceptsTable({ paymentConcepts, onRowClick, translations: t }: PaymentConceptsTableProps) {
   const columns: ITableColumn<TPaymentConcept>[] = useMemo(
     () => [
       { key: 'name', label: t.table.name },
@@ -139,7 +140,12 @@ export function PaymentConceptsTable({ paymentConcepts, translations: t }: Payme
       {/* Mobile Cards */}
       <div className="block space-y-3 md:hidden">
         {paymentConcepts.map(concept => (
-          <Card key={concept.id} className="w-full">
+          <Card
+            key={concept.id}
+            className={`w-full${onRowClick ? ' cursor-pointer hover:bg-default-100 transition-colors' : ''}`}
+            isPressable={!!onRowClick}
+            onPress={() => onRowClick?.(concept)}
+          >
             <CardBody className="space-y-2">
               <div className="flex items-start justify-between">
                 <div>
@@ -182,6 +188,8 @@ export function PaymentConceptsTable({ paymentConcepts, translations: t }: Payme
           columns={columns}
           rows={paymentConcepts}
           renderCell={renderCell}
+          onRowClick={onRowClick}
+          classNames={onRowClick ? { tr: 'cursor-pointer hover:bg-default-100 transition-colors' } : undefined}
         />
       </div>
     </div>

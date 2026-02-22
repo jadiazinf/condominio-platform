@@ -160,6 +160,19 @@ export function useDeleteExchangeRate(options?: IDeleteExchangeRateOptions) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Hooks - Latest Rates (Any Authenticated User)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useMyLatestExchangeRates(options?: { enabled?: boolean }) {
+  return useApiQuery<TApiDataResponse<TExchangeRate[]>>({
+    path: '/me/exchange-rates/latest',
+    queryKey: [...exchangeRateKeys.all, 'my-latest'] as const,
+    config: {},
+    enabled: options?.enabled !== false,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Standalone Functions
 // ─────────────────────────────────────────────────────────────────────────────
 

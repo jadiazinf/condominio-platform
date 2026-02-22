@@ -3,41 +3,46 @@ import { getHttpClient } from '@packages/http-client'
 import type { TApiDataResponse } from '@packages/http-client'
 
 import { getTranslations } from '@/libs/i18n/server'
-import { getServerAuthToken } from '@/libs/session'
-import { Typography } from '@/ui/components/typography'
-import { PaymentConceptsTable } from './components/PaymentConceptsTable'
+import { getServerAuthToken, getFullSession } from '@/libs/session'
+import { PaymentConceptsPageClient } from './components/PaymentConceptsPageClient'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
-async function getPaymentConceptsForCondominium(token: string, condominiumId: string): Promise<TPaymentConcept[]> {
+async function getPaymentConceptsForCondominium(
+  token: string,
+  condominiumId: string,
+  managementCompanyId?: string,
+): Promise<TPaymentConcept[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TPaymentConcept[]>>('/condominium/payment-concepts', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'x-condominium-id': condominiumId,
-    },
-  })
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    'x-condominium-id': condominiumId,
+  }
+  if (managementCompanyId) {
+    headers['x-management-company-id'] = managementCompanyId
+  }
+  const response = await client.get<TApiDataResponse<TPaymentConcept[]>>('/condominium/payment-concepts', { headers })
   return response.data.data
 }
 
 export default async function CondominiumPaymentConceptsPage({ params }: PageProps) {
   const { id } = await params
-  const [{ t }, token] = await Promise.all([getTranslations(), getServerAuthToken()])
+  const [{ t }, token, session] = await Promise.all([getTranslations(), getServerAuthToken(), getFullSession()])
 
-  let paymentConcepts: TPaymentConcept[] = []
-  try {
-    paymentConcepts = await getPaymentConceptsForCondominium(token, id)
-  } catch (error) {
-    console.error('Failed to fetch payment concepts:', error)
-  }
+  const managementCompanyId = session?.activeRole === 'management_company'
+    ? session.managementCompanies?.[0]?.managementCompanyId ?? ''
+    : ''
+
+  const paymentConcepts = await getPaymentConceptsForCondominium(token, id, managementCompanyId).catch(() => [] as TPaymentConcept[])
 
   const translations = {
     title: t('admin.condominiums.detail.paymentConcepts.title'),
     subtitle: t('admin.condominiums.detail.paymentConcepts.subtitle'),
     empty: t('admin.condominiums.detail.paymentConcepts.empty'),
     emptyDescription: t('admin.condominiums.detail.paymentConcepts.emptyDescription'),
+    addConcept: t('admin.condominiums.detail.paymentConcepts.addConcept'),
     table: {
       name: t('admin.condominiums.detail.paymentConcepts.table.name'),
       type: t('admin.condominiums.detail.paymentConcepts.table.type'),
@@ -66,15 +71,11 @@ export default async function CondominiumPaymentConceptsPage({ params }: PagePro
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Typography variant="h3">{translations.title}</Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
-          {translations.subtitle}
-        </Typography>
-      </div>
-
-      <PaymentConceptsTable paymentConcepts={paymentConcepts} translations={translations} />
-    </div>
+    <PaymentConceptsPageClient
+      condominiumId={id}
+      managementCompanyId={managementCompanyId}
+      paymentConcepts={paymentConcepts}
+      translations={translations}
+    />
   )
 }

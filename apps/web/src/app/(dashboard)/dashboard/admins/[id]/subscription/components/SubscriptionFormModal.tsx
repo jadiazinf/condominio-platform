@@ -7,7 +7,8 @@ import { Progress } from '@/ui/components/progress'
 import { useTranslation } from '@/contexts'
 
 import { useSubscriptionForm } from '../hooks'
-import { BasicStepForm, LimitsStepForm, PricingStepForm, ConfirmationStep, StepIndicator } from './steps'
+import { Stepper } from '@/ui/components/stepper'
+import { BasicStepForm, LimitsStepForm, PricingStepForm, ConfirmationStep } from './steps'
 import { ReplaceSubscriptionModal } from './ReplaceSubscriptionModal'
 
 interface SubscriptionFormModalProps {
@@ -107,10 +108,11 @@ export function SubscriptionFormModal({
                   }}
                   value={progressValue}
                 />
-                <StepIndicator
+                <Stepper
                   currentStep={currentStep}
                   steps={steps}
-                  onStepClick={goToStep}
+                  color="success"
+                  onStepChange={goToStep}
                 />
               </div>
 

@@ -9,6 +9,7 @@ import { getHttpClient } from '../client'
 export const unitsKeys = {
   all: ['units'] as const,
   list: (buildingId: string) => [...unitsKeys.all, 'list', buildingId] as const,
+  byCondominium: (condominiumId: string) => [...unitsKeys.all, 'condominium', condominiumId] as const,
   detail: (id: string) => [...unitsKeys.all, 'detail', id] as const,
 }
 
@@ -37,6 +38,33 @@ export function useBuildingUnits(options: UseBuildingUnitsOptions) {
       },
     },
     enabled,
+  })
+}
+
+export interface UseCondominiumUnitsOptions {
+  condominiumId: string
+  managementCompanyId?: string
+  enabled?: boolean
+}
+
+/**
+ * Hook to get all units for a condominium (across all buildings).
+ */
+export function useCondominiumUnits(options: UseCondominiumUnitsOptions) {
+  const { condominiumId, managementCompanyId, enabled = true } = options
+
+  const headers: Record<string, string> = {
+    'x-condominium-id': condominiumId,
+  }
+  if (managementCompanyId) {
+    headers['x-management-company-id'] = managementCompanyId
+  }
+
+  return useApiQuery<TApiDataResponse<TUnit[]>>({
+    path: '/condominium/units/by-condominium',
+    queryKey: unitsKeys.byCondominium(condominiumId),
+    enabled: enabled && !!condominiumId,
+    config: { headers },
   })
 }
 

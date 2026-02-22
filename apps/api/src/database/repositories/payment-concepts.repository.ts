@@ -42,6 +42,15 @@ export class PaymentConceptsRepository
       isRecurring: r.isRecurring ?? true,
       recurrencePeriod: r.recurrencePeriod as TPaymentConcept['recurrencePeriod'],
       currencyId: r.currencyId,
+      allowsPartialPayment: r.allowsPartialPayment ?? true,
+      latePaymentType: (r.latePaymentType as TPaymentConcept['latePaymentType']) ?? 'none',
+      latePaymentValue: r.latePaymentValue ? Number(r.latePaymentValue) : null,
+      latePaymentGraceDays: r.latePaymentGraceDays ?? 0,
+      earlyPaymentType: (r.earlyPaymentType as TPaymentConcept['earlyPaymentType']) ?? 'none',
+      earlyPaymentValue: r.earlyPaymentValue ? Number(r.earlyPaymentValue) : null,
+      earlyPaymentDaysBeforeDue: r.earlyPaymentDaysBeforeDue ?? 0,
+      issueDay: r.issueDay,
+      dueDay: r.dueDay,
       isActive: r.isActive ?? true,
       metadata: r.metadata as Record<string, unknown> | null,
       createdBy: r.createdBy,
@@ -60,6 +69,15 @@ export class PaymentConceptsRepository
       isRecurring: dto.isRecurring,
       recurrencePeriod: dto.recurrencePeriod,
       currencyId: dto.currencyId,
+      allowsPartialPayment: dto.allowsPartialPayment,
+      latePaymentType: dto.latePaymentType,
+      latePaymentValue: dto.latePaymentValue?.toString(),
+      latePaymentGraceDays: dto.latePaymentGraceDays,
+      earlyPaymentType: dto.earlyPaymentType,
+      earlyPaymentValue: dto.earlyPaymentValue?.toString(),
+      earlyPaymentDaysBeforeDue: dto.earlyPaymentDaysBeforeDue,
+      issueDay: dto.issueDay,
+      dueDay: dto.dueDay,
       isActive: dto.isActive,
       metadata: dto.metadata,
       createdBy: dto.createdBy,
@@ -77,6 +95,15 @@ export class PaymentConceptsRepository
     if (dto.isRecurring !== undefined) values.isRecurring = dto.isRecurring
     if (dto.recurrencePeriod !== undefined) values.recurrencePeriod = dto.recurrencePeriod
     if (dto.currencyId !== undefined) values.currencyId = dto.currencyId
+    if (dto.allowsPartialPayment !== undefined) values.allowsPartialPayment = dto.allowsPartialPayment
+    if (dto.latePaymentType !== undefined) values.latePaymentType = dto.latePaymentType
+    if (dto.latePaymentValue !== undefined) values.latePaymentValue = dto.latePaymentValue?.toString()
+    if (dto.latePaymentGraceDays !== undefined) values.latePaymentGraceDays = dto.latePaymentGraceDays
+    if (dto.earlyPaymentType !== undefined) values.earlyPaymentType = dto.earlyPaymentType
+    if (dto.earlyPaymentValue !== undefined) values.earlyPaymentValue = dto.earlyPaymentValue?.toString()
+    if (dto.earlyPaymentDaysBeforeDue !== undefined) values.earlyPaymentDaysBeforeDue = dto.earlyPaymentDaysBeforeDue
+    if (dto.issueDay !== undefined) values.issueDay = dto.issueDay
+    if (dto.dueDay !== undefined) values.dueDay = dto.dueDay
     if (dto.isActive !== undefined) values.isActive = dto.isActive
     if (dto.metadata !== undefined) values.metadata = dto.metadata
     if (dto.createdBy !== undefined) values.createdBy = dto.createdBy

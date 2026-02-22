@@ -23,6 +23,7 @@ function createTestBankAccount(overrides: Partial<TBankAccount> = {}): TBankAcco
     bankName: 'Banesco',
     accountHolderName: 'Empresa Test C.A.',
     currency: 'VES',
+    currencyId: null,
     accountDetails: {
       accountNumber: '01340100011234567890',
       bankCode: '0134',

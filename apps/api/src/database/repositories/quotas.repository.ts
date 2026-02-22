@@ -181,6 +181,43 @@ export class QuotasRepository
   }
 
   /**
+   * Checks if quotas already exist for a payment concept and period.
+   */
+  async existsForConceptAndPeriod(
+    conceptId: string,
+    year: number,
+    month: number
+  ): Promise<boolean> {
+    const results = await this.db
+      .select({ id: quotas.id })
+      .from(quotas)
+      .where(
+        and(
+          eq(quotas.paymentConceptId, conceptId),
+          eq(quotas.periodYear, year),
+          eq(quotas.periodMonth, month)
+        )
+      )
+      .limit(1)
+
+    return results.length > 0
+  }
+
+  /**
+   * Creates multiple quotas in batch.
+   */
+  async createMany(records: Record<string, unknown>[]): Promise<{ id: string }[]> {
+    if (records.length === 0) return []
+
+    const results = await this.db
+      .insert(quotas)
+      .values(records as (typeof quotas.$inferInsert)[])
+      .returning()
+
+    return results.map(r => ({ id: r.id }))
+  }
+
+  /**
    * Retrieves quotas for a period.
    */
   async getByPeriod(year: number, month?: number): Promise<TQuota[]> {

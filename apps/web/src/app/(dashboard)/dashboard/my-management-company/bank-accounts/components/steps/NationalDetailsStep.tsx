@@ -7,7 +7,7 @@ import { Autocomplete, type IAutocompleteItem } from '@/ui/components/autocomple
 import { Checkbox } from '@/ui/components/checkbox'
 import { PhoneInput } from '@/ui/components/phone-input'
 import { useTranslation } from '@/contexts'
-import { useBanks } from '@packages/http-client'
+import { useBanks, useActiveCurrencies } from '@packages/http-client'
 import { VE_ACCOUNT_TYPES, VE_IDENTITY_DOC_TYPES, NATIONAL_PAYMENT_METHODS, PAYMENT_METHOD_LABELS } from '@packages/domain'
 import type { IWizardFormData } from '../CreateBankAccountWizard'
 
@@ -52,12 +52,13 @@ export function NationalDetailsStep({ formData, onUpdate, showErrors }: National
     []
   )
 
+  // Fetch currencies from API
+  const { data: currenciesData } = useActiveCurrencies()
+  const currencies = currenciesData?.data ?? []
+
   const currencyItems: ISelectItem[] = useMemo(
-    () => [
-      { key: 'VES', label: t('admin.company.myCompany.bankAccounts.wizard.currencyVES') },
-      { key: 'USD', label: t('admin.company.myCompany.bankAccounts.wizard.currencyUSD') },
-    ],
-    [t]
+    () => currencies.map(c => ({ key: c.id, label: `${c.name} (${c.symbol})` })),
+    [currencies]
   )
 
   const handleBankChange = (key: React.Key | null) => {
@@ -144,10 +145,17 @@ export function NationalDetailsStep({ formData, onUpdate, showErrors }: National
         aria-label={t('admin.company.myCompany.bankAccounts.wizard.currency')}
         label={t('admin.company.myCompany.bankAccounts.wizard.currency')}
         items={currencyItems}
-        value={formData.currency}
-        onChange={v => onUpdate({ currency: v ?? 'VES' })}
+        value={formData.currencyId ?? ''}
+        onChange={v => {
+          const selected = currencies.find(c => c.id === v)
+          if (selected) {
+            onUpdate({ currencyId: selected.id, currency: selected.code })
+          }
+        }}
         placeholder={t('admin.company.myCompany.bankAccounts.wizard.selectOption')}
         isRequired
+        isInvalid={showErrors && !formData.currencyId}
+        errorMessage={showErrors && !formData.currencyId ? t(`${V_PREFIX}.currencyRequired`) : undefined}
       />
 
       <Input

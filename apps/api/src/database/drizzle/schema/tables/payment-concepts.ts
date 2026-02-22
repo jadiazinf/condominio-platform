@@ -1,9 +1,9 @@
-import { pgTable, uuid, varchar, text, boolean, timestamp, jsonb, index } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, text, boolean, timestamp, jsonb, index, integer, decimal } from 'drizzle-orm/pg-core'
 import { condominiums } from './condominiums'
 import { buildings } from './buildings'
 import { currencies } from './currencies'
 import { users } from './users'
-import { conceptTypeEnum } from '../enums'
+import { conceptTypeEnum, chargeAdjustmentTypeEnum } from '../enums'
 
 export const paymentConcepts = pgTable(
   'payment_concepts',
@@ -23,6 +23,19 @@ export const paymentConcepts = pgTable(
     currencyId: uuid('currency_id')
       .notNull()
       .references(() => currencies.id, { onDelete: 'restrict' }),
+    // Partial payment config
+    allowsPartialPayment: boolean('allows_partial_payment').default(true),
+    // Late payment surcharge config
+    latePaymentType: chargeAdjustmentTypeEnum('late_payment_type').default('none'),
+    latePaymentValue: decimal('late_payment_value', { precision: 10, scale: 4 }),
+    latePaymentGraceDays: integer('late_payment_grace_days').default(0),
+    // Early payment discount config
+    earlyPaymentType: chargeAdjustmentTypeEnum('early_payment_type').default('none'),
+    earlyPaymentValue: decimal('early_payment_value', { precision: 10, scale: 4 }),
+    earlyPaymentDaysBeforeDue: integer('early_payment_days_before_due').default(0),
+    // Generation timing
+    issueDay: integer('issue_day'),
+    dueDay: integer('due_day'),
     isActive: boolean('is_active').default(true),
     metadata: jsonb('metadata'),
     createdAt: timestamp('created_at').defaultNow(),

@@ -40,6 +40,40 @@ export function useCondominiumBuildings(options: UseCondominiumBuildingsOptions)
   })
 }
 
+// ============================================================================
+// Simple Client-Side Hook (no token required — uses global HttpClient auth)
+// ============================================================================
+
+export interface UseCondominiumBuildingsListOptions {
+  condominiumId: string
+  managementCompanyId?: string
+  enabled?: boolean
+}
+
+/**
+ * Hook to get all buildings for a condominium using the global HttpClient.
+ * Does NOT require a token — auth is handled by the HttpClientProvider context.
+ */
+export function useCondominiumBuildingsList(options: UseCondominiumBuildingsListOptions) {
+  const { condominiumId, managementCompanyId, enabled = true } = options
+
+  const headers: Record<string, string> = {
+    'x-condominium-id': condominiumId,
+  }
+  if (managementCompanyId) {
+    headers['x-management-company-id'] = managementCompanyId
+  }
+
+  return useApiQuery<TApiDataResponse<TBuilding[]>>({
+    path: '/condominium/buildings',
+    queryKey: buildingsKeys.list(condominiumId),
+    enabled: enabled && !!condominiumId,
+    config: { headers },
+  })
+}
+
+// ============================================================================
+
 export interface UseBuildingDetailOptions {
   token: string
   buildingId: string

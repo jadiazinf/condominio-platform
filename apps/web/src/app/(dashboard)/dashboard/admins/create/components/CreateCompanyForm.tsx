@@ -9,7 +9,9 @@ import { useCreateCompanyForm } from '../../hooks'
 import { CompanyStepForm } from './CompanyStepForm'
 import { AdminStepForm } from './AdminStepForm'
 import { ConfirmationStep } from './ConfirmationStep'
-import { StepIndicator } from './StepIndicator'
+import { Building2, User, CheckCircle } from 'lucide-react'
+import { Stepper, type IStepItem } from '@/ui/components/stepper'
+import type { TFormStep } from '../../hooks'
 
 export function CreateCompanyForm() {
   const { t } = useTranslation()
@@ -72,7 +74,15 @@ export function CreateCompanyForm() {
         submitButtonText={t('superadmin.companies.form.submit')}
         submittingButtonText={t('superadmin.companies.form.submitting')}
         stepIndicator={
-          <StepIndicator currentStep={currentStep} onStepClick={goToStep} steps={steps} />
+          <Stepper
+            currentStep={currentStep}
+            steps={steps.map((step): IStepItem<TFormStep> => ({
+              key: step,
+              title: t(`superadmin.companies.form.steps.${step}`),
+              icon: step === 'company' ? <Building2 size={14} /> : step === 'admin' ? <User size={14} /> : <CheckCircle size={14} />,
+            }))}
+            onStepChange={goToStep}
+          />
         }
       >
         {renderStepContent()}
