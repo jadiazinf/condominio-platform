@@ -303,6 +303,11 @@ export {
   type IUpdatePaymentConceptVariables,
   type IDeactivatePaymentConceptOptions,
   type IDeactivatePaymentConceptVariables,
+  usePaymentConceptAffectedUnits,
+  type TAffectedUnit,
+  type TAffectedUnitPeriod,
+  type TAffectedUnitsResponse,
+  type IUseAffectedUnitsOptions,
 } from './use-payment-concepts'
 export {
   usePaymentConceptAssignments,
@@ -829,6 +834,33 @@ export {
   type UseMarkAllNotificationsAsReadOptions,
   type UseDeleteNotificationOptions,
 } from './use-notifications'
+
+// Condominium Services
+export {
+  useCondominiumServicesPaginated,
+  useCondominiumServiceDetail,
+  useCreateCondominiumService,
+  useUpdateCondominiumService,
+  useDeactivateCondominiumService,
+  condominiumServiceKeys,
+  type IUseCondominiumServicesPaginatedOptions,
+  type IUseCondominiumServiceDetailOptions,
+  type ICreateCondominiumServiceOptions,
+  type IUpdateCondominiumServiceOptions,
+  type IUpdateCondominiumServiceVariables,
+  type IDeactivateCondominiumServiceVariables,
+} from './use-condominium-services'
+
+// Payment Concept Services (linking)
+export {
+  usePaymentConceptServices,
+  useLinkServiceToConcept,
+  useUnlinkServiceFromConcept,
+  paymentConceptServiceKeys,
+  type IUsePaymentConceptServicesOptions,
+  type ILinkServiceToConceptVariables,
+  type IUnlinkServiceFromConceptVariables,
+} from './use-payment-concept-services'
 
 // Re-export commonly used TanStack Query hooks
 export {

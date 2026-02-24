@@ -141,14 +141,14 @@ export function ChargeConfigStep({ formData, onUpdate, showErrors, currencies }:
         {formData.latePaymentType !== 'none' && (
           <div className="grid grid-cols-2 gap-5">
             {formData.latePaymentType === 'percentage' ? (
-              <Input
+              <CurrencyInput
                 label={t(`${w}.latePaymentPercentage`)}
                 placeholder={t(`${w}.latePaymentPercentagePlaceholder`)}
                 tooltip={t(`${w}.tooltips.latePaymentValue`)}
-                type="number"
-                value={formData.latePaymentValue?.toString() || ''}
+                value={formData.latePaymentValue?.toFixed(2) || ''}
                 onValueChange={(val) => onUpdate({ latePaymentValue: val ? Number(val) : undefined })}
-                endContent={<span className="text-default-400 text-sm">%</span>}
+                currencySymbol={<span className="text-default-400 text-sm">%</span>}
+                showCurrencySymbol
                 isRequired
                 isInvalid={showErrors && !formData.latePaymentValue}
                 errorMessage={showErrors && !formData.latePaymentValue ? t(`${w}.errors.latePaymentValueRequired`) : undefined}
@@ -196,14 +196,14 @@ export function ChargeConfigStep({ formData, onUpdate, showErrors, currencies }:
         {formData.earlyPaymentType !== 'none' && (
           <div className="grid grid-cols-2 gap-5">
             {formData.earlyPaymentType === 'percentage' ? (
-              <Input
+              <CurrencyInput
                 label={t(`${w}.earlyPaymentPercentage`)}
                 placeholder={t(`${w}.earlyPaymentPercentagePlaceholder`)}
                 tooltip={t(`${w}.tooltips.earlyPaymentValue`)}
-                type="number"
-                value={formData.earlyPaymentValue?.toString() || ''}
+                value={formData.earlyPaymentValue?.toFixed(2) || ''}
                 onValueChange={(val) => onUpdate({ earlyPaymentValue: val ? Number(val) : undefined })}
-                endContent={<span className="text-default-400 text-sm">%</span>}
+                currencySymbol={<span className="text-default-400 text-sm">%</span>}
+                showCurrencySymbol
                 isRequired
                 isInvalid={showErrors && !formData.earlyPaymentValue}
                 errorMessage={showErrors && !formData.earlyPaymentValue ? t(`${w}.errors.earlyPaymentValueRequired`) : undefined}
@@ -265,14 +265,14 @@ export function ChargeConfigStep({ formData, onUpdate, showErrors, currencies }:
                 onChange={(key) => key && onUpdate({ interestType: key as 'simple' | 'compound' })}
                 variant="bordered"
               />
-              <Input
+              <CurrencyInput
                 label={t(`${w}.interestRate`)}
                 placeholder="0.00"
                 tooltip={t(`${w}.tooltips.interestRate`)}
-                type="number"
-                value={formData.interestRate?.toString() || ''}
+                value={formData.interestRate?.toFixed(2) || ''}
                 onValueChange={(val) => onUpdate({ interestRate: val ? Number(val) : undefined })}
-                endContent={<span className="text-default-400 text-sm">%</span>}
+                currencySymbol={<span className="text-default-400 text-sm">%</span>}
+                showCurrencySymbol
                 isRequired
                 isInvalid={showErrors && formData.interestEnabled && !formData.interestRate}
                 errorMessage={showErrors && formData.interestEnabled && !formData.interestRate ? t(`${w}.errors.interestRateRequired`) : undefined}

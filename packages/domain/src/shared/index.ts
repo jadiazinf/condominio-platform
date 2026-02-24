@@ -24,4 +24,7 @@ export {
   banksQuerySchema,
   type TBanksQuery,
   type TBanksQuerySchema,
+  condominiumServicesQuerySchema,
+  type TCondominiumServicesQuery,
+  type TCondominiumServicesQuerySchema,
 } from './pagination.types'

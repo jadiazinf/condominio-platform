@@ -988,6 +988,27 @@ export const DomainLocaleDictionary = {
           max: 'validation.models.userFcmTokens.deviceName.max',
         },
       },
+      condominiumServices: {
+        name: {
+          required: 'validation.models.condominiumServices.name.required',
+          max: 'validation.models.condominiumServices.name.max',
+        },
+        condominiumId: {
+          invalid: 'validation.models.condominiumServices.condominiumId.invalid',
+        },
+        providerType: {
+          invalid: 'validation.models.condominiumServices.providerType.invalid',
+        },
+        currencyId: {
+          invalid: 'validation.models.condominiumServices.currencyId.invalid',
+        },
+        createdBy: {
+          invalid: 'validation.models.condominiumServices.createdBy.invalid',
+        },
+        email: {
+          invalid: 'validation.models.condominiumServices.email.invalid',
+        },
+      },
       bankAccounts: {
         displayName: {
           required: 'validation.models.bankAccounts.displayName.required',

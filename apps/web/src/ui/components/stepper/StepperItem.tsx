@@ -110,7 +110,7 @@ export function StepperItem<T extends string>({
         hideLabelsOnMobile && 'hidden sm:block',
       )}
     >
-      <div className={cn(sizes.title, titleColors[status])}>{step.title}</div>
+      <div className={cn(sizes.title, titleColors[status], isHorizontal && 'break-words line-clamp-2')}>{step.title}</div>
       {step.description && (
         <div className={cn(sizes.desc, 'mt-0.5 text-default-400')}>{step.description}</div>
       )}
@@ -138,7 +138,7 @@ export function StepperItem<T extends string>({
         <div
           {...clickProps}
           className={cn(
-            'flex shrink-0 flex-col items-center gap-1.5 transition-opacity',
+            'flex min-w-0 flex-col items-center gap-1.5 transition-opacity',
             canClick && 'cursor-pointer hover:opacity-80',
             !canClick && 'cursor-default',
           )}

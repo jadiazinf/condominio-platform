@@ -110,3 +110,7 @@ export { BankAccountsRepository } from './bank-accounts.repository'
 // Payment Concept Extensions
 export { PaymentConceptAssignmentsRepository } from './payment-concept-assignments.repository'
 export { PaymentConceptBankAccountsRepository } from './payment-concept-bank-accounts.repository'
+
+// Condominium Services
+export { CondominiumServicesRepository } from './condominium-services.repository'
+export { PaymentConceptServicesRepository } from './payment-concept-services.repository'

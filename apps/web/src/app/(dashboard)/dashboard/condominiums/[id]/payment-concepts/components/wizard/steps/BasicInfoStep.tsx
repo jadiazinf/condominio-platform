@@ -26,6 +26,7 @@ export function BasicInfoStep({ formData, onUpdate, currencies, showErrors }: Ba
       { key: 'condominium_fee', label: t('admin.paymentConcepts.types.condominiumFee') },
       { key: 'extraordinary', label: t('admin.paymentConcepts.types.extraordinary') },
       { key: 'fine', label: t('admin.paymentConcepts.types.fine') },
+      { key: 'reserve_fund', label: t('admin.paymentConcepts.types.reserveFund') },
       { key: 'other', label: t('admin.paymentConcepts.types.other') },
     ],
     [t]

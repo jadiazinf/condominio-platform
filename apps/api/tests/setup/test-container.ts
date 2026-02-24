@@ -111,7 +111,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     END $$;
 
     DO $$ BEGIN
-      CREATE TYPE concept_type AS ENUM ('maintenance', 'condominium_fee', 'extraordinary', 'fine');
+      CREATE TYPE concept_type AS ENUM ('maintenance', 'condominium_fee', 'extraordinary', 'fine', 'reserve_fund', 'other');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -297,6 +297,11 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
 
     DO $$ BEGIN
       CREATE TYPE bank_payment_method AS ENUM ('transfer', 'pago_movil', 'interbancario', 'wire_transfer', 'ach', 'zelle', 'paypal', 'wise', 'crypto', 'other');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE service_provider_type AS ENUM ('individual', 'company', 'cooperative', 'government', 'internal');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -1335,6 +1340,41 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW(),
       UNIQUE(payment_concept_id, bank_account_id)
     );
+
+    CREATE TABLE IF NOT EXISTS condominium_services (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      name VARCHAR(255) NOT NULL,
+      description TEXT,
+      provider_type service_provider_type NOT NULL,
+      legal_name VARCHAR(255),
+      tax_id_type VARCHAR(5),
+      tax_id_number VARCHAR(50),
+      email VARCHAR(255),
+      phone_country_code VARCHAR(10),
+      phone VARCHAR(50),
+      address VARCHAR(500),
+      location_id UUID REFERENCES locations(id) ON DELETE SET NULL,
+      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
+      default_amount DECIMAL(15, 2),
+      is_default BOOLEAN DEFAULT false,
+      is_active BOOLEAN DEFAULT true,
+      metadata JSONB,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS payment_concept_services (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      payment_concept_id UUID NOT NULL REFERENCES payment_concepts(id) ON DELETE CASCADE,
+      service_id UUID NOT NULL REFERENCES condominium_services(id) ON DELETE CASCADE,
+      amount DECIMAL(15, 2) NOT NULL,
+      use_default_amount BOOLEAN DEFAULT true,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(payment_concept_id, service_id)
+    );
   `)
   const elapsed = performance.now() - start
   console.log(`[TestContainer] createSchema took ${elapsed.toFixed(1)}ms`)
@@ -1383,6 +1423,8 @@ export async function cleanDatabase(testDb: TTestDrizzleClient | import('@databa
   // Truncate all tables in one command for better performance
   await testDb.execute(sql`
     TRUNCATE TABLE
+      payment_concept_services,
+      condominium_services,
       bank_account_condominiums,
       bank_accounts,
       banks,

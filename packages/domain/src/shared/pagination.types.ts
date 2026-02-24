@@ -197,3 +197,29 @@ export const banksQuerySchema = z.object({
 })
 
 export type TBanksQuerySchema = z.infer<typeof banksQuerySchema>
+
+/**
+ * Query parameters for condominium services list with filters
+ */
+export type TCondominiumServicesQuery = TPaginationQuery & {
+  search?: string
+  providerType?: string
+  isActive?: boolean
+}
+
+/**
+ * Zod schema for condominium services query parameters
+ */
+export const condominiumServicesQuerySchema = paginationQuerySchema.extend({
+  search: z.string().optional(),
+  providerType: z.string().optional(),
+  isActive: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (val === undefined || val === '') return undefined
+      return val === 'true'
+    }),
+})
+
+export type TCondominiumServicesQuerySchema = z.infer<typeof condominiumServicesQuerySchema>

@@ -72,3 +72,7 @@ export * from './access-requests'
 export * from './banks'
 export * from './bank-accounts'
 export * from './bank-account-condominiums'
+
+// Condominium Services
+export * from './condominium-services'
+export * from './payment-concept-services'

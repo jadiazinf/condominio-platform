@@ -5,18 +5,20 @@ import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
 import { Card, CardBody } from '@/ui/components/card'
 import { Divider } from '@/ui/components/divider'
+import { Switch } from '@/ui/components/switch'
 import { useTranslation } from '@/contexts'
 import { useMyCompanyBankAccountsPaginated } from '@packages/http-client'
 import type { IWizardFormData } from '../CreatePaymentConceptWizard'
 
 interface ReviewStepProps {
   formData: IWizardFormData
+  onUpdate: (updates: Partial<IWizardFormData>) => void
   currencies: Array<{ id: string; code: string }>
   buildings: Array<{ id: string; name: string }>
   managementCompanyId: string
 }
 
-export function ReviewStep({ formData, currencies, buildings, managementCompanyId }: ReviewStepProps) {
+export function ReviewStep({ formData, onUpdate, currencies, buildings, managementCompanyId }: ReviewStepProps) {
   const { t } = useTranslation()
   const w = 'admin.condominiums.detail.paymentConcepts.wizard.review'
 
@@ -40,6 +42,7 @@ export function ReviewStep({ formData, currencies, buildings, managementCompanyI
       condominium_fee: t('admin.paymentConcepts.types.condominiumFee'),
       extraordinary: t('admin.paymentConcepts.types.extraordinary'),
       fine: t('admin.paymentConcepts.types.fine'),
+      reserve_fund: t('admin.paymentConcepts.types.reserveFund'),
       other: t('admin.paymentConcepts.types.other'),
     }
     return labels[type] || type
@@ -160,6 +163,44 @@ export function ReviewStep({ formData, currencies, buildings, managementCompanyI
         </CardBody>
       </Card>
 
+      {/* Services */}
+      {formData.services.length > 0 && (
+        <Card>
+          <CardBody className="space-y-2">
+            <Typography variant="body2" className="font-semibold">
+              {t('admin.condominiums.detail.services.conceptServices.title')} ({formData.services.length})
+            </Typography>
+            <Divider />
+            {formData.services.map((service, i) => (
+              <div key={i} className="flex items-center justify-between py-1">
+                <div className="flex items-center gap-2">
+                  <Typography variant="body2" className="font-medium">
+                    {service.serviceName}
+                  </Typography>
+                  {service.useDefaultAmount && (
+                    <Chip size="sm" variant="flat" color="default">
+                      {t('admin.condominiums.detail.services.conceptServices.useDefault')}
+                    </Chip>
+                  )}
+                </div>
+                <Typography variant="body2" className="font-semibold">
+                  {currencyCode} {service.amount.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
+                </Typography>
+              </div>
+            ))}
+            <Divider />
+            <div className="flex items-center justify-between">
+              <Typography variant="body2" className="font-semibold">
+                {t('admin.condominiums.detail.services.conceptServices.total')}
+              </Typography>
+              <Typography variant="body1" className="font-bold">
+                {currencyCode} {formData.services.reduce((sum, s) => sum + s.amount, 0).toLocaleString('es-VE', { minimumFractionDigits: 2 })}
+              </Typography>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
       {/* Assignments */}
       {formData.assignments.length > 0 && (
         <Card>
@@ -230,6 +271,27 @@ export function ReviewStep({ formData, currencies, buildings, managementCompanyI
           </CardBody>
         </Card>
       )}
+
+      {/* Notification Switch */}
+      <Card>
+        <CardBody className="flex flex-row items-center justify-between gap-4">
+          <div>
+            <Typography variant="body2" className="font-semibold">
+              {t(`${w}.notifyTitle`)}
+            </Typography>
+            <Typography variant="caption" color="muted">
+              {formData.notifyImmediately
+                ? t(`${w}.notifyDescriptionOn`)
+                : t(`${w}.notifyDescriptionOff`)}
+            </Typography>
+          </div>
+          <Switch
+            isSelected={formData.notifyImmediately}
+            onValueChange={(value) => onUpdate({ notifyImmediately: value })}
+            color="success"
+          />
+        </CardBody>
+      </Card>
     </div>
   )
 }

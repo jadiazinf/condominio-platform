@@ -11,6 +11,7 @@ import {
   useCreatePaymentConcept,
   useCreateAssignment,
   useLinkBankAccount,
+  useLinkServiceToConcept,
   useCreateInterestConfiguration,
   paymentConceptKeys,
   useQueryClient,
@@ -20,6 +21,7 @@ import {
 
 import { BasicInfoStep } from './steps/BasicInfoStep'
 import { ChargeConfigStep } from './steps/ChargeConfigStep'
+import { ServicesStep } from './steps/ServicesStep'
 import { AssignmentsStep } from './steps/AssignmentsStep'
 import { BankAccountsStep } from './steps/BankAccountsStep'
 import { ReviewStep } from './steps/ReviewStep'
@@ -46,11 +48,13 @@ const INITIAL_FORM_DATA: IWizardFormData = {
   interestRate: undefined,
   interestCalculationPeriod: 'monthly',
   interestGracePeriodDays: 0,
+  services: [],
   assignments: [],
   bankAccountIds: [],
+  notifyImmediately: false,
 }
 
-const STEPS = ['basicInfo', 'chargeConfig', 'assignments', 'bankAccounts', 'review'] as const
+const STEPS = ['basicInfo', 'chargeConfig', 'services', 'assignments', 'bankAccounts', 'review'] as const
 
 interface CreatePaymentConceptClientProps {
   condominiumId: string
@@ -79,6 +83,7 @@ export function CreatePaymentConceptClient({
   const { mutateAsync: createConcept } = useCreatePaymentConcept(managementCompanyId)
   const { mutateAsync: createAssignment } = useCreateAssignment(managementCompanyId)
   const { mutateAsync: linkBankAccount } = useLinkBankAccount(managementCompanyId)
+  const { mutateAsync: linkService } = useLinkServiceToConcept(managementCompanyId)
   const { mutateAsync: createInterestConfig } = useCreateInterestConfiguration()
 
   // Default to VES currency when currencies load
@@ -100,22 +105,27 @@ export function CreatePaymentConceptClient({
     setCurrentStep(prev => Math.max(prev - 1, 0))
   }, [])
 
+  // Compute total amount from services
+  const servicesTotalAmount = formData.services.reduce((sum, s) => sum + s.amount, 0)
+
   const canProceed = () => {
     switch (currentStep) {
-      case 0:
+      case 0: // Basic Info
         return !!(formData.name && formData.conceptType && formData.currencyId &&
           (!formData.isRecurring || formData.recurrencePeriod))
-      case 1:
+      case 1: // Charge Config
         if (formData.isRecurring && (formData.issueDay == null || formData.dueDay == null)) return false
         if (formData.latePaymentType !== 'none' && !formData.latePaymentValue) return false
         if (formData.earlyPaymentType !== 'none' && (!formData.earlyPaymentValue || !formData.earlyPaymentDaysBeforeDue)) return false
         if (formData.interestEnabled && !formData.interestRate) return false
         return true
-      case 2:
+      case 2: // Services
+        return formData.services.length > 0
+      case 3: // Assignments
         return formData.assignments.length > 0
-      case 3:
+      case 4: // Bank Accounts
         return formData.bankAccountIds.length > 0
-      case 4:
+      case 5: // Review
         return true
       default:
         return false
@@ -146,6 +156,17 @@ export function CreatePaymentConceptClient({
 
       const conceptId = conceptResult.data.data.id
 
+      // 2. Link services to concept
+      for (const service of formData.services) {
+        await linkService({
+          conceptId,
+          serviceId: service.serviceId,
+          amount: service.amount,
+          useDefaultAmount: service.useDefaultAmount,
+        })
+      }
+
+      // 3. Create assignments
       for (const assignment of formData.assignments) {
         if (assignment.scopeType === 'unit' && assignment.unitIds?.length) {
           for (const unitId of assignment.unitIds) {
@@ -210,11 +231,12 @@ export function CreatePaymentConceptClient({
     } finally {
       setIsSubmitting(false)
     }
-  }, [formData, condominiumId, managementCompanyId, createConcept, createAssignment, linkBankAccount, createInterestConfig, queryClient, router, toast, t])
+  }, [formData, condominiumId, managementCompanyId, createConcept, linkService, createAssignment, linkBankAccount, createInterestConfig, queryClient, router, toast, t])
 
   const wizardSteps: IStepItem<(typeof STEPS)[number]>[] = [
     { key: 'basicInfo', title: t(`${w}.steps.basicInfo`) },
     { key: 'chargeConfig', title: t(`${w}.steps.chargeConfig`) },
+    { key: 'services', title: t(`${w}.steps.services`) },
     { key: 'assignments', title: t(`${w}.steps.assignments`) },
     { key: 'bankAccounts', title: t(`${w}.steps.bankAccounts`) },
     { key: 'review', title: t(`${w}.steps.review`) },
@@ -242,6 +264,17 @@ export function CreatePaymentConceptClient({
         )
       case 2:
         return (
+          <ServicesStep
+            formData={formData}
+            onUpdate={updateFormData}
+            condominiumId={condominiumId}
+            managementCompanyId={managementCompanyId}
+            currencies={currencies}
+            showErrors={showErrors}
+          />
+        )
+      case 3:
+        return (
           <AssignmentsStep
             formData={formData}
             onUpdate={updateFormData}
@@ -250,9 +283,10 @@ export function CreatePaymentConceptClient({
             currencies={currencies}
             condominiumId={condominiumId}
             managementCompanyId={managementCompanyId}
+            servicesTotalAmount={servicesTotalAmount}
           />
         )
-      case 3:
+      case 4:
         return (
           <BankAccountsStep
             formData={formData}
@@ -262,10 +296,11 @@ export function CreatePaymentConceptClient({
             showErrors={showErrors}
           />
         )
-      case 4:
+      case 5:
         return (
           <ReviewStep
             formData={formData}
+            onUpdate={updateFormData}
             currencies={currencies}
             buildings={buildings}
             managementCompanyId={managementCompanyId}

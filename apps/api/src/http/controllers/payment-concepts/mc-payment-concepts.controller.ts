@@ -4,10 +4,12 @@ import {
   paymentConceptCreateSchema,
   paymentConceptUpdateSchema,
   paymentConceptAssignmentUpdateSchema,
+  paymentConceptsQuerySchema,
   type TPaymentConcept,
   type TPaymentConceptCreate,
   type TPaymentConceptUpdate,
   type TPaymentConceptAssignmentUpdate,
+  type TPaymentConceptsQuerySchema,
   ESystemRole,
 } from '@packages/domain'
 import type {
@@ -18,14 +20,18 @@ import type {
   CurrenciesRepository,
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
+import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
+import { CONDOMINIUM_ID_PROP } from '@src/http/middlewares/utils/auth/require-role'
 import { ManagementCompanyIdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { CreatePaymentConceptService } from '@src/services/payment-concepts/create-payment-concept.service'
 import { AssignPaymentConceptService } from '@src/services/payment-concepts/assign-payment-concept.service'
 import { GenerateChargesService } from '@src/services/payment-concepts/generate-charges.service'
 import { LinkBankAccountsService } from '@src/services/payment-concepts/link-bank-accounts.service'
+import { LinkServiceToConceptService } from '@src/services/payment-concept-services/link-service-to-concept.service'
+import { calculateUnitCharges, calculateElapsedPeriods } from '@src/services/payment-concepts/calculate-unit-charges'
+import type { PaymentConceptServicesRepository, CondominiumServicesRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -64,6 +70,18 @@ const generateChargesBodySchema = z.object({
 
 const linkBankAccountBodySchema = z.object({
   bankAccountId: z.string().uuid(),
+})
+
+const linkServiceBodySchema = z.object({
+  serviceId: z.string().uuid(),
+  amount: z.number().positive('Amount must be greater than 0'),
+  useDefaultAmount: z.boolean().default(true),
+})
+
+const ServiceLinkIdParamSchema = z.object({
+  managementCompanyId: z.string().uuid(),
+  conceptId: z.string().uuid(),
+  linkId: z.string().uuid(),
 })
 
 // Body-only schema for assignment creation (paymentConceptId comes from URL params)
@@ -123,6 +141,12 @@ type TBankAccountsRepo = {
     managementCompanyId: string
     isActive: boolean
     appliesToAllCondominiums: boolean
+    displayName: string
+    bankName: string
+    accountHolderName: string
+    currency: string
+    accountCategory: string
+    accountDetails: Record<string, unknown>
   } | null>
 }
 
@@ -131,13 +155,14 @@ type TBankAccountCondominiumsRepo = {
 }
 
 type TBuildingsRepo = {
-  getById: (id: string) => Promise<{ id: string; condominiumId: string; isActive: boolean } | null>
+  getById: (id: string) => Promise<{ id: string; condominiumId: string; name: string; isActive: boolean } | null>
+  getByCondominiumId: (condominiumId: string) => Promise<{ id: string; condominiumId: string; name: string; isActive: boolean }[]>
 }
 
 type TUnitsRepo = {
-  getById: (id: string) => Promise<{ id: string; buildingId: string; isActive: boolean; aliquotPercentage: string | null } | null>
-  getByBuildingId: (buildingId: string) => Promise<{ id: string; buildingId: string; aliquotPercentage: string | null; isActive: boolean }[]>
-  getByCondominiumId: (condominiumId: string) => Promise<{ id: string; buildingId: string; aliquotPercentage: string | null; isActive: boolean }[]>
+  getById: (id: string) => Promise<{ id: string; buildingId: string; unitNumber: string; isActive: boolean; aliquotPercentage: string | null } | null>
+  getByBuildingId: (buildingId: string) => Promise<{ id: string; buildingId: string; unitNumber: string; aliquotPercentage: string | null; isActive: boolean }[]>
+  getByCondominiumId: (condominiumId: string) => Promise<{ id: string; buildingId: string; unitNumber: string; aliquotPercentage: string | null; isActive: boolean }[]>
 }
 
 type TQuotasRepo = {
@@ -158,6 +183,8 @@ export interface IMcPaymentConceptsDeps {
   buildingsRepo: TBuildingsRepo
   unitsRepo: TUnitsRepo
   quotasRepo: TQuotasRepo
+  conceptServicesRepo: PaymentConceptServicesRepository
+  condominiumServicesRepo: CondominiumServicesRepository
 }
 
 export class McPaymentConceptsController extends BaseController<
@@ -169,15 +196,28 @@ export class McPaymentConceptsController extends BaseController<
   private readonly assignService: AssignPaymentConceptService
   private readonly generateService: GenerateChargesService
   private readonly linkService: LinkBankAccountsService
+  private readonly linkServiceToConcept: LinkServiceToConceptService
   private readonly conceptsRepo: PaymentConceptsRepository
   private readonly assignmentsRepo: PaymentConceptAssignmentsRepository
   private readonly currenciesRepo: CurrenciesRepository
+  private readonly bankAccountsRepo: TBankAccountsRepo
+  private readonly buildingsRepo: TBuildingsRepo
+  private readonly unitsRepo: TUnitsRepo
 
   constructor(deps: IMcPaymentConceptsDeps) {
     super(deps.conceptsRepo)
     this.conceptsRepo = deps.conceptsRepo
     this.assignmentsRepo = deps.assignmentsRepo
     this.currenciesRepo = deps.currenciesRepo
+    this.bankAccountsRepo = deps.bankAccountsRepo
+    this.buildingsRepo = deps.buildingsRepo
+    this.unitsRepo = deps.unitsRepo
+
+    this.linkServiceToConcept = new LinkServiceToConceptService(
+      deps.conceptServicesRepo,
+      deps.conceptsRepo,
+      deps.condominiumServicesRepo
+    )
 
     this.createService = new CreatePaymentConceptService(
       deps.conceptsRepo,
@@ -232,12 +272,23 @@ export class McPaymentConceptsController extends BaseController<
           authMiddleware,
           paramsValidator(ManagementCompanyIdParamSchema),
           requireRole(...allMcRoles),
+          queryValidator(paymentConceptsQuerySchema),
         ],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/payment-concepts/:conceptId',
         handler: this.getConceptDetail,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ConceptIdParamSchema),
+          requireRole(...allMcRoles),
+        ],
+      },
+      {
+        method: 'get',
+        path: '/:managementCompanyId/me/payment-concepts/:conceptId/affected-units',
+        handler: this.getAffectedUnits,
         middlewares: [
           authMiddleware,
           paramsValidator(ConceptIdParamSchema),
@@ -366,6 +417,39 @@ export class McPaymentConceptsController extends BaseController<
           bodyValidator(generateChargesBodySchema),
         ],
       },
+
+      // ── Concept Services ───────────────────────────────────────────
+      {
+        method: 'get',
+        path: '/:managementCompanyId/me/payment-concepts/:conceptId/services',
+        handler: this.listConceptServices,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ConceptIdParamSchema),
+          requireRole(...allMcRoles),
+        ],
+      },
+      {
+        method: 'post',
+        path: '/:managementCompanyId/me/payment-concepts/:conceptId/services',
+        handler: this.linkConceptService,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ConceptIdParamSchema),
+          requireRole(...adminOnly),
+          bodyValidator(linkServiceBodySchema),
+        ],
+      },
+      {
+        method: 'delete',
+        path: '/:managementCompanyId/me/payment-concepts/:conceptId/services/:linkId',
+        handler: this.unlinkConceptService,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ServiceLinkIdParamSchema),
+          requireRole(...adminOnly),
+        ],
+      },
     ]
   }
 
@@ -385,11 +469,16 @@ export class McPaymentConceptsController extends BaseController<
   }
 
   private listConcepts = async (c: Context): Promise<Response> => {
-    const ctx = this.ctx<unknown, unknown, { managementCompanyId: string }>(c)
+    const ctx = this.ctx<unknown, TPaymentConceptsQuerySchema, { managementCompanyId: string }>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
-      const concepts = await this.conceptsRepo.listAll()
-      return ctx.ok({ data: concepts })
+      const query = { ...ctx.query, condominiumId }
+      const result = await this.conceptsRepo.listByManagementCompanyPaginated(
+        ctx.params.managementCompanyId,
+        query
+      )
+      return ctx.ok(result)
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -404,14 +493,115 @@ export class McPaymentConceptsController extends BaseController<
         return ctx.notFound({ error: 'Payment concept not found' })
       }
 
-      const assignments = await this.assignmentsRepo.listByConceptId(ctx.params.conceptId)
-      const bankAccounts = await this.linkService.listByConceptId(ctx.params.conceptId)
+      const [assignments, bankAccounts, currency] = await Promise.all([
+        this.assignmentsRepo.listByConceptId(ctx.params.conceptId),
+        this.linkService.listByConceptId(ctx.params.conceptId),
+        this.currenciesRepo.getById(concept.currencyId),
+      ])
+
+      const bankAccountLinks = bankAccounts.success ? bankAccounts.data : []
+      const enrichedBankAccounts = await Promise.all(
+        bankAccountLinks.map(async (link) => {
+          const account = await this.bankAccountsRepo.getById(link.bankAccountId)
+          let maskedAccount: string | null = null
+          if (account) {
+            const accNum = (account.accountDetails as Record<string, unknown>)?.accountNumber as string | undefined
+            if (accNum && accNum.length >= 4) {
+              maskedAccount = '********' + accNum.slice(-4)
+            }
+          }
+          return {
+            ...link,
+            bankAccount: account
+              ? {
+                  id: account.id,
+                  displayName: account.displayName,
+                  bankName: account.bankName,
+                  accountHolderName: account.accountHolderName,
+                  currency: account.currency,
+                  accountCategory: account.accountCategory,
+                  maskedAccountNumber: maskedAccount,
+                }
+              : null,
+          }
+        })
+      )
 
       return ctx.ok({
         data: {
           ...concept,
+          currency: currency ? { id: currency.id, code: currency.code, name: currency.name, symbol: currency.symbol } : null,
           assignments,
-          bankAccounts: bankAccounts.success ? bankAccounts.data : [],
+          bankAccounts: enrichedBankAccounts,
+        },
+      })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private getAffectedUnits = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TConceptIdParam>(c)
+
+    try {
+      const concept = await this.conceptsRepo.getById(ctx.params.conceptId)
+      if (!concept) {
+        return ctx.notFound({ error: 'Payment concept not found' })
+      }
+      if (!concept.condominiumId) {
+        return ctx.badRequest({ error: 'Concept has no condominium' })
+      }
+
+      const [assignments, allUnits, allBuildings] = await Promise.all([
+        this.assignmentsRepo.listByConceptId(ctx.params.conceptId),
+        this.unitsRepo.getByCondominiumId(concept.condominiumId),
+        this.buildingsRepo.getByCondominiumId(concept.condominiumId),
+      ])
+
+      const buildingsMap = new Map(allBuildings.map(b => [b.id, { id: b.id, name: b.name }]))
+      const unitsByBuilding = new Map<string, typeof allUnits>()
+      for (const unit of allUnits) {
+        const list = unitsByBuilding.get(unit.buildingId) ?? []
+        list.push(unit)
+        unitsByBuilding.set(unit.buildingId, list)
+      }
+
+      const unitCharges = calculateUnitCharges(assignments, allUnits, unitsByBuilding)
+
+      const issueDay = concept.issueDay ?? 1
+      const now = new Date()
+
+      const result = unitCharges.map(uc => {
+        const periodInfo = calculateElapsedPeriods(
+          concept.createdAt,
+          issueDay,
+          concept.isRecurring ? (concept.recurrencePeriod as 'monthly' | 'quarterly' | 'yearly') : null,
+          uc.baseAmount,
+          now
+        )
+        return {
+          ...uc,
+          buildingName: buildingsMap.get(uc.buildingId)?.name ?? '',
+          periodsCount: periodInfo.periodsCount,
+          accumulatedAmount: periodInfo.accumulatedAmount,
+          periods: periodInfo.periods,
+        }
+      })
+
+      result.sort((a, b) => {
+        const buildingCmp = a.buildingName.localeCompare(b.buildingName, 'es')
+        if (buildingCmp !== 0) return buildingCmp
+        return a.unitNumber.localeCompare(b.unitNumber, 'es', { numeric: true })
+      })
+
+      return ctx.ok({
+        data: {
+          isRecurring: concept.isRecurring,
+          recurrencePeriod: concept.recurrencePeriod,
+          issueDay,
+          totalUnits: result.length,
+          totalBaseAmount: result.reduce((sum, u) => sum + u.baseAmount, 0),
+          units: result,
         },
       })
     } catch (error) {
@@ -648,6 +838,67 @@ export class McPaymentConceptsController extends BaseController<
       }
 
       return ctx.created({ data: result.data })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Concept Service Handlers
+  // ─────────────────────────────────────────────────────────────────────────
+
+  private listConceptServices = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TConceptIdParam>(c)
+
+    try {
+      const services = await this.linkServiceToConcept.listByConceptId(ctx.params.conceptId)
+      return ctx.ok({ data: services })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private linkConceptService = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<{ serviceId: string; amount: number; useDefaultAmount: boolean }, unknown, TConceptIdParam>(c)
+
+    try {
+      const result = await this.linkServiceToConcept.execute({
+        paymentConceptId: ctx.params.conceptId,
+        serviceId: ctx.body.serviceId,
+        amount: ctx.body.amount,
+        useDefaultAmount: ctx.body.useDefaultAmount,
+      })
+
+      if (!result.success) {
+        if (result.code === 'NOT_FOUND') {
+          return ctx.notFound({ error: result.error })
+        }
+        if (result.code === 'CONFLICT') {
+          return ctx.conflict({ error: result.error })
+        }
+        return ctx.badRequest({ error: result.error })
+      }
+
+      return ctx.created({ data: result.data })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private unlinkConceptService = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, { managementCompanyId: string; conceptId: string; linkId: string }>(c)
+
+    try {
+      const result = await this.linkServiceToConcept.unlinkById(ctx.params.linkId)
+
+      if (!result.success) {
+        if (result.code === 'NOT_FOUND') {
+          return ctx.notFound({ error: result.error })
+        }
+        return ctx.badRequest({ error: result.error })
+      }
+
+      return ctx.ok({ data: { success: true } })
     } catch (error) {
       return this.handleError(ctx, error)
     }

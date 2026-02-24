@@ -118,6 +118,9 @@ export function TaxIdInput({
           isDisabled={isDisabled}
           isReadOnly={isReadOnly}
           isInvalid={!!taxIdNumberError}
+          classNames={{
+            input: 'placeholder:text-default-300',
+          }}
         />
       </div>
       {errorMessage && <p className="text-tiny text-danger">{errorMessage}</p>}

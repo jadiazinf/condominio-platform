@@ -1,13 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from '@/ui/components/modal'
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Typography } from '@/ui/components/typography'
 import { Stepper, type IStepItem } from '@/ui/components/stepper'
@@ -26,13 +20,23 @@ import {
 
 import { BasicInfoStep } from './steps/BasicInfoStep'
 import { ChargeConfigStep } from './steps/ChargeConfigStep'
+import { ServicesStep } from './steps/ServicesStep'
 import { AssignmentsStep } from './steps/AssignmentsStep'
 import { BankAccountsStep } from './steps/BankAccountsStep'
 import { ReviewStep } from './steps/ReviewStep'
+import { useLinkServiceToConcept } from '@packages/http-client/hooks'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
+
+export interface IWizardService {
+  serviceId: string
+  serviceName: string
+  amount: number
+  useDefaultAmount: boolean
+  originalDefaultAmount?: number
+}
 
 export interface IWizardAssignment {
   scopeType: 'condominium' | 'building' | 'unit'
@@ -66,10 +70,14 @@ export interface IWizardFormData {
   interestRate: number | undefined
   interestCalculationPeriod: 'monthly' | 'daily'
   interestGracePeriodDays: number
-  // Step 3 - Assignments
+  // Step 3 - Services
+  services: IWizardService[]
+  // Step 4 - Assignments
   assignments: IWizardAssignment[]
-  // Step 4 - Bank Accounts
+  // Step 5 - Bank Accounts
   bankAccountIds: string[]
+  // Step 6 - Review
+  notifyImmediately: boolean
 }
 
 const INITIAL_FORM_DATA: IWizardFormData = {
@@ -93,11 +101,20 @@ const INITIAL_FORM_DATA: IWizardFormData = {
   interestRate: undefined,
   interestCalculationPeriod: 'monthly',
   interestGracePeriodDays: 0,
+  services: [],
   assignments: [],
   bankAccountIds: [],
+  notifyImmediately: false,
 }
 
-const STEPS = ['basicInfo', 'chargeConfig', 'assignments', 'bankAccounts', 'review'] as const
+const STEPS = [
+  'basicInfo',
+  'chargeConfig',
+  'services',
+  'assignments',
+  'bankAccounts',
+  'review',
+] as const
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Props
@@ -137,6 +154,7 @@ export function CreatePaymentConceptWizard({
   const { mutateAsync: createConcept } = useCreatePaymentConcept(managementCompanyId)
   const { mutateAsync: createAssignment } = useCreateAssignment(managementCompanyId)
   const { mutateAsync: linkBankAccount } = useLinkBankAccount(managementCompanyId)
+  const { mutateAsync: linkService } = useLinkServiceToConcept(managementCompanyId)
   const { mutateAsync: createInterestConfig } = useCreateInterestConfiguration()
 
   // Default to VES currency when currencies load
@@ -165,22 +183,36 @@ export function CreatePaymentConceptWizard({
     onClose()
   }, [onClose])
 
+  // Compute total amount from services
+  const servicesTotalAmount = formData.services.reduce((sum, s) => sum + s.amount, 0)
+
   const canProceed = () => {
     switch (currentStep) {
       case 0: // Basic Info
-        return !!(formData.name && formData.conceptType && formData.currencyId &&
-          (!formData.isRecurring || formData.recurrencePeriod))
+        return !!(
+          formData.name &&
+          formData.conceptType &&
+          formData.currencyId &&
+          (!formData.isRecurring || formData.recurrencePeriod)
+        )
       case 1: // Charge Config
-        if (formData.isRecurring && (formData.issueDay == null || formData.dueDay == null)) return false
+        if (formData.isRecurring && (formData.issueDay == null || formData.dueDay == null))
+          return false
         if (formData.latePaymentType !== 'none' && !formData.latePaymentValue) return false
-        if (formData.earlyPaymentType !== 'none' && (!formData.earlyPaymentValue || !formData.earlyPaymentDaysBeforeDue)) return false
+        if (
+          formData.earlyPaymentType !== 'none' &&
+          (!formData.earlyPaymentValue || !formData.earlyPaymentDaysBeforeDue)
+        )
+          return false
         if (formData.interestEnabled && !formData.interestRate) return false
         return true
-      case 2: // Assignments
+      case 2: // Services
+        return formData.services.length > 0
+      case 3: // Assignments
         return formData.assignments.length > 0
-      case 3: // Bank Accounts (required)
+      case 4: // Bank Accounts (required)
         return formData.bankAccountIds.length > 0
-      case 4: // Review
+      case 5: // Review
         return true
       default:
         return false
@@ -198,7 +230,7 @@ export function CreatePaymentConceptWizard({
         conceptType: formData.conceptType as any,
         currencyId: formData.currencyId,
         isRecurring: formData.isRecurring,
-        recurrencePeriod: formData.isRecurring ? formData.recurrencePeriod as any : null,
+        recurrencePeriod: formData.isRecurring ? (formData.recurrencePeriod as any) : null,
         issueDay: formData.issueDay,
         dueDay: formData.dueDay,
         allowsPartialPayment: formData.allowsPartialPayment,
@@ -212,7 +244,17 @@ export function CreatePaymentConceptWizard({
 
       const conceptId = conceptResult.data.data.id
 
-      // 2. Create assignments
+      // 2. Link services to concept
+      for (const service of formData.services) {
+        await linkService({
+          conceptId,
+          serviceId: service.serviceId,
+          amount: service.amount,
+          useDefaultAmount: service.useDefaultAmount,
+        })
+      }
+
+      // 3. Create assignments (amount from services total)
       for (const assignment of formData.assignments) {
         if (assignment.scopeType === 'unit' && assignment.unitIds?.length) {
           for (const unitId of assignment.unitIds) {
@@ -237,12 +279,12 @@ export function CreatePaymentConceptWizard({
         }
       }
 
-      // 3. Link bank accounts
+      // 4. Link bank accounts
       for (const bankAccountId of formData.bankAccountIds) {
         await linkBankAccount({ conceptId, bankAccountId })
       }
 
-      // 4. Create interest configuration if enabled
+      // 5. Create interest configuration if enabled
       if (formData.interestEnabled && formData.interestRate) {
         await createInterestConfig({
           condominiumId,
@@ -278,11 +320,24 @@ export function CreatePaymentConceptWizard({
     } finally {
       setIsSubmitting(false)
     }
-  }, [formData, condominiumId, createConcept, createAssignment, linkBankAccount, createInterestConfig, queryClient, handleClose, toast, t])
+  }, [
+    formData,
+    condominiumId,
+    createConcept,
+    linkService,
+    createAssignment,
+    linkBankAccount,
+    createInterestConfig,
+    queryClient,
+    handleClose,
+    toast,
+    t,
+  ])
 
   const wizardSteps: IStepItem<(typeof STEPS)[number]>[] = [
     { key: 'basicInfo', title: t(`${w}.steps.basicInfo`) },
     { key: 'chargeConfig', title: t(`${w}.steps.chargeConfig`) },
+    { key: 'services', title: t(`${w}.steps.services`) },
     { key: 'assignments', title: t(`${w}.steps.assignments`) },
     { key: 'bankAccounts', title: t(`${w}.steps.bankAccounts`) },
     { key: 'review', title: t(`${w}.steps.review`) },
@@ -310,6 +365,17 @@ export function CreatePaymentConceptWizard({
         )
       case 2:
         return (
+          <ServicesStep
+            formData={formData}
+            onUpdate={updateFormData}
+            condominiumId={condominiumId}
+            managementCompanyId={managementCompanyId}
+            currencies={currencies}
+            showErrors={showErrors}
+          />
+        )
+      case 3:
+        return (
           <AssignmentsStep
             formData={formData}
             onUpdate={updateFormData}
@@ -318,9 +384,10 @@ export function CreatePaymentConceptWizard({
             condominiumId={condominiumId}
             managementCompanyId={managementCompanyId}
             showErrors={showErrors}
+            servicesTotalAmount={servicesTotalAmount}
           />
         )
-      case 3:
+      case 4:
         return (
           <BankAccountsStep
             formData={formData}
@@ -330,10 +397,11 @@ export function CreatePaymentConceptWizard({
             showErrors={showErrors}
           />
         )
-      case 4:
+      case 5:
         return (
           <ReviewStep
             formData={formData}
+            onUpdate={updateFormData}
             currencies={currencies}
             buildings={buildings}
             managementCompanyId={managementCompanyId}
@@ -348,14 +416,12 @@ export function CreatePaymentConceptWizard({
     <Modal isOpen={isOpen} onClose={handleClose} size="3xl" scrollBehavior="inside">
       <ModalContent>
         <ModalHeader className="flex flex-col gap-2">
-          <Typography variant="h4">
-            {t(`${w}.title`)}
-          </Typography>
+          <Typography variant="h4">{t(`${w}.title`)}</Typography>
           <Stepper
             steps={wizardSteps}
             currentStep={STEPS[currentStep]!}
             color="success"
-            onStepChange={(stepKey) => {
+            onStepChange={stepKey => {
               const stepIndex = STEPS.indexOf(stepKey)
               if (stepIndex >= 0 && stepIndex <= currentStep) {
                 setShowErrors(false)

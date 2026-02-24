@@ -9,6 +9,8 @@ import {
   UnitsRepository,
   QuotasRepository,
   BankAccountsRepository,
+  PaymentConceptServicesRepository,
+  CondominiumServicesRepository,
 } from '@database/repositories'
 import { McPaymentConceptsController } from '../controllers/payment-concepts/mc-payment-concepts.controller'
 import type { IEndpoint } from './types'
@@ -28,6 +30,8 @@ export class McPaymentConceptsEndpoint implements IEndpoint {
     const unitsRepo = new UnitsRepository(db)
     const quotasRepo = new QuotasRepository(db)
     const bankAccountsRepo = new BankAccountsRepository(db)
+    const conceptServicesRepo = new PaymentConceptServicesRepository(db)
+    const condominiumServicesRepo = new CondominiumServicesRepository(db)
 
     // For condominiumMCRepo, we use the condominiums repo's method
     // The CondominiumsRepository should have a way to check MC association
@@ -67,6 +71,8 @@ export class McPaymentConceptsEndpoint implements IEndpoint {
       buildingsRepo,
       unitsRepo,
       quotasRepo,
+      conceptServicesRepo,
+      condominiumServicesRepo,
     })
   }
 

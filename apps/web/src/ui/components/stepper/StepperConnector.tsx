@@ -26,7 +26,7 @@ export function StepperConnector({
     <div
       className={cn(
         'relative overflow-hidden rounded-full',
-        isHorizontal ? 'h-0.5 flex-1 mx-1.5' : 'w-0.5 min-h-6 ml-4 my-1',
+        isHorizontal ? 'h-0.5 flex-1 min-w-4 mx-1.5' : 'w-0.5 min-h-6 ml-4 my-1',
         colors.track,
       )}
     >

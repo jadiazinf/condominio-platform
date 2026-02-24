@@ -23,6 +23,8 @@ export const conceptTypeEnum = pgEnum('concept_type', [
   'condominium_fee',
   'extraordinary',
   'fine',
+  'reserve_fund',
+  'other',
 ])
 
 export const interestTypeEnum = pgEnum('interest_type', ['simple', 'compound', 'fixed_amount'])
@@ -264,6 +266,18 @@ export const accessRequestStatusEnum = pgEnum('access_request_status', [
   'pending',
   'approved',
   'rejected',
+])
+
+// ============================================================================
+// CONDOMINIUM SERVICE ENUMS
+// ============================================================================
+
+export const serviceProviderTypeEnum = pgEnum('service_provider_type', [
+  'individual',
+  'company',
+  'cooperative',
+  'government',
+  'internal',
 ])
 
 // ============================================================================

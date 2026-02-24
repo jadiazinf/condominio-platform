@@ -1,22 +1,19 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
-import { CurrencyInput } from '@/ui/components/input'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Button } from '@/ui/components/button'
 import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
-import { Card, CardBody } from '@/ui/components/card'
 import { Spinner } from '@/ui/components/spinner'
 import { useDisclosure } from '@/ui/components/modal'
-import { Plus, Trash2, Users, Check, Building2, Home, Info, Calculator } from 'lucide-react'
+import { Trash2, Users, Check, Building2, Home, Info } from 'lucide-react'
 import { Tooltip } from '@heroui/tooltip'
 import { cn } from '@heroui/theme'
 import { useTranslation } from '@/contexts'
 import { useCondominiumBuildingsList, useCondominiumUnits } from '@packages/http-client'
 import type { IWizardFormData, IWizardAssignment } from '../CreatePaymentConceptWizard'
 import { UnitSelectionModal } from './UnitSelectionModal'
-import { CurrencyCalculatorModal } from './CurrencyCalculatorModal'
 
 export interface AssignmentsStepProps {
   formData: IWizardFormData
@@ -26,6 +23,7 @@ export interface AssignmentsStepProps {
   currencies: Array<{ id: string; code: string; symbol?: string | null; name?: string }>
   condominiumId: string
   managementCompanyId: string
+  servicesTotalAmount?: number
 }
 
 export function AssignmentsStep({
@@ -36,18 +34,35 @@ export function AssignmentsStep({
   currencies,
   condominiumId,
   managementCompanyId,
+  servicesTotalAmount,
 }: AssignmentsStepProps) {
   const { t } = useTranslation()
   const w = 'admin.condominiums.detail.paymentConcepts.wizard.assignments'
 
   const [editScope, setEditScope] = useState<'condominium' | 'building' | 'unit'>('condominium')
   const [editBuildingIds, setEditBuildingIds] = useState<string[]>([])
-  const [editMethod, setEditMethod] = useState<'by_aliquot' | 'equal_split' | 'fixed_per_unit'>('fixed_per_unit')
-  const [editAmount, setEditAmount] = useState<string>('')
+  const [editMethod, setEditMethod] = useState<'by_aliquot' | 'equal_split' | 'fixed_per_unit'>('by_aliquot')
   const [editUnitIds, setEditUnitIds] = useState<string[]>([])
 
   const unitModal = useDisclosure()
-  const calculatorModal = useDisclosure()
+
+  // Use services total amount (auto-calculated)
+  const autoAmount = servicesTotalAmount ?? 0
+
+  // Auto-create a default condominium-wide assignment on first render
+  const hasAutoAdded = useRef(false)
+  useEffect(() => {
+    if (!hasAutoAdded.current && formData.assignments.length === 0 && autoAmount > 0) {
+      hasAutoAdded.current = true
+      onUpdate({
+        assignments: [{
+          scopeType: 'condominium',
+          distributionMethod: 'by_aliquot',
+          amount: autoAmount,
+        }],
+      })
+    }
+  }, [formData.assignments.length, autoAmount, onUpdate])
 
   // Client-side data fetching (always fetch both, with MC header for MC admins)
   const { data: buildingsResponse, isLoading: loadingBuildings } = useCondominiumBuildingsList({
@@ -176,8 +191,7 @@ export function AssignmentsStep({
   }, [buildings, allBuildingsSelected])
 
   const handleAddAssignment = () => {
-    const amount = Number(editAmount)
-    if (!amount || amount <= 0) return
+    if (!autoAmount || autoAmount <= 0) return
     if (editScope === 'building' && editBuildingIds.length === 0) return
     if (editScope === 'unit' && editUnitIds.length === 0) return
 
@@ -187,7 +201,7 @@ export function AssignmentsStep({
         scopeType: 'building' as const,
         buildingId,
         distributionMethod: editMethod,
-        amount,
+        amount: autoAmount,
       }))
       onUpdate({ assignments: [...formData.assignments, ...newAssignments] })
     } else {
@@ -195,12 +209,11 @@ export function AssignmentsStep({
         scopeType: editScope,
         unitIds: editScope === 'unit' ? [...editUnitIds] : undefined,
         distributionMethod: editScope === 'unit' ? 'fixed_per_unit' : editMethod,
-        amount,
+        amount: autoAmount,
       }
       onUpdate({ assignments: [...formData.assignments, newAssignment] })
     }
 
-    setEditAmount('')
     setEditUnitIds([])
     setEditBuildingIds([])
   }
@@ -370,55 +383,18 @@ export function AssignmentsStep({
           </>
         )}
 
-        <div className="flex items-end gap-4">
-          <div className="flex flex-1 items-end gap-2">
-            <CurrencyInput
-              label={t(`${w}.amount`)}
-              placeholder={t(`${w}.amountPlaceholder`)}
-              tooltip={t(`${w}.tooltips.amount`)}
-              value={editAmount}
-              onValueChange={setEditAmount}
-              currencySymbol={currencySymbol ? <span className="text-default-400 text-sm">{currencySymbol}</span> : undefined}
-              showCurrencySymbol={!!currencySymbol}
-              className="flex-1"
-              variant="bordered"
-              isInvalid={showErrors && formData.assignments.length === 0 && (!editAmount || Number(editAmount) <= 0)}
-              errorMessage={showErrors && formData.assignments.length === 0 && (!editAmount || Number(editAmount) <= 0) ? t(`${w}.errors.amountRequired`) : undefined}
-            />
-            <Tooltip content={t(`${w}.calculatorTooltip`)}>
-              <Button
-                isIconOnly
-                variant="flat"
-                color="secondary"
-                onPress={calculatorModal.onOpen}
-                className="mb-0.5"
-              >
-                <Calculator size={18} />
-              </Button>
-            </Tooltip>
+        {/* Services total amount (read-only) */}
+        {autoAmount > 0 && (
+          <div className="flex items-center justify-between rounded-lg bg-default-100 p-3">
+            <Typography variant="body2" color="muted">
+              {t(`${w}.amount`)} ({t('admin.condominiums.detail.services.conceptServices.total')})
+            </Typography>
+            <Typography variant="body1" className="font-bold">
+              {formatAmount(autoAmount)}
+            </Typography>
           </div>
-          <Button
-            color="primary"
-            variant="flat"
-            startContent={<Plus size={16} />}
-            onPress={handleAddAssignment}
-            isDisabled={
-              !editAmount || Number(editAmount) <= 0 ||
-              (editScope === 'building' && editBuildingIds.length === 0) ||
-              (editScope === 'unit' && editUnitIds.length === 0)
-            }
-          >
-            {t(`${w}.add`)}
-          </Button>
-        </div>
+        )}
 
-        <CurrencyCalculatorModal
-          isOpen={calculatorModal.isOpen}
-          onClose={calculatorModal.onClose}
-          onConfirm={(amount) => { setEditAmount(amount); calculatorModal.onClose() }}
-          targetCurrencyId={formData.currencyId}
-          currencies={currencies}
-        />
       </div>
 
       {/* Configured assignments list */}

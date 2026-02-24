@@ -21,6 +21,8 @@ export const paymentConceptKeys = {
     [...paymentConceptKeys.all, 'my-company-paginated', companyId, query] as const,
   detail: (companyId: string, conceptId: string) =>
     [...paymentConceptKeys.all, 'detail', companyId, conceptId] as const,
+  affectedUnits: (companyId: string, conceptId: string) =>
+    [...paymentConceptKeys.all, 'affected-units', companyId, conceptId] as const,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -86,7 +88,7 @@ export function useMyCompanyPaymentConceptsPaginated(
   if (query.isRecurring !== undefined) params.set('isRecurring', String(query.isRecurring))
 
   const queryString = params.toString()
-  const path = `/platform/management-companies/${companyId}/me/payment-concepts${queryString ? `?${queryString}` : ''}`
+  const path = `/${companyId}/me/payment-concepts${queryString ? `?${queryString}` : ''}`
 
   return useApiQuery<TApiPaginatedResponse<TPaymentConcept & { condominiumName: string | null }>>({
     path,
@@ -156,4 +158,51 @@ export async function getPaymentConceptDetail(
     `/${companyId}/me/payment-concepts/${conceptId}`
   )
   return response.data.data
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Affected Units
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type TAffectedUnitPeriod = {
+  year: number
+  month: number
+  amount: number
+}
+
+export type TAffectedUnit = {
+  unitId: string
+  unitNumber: string
+  buildingId: string
+  buildingName: string
+  aliquotPercentage: number | null
+  baseAmount: number
+  periodsCount: number
+  accumulatedAmount: number
+  periods: TAffectedUnitPeriod[]
+}
+
+export type TAffectedUnitsResponse = {
+  isRecurring: boolean
+  recurrencePeriod: string | null
+  issueDay: number
+  totalUnits: number
+  totalBaseAmount: number
+  units: TAffectedUnit[]
+}
+
+export interface IUseAffectedUnitsOptions {
+  companyId: string
+  conceptId: string
+  enabled?: boolean
+}
+
+export function usePaymentConceptAffectedUnits(options: IUseAffectedUnitsOptions) {
+  const { companyId, conceptId, enabled = true } = options
+
+  return useApiQuery<TApiDataResponse<TAffectedUnitsResponse>>({
+    path: `/${companyId}/me/payment-concepts/${conceptId}/affected-units`,
+    queryKey: paymentConceptKeys.affectedUnits(companyId, conceptId),
+    enabled: enabled && !!companyId && !!conceptId,
+  })
 }

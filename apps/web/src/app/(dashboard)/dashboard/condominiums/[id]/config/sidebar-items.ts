@@ -9,6 +9,7 @@ export type TCondominiumDetailIconName =
   | 'credit-card'
   | 'file-text'
   | 'user-plus'
+  | 'wrench'
 
 export interface ICondominiumDetailMenuItem {
   key: string
@@ -50,6 +51,13 @@ export const CONDOMINIUM_DETAIL_MENU_ITEMS: ICondominiumDetailMenuItem[] = [
     translationKey: 'admin.condominiums.detail.sidebar.paymentConcepts',
     path: '/payment-concepts',
     iconName: 'file-text',
+    roles: ['management_company'],
+  },
+  {
+    key: 'services',
+    translationKey: 'admin.condominiums.detail.sidebar.services',
+    path: '/services',
+    iconName: 'wrench',
     roles: ['management_company'],
   },
   {

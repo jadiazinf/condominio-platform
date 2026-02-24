@@ -13,6 +13,7 @@ export const EConceptTypes = [
   'condominium_fee',
   'extraordinary',
   'fine',
+  'reserve_fund',
   'other',
 ] as const
 

@@ -16,6 +16,8 @@
     "clearFilters": "Limpiar filtros",
     "close": "Cerrar",
     "confirm": "Confirmar",
+    "add": "Agregar",
+    "added": "Agregado",
     "optional": "Opcional",
     "back": "Volver",
     "backToHome": "Ir a inicio",
@@ -3420,6 +3422,7 @@
         "condominiumFee": "Cuota de Condominio",
         "extraordinary": "Extraordinaria",
         "fine": "Multa",
+        "reserveFund": "Fondo de Reserva",
         "other": "Otro"
       },
       "recurrence": {
@@ -3506,7 +3509,8 @@
           "quotas": "Cuotas",
           "payments": "Pagos",
           "paymentConcepts": "Conceptos de Pago",
-          "accessRequests": "Solicitudes de Acceso"
+          "accessRequests": "Solicitudes de Acceso",
+          "services": "Servicios"
         },
         "quotas": {
           "title": "Cuotas",
@@ -3579,13 +3583,15 @@
             "type": "Tipo",
             "recurring": "Recurrente",
             "recurrence": "Periodicidad",
-            "status": "Estado"
+            "status": "Estado",
+            "createdAt": "Fecha"
           },
           "types": {
             "maintenance": "Mantenimiento",
             "condominiumFee": "Cuota de Condominio",
             "extraordinary": "Extraordinaria",
             "fine": "Multa",
+            "reserveFund": "Fondo de Reserva",
             "other": "Otro"
           },
           "recurrence": {
@@ -3593,6 +3599,15 @@
             "quarterly": "Trimestral",
             "yearly": "Anual"
           },
+          "filters": {
+            "allTypes": "Todos los Tipos",
+            "allStatuses": "Todos",
+            "active": "Activos",
+            "inactive": "Inactivos",
+            "searchPlaceholder": "Buscar por nombre..."
+          },
+          "noResults": "No se encontraron conceptos",
+          "noResultsHint": "Intenta cambiar los filtros o el término de búsqueda",
           "addConcept": "Nuevo Concepto",
           "wizard": {
             "title": "Crear Concepto de Pago",
@@ -3600,6 +3615,7 @@
             "steps": {
               "basicInfo": "Información Básica",
               "chargeConfig": "Configuración de Cobro",
+              "services": "Servicios",
               "assignments": "Asignaciones",
               "bankAccounts": "Cuentas Bancarias",
               "review": "Revisión"
@@ -3816,7 +3832,10 @@
               "interestDaily": "diario",
               "assignments": "Asignaciones",
               "bankAccounts": "Cuentas Bancarias",
-              "bankAccountsSelected": "cuentas seleccionadas"
+              "bankAccountsSelected": "cuentas seleccionadas",
+              "notifyTitle": "Notificar a los residentes",
+              "notifyDescriptionOn": "Se enviará notificación por correo y mensajería al crear el concepto",
+              "notifyDescriptionOff": "La notificación se enviará automáticamente según el día de emisión configurado"
             }
           },
           "detail": {
@@ -3849,10 +3868,27 @@
             "confirmDeactivate": "Confirmar Desactivación",
             "deactivated": "Concepto desactivado exitosamente",
             "deactivateError": "Error al desactivar el concepto",
+            "deactivateAssignment": "Desactivar",
             "assignmentDeactivated": "Asignación desactivada",
             "assignmentDeactivateError": "Error al desactivar la asignación",
             "generateCharges": "Generar Cargos",
-            "close": "Cerrar"
+            "createdAt": "Fecha de Creación",
+            "assignedOn": "Asignado el",
+            "affectedUnits": "Unidades Afectadas",
+            "noAffectedUnits": "No hay unidades afectadas",
+            "aliquot": "Alícuota",
+            "unitLabel": "Unidad",
+            "period": "período",
+            "periods": "períodos",
+            "accumulated": "Acumulado",
+            "periodDetail": "Detalle por período",
+            "units": "unidades",
+            "close": "Cerrar",
+            "relatedServices": "Servicios Relacionados",
+            "noServices": "Sin servicios vinculados",
+            "providerCompany": "Empresa",
+            "providerIndividual": "Particular",
+            "totalAmount": "Total Acumulado"
           },
           "generate": {
             "title": "Generar Cargos",
@@ -3877,6 +3913,108 @@
               "11": "Noviembre",
               "12": "Diciembre"
             }
+          }
+        },
+        "services": {
+          "title": "Servicios",
+          "subtitle": "Gestiona los servicios del condominio",
+          "empty": "No hay servicios registrados",
+          "emptyDescription": "Los servicios definen los proveedores y conceptos internos del condominio",
+          "addService": "Nuevo Servicio",
+          "table": {
+            "name": "Nombre",
+            "providerType": "Tipo",
+            "contact": "Contacto",
+            "defaultAmount": "Monto por Defecto",
+            "status": "Estado"
+          },
+          "providerTypes": {
+            "individual": "Persona Natural",
+            "company": "Empresa",
+            "cooperative": "Cooperativa",
+            "government": "Gobierno",
+            "internal": "Interno"
+          },
+          "filters": {
+            "allTypes": "Todos los tipos",
+            "allStatuses": "Todos",
+            "active": "Activos",
+            "inactive": "Inactivos",
+            "searchPlaceholder": "Buscar por nombre, razón social, RIF..."
+          },
+          "noResults": "No se encontraron servicios",
+          "noResultsHint": "Intenta con otros filtros",
+          "wizard": {
+            "title": "Nuevo Servicio",
+            "steps": {
+              "basicInfo": "Información",
+              "provider": "Proveedor",
+              "review": "Revisión"
+            },
+            "basicInfo": {
+              "description": "Define la información básica del servicio",
+              "name": "Nombre del Servicio",
+              "namePlaceholder": "Ej: Vigilancia, Limpieza, Ascensores",
+              "descriptionLabel": "Descripción",
+              "descriptionPlaceholder": "Descripción opcional del servicio",
+              "providerType": "Tipo de Proveedor",
+              "providerTypePlaceholder": "Selecciona un tipo",
+              "currency": "Moneda",
+              "currencyPlaceholder": "Selecciona la moneda",
+              "defaultAmount": "Monto por Defecto",
+              "defaultAmountPlaceholder": "Ej: 1000.00",
+              "defaultAmountHint": "Monto sugerido al vincular este servicio a un concepto de pago",
+              "errors": {
+                "nameRequired": "El nombre es requerido",
+                "providerTypeRequired": "Selecciona un tipo de proveedor",
+                "currencyRequired": "Selecciona una moneda"
+              }
+            },
+            "provider": {
+              "description": "Datos del proveedor del servicio (opcional para servicios internos)",
+              "legalName": "Razón Social",
+              "legalNamePlaceholder": "Ej: Vigilancia Nacional C.A.",
+              "taxId": "Documento de Identidad",
+              "email": "Correo Electrónico",
+              "emailPlaceholder": "correo@empresa.com",
+              "phone": "Teléfono",
+              "address": "Dirección",
+              "addressPlaceholder": "Dirección del proveedor"
+            },
+            "review": {
+              "description": "Revisa la información antes de crear el servicio",
+              "basicInfo": "Información Básica",
+              "name": "Nombre",
+              "providerType": "Tipo",
+              "currency": "Moneda",
+              "defaultAmount": "Monto por Defecto",
+              "providerInfo": "Datos del Proveedor",
+              "legalName": "Razón Social",
+              "taxId": "RIF/Cédula",
+              "email": "Correo",
+              "phone": "Teléfono",
+              "address": "Dirección",
+              "notSpecified": "No especificado"
+            },
+            "success": "Servicio creado exitosamente",
+            "creating": "Creando...",
+            "create": "Crear Servicio"
+          },
+          "conceptServices": {
+            "title": "Servicios del Concepto",
+            "description": "Selecciona los servicios que componen este concepto de pago",
+            "addService": "Agregar Servicio",
+            "servicePlaceholder": "Selecciona un servicio",
+            "amount": "Monto",
+            "useDefault": "Usar monto por defecto",
+            "total": "Total",
+            "required": "Se requiere al menos un servicio",
+            "empty": "No hay servicios disponibles. Crea servicios primero en la sección de Servicios.",
+            "noDefaultAmount": "Sin monto por defecto",
+            "differentCurrency": "Moneda diferente",
+            "noRateAvailable": "Sin tasa de cambio disponible",
+            "rate": "Tasa",
+            "duplicate": "Este servicio ya está agregado"
           }
         }
       }

@@ -58,6 +58,7 @@ import { MyNotificationsEndpoint } from './my-notifications.endpoint'
 import { BanksEndpoint } from './banks.endpoint'
 import { BankAccountsEndpoint } from './bank-accounts.endpoint'
 import { McPaymentConceptsEndpoint } from './mc-payment-concepts.endpoint'
+import { McCondominiumServicesEndpoint } from './mc-condominium-services.endpoint'
 import { MyCurrenciesEndpoint } from './my-currencies.endpoint'
 import { MyExchangeRatesEndpoint } from './my-exchange-rates.endpoint'
 
@@ -152,6 +153,9 @@ export class ApiRoutes {
 
       // MC Payment Concepts (management company scoped)
       new McPaymentConceptsEndpoint(db),
+
+      // MC Condominium Services (management company scoped)
+      new McCondominiumServicesEndpoint(db),
 
       // Subscriptions & Members
       new ManagementCompanySubscriptionsEndpoint(db),
