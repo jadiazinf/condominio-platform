@@ -66,8 +66,8 @@ export function AdminStepForm({
       setSelectedUser(null)
       setValue('admin.existingUserId', null)
       setValue('admin.existingUserEmail', '')
-      // Set default document type to CI
-      setValue('admin.idDocumentType' as any, 'CI')
+      // Set default document type to V (Venezolano)
+      setValue('admin.idDocumentType' as any, 'V')
       clearErrors(['admin.existingUserId', 'admin.existingUserEmail'])
     } else if (adminMode === 'existing') {
       clearErrors(['admin.firstName', 'admin.lastName', 'admin.email'])

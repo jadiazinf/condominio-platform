@@ -115,7 +115,7 @@ export function useCreateUserForm() {
       lastName: '',
       phoneCountryCode: '+58',
       phoneNumber: '',
-      idDocumentType: 'CI',
+      idDocumentType: 'V',
       idDocumentNumber: '',
       userType: undefined,
       condominiumId: '',

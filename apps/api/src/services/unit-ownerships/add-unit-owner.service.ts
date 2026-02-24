@@ -40,7 +40,7 @@ export interface IAddUnitOwnerInput {
   email?: string
   phone?: string
   phoneCountryCode?: string
-  idDocumentType?: 'CI' | 'RIF' | 'Pasaporte' | null
+  idDocumentType?: 'J' | 'G' | 'V' | 'E' | 'P' | null
   idDocumentNumber?: string
 }
 

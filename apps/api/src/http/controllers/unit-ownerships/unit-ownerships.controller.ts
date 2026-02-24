@@ -47,7 +47,7 @@ const AddUnitOwnerSchema = z.object({
   email: z.string().email().optional().or(z.literal('')),
   phone: z.string().optional(),
   phoneCountryCode: z.string().optional(),
-  idDocumentType: z.enum(['CI', 'RIF', 'Pasaporte']).nullable().optional(),
+  idDocumentType: z.enum(['J', 'G', 'V', 'E', 'P']).nullable().optional(),
   idDocumentNumber: z.string().optional(),
 })
 

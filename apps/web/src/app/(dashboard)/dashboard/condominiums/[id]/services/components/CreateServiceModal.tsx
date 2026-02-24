@@ -11,6 +11,7 @@ import { Typography } from '@/ui/components/typography'
 import { Stepper, type IStepItem } from '@/ui/components/stepper'
 import { PhoneInput } from '@/ui/components/phone-input'
 import { TaxIdInput } from '@/ui/components/tax-id-input'
+import { Switch } from '@/ui/components/switch'
 import { useTranslation } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
 import {
@@ -42,6 +43,11 @@ interface IServiceFormData {
   phoneCountryCode: string
   phone: string
   address: string
+  // Step 3 - Fiscal
+  chargesIva: boolean
+  ivaRate: string
+  subjectToIslarRetention: boolean
+  islrRetentionRate: string
 }
 
 const INITIAL_FORM_DATA: IServiceFormData = {
@@ -57,9 +63,13 @@ const INITIAL_FORM_DATA: IServiceFormData = {
   phoneCountryCode: '+58',
   phone: '',
   address: '',
+  chargesIva: false,
+  ivaRate: '16',
+  subjectToIslarRetention: false,
+  islrRetentionRate: '1',
 }
 
-const STEPS = ['basicInfo', 'provider', 'review'] as const
+const STEPS = ['basicInfo', 'provider', 'fiscal', 'review'] as const
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Props
@@ -150,7 +160,9 @@ export function CreateServiceModal({
         return !!(formData.name && formData.providerType && formData.currencyId)
       case 1: // Provider (optional fields)
         return true
-      case 2: // Review
+      case 2: // Fiscal (optional fields)
+        return true
+      case 3: // Review
         return true
       default:
         return false
@@ -174,6 +186,10 @@ export function CreateServiceModal({
         phoneCountryCode: formData.phoneCountryCode || undefined,
         phone: formData.phone || undefined,
         address: formData.address || undefined,
+        chargesIva: formData.chargesIva,
+        ivaRate: formData.chargesIva ? Number(formData.ivaRate) / 100 : 0.16,
+        subjectToIslarRetention: formData.subjectToIslarRetention,
+        islrRetentionRate: formData.subjectToIslarRetention ? Number(formData.islrRetentionRate) / 100 : 0.01,
       } as any)
 
       await queryClient.invalidateQueries({ queryKey: condominiumServiceKeys.all })
@@ -202,6 +218,7 @@ export function CreateServiceModal({
   const wizardSteps: IStepItem<(typeof STEPS)[number]>[] = [
     { key: 'basicInfo', title: t(`${w}.steps.basicInfo`) },
     { key: 'provider', title: t(`${w}.steps.provider`) },
+    { key: 'fiscal', title: 'Fiscal' },
     { key: 'review', title: t(`${w}.steps.review`) },
   ]
 
@@ -367,6 +384,83 @@ export function CreateServiceModal({
         return (
           <div className="flex flex-col gap-5">
             <Typography variant="body2" color="muted">
+              Configura los impuestos aplicables a este proveedor. Todos los campos son opcionales.
+            </Typography>
+
+            {/* IVA */}
+            <div className="rounded-lg border border-default-200 p-4 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Typography variant="body2" className="font-medium">
+                    ¿El proveedor cobra IVA?
+                  </Typography>
+                  <Typography variant="caption" color="muted">
+                    Aplica cuando el proveedor emite facturas con IVA
+                  </Typography>
+                </div>
+                <Switch
+                  isSelected={formData.chargesIva}
+                  onValueChange={v => updateFormData({ chargesIva: v })}
+                  color="primary"
+                />
+              </div>
+
+              {formData.chargesIva && (
+                <Input
+                  label="Alícuota IVA"
+                  placeholder="16"
+                  value={formData.ivaRate}
+                  onValueChange={v => updateFormData({ ivaRate: v })}
+                  variant="bordered"
+                  type="number"
+                  min="0"
+                  max="100"
+                  endContent={<span className="text-default-400 text-sm">%</span>}
+                  description="Tasa general en Venezuela: 16%"
+                />
+              )}
+            </div>
+
+            {/* ISLR Retención */}
+            <div className="rounded-lg border border-default-200 p-4 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Typography variant="body2" className="font-medium">
+                    ¿Aplica retención de ISLR?
+                  </Typography>
+                  <Typography variant="caption" color="muted">
+                    Para contratistas y profesionales según Decreto 1808
+                  </Typography>
+                </div>
+                <Switch
+                  isSelected={formData.subjectToIslarRetention}
+                  onValueChange={v => updateFormData({ subjectToIslarRetention: v })}
+                  color="primary"
+                />
+              </div>
+
+              {formData.subjectToIslarRetention && (
+                <Input
+                  label="Porcentaje de retención ISLR"
+                  placeholder="1"
+                  value={formData.islrRetentionRate}
+                  onValueChange={v => updateFormData({ islrRetentionRate: v })}
+                  variant="bordered"
+                  type="number"
+                  min="0"
+                  max="100"
+                  endContent={<span className="text-default-400 text-sm">%</span>}
+                  description="Contratistas de servicios: 1%. Profesionales: según tabla ISLR"
+                />
+              )}
+            </div>
+          </div>
+        )
+
+      case 3:
+        return (
+          <div className="flex flex-col gap-5">
+            <Typography variant="body2" color="muted">
               {t(`${w}.review.description`)}
             </Typography>
 
@@ -450,6 +544,29 @@ export function CreateServiceModal({
                     <>
                       <span className="text-default-500">{t(`${w}.review.address`)}</span>
                       <span>{formData.address}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Fiscal Config Card (only if any tax config is set) */}
+            {(formData.chargesIva || formData.subjectToIslarRetention) && (
+              <div className="rounded-lg border border-default-200 p-4 space-y-2">
+                <Typography variant="body2" className="font-semibold">
+                  Configuración Fiscal
+                </Typography>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {formData.chargesIva && (
+                    <>
+                      <span className="text-default-500">IVA</span>
+                      <span>{formData.ivaRate}%</span>
+                    </>
+                  )}
+                  {formData.subjectToIslarRetention && (
+                    <>
+                      <span className="text-default-500">Retención ISLR</span>
+                      <span>{formData.islrRetentionRate}%</span>
                     </>
                   )}
                 </div>

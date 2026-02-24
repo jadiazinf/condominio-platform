@@ -130,7 +130,7 @@ export class UnitOwnershipsRepository
       if (row.user?.email) {
         entity.user = {
           ...row.user,
-          idDocumentType: row.user.idDocumentType as 'CI' | 'RIF' | 'Pasaporte' | null,
+          idDocumentType: row.user.idDocumentType as 'J' | 'G' | 'V' | 'E' | 'P' | null,
         } as TUnitOwnership['user']
       }
       return entity

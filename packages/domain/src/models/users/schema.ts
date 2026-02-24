@@ -6,7 +6,7 @@ import { DomainLocaleDictionary } from '../../i18n/dictionary'
 
 const d = DomainLocaleDictionary.validation.models.users
 
-export const EIdDocumentTypes = ['CI', 'RIF', 'Pasaporte'] as const
+export const EIdDocumentTypes = ['J', 'G', 'V', 'E', 'P'] as const
 
 export const EPreferredLanguages = ['es', 'en'] as const
 

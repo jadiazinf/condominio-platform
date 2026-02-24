@@ -33,6 +33,9 @@ export const subscriptionRates = pgTable(
     minCondominiums: integer('min_condominiums').default(1).notNull(),
     maxCondominiums: integer('max_condominiums'), // null = unlimited
 
+    // Tax rate applied to invoices generated with this rate (e.g. 0.16 for 16% IVA)
+    taxRate: decimal('tax_rate', { precision: 5, scale: 4 }),
+
     // Versioning & Status
     version: varchar('version', { length: 50 }).notNull(),
     isActive: boolean('is_active').default(false).notNull(),

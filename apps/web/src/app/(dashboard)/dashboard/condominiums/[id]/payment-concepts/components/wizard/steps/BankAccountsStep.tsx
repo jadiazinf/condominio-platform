@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { Typography } from '@/ui/components/typography'
 import { Checkbox } from '@/ui/components/checkbox'
 import { Card, CardBody } from '@/ui/components/card'
@@ -34,18 +33,7 @@ export function BankAccountsStep({
     enabled: !!managementCompanyId,
   })
 
-  const allBankAccounts = data?.data ?? []
-
-  // Filter bank accounts by selected currency code
-  const selectedCurrencyCode = useMemo(() => {
-    if (!formData.currencyId) return null
-    return currencies.find(c => c.id === formData.currencyId)?.code ?? null
-  }, [formData.currencyId, currencies])
-
-  const bankAccounts = useMemo(() => {
-    if (!selectedCurrencyCode) return allBankAccounts
-    return allBankAccounts.filter(a => a.currency === selectedCurrencyCode)
-  }, [allBankAccounts, selectedCurrencyCode])
+  const bankAccounts = data?.data ?? []
 
   const handleToggle = (bankAccountId: string) => {
     const current = formData.bankAccountIds
@@ -87,7 +75,7 @@ export function BankAccountsStep({
       {bankAccounts.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-12">
           <Typography color="muted" variant="body1">
-            {selectedCurrencyCode ? t(`${w}.noCurrencyMatch`, { currency: selectedCurrencyCode }) : t(`${w}.empty`)}
+            {t(`${w}.empty`)}
           </Typography>
           <Typography color="muted" variant="caption" className="mt-1">
             {t(`${w}.emptyHint`)}

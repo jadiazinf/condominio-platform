@@ -47,7 +47,7 @@ export interface ICreateMemberWithInvitationInput {
   displayName?: string | null
   phoneCountryCode?: string | null
   phoneNumber?: string | null
-  idDocumentType?: 'CI' | 'RIF' | 'Pasaporte' | null
+  idDocumentType?: 'J' | 'G' | 'V' | 'E' | 'P' | null
   idDocumentNumber?: string | null
 
   // Member configuration

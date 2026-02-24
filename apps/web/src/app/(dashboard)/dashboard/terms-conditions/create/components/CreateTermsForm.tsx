@@ -64,11 +64,10 @@ export function CreateTermsForm() {
       version: data.version,
       title: data.title,
       content: data.content,
-      summary: data.summary || null,
+      summary: data.summary || undefined,
       effectiveFrom: new Date(data.effectiveFrom),
-      effectiveUntil: data.effectiveUntil ? new Date(data.effectiveUntil) : null,
+      effectiveUntil: data.effectiveUntil ? new Date(data.effectiveUntil) : undefined,
       isActive: data.isActive,
-      createdBy: null,
     })
   }
 

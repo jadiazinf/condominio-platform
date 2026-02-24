@@ -16,7 +16,7 @@ export interface ICreateUserInvitationInput {
   displayName?: string | null
   phoneCountryCode?: string | null
   phoneNumber?: string | null
-  idDocumentType?: 'CI' | 'RIF' | 'Pasaporte' | null
+  idDocumentType?: 'J' | 'G' | 'V' | 'E' | 'P' | null
   idDocumentNumber?: string | null
   condominiumId?: string | null // Null for global users (superadmins)
   roleId: string

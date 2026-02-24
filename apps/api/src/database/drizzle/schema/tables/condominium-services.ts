@@ -29,6 +29,11 @@ export const condominiumServices = pgTable(
       .notNull()
       .references(() => currencies.id, { onDelete: 'restrict' }),
     defaultAmount: decimal('default_amount', { precision: 15, scale: 2 }),
+    // Tax configuration
+    chargesIva: boolean('charges_iva').default(false).notNull(),
+    ivaRate: decimal('iva_rate', { precision: 5, scale: 4 }).default('0.16').notNull(),
+    subjectToIslarRetention: boolean('subject_to_islr_retention').default(false).notNull(),
+    islrRetentionRate: decimal('islr_retention_rate', { precision: 5, scale: 4 }).default('0.01').notNull(),
     isDefault: boolean('is_default').default(false),
     isActive: boolean('is_active').default(true),
     metadata: jsonb('metadata'),

@@ -61,7 +61,7 @@ export class CreateCompanyWithAdminService {
   async execute(
     input: ICreateCompanyWithAdminInput
   ): Promise<TServiceResult<ICreateCompanyWithAdminResult>> {
-    // Check if email already exists
+    // Check if admin user email already exists
     const existingUser = await this.usersRepository.getByEmail(input.admin.email)
     if (existingUser) {
       if (!existingUser.isActive) {
@@ -74,6 +74,17 @@ export class CreateCompanyWithAdminService {
         'A user with this email already exists. Use the existing user option.',
         'CONFLICT'
       )
+    }
+
+    // Check if a management company with this email already exists
+    if (input.company.email) {
+      const existingCompany = await this.managementCompaniesRepository.getByEmail(input.company.email)
+      if (existingCompany) {
+        return failure(
+          'A management company with this email already exists',
+          'CONFLICT'
+        )
+      }
     }
 
     // Generate a temporary Firebase UID (will be replaced when user accepts invitation)

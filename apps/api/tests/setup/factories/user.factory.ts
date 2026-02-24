@@ -18,7 +18,7 @@ export class UserFactory {
       photoUrl: faker.image.avatar(),
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
-      idDocumentType: 'Pasaporte',
+      idDocumentType: 'P',
       idDocumentNumber: faker.string.alphanumeric(10),
       address: faker.location.streetAddress(),
       locationId: null,

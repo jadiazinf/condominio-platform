@@ -49,6 +49,7 @@ export class SubscriptionRatesRepository
       unitRate: parseFloat(r.unitRate),
       userRate: parseFloat(r.userRate),
       annualDiscountPercentage: parseFloat(r.annualDiscountPercentage),
+      taxRate: r.taxRate ? parseFloat(r.taxRate) : null,
       minCondominiums: r.minCondominiums,
       maxCondominiums: r.maxCondominiums,
       version: r.version,
@@ -70,6 +71,7 @@ export class SubscriptionRatesRepository
       unitRate: dto.unitRate.toString(),
       userRate: dto.userRate.toString(),
       annualDiscountPercentage: dto.annualDiscountPercentage ?? 15,
+      taxRate: dto.taxRate != null ? dto.taxRate.toString() : null,
       minCondominiums: dto.minCondominiums ?? 1,
       maxCondominiums: dto.maxCondominiums,
       version: dto.version,
@@ -90,6 +92,7 @@ export class SubscriptionRatesRepository
     if (dto.unitRate !== undefined) values.unitRate = dto.unitRate.toString()
     if (dto.userRate !== undefined) values.userRate = dto.userRate.toString()
     if (dto.annualDiscountPercentage !== undefined) values.annualDiscountPercentage = dto.annualDiscountPercentage
+    if (dto.taxRate !== undefined) values.taxRate = dto.taxRate != null ? dto.taxRate.toString() : null
     if (dto.minCondominiums !== undefined) values.minCondominiums = dto.minCondominiums
     if (dto.maxCondominiums !== undefined) values.maxCondominiums = dto.maxCondominiums
     if (dto.isActive !== undefined) values.isActive = dto.isActive

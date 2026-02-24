@@ -20,7 +20,7 @@ describe('GetUserByEmailService', function () {
     photoUrl: null,
     firstName: 'Test',
     lastName: 'User',
-    idDocumentType: 'CI',
+    idDocumentType: 'V',
     idDocumentNumber: '12345678',
     address: '123 Test Street',
     locationId: null,

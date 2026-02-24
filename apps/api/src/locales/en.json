@@ -138,6 +138,16 @@
         "versionAlreadyExists": "A rate with this version already exists.",
         "activated": "Rate activated successfully.",
         "deactivated": "Rate deactivated successfully."
+      },
+      "adminInvitations": {
+        "pendingUserEmailExists": "A pending invitation already exists for this email address.",
+        "userEmailExistsUseExisting": "A user with this email already exists. Use the existing user option.",
+        "companyEmailExists": "A management company with this email already exists.",
+        "userNotFound": "User not found.",
+        "userNotActive": "The user account is not active.",
+        "invitationNotFound": "Invitation not found.",
+        "cannotResendNonPending": "Cannot resend email: the invitation is no longer pending.",
+        "failedToResendEmail": "Failed to send the invitation email."
       }
     },
     "locales": {

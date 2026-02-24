@@ -12,6 +12,9 @@ export const subscriptionRateSchema = z.object({
   // Annual subscription discount (percentage)
   annualDiscountPercentage: z.number().nonnegative().default(15), // 15% default discount for annual subscriptions
 
+  // Tax rate applied to invoices (e.g. 0.16 = 16% IVA). Null means no tax.
+  taxRate: z.number().min(0).max(1).nullable().optional(),
+
   // Tiered pricing (volume-based)
   minCondominiums: z.number().int().nonnegative().default(1),
   maxCondominiums: z.number().int().positive().nullable(), // null = unlimited

@@ -1,5 +1,6 @@
 import type { Context } from 'hono'
 import { z } from 'zod'
+import { useTranslation } from '@intlify/hono'
 import { ETaxIdTypes, EIdDocumentTypes, EPreferredLanguages, ESystemRole } from '@packages/domain'
 import type {
   AdminInvitationsRepository,
@@ -21,6 +22,7 @@ import { requireRole } from '../../middlewares/auth'
 import { createRouter } from '../create-router'
 import type { TRouteDefinition } from '../types'
 import { AppError } from '@errors/index'
+import { LocaleDictionary } from '@src/locales/dictionary'
 import {
   CreateCompanyWithAdminService,
   CreateCompanyWithExistingAdminService,
@@ -226,6 +228,7 @@ export class AdminInvitationsController {
    */
   private createWithAdmin = async (c: Context): Promise<Response> => {
     const ctx = new HttpContext<TCreateCompanyWithAdminBody>(c)
+    const t = useTranslation(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 
     try {
@@ -237,7 +240,14 @@ export class AdminInvitationsController {
 
       if (!result.success) {
         if (result.code === 'CONFLICT') {
-          throw AppError.alreadyExists('User', 'email')
+          const error = result.error as string
+          if (error.includes('pending user')) {
+            throw AppError.conflict(t(LocaleDictionary.http.controllers.adminInvitations.pendingUserEmailExists))
+          }
+          if (error.includes('management company')) {
+            throw AppError.conflict(t(LocaleDictionary.http.controllers.adminInvitations.companyEmailExists))
+          }
+          throw AppError.conflict(t(LocaleDictionary.http.controllers.adminInvitations.userEmailExistsUseExisting))
         }
         throw AppError.validation(result.error)
       }
@@ -331,6 +341,7 @@ export class AdminInvitationsController {
    */
   private createWithExistingAdmin = async (c: Context): Promise<Response> => {
     const ctx = new HttpContext<TCreateCompanyWithExistingAdminBody>(c)
+    const t = useTranslation(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 
     try {
@@ -342,10 +353,13 @@ export class AdminInvitationsController {
 
       if (!result.success) {
         if (result.code === 'NOT_FOUND') {
-          throw AppError.notFound('User')
+          throw AppError.notFound(t(LocaleDictionary.http.controllers.adminInvitations.userNotFound))
         }
         if (result.code === 'BAD_REQUEST') {
-          throw AppError.validation(result.error)
+          throw AppError.validation(t(LocaleDictionary.http.controllers.adminInvitations.userNotActive))
+        }
+        if (result.code === 'CONFLICT') {
+          throw AppError.conflict(t(LocaleDictionary.http.controllers.adminInvitations.companyEmailExists))
         }
         throw AppError.validation(result.error)
       }
@@ -453,16 +467,17 @@ export class AdminInvitationsController {
    */
   private resendEmail = async (c: Context): Promise<Response> => {
     const ctx = new HttpContext<unknown, unknown, TIdParam>(c)
+    const t = useTranslation(c)
 
     // Get the invitation
     const invitation = await this.invitationsRepository.getById(ctx.params.id)
 
     if (!invitation) {
-      throw AppError.notFound('Invitation')
+      throw AppError.notFound(t(LocaleDictionary.http.controllers.adminInvitations.invitationNotFound))
     }
 
     if (invitation.status !== 'pending') {
-      throw AppError.validation('Cannot resend email for non-pending invitation')
+      throw AppError.validation(t(LocaleDictionary.http.controllers.adminInvitations.cannotResendNonPending))
     }
 
     // Get the user and company (include inactive — invitation users/companies are inactive until accepted)
@@ -470,7 +485,7 @@ export class AdminInvitationsController {
     const company = await this.managementCompaniesRepository.getById(invitation.managementCompanyId, true)
 
     if (!user || !company) {
-      throw AppError.notFound('User or company not found')
+      throw AppError.notFound(t(LocaleDictionary.http.controllers.adminInvitations.userNotFound))
     }
 
     // Generate a new token for the invitation (same method as initial creation)
@@ -500,7 +515,7 @@ export class AdminInvitationsController {
 
       await this.invitationsRepository.recordEmailError(invitation.id, emailResult.error)
 
-      throw AppError.validation(`Failed to send email: ${emailResult.error}`)
+      throw AppError.validation(t(LocaleDictionary.http.controllers.adminInvitations.failedToResendEmail))
     }
 
     return ctx.ok({
@@ -517,6 +532,7 @@ export class AdminInvitationsController {
    */
   private cancelInvitation = async (c: Context): Promise<Response> => {
     const ctx = new HttpContext<unknown, unknown, TIdParam>(c)
+    const t = useTranslation(c)
 
     const result = await this.cancelInvitationService.execute({
       invitationId: ctx.params.id,
@@ -524,7 +540,7 @@ export class AdminInvitationsController {
 
     if (!result.success) {
       if (result.code === 'NOT_FOUND') {
-        throw AppError.notFound('Invitation')
+        throw AppError.notFound(t(LocaleDictionary.http.controllers.adminInvitations.invitationNotFound))
       }
       throw AppError.validation(result.error)
     }

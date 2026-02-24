@@ -16,7 +16,7 @@ const formSchema = z.object({
   lastName: z.string().min(1, 'superadmin.users.create.validation.lastName.required'),
   phoneCountryCode: z.string().min(1, 'superadmin.users.create.validation.phoneCountryCode.required'),
   phoneNumber: z.string().min(1, 'superadmin.users.create.validation.phoneNumber.required'),
-  idDocumentType: z.enum(['CI', 'RIF', 'Pasaporte'], { message: 'superadmin.users.create.validation.idDocumentType.required' }),
+  idDocumentType: z.enum(['J', 'G', 'V', 'E', 'P'], { message: 'superadmin.users.create.validation.idDocumentType.required' }),
   idDocumentNumber: z.string().min(1, 'superadmin.users.create.validation.idDocumentNumber.required'),
 })
 
@@ -50,7 +50,7 @@ export function CreateMemberUserForm({ companyId, onSuccess, onClose }: CreateMe
       lastName: '',
       phoneCountryCode: '+58',
       phoneNumber: '',
-      idDocumentType: 'CI',
+      idDocumentType: 'V',
       idDocumentNumber: '',
     },
   })

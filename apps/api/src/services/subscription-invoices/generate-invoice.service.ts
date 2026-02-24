@@ -2,6 +2,7 @@ import type { TSubscriptionInvoice, TSubscriptionInvoiceCreate } from '@packages
 import type {
   SubscriptionInvoicesRepository,
   ManagementCompanySubscriptionsRepository,
+  SubscriptionRatesRepository,
 } from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 
@@ -15,12 +16,14 @@ export interface IGenerateInvoiceInput {
 
 /**
  * Service for generating a new invoice for a subscription.
- * Calculates total amount including taxes.
+ * Calculates total amount including taxes. If the subscription has a rate with
+ * a taxRate configured, it auto-calculates the taxAmount (e.g. 16% IVA).
  */
 export class GenerateInvoiceService {
   constructor(
     private readonly invoicesRepository: SubscriptionInvoicesRepository,
-    private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository
+    private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository,
+    private readonly ratesRepository: SubscriptionRatesRepository
   ) {}
 
   async execute(input: IGenerateInvoiceInput): Promise<TServiceResult<TSubscriptionInvoice>> {
@@ -39,10 +42,18 @@ export class GenerateInvoiceService {
     // Generate invoice number
     const invoiceNumber = await this.generateInvoiceNumber()
 
-    // Calculate amounts
+    // Calculate amounts — auto-compute taxAmount from the rate's taxRate if not provided
     const amount = subscription.basePrice
-    const taxAmount = input.taxAmount ?? 0
-    const totalAmount = amount + taxAmount
+    let taxAmount = input.taxAmount ?? 0
+
+    if (input.taxAmount === undefined && subscription.rateId) {
+      const rate = await this.ratesRepository.getById(subscription.rateId)
+      if (rate?.taxRate) {
+        taxAmount = Number(amount) * Number(rate.taxRate)
+      }
+    }
+
+    const totalAmount = Number(amount) + taxAmount
 
     // Create invoice
     const invoiceData: TSubscriptionInvoiceCreate = {

@@ -27,6 +27,10 @@ export const condominiumServiceSchema = baseModelSchema.extend({
   locationId: z.uuid().nullable(),
   currencyId: z.uuid({ error: d.currencyId.invalid }),
   defaultAmount: z.number().min(0).nullable(),
+  chargesIva: z.boolean().default(false),
+  ivaRate: z.number().min(0).max(1).default(0.16),
+  subjectToIslarRetention: z.boolean().default(false),
+  islrRetentionRate: z.number().min(0).max(1).default(0.01),
   isDefault: z.boolean().default(false),
   isActive: z.boolean().default(true),
   metadata: z.record(z.string(), z.unknown()).nullable(),
@@ -47,6 +51,10 @@ export const condominiumServiceCreateSchema = z.object({
   locationId: z.string().uuid().optional(),
   currencyId: z.string().uuid({ error: d.currencyId.invalid }),
   defaultAmount: z.number().min(0).optional(),
+  chargesIva: z.boolean().default(false),
+  ivaRate: z.number().min(0).max(1).default(0.16),
+  subjectToIslarRetention: z.boolean().default(false),
+  islrRetentionRate: z.number().min(0).max(1).default(0.01),
   condominiumId: z.string().uuid({ error: d.condominiumId.invalid }),
 })
 
@@ -64,5 +72,9 @@ export const condominiumServiceUpdateSchema = z.object({
   locationId: z.string().uuid().nullable().optional(),
   currencyId: z.string().uuid().optional(),
   defaultAmount: z.number().min(0).nullable().optional(),
+  chargesIva: z.boolean().optional(),
+  ivaRate: z.number().min(0).max(1).optional(),
+  subjectToIslarRetention: z.boolean().optional(),
+  islrRetentionRate: z.number().min(0).max(1).optional(),
   isActive: z.boolean().optional(),
 })

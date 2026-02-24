@@ -38,6 +38,10 @@ export class CondominiumServicesRepository
       locationId: r.locationId,
       currencyId: r.currencyId,
       defaultAmount: r.defaultAmount ? Number(r.defaultAmount) : null,
+      chargesIva: r.chargesIva ?? false,
+      ivaRate: r.ivaRate ? Number(r.ivaRate) : 0.16,
+      subjectToIslarRetention: r.subjectToIslarRetention ?? false,
+      islrRetentionRate: r.islrRetentionRate ? Number(r.islrRetentionRate) : 0.01,
       isDefault: r.isDefault ?? false,
       isActive: r.isActive ?? true,
       metadata: r.metadata as Record<string, unknown> | null,
@@ -63,6 +67,10 @@ export class CondominiumServicesRepository
       locationId: dto.locationId,
       currencyId: dto.currencyId,
       defaultAmount: dto.defaultAmount != null ? String(dto.defaultAmount) : null,
+      chargesIva: dto.chargesIva ?? false,
+      ivaRate: dto.ivaRate != null ? String(dto.ivaRate) : '0.16',
+      subjectToIslarRetention: dto.subjectToIslarRetention ?? false,
+      islrRetentionRate: dto.islrRetentionRate != null ? String(dto.islrRetentionRate) : '0.01',
     }
   }
 
@@ -81,6 +89,10 @@ export class CondominiumServicesRepository
     if (dto.locationId !== undefined) values.locationId = dto.locationId
     if (dto.currencyId !== undefined) values.currencyId = dto.currencyId
     if (dto.defaultAmount !== undefined) values.defaultAmount = dto.defaultAmount != null ? String(dto.defaultAmount) : null
+    if (dto.chargesIva !== undefined) values.chargesIva = dto.chargesIva
+    if (dto.ivaRate !== undefined) values.ivaRate = String(dto.ivaRate)
+    if (dto.subjectToIslarRetention !== undefined) values.subjectToIslarRetention = dto.subjectToIslarRetention
+    if (dto.islrRetentionRate !== undefined) values.islrRetentionRate = String(dto.islrRetentionRate)
     if (dto.isActive !== undefined) values.isActive = dto.isActive
     values.updatedAt = new Date()
     return values

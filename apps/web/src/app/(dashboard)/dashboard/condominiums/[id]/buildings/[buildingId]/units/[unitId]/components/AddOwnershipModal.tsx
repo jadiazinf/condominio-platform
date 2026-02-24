@@ -35,7 +35,7 @@ const registerFormSchema = z.object({
   email: z.string().email('validation.email').optional().or(z.literal('')),
   phoneCountryCode: z.string().optional().or(z.literal('')),
   phoneNumber: z.string().optional().or(z.literal('')),
-  idDocumentType: z.enum(['CI', 'RIF', 'Pasaporte']),
+  idDocumentType: z.enum(['J', 'G', 'V', 'E', 'P']),
   idDocumentNumber: z.string().min(1, 'validation.required'),
   ownershipType: z.enum(['owner', 'co-owner', 'tenant', 'family_member', 'authorized']),
 })
@@ -129,7 +129,7 @@ export function AddOwnershipModal({
       email: '',
       phoneCountryCode: '+58',
       phoneNumber: '',
-      idDocumentType: 'CI',
+      idDocumentType: 'V',
       idDocumentNumber: '',
       ownershipType: 'owner',
     },

@@ -96,6 +96,16 @@ export const LocaleDictionary = {
         activated: 'http.controllers.subscriptionRates.activated',
         deactivated: 'http.controllers.subscriptionRates.deactivated',
       },
+      adminInvitations: {
+        pendingUserEmailExists: 'http.controllers.adminInvitations.pendingUserEmailExists',
+        userEmailExistsUseExisting: 'http.controllers.adminInvitations.userEmailExistsUseExisting',
+        companyEmailExists: 'http.controllers.adminInvitations.companyEmailExists',
+        userNotFound: 'http.controllers.adminInvitations.userNotFound',
+        userNotActive: 'http.controllers.adminInvitations.userNotActive',
+        invitationNotFound: 'http.controllers.adminInvitations.invitationNotFound',
+        cannotResendNonPending: 'http.controllers.adminInvitations.cannotResendNonPending',
+        failedToResendEmail: 'http.controllers.adminInvitations.failedToResendEmail',
+      },
     },
     locales: {
       unknownError: 'http.locales.unknownError',

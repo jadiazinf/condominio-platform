@@ -26,7 +26,7 @@ export type TSuperadminUserWithDetails = Omit<TUserRole, 'user' | 'role' | 'assi
     firstName: string | null
     lastName: string | null
     photoUrl: string | null
-    idDocumentType: 'CI' | 'RIF' | 'Pasaporte' | null
+    idDocumentType: 'J' | 'G' | 'V' | 'E' | 'P' | null
     idDocumentNumber: string | null
     isActive: boolean
     lastLogin: Date | null
@@ -332,7 +332,7 @@ export class UserRolesRepository
       isActive: r.isActive ?? true,
       isEmailVerified: r.isEmailVerified ?? false,
       lastLogin: r.lastLogin,
-      idDocumentType: r.idDocumentType as 'CI' | 'RIF' | 'Pasaporte' | null,
+      idDocumentType: r.idDocumentType as 'J' | 'G' | 'V' | 'E' | 'P' | null,
       idDocumentNumber: r.idDocumentNumber,
       metadata: (r.metadata ?? null) as Record<string, unknown> | null,
       createdAt: r.createdAt ?? new Date(),
@@ -445,7 +445,7 @@ export class UserRolesRepository
           firstName: r.userFirstName,
           lastName: r.userLastName,
           photoUrl: r.userPhotoUrl,
-          idDocumentType: r.userIdDocumentType as 'CI' | 'RIF' | 'Pasaporte' | null,
+          idDocumentType: r.userIdDocumentType as 'J' | 'G' | 'V' | 'E' | 'P' | null,
           idDocumentNumber: r.userIdDocumentNumber,
           isActive: r.userIsActive ?? true,
           lastLogin: r.userLastLogin,

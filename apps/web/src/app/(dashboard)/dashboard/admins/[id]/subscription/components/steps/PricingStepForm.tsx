@@ -20,6 +20,7 @@ import {
   AlertCircle,
   Info,
   RotateCcw,
+  Plus,
 } from 'lucide-react'
 import { Button } from '@/ui/components/button'
 import { useToast } from '@/ui/components/toast'
@@ -28,6 +29,8 @@ import { useSubscriptionPricing, type IPricingQuery } from '@packages/http-clien
 import { formatCurrency } from '@packages/utils/currency'
 import type { ISubscriptionFormData } from '../../hooks'
 import { useSubscriptionRates } from '@packages/http-client/hooks'
+import { Modal, ModalContent, ModalHeader, ModalBody, useDisclosure } from '@/ui/components/modal'
+import { CreateRateForm } from '@/app/(dashboard)/dashboard/rates/create/components/CreateRateForm'
 
 interface PricingStepFormProps {
   companyId: string
@@ -59,6 +62,7 @@ export function PricingStepForm({
 }: PricingStepFormProps) {
   const { t } = useTranslation()
   const toast = useToast()
+  const { isOpen: isCreateRateOpen, onOpen: onOpenCreateRate, onOpenChange: onOpenChangeCreateRate, onClose: onCloseCreateRate } = useDisclosure()
   const { control, watch, setValue, getValues } = useFormContext<ISubscriptionFormData>()
   const discountType = watch('discountType')
   const discountValue = watch('discountValue')
@@ -139,7 +143,7 @@ export function PricingStepForm({
     error: pricingError,
   } = useSubscriptionPricing(companyId, {
     query: pricingQuery,
-    enabled: !!companyId,
+    enabled: !!companyId && !!selectedRateId,
   })
 
   const pricing = pricingData?.data
@@ -249,15 +253,26 @@ export function PricingStepForm({
     <div className="space-y-8 pb-8">
       {/* Rate Selector Section */}
       <div className="space-y-6">
-        <div>
-          <Typography variant="subtitle2">
-            {t('superadmin.companies.subscription.form.fields.rate.label')}
-          </Typography>
-          <Typography variant="caption" color="muted">
-            {selectedRateId
-              ? t('superadmin.companies.subscription.form.fields.rate.description')
-              : t('superadmin.companies.subscription.form.fields.rate.descriptionDefault')}
-          </Typography>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <Typography variant="subtitle2">
+              {t('superadmin.companies.subscription.form.fields.rate.label')}
+            </Typography>
+            <Typography variant="caption" color="muted">
+              {selectedRateId
+                ? t('superadmin.companies.subscription.form.fields.rate.description')
+                : t('superadmin.companies.subscription.form.fields.rate.descriptionDefault')}
+            </Typography>
+          </div>
+          <Button
+            type="button"
+            variant="bordered"
+            size="sm"
+            startContent={<Plus size={14} />}
+            onPress={onOpenCreateRate}
+          >
+            Nueva Tarifa
+          </Button>
         </div>
 
         <Card>
@@ -282,7 +297,7 @@ export function PricingStepForm({
         </Card>
       </div>
 
-      <Divider className="my-12" />
+      <Divider className="my-4" />
 
       {/* Pricing Calculator Section */}
       <div className="space-y-6">
@@ -297,7 +312,13 @@ export function PricingStepForm({
 
         <Card className="bg-gradient-to-br from-primary-50 to-primary-100/50 dark:from-primary-900/20 dark:to-primary-800/10">
           <CardBody className="space-y-6">
-            {isPricingLoading && !pricing ? (
+            {!selectedRateId ? (
+              <div className="text-center py-6">
+                <Typography variant="body2" color="muted">
+                  Selecciona una tarifa para ver el cálculo de precio
+                </Typography>
+              </div>
+            ) : isPricingLoading && !pricing ? (
               <div className="flex items-center justify-center py-8">
                 <Spinner size="md" />
               </div>
@@ -794,7 +815,7 @@ export function PricingStepForm({
         </Card>
       </div>
 
-      <Divider className="my-12" />
+      <Divider className="my-6" />
 
       {/* Final Price Section */}
       <div className="space-y-6">
@@ -859,7 +880,7 @@ export function PricingStepForm({
         </div>
       </div>
 
-      <Divider className="my-12" />
+      <Divider className="my-6" />
 
       {/* Pricing Notes Section */}
       <div className="space-y-6">
@@ -889,6 +910,28 @@ export function PricingStepForm({
           )}
         />
       </div>
+
+      {/* Create Rate Modal */}
+      <Modal isOpen={isCreateRateOpen} onOpenChange={onOpenChangeCreateRate} size="2xl" scrollBehavior="inside">
+        <ModalContent>
+          {() => (
+            <>
+              <ModalHeader>Nueva Tarifa de Suscripción</ModalHeader>
+              <ModalBody className="pb-6">
+                <CreateRateForm
+                  isEmbedded
+                  onSuccess={(rateId) => {
+                    setValue('rateId', rateId)
+                    hasAutoFilledPrice.current = false
+                    onCloseCreateRate()
+                  }}
+                  onCancel={onCloseCreateRate}
+                />
+              </ModalBody>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   )
 }

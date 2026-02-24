@@ -51,7 +51,7 @@ export interface TUserWithRoles {
   photoUrl: string | null
   phoneCountryCode: string | null
   phoneNumber: string | null
-  idDocumentType: 'CI' | 'RIF' | 'Pasaporte' | null
+  idDocumentType: 'J' | 'G' | 'V' | 'E' | 'P' | null
   idDocumentNumber: string | null
   isActive: boolean
   lastLogin: Date | null
@@ -116,7 +116,7 @@ export interface TUserFullDetails {
   phoneCountryCode: string | null
   phoneNumber: string | null
   address: string | null
-  idDocumentType: 'CI' | 'RIF' | 'Pasaporte' | null
+  idDocumentType: 'J' | 'G' | 'V' | 'E' | 'P' | null
   idDocumentNumber: string | null
   isActive: boolean
   isEmailVerified: boolean
@@ -483,7 +483,7 @@ export class UsersRepository
       photoUrl: user.photoUrl,
       phoneCountryCode: user.phoneCountryCode,
       phoneNumber: user.phoneNumber,
-      idDocumentType: user.idDocumentType as 'CI' | 'RIF' | 'Pasaporte' | null,
+      idDocumentType: user.idDocumentType as 'J' | 'G' | 'V' | 'E' | 'P' | null,
       idDocumentNumber: user.idDocumentNumber,
       isActive: user.isActive ?? true,
       lastLogin: user.lastLogin,
@@ -647,7 +647,7 @@ export class UsersRepository
       phoneCountryCode: user.phoneCountryCode,
       phoneNumber: user.phoneNumber,
       address: user.address,
-      idDocumentType: user.idDocumentType as 'CI' | 'RIF' | 'Pasaporte' | null,
+      idDocumentType: user.idDocumentType as 'J' | 'G' | 'V' | 'E' | 'P' | null,
       idDocumentNumber: user.idDocumentNumber,
       isActive: user.isActive ?? true,
       isEmailVerified: user.isEmailVerified ?? false,

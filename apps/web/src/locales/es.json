@@ -819,7 +819,7 @@
           "adminPhone": "Teléfono",
           "adminPhonePlaceholder": "412 123 4567",
           "adminIdDocument": "Documento de Identidad",
-          "adminIdDocumentTypePlaceholder": "CI",
+          "adminIdDocumentTypePlaceholder": "Tipo",
           "adminIdDocumentNumberPlaceholder": "12345678",
           "adminIdDocumentDescription": "Documento de identidad del administrador. Selecciona el tipo y luego ingresa el número"
         },
@@ -1205,9 +1205,11 @@
             "documentType": "Tipo Documento",
             "documentNumber": "Nº Documento",
             "documentTypes": {
-              "CI": "Cédula",
-              "RIF": "RIF",
-              "Pasaporte": "Pasaporte"
+              "J": "J - Jurídico",
+              "G": "G - Gobierno",
+              "V": "V - Venezolano",
+              "E": "E - Extranjero",
+              "P": "P - Pasaporte"
             }
           }
         }
@@ -2046,9 +2048,11 @@
           "condominiumDescription": "El condominio al que se asignará el usuario. Este campo es requerido para roles no globales como Administrador o Residente"
         },
         "idDocumentTypes": {
-          "CI": "Cédula de Identidad",
-          "RIF": "RIF",
-          "Pasaporte": "Pasaporte"
+          "J": "J - Jurídico",
+          "G": "G - Gobierno",
+          "V": "V - Venezolano",
+          "E": "E - Extranjero",
+          "P": "P - Pasaporte"
         },
         "submit": "Enviar Invitación",
         "submitting": "Enviando...",
@@ -2281,7 +2285,7 @@
           },
           "version": {
             "label": "Versión",
-            "placeholder": "Ej: v2.0"
+            "placeholder": "Ej: 2.0"
           },
           "effectiveFrom": {
             "label": "Vigente desde",

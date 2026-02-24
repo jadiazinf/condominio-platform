@@ -1190,9 +1190,11 @@
             "documentType": "Document Type",
             "documentNumber": "Document Number",
             "documentTypes": {
-              "CI": "ID Card",
-              "RIF": "Tax ID",
-              "Pasaporte": "Passport"
+              "J": "J - Legal Entity",
+              "G": "G - Government",
+              "V": "V - Venezuelan",
+              "E": "E - Foreign",
+              "P": "P - Passport"
             }
           }
         }
@@ -2043,9 +2045,11 @@
           "condominiumDescription": "The condominium to assign the user to (required for non-global roles)"
         },
         "idDocumentTypes": {
-          "CI": "ID Card",
-          "RIF": "RIF",
-          "Pasaporte": "Passport"
+          "J": "J - Legal Entity",
+          "G": "G - Government",
+          "V": "V - Venezuelan",
+          "E": "E - Foreign",
+          "P": "P - Passport"
         },
         "submit": "Send Invitation",
         "submitting": "Sending...",
@@ -2275,7 +2279,7 @@
           },
           "version": {
             "label": "Version",
-            "placeholder": "E.g.: v2.0"
+            "placeholder": "E.g.: 2.0"
           },
           "effectiveFrom": {
             "label": "Effective from",

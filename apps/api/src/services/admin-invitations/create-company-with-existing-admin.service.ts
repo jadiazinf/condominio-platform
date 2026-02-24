@@ -64,6 +64,17 @@ export class CreateCompanyWithExistingAdminService {
       return failure('User is not active', 'BAD_REQUEST')
     }
 
+    // Check if a management company with this email already exists
+    if (input.company.email) {
+      const existingCompany = await this.managementCompaniesRepository.getByEmail(input.company.email)
+      if (existingCompany) {
+        return failure(
+          'A management company with this email already exists',
+          'CONFLICT'
+        )
+      }
+    }
+
     // Look up roles before starting the transaction (read-only, avoids
     // acquiring a second connection inside the tx which can deadlock in test containers)
     const userRole = await this.rolesRepository.getByName(ESystemRole.USER)

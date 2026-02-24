@@ -58,8 +58,16 @@ export function DocumentInput({
   const isInvalid = !!documentTypeError || !!documentNumberError
   const errorMessage = documentTypeError || documentNumberError
 
+  const ID_DOCUMENT_TYPE_LABELS: Record<TIdDocumentType, string> = {
+    J: 'J - Jurídico',
+    G: 'G - Gobierno',
+    V: 'V - Venezolano',
+    E: 'E - Extranjero',
+    P: 'P - Pasaporte',
+  }
+
   const documentTypeItems: ISelectItem[] = useMemo(
-    () => EIdDocumentTypes.map(type => ({ key: type, label: type })),
+    () => EIdDocumentTypes.map(type => ({ key: type, label: ID_DOCUMENT_TYPE_LABELS[type] })),
     []
   )
 
@@ -86,7 +94,7 @@ export function DocumentInput({
       <div className="flex gap-2">
         <Select
           aria-label="Document type"
-          className="w-[140px] shrink-0"
+          className="w-[160px] shrink-0"
           placeholder={typePlaceholder}
           items={documentTypeItems}
           value={documentType || typePlaceholder || undefined}

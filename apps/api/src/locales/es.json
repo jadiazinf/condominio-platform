@@ -138,6 +138,16 @@
         "versionAlreadyExists": "Ya existe una tarifa con esta versión.",
         "activated": "Tarifa activada exitosamente.",
         "deactivated": "Tarifa desactivada exitosamente."
+      },
+      "adminInvitations": {
+        "pendingUserEmailExists": "Ya existe una invitación pendiente para esta dirección de correo.",
+        "userEmailExistsUseExisting": "Ya existe un usuario con este correo electrónico. Use la opción de usuario existente.",
+        "companyEmailExists": "Ya existe una empresa administradora con este correo electrónico.",
+        "userNotFound": "Usuario no encontrado.",
+        "userNotActive": "La cuenta del usuario no está activa.",
+        "invitationNotFound": "Invitación no encontrada.",
+        "cannotResendNonPending": "No se puede reenviar el correo: la invitación ya no está pendiente.",
+        "failedToResendEmail": "Error al enviar el correo de invitación."
       }
     },
     "locales": {
