@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Input } from '@/ui/components/input'
@@ -11,7 +12,7 @@ import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
 import { Card, CardBody } from '@/ui/components/card'
 import { useDisclosure } from '@/ui/components/modal'
-import { Wrench, Plus, X, Search } from 'lucide-react'
+import { Wrench, Plus, X, Search, ChevronRight } from 'lucide-react'
 import type { TCondominiumService, TCondominiumServicesQuery } from '@packages/domain'
 
 import { CreateServiceModal } from './CreateServiceModal'
@@ -73,6 +74,7 @@ export function ServicesPageClient({
   translations: t,
 }: ServicesPageClientProps) {
   const createModal = useDisclosure()
+  const router = useRouter()
 
   // Filter state
   const [providerFilter, setProviderFilter] = useState<TProviderFilter>('all')
@@ -124,6 +126,7 @@ export function ServicesPageClient({
       { key: 'contact', label: t.table.contact },
       { key: 'defaultAmount', label: t.table.defaultAmount },
       { key: 'isActive', label: t.table.status },
+      { key: 'actions', label: '' },
     ],
     [t]
   )
@@ -165,6 +168,13 @@ export function ServicesPageClient({
     setSearch('')
     setPage(1)
   }, [])
+
+  const handleRowClick = useCallback(
+    (service: TCondominiumService) => {
+      router.push(`/dashboard/condominiums/${condominiumId}/services/${service.id}`)
+    },
+    [router, condominiumId]
+  )
 
   const renderCell = useCallback(
     (service: TCondominiumService, columnKey: string) => {
@@ -220,6 +230,12 @@ export function ServicesPageClient({
             <Chip color={service.isActive ? 'success' : 'default'} variant="dot" size="sm">
               {service.isActive ? t.status.active : t.status.inactive}
             </Chip>
+          )
+        case 'actions':
+          return (
+            <div className="flex justify-end">
+              <ChevronRight size={16} className="text-default-400" />
+            </div>
           )
         default:
           return null
@@ -323,7 +339,12 @@ export function ServicesPageClient({
           {/* Mobile Cards */}
           <div className="block space-y-3 md:hidden">
             {services.map(service => (
-              <Card key={service.id} className="w-full">
+              <Card
+                key={service.id}
+                className="w-full cursor-pointer hover:bg-default-50 transition-colors"
+                isPressable
+                onPress={() => handleRowClick(service)}
+              >
                 <CardBody className="space-y-2">
                   <div className="flex items-start justify-between">
                     <div>
@@ -332,9 +353,12 @@ export function ServicesPageClient({
                         <p className="text-xs text-default-500">{service.legalName}</p>
                       )}
                     </div>
-                    <Chip color={service.isActive ? 'success' : 'default'} variant="dot" size="sm">
-                      {service.isActive ? t.status.active : t.status.inactive}
-                    </Chip>
+                    <div className="flex items-center gap-2">
+                      <Chip color={service.isActive ? 'success' : 'default'} variant="dot" size="sm">
+                        {service.isActive ? t.status.active : t.status.inactive}
+                      </Chip>
+                      <ChevronRight size={14} className="text-default-400" />
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Chip
@@ -369,8 +393,9 @@ export function ServicesPageClient({
               columns={tableColumns}
               rows={services}
               renderCell={renderCell}
+              onRowClick={handleRowClick}
               classNames={{
-                tr: 'hover:bg-default-100 transition-colors',
+                tr: 'hover:bg-default-100 transition-colors cursor-pointer',
               }}
             />
           </div>

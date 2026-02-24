@@ -15,6 +15,13 @@
       "when": 1771892770268,
       "tag": "0001_material_eternals",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771960565800,
+      "tag": "0002_dry_skullbuster",
+      "breakpoints": true
     }
   ]
 }

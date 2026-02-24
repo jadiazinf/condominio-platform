@@ -66,7 +66,7 @@ export function I18nProvider({ children, initialLocale }: II18nProviderProps) {
     return DEFAULT_LANGUAGE
   })
 
-  const messages = useMemo(() => allMessages[locale], [locale])
+  const messages = allMessages[locale]
 
   const t = useCallback(
     (key: string, values?: Record<string, string | number>): string => {

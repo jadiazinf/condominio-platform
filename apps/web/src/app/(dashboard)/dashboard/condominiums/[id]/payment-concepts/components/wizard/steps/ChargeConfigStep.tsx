@@ -118,7 +118,7 @@ export function ChargeConfigStep({ formData, onUpdate, showErrors, currencies }:
           </Typography>
         </div>
         <Switch
-          color="success"
+          color="primary"
           isSelected={formData.allowsPartialPayment}
           onValueChange={(val) => onUpdate({ allowsPartialPayment: val })}
         />
@@ -249,7 +249,7 @@ export function ChargeConfigStep({ formData, onUpdate, showErrors, currencies }:
             </Typography>
           </div>
           <Switch
-            color="success"
+            color="primary"
             isSelected={formData.interestEnabled}
             onValueChange={(val) => onUpdate({ interestEnabled: val })}
           />

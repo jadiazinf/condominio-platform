@@ -288,7 +288,7 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
           <Switch
             isSelected={formData.notifyImmediately}
             onValueChange={(value) => onUpdate({ notifyImmediately: value })}
-            color="success"
+            color="primary"
           />
         </CardBody>
       </Card>

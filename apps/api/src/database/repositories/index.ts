@@ -113,4 +113,5 @@ export { PaymentConceptBankAccountsRepository } from './payment-concept-bank-acc
 
 // Condominium Services
 export { CondominiumServicesRepository } from './condominium-services.repository'
+export { ServiceExecutionsRepository } from './service-executions.repository'
 export { PaymentConceptServicesRepository } from './payment-concept-services.repository'

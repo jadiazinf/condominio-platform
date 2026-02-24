@@ -4,13 +4,22 @@ import {
   condominiumServiceCreateSchema,
   condominiumServiceUpdateSchema,
   condominiumServicesQuerySchema,
+  serviceExecutionCreateSchema,
+  serviceExecutionUpdateSchema,
   type TCondominiumService,
   type TCondominiumServiceCreate,
   type TCondominiumServiceUpdate,
   type TCondominiumServicesQuerySchema,
+  type TServiceExecutionCreate,
+  type TServiceExecutionUpdate,
   ESystemRole,
 } from '@packages/domain'
-import type { CondominiumServicesRepository, CondominiumsRepository, CurrenciesRepository } from '@database/repositories'
+import type {
+  CondominiumServicesRepository,
+  CondominiumsRepository,
+  CurrenciesRepository,
+  ServiceExecutionsRepository,
+} from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
@@ -31,6 +40,21 @@ const ServiceIdParamSchema = z.object({
 
 type TServiceIdParam = z.infer<typeof ServiceIdParamSchema>
 
+const ExecutionIdParamSchema = z.object({
+  managementCompanyId: z.string().uuid(),
+  serviceId: z.string().uuid(),
+  executionId: z.string().uuid(),
+})
+
+type TExecutionIdParam = z.infer<typeof ExecutionIdParamSchema>
+
+const ExecutionsQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  status: z.enum(['draft', 'confirmed']).optional(),
+  conceptId: z.string().uuid().optional(),
+})
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Roles
 // ─────────────────────────────────────────────────────────────────────────────
@@ -48,6 +72,7 @@ type TCondominiumMCRepo = {
 
 export interface IMcCondominiumServicesDeps {
   servicesRepo: CondominiumServicesRepository
+  executionsRepo: ServiceExecutionsRepository
   condominiumsRepo: CondominiumsRepository
   currenciesRepo: CurrenciesRepository
   condominiumMCRepo: TCondominiumMCRepo
@@ -61,10 +86,12 @@ export class McCondominiumServicesController extends BaseController<
   private readonly createService: CreateCondominiumServiceService
   private readonly createDefaultsService: CreateDefaultServicesService
   private readonly servicesRepo: CondominiumServicesRepository
+  private readonly executionsRepo: ServiceExecutionsRepository
 
   constructor(deps: IMcCondominiumServicesDeps) {
     super(deps.servicesRepo)
     this.servicesRepo = deps.servicesRepo
+    this.executionsRepo = deps.executionsRepo
 
     this.createService = new CreateCondominiumServiceService(
       deps.servicesRepo,
@@ -151,11 +178,69 @@ export class McCondominiumServicesController extends BaseController<
           bodyValidator(z.object({ currencyId: z.string().uuid() })),
         ],
       },
+      // ── Executions: List ────────────────────────────────────────────
+      {
+        method: 'get',
+        path: '/:managementCompanyId/me/condominium-services/:serviceId/executions',
+        handler: this.listExecutions,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ServiceIdParamSchema),
+          requireRole(...allMcRoles),
+          queryValidator(ExecutionsQuerySchema),
+        ],
+      },
+      // ── Executions: Get by ID ───────────────────────────────────────
+      {
+        method: 'get',
+        path: '/:managementCompanyId/me/condominium-services/:serviceId/executions/:executionId',
+        handler: this.getExecution,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ExecutionIdParamSchema),
+          requireRole(...allMcRoles),
+        ],
+      },
+      // ── Executions: Create ──────────────────────────────────────────
+      {
+        method: 'post',
+        path: '/:managementCompanyId/me/condominium-services/:serviceId/executions',
+        handler: this.createExecution,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ServiceIdParamSchema),
+          requireRole(...adminOnly),
+          bodyValidator(serviceExecutionCreateSchema.omit({ serviceId: true, condominiumId: true })),
+        ],
+      },
+      // ── Executions: Update ──────────────────────────────────────────
+      {
+        method: 'patch',
+        path: '/:managementCompanyId/me/condominium-services/:serviceId/executions/:executionId',
+        handler: this.updateExecution,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ExecutionIdParamSchema),
+          requireRole(...adminOnly),
+          bodyValidator(serviceExecutionUpdateSchema),
+        ],
+      },
+      // ── Executions: Delete ──────────────────────────────────────────
+      {
+        method: 'delete',
+        path: '/:managementCompanyId/me/condominium-services/:serviceId/executions/:executionId',
+        handler: this.deleteExecution,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ExecutionIdParamSchema),
+          requireRole(...adminOnly),
+        ],
+      },
     ]
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Handlers
+  // Handlers — Services
   // ─────────────────────────────────────────────────────────────────────────
 
   private listServices = async (c: Context): Promise<Response> => {
@@ -263,6 +348,107 @@ export class McCondominiumServicesController extends BaseController<
       }
 
       return ctx.created({ data: result.data })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Handlers — Executions
+  // ─────────────────────────────────────────────────────────────────────────
+
+  private listExecutions = async (c: Context): Promise<Response> => {
+    type TExecQuery = { page: number; limit: number; status?: 'draft' | 'confirmed'; conceptId?: string }
+    const ctx = this.ctx<unknown, TExecQuery, TServiceIdParam>(c)
+
+    try {
+      const service = await this.servicesRepo.getById(ctx.params.serviceId)
+      if (!service) return ctx.notFound({ error: 'Service not found' })
+
+      const result = await this.executionsRepo.getByServiceIdPaginated(ctx.params.serviceId, {
+        page: ctx.query.page,
+        limit: ctx.query.limit,
+        status: ctx.query.status,
+        conceptId: ctx.query.conceptId,
+      })
+
+      return ctx.ok(result)
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private getExecution = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TExecutionIdParam>(c)
+
+    try {
+      const execution = await this.executionsRepo.getById(ctx.params.executionId)
+      if (!execution || execution.serviceId !== ctx.params.serviceId) {
+        return ctx.notFound({ error: 'Execution not found' })
+      }
+      return ctx.ok({ data: execution })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private createExecution = async (c: Context): Promise<Response> => {
+    type TExecBody = Omit<TServiceExecutionCreate, 'serviceId' | 'condominiumId'>
+    const ctx = this.ctx<TExecBody, unknown, TServiceIdParam>(c)
+    const user = ctx.getAuthenticatedUser()
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+
+    try {
+      const service = await this.servicesRepo.getById(ctx.params.serviceId)
+      if (!service) return ctx.notFound({ error: 'Service not found' })
+
+      if (!condominiumId) {
+        return ctx.badRequest({ error: 'Condominium ID is required (x-condominium-id header)' })
+      }
+
+      const execution = await this.executionsRepo.create({
+        ...ctx.body,
+        serviceId: ctx.params.serviceId,
+        condominiumId,
+        paymentConceptId: (ctx.body as { paymentConceptId?: string }).paymentConceptId ?? null,
+        createdBy: user.id,
+      } as TServiceExecutionCreate)
+
+      return ctx.created({ data: execution })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private updateExecution = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TServiceExecutionUpdate, unknown, TExecutionIdParam>(c)
+
+    try {
+      const existing = await this.executionsRepo.getById(ctx.params.executionId)
+      if (!existing || existing.serviceId !== ctx.params.serviceId) {
+        return ctx.notFound({ error: 'Execution not found' })
+      }
+
+      const execution = await this.executionsRepo.update(ctx.params.executionId, ctx.body)
+      if (!execution) return ctx.notFound({ error: 'Execution not found' })
+
+      return ctx.ok({ data: execution })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private deleteExecution = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TExecutionIdParam>(c)
+
+    try {
+      const existing = await this.executionsRepo.getById(ctx.params.executionId)
+      if (!existing || existing.serviceId !== ctx.params.serviceId) {
+        return ctx.notFound({ error: 'Execution not found' })
+      }
+
+      await this.executionsRepo.hardDelete(ctx.params.executionId)
+      return ctx.ok({ data: { id: ctx.params.executionId } })
     } catch (error) {
       return this.handleError(ctx, error)
     }

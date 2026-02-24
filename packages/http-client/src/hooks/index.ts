@@ -310,6 +310,13 @@ export {
   type IUseAffectedUnitsOptions,
 } from './use-payment-concepts'
 export {
+  usePaymentConceptDelinquency,
+  type TConceptDelinquencyQuota,
+  type TConceptDelinquencyUnit,
+  type TConceptDelinquencyResponse,
+  type IUsePaymentConceptDelinquencyOptions,
+} from './use-payment-concept-delinquency'
+export {
   usePaymentConceptAssignments,
   useCreateAssignment,
   useUpdateAssignment,
@@ -861,6 +868,24 @@ export {
   type ILinkServiceToConceptVariables,
   type IUnlinkServiceFromConceptVariables,
 } from './use-payment-concept-services'
+
+// Service Executions
+export {
+  useServiceExecutionsPaginated,
+  useServiceExecutionDetail,
+  useCreateServiceExecution,
+  useUpdateServiceExecution,
+  useDeleteServiceExecution,
+  serviceExecutionKeys,
+  type IServiceExecutionsQuery,
+  type IUseServiceExecutionsPaginatedOptions,
+  type IUseServiceExecutionDetailOptions,
+  type ICreateServiceExecutionOptions,
+  type IUpdateServiceExecutionOptions,
+  type IUpdateServiceExecutionVariables,
+  type IDeleteServiceExecutionVariables,
+  type IDeleteServiceExecutionOptions,
+} from './use-service-executions'
 
 // Re-export commonly used TanStack Query hooks
 export {

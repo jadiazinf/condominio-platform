@@ -1,4 +1,4 @@
-import { and, eq, desc, lte, gte, type SQL } from 'drizzle-orm'
+import { and, eq, desc, lte, gte, or, type SQL } from 'drizzle-orm'
 import type { TQuota, TQuotaCreate, TQuotaUpdate, TPaginatedResponse } from '@packages/domain'
 import { quotas } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
@@ -215,6 +215,28 @@ export class QuotasRepository
       .returning()
 
     return results.map(r => ({ id: r.id }))
+  }
+
+  /**
+   * Returns delinquent quotas for a payment concept:
+   * status = 'overdue' OR (status = 'pending' AND dueDate <= asOfDate)
+   */
+  async getDelinquentByConcept(conceptId: string, asOfDate: string): Promise<TQuota[]> {
+    const results = await this.db
+      .select()
+      .from(quotas)
+      .where(
+        and(
+          eq(quotas.paymentConceptId, conceptId),
+          or(
+            eq(quotas.status, 'overdue'),
+            and(eq(quotas.status, 'pending'), lte(quotas.dueDate, asOfDate))
+          )
+        )
+      )
+      .orderBy(quotas.unitId, quotas.dueDate)
+
+    return results.map(record => this.mapToEntity(record))
   }
 
   /**

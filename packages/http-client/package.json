@@ -16,6 +16,14 @@
       "types": "./src/hooks/index.ts",
       "default": "./src/hooks/index.ts"
     },
+    "./hooks/use-payment-concept-delinquency": {
+      "types": "./src/hooks/use-payment-concept-delinquency.ts",
+      "default": "./src/hooks/use-payment-concept-delinquency.ts"
+    },
+    "./hooks/use-service-executions": {
+      "types": "./src/hooks/use-service-executions.ts",
+      "default": "./src/hooks/use-service-executions.ts"
+    },
     "./client": {
       "types": "./src/client/index.ts",
       "default": "./src/client/index.ts"

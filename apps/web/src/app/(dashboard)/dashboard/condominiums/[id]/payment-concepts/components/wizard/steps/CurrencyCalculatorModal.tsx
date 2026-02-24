@@ -235,7 +235,7 @@ export function CurrencyCalculatorModal({
             {t(`${w}.cancel`)}
           </Button>
           <Button
-            color="success"
+            color="primary"
             isDisabled={result == null}
             onPress={handleConfirm}
           >

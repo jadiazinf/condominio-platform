@@ -588,7 +588,7 @@ export function CreateServiceModal({
           <Stepper
             steps={wizardSteps}
             currentStep={STEPS[currentStep]!}
-            color="success"
+            color="primary"
             onStepChange={stepKey => {
               const stepIndex = STEPS.indexOf(stepKey)
               if (stepIndex >= 0 && stepIndex <= currentStep) {
@@ -610,7 +610,7 @@ export function CreateServiceModal({
             )}
             {currentStep < STEPS.length - 1 ? (
               <Button
-                color="success"
+                color="primary"
                 onPress={() => {
                   if (canProceed()) {
                     setShowErrors(false)
@@ -624,7 +624,7 @@ export function CreateServiceModal({
               </Button>
             ) : (
               <Button
-                color="success"
+                color="primary"
                 isDisabled={isSubmitting}
                 isLoading={isSubmitting}
                 onPress={handleSubmit}

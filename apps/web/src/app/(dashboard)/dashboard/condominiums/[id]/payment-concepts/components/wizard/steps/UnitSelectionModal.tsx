@@ -274,7 +274,7 @@ export function UnitSelectionModal({
               {t(`${w}.cancel`)}
             </Button>
             <Button
-              color="success"
+              color="primary"
               onPress={handleConfirm}
               isDisabled={localSelectedIds.length === 0}
             >

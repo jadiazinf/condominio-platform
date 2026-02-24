@@ -112,7 +112,7 @@ export function BasicInfoStep({ formData, onUpdate, currencies, showErrors }: Ba
           </Typography>
         </div>
         <Switch
-          color="success"
+          color="primary"
           isSelected={formData.isRecurring}
           onValueChange={(val) => onUpdate({ isRecurring: val })}
         />

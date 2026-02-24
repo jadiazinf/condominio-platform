@@ -280,6 +280,8 @@ export const serviceProviderTypeEnum = pgEnum('service_provider_type', [
   'internal',
 ])
 
+export const serviceExecutionStatusEnum = pgEnum('service_execution_status', ['draft', 'confirmed'])
+
 // ============================================================================
 // BANK ACCOUNT ENUMS
 // ============================================================================

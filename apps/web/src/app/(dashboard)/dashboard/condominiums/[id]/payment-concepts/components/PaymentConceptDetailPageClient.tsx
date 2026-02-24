@@ -24,6 +24,7 @@ import {
 import type { TPaymentConceptAssignment } from '@packages/domain'
 import { AffectedUnitsModal } from './AffectedUnitsModal'
 import { RelatedServicesModal } from './RelatedServicesModal'
+import { DelinquencyModal } from './DelinquencyModal'
 import {
   usePaymentConceptDetail,
   useDeactivatePaymentConcept,
@@ -70,6 +71,7 @@ export function PaymentConceptDetailPageClient({
   const concept = data?.data
 
   const [servicesOpen, setServicesOpen] = useState(false)
+  const [delinquencyOpen, setDelinquencyOpen] = useState(false)
 
   const deactivateConcept = useDeactivatePaymentConcept(managementCompanyId, {
     onSuccess: () => {
@@ -174,6 +176,15 @@ export function PaymentConceptDetailPageClient({
             onPress={() => setAffectedUnitsOpen(true)}
           >
             {t(`${d}.affectedUnits`)}
+          </Button>
+          <Button
+            variant="flat"
+            color="warning"
+            size="sm"
+            startContent={<AlertTriangle size={14} />}
+            onPress={() => setDelinquencyOpen(true)}
+          >
+            {t(`${d}.delinquency`)}
           </Button>
           {concept.isActive && (
             <Button
@@ -430,6 +441,7 @@ export function PaymentConceptDetailPageClient({
         onClose={() => setServicesOpen(false)}
         conceptId={conceptId}
         managementCompanyId={managementCompanyId}
+        condominiumId={condominiumId}
         currencySymbol={conceptAny?.currency?.symbol ?? ''}
         currencyCode={conceptAny?.currency?.code ?? ''}
       />
@@ -443,6 +455,16 @@ export function PaymentConceptDetailPageClient({
         currencySymbol={conceptAny?.currency?.symbol ?? ''}
         currencyCode={conceptAny?.currency?.code ?? ''}
         isRecurring={concept.isRecurring}
+      />
+
+      {/* Delinquency Modal */}
+      <DelinquencyModal
+        isOpen={delinquencyOpen}
+        onClose={() => setDelinquencyOpen(false)}
+        conceptId={conceptId}
+        managementCompanyId={managementCompanyId}
+        currencySymbol={conceptAny?.currency?.symbol ?? ''}
+        currencyCode={conceptAny?.currency?.code ?? ''}
       />
     </div>
   )

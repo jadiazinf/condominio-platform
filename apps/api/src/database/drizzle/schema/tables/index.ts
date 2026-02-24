@@ -75,4 +75,5 @@ export * from './bank-account-condominiums'
 
 // Condominium Services
 export * from './condominium-services'
+export * from './service-executions'
 export * from './payment-concept-services'

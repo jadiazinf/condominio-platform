@@ -1,5 +1,10 @@
 import type { Hono } from 'hono'
-import { CondominiumServicesRepository, CondominiumsRepository, CurrenciesRepository } from '@database/repositories'
+import {
+  CondominiumServicesRepository,
+  ServiceExecutionsRepository,
+  CondominiumsRepository,
+  CurrenciesRepository,
+} from '@database/repositories'
 import { McCondominiumServicesController } from '../controllers/condominium-services/mc-condominium-services.controller'
 import type { IEndpoint } from './types'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
@@ -10,6 +15,7 @@ export class McCondominiumServicesEndpoint implements IEndpoint {
 
   constructor(db: TDrizzleClient) {
     const servicesRepo = new CondominiumServicesRepository(db)
+    const executionsRepo = new ServiceExecutionsRepository(db)
     const condominiumsRepo = new CondominiumsRepository(db)
     const currenciesRepo = new CurrenciesRepository(db)
 
@@ -26,6 +32,7 @@ export class McCondominiumServicesEndpoint implements IEndpoint {
 
     this.controller = new McCondominiumServicesController({
       servicesRepo,
+      executionsRepo,
       condominiumsRepo,
       currenciesRepo,
       condominiumMCRepo,

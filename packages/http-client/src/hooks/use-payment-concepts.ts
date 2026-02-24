@@ -23,6 +23,8 @@ export const paymentConceptKeys = {
     [...paymentConceptKeys.all, 'detail', companyId, conceptId] as const,
   affectedUnits: (companyId: string, conceptId: string) =>
     [...paymentConceptKeys.all, 'affected-units', companyId, conceptId] as const,
+  delinquency: (companyId: string, conceptId: string) =>
+    [...paymentConceptKeys.all, 'delinquency', companyId, conceptId] as const,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -206,3 +208,4 @@ export function usePaymentConceptAffectedUnits(options: IUseAffectedUnitsOptions
     enabled: enabled && !!companyId && !!conceptId,
   })
 }
+

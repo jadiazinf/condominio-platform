@@ -17,10 +17,11 @@ import {
 } from '@/ui/components/modal'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Pagination } from '@/ui/components/pagination'
-import { Plus, Trash2, Wrench, Search, Check, ArrowRight } from 'lucide-react'
+import { Plus, Trash2, Wrench, Search, Check, ArrowRight, Receipt } from 'lucide-react'
 import { useTranslation } from '@/contexts'
 import type { IWizardFormData, IWizardService } from '../CreatePaymentConceptWizard'
 import { CreateServiceModal } from '../../../../services/components/CreateServiceModal'
+import { ExecutionModal } from '../../../../services/components/ExecutionModal'
 import { useCondominiumServicesPaginated, useMyLatestExchangeRates } from '@packages/http-client/hooks'
 
 export interface ServicesStepProps {
@@ -65,6 +66,9 @@ export function ServicesStep({
 
   const selectorModal = useDisclosure()
   const createModal = useDisclosure()
+
+  // ─── Execution panel state ─────────────────────────────────────────────────
+  const [executionTarget, setExecutionTarget] = useState<{ serviceId: string; currencyId: string; serviceName: string } | null>(null)
 
   // ─── Selector modal state ──────────────────────────────────────────────────
   const [selectorSearch, setSelectorSearch] = useState('')
@@ -202,6 +206,7 @@ export function ServicesStep({
         amount: finalAmount || 0,
         useDefaultAmount: isDefault,
         originalDefaultAmount: originalDefault,
+        currencyId: service.currencyId,
       }
 
       onUpdate({ services: [...formData.services, newService] })
@@ -282,7 +287,7 @@ export function ServicesStep({
             {t(`${w}.addService`)}
           </Typography>
           <Button
-            color="success"
+            color="primary"
             variant="flat"
             startContent={<Plus size={16} />}
             onPress={handleOpenSelector}
@@ -312,13 +317,13 @@ export function ServicesStep({
             {formData.services.map((service, index) => (
               <div
                 key={service.serviceId}
-                className="group flex items-center gap-3 rounded-lg border border-default-200 p-3 transition-colors hover:border-default-300"
+                className="flex items-center gap-3 rounded-lg border border-default-200 p-3 transition-colors hover:border-default-300"
               >
                 <Wrench size={18} className="shrink-0 text-default-400" />
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <span className="text-sm font-medium truncate">{service.serviceName}</span>
                   {service.useDefaultAmount && (
-                    <Chip size="sm" variant="flat" color="success">
+                    <Chip size="sm" variant="flat" color="primary">
                       {t(`${w}.useDefault`)}
                     </Chip>
                   )}
@@ -333,11 +338,21 @@ export function ServicesStep({
                   size="sm"
                 />
                 <Button
+                  size="sm"
+                  variant="flat"
+                  color="primary"
+                  className="shrink-0"
+                  startContent={<Receipt size={14} />}
+                  onPress={() => setExecutionTarget({ serviceId: service.serviceId, currencyId: service.currencyId, serviceName: service.serviceName })}
+                >
+                  {t(`${w}.addExecution`)}
+                </Button>
+                <Button
                   isIconOnly
                   size="sm"
                   variant="light"
                   color="danger"
-                  className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                  className="shrink-0"
                   onPress={() => handleRemoveService(index)}
                 >
                   <Trash2 size={14} />
@@ -371,7 +386,7 @@ export function ServicesStep({
             <div className="flex items-center justify-between">
               <Typography variant="h4">{t(`${w}.addService`)}</Typography>
               <Button
-                color="success"
+                color="primary"
                 variant="flat"
                 size="sm"
                 startContent={<Plus size={14} />}
@@ -439,7 +454,7 @@ export function ServicesStep({
                       key={service.id}
                       className={`flex flex-col gap-3 rounded-lg border p-4 transition-all ${
                         isAdded
-                          ? 'border-success-300 bg-success-50'
+                          ? 'border-primary-300 bg-primary-50'
                           : hasNoRate
                             ? 'border-default-200 bg-default-50 opacity-50'
                             : 'border-default-200 hover:border-default-300'
@@ -468,8 +483,8 @@ export function ServicesStep({
                       {/* Amount + Action */}
                       {isAdded ? (
                         <div className="flex items-center gap-2 pl-6">
-                          <Check size={16} className="text-success" />
-                          <Typography variant="caption" color="success">
+                          <Check size={16} className="text-primary" />
+                          <Typography variant="caption" color="primary">
                             {t('common.added')}
                           </Typography>
                         </div>
@@ -508,7 +523,7 @@ export function ServicesStep({
                             />
                             <Button
                               size="sm"
-                              color="success"
+                              color="primary"
                               variant="flat"
                               isDisabled={!canAdd}
                               onPress={() => handleSelectService(service)}
@@ -552,6 +567,19 @@ export function ServicesStep({
         managementCompanyId={managementCompanyId}
         onCreated={handleServiceCreated}
       />
+
+      {/* Execution Modal — create directly, no history shown in wizard context */}
+      {executionTarget && (
+        <ExecutionModal
+          isOpen={!!executionTarget}
+          onClose={() => setExecutionTarget(null)}
+          managementCompanyId={managementCompanyId}
+          serviceId={executionTarget.serviceId}
+          condominiumId={condominiumId}
+          currencyId={executionTarget.currencyId}
+          onSuccess={() => setExecutionTarget(null)}
+        />
+      )}
     </div>
   )
 }

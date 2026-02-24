@@ -168,6 +168,7 @@ type TUnitsRepo = {
 type TQuotasRepo = {
   existsForConceptAndPeriod: (conceptId: string, year: number, month: number) => Promise<boolean>
   createMany: (quotas: Record<string, unknown>[]) => Promise<{ id: string }[]>
+  getDelinquentByConcept: (conceptId: string, asOfDate: string) => Promise<TQuota[]>
 }
 
 export interface IMcPaymentConceptsDeps {
@@ -203,6 +204,7 @@ export class McPaymentConceptsController extends BaseController<
   private readonly bankAccountsRepo: TBankAccountsRepo
   private readonly buildingsRepo: TBuildingsRepo
   private readonly unitsRepo: TUnitsRepo
+  private readonly quotasRepo: TQuotasRepo
 
   constructor(deps: IMcPaymentConceptsDeps) {
     super(deps.conceptsRepo)
@@ -212,6 +214,7 @@ export class McPaymentConceptsController extends BaseController<
     this.bankAccountsRepo = deps.bankAccountsRepo
     this.buildingsRepo = deps.buildingsRepo
     this.unitsRepo = deps.unitsRepo
+    this.quotasRepo = deps.quotasRepo
 
     this.linkServiceToConcept = new LinkServiceToConceptService(
       deps.conceptServicesRepo,
@@ -289,6 +292,16 @@ export class McPaymentConceptsController extends BaseController<
         method: 'get',
         path: '/:managementCompanyId/me/payment-concepts/:conceptId/affected-units',
         handler: this.getAffectedUnits,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ConceptIdParamSchema),
+          requireRole(...allMcRoles),
+        ],
+      },
+      {
+        method: 'get',
+        path: '/:managementCompanyId/me/payment-concepts/:conceptId/delinquency',
+        handler: this.getDelinquency,
         middlewares: [
           authMiddleware,
           paramsValidator(ConceptIdParamSchema),
@@ -602,6 +615,85 @@ export class McPaymentConceptsController extends BaseController<
           totalUnits: result.length,
           totalBaseAmount: result.reduce((sum, u) => sum + u.baseAmount, 0),
           units: result,
+        },
+      })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private getDelinquency = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TConceptIdParam>(c)
+
+    try {
+      const concept = await this.conceptsRepo.getById(ctx.params.conceptId)
+      if (!concept) return ctx.notFound({ error: 'Payment concept not found' })
+      if (!concept.condominiumId) return ctx.badRequest({ error: 'Concept has no condominium' })
+
+      const asOfDate = new Date().toISOString().split('T')[0]
+
+      const [delinquentQuotas, allUnits, allBuildings] = await Promise.all([
+        this.quotasRepo.getDelinquentByConcept(ctx.params.conceptId, asOfDate),
+        this.unitsRepo.getByCondominiumId(concept.condominiumId),
+        this.buildingsRepo.getByCondominiumId(concept.condominiumId),
+      ])
+
+      const buildingsMap = new Map(allBuildings.map(b => [b.id, b.name]))
+      const unitsMap = new Map(allUnits.map(u => [u.id, u]))
+
+      const byUnit = new Map<string, typeof delinquentQuotas>()
+      for (const q of delinquentQuotas) {
+        const list = byUnit.get(q.unitId) ?? []
+        list.push(q)
+        byUnit.set(q.unitId, list)
+      }
+
+      const now = new Date()
+      const units = Array.from(byUnit.entries()).map(([unitId, unitQuotas]) => {
+        const unit = unitsMap.get(unitId)
+        const totalBalance = unitQuotas.reduce((s, q) => s + Number(q.balance), 0)
+        const totalInterestAmount = unitQuotas.reduce((s, q) => s + Number(q.interestAmount ?? 0), 0)
+        const oldestDueDate = [...unitQuotas].sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0]?.dueDate
+
+        return {
+          unitId,
+          unitNumber: unit?.unitNumber ?? '',
+          buildingId: unit?.buildingId ?? '',
+          buildingName: buildingsMap.get(unit?.buildingId ?? '') ?? '',
+          overdueCount: unitQuotas.length,
+          totalBalance,
+          totalInterestAmount,
+          oldestDueDate,
+          quotas: unitQuotas.map(q => {
+            const due = new Date(q.dueDate)
+            const daysOverdue = Math.max(0, Math.floor((now.getTime() - due.getTime()) / 86_400_000))
+            return {
+              id: q.id,
+              periodYear: q.periodYear,
+              periodMonth: q.periodMonth,
+              periodDescription: q.periodDescription,
+              baseAmount: q.baseAmount,
+              balance: q.balance,
+              interestAmount: q.interestAmount ?? '0',
+              dueDate: q.dueDate,
+              daysOverdue,
+              status: q.status,
+            }
+          }),
+        }
+      })
+
+      units.sort((a, b) => {
+        const bCmp = a.buildingName.localeCompare(b.buildingName, 'es')
+        return bCmp !== 0 ? bCmp : a.unitNumber.localeCompare(b.unitNumber, 'es', { numeric: true })
+      })
+
+      return ctx.ok({
+        data: {
+          totalDelinquentUnits: units.length,
+          totalBalance: units.reduce((s, u) => s + u.totalBalance, 0),
+          totalInterestAmount: units.reduce((s, u) => s + u.totalInterestAmount, 0),
+          units,
         },
       })
     } catch (error) {

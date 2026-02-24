@@ -90,7 +90,7 @@ export function BankAccountsStep({
               isIndeterminate={someSelected && !allSelected}
               onValueChange={handleToggleAll}
               size="sm"
-              color="success"
+              color="primary"
             >
               <Typography variant="caption" className="font-semibold">
                 {t(`${w}.selectAll`)} ({bankAccounts.length})

@@ -111,7 +111,8 @@ export function TaxIdInput({
           className="flex-1"
           placeholder={numberPlaceholder}
           value={taxIdNumber || ''}
-          onValueChange={onTaxIdNumberChange}
+          onValueChange={(value) => onTaxIdNumberChange?.(value.replace(/\D/g, ''))}
+          inputMode="numeric"
           variant={variant}
           radius={radius}
           size={size}
