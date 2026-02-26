@@ -16,7 +16,6 @@ import {
   ClipboardList,
   ClipboardCheck,
   CalendarDays,
-  FileText,
   ScrollText,
   KeyRound,
   Bell,
@@ -131,12 +130,6 @@ export const adminSidebarItems: TSidebarItemConfig[] = [
     title: 'admin.company.nav.subscription',
     icon: CreditCard,
     href: '/dashboard/subscription',
-  },
-  {
-    key: 'payment-concepts',
-    title: 'admin.company.nav.paymentConcepts',
-    icon: FileText,
-    href: '/dashboard/payment-concepts',
   },
   {
     key: 'notifications',

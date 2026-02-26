@@ -23,34 +23,34 @@ export const bankAccountNationalDetailsSchema = z.object({
   bankCode: z.string({ error: d.national.bankCode.required }).length(4, { error: d.national.bankCode.length }),
   accountType: z.enum(VE_ACCOUNT_TYPES, { error: d.national.accountType.required }),
   identityDocType: z.enum(VE_IDENTITY_DOC_TYPES, { error: d.national.identityDocType.required }),
-  identityDocNumber: z.string({ error: d.national.identityDocNumber.required }).min(1).max(20),
-  phoneNumber: z.string().max(15).optional(),
+  identityDocNumber: z.string({ error: d.national.identityDocNumber.required }).min(1).max(20, { error: d.national.identityDocNumber.max }),
+  phoneNumber: z.string().max(15, { error: d.national.phoneNumber.max }).optional(),
 })
 
 export const bankAccountInternationalDetailsSchema = z.object({
   // Wire / ACH
-  swiftCode: z.string().max(11).optional(),
-  iban: z.string().max(34).optional(),
-  routingNumber: z.string().max(9).optional(),
-  accountNumber: z.string().max(50).optional(),
-  bankAddress: z.string().max(500).optional(),
-  bankCountry: z.string().length(2).optional(),
-  beneficiaryAddress: z.string().max(500).optional(),
+  swiftCode: z.string().max(11, { error: d.international.swiftCode.max }).optional(),
+  iban: z.string().max(34, { error: d.international.iban.max }).optional(),
+  routingNumber: z.string().max(9, { error: d.international.routingNumber.max }).optional(),
+  accountNumber: z.string().max(50, { error: d.international.accountNumber.max }).optional(),
+  bankAddress: z.string().max(500, { error: d.international.bankAddress.max }).optional(),
+  bankCountry: z.string().length(2, { error: d.international.bankCountry.length }).optional(),
+  beneficiaryAddress: z.string().max(500, { error: d.international.beneficiaryAddress.max }).optional(),
   accountType: z.enum(INTERNATIONAL_ACCOUNT_TYPES).optional(),
   accountHolderType: z.enum(INTERNATIONAL_HOLDER_TYPES).optional(),
   // Zelle
   zelleEmail: z.string().email().optional(),
-  zellePhone: z.string().max(20).optional(),
+  zellePhone: z.string().max(20, { error: d.international.zellePhone.max }).optional(),
   // PayPal / Wise
   paypalEmail: z.string().email().optional(),
   wiseEmail: z.string().email().optional(),
   // Crypto
-  walletAddress: z.string().max(255).optional(),
+  walletAddress: z.string().max(255, { error: d.international.walletAddress.max }).optional(),
   cryptoNetwork: z.enum(CRYPTO_NETWORKS).optional(),
   cryptoCurrency: z.enum(CRYPTO_CURRENCIES).optional(),
   // Stripe (future)
-  stripeAccountId: z.string().max(255).optional(),
-  stripeExternalAccountId: z.string().max(255).optional(),
+  stripeAccountId: z.string().max(255, { error: d.international.stripeAccountId.max }).optional(),
+  stripeExternalAccountId: z.string().max(255, { error: d.international.stripeExternalAccountId.max }).optional(),
 })
 
 // ─────────────────────────────────────────────────────────────────────────────

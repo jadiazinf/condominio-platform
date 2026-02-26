@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, Trash2, Upload, X, FileText, Image, AlertTriangle, ExternalLink } from 'lucide-react'
-import type { TServiceExecution } from '@packages/domain'
+import { Plus, Trash2, Upload, X, FileText, Image, AlertTriangle, ExternalLink, History, Clock } from 'lucide-react'
+import type { TServiceExecution, TWizardExecutionData } from '@packages/domain'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
@@ -14,6 +14,8 @@ import { Textarea } from '@/ui/components/textarea'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
+import { Spinner } from '@/ui/components/spinner'
+import { Pagination } from '@/ui/components/pagination'
 import { Progress } from '@/ui/components/progress'
 import { useToast } from '@/ui/components/toast'
 import { useTranslation } from '@/contexts'
@@ -21,7 +23,10 @@ import {
   useCreateServiceExecution,
   useUpdateServiceExecution,
   useCurrency,
+  usePaymentConceptDetail,
+  useServiceExecutionsPaginated,
 } from '@packages/http-client/hooks'
+import { HttpError } from '@packages/http-client'
 import { useServiceExecutionAttachmentUpload } from '../hooks/useServiceExecutionAttachmentUpload'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -31,8 +36,8 @@ import { useServiceExecutionAttachmentUpload } from '../hooks/useServiceExecutio
 const itemSchema = z.object({
   id: z.string(),
   description: z.string().min(1, 'required'),
-  quantity: z.number().positive(),
-  unitPrice: z.number().min(0),
+  quantity: z.number({ error: 'required' }).positive('required'),
+  unitPrice: z.number({ error: 'required' }).min(0, 'required'),
   amount: z.number().min(0),
   notes: z.string().optional(),
 })
@@ -60,10 +65,14 @@ interface IExecutionModalProps {
   managementCompanyId: string
   serviceId: string
   condominiumId: string
-  currencyId: string
+  currencyId?: string
   conceptId?: string | null
   execution?: TServiceExecution | null
   onSuccess?: () => void
+  /** Wizard mode: capture data locally instead of calling API */
+  onSaveLocal?: (data: TWizardExecutionData) => void
+  /** Pre-fill form from previously saved wizard data */
+  wizardExecution?: TWizardExecutionData | null
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -80,11 +89,14 @@ export function ExecutionModal({
   conceptId,
   execution,
   onSuccess,
+  onSaveLocal,
+  wizardExecution,
 }: IExecutionModalProps) {
   const { t } = useTranslation()
   const toast = useToast()
   const d = 'admin.condominiums.detail.services.detail'
-  const isEditing = !!execution
+  const isWizardMode = !!onSaveLocal
+  const isEditing = !!execution || !!wizardExecution
 
   // Stable ID used for the Firebase storage folder
   const storageId = useRef(crypto.randomUUID())
@@ -96,10 +108,46 @@ export function ExecutionModal({
   const [existingAttachments, setExistingAttachments] = useState<TServiceExecution['attachments']>([])
 
   // Currency info
-  const { data: currencyData } = useCurrency(currencyId)
+  const { data: currencyData } = useCurrency(currencyId ?? '')
   const currency = currencyData?.data
   const currencySymbol = currency?.symbol ?? currency?.code ?? '$'
   const currencyDecimals = currency?.decimals ?? 2
+
+  // Payment concept info
+  const { data: conceptData } = usePaymentConceptDetail({
+    companyId: managementCompanyId,
+    conceptId: conceptId ?? '',
+    enabled: !!conceptId,
+  })
+  const concept = conceptData?.data
+
+  const conceptTypeLabels: Record<string, string> = useMemo(() => ({
+    maintenance: t('admin.paymentConcepts.types.maintenance'),
+    condominium_fee: t('admin.paymentConcepts.types.condominiumFee'),
+    extraordinary: t('admin.paymentConcepts.types.extraordinary'),
+    fine: t('admin.paymentConcepts.types.fine'),
+    reserve_fund: t('admin.paymentConcepts.types.reserveFund'),
+    other: t('admin.paymentConcepts.types.other'),
+  }), [t])
+
+  // ─── Execution history (for "use as template") ────────────────────────────
+  const [showHistory, setShowHistory] = useState(false)
+  const [historyPage, setHistoryPage] = useState(1)
+  const HISTORY_LIMIT = 5
+
+  const { data: historyData, isLoading: historyLoading } = useServiceExecutionsPaginated({
+    companyId: managementCompanyId,
+    serviceId,
+    condominiumId,
+    query: { page: historyPage, limit: HISTORY_LIMIT },
+    enabled: showHistory && !isEditing,
+  })
+
+  const historyExecutions = useMemo(
+    () => (historyData?.data ?? []) as TServiceExecution[],
+    [historyData]
+  )
+  const historyPagination = historyData?.pagination ?? { page: 1, limit: HISTORY_LIMIT, total: 0, totalPages: 0 }
 
   // ─── Upload hook ───────────────────────────────────────────────────────────
   const {
@@ -166,6 +214,25 @@ export function ExecutionModal({
           })),
         })
         setExistingAttachments(execution.attachments ?? [])
+      } else if (wizardExecution) {
+        methods.reset({
+          title: wizardExecution.title,
+          description: wizardExecution.description ?? '',
+          executionDate: wizardExecution.executionDate,
+          invoiceNumber: wizardExecution.invoiceNumber ?? '',
+          status: wizardExecution.status,
+          totalAmount: String(wizardExecution.totalAmount),
+          notes: wizardExecution.notes ?? '',
+          items: (wizardExecution.items ?? []).map(item => ({
+            id: item.id,
+            description: item.description,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            amount: item.amount,
+            notes: item.notes ?? '',
+          })),
+        })
+        setExistingAttachments((wizardExecution.attachments ?? []) as TServiceExecution['attachments'])
       } else {
         methods.reset({
           title: '',
@@ -182,17 +249,19 @@ export function ExecutionModal({
         storageId.current = crypto.randomUUID()
       }
       setActiveTab('general')
+      setShowHistory(false)
+      setHistoryPage(1)
     }
-  }, [isOpen, execution, methods, clearUploads])
+  }, [isOpen, execution, wizardExecution, methods, clearUploads])
 
-  // Auto-calculate totalAmount when items change
-  const items = methods.watch('items')
-  useEffect(() => {
-    if (items.length > 0) {
-      const total = items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+  // Recalculate totalAmount from all item amounts
+  const recalculateTotal = useCallback(() => {
+    const allItems = methods.getValues('items')
+    if (allItems.length > 0) {
+      const total = allItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
       methods.setValue('totalAmount', String(total.toFixed(currencyDecimals)))
     }
-  }, [items, methods, currencyDecimals])
+  }, [methods, currencyDecimals])
 
   // Auto-calculate item amount when quantity or unitPrice changes
   const handleItemChange = useCallback(
@@ -200,11 +269,22 @@ export function ExecutionModal({
       const quantity = Number(methods.getValues(`items.${index}.quantity`)) || 0
       const unitPrice = Number(methods.getValues(`items.${index}.unitPrice`)) || 0
       methods.setValue(`items.${index}.amount`, quantity * unitPrice)
+      recalculateTotal()
     },
-    [methods]
+    [methods, recalculateTotal]
   )
 
-  // ─── Mutations ─────────────────────────────────────────────────────────────
+  // Remove item and recalculate total
+  const handleRemoveItem = useCallback(
+    (index: number) => {
+      remove(index)
+      // After removal, recalculate on next tick (remove is async in useFieldArray)
+      setTimeout(recalculateTotal, 0)
+    },
+    [remove, recalculateTotal]
+  )
+
+  // ─── Mutations (only used when NOT in wizard mode) ─────────────────────────
   const createMutation = useCreateServiceExecution(
     managementCompanyId,
     serviceId,
@@ -215,7 +295,10 @@ export function ExecutionModal({
         handleClose()
         onSuccess?.()
       },
-      onError: () => toast.error(t(`${d}.executionCreateError`)),
+      onError: (error) => {
+        const msg = HttpError.isHttpError(error) ? error.message : t(`${d}.executionCreateError`)
+        toast.error(msg)
+      },
     }
   )
 
@@ -229,11 +312,14 @@ export function ExecutionModal({
         handleClose()
         onSuccess?.()
       },
-      onError: () => toast.error(t(`${d}.executionUpdateError`)),
+      onError: (error) => {
+        const msg = HttpError.isHttpError(error) ? error.message : t(`${d}.executionUpdateError`)
+        toast.error(msg)
+      },
     }
   )
 
-  const isPending = createMutation.isPending || updateMutation.isPending
+  const isPending = !isWizardMode && (createMutation.isPending || updateMutation.isPending)
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
   const handleClose = useCallback(() => {
@@ -241,6 +327,32 @@ export function ExecutionModal({
       onClose()
     }
   }, [isPending, isUploading, onClose])
+
+  const handleSelectFromHistory = useCallback(
+    (exec: TServiceExecution) => {
+      methods.reset({
+        title: exec.title,
+        description: exec.description ?? '',
+        executionDate: new Date().toISOString().split('T')[0],
+        invoiceNumber: exec.invoiceNumber ?? '',
+        status: exec.status,
+        totalAmount: String(exec.totalAmount),
+        notes: exec.notes ?? '',
+        items: (exec.items ?? []).map(item => ({
+          id: crypto.randomUUID(),
+          description: item.description,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          amount: item.amount,
+          notes: item.notes ?? '',
+        })),
+      })
+      setExistingAttachments([])
+      setShowHistory(false)
+      setActiveTab('general')
+    },
+    [methods]
+  )
 
   const handleFileInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -277,10 +389,34 @@ export function ExecutionModal({
       invoiceNumber: data.invoiceNumber || undefined,
       status: data.status,
       totalAmount: data.totalAmount,
-      currencyId: execution?.currencyId ?? currencyId,
+      currencyId: execution?.currencyId ?? currencyId ?? '',
       notes: data.notes || undefined,
       items: data.items,
       attachments: allAttachments,
+    }
+
+    // Wizard mode: save locally without calling API
+    if (isWizardMode) {
+      onSaveLocal({
+        title: payload.title,
+        description: payload.description,
+        executionDate: payload.executionDate,
+        totalAmount: payload.totalAmount,
+        currencyId: payload.currencyId,
+        status: payload.status,
+        invoiceNumber: payload.invoiceNumber,
+        items: payload.items,
+        attachments: allAttachments.map(a => ({
+          name: a.name,
+          url: a.url,
+          mimeType: a.mimeType,
+          size: a.size,
+          storagePath: (a as any).storagePath ?? '',
+        })),
+        notes: payload.notes,
+      })
+      onClose()
+      return
     }
 
     if (isEditing && execution) {
@@ -329,6 +465,93 @@ export function ExecutionModal({
           </ModalHeader>
 
           <ModalBody className="gap-0 p-0">
+            {/* Payment concept info */}
+            {concept && (
+              <div className="mx-6 mt-4 mb-2 p-3 bg-default-100 rounded-lg">
+                <Typography variant="body2" className="text-default-500 mb-1">
+                  {t(`${d}.linkedConcept`)}
+                </Typography>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Typography variant="subtitle2">{concept.name}</Typography>
+                  <Chip size="sm" variant="flat">
+                    {conceptTypeLabels[concept.conceptType] ?? concept.conceptType}
+                  </Chip>
+                  {concept.isRecurring && (
+                    <Chip size="sm" variant="flat" color="primary">
+                      {t('admin.paymentConcepts.columns.recurring')}
+                    </Chip>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* History template — only when creating */}
+            {!isEditing && (
+              <div className="mx-6 mt-4">
+                <Button
+                  type="button"
+                  variant="flat"
+                  color="default"
+                  size="sm"
+                  startContent={<History size={16} />}
+                  onPress={() => setShowHistory(!showHistory)}
+                  className="w-full"
+                >
+                  {t(`${d}.historyTemplate`)}
+                </Button>
+
+                {showHistory && (
+                  <div className="mt-3 rounded-lg border border-default-200 p-4 space-y-3">
+                    {historyLoading ? (
+                      <div className="flex items-center justify-center py-6">
+                        <Spinner size="sm" />
+                      </div>
+                    ) : historyExecutions.length === 0 ? (
+                      <Typography color="muted" variant="body2" className="text-center py-4">
+                        {t(`${d}.noExecutions`)}
+                      </Typography>
+                    ) : (
+                      <div className="space-y-2">
+                        {historyExecutions.map(exec => (
+                          <div
+                            key={exec.id}
+                            className="flex items-center gap-3 rounded-lg border border-default-200 p-3 hover:border-primary-300 hover:bg-primary-50/50 cursor-pointer transition-colors"
+                            onClick={() => handleSelectFromHistory(exec)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={e => { if (e.key === 'Enter') handleSelectFromHistory(exec) }}
+                          >
+                            <Clock size={14} className="shrink-0 text-default-400" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{exec.title}</p>
+                              <p className="text-xs text-default-500">{exec.executionDate}</p>
+                            </div>
+                            <span className="text-sm font-semibold whitespace-nowrap">
+                              {currencySymbol} {Number(exec.totalAmount).toLocaleString('es-VE', { minimumFractionDigits: currencyDecimals })}
+                            </span>
+                            <Chip size="sm" variant="flat" color={exec.status === 'confirmed' ? 'success' : 'default'}>
+                              {t(`${d}.${exec.status}`)}
+                            </Chip>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {historyPagination.totalPages > 1 && (
+                      <Pagination
+                        page={historyPagination.page}
+                        total={historyPagination.total}
+                        totalPages={historyPagination.totalPages}
+                        limit={historyPagination.limit}
+                        onPageChange={setHistoryPage}
+                        showLimitSelector={false}
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Tabs */}
             <div className="flex border-b border-divider px-6">
               <button type="button" className={tabClass('general')} onClick={() => setActiveTab('general')}>
@@ -389,7 +612,7 @@ export function ExecutionModal({
                           errorMessage={methods.formState.errors.totalAmount?.message}
                           isInvalid={!!methods.formState.errors.totalAmount}
                           isReadOnly={fields.length > 0}
-                          description={fields.length > 0 ? t(`${d}.autoCalculated`) : undefined}
+                          tooltip={t(`${d}.totalAmountTooltip`)}
                         />
                       )}
                     />
@@ -464,7 +687,7 @@ export function ExecutionModal({
                               size="sm"
                               variant="light"
                               color="danger"
-                              onPress={() => remove(index)}
+                              onPress={() => handleRemoveItem(index)}
                             >
                               <Trash2 size={14} />
                             </Button>
@@ -484,8 +707,11 @@ export function ExecutionModal({
                               label={t(`${d}.itemQuantity`)}
                               type="number"
                               {...methods.register(`items.${index}.quantity`, {
+                                valueAsNumber: true,
                                 onChange: () => handleItemChange(index),
                               })}
+                              errorMessage={methods.formState.errors.items?.[index]?.quantity?.message}
+                              isInvalid={!!methods.formState.errors.items?.[index]?.quantity}
                               variant="bordered"
                               size="sm"
                             />
@@ -501,9 +727,12 @@ export function ExecutionModal({
                                     f.onChange(newUnitPrice)
                                     const quantity = Number(methods.getValues(`items.${index}.quantity`)) || 0
                                     methods.setValue(`items.${index}.amount`, quantity * newUnitPrice)
+                                    recalculateTotal()
                                   }}
                                   currencySymbol={currencySymbol}
                                   decimals={currencyDecimals}
+                                  errorMessage={methods.formState.errors.items?.[index]?.unitPrice?.message}
+                                  isInvalid={!!methods.formState.errors.items?.[index]?.unitPrice}
                                   size="sm"
                                 />
                               )}

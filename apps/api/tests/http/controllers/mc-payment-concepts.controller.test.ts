@@ -16,6 +16,7 @@ import type {
   CondominiumsRepository,
   CondominiumServicesRepository,
   CurrenciesRepository,
+  ServiceExecutionsRepository,
 } from '@database/repositories'
 import { createTestApp, type IApiResponse } from './test-utils'
 
@@ -258,6 +259,7 @@ describe('McPaymentConceptsController', function () {
       existsForConceptAndPeriod: async () => false,
       createMany: async (records: Record<string, unknown>[]) =>
         records.map(() => ({ id: crypto.randomUUID() })),
+      getDelinquentByConcept: async () => [],
     }
 
     const mockDb = {
@@ -289,6 +291,7 @@ describe('McPaymentConceptsController', function () {
       quotasRepo: mockQuotasRepo,
       conceptServicesRepo: mockConceptServicesRepo as unknown as PaymentConceptServicesRepository,
       condominiumServicesRepo: mockCondominiumServicesRepo as unknown as CondominiumServicesRepository,
+      executionsRepo: { create: async () => ({}) } as unknown as ServiceExecutionsRepository,
     })
 
     app = createTestApp()
@@ -315,13 +318,14 @@ describe('McPaymentConceptsController', function () {
         bankAccountCondominiumsRepo: { getByBankAccountAndCondominium: async () => null },
         buildingsRepo: { getById: async () => null, getByCondominiumId: async () => [] },
         unitsRepo: { getById: async () => null, getByBuildingId: async () => [], getByCondominiumId: async () => [] },
-        quotasRepo: { existsForConceptAndPeriod: async () => false, createMany: async () => [] },
+        quotasRepo: { existsForConceptAndPeriod: async () => false, createMany: async () => [], getDelinquentByConcept: async () => [] },
         conceptServicesRepo: { listByConceptId: async () => [], linkService: async () => ({ id: 'link-1', paymentConceptId: '', serviceId: '', amount: 0, useDefaultAmount: true, createdAt: new Date(), updatedAt: new Date() }), unlinkById: async () => true } as unknown as PaymentConceptServicesRepository,
         condominiumServicesRepo: { getById: async () => null } as unknown as CondominiumServicesRepository,
+        executionsRepo: { create: async () => ({}) } as unknown as ServiceExecutionsRepository,
       })
 
       const routes = controller.routes
-      expect(routes.length).toBe(18)
+      expect(routes.length).toBe(20)
 
       // Currencies
       expect(routes[0]!.method).toBe('get')
@@ -340,42 +344,62 @@ describe('McPaymentConceptsController', function () {
       expect(routes[3]!.method).toBe('get')
       expect(routes[3]!.path).toContain('/affected-units')
 
-      expect(routes[4]!.method).toBe('post')
-      expect(routes[4]!.path).toContain('/me/payment-concepts')
-      expect(routes[4]!.middlewares!.length).toBeGreaterThanOrEqual(4) // auth + params + requireRole + bodyValidator
+      // Delinquency
+      expect(routes[4]!.method).toBe('get')
+      expect(routes[4]!.path).toContain('/delinquency')
 
-      expect(routes[5]!.method).toBe('patch')
-      expect(routes[5]!.path).toContain('/me/payment-concepts/:conceptId')
+      // Create concept
+      expect(routes[5]!.method).toBe('post')
+      expect(routes[5]!.path).toContain('/me/payment-concepts')
+      expect(routes[5]!.middlewares!.length).toBeGreaterThanOrEqual(4) // auth + params + requireRole + bodyValidator
 
-      expect(routes[6]!.method).toBe('patch')
-      expect(routes[6]!.path).toContain('/deactivate')
+      // Create concept full (transactional with services + executions)
+      expect(routes[6]!.method).toBe('post')
+      expect(routes[6]!.path).toContain('/me/payment-concepts/full')
+      expect(routes[6]!.middlewares!.length).toBeGreaterThanOrEqual(4)
+
+      expect(routes[7]!.method).toBe('patch')
+      expect(routes[7]!.path).toContain('/me/payment-concepts/:conceptId')
+
+      expect(routes[8]!.method).toBe('patch')
+      expect(routes[8]!.path).toContain('/deactivate')
 
       // Assignments
-      expect(routes[7]!.method).toBe('get')
-      expect(routes[7]!.path).toContain('/assignments')
+      expect(routes[9]!.method).toBe('get')
+      expect(routes[9]!.path).toContain('/assignments')
 
-      expect(routes[8]!.method).toBe('post')
-      expect(routes[8]!.path).toContain('/assignments')
+      expect(routes[10]!.method).toBe('post')
+      expect(routes[10]!.path).toContain('/assignments')
 
-      expect(routes[9]!.method).toBe('patch')
-      expect(routes[9]!.path).toContain('/assignments/:assignmentId')
+      expect(routes[11]!.method).toBe('patch')
+      expect(routes[11]!.path).toContain('/assignments/:assignmentId')
 
-      expect(routes[10]!.method).toBe('patch')
-      expect(routes[10]!.path).toContain('/assignments/:assignmentId/deactivate')
+      expect(routes[12]!.method).toBe('patch')
+      expect(routes[12]!.path).toContain('/assignments/:assignmentId/deactivate')
 
       // Bank accounts
-      expect(routes[11]!.method).toBe('get')
-      expect(routes[11]!.path).toContain('/bank-accounts')
+      expect(routes[13]!.method).toBe('get')
+      expect(routes[13]!.path).toContain('/bank-accounts')
 
-      expect(routes[12]!.method).toBe('post')
-      expect(routes[12]!.path).toContain('/bank-accounts')
+      expect(routes[14]!.method).toBe('post')
+      expect(routes[14]!.path).toContain('/bank-accounts')
 
-      expect(routes[13]!.method).toBe('delete')
-      expect(routes[13]!.path).toContain('/bank-accounts/:linkId')
+      expect(routes[15]!.method).toBe('delete')
+      expect(routes[15]!.path).toContain('/bank-accounts/:linkId')
 
       // Generate
-      expect(routes[14]!.method).toBe('post')
-      expect(routes[14]!.path).toContain('/generate')
+      expect(routes[16]!.method).toBe('post')
+      expect(routes[16]!.path).toContain('/generate')
+
+      // Concept Services
+      expect(routes[17]!.method).toBe('get')
+      expect(routes[17]!.path).toContain('/services')
+
+      expect(routes[18]!.method).toBe('post')
+      expect(routes[18]!.path).toContain('/services')
+
+      expect(routes[19]!.method).toBe('delete')
+      expect(routes[19]!.path).toContain('/services/:linkId')
     })
   })
 
@@ -660,9 +684,10 @@ describe('McPaymentConceptsController', function () {
         bankAccountCondominiumsRepo: { getByBankAccountAndCondominium: async () => null },
         buildingsRepo: { getById: async () => null, getByCondominiumId: async () => [] },
         unitsRepo: { getById: async () => null, getByBuildingId: async () => [], getByCondominiumId: async () => [] },
-        quotasRepo: { existsForConceptAndPeriod: async () => true, createMany: async () => [] },
+        quotasRepo: { existsForConceptAndPeriod: async () => true, createMany: async () => [], getDelinquentByConcept: async () => [] },
         conceptServicesRepo: { listByConceptId: async () => [], linkService: async () => ({ id: 'link-1', paymentConceptId: '', serviceId: '', amount: 0, useDefaultAmount: true, createdAt: new Date(), updatedAt: new Date() }), unlinkById: async () => true } as unknown as PaymentConceptServicesRepository,
         condominiumServicesRepo: { getById: async () => null } as unknown as CondominiumServicesRepository,
+        executionsRepo: { create: async () => ({}) } as unknown as ServiceExecutionsRepository,
       })
 
       const app2 = createTestApp()

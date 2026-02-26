@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@/ui/components/modal'
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
-import { Calculator } from 'lucide-react'
-import { Input, CurrencyInput } from '@/ui/components/input'
+import { Input } from '@/ui/components/input'
 import { Textarea } from '@/ui/components/textarea'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Typography } from '@/ui/components/typography'
@@ -15,14 +14,12 @@ import { Switch } from '@/ui/components/switch'
 import { useTranslation } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
 import {
-  useActiveCurrencies,
   useQueryClient,
   HttpError,
   isApiValidationError,
 } from '@packages/http-client'
 import type { TTaxIdType } from '@packages/domain'
 import { condominiumServiceKeys, useCreateCondominiumService } from '@packages/http-client/hooks'
-import { CurrencyCalculatorModal } from '../../payment-concepts/components/wizard/steps/CurrencyCalculatorModal'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -33,8 +30,6 @@ interface IServiceFormData {
   name: string
   description: string
   providerType: string
-  currencyId: string
-  defaultAmount: string
   // Step 2 - Provider
   legalName: string
   taxIdType: TTaxIdType | null
@@ -54,8 +49,6 @@ const INITIAL_FORM_DATA: IServiceFormData = {
   name: '',
   description: '',
   providerType: '',
-  currencyId: '',
-  defaultAmount: '',
   legalName: '',
   taxIdType: null,
   taxIdNumber: '',
@@ -103,20 +96,8 @@ export function CreateServiceModal({
   const [formData, setFormData] = useState<IServiceFormData>(INITIAL_FORM_DATA)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showErrors, setShowErrors] = useState(false)
-  const calculatorModal = useDisclosure()
 
   const { mutateAsync: createService } = useCreateCondominiumService(managementCompanyId, condominiumId)
-
-  // Fetch currencies
-  const { data: currenciesData } = useActiveCurrencies({ enabled: isOpen })
-  const currencies = useMemo(() => currenciesData?.data ?? [], [currenciesData])
-
-  const currencyItems: ISelectItem[] = useMemo(
-    () => currencies
-      .map(c => ({ key: c.id, label: `${c.code}${c.name ? ` - ${c.name}` : ''}` }))
-      .sort((a, b) => a.label.localeCompare(b.label)),
-    [currencies]
-  )
 
   const providerTypeItems: ISelectItem[] = useMemo(
     () => [
@@ -157,7 +138,7 @@ export function CreateServiceModal({
   const canProceed = () => {
     switch (currentStep) {
       case 0: // Basic Info
-        return !!(formData.name && formData.providerType && formData.currencyId)
+        return !!(formData.name && formData.providerType)
       case 1: // Provider (optional fields)
         return true
       case 2: // Fiscal (optional fields)
@@ -177,8 +158,6 @@ export function CreateServiceModal({
         name: formData.name,
         description: formData.description || undefined,
         providerType: formData.providerType as any,
-        currencyId: formData.currencyId,
-        defaultAmount: formData.defaultAmount ? Number(formData.defaultAmount) : undefined,
         legalName: formData.legalName || undefined,
         taxIdType: formData.taxIdType || undefined,
         taxIdNumber: formData.taxIdNumber || undefined,
@@ -221,15 +200,6 @@ export function CreateServiceModal({
     { key: 'fiscal', title: 'Fiscal' },
     { key: 'review', title: t(`${w}.steps.review`) },
   ]
-
-  // Currency symbol for amount input
-  const currencySymbol = useMemo(() => {
-    if (!formData.currencyId) return ''
-    const cur = currencies.find(c => c.id === formData.currencyId)
-    return cur?.symbol || cur?.code || ''
-  }, [formData.currencyId, currencies])
-
-  const getCurrencyCode = () => currencies.find(c => c.id === formData.currencyId)?.code || ''
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -278,55 +248,6 @@ export function CreateServiceModal({
                   : undefined
               }
             />
-
-            <Select
-              label={t(`${w}.basicInfo.currency`)}
-              placeholder={t(`${w}.basicInfo.currencyPlaceholder`)}
-              items={currencyItems}
-              value={formData.currencyId}
-              onChange={key => key && updateFormData({ currencyId: key })}
-              variant="bordered"
-              isRequired
-              isInvalid={showErrors && !formData.currencyId}
-              errorMessage={
-                showErrors && !formData.currencyId
-                  ? t(`${w}.basicInfo.errors.currencyRequired`)
-                  : undefined
-              }
-            />
-
-            <div>
-              <div className="flex items-end gap-2">
-                <CurrencyInput
-                  label={t(`${w}.basicInfo.defaultAmount`)}
-                  placeholder={t(`${w}.basicInfo.defaultAmountPlaceholder`)}
-                  value={formData.defaultAmount}
-                  onValueChange={v => updateFormData({ defaultAmount: v })}
-                  currencySymbol={
-                    currencySymbol ? (
-                      <span className="text-default-400 text-sm">{currencySymbol}</span>
-                    ) : undefined
-                  }
-                  showCurrencySymbol={!!currencySymbol}
-                  variant="bordered"
-                  className="flex-1"
-                />
-                {formData.currencyId && (
-                  <Button
-                    isIconOnly
-                    variant="flat"
-                    color="primary"
-                    onPress={calculatorModal.onOpen}
-                    className="mb-0.5"
-                  >
-                    <Calculator size={18} />
-                  </Button>
-                )}
-              </div>
-              <Typography variant="caption" color="muted" className="mt-1">
-                {t(`${w}.basicInfo.defaultAmountHint`)}
-              </Typography>
-            </div>
           </div>
         )
 
@@ -413,8 +334,6 @@ export function CreateServiceModal({
                   onValueChange={v => updateFormData({ ivaRate: v })}
                   variant="bordered"
                   type="number"
-                  min="0"
-                  max="100"
                   endContent={<span className="text-default-400 text-sm">%</span>}
                   description="Tasa general en Venezuela: 16%"
                 />
@@ -447,8 +366,6 @@ export function CreateServiceModal({
                   onValueChange={v => updateFormData({ islrRetentionRate: v })}
                   variant="bordered"
                   type="number"
-                  min="0"
-                  max="100"
                   endContent={<span className="text-default-400 text-sm">%</span>}
                   description="Contratistas de servicios: 1%. Profesionales: según tabla ISLR"
                 />
@@ -477,20 +394,6 @@ export function CreateServiceModal({
                 <span>
                   {t(`admin.condominiums.detail.services.providerTypes.${formData.providerType}`)}
                 </span>
-
-                <span className="text-default-500">{t(`${w}.review.currency`)}</span>
-                <span>{getCurrencyCode()}</span>
-
-                {formData.defaultAmount && (
-                  <>
-                    <span className="text-default-500">{t(`${w}.review.defaultAmount`)}</span>
-                    <span className="font-mono">
-                      {Number(formData.defaultAmount).toLocaleString('es-VE', {
-                        minimumFractionDigits: 2,
-                      })}
-                    </span>
-                  </>
-                )}
 
                 {formData.description && (
                   <>
@@ -635,20 +538,6 @@ export function CreateServiceModal({
           </div>
         </ModalFooter>
       </ModalContent>
-
-      {/* Currency Calculator Modal */}
-      {formData.currencyId && (
-        <CurrencyCalculatorModal
-          isOpen={calculatorModal.isOpen}
-          onClose={calculatorModal.onClose}
-          onConfirm={(convertedAmount) => {
-            updateFormData({ defaultAmount: convertedAmount })
-            calculatorModal.onClose()
-          }}
-          targetCurrencyId={formData.currencyId}
-          currencies={currencies}
-        />
-      )}
     </Modal>
   )
 }

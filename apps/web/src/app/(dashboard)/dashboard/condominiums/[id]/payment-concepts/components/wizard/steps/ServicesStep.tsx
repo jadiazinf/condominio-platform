@@ -17,12 +17,14 @@ import {
 } from '@/ui/components/modal'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Pagination } from '@/ui/components/pagination'
-import { Plus, Trash2, Wrench, Search, Check, ArrowRight, Receipt } from 'lucide-react'
+import { Divider } from '@/ui/components/divider'
+import { Plus, Trash2, Wrench, Search, Check, Receipt, CheckCircle2, X } from 'lucide-react'
 import { useTranslation } from '@/contexts'
+import type { TWizardExecutionData } from '@packages/domain'
 import type { IWizardFormData, IWizardService } from '../CreatePaymentConceptWizard'
 import { CreateServiceModal } from '../../../../services/components/CreateServiceModal'
 import { ExecutionModal } from '../../../../services/components/ExecutionModal'
-import { useCondominiumServicesPaginated, useMyLatestExchangeRates } from '@packages/http-client/hooks'
+import { useCondominiumServicesPaginated } from '@packages/http-client/hooks'
 
 export interface ServicesStepProps {
   formData: IWizardFormData
@@ -31,14 +33,13 @@ export interface ServicesStepProps {
   managementCompanyId: string
   currencies: Array<{ id: string; code: string; symbol?: string | null; name?: string }>
   showErrors: boolean
+  servicesRequired: boolean
 }
 
 interface IApiService {
   id: string
   name: string
   providerType: string
-  defaultAmount: string | null
-  currencyId: string
   legalName?: string | null
   email?: string | null
   phone?: string | null
@@ -60,6 +61,7 @@ export function ServicesStep({
   managementCompanyId,
   currencies,
   showErrors,
+  servicesRequired,
 }: ServicesStepProps) {
   const { t } = useTranslation()
   const w = 'admin.condominiums.detail.services.conceptServices'
@@ -68,7 +70,11 @@ export function ServicesStep({
   const createModal = useDisclosure()
 
   // ─── Execution panel state ─────────────────────────────────────────────────
-  const [executionTarget, setExecutionTarget] = useState<{ serviceId: string; currencyId: string; serviceName: string } | null>(null)
+  const [executionTarget, setExecutionTarget] = useState<{
+    serviceId: string
+    serviceName: string
+    existingExecution?: TWizardExecutionData
+  } | null>(null)
 
   // ─── Selector modal state ──────────────────────────────────────────────────
   const [selectorSearch, setSelectorSearch] = useState('')
@@ -90,10 +96,6 @@ export function ServicesStep({
     },
     enabled: !!managementCompanyId && selectorModal.isOpen,
   })
-
-  // Fetch exchange rates for cross-currency conversion
-  const { data: ratesResponse } = useMyLatestExchangeRates({ enabled: selectorModal.isOpen })
-  const rates = useMemo(() => ratesResponse?.data ?? [], [ratesResponse])
 
   const selectorServices = useMemo(() => (selectorData?.data ?? []) as IApiService[], [selectorData])
   const selectorPagination = selectorData?.pagination ?? { page: 1, limit: SELECTOR_LIMIT, total: 0, totalPages: 0 }
@@ -125,47 +127,13 @@ export function ServicesStep({
     [t]
   )
 
-  // ─── Exchange rate helpers ─────────────────────────────────────────────────
-
-  const findRate = useCallback(
-    (fromCurrencyId: string, toCurrencyId: string): number | null => {
-      const direct = rates.find(
-        r => r.fromCurrencyId === fromCurrencyId && r.toCurrencyId === toCurrencyId
-      )
-      if (direct) return Number(direct.rate)
-
-      const inverse = rates.find(
-        r => r.fromCurrencyId === toCurrencyId && r.toCurrencyId === fromCurrencyId
-      )
-      if (inverse) return 1 / Number(inverse.rate)
-
-      return null
-    },
-    [rates]
-  )
-
-  const getCurrencyCode = useCallback(
-    (currencyId: string) => currencies.find(c => c.id === currencyId)?.code ?? '',
-    [currencies]
-  )
-
   // ─── Modal handlers ────────────────────────────────────────────────────────
 
   const getModalAmount = useCallback(
     (service: IApiService): string => {
-      if (modalAmounts[service.id] !== undefined) return modalAmounts[service.id]!
-
-      const isDiffCurrency = formData.currencyId && service.currencyId !== formData.currencyId
-
-      if (isDiffCurrency && service.defaultAmount) {
-        const rate = findRate(service.currencyId, formData.currencyId!)
-        if (rate !== null) return (Number(service.defaultAmount) * rate).toFixed(2)
-        return ''
-      }
-
-      return service.defaultAmount ? Number(service.defaultAmount).toFixed(2) : ''
+      return modalAmounts[service.id] ?? ''
     },
-    [modalAmounts, formData.currencyId, findRate]
+    [modalAmounts]
   )
 
   const handleModalAmountChange = useCallback((serviceId: string, value: string) => {
@@ -176,47 +144,33 @@ export function ServicesStep({
     (service: IApiService) => {
       if (addedServiceIds.has(service.id)) return
 
-      const isDiffCurrency = formData.currencyId && service.currencyId !== formData.currencyId
-      const overriddenAmount = modalAmounts[service.id]
-
-      let finalAmount: number
-      let originalDefault: number | undefined
-      let isDefault: boolean
-
-      if (isDiffCurrency) {
-        // Cross-currency: amount is always in the target currency (converted)
-        finalAmount = overriddenAmount !== undefined ? Number(overriddenAmount) : 0
-        if (!overriddenAmount && service.defaultAmount) {
-          const rate = findRate(service.currencyId, formData.currencyId!)
-          if (rate !== null) finalAmount = Number(service.defaultAmount) * rate
-        }
-        // Converted amounts are never "default"
-        isDefault = false
-        originalDefault = undefined
-      } else {
-        const defaultAmt = service.defaultAmount ? Number(service.defaultAmount) : 0
-        finalAmount = overriddenAmount !== undefined ? Number(overriddenAmount) : defaultAmt
-        isDefault = overriddenAmount === undefined && !!service.defaultAmount
-        originalDefault = defaultAmt || undefined
-      }
+      const amount = Number(modalAmounts[service.id] ?? 0)
 
       const newService: IWizardService = {
         serviceId: service.id,
         serviceName: service.name,
-        amount: finalAmount || 0,
-        useDefaultAmount: isDefault,
-        originalDefaultAmount: originalDefault,
-        currencyId: service.currencyId,
+        amount: amount || 0,
       }
 
-      onUpdate({ services: [...formData.services, newService] })
+      onUpdate({ services: [...formData.services, newService], fixedAmount: 0 })
       setModalAmounts(prev => {
         const copy = { ...prev }
         delete copy[service.id]
         return copy
       })
     },
-    [addedServiceIds, formData.services, formData.currencyId, modalAmounts, onUpdate, findRate]
+    [addedServiceIds, formData.services, modalAmounts, onUpdate]
+  )
+
+  const handleDeselectService = useCallback(
+    (serviceId: string) => {
+      const index = formData.services.findIndex(s => s.serviceId === serviceId)
+      if (index !== -1) {
+        const updated = formData.services.filter((_, i) => i !== index)
+        onUpdate({ services: updated })
+      }
+    },
+    [formData.services, onUpdate]
   )
 
   // ─── Step view handlers ────────────────────────────────────────────────────
@@ -234,8 +188,7 @@ export function ServicesStep({
       const numAmount = Number(amount) || 0
       const updated = formData.services.map((s, i) => {
         if (i !== index) return s
-        const isDefault = s.originalDefaultAmount != null && numAmount === s.originalDefaultAmount
-        return { ...s, amount: numAmount, useDefaultAmount: isDefault }
+        return { ...s, amount: numAmount }
       })
       onUpdate({ services: updated })
     },
@@ -249,6 +202,17 @@ export function ServicesStep({
 
   const formatAmount = (amount: number) =>
     `${currencySymbol} ${amount.toLocaleString('es-VE', { minimumFractionDigits: 2 })}`
+
+  const handleSaveExecution = useCallback(
+    (data: TWizardExecutionData) => {
+      if (!executionTarget) return
+      const updated = formData.services.map(s =>
+        s.serviceId === executionTarget.serviceId ? { ...s, execution: data } : s
+      )
+      onUpdate({ services: updated })
+    },
+    [executionTarget, formData.services, onUpdate]
+  )
 
   const handleServiceCreated = useCallback(() => {
     refetch()
@@ -274,11 +238,44 @@ export function ServicesStep({
     }
   }, [])
 
+  const handleFixedAmountChange = useCallback(
+    (value: string) => {
+      onUpdate({ fixedAmount: Number(value) || 0 })
+    },
+    [onUpdate]
+  )
+
   return (
     <div className="flex flex-col gap-5">
       <Typography variant="body2" color="muted">
         {t(`${w}.description`)}
       </Typography>
+
+      {/* Fixed amount section — only for non-maintenance types */}
+      {!servicesRequired && (
+        <>
+          <div className="flex flex-col gap-3 rounded-lg border border-default-200 p-4">
+            <CurrencyInput
+              label={t(`${w}.fixedAmountLabel`)}
+              value={String(formData.fixedAmount || '')}
+              onValueChange={handleFixedAmountChange}
+              currencySymbol={currencySymbolNode}
+              showCurrencySymbol={!!currencySymbol}
+              variant="bordered"
+              isDisabled={formData.services.length > 0}
+              description={t(`${w}.fixedAmountDescription`)}
+            />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Divider className="flex-1" />
+            <Typography variant="caption" color="muted">
+              {t(`${w}.orLinkServices`)}
+            </Typography>
+            <Divider className="flex-1" />
+          </div>
+        </>
+      )}
 
       {/* Add service button */}
       <div className="flex flex-col gap-4 rounded-lg border border-default-200 p-4">
@@ -314,51 +311,64 @@ export function ServicesStep({
           </Typography>
 
           <div className="flex flex-col gap-2">
-            {formData.services.map((service, index) => (
-              <div
-                key={service.serviceId}
-                className="flex items-center gap-3 rounded-lg border border-default-200 p-3 transition-colors hover:border-default-300"
-              >
-                <Wrench size={18} className="shrink-0 text-default-400" />
-                <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <span className="text-sm font-medium truncate">{service.serviceName}</span>
-                  {service.useDefaultAmount && (
-                    <Chip size="sm" variant="flat" color="primary">
-                      {t(`${w}.useDefault`)}
-                    </Chip>
-                  )}
+            {formData.services.map((service, index) => {
+              const hasExecution = !!service.execution
+              return (
+                <div
+                  key={service.serviceId}
+                  className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
+                    hasExecution
+                      ? 'border-success-200 bg-success-50/30'
+                      : showErrors
+                        ? 'border-danger-300 bg-danger-50/30'
+                        : 'border-default-200 hover:border-default-300'
+                  }`}
+                >
+                  <Wrench size={18} className="shrink-0 text-default-400" />
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <span className="text-sm font-medium truncate">{service.serviceName}</span>
+                    {hasExecution && (
+                      <Chip size="sm" variant="flat" color="success" startContent={<CheckCircle2 size={12} />}>
+                        {t(`${w}.executionRegistered`)}
+                      </Chip>
+                    )}
+                  </div>
+                  <CurrencyInput
+                    value={String(service.amount)}
+                    onValueChange={v => handleUpdateServiceAmount(index, v)}
+                    currencySymbol={currencySymbolNode}
+                    showCurrencySymbol={!!currencySymbol}
+                    variant="bordered"
+                    className="w-36"
+                    size="sm"
+                  />
+                  <Button
+                    size="sm"
+                    variant="flat"
+                    color={hasExecution ? 'success' : 'primary'}
+                    className="shrink-0"
+                    startContent={hasExecution ? <CheckCircle2 size={14} /> : <Receipt size={14} />}
+                    onPress={() => setExecutionTarget({
+                      serviceId: service.serviceId,
+                      serviceName: service.serviceName,
+                      existingExecution: service.execution,
+                    })}
+                  >
+                    {hasExecution ? t(`${w}.editExecution`) : t(`${w}.addExecution`)}
+                  </Button>
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="light"
+                    color="danger"
+                    className="shrink-0"
+                    onPress={() => handleRemoveService(index)}
+                  >
+                    <Trash2 size={14} />
+                  </Button>
                 </div>
-                <CurrencyInput
-                  value={String(service.amount)}
-                  onValueChange={v => handleUpdateServiceAmount(index, v)}
-                  currencySymbol={currencySymbolNode}
-                  showCurrencySymbol={!!currencySymbol}
-                  variant="bordered"
-                  className="w-36"
-                  size="sm"
-                />
-                <Button
-                  size="sm"
-                  variant="flat"
-                  color="primary"
-                  className="shrink-0"
-                  startContent={<Receipt size={14} />}
-                  onPress={() => setExecutionTarget({ serviceId: service.serviceId, currencyId: service.currencyId, serviceName: service.serviceName })}
-                >
-                  {t(`${w}.addExecution`)}
-                </Button>
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  color="danger"
-                  className="shrink-0"
-                  onPress={() => handleRemoveService(index)}
-                >
-                  <Trash2 size={14} />
-                </Button>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* Total */}
@@ -373,9 +383,15 @@ export function ServicesStep({
         </div>
       )}
 
-      {showErrors && formData.services.length === 0 && (
+      {showErrors && formData.services.length === 0 && (servicesRequired || formData.fixedAmount <= 0) && (
         <Typography variant="caption" color="danger">
-          {t(`${w}.required`)}
+          {servicesRequired ? t(`${w}.required`) : t(`${w}.fixedAmountOrServicesRequired`)}
+        </Typography>
+      )}
+
+      {showErrors && formData.services.length > 0 && formData.services.some(s => !s.execution) && (
+        <Typography variant="caption" color="danger">
+          {t(`${w}.executionRequired`)}
         </Typography>
       )}
 
@@ -438,16 +454,8 @@ export function ServicesStep({
               <div className="flex flex-col gap-3">
                 {selectorServices.map(service => {
                   const isAdded = addedServiceIds.has(service.id)
-                  const isDifferentCurrency = !!(formData.currencyId && service.currencyId !== formData.currencyId)
-                  const rate = isDifferentCurrency
-                    ? findRate(service.currencyId, formData.currencyId!)
-                    : null
-                  const hasNoRate = isDifferentCurrency && rate === null
                   const effectiveAmount = getModalAmount(service)
-                  const canAdd = !isAdded && !hasNoRate && !!effectiveAmount && Number(effectiveAmount) > 0
-
-                  const serviceCurrencyCode = getCurrencyCode(service.currencyId)
-                  const targetCurrencyCode = formData.currencyId ? getCurrencyCode(formData.currencyId) : ''
+                  const canAdd = !isAdded && !!effectiveAmount && Number(effectiveAmount) > 0
 
                   return (
                     <div
@@ -455,9 +463,7 @@ export function ServicesStep({
                       className={`flex flex-col gap-3 rounded-lg border p-4 transition-all ${
                         isAdded
                           ? 'border-primary-300 bg-primary-50'
-                          : hasNoRate
-                            ? 'border-default-200 bg-default-50 opacity-50'
-                            : 'border-default-200 hover:border-default-300'
+                          : 'border-default-200 hover:border-default-300'
                       }`}
                     >
                       {/* Service info */}
@@ -482,56 +488,44 @@ export function ServicesStep({
 
                       {/* Amount + Action */}
                       {isAdded ? (
-                        <div className="flex items-center gap-2 pl-6">
-                          <Check size={16} className="text-primary" />
-                          <Typography variant="caption" color="primary">
-                            {t('common.added')}
-                          </Typography>
-                        </div>
-                      ) : hasNoRate ? (
-                        <div className="pl-6">
-                          <Typography variant="caption" color="warning">
-                            {t(`${w}.noRateAvailable`)}
-                          </Typography>
+                        <div className="flex items-center justify-between pl-6">
+                          <div className="flex items-center gap-2">
+                            <Check size={16} className="text-primary" />
+                            <Typography variant="caption" color="primary">
+                              {t('common.added')}
+                            </Typography>
+                          </div>
+                          <Button
+                            size="sm"
+                            color="danger"
+                            variant="light"
+                            onPress={() => handleDeselectService(service.id)}
+                            startContent={<X size={14} />}
+                          >
+                            {t('common.remove')}
+                          </Button>
                         </div>
                       ) : (
-                        <div className="flex flex-col gap-2 pl-6">
-                          {/* Conversion info for different currencies */}
-                          {isDifferentCurrency && rate !== null && service.defaultAmount && (
-                            <div className="flex items-center gap-1.5 text-xs text-default-500">
-                              <span>
-                                {serviceCurrencyCode} {Number(service.defaultAmount).toLocaleString('es-VE', { minimumFractionDigits: 2 })}
-                              </span>
-                              <ArrowRight size={12} />
-                              <span>
-                                {targetCurrencyCode} {(Number(service.defaultAmount) * rate).toLocaleString('es-VE', { minimumFractionDigits: 2 })}
-                              </span>
-                              <span className="text-default-400">
-                                ({t(`${w}.rate`)}: {rate.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 4 })})
-                              </span>
-                            </div>
-                          )}
-                          <div className="flex items-end gap-2">
-                            <CurrencyInput
-                              value={effectiveAmount}
-                              onValueChange={v => handleModalAmountChange(service.id, v)}
-                              currencySymbol={currencySymbolNode}
-                              showCurrencySymbol={!!currencySymbol}
-                              variant="bordered"
-                              className="flex-1"
-                              size="sm"
-                            />
-                            <Button
-                              size="sm"
-                              color="primary"
-                              variant="flat"
-                              isDisabled={!canAdd}
-                              onPress={() => handleSelectService(service)}
-                              startContent={<Plus size={14} />}
-                            >
-                              {t('common.add')}
-                            </Button>
-                          </div>
+                        <div className="flex items-end gap-2 pl-6">
+                          <CurrencyInput
+                            value={effectiveAmount}
+                            onValueChange={v => handleModalAmountChange(service.id, v)}
+                            currencySymbol={currencySymbolNode}
+                            showCurrencySymbol={!!currencySymbol}
+                            variant="bordered"
+                            className="flex-1"
+                            size="sm"
+                          />
+                          <Button
+                            size="sm"
+                            color="primary"
+                            variant="flat"
+                            isDisabled={!canAdd}
+                            onPress={() => handleSelectService(service)}
+                            startContent={<Plus size={14} />}
+                          >
+                            {t('common.add')}
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -568,7 +562,7 @@ export function ServicesStep({
         onCreated={handleServiceCreated}
       />
 
-      {/* Execution Modal — create directly, no history shown in wizard context */}
+      {/* Execution Modal — wizard mode: saves data locally */}
       {executionTarget && (
         <ExecutionModal
           isOpen={!!executionTarget}
@@ -576,8 +570,9 @@ export function ServicesStep({
           managementCompanyId={managementCompanyId}
           serviceId={executionTarget.serviceId}
           condominiumId={condominiumId}
-          currencyId={executionTarget.currencyId}
-          onSuccess={() => setExecutionTarget(null)}
+          currencyId={formData.currencyId}
+          onSaveLocal={handleSaveExecution}
+          wizardExecution={executionTarget.existingExecution}
         />
       )}
     </div>

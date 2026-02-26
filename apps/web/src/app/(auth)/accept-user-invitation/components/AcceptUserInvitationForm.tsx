@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Card, CardBody, CardHeader } from '@/ui/components/card'
 import { Divider } from '@/ui/components/divider'
-import { Link } from '@/ui/components/link'
+import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Eye, EyeOff, Lock, Home, Mail, User } from 'lucide-react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -17,9 +17,10 @@ import { InputField } from '@/ui/components/input'
 import { CheckboxField } from '@/ui/components/checkbox'
 import { Typography } from '@/ui/components/typography'
 import { useToast } from '@/ui/components/toast'
+import { Spinner } from '@/ui/components/spinner'
 import { setUserCookie, setSessionCookie, setActiveRoleCookie } from '@/libs/cookies'
 import { getErrorMessage } from '@/utils/formErrors'
-import { acceptUserInvitation, TValidateUserInvitationResult } from '@packages/http-client/hooks'
+import { acceptUserInvitation, TValidateUserInvitationResult, useActiveSubscriptionTerms } from '@packages/http-client/hooks'
 import { HttpError } from '@packages/http-client'
 
 interface AcceptUserInvitationFormProps {
@@ -53,6 +54,11 @@ export function AcceptUserInvitationForm({ token, invitationData }: AcceptUserIn
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false)
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false)
+
+  const { data: termsData, isLoading: isLoadingTerms } = useActiveSubscriptionTerms()
+  const terms = termsData?.data
 
   const { user, condominium } = invitationData
 
@@ -118,6 +124,7 @@ export function AcceptUserInvitationForm({ token, invitationData }: AcceptUserIn
   }
 
   return (
+    <>
     <Card className="w-full max-w-lg">
       <CardHeader className="flex flex-col items-center gap-2 pt-8 pb-4">
         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
@@ -240,18 +247,27 @@ export function AcceptUserInvitationForm({ token, invitationData }: AcceptUserIn
             </div>
 
             <div>
-              <CheckboxField name="acceptTerms">
+              <div className="flex items-center gap-2">
+                <CheckboxField name="acceptTerms" />
                 <Typography variant="body2">
                   {t('auth.signUp.acceptTerms')}{' '}
-                  <Link className="text-sm" href="/terms">
+                  <span
+                    className="text-sm text-primary cursor-pointer hover:underline"
+                    role="button"
+                    onClick={() => setIsTermsModalOpen(true)}
+                  >
                     {t('auth.signUp.termsAndConditions')}
-                  </Link>{' '}
+                  </span>{' '}
                   {t('auth.signUp.and')}{' '}
-                  <Link className="text-sm" href="/privacy">
+                  <span
+                    className="text-sm text-primary cursor-pointer hover:underline"
+                    role="button"
+                    onClick={() => setIsPrivacyModalOpen(true)}
+                  >
                     {t('auth.signUp.privacyPolicy')}
-                  </Link>
+                  </span>
                 </Typography>
-              </CheckboxField>
+              </div>
               {getErrorMessage(methods.formState.errors, 'acceptTerms') && (
                 <Typography className="mt-1 text-danger text-xs" variant="body2">
                   {translateError(getErrorMessage(methods.formState.errors, 'acceptTerms'))}
@@ -276,5 +292,63 @@ export function AcceptUserInvitationForm({ token, invitationData }: AcceptUserIn
         </FormProvider>
       </CardBody>
     </Card>
+
+    {/* Terms & Conditions Modal */}
+    <Modal
+      isOpen={isTermsModalOpen}
+      onClose={() => setIsTermsModalOpen(false)}
+      size="3xl"
+      scrollBehavior="inside"
+    >
+      <ModalContent>
+        <ModalHeader className="flex flex-col gap-1">
+          <span>{t('auth.signUp.termsAndConditions')}</span>
+          {terms && (
+            <span className="text-xs font-normal text-default-400">
+              {terms.title} &middot; v{terms.version}
+            </span>
+          )}
+        </ModalHeader>
+        <ModalBody className="pb-6">
+          {isLoadingTerms ? (
+            <div className="flex justify-center py-8">
+              <Spinner size="md" />
+            </div>
+          ) : terms ? (
+            <div className="text-sm text-default-600 whitespace-pre-wrap">{terms.content}</div>
+          ) : (
+            <p className="text-default-400 text-center py-8">
+              {t('common.noDataAvailable')}
+            </p>
+          )}
+        </ModalBody>
+      </ModalContent>
+    </Modal>
+
+    {/* Privacy Policy Modal */}
+    <Modal
+      isOpen={isPrivacyModalOpen}
+      onClose={() => setIsPrivacyModalOpen(false)}
+      size="3xl"
+      scrollBehavior="inside"
+    >
+      <ModalContent>
+        <ModalHeader>{t('auth.signUp.privacyPolicy')}</ModalHeader>
+        <ModalBody className="pb-6">
+          {isLoadingTerms ? (
+            <div className="flex justify-center py-8">
+              <Spinner size="md" />
+            </div>
+          ) : terms ? (
+            <div className="text-sm text-default-600 whitespace-pre-wrap">{terms.content}</div>
+          ) : (
+            <p className="text-default-400 text-center py-8">
+              {t('common.noDataAvailable')}
+            </p>
+          )}
+        </ModalBody>
+      </ModalContent>
+    </Modal>
+    </>
   )
 }

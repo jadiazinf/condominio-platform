@@ -124,6 +124,7 @@ export {
   useMyCompanyPaymentConceptsPaginated,
   usePaymentConceptDetail,
   useCreatePaymentConcept,
+  useCreatePaymentConceptFull,
   useUpdatePaymentConcept,
   useDeactivatePaymentConcept,
   getPaymentConceptDetail,

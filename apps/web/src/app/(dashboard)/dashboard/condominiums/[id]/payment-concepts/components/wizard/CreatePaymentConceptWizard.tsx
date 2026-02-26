@@ -7,8 +7,9 @@ import { Typography } from '@/ui/components/typography'
 import { Stepper, type IStepItem } from '@/ui/components/stepper'
 import { useTranslation } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
+import type { TWizardExecutionData } from '@packages/domain'
 import {
-  useCreatePaymentConcept,
+  useCreatePaymentConceptFull,
   useCreateAssignment,
   useLinkBankAccount,
   useCreateInterestConfiguration,
@@ -24,7 +25,6 @@ import { ServicesStep } from './steps/ServicesStep'
 import { AssignmentsStep } from './steps/AssignmentsStep'
 import { BankAccountsStep } from './steps/BankAccountsStep'
 import { ReviewStep } from './steps/ReviewStep'
-import { useLinkServiceToConcept } from '@packages/http-client/hooks'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -34,10 +34,8 @@ export interface IWizardService {
   serviceId: string
   serviceName: string
   amount: number
-  useDefaultAmount: boolean
-  originalDefaultAmount?: number
-  /** Currency of the service provider (for execution recording) */
-  currencyId: string
+  /** Execution data captured in the wizard — mandatory before submit */
+  execution?: TWizardExecutionData
 }
 
 export interface IWizardAssignment {
@@ -73,6 +71,7 @@ export interface IWizardFormData {
   interestCalculationPeriod: 'monthly' | 'daily'
   interestGracePeriodDays: number
   // Step 3 - Services
+  fixedAmount: number
   services: IWizardService[]
   // Step 4 - Assignments
   assignments: IWizardAssignment[]
@@ -103,11 +102,14 @@ const INITIAL_FORM_DATA: IWizardFormData = {
   interestRate: undefined,
   interestCalculationPeriod: 'monthly',
   interestGracePeriodDays: 0,
+  fixedAmount: 0,
   services: [],
   assignments: [],
   bankAccountIds: [],
   notifyImmediately: false,
 }
+
+const SERVICES_REQUIRED_TYPES = ['maintenance'] as const
 
 const STEPS = [
   'basicInfo',
@@ -153,10 +155,9 @@ export function CreatePaymentConceptWizard({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showErrors, setShowErrors] = useState(false)
 
-  const { mutateAsync: createConcept } = useCreatePaymentConcept(managementCompanyId)
+  const { mutateAsync: createConceptFull } = useCreatePaymentConceptFull(managementCompanyId)
   const { mutateAsync: createAssignment } = useCreateAssignment(managementCompanyId)
   const { mutateAsync: linkBankAccount } = useLinkBankAccount(managementCompanyId)
-  const { mutateAsync: linkService } = useLinkServiceToConcept(managementCompanyId)
   const { mutateAsync: createInterestConfig } = useCreateInterestConfiguration()
 
   // Default to VES currency when currencies load
@@ -185,8 +186,10 @@ export function CreatePaymentConceptWizard({
     onClose()
   }, [onClose])
 
-  // Compute total amount from services
-  const servicesTotalAmount = formData.services.reduce((sum, s) => sum + s.amount, 0)
+  // Compute total amount from services or fixed amount
+  const servicesTotalAmount = formData.services.length > 0
+    ? formData.services.reduce((sum, s) => sum + s.amount, 0)
+    : formData.fixedAmount
 
   const canProceed = () => {
     switch (currentStep) {
@@ -209,7 +212,11 @@ export function CreatePaymentConceptWizard({
         if (formData.interestEnabled && !formData.interestRate) return false
         return true
       case 2: // Services
-        return formData.services.length > 0
+        if (SERVICES_REQUIRED_TYPES.includes(formData.conceptType as any)) {
+          return formData.services.length > 0 && formData.services.every(s => !!s.execution)
+        }
+        return (formData.services.length > 0 && formData.services.every(s => !!s.execution))
+          || formData.fixedAmount > 0
       case 3: // Assignments
         return formData.assignments.length > 0
       case 4: // Bank Accounts (required)
@@ -224,8 +231,8 @@ export function CreatePaymentConceptWizard({
   const handleSubmit = useCallback(async () => {
     setIsSubmitting(true)
     try {
-      // 1. Create the payment concept
-      const conceptResult = await createConcept({
+      // 1. Create concept + services + executions in a single transaction
+      const conceptResult = await createConceptFull({
         condominiumId,
         name: formData.name,
         description: formData.description || undefined,
@@ -242,21 +249,17 @@ export function CreatePaymentConceptWizard({
         earlyPaymentType: formData.earlyPaymentType as any,
         earlyPaymentValue: formData.earlyPaymentValue ?? null,
         earlyPaymentDaysBeforeDue: formData.earlyPaymentDaysBeforeDue,
+        services: formData.services.map(s => ({
+          serviceId: s.serviceId,
+          amount: s.amount,
+          useDefaultAmount: false,
+          execution: s.execution!,
+        })),
       } as any)
 
       const conceptId = conceptResult.data.data.id
 
-      // 2. Link services to concept
-      for (const service of formData.services) {
-        await linkService({
-          conceptId,
-          serviceId: service.serviceId,
-          amount: service.amount,
-          useDefaultAmount: service.useDefaultAmount,
-        })
-      }
-
-      // 3. Create assignments (amount from services total)
+      // 2. Create assignments
       for (const assignment of formData.assignments) {
         if (assignment.scopeType === 'unit' && assignment.unitIds?.length) {
           for (const unitId of assignment.unitIds) {
@@ -281,12 +284,12 @@ export function CreatePaymentConceptWizard({
         }
       }
 
-      // 4. Link bank accounts
+      // 3. Link bank accounts
       for (const bankAccountId of formData.bankAccountIds) {
         await linkBankAccount({ conceptId, bankAccountId })
       }
 
-      // 5. Create interest configuration if enabled
+      // 4. Create interest configuration if enabled
       if (formData.interestEnabled && formData.interestRate) {
         await createInterestConfig({
           condominiumId,
@@ -325,8 +328,7 @@ export function CreatePaymentConceptWizard({
   }, [
     formData,
     condominiumId,
-    createConcept,
-    linkService,
+    createConceptFull,
     createAssignment,
     linkBankAccount,
     createInterestConfig,
@@ -374,6 +376,7 @@ export function CreatePaymentConceptWizard({
             managementCompanyId={managementCompanyId}
             currencies={currencies}
             showErrors={showErrors}
+            servicesRequired={SERVICES_REQUIRED_TYPES.includes(formData.conceptType as any)}
           />
         )
       case 3:

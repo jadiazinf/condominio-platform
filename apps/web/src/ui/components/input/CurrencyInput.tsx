@@ -115,6 +115,9 @@ export function CurrencyInput({
 
   // Handle key press
   const handleKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
+    // Don't process input when readonly or disabled
+    if (isReadOnly || isDisabled) return
+
     // Allow navigation keys
     if (['Tab', 'Escape', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
       return
@@ -152,10 +155,11 @@ export function CurrencyInput({
     }
 
     onValueChange?.(centsToValue(newCents))
-  }, [currentCents, onValueChange, centsToValue])
+  }, [currentCents, onValueChange, centsToValue, isReadOnly, isDisabled])
 
   // Handle paste - extract only numbers
   const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
+    if (isReadOnly || isDisabled) return
     e.preventDefault()
     const pastedText = e.clipboardData.getData('text')
 
@@ -175,7 +179,7 @@ export function CurrencyInput({
     }
 
     onValueChange?.(centsToValue(newCents))
-  }, [currentCents, onValueChange, centsToValue])
+  }, [currentCents, onValueChange, centsToValue, isReadOnly, isDisabled])
 
   // Create label with tooltip and required asterisk
   const labelContent = label ? (

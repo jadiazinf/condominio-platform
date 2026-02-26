@@ -660,22 +660,39 @@
             "required": "Identity document type is required."
           },
           "identityDocNumber": {
-            "required": "Identity document number is required."
+            "required": "Identity document number is required.",
+            "max": "Identity document number must be at most 20 characters."
           },
           "phoneNumber": {
-            "requiredForPagoMovil": "Phone number is required when Pago Movil is selected."
+            "requiredForPagoMovil": "Phone number is required when Pago Movil is selected.",
+            "max": "Phone number must be at most 15 characters."
           }
         },
         "international": {
           "swiftCode": {
-            "required": "SWIFT code is required for wire transfers."
+            "required": "SWIFT code is required for wire transfers.",
+            "max": "SWIFT code must be at most 11 characters."
+          },
+          "iban": {
+            "max": "IBAN must be at most 34 characters."
           },
           "accountNumber": {
-            "required": "Account number is required for bank transfers."
+            "required": "Account number is required for bank transfers.",
+            "max": "Account number must be at most 50 characters."
           },
           "routingNumber": {
             "required": "Routing number is required for ACH.",
-            "length": "Routing number must be exactly 9 digits."
+            "length": "Routing number must be exactly 9 digits.",
+            "max": "Routing number must be at most 9 characters."
+          },
+          "bankAddress": {
+            "max": "Bank address must be at most 500 characters."
+          },
+          "bankCountry": {
+            "length": "Country code must be exactly 2 characters."
+          },
+          "beneficiaryAddress": {
+            "max": "Beneficiary address must be at most 500 characters."
           },
           "accountType": {
             "required": "Account type is required for ACH."
@@ -686,6 +703,9 @@
           "zelleContact": {
             "required": "An email address or phone number is required for Zelle."
           },
+          "zellePhone": {
+            "max": "Zelle phone number must be at most 20 characters."
+          },
           "paypalEmail": {
             "required": "PayPal email is required."
           },
@@ -693,13 +713,20 @@
             "required": "Wise email is required."
           },
           "walletAddress": {
-            "required": "Wallet address is required for cryptocurrency."
+            "required": "Wallet address is required for cryptocurrency.",
+            "max": "Wallet address must be at most 255 characters."
           },
           "cryptoNetwork": {
             "required": "Crypto network is required."
           },
           "cryptoCurrency": {
             "required": "Cryptocurrency is required."
+          },
+          "stripeAccountId": {
+            "max": "Stripe account ID must be at most 255 characters."
+          },
+          "stripeExternalAccountId": {
+            "max": "Stripe external account ID must be at most 255 characters."
           }
         },
         "methodNotSupportedByBank": "Payment method '{method}' is not supported by the selected bank.",

@@ -999,9 +999,6 @@ export const DomainLocaleDictionary = {
         providerType: {
           invalid: 'validation.models.condominiumServices.providerType.invalid',
         },
-        currencyId: {
-          invalid: 'validation.models.condominiumServices.currencyId.invalid',
-        },
         createdBy: {
           invalid: 'validation.models.condominiumServices.createdBy.invalid',
         },
@@ -1049,21 +1046,38 @@ export const DomainLocaleDictionary = {
           },
           identityDocNumber: {
             required: 'validation.models.bankAccounts.national.identityDocNumber.required',
+            max: 'validation.models.bankAccounts.national.identityDocNumber.max',
           },
           phoneNumber: {
             requiredForPagoMovil: 'validation.models.bankAccounts.national.phoneNumber.requiredForPagoMovil',
+            max: 'validation.models.bankAccounts.national.phoneNumber.max',
           },
         },
         international: {
           swiftCode: {
             required: 'validation.models.bankAccounts.international.swiftCode.required',
+            max: 'validation.models.bankAccounts.international.swiftCode.max',
+          },
+          iban: {
+            max: 'validation.models.bankAccounts.international.iban.max',
           },
           accountNumber: {
             required: 'validation.models.bankAccounts.international.accountNumber.required',
+            max: 'validation.models.bankAccounts.international.accountNumber.max',
           },
           routingNumber: {
             required: 'validation.models.bankAccounts.international.routingNumber.required',
             length: 'validation.models.bankAccounts.international.routingNumber.length',
+            max: 'validation.models.bankAccounts.international.routingNumber.max',
+          },
+          bankAddress: {
+            max: 'validation.models.bankAccounts.international.bankAddress.max',
+          },
+          bankCountry: {
+            length: 'validation.models.bankAccounts.international.bankCountry.length',
+          },
+          beneficiaryAddress: {
+            max: 'validation.models.bankAccounts.international.beneficiaryAddress.max',
           },
           accountType: {
             required: 'validation.models.bankAccounts.international.accountType.required',
@@ -1074,6 +1088,9 @@ export const DomainLocaleDictionary = {
           zelleContact: {
             required: 'validation.models.bankAccounts.international.zelleContact.required',
           },
+          zellePhone: {
+            max: 'validation.models.bankAccounts.international.zellePhone.max',
+          },
           paypalEmail: {
             required: 'validation.models.bankAccounts.international.paypalEmail.required',
           },
@@ -1082,12 +1099,19 @@ export const DomainLocaleDictionary = {
           },
           walletAddress: {
             required: 'validation.models.bankAccounts.international.walletAddress.required',
+            max: 'validation.models.bankAccounts.international.walletAddress.max',
           },
           cryptoNetwork: {
             required: 'validation.models.bankAccounts.international.cryptoNetwork.required',
           },
           cryptoCurrency: {
             required: 'validation.models.bankAccounts.international.cryptoCurrency.required',
+          },
+          stripeAccountId: {
+            max: 'validation.models.bankAccounts.international.stripeAccountId.max',
+          },
+          stripeExternalAccountId: {
+            max: 'validation.models.bankAccounts.international.stripeExternalAccountId.max',
           },
         },
         methodNotSupportedByBank: 'validation.models.bankAccounts.methodNotSupportedByBank',

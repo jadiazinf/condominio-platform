@@ -1,5 +1,6 @@
 import type { Context } from 'hono'
 import { z } from 'zod'
+import { useTranslation } from '@intlify/hono'
 import {
   condominiumServiceCreateSchema,
   condominiumServiceUpdateSchema,
@@ -17,7 +18,6 @@ import {
 import type {
   CondominiumServicesRepository,
   CondominiumsRepository,
-  CurrenciesRepository,
   ServiceExecutionsRepository,
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
@@ -28,6 +28,7 @@ import type { TRouteDefinition } from '../types'
 import { CreateCondominiumServiceService } from '@src/services/condominium-services/create-condominium-service.service'
 import { CreateDefaultServicesService } from '@src/services/condominium-services/create-default-services.service'
 import { CONDOMINIUM_ID_PROP } from '@src/http/middlewares/utils/auth/require-role'
+import { LocaleDictionary } from '@locales/dictionary'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Param Schemas
@@ -74,7 +75,6 @@ export interface IMcCondominiumServicesDeps {
   servicesRepo: CondominiumServicesRepository
   executionsRepo: ServiceExecutionsRepository
   condominiumsRepo: CondominiumsRepository
-  currenciesRepo: CurrenciesRepository
   condominiumMCRepo: TCondominiumMCRepo
 }
 
@@ -96,13 +96,11 @@ export class McCondominiumServicesController extends BaseController<
     this.createService = new CreateCondominiumServiceService(
       deps.servicesRepo,
       deps.condominiumsRepo,
-      deps.currenciesRepo,
       deps.condominiumMCRepo
     )
 
     this.createDefaultsService = new CreateDefaultServicesService(
-      deps.servicesRepo,
-      deps.currenciesRepo
+      deps.servicesRepo
     )
   }
 
@@ -175,7 +173,6 @@ export class McCondominiumServicesController extends BaseController<
           authMiddleware,
           paramsValidator(ManagementCompanyIdParamSchema),
           requireRole(...adminOnly),
-          bodyValidator(z.object({ currencyId: z.string().uuid() })),
         ],
       },
       // ── Executions: List ────────────────────────────────────────────
@@ -328,7 +325,7 @@ export class McCondominiumServicesController extends BaseController<
   }
 
   private createDefaults = async (c: Context): Promise<Response> => {
-    const ctx = this.ctx<{ currencyId: string }, unknown, { managementCompanyId: string }>(c)
+    const ctx = this.ctx<unknown, unknown, { managementCompanyId: string }>(c)
     const user = ctx.getAuthenticatedUser()
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
@@ -339,7 +336,6 @@ export class McCondominiumServicesController extends BaseController<
 
       const result = await this.createDefaultsService.execute(
         condominiumId,
-        ctx.body.currencyId,
         user.id
       )
 
@@ -422,15 +418,20 @@ export class McCondominiumServicesController extends BaseController<
 
   private updateExecution = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TServiceExecutionUpdate, unknown, TExecutionIdParam>(c)
+    const t = useTranslation(c)
 
     try {
       const existing = await this.executionsRepo.getById(ctx.params.executionId)
       if (!existing || existing.serviceId !== ctx.params.serviceId) {
-        return ctx.notFound({ error: 'Execution not found' })
+        return ctx.notFound({ error: t(LocaleDictionary.http.controllers.serviceExecutions.executionNotFound) })
+      }
+
+      if (existing.status === 'confirmed') {
+        return ctx.conflict({ error: t(LocaleDictionary.http.controllers.serviceExecutions.confirmedNotEditable) })
       }
 
       const execution = await this.executionsRepo.update(ctx.params.executionId, ctx.body)
-      if (!execution) return ctx.notFound({ error: 'Execution not found' })
+      if (!execution) return ctx.notFound({ error: t(LocaleDictionary.http.controllers.serviceExecutions.executionNotFound) })
 
       return ctx.ok({ data: execution })
     } catch (error) {

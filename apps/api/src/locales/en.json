@@ -148,6 +148,19 @@
         "invitationNotFound": "Invitation not found.",
         "cannotResendNonPending": "Cannot resend email: the invitation is no longer pending.",
         "failedToResendEmail": "Failed to send the invitation email."
+      },
+      "serviceExecutions": {
+        "executionNotFound": "Execution not found.",
+        "confirmedNotEditable": "Cannot modify an execution with confirmed status."
+      },
+      "paymentConcepts": {
+        "serviceNotFound": "Service not found.",
+        "currencyNotFound": "Currency not found.",
+        "condominiumNotFound": "Condominium not found.",
+        "condominiumNotInCompany": "The condominium does not belong to your management company.",
+        "servicesRequired": "At least one service with execution is required.",
+        "executionCurrencyNotFound": "Execution currency not found.",
+        "conceptCreatedSuccessfully": "Payment concept created successfully."
       }
     },
     "locales": {

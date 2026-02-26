@@ -16,6 +16,9 @@
     "clearFilters": "Clear filters",
     "close": "Close",
     "confirm": "Confirm",
+    "add": "Add",
+    "added": "Added",
+    "remove": "Remove",
     "optional": "Optional",
     "required": "Required",
     "back": "Back",
@@ -3948,6 +3951,7 @@
             "executionUpdated": "Execution updated successfully",
             "executionCreateError": "Error creating the execution",
             "executionUpdateError": "Error updating the execution",
+            "linkedConcept": "Linked payment concept",
             "createExecution": "Create Execution",
             "saving": "Saving...",
             "save": "Save",
@@ -3957,6 +3961,8 @@
             "noAttachments": "No attachments",
             "download": "Download",
             "autoCalculated": "Auto-calculated from items",
+            "totalAmountTooltip": "Enter the amount manually or add items to calculate it automatically",
+            "historyTemplate": "Use a previous execution as template",
             "noItemsHint": "No items. Add items to detail the costs.",
             "itemNotesPlaceholder": "Item notes (optional)",
             "uploadFailed": "Upload failed",
@@ -4037,7 +4043,14 @@
             "noRateAvailable": "No exchange rate available",
             "rate": "Rate",
             "duplicate": "This service is already added",
-            "addExecution": "Record execution"
+            "addExecution": "Record execution",
+            "editExecution": "Edit execution",
+            "executionRegistered": "Execution registered",
+            "executionRequired": "Each service must have a registered execution",
+            "fixedAmountLabel": "Fixed amount",
+            "fixedAmountDescription": "Enter the total amount for the payment concept",
+            "orLinkServices": "Or link services",
+            "fixedAmountOrServicesRequired": "Enter a fixed amount or link at least one service"
           }
         }
       }

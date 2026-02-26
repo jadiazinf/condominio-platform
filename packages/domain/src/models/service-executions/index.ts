@@ -12,4 +12,5 @@ export type {
   TServiceExecutionItem,
   TServiceExecutionCreate,
   TServiceExecutionUpdate,
+  TWizardExecutionData,
 } from './types'

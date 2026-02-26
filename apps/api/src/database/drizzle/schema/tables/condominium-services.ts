@@ -1,7 +1,6 @@
 import { pgTable, uuid, varchar, text, boolean, timestamp, jsonb, index, decimal } from 'drizzle-orm/pg-core'
 import { condominiums } from './condominiums'
 import { locations } from './locations'
-import { currencies } from './currencies'
 import { users } from './users'
 import { serviceProviderTypeEnum } from '../enums'
 
@@ -25,10 +24,6 @@ export const condominiumServices = pgTable(
     locationId: uuid('location_id').references(() => locations.id, {
       onDelete: 'set null',
     }),
-    currencyId: uuid('currency_id')
-      .notNull()
-      .references(() => currencies.id, { onDelete: 'restrict' }),
-    defaultAmount: decimal('default_amount', { precision: 15, scale: 2 }),
     // Tax configuration
     chargesIva: boolean('charges_iva').default(false).notNull(),
     ivaRate: decimal('iva_rate', { precision: 5, scale: 4 }).default('0.16').notNull(),

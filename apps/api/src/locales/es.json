@@ -148,6 +148,19 @@
         "invitationNotFound": "Invitación no encontrada.",
         "cannotResendNonPending": "No se puede reenviar el correo: la invitación ya no está pendiente.",
         "failedToResendEmail": "Error al enviar el correo de invitación."
+      },
+      "serviceExecutions": {
+        "executionNotFound": "Ejecución no encontrada.",
+        "confirmedNotEditable": "No se puede modificar una ejecución con estado confirmado."
+      },
+      "paymentConcepts": {
+        "serviceNotFound": "Servicio no encontrado.",
+        "currencyNotFound": "Moneda no encontrada.",
+        "condominiumNotFound": "Condominio no encontrado.",
+        "condominiumNotInCompany": "El condominio no pertenece a su empresa administradora.",
+        "servicesRequired": "Se requiere al menos un servicio con ejecución.",
+        "executionCurrencyNotFound": "Moneda de ejecución no encontrada.",
+        "conceptCreatedSuccessfully": "Concepto de pago creado exitosamente."
       }
     },
     "locales": {

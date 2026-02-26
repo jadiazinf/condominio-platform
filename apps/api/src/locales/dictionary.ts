@@ -106,6 +106,19 @@ export const LocaleDictionary = {
         cannotResendNonPending: 'http.controllers.adminInvitations.cannotResendNonPending',
         failedToResendEmail: 'http.controllers.adminInvitations.failedToResendEmail',
       },
+      serviceExecutions: {
+        executionNotFound: 'http.controllers.serviceExecutions.executionNotFound',
+        confirmedNotEditable: 'http.controllers.serviceExecutions.confirmedNotEditable',
+      },
+      paymentConcepts: {
+        serviceNotFound: 'http.controllers.paymentConcepts.serviceNotFound',
+        currencyNotFound: 'http.controllers.paymentConcepts.currencyNotFound',
+        condominiumNotFound: 'http.controllers.paymentConcepts.condominiumNotFound',
+        condominiumNotInCompany: 'http.controllers.paymentConcepts.condominiumNotInCompany',
+        servicesRequired: 'http.controllers.paymentConcepts.servicesRequired',
+        executionCurrencyNotFound: 'http.controllers.paymentConcepts.executionCurrencyNotFound',
+        conceptCreatedSuccessfully: 'http.controllers.paymentConcepts.conceptCreatedSuccessfully',
+      },
     },
     locales: {
       unknownError: 'http.locales.unknownError',

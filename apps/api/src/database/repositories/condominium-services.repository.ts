@@ -36,8 +36,6 @@ export class CondominiumServicesRepository
       phone: r.phone,
       address: r.address,
       locationId: r.locationId,
-      currencyId: r.currencyId,
-      defaultAmount: r.defaultAmount ? Number(r.defaultAmount) : null,
       chargesIva: r.chargesIva ?? false,
       ivaRate: r.ivaRate ? Number(r.ivaRate) : 0.16,
       subjectToIslarRetention: r.subjectToIslarRetention ?? false,
@@ -65,8 +63,6 @@ export class CondominiumServicesRepository
       phone: dto.phone,
       address: dto.address,
       locationId: dto.locationId,
-      currencyId: dto.currencyId,
-      defaultAmount: dto.defaultAmount != null ? String(dto.defaultAmount) : null,
       chargesIva: dto.chargesIva ?? false,
       ivaRate: dto.ivaRate != null ? String(dto.ivaRate) : '0.16',
       subjectToIslarRetention: dto.subjectToIslarRetention ?? false,
@@ -87,8 +83,6 @@ export class CondominiumServicesRepository
     if (dto.phone !== undefined) values.phone = dto.phone
     if (dto.address !== undefined) values.address = dto.address
     if (dto.locationId !== undefined) values.locationId = dto.locationId
-    if (dto.currencyId !== undefined) values.currencyId = dto.currencyId
-    if (dto.defaultAmount !== undefined) values.defaultAmount = dto.defaultAmount != null ? String(dto.defaultAmount) : null
     if (dto.chargesIva !== undefined) values.chargesIva = dto.chargesIva
     if (dto.ivaRate !== undefined) values.ivaRate = String(dto.ivaRate)
     if (dto.subjectToIslarRetention !== undefined) values.subjectToIslarRetention = dto.subjectToIslarRetention

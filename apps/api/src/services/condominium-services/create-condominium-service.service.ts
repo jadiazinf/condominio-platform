@@ -1,5 +1,5 @@
 import type { TCondominiumService, TCondominiumServiceCreate } from '@packages/domain'
-import type { CondominiumServicesRepository, CondominiumsRepository, CurrenciesRepository } from '@database/repositories'
+import type { CondominiumServicesRepository, CondominiumsRepository } from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 
 type TCondominiumMCRepo = {
@@ -15,7 +15,6 @@ export class CreateCondominiumServiceService {
   constructor(
     private readonly servicesRepo: CondominiumServicesRepository,
     private readonly condominiumsRepo: CondominiumsRepository,
-    private readonly currenciesRepo: CurrenciesRepository,
     private readonly condominiumMCRepo: TCondominiumMCRepo
   ) {}
 
@@ -41,12 +40,6 @@ export class CreateCondominiumServiceService {
     )
     if (!condominiumMC) {
       return failure('Condominium not found in your management company', 'NOT_FOUND')
-    }
-
-    // Validate currency exists
-    const currency = await this.currenciesRepo.getById(input.currencyId)
-    if (!currency) {
-      return failure('Currency not found', 'NOT_FOUND')
     }
 
     try {

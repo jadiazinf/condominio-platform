@@ -73,9 +73,14 @@ async function authenticateWebSocket(ws: ServerWebSocket<IWebSocketData>): Promi
 
     return user
   } catch (error) {
-    console.error('[WebSocket] Authentication error:', error)
-    ws.send(JSON.stringify({ event: 'error', data: 'Authentication failed' }))
-    ws.close(1008, 'Invalid token')
+    const isExpired = error instanceof Error && error.message.includes('id-token-expired')
+    if (isExpired) {
+      console.warn('[WebSocket] Token expired, closing connection')
+    } else {
+      console.error('[WebSocket] Authentication error:', error instanceof Error ? error.message : error)
+    }
+    ws.send(JSON.stringify({ event: 'error', data: isExpired ? 'Token expired' : 'Authentication failed' }))
+    ws.close(1008, isExpired ? 'Token expired' : 'Invalid token')
     return null
   }
 }

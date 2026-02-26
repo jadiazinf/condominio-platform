@@ -315,16 +315,6 @@ export function ServiceDetailPageClient({
             {t(`${d}.fiscalConfig`)}
           </Typography>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {service.defaultAmount != null && (
-              <div>
-                <p className="text-xs text-default-400">{t(`${d}.defaultAmount`)}</p>
-                <p className="text-sm font-mono font-medium">
-                  {Number(service.defaultAmount).toLocaleString('es-VE', {
-                    minimumFractionDigits: 2,
-                  })}
-                </p>
-              </div>
-            )}
             {service.chargesIva && (
               <div>
                 <p className="text-xs text-default-400">{t(`${d}.ivaRate`)}</p>
@@ -343,7 +333,7 @@ export function ServiceDetailPageClient({
                 </div>
               </div>
             )}
-            {!service.chargesIva && !service.subjectToIslarRetention && !service.defaultAmount && (
+            {!service.chargesIva && !service.subjectToIslarRetention && (
               <p className="text-sm text-default-400">{t(`${d}.notSpecified`)}</p>
             )}
           </div>
@@ -410,7 +400,6 @@ export function ServiceDetailPageClient({
         managementCompanyId={managementCompanyId}
         serviceId={serviceId}
         condominiumId={condominiumId}
-        currencyId={service.currencyId}
         execution={selectedExecution}
         onSuccess={handleExecutionSuccess}
       />

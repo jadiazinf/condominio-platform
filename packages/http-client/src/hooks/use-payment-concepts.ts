@@ -7,6 +7,7 @@ import type {
   TPaymentConceptsQuery,
   TPaymentConceptAssignment,
   TPaymentConceptBankAccount,
+  TWizardExecutionData,
 } from '@packages/domain'
 import type { TApiDataResponse, TApiPaginatedResponse } from '../types/api-responses'
 import type { ApiResponse } from '../types/http'
@@ -141,6 +142,34 @@ export function useDeactivatePaymentConcept(companyId: string, options?: IDeacti
   return useApiMutation<TApiDataResponse<TPaymentConcept>, IDeactivatePaymentConceptVariables>({
     path: (variables) => `/${companyId}/me/payment-concepts/${variables.conceptId}/deactivate`,
     method: 'PATCH',
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+    invalidateKeys: [paymentConceptKeys.all],
+  })
+}
+
+// ─── Full creation (concept + services + executions in one transaction) ───
+
+export interface IServiceWithExecutionInput {
+  serviceId: string
+  amount: number
+  useDefaultAmount: boolean
+  execution: TWizardExecutionData
+}
+
+export type TCreatePaymentConceptFullInput = TPaymentConceptCreate & {
+  services?: IServiceWithExecutionInput[]
+}
+
+export interface ICreatePaymentConceptFullOptions {
+  onSuccess?: (data: ApiResponse<TApiDataResponse<TPaymentConcept>>) => void
+  onError?: (error: Error) => void
+}
+
+export function useCreatePaymentConceptFull(companyId: string, options?: ICreatePaymentConceptFullOptions) {
+  return useApiMutation<TApiDataResponse<TPaymentConcept>, TCreatePaymentConceptFullInput>({
+    path: `/${companyId}/me/payment-concepts/full`,
+    method: 'POST',
     onSuccess: options?.onSuccess,
     onError: options?.onError,
     invalidateKeys: [paymentConceptKeys.all],

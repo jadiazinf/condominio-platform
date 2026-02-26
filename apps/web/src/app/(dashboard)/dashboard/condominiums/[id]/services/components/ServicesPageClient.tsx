@@ -34,7 +34,6 @@ interface ServicesPageClientProps {
       name: string
       providerType: string
       contact: string
-      defaultAmount: string
       status: string
     }
     providerTypes: {
@@ -124,7 +123,6 @@ export function ServicesPageClient({
       { key: 'name', label: t.table.name },
       { key: 'providerType', label: t.table.providerType },
       { key: 'contact', label: t.table.contact },
-      { key: 'defaultAmount', label: t.table.defaultAmount },
       { key: 'isActive', label: t.table.status },
       { key: 'actions', label: '' },
     ],
@@ -216,14 +214,6 @@ export function ServicesPageClient({
                 <span className="text-xs text-default-400">-</span>
               )}
             </div>
-          )
-        case 'defaultAmount':
-          return service.defaultAmount ? (
-            <span className="text-sm font-mono">
-              {Number(service.defaultAmount).toLocaleString('es-VE', { minimumFractionDigits: 2 })}
-            </span>
-          ) : (
-            <span className="text-sm text-default-400">-</span>
           )
         case 'isActive':
           return (
@@ -373,13 +363,6 @@ export function ServicesPageClient({
                       {t.providerTypes[service.providerType as keyof typeof t.providerTypes] ||
                         service.providerType}
                     </Chip>
-                    {service.defaultAmount && (
-                      <span className="text-xs font-mono text-default-600">
-                        {Number(service.defaultAmount).toLocaleString('es-VE', {
-                          minimumFractionDigits: 2,
-                        })}
-                      </span>
-                    )}
                   </div>
                 </CardBody>
               </Card>

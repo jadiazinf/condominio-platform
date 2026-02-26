@@ -172,20 +172,29 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
             </Typography>
             <Divider />
             {formData.services.map((service, i) => (
-              <div key={i} className="flex items-center justify-between py-1">
-                <div className="flex items-center gap-2">
-                  <Typography variant="body2" className="font-medium">
-                    {service.serviceName}
+              <div key={i} className="flex flex-col gap-1 py-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Typography variant="body2" className="font-medium">
+                      {service.serviceName}
+                    </Typography>
+                    {service.execution && (
+                      <Chip size="sm" variant="flat" color="success">
+                        {t('admin.condominiums.detail.services.conceptServices.executionRegistered')}
+                      </Chip>
+                    )}
+                  </div>
+                  <Typography variant="body2" className="font-semibold">
+                    {currencyCode} {service.amount.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
                   </Typography>
-                  {service.useDefaultAmount && (
-                    <Chip size="sm" variant="flat" color="default">
-                      {t('admin.condominiums.detail.services.conceptServices.useDefault')}
-                    </Chip>
-                  )}
                 </div>
-                <Typography variant="body2" className="font-semibold">
-                  {currencyCode} {service.amount.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
-                </Typography>
+                {service.execution && (
+                  <div className="pl-4 text-xs text-default-500">
+                    {service.execution.title}
+                    {' — '}
+                    {currencyCode} {Number(service.execution.totalAmount).toLocaleString('es-VE', { minimumFractionDigits: 2 })}
+                  </div>
+                )}
               </div>
             ))}
             <Divider />

@@ -897,22 +897,39 @@
             "required": "El tipo de documento de identidad es requerido."
           },
           "identityDocNumber": {
-            "required": "El número de documento de identidad es requerido."
+            "required": "El número de documento de identidad es requerido.",
+            "max": "El número de documento debe tener como máximo 20 caracteres."
           },
           "phoneNumber": {
-            "requiredForPagoMovil": "El número de teléfono es requerido cuando se selecciona Pago Móvil."
+            "requiredForPagoMovil": "El número de teléfono es requerido cuando se selecciona Pago Móvil.",
+            "max": "El número de teléfono debe tener como máximo 15 caracteres."
           }
         },
         "international": {
           "swiftCode": {
-            "required": "El código SWIFT es requerido para transferencias internacionales."
+            "required": "El código SWIFT es requerido para transferencias internacionales.",
+            "max": "El código SWIFT debe tener como máximo 11 caracteres."
+          },
+          "iban": {
+            "max": "El IBAN debe tener como máximo 34 caracteres."
           },
           "accountNumber": {
-            "required": "El número de cuenta es requerido para transferencias bancarias."
+            "required": "El número de cuenta es requerido para transferencias bancarias.",
+            "max": "El número de cuenta debe tener como máximo 50 caracteres."
           },
           "routingNumber": {
             "required": "El número de ruta (routing number) es requerido para ACH.",
-            "length": "El número de ruta debe tener exactamente 9 dígitos."
+            "length": "El número de ruta debe tener exactamente 9 dígitos.",
+            "max": "El número de ruta debe tener como máximo 9 caracteres."
+          },
+          "bankAddress": {
+            "max": "La dirección del banco debe tener como máximo 500 caracteres."
+          },
+          "bankCountry": {
+            "length": "El código de país debe tener exactamente 2 caracteres."
+          },
+          "beneficiaryAddress": {
+            "max": "La dirección del beneficiario debe tener como máximo 500 caracteres."
           },
           "accountType": {
             "required": "El tipo de cuenta es requerido para ACH."
@@ -923,6 +940,9 @@
           "zelleContact": {
             "required": "Debe proporcionar un correo electrónico o número de teléfono para Zelle."
           },
+          "zellePhone": {
+            "max": "El teléfono de Zelle debe tener como máximo 20 caracteres."
+          },
           "paypalEmail": {
             "required": "El correo electrónico de PayPal es requerido."
           },
@@ -930,13 +950,20 @@
             "required": "El correo electrónico de Wise es requerido."
           },
           "walletAddress": {
-            "required": "La dirección de la billetera es requerida para criptomonedas."
+            "required": "La dirección de la billetera es requerida para criptomonedas.",
+            "max": "La dirección de la billetera debe tener como máximo 255 caracteres."
           },
           "cryptoNetwork": {
             "required": "La red de criptomoneda es requerida."
           },
           "cryptoCurrency": {
             "required": "La criptomoneda es requerida."
+          },
+          "stripeAccountId": {
+            "max": "El ID de cuenta Stripe debe tener como máximo 255 caracteres."
+          },
+          "stripeExternalAccountId": {
+            "max": "El ID de cuenta externa Stripe debe tener como máximo 255 caracteres."
           }
         },
         "methodNotSupportedByBank": "El método de pago '{method}' no es soportado por el banco seleccionado.",

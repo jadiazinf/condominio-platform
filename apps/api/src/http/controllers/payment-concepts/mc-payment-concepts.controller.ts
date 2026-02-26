@@ -10,6 +10,7 @@ import {
   type TPaymentConceptUpdate,
   type TPaymentConceptAssignmentUpdate,
   type TPaymentConceptsQuerySchema,
+  type TQuota,
   ESystemRole,
 } from '@packages/domain'
 import type {
@@ -30,9 +31,12 @@ import { AssignPaymentConceptService } from '@src/services/payment-concepts/assi
 import { GenerateChargesService } from '@src/services/payment-concepts/generate-charges.service'
 import { LinkBankAccountsService } from '@src/services/payment-concepts/link-bank-accounts.service'
 import { LinkServiceToConceptService } from '@src/services/payment-concept-services/link-service-to-concept.service'
+import { CreatePaymentConceptFullService, type ICreatePaymentConceptFullInput } from '@src/services/payment-concepts/create-payment-concept-full.service'
 import { calculateUnitCharges, calculateElapsedPeriods } from '@src/services/payment-concepts/calculate-unit-charges'
-import type { PaymentConceptServicesRepository, CondominiumServicesRepository } from '@database/repositories'
+import type { PaymentConceptServicesRepository, CondominiumServicesRepository, ServiceExecutionsRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
+import { useTranslation } from '@intlify/hono'
+import { LocaleDictionary } from '@locales/dictionary'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Param Schemas
@@ -120,6 +124,49 @@ const assignmentCreateBodySchema = z
 
 type TAssignmentCreateBody = z.infer<typeof assignmentCreateBodySchema>
 
+// ─── Full concept creation (concept + services + executions in one request) ──
+
+const executionItemSchema = z.object({
+  id: z.string().uuid(),
+  description: z.string().min(1).max(500),
+  quantity: z.coerce.number().positive(),
+  unitPrice: z.coerce.number().min(0),
+  amount: z.coerce.number().min(0),
+  notes: z.string().max(500).optional(),
+})
+
+const executionAttachmentSchema = z.object({
+  name: z.string().min(1),
+  url: z.string().url(),
+  mimeType: z.string().min(1),
+  size: z.number().positive(),
+  storagePath: z.string().optional(),
+})
+
+const serviceWithExecutionSchema = z.object({
+  serviceId: z.string().uuid(),
+  amount: z.number().positive(),
+  useDefaultAmount: z.boolean().default(true),
+  execution: z.object({
+    title: z.string().min(1).max(255),
+    description: z.string().max(2000).optional(),
+    executionDate: z.string().min(1),
+    totalAmount: z.string().or(z.number()).transform(v => String(v)),
+    currencyId: z.string().uuid(),
+    status: z.enum(['draft', 'confirmed']).default('draft'),
+    invoiceNumber: z.string().max(100).optional(),
+    items: z.array(executionItemSchema).default([]),
+    attachments: z.array(executionAttachmentSchema).default([]),
+    notes: z.string().max(5000).optional(),
+  }),
+})
+
+const paymentConceptCreateFullSchema = paymentConceptCreateSchema.extend({
+  services: z.array(serviceWithExecutionSchema).default([]),
+})
+
+type TPaymentConceptCreateFullBody = z.infer<typeof paymentConceptCreateFullSchema>
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Roles
 // ─────────────────────────────────────────────────────────────────────────────
@@ -186,6 +233,7 @@ export interface IMcPaymentConceptsDeps {
   quotasRepo: TQuotasRepo
   conceptServicesRepo: PaymentConceptServicesRepository
   condominiumServicesRepo: CondominiumServicesRepository
+  executionsRepo: ServiceExecutionsRepository
 }
 
 export class McPaymentConceptsController extends BaseController<
@@ -194,6 +242,7 @@ export class McPaymentConceptsController extends BaseController<
   TPaymentConceptUpdate
 > {
   private readonly createService: CreatePaymentConceptService
+  private readonly createFullService: CreatePaymentConceptFullService
   private readonly assignService: AssignPaymentConceptService
   private readonly generateService: GenerateChargesService
   private readonly linkService: LinkBankAccountsService
@@ -227,6 +276,17 @@ export class McPaymentConceptsController extends BaseController<
       deps.condominiumsRepo,
       deps.currenciesRepo,
       deps.condominiumMCRepo
+    )
+
+    this.createFullService = new CreatePaymentConceptFullService(
+      deps.db,
+      deps.conceptsRepo,
+      deps.condominiumsRepo,
+      deps.currenciesRepo,
+      deps.condominiumMCRepo,
+      deps.conceptServicesRepo,
+      deps.condominiumServicesRepo,
+      deps.executionsRepo
     )
 
     this.assignService = new AssignPaymentConceptService(
@@ -317,6 +377,17 @@ export class McPaymentConceptsController extends BaseController<
           paramsValidator(ManagementCompanyIdParamSchema),
           requireRole(...adminOnly),
           bodyValidator(paymentConceptCreateSchema),
+        ],
+      },
+      {
+        method: 'post',
+        path: '/:managementCompanyId/me/payment-concepts/full',
+        handler: this.createConceptFull,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ManagementCompanyIdParamSchema),
+          requireRole(...adminOnly),
+          bodyValidator(paymentConceptCreateFullSchema),
         ],
       },
       {
@@ -630,7 +701,7 @@ export class McPaymentConceptsController extends BaseController<
       if (!concept) return ctx.notFound({ error: 'Payment concept not found' })
       if (!concept.condominiumId) return ctx.badRequest({ error: 'Concept has no condominium' })
 
-      const asOfDate = new Date().toISOString().split('T')[0]
+      const asOfDate = new Date().toISOString().split('T')[0]!
 
       const [delinquentQuotas, allUnits, allBuildings] = await Promise.all([
         this.quotasRepo.getDelinquentByConcept(ctx.params.conceptId, asOfDate),
@@ -720,6 +791,52 @@ export class McPaymentConceptsController extends BaseController<
       }
 
       return ctx.created({ data: result.data })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private createConceptFull = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TPaymentConceptCreateFullBody, unknown, { managementCompanyId: string }>(c)
+    const user = ctx.getAuthenticatedUser()
+    const t = useTranslation(c)
+    const dict = LocaleDictionary.http.controllers.paymentConcepts
+
+    try {
+      const { services, ...conceptData } = ctx.body
+
+      const result = await this.createFullService.execute({
+        ...conceptData,
+        managementCompanyId: ctx.params.managementCompanyId,
+        createdBy: user.id,
+        services,
+      } as ICreatePaymentConceptFullInput)
+
+      if (!result.success) {
+        const errorMap: Record<string, { method: 'notFound' | 'badRequest'; key: string }> = {
+          CONDOMINIUM_NOT_FOUND: { method: 'notFound', key: dict.condominiumNotFound },
+          CONDOMINIUM_NOT_IN_COMPANY: { method: 'notFound', key: dict.condominiumNotInCompany },
+          CURRENCY_NOT_FOUND: { method: 'notFound', key: dict.currencyNotFound },
+          SERVICE_NOT_FOUND: { method: 'notFound', key: dict.serviceNotFound },
+          EXECUTION_CURRENCY_NOT_FOUND: { method: 'notFound', key: dict.executionCurrencyNotFound },
+          SERVICES_REQUIRED: { method: 'badRequest', key: dict.servicesRequired },
+        }
+
+        const mapped = errorMap[result.error]
+        if (mapped) {
+          return ctx[mapped.method]({ error: t(mapped.key) })
+        }
+
+        if (result.code === 'NOT_FOUND') {
+          return ctx.notFound({ error: result.error })
+        }
+        return ctx.badRequest({ error: result.error })
+      }
+
+      return ctx.created({
+        data: result.data,
+        message: t(dict.conceptCreatedSuccessfully),
+      })
     } catch (error) {
       return this.handleError(ctx, error)
     }

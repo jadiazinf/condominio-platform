@@ -18,6 +18,7 @@
     "confirm": "Confirmar",
     "add": "Agregar",
     "added": "Agregado",
+    "remove": "Quitar",
     "optional": "Opcional",
     "required": "Requerido",
     "back": "Volver",
@@ -4015,6 +4016,7 @@
             "executionUpdated": "Ejecución actualizada exitosamente",
             "executionCreateError": "Error al crear la ejecución",
             "executionUpdateError": "Error al actualizar la ejecución",
+            "linkedConcept": "Concepto de pago asociado",
             "createExecution": "Crear Ejecución",
             "saving": "Guardando...",
             "save": "Guardar",
@@ -4024,6 +4026,8 @@
             "noAttachments": "Sin adjuntos",
             "download": "Descargar",
             "autoCalculated": "Auto-calculado desde ítems",
+            "totalAmountTooltip": "Ingresa el monto manualmente o agrega ítems para calcularlo automáticamente",
+            "historyTemplate": "Usar ejecución anterior como plantilla",
             "noItemsHint": "Sin ítems. Agrega ítems para detallar los costos.",
             "itemNotesPlaceholder": "Notas del ítem (opcional)",
             "uploadFailed": "Error al subir el archivo",
@@ -4104,7 +4108,14 @@
             "noRateAvailable": "Sin tasa de cambio disponible",
             "rate": "Tasa",
             "duplicate": "Este servicio ya está agregado",
-            "addExecution": "Registrar ejecución"
+            "addExecution": "Registrar ejecución",
+            "editExecution": "Editar ejecución",
+            "executionRegistered": "Ejecución registrada",
+            "executionRequired": "Cada servicio debe tener una ejecución registrada",
+            "fixedAmountLabel": "Monto fijo",
+            "fixedAmountDescription": "Ingresa el monto total del concepto de pago",
+            "orLinkServices": "O vincular servicios",
+            "fixedAmountOrServicesRequired": "Ingresa un monto fijo o vincula al menos un servicio"
           }
         }
       }

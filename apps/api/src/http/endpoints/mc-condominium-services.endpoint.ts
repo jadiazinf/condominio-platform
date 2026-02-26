@@ -3,7 +3,6 @@ import {
   CondominiumServicesRepository,
   ServiceExecutionsRepository,
   CondominiumsRepository,
-  CurrenciesRepository,
 } from '@database/repositories'
 import { McCondominiumServicesController } from '../controllers/condominium-services/mc-condominium-services.controller'
 import type { IEndpoint } from './types'
@@ -17,7 +16,6 @@ export class McCondominiumServicesEndpoint implements IEndpoint {
     const servicesRepo = new CondominiumServicesRepository(db)
     const executionsRepo = new ServiceExecutionsRepository(db)
     const condominiumsRepo = new CondominiumsRepository(db)
-    const currenciesRepo = new CurrenciesRepository(db)
 
     const condominiumMCRepo = {
       getByCondominiumAndMC: async (condominiumId: string, mcId: string) => {
@@ -34,7 +32,6 @@ export class McCondominiumServicesEndpoint implements IEndpoint {
       servicesRepo,
       executionsRepo,
       condominiumsRepo,
-      currenciesRepo,
       condominiumMCRepo,
     })
   }

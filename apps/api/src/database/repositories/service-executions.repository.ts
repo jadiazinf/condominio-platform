@@ -134,7 +134,8 @@ export class ServiceExecutionsRepository extends BaseRepository<
   /**
    * Hard delete an execution by ID (physical deletion).
    */
-  async hardDelete(id: string): Promise<void> {
-    await this.db.delete(serviceExecutions).where(eq(serviceExecutions.id, id))
+  override async hardDelete(id: string): Promise<boolean> {
+    const results = await this.db.delete(serviceExecutions).where(eq(serviceExecutions.id, id)).returning()
+    return results.length > 0
   }
 }
