@@ -150,8 +150,7 @@
         "failedToResendEmail": "Error al enviar el correo de invitación."
       },
       "serviceExecutions": {
-        "executionNotFound": "Ejecución no encontrada.",
-        "confirmedNotEditable": "No se puede modificar una ejecución con estado confirmado."
+        "executionNotFound": "Ejecución no encontrada."
       },
       "paymentConcepts": {
         "serviceNotFound": "Servicio no encontrado.",
@@ -160,6 +159,7 @@
         "condominiumNotInCompany": "El condominio no pertenece a su empresa administradora.",
         "servicesRequired": "Se requiere al menos un servicio con ejecución.",
         "executionCurrencyNotFound": "Moneda de ejecución no encontrada.",
+        "currencyMismatch": "Todas las ejecuciones de servicio deben usar la misma moneda del concepto de pago.",
         "conceptCreatedSuccessfully": "Concepto de pago creado exitosamente."
       }
     },

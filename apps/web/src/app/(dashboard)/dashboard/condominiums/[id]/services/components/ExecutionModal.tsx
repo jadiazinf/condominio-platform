@@ -4,14 +4,13 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, Trash2, Upload, X, FileText, Image, AlertTriangle, ExternalLink, History, Clock } from 'lucide-react'
+import { Plus, Trash2, Upload, X, FileText, Image, AlertTriangle, ExternalLink, History, Clock, Calculator } from 'lucide-react'
 import type { TServiceExecution, TWizardExecutionData } from '@packages/domain'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
 import { CurrencyInput } from '@/ui/components/input'
 import { Textarea } from '@/ui/components/textarea'
-import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
 import { Spinner } from '@/ui/components/spinner'
@@ -28,6 +27,7 @@ import {
 } from '@packages/http-client/hooks'
 import { HttpError } from '@packages/http-client'
 import { useServiceExecutionAttachmentUpload } from '../hooks/useServiceExecutionAttachmentUpload'
+import { CurrencyCalculatorModal } from '../../payment-concepts/components/wizard/steps/CurrencyCalculatorModal'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Form schema
@@ -47,7 +47,6 @@ const executionFormSchema = z.object({
   description: z.string().max(2000).optional(),
   executionDate: z.string().min(1, 'required'),
   invoiceNumber: z.string().max(100).optional(),
-  status: z.enum(['draft', 'confirmed']),
   totalAmount: z.string().min(1, 'required'),
   notes: z.string().max(5000).optional(),
   items: z.array(itemSchema),
@@ -64,6 +63,7 @@ interface IExecutionModalProps {
   onClose: () => void
   managementCompanyId: string
   serviceId: string
+  serviceName?: string
   condominiumId: string
   currencyId?: string
   conceptId?: string | null
@@ -73,6 +73,8 @@ interface IExecutionModalProps {
   onSaveLocal?: (data: TWizardExecutionData) => void
   /** Pre-fill form from previously saved wizard data */
   wizardExecution?: TWizardExecutionData | null
+  /** Available currencies for the currency calculator */
+  currencies?: Array<{ id: string; code: string; symbol?: string | null; name?: string }>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -84,6 +86,7 @@ export function ExecutionModal({
   onClose,
   managementCompanyId,
   serviceId,
+  serviceName,
   condominiumId,
   currencyId,
   conceptId,
@@ -91,6 +94,7 @@ export function ExecutionModal({
   onSuccess,
   onSaveLocal,
   wizardExecution,
+  currencies,
 }: IExecutionModalProps) {
   const { t } = useTranslation()
   const toast = useToast()
@@ -104,13 +108,24 @@ export function ExecutionModal({
   // Active tab
   const [activeTab, setActiveTab] = useState<'general' | 'items' | 'attachments'>('general')
 
+  // Calculator state: tracks which field to set when calculator confirms
+  const [calculatorTarget, setCalculatorTarget] = useState<
+    'totalAmount' | { type: 'unitPrice'; index: number } | null
+  >(null)
+
+  const showCalculator = !!currencies && currencies.length > 0 && !!currencyId
+
   // Existing attachments (from the execution being edited, minus removed ones)
   const [existingAttachments, setExistingAttachments] = useState<TServiceExecution['attachments']>([])
 
-  // Currency info
+  // Currency info — prefer useCurrency hook, fallback to currencies prop (wizard mode)
   const { data: currencyData } = useCurrency(currencyId ?? '')
   const currency = currencyData?.data
-  const currencySymbol = currency?.symbol ?? currency?.code ?? '$'
+  const currencyFromProps = useMemo(
+    () => currencies?.find(c => c.id === currencyId),
+    [currencies, currencyId]
+  )
+  const currencySymbol = currency?.symbol ?? currency?.code ?? currencyFromProps?.symbol ?? currencyFromProps?.code ?? '$'
   const currencyDecimals = currency?.decimals ?? 2
 
   // Payment concept info
@@ -180,7 +195,6 @@ export function ExecutionModal({
       description: '',
       executionDate: new Date().toISOString().split('T')[0],
       invoiceNumber: '',
-      status: 'draft',
       totalAmount: '0',
       notes: '',
       items: [],
@@ -201,7 +215,6 @@ export function ExecutionModal({
           description: execution.description ?? '',
           executionDate: execution.executionDate,
           invoiceNumber: execution.invoiceNumber ?? '',
-          status: execution.status,
           totalAmount: String(execution.totalAmount),
           notes: execution.notes ?? '',
           items: (execution.items ?? []).map(item => ({
@@ -220,7 +233,6 @@ export function ExecutionModal({
           description: wizardExecution.description ?? '',
           executionDate: wizardExecution.executionDate,
           invoiceNumber: wizardExecution.invoiceNumber ?? '',
-          status: wizardExecution.status,
           totalAmount: String(wizardExecution.totalAmount),
           notes: wizardExecution.notes ?? '',
           items: (wizardExecution.items ?? []).map(item => ({
@@ -239,7 +251,6 @@ export function ExecutionModal({
           description: '',
           executionDate: new Date().toISOString().split('T')[0],
           invoiceNumber: '',
-          status: 'draft',
           totalAmount: '0',
           notes: '',
           items: [],
@@ -262,6 +273,23 @@ export function ExecutionModal({
       methods.setValue('totalAmount', String(total.toFixed(currencyDecimals)))
     }
   }, [methods, currencyDecimals])
+
+  // Handle calculator confirmation
+  const handleCalculatorConfirm = useCallback(
+    (convertedAmount: string) => {
+      if (calculatorTarget === 'totalAmount') {
+        methods.setValue('totalAmount', convertedAmount)
+      } else if (calculatorTarget && typeof calculatorTarget === 'object') {
+        const newUnitPrice = parseFloat(convertedAmount) || 0
+        methods.setValue(`items.${calculatorTarget.index}.unitPrice`, newUnitPrice)
+        const quantity = Number(methods.getValues(`items.${calculatorTarget.index}.quantity`)) || 0
+        methods.setValue(`items.${calculatorTarget.index}.amount`, quantity * newUnitPrice)
+        recalculateTotal()
+      }
+      setCalculatorTarget(null)
+    },
+    [calculatorTarget, methods, recalculateTotal]
+  )
 
   // Auto-calculate item amount when quantity or unitPrice changes
   const handleItemChange = useCallback(
@@ -335,7 +363,6 @@ export function ExecutionModal({
         description: exec.description ?? '',
         executionDate: new Date().toISOString().split('T')[0],
         invoiceNumber: exec.invoiceNumber ?? '',
-        status: exec.status,
         totalAmount: String(exec.totalAmount),
         notes: exec.notes ?? '',
         items: (exec.items ?? []).map(item => ({
@@ -387,7 +414,6 @@ export function ExecutionModal({
       description: data.description || undefined,
       executionDate: data.executionDate,
       invoiceNumber: data.invoiceNumber || undefined,
-      status: data.status,
       totalAmount: data.totalAmount,
       currencyId: execution?.currencyId ?? currencyId ?? '',
       notes: data.notes || undefined,
@@ -403,7 +429,6 @@ export function ExecutionModal({
         executionDate: payload.executionDate,
         totalAmount: payload.totalAmount,
         currencyId: payload.currencyId,
-        status: payload.status,
         invoiceNumber: payload.invoiceNumber,
         items: payload.items,
         attachments: allAttachments.map(a => ({
@@ -440,12 +465,6 @@ export function ExecutionModal({
     })
   }, [append])
 
-  // ─── Status items ──────────────────────────────────────────────────────────
-  const statusItems: ISelectItem[] = [
-    { key: 'draft', label: t(`${d}.draft`) },
-    { key: 'confirmed', label: t(`${d}.confirmed`) },
-  ]
-
   // ─── Tab classes ───────────────────────────────────────────────────────────
   const tabClass = (tab: typeof activeTab) =>
     `px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 transition-colors cursor-pointer ${
@@ -458,13 +477,18 @@ export function ExecutionModal({
     <Modal isOpen={isOpen} onClose={handleClose} size="2xl" scrollBehavior="inside">
       <ModalContent>
         <form onSubmit={handleSubmit}>
-          <ModalHeader>
-            <Typography variant="h4">
+          <ModalHeader className="flex flex-col items-start">
+            <Typography variant="body2" color="muted">
               {isEditing ? t(`${d}.editExecution`) : t(`${d}.createExecution`)}
             </Typography>
+            {serviceName && (
+              <Typography variant="h4">
+                {serviceName}
+              </Typography>
+            )}
           </ModalHeader>
 
-          <ModalBody className="gap-0 p-0">
+          <ModalBody className="gap-0 p-0 overflow-y-auto max-h-[60vh]">
             {/* Payment concept info */}
             {concept && (
               <div className="mx-6 mt-4 mb-2 p-3 bg-default-100 rounded-lg">
@@ -529,9 +553,6 @@ export function ExecutionModal({
                             <span className="text-sm font-semibold whitespace-nowrap">
                               {currencySymbol} {Number(exec.totalAmount).toLocaleString('es-VE', { minimumFractionDigits: currencyDecimals })}
                             </span>
-                            <Chip size="sm" variant="flat" color={exec.status === 'confirmed' ? 'success' : 'default'}>
-                              {t(`${d}.${exec.status}`)}
-                            </Chip>
                           </div>
                         ))}
                       </div>
@@ -570,7 +591,7 @@ export function ExecutionModal({
             <div className="px-6 py-4 space-y-4">
               {/* ── General Tab ──────────────────────────────────────────── */}
               {activeTab === 'general' && (
-                <>
+                <div className="flex flex-col gap-4">
                   <Input
                     label={t(`${d}.title`)}
                     isRequired
@@ -597,7 +618,7 @@ export function ExecutionModal({
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="pt-2">
                     <Controller
                       control={methods.control}
                       name="totalAmount"
@@ -613,18 +634,18 @@ export function ExecutionModal({
                           isInvalid={!!methods.formState.errors.totalAmount}
                           isReadOnly={fields.length > 0}
                           tooltip={t(`${d}.totalAmountTooltip`)}
+                          endContent={showCalculator && fields.length === 0 ? (
+                            <button
+                              type="button"
+                              className="text-default-400 hover:text-primary cursor-pointer"
+                              onClick={() => setCalculatorTarget('totalAmount')}
+                              title={t(`${d}.currencyCalculator`)}
+                            >
+                              <Calculator size={16} />
+                            </button>
+                          ) : undefined}
                         />
                       )}
-                    />
-                    <Select
-                      aria-label={t(`${d}.status`)}
-                      label={t(`${d}.status`)}
-                      items={statusItems}
-                      value={methods.watch('status')}
-                      onChange={key => {
-                        if (key) methods.setValue('status', key as 'draft' | 'confirmed')
-                      }}
-                      variant="bordered"
                     />
                   </div>
 
@@ -643,7 +664,7 @@ export function ExecutionModal({
                     minRows={2}
                     maxRows={4}
                   />
-                </>
+                </div>
               )}
 
               {/* ── Items Tab ────────────────────────────────────────────── */}
@@ -734,6 +755,16 @@ export function ExecutionModal({
                                   errorMessage={methods.formState.errors.items?.[index]?.unitPrice?.message}
                                   isInvalid={!!methods.formState.errors.items?.[index]?.unitPrice}
                                   size="sm"
+                                  endContent={showCalculator ? (
+                                    <button
+                                      type="button"
+                                      className="text-default-400 hover:text-primary cursor-pointer"
+                                      onClick={() => setCalculatorTarget({ type: 'unitPrice', index })}
+                                      title={t(`${d}.currencyCalculator`)}
+                                    >
+                                      <Calculator size={14} />
+                                    </button>
+                                  ) : undefined}
                                 />
                               )}
                             />
@@ -929,6 +960,17 @@ export function ExecutionModal({
           </ModalFooter>
         </form>
       </ModalContent>
+
+      {/* Currency Calculator Modal */}
+      {showCalculator && (
+        <CurrencyCalculatorModal
+          isOpen={calculatorTarget !== null}
+          onClose={() => setCalculatorTarget(null)}
+          onConfirm={handleCalculatorConfirm}
+          targetCurrencyId={currencyId!}
+          currencies={currencies!}
+        />
+      )}
     </Modal>
   )
 }

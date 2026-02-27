@@ -47,6 +47,8 @@ export const paymentConceptSchema = baseModelSchema.extend({
   // Scheduling
   issueDay: z.number().int().min(1).max(28).nullable(),
   dueDay: z.number().int().min(1).max(28).nullable(),
+  effectiveFrom: z.coerce.date().nullable(),
+  effectiveUntil: z.coerce.date().nullable(),
   isActive: z.boolean().default(true),
   metadata: z.record(z.string(), z.unknown()).nullable(),
   createdBy: z.uuid({ error: d.createdBy.invalid }).nullable(),

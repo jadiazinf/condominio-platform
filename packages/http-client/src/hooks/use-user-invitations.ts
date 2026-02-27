@@ -15,7 +15,7 @@ export interface TCreateUserInvitationInput {
   displayName?: string | null
   phoneCountryCode?: string | null
   phoneNumber?: string | null
-  idDocumentType?: 'CI' | 'RIF' | 'Pasaporte' | null
+  idDocumentType?: 'J' | 'G' | 'V' | 'E' | 'P' | null
   idDocumentNumber?: string | null
   condominiumId?: string | null
   roleId: string

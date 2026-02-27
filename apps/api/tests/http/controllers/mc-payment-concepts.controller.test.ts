@@ -56,6 +56,8 @@ function createPaymentConcept(overrides: Partial<TPaymentConcept> = {}): TPaymen
     earlyPaymentDaysBeforeDue: 0,
     issueDay: 1,
     dueDay: 15,
+    effectiveFrom: null,
+    effectiveUntil: null,
     isActive: true,
     metadata: null,
     createdBy: USER_ID,

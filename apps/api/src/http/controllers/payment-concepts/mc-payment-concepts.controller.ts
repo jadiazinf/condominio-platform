@@ -153,7 +153,6 @@ const serviceWithExecutionSchema = z.object({
     executionDate: z.string().min(1),
     totalAmount: z.string().or(z.number()).transform(v => String(v)),
     currencyId: z.string().uuid(),
-    status: z.enum(['draft', 'confirmed']).default('draft'),
     invoiceNumber: z.string().max(100).optional(),
     items: z.array(executionItemSchema).default([]),
     attachments: z.array(executionAttachmentSchema).default([]),
@@ -819,6 +818,7 @@ export class McPaymentConceptsController extends BaseController<
           CURRENCY_NOT_FOUND: { method: 'notFound', key: dict.currencyNotFound },
           SERVICE_NOT_FOUND: { method: 'notFound', key: dict.serviceNotFound },
           EXECUTION_CURRENCY_NOT_FOUND: { method: 'notFound', key: dict.executionCurrencyNotFound },
+          CURRENCY_MISMATCH: { method: 'badRequest', key: dict.currencyMismatch },
           SERVICES_REQUIRED: { method: 'badRequest', key: dict.servicesRequired },
         }
 

@@ -25,6 +25,7 @@ type TMockUsersRepository = {
 
 type TMockCompaniesRepository = {
   create: (data: TManagementCompanyCreate) => Promise<TManagementCompany>
+  getByEmail: (email: string) => Promise<TManagementCompany | null>
   withTx: (tx: unknown) => TMockCompaniesRepository
 }
 
@@ -120,6 +121,9 @@ describe('CreateCompanyWithAdminService', function () {
           createdAt: new Date(),
           updatedAt: new Date(),
         } as TManagementCompany
+      },
+      getByEmail: async function () {
+        return null
       },
       withTx() { return this },
     }

@@ -253,6 +253,28 @@ export function PaymentConceptDetailPageClient({
               <p className="text-sm font-medium mt-1">{currencyDisplay}</p>
             </div>
             <div>
+              <span className="text-xs text-default-500">{t(`${d}.effectiveFrom`)}</span>
+              <p className="text-sm mt-1 flex items-center gap-1">
+                <CalendarDays size={14} className="text-default-400" />
+                {concept.effectiveFrom
+                  ? new Date(concept.effectiveFrom).toLocaleDateString('es-ES', {
+                      day: 'numeric', month: 'long', year: 'numeric',
+                    })
+                  : '-'}
+              </p>
+            </div>
+            <div>
+              <span className="text-xs text-default-500">{t(`${d}.effectiveUntil`)}</span>
+              <p className="text-sm mt-1 flex items-center gap-1">
+                <CalendarDays size={14} className="text-default-400" />
+                {concept.effectiveUntil
+                  ? new Date(concept.effectiveUntil).toLocaleDateString('es-ES', {
+                      day: 'numeric', month: 'long', year: 'numeric',
+                    })
+                  : '-'}
+              </p>
+            </div>
+            <div>
               <span className="text-xs text-default-500">{t(`${d}.recurring`)}</span>
               <p className="text-sm mt-1">
                 {concept.isRecurring ? t('common.yes') : t('common.no')}

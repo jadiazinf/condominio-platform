@@ -20,6 +20,8 @@ export const paymentConceptCreateSchema = paymentConceptSchema
     earlyPaymentValue: z.number().min(0).nullable().optional(),
     issueDay: z.number().int().min(1).max(28).nullable().optional(),
     dueDay: z.number().int().min(1).max(28).nullable().optional(),
+    effectiveFrom: z.coerce.date().nullable().optional(),
+    effectiveUntil: z.coerce.date().nullable().optional(),
     metadata: z.record(z.string(), z.unknown()).nullable().optional(),
     createdBy: z.uuid().nullable().optional(),
   })

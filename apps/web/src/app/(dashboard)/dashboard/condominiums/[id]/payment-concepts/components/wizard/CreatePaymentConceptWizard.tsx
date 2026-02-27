@@ -52,6 +52,8 @@ export interface IWizardFormData {
   description: string
   conceptType: string
   currencyId: string
+  effectiveFrom: string
+  effectiveUntil: string
   isRecurring: boolean
   recurrencePeriod: string | null
   // Step 2 - Charge Config
@@ -86,6 +88,8 @@ const INITIAL_FORM_DATA: IWizardFormData = {
   description: '',
   conceptType: '',
   currencyId: '',
+  effectiveFrom: '',
+  effectiveUntil: '',
   isRecurring: true,
   recurrencePeriod: 'monthly',
   issueDay: null,
@@ -198,6 +202,7 @@ export function CreatePaymentConceptWizard({
           formData.name &&
           formData.conceptType &&
           formData.currencyId &&
+          formData.effectiveFrom &&
           (!formData.isRecurring || formData.recurrencePeriod)
         )
       case 1: // Charge Config
@@ -242,6 +247,8 @@ export function CreatePaymentConceptWizard({
         recurrencePeriod: formData.isRecurring ? (formData.recurrencePeriod as any) : null,
         issueDay: formData.issueDay,
         dueDay: formData.dueDay,
+        effectiveFrom: formData.effectiveFrom || null,
+        effectiveUntil: formData.effectiveUntil || null,
         allowsPartialPayment: formData.allowsPartialPayment,
         latePaymentType: formData.latePaymentType as any,
         latePaymentValue: formData.latePaymentValue ?? null,

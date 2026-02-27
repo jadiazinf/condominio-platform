@@ -3644,6 +3644,10 @@
               "typePlaceholder": "Selecciona un tipo",
               "currency": "Moneda",
               "currencyPlaceholder": "Selecciona una moneda",
+              "effectiveFrom": "Inicio de Vigencia",
+              "effectiveFromPlaceholder": "Selecciona la fecha de inicio",
+              "effectiveUntil": "Fin de Vigencia",
+              "effectiveUntilPlaceholder": "Selecciona la fecha de fin (opcional)",
               "isRecurring": "Concepto Recurrente",
               "isRecurringHint": "Se generará automáticamente según la periodicidad seleccionada",
               "recurrencePeriod": "Periodicidad",
@@ -3653,6 +3657,8 @@
                 "description": "Descripción detallada del concepto. Se mostrará a los residentes en sus estados de cuenta",
                 "type": "Categoría del concepto. Determina cómo se clasifica en los reportes financieros",
                 "currency": "Moneda en la que se emitirán los cargos de este concepto",
+                "effectiveFrom": "Fecha a partir de la cual este concepto de cobro entra en vigencia",
+                "effectiveUntil": "Fecha hasta la cual este concepto es válido. Déjalo vacío si no tiene fecha de expiración",
                 "recurrencePeriod": "Frecuencia con la que se generarán automáticamente los cargos"
               },
               "errors": {
@@ -3702,7 +3708,7 @@
               "interestDaily": "Diario",
               "interestGraceDays": "Días de Gracia",
               "tooltips": {
-                "issueDay": "Día del mes (1-28) en que se generan los cargos automáticamente",
+                "issueDay": "Día del mes (1-28) en que se emite la cuota. No confundir con la fecha de inicio de vigencia: la vigencia define cuándo entra en efecto el concepto, mientras que este día define cuándo se genera el cargo en cada período. Si el día de emisión ya pasó en el mes de inicio de vigencia, la primera cuota se generará el mes siguiente",
                 "dueDay": "Día del mes (1-28) en que vence el pago. Después de esta fecha aplican recargos",
                 "latePaymentType": "Tipo de penalización que se aplica cuando el pago se realiza después de la fecha de vencimiento",
                 "latePaymentValue": "Valor del recargo: porcentaje sobre el saldo o monto fijo adicional",
@@ -3825,6 +3831,8 @@
               "name": "Nombre",
               "type": "Tipo",
               "currency": "Moneda",
+              "effectiveFrom": "Inicio de Vigencia",
+              "effectiveUntil": "Fin de Vigencia",
               "recurring": "Recurrente",
               "recurrence": "Periodicidad",
               "descriptionLabel": "Descripción",
@@ -3853,6 +3861,8 @@
             "basicInfo": "Información Básica",
             "type": "Tipo",
             "currency": "Moneda",
+            "effectiveFrom": "Inicio de Vigencia",
+            "effectiveUntil": "Fin de Vigencia",
             "recurring": "Recurrente",
             "partialPayment": "Pago Parcial",
             "chargeConfig": "Configuración de Cobro",
@@ -4035,7 +4045,16 @@
             "fileTooLarge": "El archivo es demasiado grande",
             "fileTypeNotAllowed": "Tipo de archivo no permitido",
             "confirmDeactivateService": "¿Desactivar este servicio?",
-            "attachmentsAbbrev": "adj."
+            "attachmentsAbbrev": "adj.",
+            "currencyCalculator": "Calculadora de divisas",
+            "viewExchangeRates": "Ver tasas de cambio",
+            "exchangeRateModal": {
+              "title": "Tasas de cambio",
+              "originalAmount": "Monto original",
+              "noConversions": "No hay tasas de cambio disponibles para esta fecha",
+              "historicalNote": "Las tasas mostradas corresponden a la fecha de ejecución.",
+              "close": "Cerrar"
+            }
           },
           "wizard": {
             "title": "Nuevo Servicio",

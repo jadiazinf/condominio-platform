@@ -52,7 +52,6 @@ type TExecutionIdParam = z.infer<typeof ExecutionIdParamSchema>
 const ExecutionsQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
-  status: z.enum(['draft', 'confirmed']).optional(),
   conceptId: z.string().uuid().optional(),
 })
 
@@ -354,7 +353,7 @@ export class McCondominiumServicesController extends BaseController<
   // ─────────────────────────────────────────────────────────────────────────
 
   private listExecutions = async (c: Context): Promise<Response> => {
-    type TExecQuery = { page: number; limit: number; status?: 'draft' | 'confirmed'; conceptId?: string }
+    type TExecQuery = { page: number; limit: number; conceptId?: string }
     const ctx = this.ctx<unknown, TExecQuery, TServiceIdParam>(c)
 
     try {
@@ -364,7 +363,6 @@ export class McCondominiumServicesController extends BaseController<
       const result = await this.executionsRepo.getByServiceIdPaginated(ctx.params.serviceId, {
         page: ctx.query.page,
         limit: ctx.query.limit,
-        status: ctx.query.status,
         conceptId: ctx.query.conceptId,
       })
 
@@ -424,10 +422,6 @@ export class McCondominiumServicesController extends BaseController<
       const existing = await this.executionsRepo.getById(ctx.params.executionId)
       if (!existing || existing.serviceId !== ctx.params.serviceId) {
         return ctx.notFound({ error: t(LocaleDictionary.http.controllers.serviceExecutions.executionNotFound) })
-      }
-
-      if (existing.status === 'confirmed') {
-        return ctx.conflict({ error: t(LocaleDictionary.http.controllers.serviceExecutions.confirmedNotEditable) })
       }
 
       const execution = await this.executionsRepo.update(ctx.params.executionId, ctx.body)

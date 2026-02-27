@@ -549,6 +549,7 @@ export {
   useCreateExchangeRate,
   useDeleteExchangeRate,
   useMyLatestExchangeRates,
+  useMyEffectiveExchangeRates,
   getLatestExchangeRates,
   getExchangeRatesPaginated,
   exchangeRateKeys,

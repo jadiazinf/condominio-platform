@@ -102,6 +102,29 @@ export function BasicInfoStep({ formData, onUpdate, currencies, showErrors }: Ba
         />
       </div>
 
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <Input
+          label={t(`${w}.effectiveFrom`)}
+          placeholder={t(`${w}.effectiveFromPlaceholder`)}
+          tooltip={t(`${w}.tooltips.effectiveFrom`)}
+          type="date"
+          value={formData.effectiveFrom}
+          onValueChange={(val) => onUpdate({ effectiveFrom: val })}
+          isRequired
+          isInvalid={showErrors && !formData.effectiveFrom}
+          errorMessage={showErrors && !formData.effectiveFrom ? t('common.required') : undefined}
+        />
+
+        <Input
+          label={t(`${w}.effectiveUntil`)}
+          placeholder={t(`${w}.effectiveUntilPlaceholder`)}
+          tooltip={t(`${w}.tooltips.effectiveUntil`)}
+          type="date"
+          value={formData.effectiveUntil}
+          onValueChange={(val) => onUpdate({ effectiveUntil: val })}
+        />
+      </div>
+
       <div className="flex items-center justify-between rounded-lg border border-default-200 p-4">
         <div>
           <Typography variant="body2" className="font-medium">

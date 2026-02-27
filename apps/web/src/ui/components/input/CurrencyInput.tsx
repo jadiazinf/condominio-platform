@@ -42,6 +42,8 @@ export interface ICurrencyInputProps {
   /** Number of decimal places, defaults to 2 */
   decimals?: number
   className?: string
+  /** Optional end content (e.g. a calculator icon button) */
+  endContent?: ReactNode
 }
 
 /**
@@ -81,6 +83,7 @@ export function CurrencyInput({
   locale = 'es-VE',
   decimals = 2,
   className,
+  endContent,
 }: ICurrencyInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -211,7 +214,7 @@ export function CurrencyInput({
       className={cn(className)}
       color={color}
       description={tooltip ? undefined : description}
-      endContent={null}
+      endContent={endContent ?? null}
       errorMessage={errorMessage}
       fullWidth={fullWidth}
       inputMode="numeric"

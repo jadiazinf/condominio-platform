@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useQueryClient } from '@packages/http-client/hooks'
 import {
   Wrench,
   Plus,
-  Pencil,
   Trash2,
   Ban,
   AlertTriangle,
@@ -21,6 +20,7 @@ import {
   Image,
   Calendar,
   Hash,
+  ArrowLeftRight,
 } from 'lucide-react'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
@@ -30,16 +30,18 @@ import { Card, CardBody } from '@/ui/components/card'
 import { useDisclosure } from '@/ui/components/modal'
 import { useToast } from '@/ui/components/toast'
 import { useTranslation } from '@/contexts'
-import type { TServiceExecution } from '@packages/domain'
+import type { TServiceExecution, TCurrency } from '@packages/domain'
 import {
   useCondominiumServiceDetail,
   useDeactivateCondominiumService,
   useServiceExecutionsPaginated,
   useDeleteServiceExecution,
+  useActiveCurrencies,
   serviceExecutionKeys,
   condominiumServiceKeys,
 } from '@packages/http-client/hooks'
 import { ExecutionModal } from '../../components/ExecutionModal'
+import { ExchangeRateModal } from './ExchangeRateModal'
 
 const PROVIDER_TYPE_COLORS = {
   individual: 'primary',
@@ -66,7 +68,6 @@ export function ServiceDetailPageClient({
   const d = 'admin.condominiums.detail.services.detail'
 
   const executionModal = useDisclosure()
-  const [selectedExecution, setSelectedExecution] = useState<TServiceExecution | null>(null)
   const [confirmDeactivate, setConfirmDeactivate] = useState(false)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
@@ -86,8 +87,19 @@ export function ServiceDetailPageClient({
     enabled: !!managementCompanyId && !!serviceId,
   })
 
+  const { data: currenciesData } = useActiveCurrencies()
+  const currencies = useMemo(() => currenciesData?.data ?? [], [currenciesData])
+
   const service = serviceData?.data
   const executions = (executionsData?.data ?? []) as TServiceExecution[]
+
+  const getCurrencySymbol = useCallback(
+    (cId: string) => {
+      const cur = currencies.find(c => c.id === cId)
+      return cur?.symbol || cur?.code || ''
+    },
+    [currencies]
+  )
 
   // ─── Mutations ─────────────────────────────────────────────────────────────
   const deactivateMutation = useDeactivateCondominiumService(managementCompanyId, condominiumId)
@@ -110,24 +122,14 @@ export function ServiceDetailPageClient({
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
   const handleOpenCreate = useCallback(() => {
-    setSelectedExecution(null)
     executionModal.onOpen()
   }, [executionModal])
-
-  const handleOpenEdit = useCallback(
-    (execution: TServiceExecution) => {
-      setSelectedExecution(execution)
-      executionModal.onOpen()
-    },
-    [executionModal]
-  )
 
   const handleExecutionSuccess = useCallback(() => {
     queryClient.invalidateQueries({
       queryKey: serviceExecutionKeys.all,
     })
     executionModal.onClose()
-    setSelectedExecution(null)
   }, [queryClient, executionModal])
 
   // ─── Loading ───────────────────────────────────────────────────────────────
@@ -384,9 +386,10 @@ export function ServiceDetailPageClient({
                 getFileTypeIcon={getFileTypeIcon}
                 confirmDeleteId={confirmDeleteId}
                 setConfirmDeleteId={setConfirmDeleteId}
-                onEdit={handleOpenEdit}
                 onDelete={id => deleteMutation.mutate({ executionId: id })}
                 isDeleting={deleteMutation.isPending && confirmDeleteId === execution.id}
+                getCurrencySymbol={getCurrencySymbol}
+                currencies={currencies}
               />
             ))}
           </div>
@@ -400,7 +403,7 @@ export function ServiceDetailPageClient({
         managementCompanyId={managementCompanyId}
         serviceId={serviceId}
         condominiumId={condominiumId}
-        execution={selectedExecution}
+        execution={null}
         onSuccess={handleExecutionSuccess}
       />
     </div>
@@ -419,9 +422,10 @@ interface IExecutionCardProps {
   getFileTypeIcon: (mimeType: string) => React.ReactNode
   confirmDeleteId: string | null
   setConfirmDeleteId: (id: string | null) => void
-  onEdit: (execution: TServiceExecution) => void
   onDelete: (id: string) => void
   isDeleting: boolean
+  getCurrencySymbol: (currencyId: string) => string
+  currencies: TCurrency[]
 }
 
 function ExecutionCard({
@@ -432,11 +436,14 @@ function ExecutionCard({
   getFileTypeIcon,
   confirmDeleteId,
   setConfirmDeleteId,
-  onEdit,
   onDelete,
   isDeleting,
+  getCurrencySymbol,
+  currencies,
 }: IExecutionCardProps) {
   const [expanded, setExpanded] = useState(false)
+  const rateModal = useDisclosure()
+  const currencySymbol = getCurrencySymbol(execution.currencyId)
 
   return (
     <Card className="w-full">
@@ -449,13 +456,6 @@ function ExecutionCard({
           >
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-medium">{execution.title}</p>
-              <Chip
-                size="sm"
-                variant="flat"
-                color={execution.status === 'confirmed' ? 'success' : 'warning'}
-              >
-                {t(`${d}.${execution.status}`)}
-              </Chip>
             </div>
             <div className="flex items-center gap-3 text-xs text-default-500 flex-wrap">
               <span className="flex items-center gap-1">
@@ -478,31 +478,28 @@ function ExecutionCard({
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <p className="text-sm font-mono font-semibold">
-              {Number(execution.totalAmount).toLocaleString('es-VE', {
+              {currencySymbol} {Number(execution.totalAmount).toLocaleString('es-VE', {
                 minimumFractionDigits: 2,
               })}
             </p>
-            {execution.status !== 'confirmed' && (
-              <>
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  onPress={() => onEdit(execution)}
-                >
-                  <Pencil size={14} />
-                </Button>
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  color="danger"
-                  onPress={() => setConfirmDeleteId(execution.id)}
-                >
-                  <Trash2 size={14} />
-                </Button>
-              </>
-            )}
+            <Button
+              isIconOnly
+              size="sm"
+              variant="light"
+              title={t(`${d}.viewExchangeRates`)}
+              onPress={rateModal.onOpen}
+            >
+              <ArrowLeftRight size={14} />
+            </Button>
+            <Button
+              isIconOnly
+              size="sm"
+              variant="light"
+              color="danger"
+              onPress={() => setConfirmDeleteId(execution.id)}
+            >
+              <Trash2 size={14} />
+            </Button>
           </div>
         </div>
 
@@ -568,12 +565,12 @@ function ExecutionCard({
                           </td>
                           <td className="py-1.5 text-right">{item.quantity}</td>
                           <td className="py-1.5 text-right font-mono">
-                            {Number(item.unitPrice).toLocaleString('es-VE', {
+                            {currencySymbol} {Number(item.unitPrice).toLocaleString('es-VE', {
                               minimumFractionDigits: 2,
                             })}
                           </td>
                           <td className="py-1.5 text-right font-mono">
-                            {Number(item.amount).toLocaleString('es-VE', {
+                            {currencySymbol} {Number(item.amount).toLocaleString('es-VE', {
                               minimumFractionDigits: 2,
                             })}
                           </td>
@@ -615,6 +612,15 @@ function ExecutionCard({
             )}
           </div>
         )}
+
+        <ExchangeRateModal
+          isOpen={rateModal.isOpen}
+          onClose={rateModal.onClose}
+          totalAmount={execution.totalAmount}
+          currencyId={execution.currencyId}
+          executionDate={execution.executionDate}
+          currencies={currencies}
+        />
       </CardBody>
     </Card>
   )

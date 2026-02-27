@@ -1,5 +1,4 @@
 export {
-  EServiceExecutionStatuses,
   serviceExecutionSchema,
   serviceExecutionItemSchema,
   serviceExecutionCreateSchema,
@@ -7,7 +6,6 @@ export {
 } from './schema'
 
 export type {
-  TServiceExecutionStatus,
   TServiceExecution,
   TServiceExecutionItem,
   TServiceExecutionCreate,

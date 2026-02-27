@@ -3,7 +3,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Spinner } from '@/ui/components/spinner'
-import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
 import { Wrench, Receipt } from 'lucide-react'
@@ -86,13 +85,6 @@ function ServiceExecutionsList({
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Chip
-              size="sm"
-              variant="flat"
-              color={execution.status === 'confirmed' ? 'primary' : 'default'}
-            >
-              {t(`${d}.${execution.status === 'confirmed' ? 'executionConfirmed' : 'executionDraft'}`)}
-            </Chip>
             <p className="text-xs font-medium">{formatAmount(Number(execution.totalAmount))}</p>
           </div>
         </div>

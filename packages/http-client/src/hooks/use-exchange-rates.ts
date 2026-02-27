@@ -173,6 +173,19 @@ export function useMyLatestExchangeRates(options?: { enabled?: boolean }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Hooks - Effective Rates by Date (Any Authenticated User)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useMyEffectiveExchangeRates(date: string, options?: { enabled?: boolean }) {
+  return useApiQuery<TApiDataResponse<TExchangeRate[]>>({
+    path: `/me/exchange-rates/effective/${date}`,
+    queryKey: [...exchangeRateKeys.all, 'my-effective', date] as const,
+    config: {},
+    enabled: options?.enabled !== false && !!date,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Standalone Functions
 // ─────────────────────────────────────────────────────────────────────────────
 

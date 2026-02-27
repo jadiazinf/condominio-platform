@@ -51,6 +51,8 @@ export class PaymentConceptsRepository
       earlyPaymentDaysBeforeDue: r.earlyPaymentDaysBeforeDue ?? 0,
       issueDay: r.issueDay,
       dueDay: r.dueDay,
+      effectiveFrom: r.effectiveFrom,
+      effectiveUntil: r.effectiveUntil,
       isActive: r.isActive ?? true,
       metadata: r.metadata as Record<string, unknown> | null,
       createdBy: r.createdBy,
@@ -78,6 +80,8 @@ export class PaymentConceptsRepository
       earlyPaymentDaysBeforeDue: dto.earlyPaymentDaysBeforeDue,
       issueDay: dto.issueDay,
       dueDay: dto.dueDay,
+      effectiveFrom: dto.effectiveFrom,
+      effectiveUntil: dto.effectiveUntil,
       isActive: dto.isActive,
       metadata: dto.metadata,
       createdBy: dto.createdBy,
@@ -104,6 +108,8 @@ export class PaymentConceptsRepository
     if (dto.earlyPaymentDaysBeforeDue !== undefined) values.earlyPaymentDaysBeforeDue = dto.earlyPaymentDaysBeforeDue
     if (dto.issueDay !== undefined) values.issueDay = dto.issueDay
     if (dto.dueDay !== undefined) values.dueDay = dto.dueDay
+    if (dto.effectiveFrom !== undefined) values.effectiveFrom = dto.effectiveFrom
+    if (dto.effectiveUntil !== undefined) values.effectiveUntil = dto.effectiveUntil
     if (dto.isActive !== undefined) values.isActive = dto.isActive
     if (dto.metadata !== undefined) values.metadata = dto.metadata
     if (dto.createdBy !== undefined) values.createdBy = dto.createdBy

@@ -3594,6 +3594,10 @@
               "typePlaceholder": "Select a type",
               "currency": "Currency",
               "currencyPlaceholder": "Select a currency",
+              "effectiveFrom": "Effective From",
+              "effectiveFromPlaceholder": "Select start date",
+              "effectiveUntil": "Effective Until",
+              "effectiveUntilPlaceholder": "Select end date (optional)",
               "isRecurring": "Recurring Concept",
               "isRecurringHint": "Will be generated automatically based on the selected period",
               "recurrencePeriod": "Recurrence Period",
@@ -3603,6 +3607,8 @@
                 "description": "Detailed concept description. Will be shown to residents on their account statements",
                 "type": "Concept category. Determines how it is classified in financial reports",
                 "currency": "Currency in which charges for this concept will be issued",
+                "effectiveFrom": "Date from which this payment concept becomes effective",
+                "effectiveUntil": "Date until which this concept is valid. Leave empty if it has no expiration date",
                 "recurrencePeriod": "Frequency at which charges will be automatically generated"
               },
               "errors": {
@@ -3652,7 +3658,7 @@
               "interestDaily": "Daily",
               "interestGraceDays": "Grace Days",
               "tooltips": {
-                "issueDay": "Day of the month (1-28) when charges are automatically generated",
+                "issueDay": "Day of the month (1-28) when the charge is issued. Not to be confused with the effective date: the effective date defines when the concept takes effect, while this day defines when the charge is generated each period. If the issue day has already passed in the effective start month, the first charge will be generated the following month",
                 "dueDay": "Day of the month (1-28) when payment is due. Surcharges apply after this date",
                 "latePaymentType": "Type of penalty applied when payment is made after the due date",
                 "latePaymentValue": "Surcharge value: percentage on balance or fixed additional amount",
@@ -3775,6 +3781,8 @@
               "name": "Name",
               "type": "Type",
               "currency": "Currency",
+              "effectiveFrom": "Effective From",
+              "effectiveUntil": "Effective Until",
               "recurring": "Recurring",
               "recurrence": "Recurrence",
               "descriptionLabel": "Description",
@@ -3800,6 +3808,8 @@
             "basicInfo": "Basic Information",
             "type": "Type",
             "currency": "Currency",
+            "effectiveFrom": "Effective From",
+            "effectiveUntil": "Effective Until",
             "recurring": "Recurring",
             "partialPayment": "Partial Payment",
             "chargeConfig": "Charge Configuration",
@@ -3970,7 +3980,16 @@
             "fileTooLarge": "File is too large",
             "fileTypeNotAllowed": "File type not allowed",
             "confirmDeactivateService": "Deactivate this service?",
-            "attachmentsAbbrev": "att."
+            "attachmentsAbbrev": "att.",
+            "currencyCalculator": "Currency calculator",
+            "viewExchangeRates": "View exchange rates",
+            "exchangeRateModal": {
+              "title": "Exchange rates",
+              "originalAmount": "Original amount",
+              "noConversions": "No exchange rates available for this date",
+              "historicalNote": "The rates shown correspond to the execution date.",
+              "close": "Close"
+            }
           },
           "wizard": {
             "title": "New Service",

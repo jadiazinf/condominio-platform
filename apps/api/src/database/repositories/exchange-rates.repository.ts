@@ -141,6 +141,44 @@ export class ExchangeRatesRepository
   }
 
   /**
+   * Gets the latest active exchange rates effective on or before a given date.
+   * Returns one rate per currency pair (the most recent effectiveDate <= date).
+   */
+  async getEffectiveRatesByDate(date: string): Promise<TExchangeRate[]> {
+    const subquery = this.db
+      .select({
+        fromCurrencyId: exchangeRates.fromCurrencyId,
+        toCurrencyId: exchangeRates.toCurrencyId,
+        maxDate: sql<string>`max(${exchangeRates.effectiveDate})`.as('max_date'),
+      })
+      .from(exchangeRates)
+      .where(
+        and(
+          eq(exchangeRates.isActive, true),
+          lte(exchangeRates.effectiveDate, date)
+        )
+      )
+      .groupBy(exchangeRates.fromCurrencyId, exchangeRates.toCurrencyId)
+      .as('effective')
+
+    const results = await this.db
+      .select({ er: exchangeRates })
+      .from(exchangeRates)
+      .innerJoin(
+        subquery,
+        and(
+          eq(exchangeRates.fromCurrencyId, subquery.fromCurrencyId),
+          eq(exchangeRates.toCurrencyId, subquery.toCurrencyId),
+          eq(exchangeRates.effectiveDate, subquery.maxDate)
+        )
+      )
+      .where(eq(exchangeRates.isActive, true))
+      .orderBy(desc(exchangeRates.effectiveDate))
+
+    return results.map(r => this.mapToEntity(r.er))
+  }
+
+  /**
    * Gets all exchange rates with pagination and filters.
    */
   async getAllPaginated(query: IExchangeRatesQuery): Promise<TPaginatedResponse<TExchangeRate>> {

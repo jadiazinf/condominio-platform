@@ -36,6 +36,8 @@ export const paymentConcepts = pgTable(
     // Generation timing
     issueDay: integer('issue_day'),
     dueDay: integer('due_day'),
+    effectiveFrom: timestamp('effective_from'),
+    effectiveUntil: timestamp('effective_until'),
     isActive: boolean('is_active').default(true),
     metadata: jsonb('metadata'),
     createdAt: timestamp('created_at').defaultNow(),

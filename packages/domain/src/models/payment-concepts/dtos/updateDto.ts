@@ -19,6 +19,8 @@ export const paymentConceptUpdateSchema = z.object({
   earlyPaymentDaysBeforeDue: z.number().int().min(0).optional(),
   issueDay: z.number().int().min(1).max(28).nullable().optional(),
   dueDay: z.number().int().min(1).max(28).nullable().optional(),
+  effectiveFrom: z.coerce.date().nullable().optional(),
+  effectiveUntil: z.coerce.date().nullable().optional(),
   isActive: z.boolean().optional(),
   metadata: z.record(z.string(), z.unknown()).nullable().optional(),
   createdBy: z.uuid().nullable().optional(),

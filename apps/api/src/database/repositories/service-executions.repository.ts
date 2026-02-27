@@ -34,7 +34,6 @@ export class ServiceExecutionsRepository extends BaseRepository<
       executionDate: r.executionDate,
       totalAmount: r.totalAmount,
       currencyId: r.currencyId,
-      status: (r.status ?? 'draft') as TServiceExecution['status'],
       invoiceNumber: r.invoiceNumber,
       items: (r.items as TServiceExecution['items']) ?? [],
       attachments: (r.attachments as TServiceExecution['attachments']) ?? [],
@@ -56,7 +55,6 @@ export class ServiceExecutionsRepository extends BaseRepository<
       executionDate: dto.executionDate,
       totalAmount: String(dto.totalAmount),
       currencyId: dto.currencyId,
-      status: dto.status ?? 'draft',
       invoiceNumber: dto.invoiceNumber ?? null,
       items: dto.items ?? [],
       attachments: dto.attachments ?? [],
@@ -71,7 +69,6 @@ export class ServiceExecutionsRepository extends BaseRepository<
     if (dto.executionDate !== undefined) values.executionDate = dto.executionDate
     if (dto.totalAmount !== undefined) values.totalAmount = String(dto.totalAmount)
     if (dto.currencyId !== undefined) values.currencyId = dto.currencyId
-    if (dto.status !== undefined) values.status = dto.status
     if (dto.invoiceNumber !== undefined) values.invoiceNumber = dto.invoiceNumber
     if (dto.items !== undefined) values.items = dto.items
     if (dto.attachments !== undefined) values.attachments = dto.attachments
@@ -88,17 +85,13 @@ export class ServiceExecutionsRepository extends BaseRepository<
     options: {
       page?: number
       limit?: number
-      status?: 'draft' | 'confirmed'
       conceptId?: string | null
     } = {}
   ): Promise<TPaginatedResponse<TServiceExecution>> {
-    const { page = 1, limit = 20, status, conceptId } = options
+    const { page = 1, limit = 20, conceptId } = options
     const offset = (page - 1) * limit
 
     const conditions: SQL[] = [eq(serviceExecutions.serviceId, serviceId)]
-    if (status) {
-      conditions.push(eq(serviceExecutions.status, status))
-    }
     if (conceptId !== undefined) {
       if (conceptId === null) {
         conditions.push(isNull(serviceExecutions.paymentConceptId))

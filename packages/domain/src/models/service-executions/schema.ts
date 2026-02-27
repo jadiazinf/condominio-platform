@@ -2,8 +2,6 @@ import { z } from 'zod'
 import { baseModelSchema } from '../../shared/base-model.schema'
 import { attachmentSchema } from '../support-ticket-messages/schema'
 
-export const EServiceExecutionStatuses = ['draft', 'confirmed'] as const
-
 export const serviceExecutionItemSchema = z.object({
   id: z.string().uuid(),
   description: z.string().min(1).max(500),
@@ -22,7 +20,6 @@ export const serviceExecutionSchema = baseModelSchema.extend({
   executionDate: z.string(),
   totalAmount: z.string(),
   currencyId: z.uuid(),
-  status: z.enum(EServiceExecutionStatuses),
   invoiceNumber: z.string().max(100).nullable(),
   items: z.array(serviceExecutionItemSchema).default([]),
   attachments: z.array(attachmentSchema).default([]),
@@ -40,7 +37,6 @@ export const serviceExecutionCreateSchema = z.object({
   executionDate: z.string(),
   totalAmount: z.string().or(z.number()).transform(v => String(v)),
   currencyId: z.string().uuid(),
-  status: z.enum(EServiceExecutionStatuses).default('draft'),
   invoiceNumber: z.string().max(100).optional(),
   items: z.array(serviceExecutionItemSchema).default([]),
   attachments: z.array(attachmentSchema).default([]),

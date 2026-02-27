@@ -64,9 +64,9 @@ export function CreateTermsForm() {
       version: data.version,
       title: data.title,
       content: data.content,
-      summary: data.summary || undefined,
+      summary: data.summary || null,
       effectiveFrom: new Date(data.effectiveFrom),
-      effectiveUntil: data.effectiveUntil ? new Date(data.effectiveUntil) : undefined,
+      effectiveUntil: data.effectiveUntil ? new Date(data.effectiveUntil) : null,
       isActive: data.isActive,
     })
   }

@@ -80,6 +80,16 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
             <span className="text-default-500">{t(`${w}.currency`)}</span>
             <span>{currencyCode}</span>
 
+            <span className="text-default-500">{t(`${w}.effectiveFrom`)}</span>
+            <span>{formData.effectiveFrom || '-'}</span>
+
+            {formData.effectiveUntil && (
+              <>
+                <span className="text-default-500">{t(`${w}.effectiveUntil`)}</span>
+                <span>{formData.effectiveUntil}</span>
+              </>
+            )}
+
             <span className="text-default-500">{t(`${w}.recurring`)}</span>
             <span>{formData.isRecurring ? t('common.yes') : t('common.no')}</span>
 

@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
-import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
@@ -88,12 +87,6 @@ export function ServiceExecutionsPanel({
     refetch()
   }
 
-  const statusColor = (status: string) =>
-    status === 'confirmed' ? 'primary' : 'default'
-
-  const statusLabel = (status: string) =>
-    status === 'confirmed' ? t(`${d}.confirmed`) : t(`${d}.draft`)
-
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">
@@ -154,13 +147,6 @@ export function ServiceExecutionsPanel({
                         })}
                       </p>
                     </div>
-                    <Chip
-                      size="sm"
-                      variant="flat"
-                      color={statusColor(execution.status)}
-                    >
-                      {statusLabel(execution.status)}
-                    </Chip>
                     <p className="text-sm font-medium shrink-0 tabular-nums">
                       {Number(execution.totalAmount).toLocaleString('es-ES', {
                         minimumFractionDigits: 2,

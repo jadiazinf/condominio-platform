@@ -108,7 +108,6 @@ export const LocaleDictionary = {
       },
       serviceExecutions: {
         executionNotFound: 'http.controllers.serviceExecutions.executionNotFound',
-        confirmedNotEditable: 'http.controllers.serviceExecutions.confirmedNotEditable',
       },
       paymentConcepts: {
         serviceNotFound: 'http.controllers.paymentConcepts.serviceNotFound',
@@ -117,6 +116,7 @@ export const LocaleDictionary = {
         condominiumNotInCompany: 'http.controllers.paymentConcepts.condominiumNotInCompany',
         servicesRequired: 'http.controllers.paymentConcepts.servicesRequired',
         executionCurrencyNotFound: 'http.controllers.paymentConcepts.executionCurrencyNotFound',
+        currencyMismatch: 'http.controllers.paymentConcepts.currencyMismatch',
         conceptCreatedSuccessfully: 'http.controllers.paymentConcepts.conceptCreatedSuccessfully',
       },
     },

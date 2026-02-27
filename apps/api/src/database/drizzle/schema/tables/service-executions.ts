@@ -14,8 +14,6 @@ import { condominiums } from './condominiums'
 import { currencies } from './currencies'
 import { users } from './users'
 import { paymentConcepts } from './payment-concepts'
-import { serviceExecutionStatusEnum } from '../enums'
-
 export const serviceExecutions = pgTable(
   'service_executions',
   {
@@ -35,7 +33,6 @@ export const serviceExecutions = pgTable(
     currencyId: uuid('currency_id')
       .notNull()
       .references(() => currencies.id, { onDelete: 'restrict' }),
-    status: serviceExecutionStatusEnum('status').notNull().default('draft'),
     invoiceNumber: varchar('invoice_number', { length: 100 }),
     items: jsonb('items').default([]),
     attachments: jsonb('attachments').default([]),
@@ -50,6 +47,5 @@ export const serviceExecutions = pgTable(
     index('idx_service_executions_condominium').on(table.condominiumId),
     index('idx_service_executions_concept').on(table.paymentConceptId),
     index('idx_service_executions_date').on(table.executionDate),
-    index('idx_service_executions_status').on(table.status),
   ]
 )

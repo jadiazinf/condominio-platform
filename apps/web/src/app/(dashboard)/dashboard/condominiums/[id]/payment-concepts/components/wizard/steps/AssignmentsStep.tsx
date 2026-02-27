@@ -452,7 +452,7 @@ export function AssignmentsStep({
                   size="sm"
                   variant="light"
                   color="danger"
-                  className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                  className="shrink-0"
                   onPress={() => handleRemoveAssignment(index)}
                 >
                   <Trash2 size={14} />
@@ -462,6 +462,11 @@ export function AssignmentsStep({
           </div>
         </div>
       )}
+
+      {/* TODO: Add a Switch to let the user choose between:
+         1) Bulk-generate all quotas at once (based on effectiveFrom, issueDay, effectiveUntil)
+         2) Let the system generate quotas one by one on each period
+         This is UI-only for now; the backend logic will be implemented later. */}
 
       {showErrors && formData.assignments.length === 0 && (
         <Typography variant="caption" color="danger">

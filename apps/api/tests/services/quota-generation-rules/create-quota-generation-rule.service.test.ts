@@ -99,6 +99,8 @@ describe('CreateQuotaGenerationRuleService', function () {
     earlyPaymentDaysBeforeDue: 0,
     issueDay: null,
     dueDay: null,
+    effectiveFrom: null,
+    effectiveUntil: null,
     isActive: true,
     metadata: null,
     createdBy: null,

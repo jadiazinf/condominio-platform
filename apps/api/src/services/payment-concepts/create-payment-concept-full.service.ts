@@ -27,7 +27,6 @@ export interface IServiceWithExecution {
     executionDate: string
     totalAmount: string
     currencyId: string
-    status: 'draft' | 'confirmed'
     invoiceNumber?: string
     items: Array<{ id: string; description: string; quantity: number; unitPrice: number; amount: number; notes?: string }>
     attachments: Array<{ name: string; url: string; mimeType: string; size: number; storagePath?: string }>
@@ -135,11 +134,14 @@ export class CreatePaymentConceptFullService {
       }
     }
 
-    // Validate all execution currencies exist
+    // Validate all execution currencies exist and match concept currency
     for (const svc of services) {
       const execCurrency = await this.currenciesRepo.getById(svc.execution.currencyId)
       if (!execCurrency) {
         return failure('EXECUTION_CURRENCY_NOT_FOUND', 'NOT_FOUND')
+      }
+      if (svc.execution.currencyId !== input.currencyId) {
+        return failure('CURRENCY_MISMATCH', 'BAD_REQUEST')
       }
     }
 
@@ -171,7 +173,6 @@ export class CreatePaymentConceptFullService {
           executionDate: svc.execution.executionDate,
           totalAmount: svc.execution.totalAmount,
           currencyId: svc.execution.currencyId,
-          status: svc.execution.status,
           invoiceNumber: svc.execution.invoiceNumber,
           items: svc.execution.items,
           attachments: svc.execution.attachments as any,
