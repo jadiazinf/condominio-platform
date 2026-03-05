@@ -3,7 +3,7 @@
 import { Link } from '@/ui/components/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/ui/utils'
-import { Info, Building2, Users, ToggleLeft, Receipt, CreditCard, FileText, UserPlus, Wrench } from 'lucide-react'
+import { Info, Building2, Users, ToggleLeft, Receipt, CreditCard, FileText, UserPlus, Wrench, PiggyBank } from 'lucide-react'
 
 import type { TCondominiumDetailIconName } from '../config/sidebar-items'
 
@@ -17,6 +17,7 @@ const ICONS = {
   'file-text': FileText,
   'user-plus': UserPlus,
   wrench: Wrench,
+  'piggy-bank': PiggyBank,
 } as const
 
 interface ICondominiumDetailSidebarLinkProps {

@@ -197,4 +197,17 @@ export class DocumentsRepository
 
     return results.map(record => this.mapToEntity(record))
   }
+
+  /**
+   * Retrieves documents by expense.
+   */
+  async getByExpenseId(expenseId: string): Promise<TDocument[]> {
+    const results = await this.db
+      .select()
+      .from(documents)
+      .where(eq(documents.expenseId, expenseId))
+      .orderBy(desc(documents.createdAt))
+
+    return results.map(record => this.mapToEntity(record))
+  }
 }

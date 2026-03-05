@@ -10,6 +10,7 @@ export type TCondominiumDetailIconName =
   | 'file-text'
   | 'user-plus'
   | 'wrench'
+  | 'piggy-bank'
 
 export interface ICondominiumDetailMenuItem {
   key: string
@@ -51,6 +52,13 @@ export const CONDOMINIUM_DETAIL_MENU_ITEMS: ICondominiumDetailMenuItem[] = [
     translationKey: 'admin.condominiums.detail.sidebar.paymentConcepts',
     path: '/payment-concepts',
     iconName: 'file-text',
+    roles: ['management_company'],
+  },
+  {
+    key: 'reserve-fund',
+    translationKey: 'admin.condominiums.detail.sidebar.reserveFund',
+    path: '/reserve-fund',
+    iconName: 'piggy-bank',
     roles: ['management_company'],
   },
   {

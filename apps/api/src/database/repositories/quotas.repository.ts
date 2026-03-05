@@ -1,6 +1,6 @@
-import { and, eq, desc, lte, gte, or, type SQL } from 'drizzle-orm'
+import { and, eq, desc, lte, gte, or, sql, type SQL } from 'drizzle-orm'
 import type { TQuota, TQuotaCreate, TQuotaUpdate, TPaginatedResponse } from '@packages/domain'
-import { quotas } from '@database/drizzle/schema'
+import { quotas, paymentConcepts } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -255,5 +255,55 @@ export class QuotasRepository
       .where(and(...conditions))
 
     return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Gets aggregated summary for reserve fund quotas of a condominium.
+   */
+  async getReserveFundSummary(condominiumId: string): Promise<{
+    totalCharged: string
+    totalPaid: string
+    totalPending: string
+    conceptCount: number
+  }> {
+    // Financial totals from quotas (only exists if quotas have been generated)
+    const totalsResult = await this.db
+      .select({
+        totalCharged: sql<string>`COALESCE(SUM(${quotas.baseAmount}::numeric), 0)::text`,
+        totalPaid: sql<string>`COALESCE(SUM(${quotas.paidAmount}::numeric), 0)::text`,
+        totalPending: sql<string>`COALESCE(SUM(${quotas.balance}::numeric), 0)::text`,
+      })
+      .from(quotas)
+      .innerJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
+      .where(
+        and(
+          eq(paymentConcepts.condominiumId, condominiumId),
+          eq(paymentConcepts.conceptType, 'reserve_fund')
+        )
+      )
+
+    // Concept count directly from payment_concepts (independent of quotas)
+    const countResult = await this.db
+      .select({
+        conceptCount: sql<number>`COUNT(*)::int`,
+      })
+      .from(paymentConcepts)
+      .where(
+        and(
+          eq(paymentConcepts.condominiumId, condominiumId),
+          eq(paymentConcepts.conceptType, 'reserve_fund'),
+          eq(paymentConcepts.isActive, true)
+        )
+      )
+
+    const totals = totalsResult[0]
+    const count = countResult[0]
+
+    return {
+      totalCharged: totals?.totalCharged ?? '0',
+      totalPaid: totals?.totalPaid ?? '0',
+      totalPending: totals?.totalPending ?? '0',
+      conceptCount: count?.conceptCount ?? 0,
+    }
   }
 }

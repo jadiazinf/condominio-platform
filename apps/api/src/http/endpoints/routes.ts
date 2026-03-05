@@ -59,6 +59,7 @@ import { BanksEndpoint } from './banks.endpoint'
 import { BankAccountsEndpoint } from './bank-accounts.endpoint'
 import { McPaymentConceptsEndpoint } from './mc-payment-concepts.endpoint'
 import { McCondominiumServicesEndpoint } from './mc-condominium-services.endpoint'
+import { McReserveFundEndpoint } from './mc-reserve-fund.endpoint'
 import { MyCurrenciesEndpoint } from './my-currencies.endpoint'
 import { MyExchangeRatesEndpoint } from './my-exchange-rates.endpoint'
 
@@ -156,6 +157,9 @@ export class ApiRoutes {
 
       // MC Condominium Services (management company scoped)
       new McCondominiumServicesEndpoint(db),
+
+      // MC Reserve Fund (management company scoped)
+      new McReserveFundEndpoint(db),
 
       // Subscriptions & Members
       new ManagementCompanySubscriptionsEndpoint(db),

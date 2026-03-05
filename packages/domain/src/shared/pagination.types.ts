@@ -223,3 +223,60 @@ export const condominiumServicesQuerySchema = paginationQuerySchema.extend({
 })
 
 export type TCondominiumServicesQuerySchema = z.infer<typeof condominiumServicesQuerySchema>
+
+/**
+ * Query parameters for reserve fund payments list with filters
+ */
+export type TReserveFundPaymentsQuery = TPaginationQuery & {
+  condominiumId: string
+  unitId?: string
+  conceptId?: string
+  startDate?: string
+  endDate?: string
+}
+
+/**
+ * Zod schema for reserve fund payments query parameters
+ */
+export const reserveFundPaymentsQuerySchema = paginationQuerySchema.extend({
+  condominiumId: z.string().uuid(),
+  unitId: z.string().uuid().optional(),
+  conceptId: z.string().uuid().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+})
+
+export type TReserveFundPaymentsQuerySchema = z.infer<typeof reserveFundPaymentsQuerySchema>
+
+/**
+ * Query parameters for reserve fund expenses list with filters
+ */
+export type TReserveFundExpensesQuery = TPaginationQuery & {
+  condominiumId: string
+  status?: string
+  startDate?: string
+  endDate?: string
+}
+
+/**
+ * Zod schema for reserve fund expenses query parameters
+ */
+export const reserveFundExpensesQuerySchema = paginationQuerySchema.extend({
+  condominiumId: z.string().uuid(),
+  status: z.enum(['pending', 'approved', 'rejected', 'paid']).optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+})
+
+export type TReserveFundExpensesQuerySchema = z.infer<typeof reserveFundExpensesQuerySchema>
+
+/**
+ * Reserve fund summary response
+ */
+export type TReserveFundSummary = {
+  totalCharged: string
+  totalPaid: string
+  totalPending: string
+  totalExpenses: string
+  conceptCount: number
+}

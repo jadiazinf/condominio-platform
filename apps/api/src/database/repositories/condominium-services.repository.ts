@@ -1,4 +1,4 @@
-import { eq, and, or, ilike, sql, desc, type SQL } from 'drizzle-orm'
+import { eq, and, or, ilike, sql, desc, inArray, type SQL } from 'drizzle-orm'
 import type {
   TCondominiumService,
   TCondominiumServiceCreate,
@@ -162,6 +162,20 @@ export class CondominiumServicesRepository
       .from(condominiumServices)
       .where(and(...conditions))
       .orderBy(desc(condominiumServices.createdAt))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Get services by a list of IDs.
+   */
+  async getByIds(ids: string[]): Promise<TCondominiumService[]> {
+    if (ids.length === 0) return []
+
+    const results = await this.db
+      .select()
+      .from(condominiumServices)
+      .where(inArray(condominiumServices.id, ids))
 
     return results.map(record => this.mapToEntity(record))
   }

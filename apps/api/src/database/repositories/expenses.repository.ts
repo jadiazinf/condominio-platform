@@ -1,5 +1,5 @@
-import { and, eq, desc, gte, lte } from 'drizzle-orm'
-import type { TExpense, TExpenseCreate, TExpenseUpdate } from '@packages/domain'
+import { and, eq, desc, gte, lte, sql, type SQL } from 'drizzle-orm'
+import type { TExpense, TExpenseCreate, TExpenseUpdate, TPaginatedResponse } from '@packages/domain'
 import { expenses } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
 import { BaseRepository } from './base'
@@ -181,5 +181,59 @@ export class ExpensesRepository
       .orderBy(desc(expenses.expenseDate))
 
     return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Lists paginated expenses linked to the reserve fund for a condominium.
+   */
+  async listReserveFundExpensesPaginated(
+    condominiumId: string,
+    options: {
+      page?: number
+      limit?: number
+      status?: string
+      startDate?: string
+      endDate?: string
+    }
+  ): Promise<TPaginatedResponse<TExpense>> {
+    const conditions: SQL[] = [
+      eq(expenses.condominiumId, condominiumId),
+      sql`${expenses.metadata}->>'fundSource' = 'reserve_fund'`,
+    ]
+
+    if (options.status) {
+      conditions.push(eq(expenses.status, options.status as TExpense['status']))
+    }
+    if (options.startDate) {
+      conditions.push(gte(expenses.expenseDate, options.startDate))
+    }
+    if (options.endDate) {
+      conditions.push(lte(expenses.expenseDate, options.endDate))
+    }
+
+    return this.listPaginated(
+      { page: options.page, limit: options.limit },
+      conditions
+    )
+  }
+
+  /**
+   * Gets the total amount of paid reserve fund expenses for a condominium.
+   */
+  async getReserveFundExpensesTotal(condominiumId: string): Promise<string> {
+    const result = await this.db
+      .select({
+        total: sql<string>`COALESCE(SUM(${expenses.amount}::numeric), 0)::text`,
+      })
+      .from(expenses)
+      .where(
+        and(
+          eq(expenses.condominiumId, condominiumId),
+          eq(expenses.status, 'paid'),
+          sql`${expenses.metadata}->>'fundSource' = 'reserve_fund'`
+        )
+      )
+
+    return result[0]?.total ?? '0'
   }
 }

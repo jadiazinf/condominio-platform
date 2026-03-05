@@ -3515,8 +3515,172 @@
           "quotas": "Cuotas",
           "payments": "Pagos",
           "paymentConcepts": "Conceptos de Pago",
+          "reserveFund": "Fondo de Reserva",
           "accessRequests": "Solicitudes de Acceso",
           "services": "Servicios"
+        },
+        "reserveFund": {
+          "title": "Fondo de Reserva",
+          "subtitle": "Resumen y movimientos del fondo de reserva del condominio",
+          "addConcept": "Crear Concepto",
+          "tabs": {
+            "summary": "Resumen",
+            "concepts": "Conceptos",
+            "payments": "Pagos",
+            "expenses": "Cargos"
+          },
+          "summary": {
+            "totalPaid": "Total Acumulado",
+            "totalCharged": "Total Cobrado",
+            "totalPending": "Pendiente por Cobrar",
+            "totalExpenses": "Total Gastado",
+            "conceptCount": "Conceptos"
+          },
+          "concepts": {
+            "title": "Conceptos de Fondo de Reserva",
+            "empty": "No hay conceptos de fondo de reserva",
+            "emptyDescription": "Crea un concepto para comenzar a recaudar"
+          },
+          "payments": {
+            "title": "Historial de Pagos",
+            "empty": "No hay pagos registrados",
+            "filters": {
+              "unit": "Unidad",
+              "allUnits": "Todas las unidades",
+              "concept": "Concepto",
+              "allConcepts": "Todos los conceptos",
+              "startDate": "Fecha desde",
+              "endDate": "Fecha hasta"
+            },
+            "table": {
+              "paymentNumber": "N° Pago",
+              "unit": "Unidad",
+              "amount": "Monto",
+              "date": "Fecha",
+              "status": "Estado",
+              "method": "Método"
+            }
+          },
+          "expenses": {
+            "title": "Cargos al Fondo",
+            "empty": "No hay cargos registrados",
+            "addExpense": "Registrar Cargo",
+            "filters": {
+              "allStatuses": "Todos",
+              "startDate": "Fecha desde",
+              "endDate": "Fecha hasta"
+            },
+            "table": {
+              "description": "Descripción",
+              "amount": "Monto",
+              "date": "Fecha",
+              "vendor": "Proveedor",
+              "status": "Estado"
+            },
+            "status": {
+              "pending": "Pendiente",
+              "approved": "Aprobado",
+              "rejected": "Rechazado",
+              "paid": "Pagado"
+            },
+            "detail": {
+              "title": "Detalle del Cargo",
+              "chargeInfo": "Datos del Cargo",
+              "name": "Nombre",
+              "description": "Descripción",
+              "amount": "Monto",
+              "date": "Fecha",
+              "vendorInfo": "Proveedor",
+              "vendorType": "Tipo",
+              "vendorName": "Nombre / Razón Social",
+              "vendorTaxId": "RIF / NIT",
+              "vendorPhone": "Teléfono",
+              "vendorEmail": "Correo",
+              "vendorAddress": "Dirección",
+              "noVendor": "Sin proveedor especificado",
+              "linkedServices": "Servicios vinculados",
+              "documents": "Documentos",
+              "noDocs": "Sin documentos adjuntos",
+              "invoiceNumber": "N° Factura",
+              "notes": "Notas",
+              "download": "Descargar",
+              "createdAt": "Registrado el",
+              "providerTypes": {
+                "individual": "Persona Natural",
+                "company": "Empresa",
+                "cooperative": "Cooperativa",
+                "government": "Gobierno",
+                "internal": "Interno"
+              }
+            },
+            "form": {
+              "title": "Registrar Cargo al Fondo de Reserva",
+              "name": "Nombre del cargo",
+              "namePlaceholder": "Ej: Reparación tubería piso 3",
+              "description": "Descripción",
+              "descriptionPlaceholder": "Detalle del cargo...",
+              "amount": "Monto",
+              "currency": "Moneda",
+              "expenseDate": "Fecha del gasto",
+              "submit": "Registrar",
+              "submitting": "Registrando...",
+              "success": "Cargo registrado exitosamente",
+              "steps": {
+                "chargeInfo": "Cargo",
+                "vendor": "Proveedor",
+                "documents": "Documentos",
+                "review": "Revisión"
+              },
+              "vendor": {
+                "type": "Tipo de proveedor",
+                "individual": "Persona Natural",
+                "company": "Empresa",
+                "name": "Nombre / Razón Social",
+                "namePlaceholder": "Ej: Servicios Hidráulicos C.A.",
+                "taxId": "RIF / NIT",
+                "taxIdPlaceholder": "Ej: J-12345678-9",
+                "phone": "Teléfono",
+                "email": "Correo electrónico",
+                "address": "Dirección",
+                "addressPlaceholder": "Dirección del proveedor",
+                "selectExisting": "Proveedor existente",
+                "selectPlaceholder": "Buscar proveedor...",
+                "noServices": "No hay proveedores registrados",
+                "manualEntry": "Ingreso manual",
+                "orManual": "o ingresa los datos manualmente",
+                "tableName": "Nombre",
+                "tableType": "Tipo",
+                "tableTaxId": "RIF / NIT",
+                "tablePhone": "Teléfono",
+                "allTypes": "Todos los tipos",
+                "selected": "seleccionados",
+                "cooperative": "Cooperativa",
+                "government": "Gobierno",
+                "internal": "Interno"
+              },
+              "documents": {
+                "upload": "Subir documentos",
+                "uploadHint": "Arrastra archivos aquí o haz clic para seleccionar",
+                "maxSize": "Máximo 10MB por archivo",
+                "allowedTypes": "PDF, JPG, PNG",
+                "retry": "Reintentar",
+                "invoiceNumber": "N° Factura",
+                "notes": "Notas"
+              },
+              "review": {
+                "chargeInfo": "Datos del Cargo",
+                "vendorInfo": "Información del Proveedor",
+                "attachedDocs": "Documentos Adjuntos",
+                "noVendor": "No especificado",
+                "noDocs": "Sin documentos adjuntos"
+              },
+              "navigation": {
+                "next": "Siguiente",
+                "previous": "Anterior",
+                "cancel": "Cancelar"
+              }
+            }
+          }
         },
         "quotas": {
           "title": "Cuotas",

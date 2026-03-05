@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/ui/components/button'
 import { Card, CardBody } from '@/ui/components/card'
 import { Stepper, type IStepItem } from '@/ui/components/stepper'
@@ -76,11 +76,17 @@ export function CreatePaymentConceptClient({
   const { t } = useTranslation()
   const toast = useToast()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const queryClient = useQueryClient()
   const w = 'admin.condominiums.detail.paymentConcepts.wizard'
 
+  const initialConceptType = searchParams.get('conceptType') ?? ''
+
   const [currentStep, setCurrentStep] = useState(0)
-  const [formData, setFormData] = useState<IWizardFormData>(INITIAL_FORM_DATA)
+  const [formData, setFormData] = useState<IWizardFormData>({
+    ...INITIAL_FORM_DATA,
+    conceptType: initialConceptType,
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showErrors, setShowErrors] = useState(false)
 

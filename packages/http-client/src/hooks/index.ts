@@ -892,6 +892,22 @@ export {
   type IDeleteServiceExecutionOptions,
 } from './use-service-executions'
 
+// Reserve Fund
+export {
+  useReserveFundSummary,
+  useReserveFundPaymentsPaginated,
+  useReserveFundExpensesPaginated,
+  useCreateReserveFundExpense,
+  useReserveFundExpenseDetail,
+  reserveFundKeys,
+  type IUseReserveFundSummaryOptions,
+  type IUseReserveFundPaymentsPaginatedOptions,
+  type IUseReserveFundExpensesPaginatedOptions,
+  type IUseReserveFundExpenseDetailOptions,
+  type ICreateReserveFundExpenseVariables,
+  type TExpenseWithDocuments,
+} from './use-reserve-fund'
+
 // Re-export commonly used TanStack Query hooks
 export {
   useQuery,

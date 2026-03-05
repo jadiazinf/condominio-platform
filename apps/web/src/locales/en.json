@@ -3477,8 +3477,172 @@
           "quotas": "Quotas",
           "payments": "Payments",
           "paymentConcepts": "Payment Concepts",
+          "reserveFund": "Reserve Fund",
           "accessRequests": "Access Requests",
           "services": "Services"
+        },
+        "reserveFund": {
+          "title": "Reserve Fund",
+          "subtitle": "Summary and transactions of the condominium reserve fund",
+          "addConcept": "Create Concept",
+          "tabs": {
+            "summary": "Summary",
+            "concepts": "Concepts",
+            "payments": "Payments",
+            "expenses": "Expenses"
+          },
+          "summary": {
+            "totalPaid": "Total Accumulated",
+            "totalCharged": "Total Charged",
+            "totalPending": "Pending Collection",
+            "totalExpenses": "Total Spent",
+            "conceptCount": "Concepts"
+          },
+          "concepts": {
+            "title": "Reserve Fund Concepts",
+            "empty": "No reserve fund concepts",
+            "emptyDescription": "Create a concept to start collecting"
+          },
+          "payments": {
+            "title": "Payment History",
+            "empty": "No payments recorded",
+            "filters": {
+              "unit": "Unit",
+              "allUnits": "All units",
+              "concept": "Concept",
+              "allConcepts": "All concepts",
+              "startDate": "Start date",
+              "endDate": "End date"
+            },
+            "table": {
+              "paymentNumber": "Payment #",
+              "unit": "Unit",
+              "amount": "Amount",
+              "date": "Date",
+              "status": "Status",
+              "method": "Method"
+            }
+          },
+          "expenses": {
+            "title": "Fund Charges",
+            "empty": "No charges recorded",
+            "addExpense": "Record Charge",
+            "filters": {
+              "allStatuses": "All",
+              "startDate": "Start date",
+              "endDate": "End date"
+            },
+            "table": {
+              "description": "Description",
+              "amount": "Amount",
+              "date": "Date",
+              "vendor": "Vendor",
+              "status": "Status"
+            },
+            "status": {
+              "pending": "Pending",
+              "approved": "Approved",
+              "rejected": "Rejected",
+              "paid": "Paid"
+            },
+            "detail": {
+              "title": "Charge Detail",
+              "chargeInfo": "Charge Info",
+              "name": "Name",
+              "description": "Description",
+              "amount": "Amount",
+              "date": "Date",
+              "vendorInfo": "Vendor",
+              "vendorType": "Type",
+              "vendorName": "Name / Legal Name",
+              "vendorTaxId": "Tax ID",
+              "vendorPhone": "Phone",
+              "vendorEmail": "Email",
+              "vendorAddress": "Address",
+              "noVendor": "No vendor specified",
+              "linkedServices": "Linked services",
+              "documents": "Documents",
+              "noDocs": "No documents attached",
+              "invoiceNumber": "Invoice #",
+              "notes": "Notes",
+              "download": "Download",
+              "createdAt": "Registered on",
+              "providerTypes": {
+                "individual": "Individual",
+                "company": "Company",
+                "cooperative": "Cooperative",
+                "government": "Government",
+                "internal": "Internal"
+              }
+            },
+            "form": {
+              "title": "Record Reserve Fund Charge",
+              "name": "Charge name",
+              "namePlaceholder": "E.g.: 3rd floor pipe repair",
+              "description": "Description",
+              "descriptionPlaceholder": "Charge details...",
+              "amount": "Amount",
+              "currency": "Currency",
+              "expenseDate": "Expense date",
+              "submit": "Record",
+              "submitting": "Recording...",
+              "success": "Charge recorded successfully",
+              "steps": {
+                "chargeInfo": "Charge",
+                "vendor": "Vendor",
+                "documents": "Documents",
+                "review": "Review"
+              },
+              "vendor": {
+                "type": "Vendor type",
+                "individual": "Individual",
+                "company": "Company",
+                "name": "Name / Legal Name",
+                "namePlaceholder": "E.g.: Hydraulic Services Inc.",
+                "taxId": "Tax ID",
+                "taxIdPlaceholder": "E.g.: 12-3456789",
+                "phone": "Phone",
+                "email": "Email",
+                "address": "Address",
+                "addressPlaceholder": "Vendor address",
+                "selectExisting": "Existing vendor",
+                "selectPlaceholder": "Search vendor...",
+                "noServices": "No vendors registered",
+                "manualEntry": "Manual entry",
+                "orManual": "or enter details manually",
+                "tableName": "Name",
+                "tableType": "Type",
+                "tableTaxId": "Tax ID",
+                "tablePhone": "Phone",
+                "allTypes": "All types",
+                "selected": "selected",
+                "cooperative": "Cooperative",
+                "government": "Government",
+                "internal": "Internal"
+              },
+              "documents": {
+                "upload": "Upload documents",
+                "uploadHint": "Drag files here or click to select",
+                "maxSize": "Max 10MB per file",
+                "allowedTypes": "PDF, JPG, PNG",
+                "retry": "Retry",
+                "invoiceNumber": "Invoice #",
+                "notes": "Notes"
+              },
+              "review": {
+                "chargeInfo": "Charge Details",
+                "vendorInfo": "Vendor Information",
+                "attachedDocs": "Attached Documents",
+                "noVendor": "Not specified",
+                "noDocs": "No documents attached"
+              },
+              "navigation": {
+                "next": "Next",
+                "previous": "Previous",
+                "cancel": "Cancel"
+              }
+            }
+          }
         },
         "quotas": {
           "title": "Quotas",
