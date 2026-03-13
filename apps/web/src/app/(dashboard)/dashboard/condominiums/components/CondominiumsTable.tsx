@@ -442,6 +442,7 @@ export function CondominiumsTable({
           {/* Desktop Table View */}
           <div className="hidden md:block">
             <Table<TCondominiumRow>
+              mobileCards={false}
               aria-label={t(`${tp}.title`)}
               columns={tableColumns}
               rows={condominiums}

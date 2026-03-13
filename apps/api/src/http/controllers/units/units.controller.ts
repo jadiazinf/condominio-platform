@@ -15,11 +15,6 @@ import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewa
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
-import {
-  GetUnitsByBuildingService,
-  GetUnitByBuildingAndNumberService,
-  GetUnitsByFloorService,
-} from '@src/services/units'
 import { BulkCreateUnitsService } from '@src/services/units'
 
 const unitBulkCreateSchema = z.object({
@@ -60,18 +55,13 @@ type TBuildingAndFloorParam = z.infer<typeof BuildingAndFloorParamSchema>
  * - DELETE /:id                                           Delete unit
  */
 export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpdate> {
-  private readonly getUnitsByBuildingService: GetUnitsByBuildingService
-  private readonly getUnitByBuildingAndNumberService: GetUnitByBuildingAndNumberService
-  private readonly getUnitsByFloorService: GetUnitsByFloorService
+  private readonly unitsRepository: UnitsRepository
   private readonly bulkCreateService: BulkCreateUnitsService
 
   constructor(repository: UnitsRepository, db: TDrizzleClient) {
     super(repository)
 
-    // Initialize services
-    this.getUnitsByBuildingService = new GetUnitsByBuildingService(repository)
-    this.getUnitByBuildingAndNumberService = new GetUnitByBuildingAndNumberService(repository)
-    this.getUnitsByFloorService = new GetUnitsByFloorService(repository)
+    this.unitsRepository = repository
     this.bulkCreateService = new BulkCreateUnitsService(db, repository)
   }
 
@@ -146,7 +136,6 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
 
   protected override list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     // TODO: Filter by condominiumId via JOIN through building.condominiumId
     const entities = await this.repository.listAll()
     return ctx.ok({ data: entities })
@@ -159,8 +148,7 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
   private getByCondominiumId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
-    const repo = this.repository as UnitsRepository
-    const units = await repo.getByCondominiumId(condominiumId)
+    const units = await this.unitsRepository.getByCondominiumId(condominiumId)
     return ctx.ok({ data: units })
   }
 
@@ -180,57 +168,24 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
 
   private getByBuildingId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)
-
-    try {
-      const result = await this.getUnitsByBuildingService.execute({
-        buildingId: ctx.params.buildingId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const units = await this.unitsRepository.getByBuildingId(ctx.params.buildingId)
+    return ctx.ok({ data: units })
   }
 
   private getByBuildingAndNumber = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingAndNumberParam>(c)
+    const unit = await this.unitsRepository.getByBuildingAndNumber(ctx.params.buildingId, ctx.params.unitNumber)
 
-    try {
-      const result = await this.getUnitByBuildingAndNumberService.execute({
-        buildingId: ctx.params.buildingId,
-        unitNumber: ctx.params.unitNumber,
-      })
-
-      if (!result.success) {
-        return ctx.notFound({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!unit) {
+      return ctx.notFound({ error: 'Unit not found' })
     }
+
+    return ctx.ok({ data: unit })
   }
 
   private getByFloor = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingAndFloorParam>(c)
-
-    try {
-      const result = await this.getUnitsByFloorService.execute({
-        buildingId: ctx.params.buildingId,
-        floor: ctx.params.floor,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const units = await this.unitsRepository.getByFloor(ctx.params.buildingId, ctx.params.floor)
+    return ctx.ok({ data: units })
   }
 }

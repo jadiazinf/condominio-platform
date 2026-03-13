@@ -1,18 +1,25 @@
 import type { Context } from 'hono'
 import {
-  paymentApplicationCreateSchema,
   paymentApplicationUpdateSchema,
   type TPaymentApplication,
   type TPaymentApplicationCreate,
   type TPaymentApplicationUpdate,
   ESystemRole,
 } from '@packages/domain'
-import type { PaymentApplicationsRepository } from '@database/repositories'
+import type {
+  PaymentApplicationsRepository,
+  PaymentsRepository,
+  QuotasRepository,
+  QuotaAdjustmentsRepository,
+  InterestConfigurationsRepository,
+} from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
-import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
+import { ApplyPaymentToQuotaService } from '@services/payment-applications/apply-payment-to-quota.service'
 import { z } from 'zod'
 
 const PaymentIdParamSchema = z.object({
@@ -27,6 +34,14 @@ const QuotaIdParamSchema = z.object({
 
 type TQuotaIdParam = z.infer<typeof QuotaIdParamSchema>
 
+const ApplyPaymentBodySchema = z.object({
+  paymentId: z.string().uuid('Invalid payment ID format'),
+  quotaId: z.string().uuid('Invalid quota ID format'),
+  appliedAmount: z.string().refine(v => !isNaN(parseFloat(v)) && parseFloat(v) > 0, {
+    message: 'appliedAmount must be a positive number string',
+  }),
+})
+
 /**
  * Controller for managing payment application resources.
  *
@@ -35,7 +50,7 @@ type TQuotaIdParam = z.infer<typeof QuotaIdParamSchema>
  * - GET    /payment/:paymentId   Get by payment
  * - GET    /quota/:quotaId       Get by quota
  * - GET    /:id                  Get by ID
- * - POST   /                     Create payment application
+ * - POST   /                     Apply payment to quota (with interest recalculation)
  * - PATCH  /:id                  Update payment application
  * - DELETE /:id                  Delete payment application (hard delete)
  */
@@ -44,8 +59,20 @@ export class PaymentApplicationsController extends BaseController<
   TPaymentApplicationCreate,
   TPaymentApplicationUpdate
 > {
-  constructor(repository: PaymentApplicationsRepository) {
+  private readonly applyService: ApplyPaymentToQuotaService
+
+  constructor(
+    repository: PaymentApplicationsRepository,
+    private readonly db: TDrizzleClient,
+    private readonly paymentsRepo: PaymentsRepository,
+    private readonly quotasRepo: QuotasRepository,
+    private readonly adjustmentsRepo: QuotaAdjustmentsRepository,
+    private readonly interestConfigsRepo: InterestConfigurationsRepository,
+  ) {
     super(repository)
+    this.applyService = new ApplyPaymentToQuotaService(
+      db, repository, paymentsRepo, quotasRepo, adjustmentsRepo, interestConfigsRepo,
+    )
   }
 
   get routes(): TRouteDefinition[] {
@@ -72,8 +99,8 @@ export class PaymentApplicationsController extends BaseController<
       {
         method: 'post',
         path: '/',
-        handler: this.create,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), bodyValidator(paymentApplicationCreateSchema)],
+        handler: this.applyPayment,
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), bodyValidator(ApplyPaymentBodySchema)],
       },
       {
         method: 'patch',
@@ -101,8 +128,6 @@ export class PaymentApplicationsController extends BaseController<
 
   protected override list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
-    // TODO: Filter by condominiumId via JOIN through payment → unit → building.condominiumId
     const entities = await this.repository.listAll()
     return ctx.ok({ data: entities })
   }
@@ -110,6 +135,27 @@ export class PaymentApplicationsController extends BaseController<
   // ─────────────────────────────────────────────────────────────────────────────
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
+
+  private applyPayment = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<{ paymentId: string; quotaId: string; appliedAmount: string }>(c)
+    const user = c.get('user') as { id: string }
+
+    const result = await this.applyService.execute({
+      paymentId: ctx.body.paymentId,
+      quotaId: ctx.body.quotaId,
+      appliedAmount: ctx.body.appliedAmount,
+      registeredByUserId: user.id,
+    })
+
+    if (!result.success) {
+      if (result.code === 'NOT_FOUND') {
+        return ctx.notFound({ error: result.error })
+      }
+      return ctx.badRequest({ error: result.error })
+    }
+
+    return ctx.created({ data: result.data })
+  }
 
   private getByPaymentId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPaymentIdParam>(c)

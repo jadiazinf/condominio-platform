@@ -21,7 +21,7 @@
  *   3. POST   /user/:userId/unregister  Unregister FCM token
  *   4. DELETE /:id                      Delete token by ID
  */
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'bun:test'
+import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll } from 'bun:test'
 import { Hono } from 'hono'
 import { sql } from 'drizzle-orm'
 import { startTestContainer, cleanDatabase } from '../setup/test-container'
@@ -84,6 +84,10 @@ beforeEach(async () => {
   app.route('/me/fcm-tokens', fcmTokensController.createRouter())
 
   request = async (path: string, options?: RequestInit) => app.request(path, options)
+})
+
+afterEach(async () => {
+  await cleanDatabase(db)
 })
 
 afterAll(async () => {

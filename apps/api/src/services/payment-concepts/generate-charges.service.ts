@@ -256,4 +256,84 @@ export class GenerateChargesService {
   private formatDate(year: number, month: number, day: number): string {
     return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
   }
+
+  /**
+   * Generates charges for ALL periods between effectiveFrom and effectiveUntil
+   * based on the concept's recurrence period (monthly, quarterly, yearly).
+   */
+  async executeBulk(input: {
+    paymentConceptId: string
+    generatedBy: string
+  }): Promise<TServiceResult<{ periodsGenerated: number; totalQuotas: number; totalAmount: number }>> {
+    const concept = await this.conceptsRepo.getById(input.paymentConceptId)
+    if (!concept) return failure('Payment concept not found', 'NOT_FOUND')
+    if (!concept.isActive) return failure('Cannot generate charges for an inactive concept', 'BAD_REQUEST')
+    if (!concept.isRecurring || !concept.recurrencePeriod) {
+      return failure('Bulk generation is only available for recurring concepts', 'BAD_REQUEST')
+    }
+    if (!concept.effectiveFrom) return failure('Effective from date is required', 'BAD_REQUEST')
+    if (!concept.effectiveUntil) return failure('Effective until date is required for bulk generation', 'BAD_REQUEST')
+
+    const periods = this.calculatePeriods(
+      concept.effectiveFrom.toISOString(),
+      concept.effectiveUntil.toISOString(),
+      concept.recurrencePeriod as 'monthly' | 'quarterly' | 'yearly'
+    )
+
+    if (periods.length === 0) {
+      return failure('No periods to generate between the effective dates', 'BAD_REQUEST')
+    }
+
+    let totalQuotas = 0
+    let totalAmount = 0
+    let periodsGenerated = 0
+
+    for (const period of periods) {
+      const result = await this.execute({
+        paymentConceptId: input.paymentConceptId,
+        periodYear: period.year,
+        periodMonth: period.month,
+        generatedBy: input.generatedBy,
+      })
+
+      if (result.success) {
+        periodsGenerated++
+        totalQuotas += result.data.quotasCreated
+        totalAmount += result.data.totalAmount
+      }
+      // Skip periods that already have charges (CONFLICT) — continue with the rest
+    }
+
+    return success({ periodsGenerated, totalQuotas, totalAmount })
+  }
+
+  private calculatePeriods(
+    fromDate: string,
+    untilDate: string,
+    recurrence: 'monthly' | 'quarterly' | 'yearly'
+  ): Array<{ year: number; month: number }> {
+    const from = new Date(fromDate)
+    const until = new Date(untilDate)
+    const periods: Array<{ year: number; month: number }> = []
+
+    const monthStep = recurrence === 'monthly' ? 1 : recurrence === 'quarterly' ? 3 : 12
+
+    let year = from.getFullYear()
+    let month = from.getMonth() + 1 // 1-based
+
+    while (true) {
+      const periodDate = new Date(year, month - 1, 1)
+      if (periodDate > until) break
+
+      periods.push({ year, month })
+
+      month += monthStep
+      if (month > 12) {
+        year += Math.floor((month - 1) / 12)
+        month = ((month - 1) % 12) + 1
+      }
+    }
+
+    return periods
+  }
 }

@@ -32,7 +32,7 @@ export function DashboardNavbar({ onToggleSidebar, initialUser }: DashboardNavba
           </Button>
         )}
         <NavbarBrandPrimitive>
-          <Link className="font-bold text-inherit text-xl" href="/dashboard">
+          <Link className="font-bold text-inherit text-xl hidden sm:inline" href="/dashboard">
             CondominioApp
           </Link>
         </NavbarBrandPrimitive>

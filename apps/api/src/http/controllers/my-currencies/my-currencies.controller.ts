@@ -1,4 +1,3 @@
-import type { Context } from 'hono'
 import type { CurrenciesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { authMiddleware } from '../../middlewares/auth'

@@ -80,63 +80,86 @@
       "home": "Inicio",
       "problems": "Problemas",
       "benefits": "Beneficios",
+      "residents": "Residentes",
       "howItWorks": "Proceso",
       "cta": "Comienza",
       "footer": "Contacto"
     },
     "hero": {
-      "title": "Administrar tu condominio",
-      "titleHighlight": "ya no tiene que ser un dolor de cabeza",
-      "subtitle": "La herramienta que te ayuda a cobrar cuotas, mantener informados a los vecinos y tener las cuentas en orden. Simple, como debería ser.",
-      "cta": "Pruébalo gratis",
+      "title": "Tu condominio,",
+      "titleHighlight": "conectado como debe ser",
+      "subtitle": "La plataforma que une a administradores y residentes en un solo lugar. Gestión eficiente, información transparente y comunidad conectada.",
+      "cta": "Comenzar ahora",
       "howItWorks": "¿Cómo funciona?",
-      "noCreditCard": "Sin tarjeta de crédito · Cancela cuando quieras"
+      "noCreditCard": "Configuración en minutos · Soporte incluido"
     },
     "problems": {
-      "title": "Sabemos lo difícil que es",
-      "subtitle": "Administrar un condominio puede ser agotador. Nosotros lo hacemos más fácil.",
+      "title": "Un condominio desconectado es un condominio en conflicto",
+      "subtitle": "Cuando la información no fluye, los problemas crecen. Esto le pasa a administradores y residentes por igual.",
       "items": {
         "payments": {
-          "problem": "¿Cansado de perseguir pagos?",
-          "solution": "Los vecinos pagan en línea y tú ves todo al instante"
+          "problem": "Pagos sin control ni visibilidad",
+          "solution": "Los residentes pagan desde su celular y el administrador ve todo en tiempo real"
         },
         "meetings": {
-          "problem": "¿Reuniones interminables?",
-          "solution": "Envía comunicados y recibe respuestas sin salir de casa"
+          "problem": "Comunicación que no llega",
+          "solution": "Avisos, comunicados y documentos directo al celular de cada residente"
         },
         "communication": {
-          "problem": "¿Vecinos que no se enteran?",
-          "solution": "Notificaciones automáticas que sí llegan y sí se leen"
+          "problem": "Falta de confianza y transparencia",
+          "solution": "Cada residente accede a su estado de cuenta, recibos y gastos del condominio cuando quiera"
         },
         "spreadsheets": {
-          "problem": "¿Excel con mil pestañas?",
-          "solution": "Un sistema simple que hace los cálculos por ti"
+          "problem": "Gestión manual y propensa a errores",
+          "solution": "Un sistema que automatiza cálculos, cuotas y recordatorios por ti"
         }
       }
     },
     "benefits": {
       "label": "Beneficios",
-      "title": "Todo lo que necesitas, nada que no",
+      "title": "Una plataforma, dos experiencias",
       "items": {
         "paperwork": {
-          "title": "Olvídate del papeleo",
-          "description": "Todo en un solo lugar: cuotas, pagos, comunicados. Sin hojas de Excel ni carpetas perdidas.",
-          "highlight": "Ahorra tiempo"
+          "title": "Gestión centralizada",
+          "description": "Todo en un solo lugar: cuotas, pagos, comunicados, documentos. Sin hojas de cálculo ni carpetas perdidas.",
+          "highlight": "Para administradores"
         },
         "collections": {
-          "title": "Cobra sin perseguir a nadie",
-          "description": "Los vecinos reciben recordatorios automáticos y pueden pagar desde su celular.",
-          "highlight": "Menos estrés"
+          "title": "Cobranza sin fricciones",
+          "description": "Recordatorios automáticos, pagos desde el celular y conciliación instantánea. Menos perseguir, más administrar.",
+          "highlight": "Para administradores"
         },
         "informed": {
-          "title": "Todos informados",
-          "description": "Comunicados, avisos y documentos llegan directo al celular de cada residente.",
-          "highlight": "Sin malentendidos"
+          "title": "Información al alcance",
+          "description": "Los residentes ven avisos, documentos y novedades del condominio directamente en su celular, cuando quieran.",
+          "highlight": "Para residentes"
         },
         "transparency": {
-          "title": "Cuentas claras",
-          "description": "Cada vecino ve sus pagos, recibos y estado de cuenta cuando quiera, sin llamarte.",
-          "highlight": "Transparencia total"
+          "title": "Transparencia total",
+          "description": "Cada residente consulta su estado de cuenta, historial de pagos y gastos comunes. Cuentas claras, confianza real.",
+          "highlight": "Para residentes"
+        }
+      }
+    },
+    "residents": {
+      "title": "Diseñado para quienes viven ahí",
+      "subtitle": "Tu condominio es donde haces vida. Mereces saber qué pasa, participar y confiar en cómo se administra.",
+      "items": {
+        "visibility": {
+          "title": "Todo a la vista",
+          "description": "Consulta tus cuotas, pagos, recibos y el estado financiero de tu condominio cuando quieras. Sin depender de nadie."
+        },
+        "payments": {
+          "title": "Paga fácil",
+          "description": "Realiza tus pagos desde el celular, recibe confirmaciones al instante y lleva tu historial siempre contigo."
+        },
+        "communication": {
+          "title": "Entérate de todo",
+          "description": "Recibe avisos, comunicados y documentos importantes directamente. Sin grupos de WhatsApp ni carteleras ignoradas."
+        },
+        "trust": {
+          "title": "Confía en tu administración",
+          "description": "Accede a los gastos, presupuestos y decisiones de tu condominio. La transparencia genera comunidades más fuertes."
         }
       }
     },
@@ -147,24 +170,24 @@
         "register": {
           "step": "1",
           "title": "Registra tu condominio",
-          "description": "En menos de 5 minutos tienes todo listo"
+          "description": "En menos de 5 minutos tienes todo configurado"
         },
         "invite": {
           "step": "2",
-          "title": "Invita a los vecinos",
-          "description": "Les llega un link y listo, ya están dentro"
+          "title": "Invita a los residentes",
+          "description": "Les llega un enlace y ya están dentro con acceso a todo"
         },
         "manage": {
           "step": "3",
-          "title": "Empieza a administrar",
-          "description": "Genera cuotas, recibe pagos, envía avisos"
+          "title": "Conecta tu comunidad",
+          "description": "Administra, comunica y cobra. Los residentes ven todo desde su celular"
         }
       }
     },
     "cta": {
-      "title": "¿Listo para simplificar tu vida?",
-      "subtitle": "Únete a los administradores que ya dejaron de sufrir con el papeleo y los pagos atrasados.",
-      "button": "Comenzar gratis",
+      "title": "Tu condominio merece funcionar mejor",
+      "subtitle": "Únete a las comunidades que ya conectaron a sus administradores y residentes en una sola plataforma.",
+      "button": "Comenzar ahora",
       "note": "Configuración en minutos · Soporte incluido"
     },
     "pricing": {
@@ -194,7 +217,8 @@
     }
   },
   "footer": {
-    "description": "La forma más fácil de administrar tu condominio.",
+    "description": "La plataforma que conecta a administradores y residentes para vivir mejor en comunidad.",
+    "residents": "Residentes",
     "product": "Producto",
     "benefits": "Beneficios",
     "join": "Únete",
@@ -206,7 +230,7 @@
     "privacy": "Privacidad",
     "terms": "Términos de uso",
     "copyright": "© {year} CondominioApp. Todos los derechos reservados.",
-    "madeWith": "Hecho con ❤️ para administradores de condominios"
+    "madeWith": "Hecho con ❤️ para comunidades que quieren vivir mejor"
   },
   "auth": {
     "signIn": {
@@ -292,6 +316,8 @@
     "loading": {
       "title": "Preparando todo...",
       "subtitle": "Estamos cargando tu información",
+      "signingOut": "Cerrando sesión...",
+      "signingOutSubtitle": "Hasta pronto",
       "error": "Error al cargar tu información",
       "retry": "Reintentar",
       "logout": "Cerrar sesión",
@@ -3791,6 +3817,10 @@
               "review": "Revisión"
             },
             "success": "Concepto de pago creado exitosamente",
+            "editTitle": "Editar Concepto de Pago",
+            "editSuccess": "Concepto de pago actualizado exitosamente",
+            "saving": "Guardando...",
+            "save": "Guardar Cambios",
             "creating": "Creando...",
             "create": "Crear Concepto",
             "cancel": "Cancelar",
@@ -3824,6 +3854,17 @@
                 "effectiveFrom": "Fecha a partir de la cual este concepto de cobro entra en vigencia",
                 "effectiveUntil": "Fecha hasta la cual este concepto es válido. Déjalo vacío si no tiene fecha de expiración",
                 "recurrencePeriod": "Frecuencia con la que se generarán automáticamente los cargos"
+              },
+              "chargeGeneration": {
+                "title": "Generación de Cuotas",
+                "description": "Elige cómo se generarán las cuotas o cobros para este concepto",
+                "auto": "Generación automática",
+                "autoHint": "El sistema generará las cuotas período a período según la periodicidad seleccionada",
+                "bulk": "Generación anticipada completa",
+                "bulkHint": "Se crearán todas las cuotas desde el inicio hasta el fin de vigencia al momento de crear el concepto",
+                "manual": "Generación manual",
+                "manualHint": "Las cuotas se generarán manualmente desde el detalle del concepto",
+                "bulkRequiresEndDate": "La generación anticipada requiere una fecha de fin de vigencia"
               },
               "errors": {
                 "typeRequired": "Selecciona un tipo de concepto",
@@ -3999,6 +4040,10 @@
               "effectiveUntil": "Fin de Vigencia",
               "recurring": "Recurrente",
               "recurrence": "Periodicidad",
+              "chargeGenerationStrategy": "Generación de Cuotas",
+              "strategyAuto": "Automática (por periodicidad)",
+              "strategyBulk": "Anticipada completa",
+              "strategyManual": "Manual",
               "descriptionLabel": "Descripción",
               "chargeConfig": "Configuración de Cobro",
               "issueDay": "Día de Emisión",
@@ -4016,6 +4061,9 @@
               "assignments": "Asignaciones",
               "bankAccounts": "Cuentas Bancarias",
               "bankAccountsSelected": "cuentas seleccionadas",
+              "changeReasonTitle": "Razón del cambio",
+              "changeReasonHint": "Describe brevemente por qué se modificó este concepto. Se guardará en el historial de cambios.",
+              "changeReasonPlaceholder": "Ej: Ajuste de tarifa por aumento de costos operativos",
               "notifyTitle": "Notificar a los residentes",
               "notifyDescriptionOn": "Se enviará notificación por correo y mensajería al crear el concepto",
               "notifyDescriptionOff": "La notificación se enviará automáticamente según el día de emisión configurado"
@@ -4025,6 +4073,7 @@
             "basicInfo": "Información Básica",
             "type": "Tipo",
             "currency": "Moneda",
+            "amount": "Monto",
             "effectiveFrom": "Inicio de Vigencia",
             "effectiveUntil": "Fin de Vigencia",
             "recurring": "Recurrente",
@@ -4047,11 +4096,11 @@
             "noAssignments": "Sin asignaciones configuradas",
             "bankAccounts": "Cuentas Bancarias",
             "noBankAccounts": "Sin cuentas bancarias vinculadas",
-            "deactivate": "Desactivar",
-            "deactivateConfirm": "¿Desactivar concepto?",
-            "deactivateWarning": "Las cuotas existentes no se verán afectadas, pero no se podrán generar nuevos cargos",
+            "deactivate": "Desactivar Concepto",
+            "deactivateConfirm": "¿Desactivar concepto y cancelar cuotas pendientes?",
+            "deactivateWarning": "Esta acción desactivará el concepto de pago, cancelará todas las cuotas pendientes y vencidas, y desactivará todas las asignaciones activas. Las cuotas ya pagadas no serán afectadas. Esta acción no se puede revertir.",
             "confirmDeactivate": "Confirmar Desactivación",
-            "deactivated": "Concepto desactivado exitosamente",
+            "deactivated": "Concepto desactivado: {cancelledQuotas} cuotas canceladas, {deactivatedAssignments} asignaciones desactivadas",
             "deactivateError": "Error al desactivar el concepto",
             "deactivateAssignment": "Desactivar",
             "assignmentDeactivated": "Asignación desactivada",
@@ -4085,7 +4134,11 @@
             "overdueQuotas": "cuota(s) vencida(s)",
             "overdueFrom": "Vencida desde",
             "daysOverdue": "día(s) vencida",
-            "quotaDetail": "Ver cuotas"
+            "quotaDetail": "Ver cuotas",
+            "edit": "Editar",
+            "changeHistory": "Historial de Cambios",
+            "noChanges": "No hay cambios registrados",
+            "backToConcept": "Volver al concepto"
           },
           "generate": {
             "title": "Generar Cargos",

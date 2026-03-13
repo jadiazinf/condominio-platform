@@ -4,7 +4,7 @@ import type {
   TManagementCompanySubscription,
 } from '@packages/domain'
 import type { SubscriptionAuditHistoryRepository } from '@database/repositories'
-import { type TServiceResult, success, failure } from '../base.service'
+import { type TServiceResult, success } from '../base.service'
 
 export interface ICreateAuditEntryInput {
   subscriptionId: string

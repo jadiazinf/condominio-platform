@@ -18,6 +18,7 @@ import {
 import { useAuth } from '@/contexts'
 import { formatCurrency } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
+import { getInvoiceStatusColor } from '@/utils/status-colors'
 
 type TInvoiceStatus = 'pending' | 'paid' | 'overdue' | 'cancelled' | 'refunded' | 'sent' | 'draft'
 
@@ -112,27 +113,6 @@ export function CompanyInvoicesTable({ companyId }: CompanyInvoicesTableProps) {
 
   const formatDate = (date: Date | string) => formatShortDate(date)
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'paid':
-        return 'success'
-      case 'pending':
-        return 'warning'
-      case 'overdue':
-        return 'danger'
-      case 'cancelled':
-        return 'default'
-      case 'refunded':
-        return 'secondary'
-      case 'draft':
-        return 'default'
-      case 'sent':
-        return 'primary'
-      default:
-        return 'default'
-    }
-  }
-
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       draft: 'Borrador',
@@ -189,7 +169,7 @@ export function CompanyInvoicesTable({ companyId }: CompanyInvoicesTableProps) {
           )
         case 'status':
           return (
-            <Chip color={getStatusColor(invoice.status)} variant="flat">
+            <Chip color={getInvoiceStatusColor(invoice.status)} variant="flat">
               {getStatusLabel(invoice.status)}
             </Chip>
           )

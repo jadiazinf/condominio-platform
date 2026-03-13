@@ -86,7 +86,7 @@ export default heroui({
     },
     dark: {
       colors: {
-        background: '#1E1F22', // Tu dark background favorito
+        background: '#1E1F22',
         foreground: '#FAFAFA',
         content1: '#27272A',
         content2: '#3F3F46',
@@ -190,6 +190,12 @@ export default heroui({
     'dashboard-dark': {
       extend: 'dark',
       colors: {
+        background: '#131720',
+        content1: '#1A2030',
+        content2: '#273040',
+        content3: '#3A4458',
+        content4: '#5E6B80',
+        divider: '#273040',
         primary: {
           50: '#14532D',
           100: '#166534',

@@ -14,17 +14,10 @@ import {
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
-import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
-import {
-  GetQuotasByUnitService,
-  GetPendingQuotasByUnitService,
-  GetQuotasByStatusService,
-  GetOverdueQuotasService,
-  GetQuotasByPeriodService,
-} from '@src/services/quotas'
 
 const UnitIdParamSchema = z.object({
   unitId: z.string().uuid('Invalid unit ID format'),
@@ -61,38 +54,12 @@ const PeriodQuerySchema = z.object({
 
 type TPeriodQuery = z.infer<typeof PeriodQuerySchema>
 
-/**
- * Controller for managing quota resources.
- *
- * Endpoints:
- * - GET    /                       List all quotas
- * - GET    /unit/:unitId           Get by unit
- * - GET    /unit/:unitId/pending   Get pending quotas for unit
- * - GET    /status/:status         Get by status
- * - GET    /overdue/:date          Get overdue quotas as of date
- * - GET    /period                 Get by period (query: year, month)
- * - GET    /:id                    Get by ID
- * - POST   /                       Create quota
- * - PATCH  /:id                    Update quota
- * - DELETE /:id                    Cancel quota
- */
 export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuotaUpdate> {
-  private readonly getQuotasByUnitService: GetQuotasByUnitService
-  private readonly getPendingQuotasByUnitService: GetPendingQuotasByUnitService
-  private readonly getQuotasByStatusService: GetQuotasByStatusService
-  private readonly getOverdueQuotasService: GetOverdueQuotasService
-  private readonly getQuotasByPeriodService: GetQuotasByPeriodService
+  private readonly quotasRepository: QuotasRepository
 
   constructor(repository: QuotasRepository) {
     super(repository)
-
-    // Initialize services
-    this.getQuotasByUnitService = new GetQuotasByUnitService(repository)
-    this.getPendingQuotasByUnitService = new GetPendingQuotasByUnitService(repository)
-    this.getQuotasByStatusService = new GetQuotasByStatusService(repository)
-    this.getOverdueQuotasService = new GetOverdueQuotasService(repository)
-    this.getQuotasByPeriodService = new GetQuotasByPeriodService(repository)
-
+    this.quotasRepository = repository
   }
 
   get routes(): TRouteDefinition[] {
@@ -171,129 +138,51 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
     ]
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Overridden Handlers
-  // ─────────────────────────────────────────────────────────────────────────────
-
   protected override list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
-    // TODO: Filter by condominiumId via JOIN through unit → building.condominiumId
     const entities = await this.repository.listAll()
     return ctx.ok({ data: entities })
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Custom Handlers
-  // ─────────────────────────────────────────────────────────────────────────────
-
   private getByUnitIdPaginated = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TPaginatedByUnitQuery, TUnitIdParam>(c)
-
-    try {
-      const repo = this.repository as QuotasRepository
-      const result = await repo.listPaginatedByUnit(ctx.params.unitId, {
-        page: ctx.query.page,
-        limit: ctx.query.limit,
-        startDate: ctx.query.startDate,
-        endDate: ctx.query.endDate,
-        status: ctx.query.status,
-      })
-
-      return ctx.ok(result)
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const result = await this.quotasRepository.listPaginatedByUnit(ctx.params.unitId, {
+      page: ctx.query.page,
+      limit: ctx.query.limit,
+      startDate: ctx.query.startDate,
+      endDate: ctx.query.endDate,
+      status: ctx.query.status,
+    })
+    return ctx.ok(result)
   }
 
   private getByUnitId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)
-
-    try {
-      const result = await this.getQuotasByUnitService.execute({
-        unitId: ctx.params.unitId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.quotasRepository.getByUnitId(ctx.params.unitId)
+    return ctx.ok({ data })
   }
 
   private getPendingByUnit = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)
-
-    try {
-      const result = await this.getPendingQuotasByUnitService.execute({
-        unitId: ctx.params.unitId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.quotasRepository.getPendingByUnit(ctx.params.unitId)
+    return ctx.ok({ data })
   }
 
   private getByStatus = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TStatusParam>(c)
-
-    try {
-      const result = await this.getQuotasByStatusService.execute({
-        status: ctx.params.status,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.quotasRepository.getByStatus(ctx.params.status)
+    return ctx.ok({ data })
   }
 
   private getOverdue = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TDateParam>(c)
-
-    try {
-      const result = await this.getOverdueQuotasService.execute({
-        asOfDate: ctx.params.date,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.quotasRepository.getOverdue(ctx.params.date)
+    return ctx.ok({ data })
   }
 
   private getByPeriod = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TPeriodQuery>(c)
-
-    try {
-      const result = await this.getQuotasByPeriodService.execute({
-        year: ctx.query.year,
-        month: ctx.query.month,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.quotasRepository.getByPeriod(ctx.query.year, ctx.query.month)
+    return ctx.ok({ data })
   }
 }

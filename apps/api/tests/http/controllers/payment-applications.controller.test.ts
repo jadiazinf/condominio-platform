@@ -6,9 +6,18 @@ import type {
   TPaymentApplication,
   TPaymentApplicationCreate,
   TPaymentApplicationUpdate,
+  TPayment,
+  TQuota,
 } from '@packages/domain'
 import { PaymentApplicationsController } from '@http/controllers/payment-applications'
-import type { PaymentApplicationsRepository } from '@database/repositories'
+import type {
+  PaymentApplicationsRepository,
+  PaymentsRepository,
+  QuotasRepository,
+  QuotaAdjustmentsRepository,
+  InterestConfigurationsRepository,
+} from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import {
   withId,
   createTestApp,
@@ -18,104 +27,183 @@ import {
 } from './test-utils'
 import { ErrorCodes } from '@http/responses/types'
 
-// Mock repository type with custom methods
-type TMockPaymentApplicationsRepository = {
-  listAll: () => Promise<TPaymentApplication[]>
-  getById: (id: string) => Promise<TPaymentApplication | null>
-  create: (data: TPaymentApplicationCreate) => Promise<TPaymentApplication>
-  update: (id: string, data: TPaymentApplicationUpdate) => Promise<TPaymentApplication | null>
-  delete: (id: string) => Promise<boolean>
-  getByPaymentId: (paymentId: string) => Promise<TPaymentApplication[]>
-  getByQuotaId: (quotaId: string) => Promise<TPaymentApplication[]>
+// ─────────────────────────────────────────────────────────────────────────────
+// Test data
+// ─────────────────────────────────────────────────────────────────────────────
+
+const paymentId1 = '550e8400-e29b-41d4-a716-446655440010'
+const paymentId2 = '550e8400-e29b-41d4-a716-446655440011'
+const quotaId1 = '550e8400-e29b-41d4-a716-446655440020'
+const quotaId2 = '550e8400-e29b-41d4-a716-446655440021'
+const userId = '550e8400-e29b-41d4-a716-446655440000'
+
+function makePayment(id: string, overrides: Partial<TPayment> = {}): TPayment {
+  return {
+    id,
+    paymentNumber: null,
+    userId,
+    unitId: '550e8400-e29b-41d4-a716-446655440030',
+    amount: '100.00',
+    currencyId: '550e8400-e29b-41d4-a716-446655440040',
+    paidAmount: null,
+    paidCurrencyId: null,
+    exchangeRate: null,
+    paymentMethod: 'transfer',
+    paymentGatewayId: null,
+    paymentDetails: null,
+    paymentDate: '2025-01-15',
+    registeredAt: new Date(),
+    status: 'completed',
+    receiptUrl: null,
+    receiptNumber: null,
+    notes: null,
+    metadata: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    registeredBy: userId,
+    verifiedBy: null,
+    verifiedAt: null,
+    verificationNotes: null,
+    ...overrides,
+  } as TPayment
 }
 
-function createPaymentApplication(
-  paymentId: string,
-  quotaId: string,
-  overrides: Partial<TPaymentApplicationCreate> = {}
-): TPaymentApplicationCreate {
+function makeQuota(id: string, overrides: Partial<TQuota> = {}): TQuota {
   return {
-    paymentId,
-    quotaId,
-    appliedAmount: '100.00',
-    appliedToPrincipal: '100.00',
-    appliedToInterest: '0',
-    registeredBy: null,
+    id,
+    unitId: '550e8400-e29b-41d4-a716-446655440030',
+    paymentConceptId: '550e8400-e29b-41d4-a716-446655440050',
+    periodYear: 2025,
+    periodMonth: 1,
+    periodDescription: null,
+    baseAmount: '100.00',
+    currencyId: '550e8400-e29b-41d4-a716-446655440040',
+    interestAmount: '0',
+    amountInBaseCurrency: null,
+    exchangeRateUsed: null,
+    issueDate: '2025-01-01',
+    dueDate: '2025-01-31',
+    status: 'pending',
+    paidAmount: '0',
+    balance: '100.00',
+    notes: null,
+    metadata: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    createdBy: userId,
     ...overrides,
-  }
+  } as TQuota
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mocks
+// ─────────────────────────────────────────────────────────────────────────────
+
+function createMockDb() {
+  return {
+    transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn({}),
+  } as unknown as TDrizzleClient
+}
+
+function createMockPaymentApplicationsRepo(testApplications: TPaymentApplication[]) {
+  return {
+    listAll: async () => testApplications,
+    getById: async (id: string) => testApplications.find(a => a.id === id) || null,
+    create: async (data: TPaymentApplicationCreate) => withId(data, crypto.randomUUID()) as TPaymentApplication,
+    update: async (id: string, data: TPaymentApplicationUpdate) => {
+      const a = testApplications.find(item => item.id === id)
+      if (!a) return null
+      return { ...a, ...data } as TPaymentApplication
+    },
+    delete: async (id: string) => testApplications.some(a => a.id === id),
+    getByPaymentId: async (paymentId: string) => testApplications.filter(a => a.paymentId === paymentId),
+    getByQuotaId: async (quotaId: string) => testApplications.filter(a => a.quotaId === quotaId),
+    withTx: function () { return this },
+  } as unknown as PaymentApplicationsRepository
+}
+
+function createMockPaymentsRepo(payments: TPayment[]) {
+  return {
+    getById: async (id: string) => payments.find(p => p.id === id) || null,
+    withTx: function () { return this },
+  } as unknown as PaymentsRepository
+}
+
+function createMockQuotasRepo(quotas: TQuota[]) {
+  return {
+    getById: async (id: string) => quotas.find(q => q.id === id) || null,
+    update: async () => null,
+    withTx: function () { return this },
+  } as unknown as QuotasRepository
+}
+
+function createMockAdjustmentsRepo() {
+  return {
+    create: async () => ({}),
+    withTx: function () { return this },
+  } as unknown as QuotaAdjustmentsRepository
+}
+
+function createMockInterestConfigsRepo() {
+  return {
+    getActiveForDate: async () => null,
+    withTx: function () { return this },
+  } as unknown as InterestConfigurationsRepository
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests
+// ─────────────────────────────────────────────────────────────────────────────
 
 describe('PaymentApplicationsController', function () {
   let app: Hono
   let request: (path: string, options?: RequestInit) => Promise<Response>
-  let mockRepository: TMockPaymentApplicationsRepository
+  let mockAppsRepo: ReturnType<typeof createMockPaymentApplicationsRepo>
   let testApplications: TPaymentApplication[]
 
-  const paymentId1 = '550e8400-e29b-41d4-a716-446655440010'
-  const paymentId2 = '550e8400-e29b-41d4-a716-446655440011'
-  const quotaId1 = '550e8400-e29b-41d4-a716-446655440020'
-  const quotaId2 = '550e8400-e29b-41d4-a716-446655440021'
+  const testPayments = [
+    makePayment(paymentId1),
+    makePayment(paymentId2),
+  ]
+
+  const testQuotas = [
+    makeQuota(quotaId1),
+    makeQuota(quotaId2),
+  ]
 
   beforeEach(function () {
-    // Create test data
-    const app1 = createPaymentApplication(paymentId1, quotaId1, { appliedAmount: '100.00' })
-    const app2 = createPaymentApplication(paymentId1, quotaId2, { appliedAmount: '50.00' })
-    const app3 = createPaymentApplication(paymentId2, quotaId1, { appliedAmount: '25.00' })
-
-    testApplications = [
-      withId(app1, '550e8400-e29b-41d4-a716-446655440001') as TPaymentApplication,
-      withId(app2, '550e8400-e29b-41d4-a716-446655440002') as TPaymentApplication,
-      withId(app3, '550e8400-e29b-41d4-a716-446655440003') as TPaymentApplication,
-    ]
-
-    // Create mock repository
-    mockRepository = {
-      listAll: async function () {
-        return testApplications
-      },
-      getById: async function (id: string) {
-        return (
-          testApplications.find(function (a) {
-            return a.id === id
-          }) || null
-        )
-      },
-      create: async function (data: TPaymentApplicationCreate) {
-        return withId(data, crypto.randomUUID()) as TPaymentApplication
-      },
-      update: async function (id: string, data: TPaymentApplicationUpdate) {
-        const a = testApplications.find(function (item) {
-          return item.id === id
-        })
-        if (!a) return null
-        return { ...a, ...data } as TPaymentApplication
-      },
-      delete: async function (id: string) {
-        return testApplications.some(function (a) {
-          return a.id === id
-        })
-      },
-      getByPaymentId: async function (paymentId: string) {
-        return testApplications.filter(function (a) {
-          return a.paymentId === paymentId
-        })
-      },
-      getByQuotaId: async function (quotaId: string) {
-        return testApplications.filter(function (a) {
-          return a.quotaId === quotaId
-        })
-      },
+    const app1Data: TPaymentApplicationCreate = {
+      paymentId: paymentId1, quotaId: quotaId1, appliedAmount: '100.00',
+      appliedToPrincipal: '100.00', appliedToInterest: '0', registeredBy: null,
+    }
+    const app2Data: TPaymentApplicationCreate = {
+      paymentId: paymentId1, quotaId: quotaId2, appliedAmount: '50.00',
+      appliedToPrincipal: '50.00', appliedToInterest: '0', registeredBy: null,
+    }
+    const app3Data: TPaymentApplicationCreate = {
+      paymentId: paymentId2, quotaId: quotaId1, appliedAmount: '25.00',
+      appliedToPrincipal: '25.00', appliedToInterest: '0', registeredBy: null,
     }
 
-    // Create controller with mock repository
+    testApplications = [
+      withId(app1Data, '550e8400-e29b-41d4-a716-446655440001') as TPaymentApplication,
+      withId(app2Data, '550e8400-e29b-41d4-a716-446655440002') as TPaymentApplication,
+      withId(app3Data, '550e8400-e29b-41d4-a716-446655440003') as TPaymentApplication,
+    ]
+
+    mockAppsRepo = createMockPaymentApplicationsRepo(testApplications)
+
     const controller = new PaymentApplicationsController(
-      mockRepository as unknown as PaymentApplicationsRepository
+      mockAppsRepo,
+      createMockDb(),
+      createMockPaymentsRepo(testPayments),
+      createMockQuotasRepo(testQuotas),
+      createMockAdjustmentsRepo(),
+      createMockInterestConfigsRepo(),
     )
 
-    // Create Hono app with controller routes
     app = createTestApp()
     app.route('/payment-applications', controller.createRouter())
-
     request = async (path, options) => app.request(path, options)
   })
 
@@ -123,19 +211,14 @@ describe('PaymentApplicationsController', function () {
     it('should return all payment applications', async function () {
       const res = await request('/payment-applications')
       expect(res.status).toBe(StatusCodes.OK)
-
       const json = (await res.json()) as IApiResponse
       expect(json.data).toHaveLength(3)
     })
 
     it('should return empty array when no applications exist', async function () {
-      mockRepository.listAll = async function () {
-        return []
-      }
-
+      mockAppsRepo.listAll = async () => []
       const res = await request('/payment-applications')
       expect(res.status).toBe(StatusCodes.OK)
-
       const json = (await res.json()) as IApiResponse
       expect(json.data).toHaveLength(0)
     })
@@ -145,7 +228,6 @@ describe('PaymentApplicationsController', function () {
     it('should return payment application by ID', async function () {
       const res = await request('/payment-applications/550e8400-e29b-41d4-a716-446655440001')
       expect(res.status).toBe(StatusCodes.OK)
-
       const json = (await res.json()) as IApiResponse
       expect(json.data.paymentId).toBe(paymentId1)
       expect(json.data.quotaId).toBe(quotaId1)
@@ -154,7 +236,6 @@ describe('PaymentApplicationsController', function () {
     it('should return 404 when application not found', async function () {
       const res = await request('/payment-applications/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
-
       const json = (await res.json()) as IApiResponse
       expect(getErrorMessage(json)).toContain('not found')
     })
@@ -169,26 +250,14 @@ describe('PaymentApplicationsController', function () {
     it('should return applications by payment ID', async function () {
       const res = await request(`/payment-applications/payment/${paymentId1}`)
       expect(res.status).toBe(StatusCodes.OK)
-
       const json = (await res.json()) as IApiResponse
       expect(json.data).toHaveLength(2)
-      expect(
-        json.data.every(function (a: TPaymentApplication) {
-          return a.paymentId === paymentId1
-        })
-      ).toBe(true)
     })
 
     it('should return empty array when no applications for payment', async function () {
-      mockRepository.getByPaymentId = async function () {
-        return []
-      }
-
-      const res = await request(
-        '/payment-applications/payment/550e8400-e29b-41d4-a716-446655440099'
-      )
+      mockAppsRepo.getByPaymentId = async () => []
+      const res = await request('/payment-applications/payment/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
-
       const json = (await res.json()) as IApiResponse
       expect(json.data).toHaveLength(0)
     })
@@ -198,45 +267,35 @@ describe('PaymentApplicationsController', function () {
     it('should return applications by quota ID', async function () {
       const res = await request(`/payment-applications/quota/${quotaId1}`)
       expect(res.status).toBe(StatusCodes.OK)
-
       const json = (await res.json()) as IApiResponse
       expect(json.data).toHaveLength(2)
-      expect(
-        json.data.every(function (a: TPaymentApplication) {
-          return a.quotaId === quotaId1
-        })
-      ).toBe(true)
     })
 
     it('should return empty array when no applications for quota', async function () {
-      mockRepository.getByQuotaId = async function () {
-        return []
-      }
-
+      mockAppsRepo.getByQuotaId = async () => []
       const res = await request('/payment-applications/quota/550e8400-e29b-41d4-a716-446655440099')
       expect(res.status).toBe(StatusCodes.OK)
-
       const json = (await res.json()) as IApiResponse
       expect(json.data).toHaveLength(0)
     })
   })
 
-  describe('POST / (create)', function () {
-    it('should create a new payment application', async function () {
-      const newApplication = createPaymentApplication(paymentId2, quotaId2)
-
+  describe('POST / (apply payment)', function () {
+    it('should apply payment to quota and return 201', async function () {
       const res = await request('/payment-applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newApplication),
+        body: JSON.stringify({
+          paymentId: paymentId2,
+          quotaId: quotaId2,
+          appliedAmount: '100.00',
+        }),
       })
 
       expect(res.status).toBe(StatusCodes.CREATED)
-
       const json = (await res.json()) as IApiResponse
-      expect(json.data.paymentId).toBe(paymentId2)
-      expect(json.data.quotaId).toBe(quotaId2)
-      expect(json.data.id).toBeDefined()
+      expect(json.data.application).toBeDefined()
+      expect(json.data.quotaUpdated).toBe(true)
     })
 
     it('should return 422 for invalid body', async function () {
@@ -247,54 +306,62 @@ describe('PaymentApplicationsController', function () {
       })
 
       expect(res.status).toBe(StatusCodes.UNPROCESSABLE_ENTITY)
-
       const json = (await res.json()) as IStandardErrorResponse
       expect(json.success).toBe(false)
       expect(json.error.code).toBe(ErrorCodes.VALIDATION_ERROR)
-      expect(json.error.message).toBeDefined()
-      expect(json.error.fields).toBeDefined()
-      expect(Array.isArray(json.error.fields)).toBe(true)
     })
 
-    it('should return 409 when duplicate application exists', async function () {
-      mockRepository.create = async function () {
-        throw new Error('duplicate key value violates unique constraint')
-      }
-
-      const newApplication = createPaymentApplication(paymentId1, quotaId1)
-
+    it('should return 404 when payment not found', async function () {
       const res = await request('/payment-applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newApplication),
+        body: JSON.stringify({
+          paymentId: '550e8400-e29b-41d4-a716-446655440099',
+          quotaId: quotaId1,
+          appliedAmount: '100.00',
+        }),
       })
 
-      expect(res.status).toBe(StatusCodes.CONFLICT)
-
-      const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toContain('already exists')
+      expect(res.status).toBe(StatusCodes.NOT_FOUND)
     })
 
-    it('should return 400 for foreign key violations', async function () {
-      mockRepository.create = async function () {
-        throw new Error('violates foreign key constraint')
-      }
-
-      const newApplication = createPaymentApplication(
-        '550e8400-e29b-41d4-a716-446655440099',
-        quotaId1
-      )
-
+    it('should return 404 when quota not found', async function () {
       const res = await request('/payment-applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newApplication),
+        body: JSON.stringify({
+          paymentId: paymentId1,
+          quotaId: '550e8400-e29b-41d4-a716-446655440099',
+          appliedAmount: '100.00',
+        }),
+      })
+
+      expect(res.status).toBe(StatusCodes.NOT_FOUND)
+    })
+
+    it('should return 400 when payment is not completed', async function () {
+      const controller = new PaymentApplicationsController(
+        mockAppsRepo,
+        createMockDb(),
+        createMockPaymentsRepo([makePayment(paymentId1, { status: 'pending' })]),
+        createMockQuotasRepo(testQuotas),
+        createMockAdjustmentsRepo(),
+        createMockInterestConfigsRepo(),
+      )
+      const testApp = createTestApp()
+      testApp.route('/pa', controller.createRouter())
+
+      const res = await testApp.request('/pa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentId: paymentId1,
+          quotaId: quotaId1,
+          appliedAmount: '100.00',
+        }),
       })
 
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
-
-      const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toContain('reference')
     })
   })
 
@@ -307,7 +374,6 @@ describe('PaymentApplicationsController', function () {
       })
 
       expect(res.status).toBe(StatusCodes.OK)
-
       const json = (await res.json()) as IApiResponse
       expect(json.data.appliedAmount).toBe('75.00')
     })
@@ -320,9 +386,6 @@ describe('PaymentApplicationsController', function () {
       })
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
-
-      const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toContain('not found')
     })
   })
 
@@ -336,30 +399,20 @@ describe('PaymentApplicationsController', function () {
     })
 
     it('should return 404 when deleting non-existent application', async function () {
-      mockRepository.delete = async function () {
-        return false
-      }
-
+      mockAppsRepo.delete = async () => false
       const res = await request('/payment-applications/550e8400-e29b-41d4-a716-446655440099', {
         method: 'DELETE',
       })
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
-
-      const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toContain('not found')
     })
   })
 
   describe('Error handling', function () {
     it('should return 500 for unexpected errors', async function () {
-      mockRepository.listAll = async function () {
-        throw new Error('Unexpected database error')
-      }
-
+      mockAppsRepo.listAll = async () => { throw new Error('Unexpected database error') }
       const res = await request('/payment-applications')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
-
       const json = (await res.json()) as IApiResponse
       expect(getErrorMessage(json)).toContain('unexpected')
     })

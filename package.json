@@ -6,9 +6,11 @@
     "dev": "turbo run dev",
     "dev:web": "turbo run dev --filter=@apps/web --filter=@apps/api",
     "dev:api": "turbo run dev --filter=@apps/api",
+    "dev:worker": "turbo run dev --filter=@apps/charges-worker",
+    "dev:full": "turbo run dev --filter=@apps/web --filter=@apps/api --filter=@apps/charges-worker",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types",
+    "check": "turbo run check-types",
     "validate:versions": "node scripts/validate-versions.js",
     "preinstall": "node scripts/validate-versions.js || true"
   },

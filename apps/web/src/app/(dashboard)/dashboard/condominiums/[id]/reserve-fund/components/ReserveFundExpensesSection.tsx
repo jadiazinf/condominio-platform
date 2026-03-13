@@ -201,6 +201,7 @@ export function ReserveFundExpensesSection({
           {/* Desktop Table */}
           <div className="hidden md:block">
             <Table<TExpense>
+              mobileCards={false}
               aria-label={t.title}
               columns={columns}
               rows={expenses}

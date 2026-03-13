@@ -278,6 +278,7 @@ export function ClientLoadingFlow() {
     <LoadingView
       error={displayError}
       step={loadingStep}
+      isSigningOut={shouldSignOut}
       onLogout={handleLogout}
       onRetry={handleRetry}
     />

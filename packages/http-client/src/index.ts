@@ -126,7 +126,9 @@ export {
   useCreatePaymentConcept,
   useCreatePaymentConceptFull,
   useUpdatePaymentConcept,
+  useUpdatePaymentConceptFull,
   useDeactivatePaymentConcept,
+  usePaymentConceptChangeHistory,
   getPaymentConceptDetail,
   paymentConceptKeys,
   // Payment Concept Assignments
@@ -142,6 +144,7 @@ export {
   paymentConceptBankAccountKeys,
   // Generate Charges
   useGenerateCharges,
+  useGenerateChargesBulk,
   // Interest Configurations
   useCreateInterestConfiguration,
   interestConfigurationKeys,
@@ -456,6 +459,10 @@ export type {
   ICreatePaymentConceptOptions,
   IUpdatePaymentConceptOptions,
   IUpdatePaymentConceptVariables,
+  IUpdatePaymentConceptFullOptions,
+  IUpdatePaymentConceptFullVariables,
+  IUsePaymentConceptChangeHistoryOptions,
+  TPaymentConceptChangeRecord,
   IDeactivatePaymentConceptOptions,
   IDeactivatePaymentConceptVariables,
   // Payment Concept Assignments

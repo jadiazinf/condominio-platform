@@ -3,9 +3,7 @@ import { describe, it, expect, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
 import { MyAccessRequestsController } from '@http/controllers/my-access-requests'
-import { createTestApp, type IApiResponse } from './test-utils'
-
-const USER_ID = '550e8400-e29b-41d4-a716-446655440000'
+import { createTestApp } from './test-utils'
 
 describe('MyAccessRequestsController', function () {
   let app: Hono
@@ -67,7 +65,8 @@ describe('MyAccessRequestsController', function () {
       },
     } as any
 
-    const controller = new MyAccessRequestsController(mockDb)
+    const mockSendNotification = { execute: async () => ({ success: true }) } as any
+    const controller = new MyAccessRequestsController(mockDb, mockSendNotification)
 
     app = createTestApp()
     app.route('/me/access-requests', controller.createRouter())

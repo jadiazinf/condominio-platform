@@ -8,11 +8,7 @@ import { createRouter } from '../create-router'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import {
-  GetUserNotificationsService,
   GetUserNotificationsPaginatedService,
-  GetUnreadCountService,
-  MarkAsReadService,
-  MarkAllAsReadService,
 } from '@src/services/notifications'
 import type { IGetUserNotificationsPaginatedInput } from '@src/services/notifications/get-user-notifications-paginated.service'
 import { z } from 'zod'
@@ -31,18 +27,10 @@ type TIdParam = z.infer<typeof IdParamSchema>
  * - DELETE /:id         Delete a notification
  */
 export class MyNotificationsController {
-  private readonly getUserNotificationsService: GetUserNotificationsService
   private readonly getUserNotificationsPaginatedService: GetUserNotificationsPaginatedService
-  private readonly getUnreadCountService: GetUnreadCountService
-  private readonly markAsReadService: MarkAsReadService
-  private readonly markAllAsReadService: MarkAllAsReadService
 
   constructor(private readonly repository: NotificationsRepository) {
-    this.getUserNotificationsService = new GetUserNotificationsService(repository)
     this.getUserNotificationsPaginatedService = new GetUserNotificationsPaginatedService(repository)
-    this.getUnreadCountService = new GetUnreadCountService(repository)
-    this.markAsReadService = new MarkAsReadService(repository)
-    this.markAllAsReadService = new MarkAllAsReadService(repository)
   }
 
   get routes(): TRouteDefinition[] {
@@ -92,20 +80,8 @@ export class MyNotificationsController {
 
   private list = async (c: Context): Promise<Response> => {
     const user: TUser = c.get(AUTHENTICATED_USER_PROP)
-
-    try {
-      const result = await this.getUserNotificationsService.execute({
-        userId: user.id,
-      })
-
-      if (!result.success) {
-        return c.json({ error: result.error }, 500)
-      }
-
-      return c.json({ data: result.data })
-    } catch {
-      return c.json({ error: 'Failed to fetch notifications' }, 500)
-    }
+    const notifications = await this.repository.getByUserId(user.id)
+    return c.json({ data: notifications })
   }
 
   private listPaginated = async (c: Context): Promise<Response> => {
@@ -116,92 +92,53 @@ export class MyNotificationsController {
     const isReadParam = c.req.query('isRead')
     const isRead = isReadParam === 'true' ? true : isReadParam === 'false' ? false : undefined
 
-    try {
-      const result = await this.getUserNotificationsPaginatedService.execute({
-        userId: user.id,
-        page,
-        limit,
-        category: category as IGetUserNotificationsPaginatedInput['category'],
-        isRead,
-      })
+    const result = await this.getUserNotificationsPaginatedService.execute({
+      userId: user.id,
+      page,
+      limit,
+      category: category as IGetUserNotificationsPaginatedInput['category'],
+      isRead,
+    })
 
-      if (!result.success) {
-        return c.json({ error: result.error }, 500)
-      }
-
-      return c.json(result.data)
-    } catch {
-      return c.json({ error: 'Failed to fetch notifications' }, 500)
+    if (!result.success) {
+      return c.json({ error: result.error }, 500)
     }
+
+    return c.json(result.data)
   }
 
   private getUnreadCount = async (c: Context): Promise<Response> => {
     const user: TUser = c.get(AUTHENTICATED_USER_PROP)
-
-    try {
-      const result = await this.getUnreadCountService.execute({
-        userId: user.id,
-      })
-
-      if (!result.success) {
-        return c.json({ error: result.error }, 500)
-      }
-
-      return c.json({ data: result.data })
-    } catch {
-      return c.json({ error: 'Failed to fetch unread count' }, 500)
-    }
+    const count = await this.repository.getUnreadCount(user.id)
+    return c.json({ data: { count } })
   }
 
   private markAsRead = async (c: Context): Promise<Response> => {
     const params = c.get('params') as TIdParam
+    const notification = await this.repository.markAsRead(params.id)
 
-    try {
-      const result = await this.markAsReadService.execute({
-        notificationId: params.id,
-      })
-
-      if (!result.success) {
-        return c.json({ error: result.error }, 404)
-      }
-
-      return c.json({ data: result.data })
-    } catch {
-      return c.json({ error: 'Failed to mark notification as read' }, 500)
+    if (!notification) {
+      return c.json({ error: 'Notification not found' }, 404)
     }
+
+    return c.json({ data: notification })
   }
 
   private markAllAsRead = async (c: Context): Promise<Response> => {
     const user: TUser = c.get(AUTHENTICATED_USER_PROP)
-
-    try {
-      const result = await this.markAllAsReadService.execute({
-        userId: user.id,
-      })
-
-      if (!result.success) {
-        return c.json({ error: result.error }, 500)
-      }
-
-      return c.json({ data: result.data })
-    } catch {
-      return c.json({ error: 'Failed to mark all as read' }, 500)
-    }
+    const count = await this.repository.markAllAsRead(user.id)
+    return c.json({ data: { count } })
   }
 
   private delete = async (c: Context): Promise<Response> => {
     const params = c.get('params') as TIdParam
 
-    try {
-      const deleted = await this.repository.delete(params.id)
+    const deleted = await this.repository.delete(params.id)
 
-      if (!deleted) {
-        return c.json({ error: 'Notification not found' }, 404)
-      }
-
-      return c.json({ data: { success: true } })
-    } catch {
-      return c.json({ error: 'Failed to delete notification' }, 500)
+    if (!deleted) {
+      return c.json({ error: 'Notification not found' }, 404)
     }
+
+    return c.json({ data: { success: true } })
   }
 }

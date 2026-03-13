@@ -12,7 +12,7 @@
  *  - PATCH  /platform/management-company-members/:id/permissions        (update permissions)
  *  - DELETE /platform/management-company-members/:id                    (remove / soft delete)
  */
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'bun:test'
+import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll } from 'bun:test'
 import { Hono } from 'hono'
 import { sql } from 'drizzle-orm'
 import { ESystemRole } from '@packages/domain'
@@ -89,6 +89,10 @@ beforeEach(async () => {
   app.route('', controller.createRouter())
 
   request = async (path: string, options?: RequestInit) => app.request(path, options)
+})
+
+afterEach(async () => {
+  await cleanDatabase(db)
 })
 
 afterAll(async () => {

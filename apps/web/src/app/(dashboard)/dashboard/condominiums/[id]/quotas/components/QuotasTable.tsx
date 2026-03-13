@@ -231,6 +231,7 @@ export function QuotasTable({ quotas, translations: t }: QuotasTableProps) {
       {/* Desktop Table */}
       <div className="hidden md:block">
         <Table<TQuota>
+          mobileCards={false}
           aria-label={t.title}
           columns={columns}
           rows={filteredQuotas}

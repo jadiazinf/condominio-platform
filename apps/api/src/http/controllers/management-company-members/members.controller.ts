@@ -1,6 +1,5 @@
 import type { Context } from 'hono'
 import {
-  managementCompanyMemberCreateSchema,
   managementCompanyMemberUpdateSchema,
   managementCompanyMembersQuerySchema,
   type TManagementCompanyMember,

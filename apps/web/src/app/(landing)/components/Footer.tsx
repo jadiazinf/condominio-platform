@@ -52,6 +52,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link className="text-sm text-foreground/60 hover:text-brick transition-colors font-light" href="#residents">
+                  {t('footer.residents')}
+                </Link>
+              </li>
+              <li>
                 <Link className="text-sm text-foreground/60 hover:text-brick transition-colors font-light" href="#how-it-works">
                   {t('footer.howItWorks')}
                 </Link>

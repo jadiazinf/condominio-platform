@@ -7,35 +7,21 @@ import {
   type TPaymentUpdate,
   ESystemRole,
 } from '@packages/domain'
-import type { PaymentsRepository } from '@database/repositories'
-import {
-  NotificationsRepository,
-  NotificationDeliveriesRepository,
-  UserNotificationPreferencesRepository,
-  UserFcmTokensRepository,
-  PaymentApplicationsRepository,
-  QuotasRepository,
-} from '@database/repositories'
+import type { PaymentsRepository, PaymentApplicationsRepository, QuotasRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
-import { SendNotificationService } from '@src/services/notifications'
+import type { SendNotificationService } from '@src/services/notifications'
 import { BaseController } from '../base.controller'
 import {
   bodyValidator,
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
-import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
 import {
-  GetPaymentByNumberService,
-  GetPaymentsByUserService,
-  GetPaymentsByUnitService,
-  GetPaymentsByStatusService,
-  GetPaymentsByDateRangeService,
-  GetPendingVerificationPaymentsService,
   ReportPaymentService,
   VerifyPaymentService,
   RejectPaymentService,
@@ -125,47 +111,30 @@ type TIdParam = z.infer<typeof IdParamSchema>
  * - DELETE /:id                        Delete payment (hard delete)
  */
 export class PaymentsController extends BaseController<TPayment, TPaymentCreate, TPaymentUpdate> {
-  private readonly getPaymentByNumberService: GetPaymentByNumberService
-  private readonly getPaymentsByUserService: GetPaymentsByUserService
-  private readonly getPaymentsByUnitService: GetPaymentsByUnitService
-  private readonly getPaymentsByStatusService: GetPaymentsByStatusService
-  private readonly getPaymentsByDateRangeService: GetPaymentsByDateRangeService
-  private readonly getPendingVerificationPaymentsService: GetPendingVerificationPaymentsService
+  private readonly paymentsRepository: PaymentsRepository
   private readonly reportPaymentService: ReportPaymentService
   private readonly verifyPaymentService: VerifyPaymentService
   private readonly rejectPaymentService: RejectPaymentService
   private readonly refundPaymentService: RefundPaymentService
   private readonly sendNotificationService: SendNotificationService
 
-  constructor(repository: PaymentsRepository, db: TDrizzleClient) {
+  constructor(
+    repository: PaymentsRepository,
+    db: TDrizzleClient,
+    paymentApplicationsRepo: PaymentApplicationsRepository,
+    quotasRepo: QuotasRepository,
+    sendNotificationService: SendNotificationService,
+  ) {
     super(repository)
 
-    // Initialize services
-    this.getPaymentByNumberService = new GetPaymentByNumberService(repository)
-    this.getPaymentsByUserService = new GetPaymentsByUserService(repository)
-    this.getPaymentsByUnitService = new GetPaymentsByUnitService(repository)
-    this.getPaymentsByStatusService = new GetPaymentsByStatusService(repository)
-    this.getPaymentsByDateRangeService = new GetPaymentsByDateRangeService(repository)
-    this.getPendingVerificationPaymentsService = new GetPendingVerificationPaymentsService(
-      repository
-    )
+    this.paymentsRepository = repository
+    this.sendNotificationService = sendNotificationService
+
+    // Initialize non-trivial services
     this.reportPaymentService = new ReportPaymentService(repository)
     this.verifyPaymentService = new VerifyPaymentService(repository)
     this.rejectPaymentService = new RejectPaymentService(repository)
-
-    // Initialize refund service with transaction support
-    const paymentApplicationsRepo = new PaymentApplicationsRepository(db)
-    const quotasRepo = new QuotasRepository(db)
     this.refundPaymentService = new RefundPaymentService(db, repository, paymentApplicationsRepo, quotasRepo)
-
-    // Initialize notification service
-    const notificationsRepo = new NotificationsRepository(db)
-    const deliveriesRepo = new NotificationDeliveriesRepository(db)
-    const preferencesRepo = new UserNotificationPreferencesRepository(db)
-    const fcmTokensRepo = new UserFcmTokensRepository(db)
-    this.sendNotificationService = new SendNotificationService(
-      notificationsRepo, deliveriesRepo, preferencesRepo, fcmTokensRepo
-    )
   }
 
   get routes(): TRouteDefinition[] {
@@ -295,7 +264,6 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
 
   protected override list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     // TODO: Filter by condominiumId via JOIN through unit → building.condominiumId
     const entities = await this.repository.listAll()
     return ctx.ok({ data: entities })
@@ -307,112 +275,50 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
 
   private getByPaymentNumber = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPaymentNumberParam>(c)
+    const payment = await this.paymentsRepository.getByPaymentNumber(ctx.params.paymentNumber)
 
-    try {
-      const result = await this.getPaymentByNumberService.execute({
-        paymentNumber: ctx.params.paymentNumber,
-      })
-
-      if (!result.success) {
-        return ctx.notFound({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!payment) {
+      return ctx.notFound({ error: 'Payment not found' })
     }
+
+    return ctx.ok({ data: payment })
   }
 
   private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
-
-    try {
-      const result = await this.getPaymentsByUserService.execute({
-        userId: ctx.params.userId,
-      })
-
-      if (!result.success) {
-        return this.handleServiceError(ctx, result)
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const payments = await this.paymentsRepository.getByUserId(ctx.params.userId)
+    return ctx.ok({ data: payments })
   }
 
   private getByUnitIdPaginated = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TPaginatedByUnitQuery, TUnitIdParam>(c)
+    const result = await this.paymentsRepository.listPaginatedByUnit(ctx.params.unitId, {
+      page: ctx.query.page,
+      limit: ctx.query.limit,
+      startDate: ctx.query.startDate,
+      endDate: ctx.query.endDate,
+      status: ctx.query.status,
+    })
 
-    try {
-      const repo = this.repository as PaymentsRepository
-      const result = await repo.listPaginatedByUnit(ctx.params.unitId, {
-        page: ctx.query.page,
-        limit: ctx.query.limit,
-        startDate: ctx.query.startDate,
-        endDate: ctx.query.endDate,
-        status: ctx.query.status,
-      })
-
-      return ctx.ok(result)
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    return ctx.ok(result)
   }
 
   private getByUnitId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)
-
-    try {
-      const result = await this.getPaymentsByUnitService.execute({
-        unitId: ctx.params.unitId,
-      })
-
-      if (!result.success) {
-        return this.handleServiceError(ctx, result)
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const payments = await this.paymentsRepository.getByUnitId(ctx.params.unitId)
+    return ctx.ok({ data: payments })
   }
 
   private getByStatus = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TStatusParam>(c)
-
-    try {
-      const result = await this.getPaymentsByStatusService.execute({
-        status: ctx.params.status,
-      })
-
-      if (!result.success) {
-        return this.handleServiceError(ctx, result)
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const payments = await this.paymentsRepository.getByStatus(ctx.params.status)
+    return ctx.ok({ data: payments })
   }
 
   private getByDateRange = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TDateRangeQuery>(c)
-
-    try {
-      const result = await this.getPaymentsByDateRangeService.execute({
-        startDate: ctx.query.startDate,
-        endDate: ctx.query.endDate,
-      })
-
-      if (!result.success) {
-        return this.handleServiceError(ctx, result)
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const payments = await this.paymentsRepository.getByDateRange(ctx.query.startDate, ctx.query.endDate)
+    return ctx.ok({ data: payments })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -421,18 +327,8 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
 
   private getPendingVerification = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-
-    try {
-      const result = await this.getPendingVerificationPaymentsService.execute()
-
-      if (!result.success) {
-        return this.handleServiceError(ctx, result)
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const payments = await this.paymentsRepository.getPendingVerification()
+    return ctx.ok({ data: payments })
   }
 
   private reportPayment = async (c: Context): Promise<Response> => {

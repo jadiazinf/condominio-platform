@@ -8,6 +8,7 @@ import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { MessageSquare, AlertCircle, Building } from 'lucide-react'
 
 import { useAllSupportTickets } from '@packages/http-client'
+import { getTicketStatusColor, getTicketPriorityColor } from '@/utils/status-colors'
 import { useAuth } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 
@@ -49,7 +50,7 @@ export function RecentTicketsTable() {
   const tableColumns: ITableColumn<TTicketRow>[] = useMemo(
     () => [
       { key: 'ticketNumber', label: 'TICKET' },
-      { key: 'company', label: 'EMPRESA' },
+      { key: 'company', label: 'EMPRESA', hideOnMobile: true },
       { key: 'subject', label: 'ASUNTO' },
       { key: 'priority', label: 'PRIORIDAD' },
       { key: 'status', label: 'ESTADO' },
@@ -67,19 +68,6 @@ export function RecentTicketsTable() {
     })
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'open':
-        return 'primary'
-      case 'in_progress':
-        return 'secondary'
-      case 'waiting_customer':
-        return 'warning'
-      default:
-        return 'default'
-    }
-  }
-
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       open: 'Abierto',
@@ -87,21 +75,6 @@ export function RecentTicketsTable() {
       waiting_customer: 'Esperando',
     }
     return labels[status.toLowerCase()] || status
-  }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case 'urgent':
-        return 'danger'
-      case 'high':
-        return 'warning'
-      case 'medium':
-        return 'primary'
-      case 'low':
-        return 'default'
-      default:
-        return 'default'
-    }
   }
 
   const getPriorityLabel = (priority: string) => {
@@ -150,13 +123,13 @@ export function RecentTicketsTable() {
         return <p className="max-w-xs truncate text-sm font-medium">{ticket.subject}</p>
       case 'priority':
         return (
-          <Chip color={getPriorityColor(ticket.priority)} variant="flat">
+          <Chip color={getTicketPriorityColor(ticket.priority)} variant="flat">
             {getPriorityLabel(ticket.priority)}
           </Chip>
         )
       case 'status':
         return (
-          <Chip color={getStatusColor(ticket.status)} variant="flat">
+          <Chip color={getTicketStatusColor(ticket.status)} variant="flat">
             {getStatusLabel(ticket.status)}
           </Chip>
         )

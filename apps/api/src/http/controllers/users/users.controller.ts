@@ -19,20 +19,11 @@ import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
 import {
-  GetUserByEmailService,
-  GetUserByFirebaseUidService,
-  UpdateLastLoginService,
   GetUserCondominiumsService,
   SyncFirebaseUidService,
-  ListAllUsersPaginatedService,
-  GetUserFullDetailsService,
-  UpdateUserStatusService,
-  GetAllRolesService,
-  ToggleUserPermissionService,
-  BatchToggleUserPermissionsService,
+  GetUserManagementCompaniesService,
   PromoteToSuperadminService,
   DemoteFromSuperadminService,
-  GetUserManagementCompaniesService,
 } from '@src/services/users'
 import { queryValidator } from '../../middlewares/utils/payload-validator'
 import { AppError } from '@errors/index'
@@ -110,17 +101,10 @@ type TSyncFirebaseUidBody = z.infer<typeof SyncFirebaseUidSchema>
  * - DELETE /:id                        Delete user
  */
 export class UsersController extends BaseController<TUser, TUserCreate, TUserUpdate> {
-  private readonly getUserByEmailService: GetUserByEmailService
-  private readonly getUserByFirebaseUidService: GetUserByFirebaseUidService
-  private readonly updateLastLoginService: UpdateLastLoginService
+  private readonly usersRepository: UsersRepository
+  private readonly userPermissionsRepository: UserPermissionsRepository
   private readonly getUserCondominiumsService: GetUserCondominiumsService
   private readonly syncFirebaseUidService: SyncFirebaseUidService
-  private readonly listAllUsersPaginatedService: ListAllUsersPaginatedService
-  private readonly getUserFullDetailsService: GetUserFullDetailsService
-  private readonly updateUserStatusService: UpdateUserStatusService
-  private readonly getAllRolesService: GetAllRolesService
-  private readonly toggleUserPermissionService: ToggleUserPermissionService
-  private readonly batchToggleUserPermissionsService: BatchToggleUserPermissionsService
   private readonly promoteToSuperadminService: PromoteToSuperadminService
   private readonly demoteFromSuperadminService: DemoteFromSuperadminService
   private readonly getUserManagementCompaniesService: GetUserManagementCompaniesService
@@ -134,18 +118,12 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
   ) {
     super(repository)
 
-    // Initialize services
-    this.getUserByEmailService = new GetUserByEmailService(repository)
-    this.getUserByFirebaseUidService = new GetUserByFirebaseUidService(repository)
-    this.updateLastLoginService = new UpdateLastLoginService(repository)
+    this.usersRepository = repository
+    this.userPermissionsRepository = userPermissionsRepository
+
+    // Initialize non-trivial services
     this.getUserCondominiumsService = new GetUserCondominiumsService(db)
     this.syncFirebaseUidService = new SyncFirebaseUidService(repository)
-    this.listAllUsersPaginatedService = new ListAllUsersPaginatedService(repository)
-    this.getUserFullDetailsService = new GetUserFullDetailsService(repository)
-    this.updateUserStatusService = new UpdateUserStatusService(repository)
-    this.getAllRolesService = new GetAllRolesService(repository)
-    this.toggleUserPermissionService = new ToggleUserPermissionService(userPermissionsRepository)
-    this.batchToggleUserPermissionsService = new BatchToggleUserPermissionsService(userPermissionsRepository)
     this.promoteToSuperadminService = new PromoteToSuperadminService(
       userRolesRepository,
       userPermissionsRepository
@@ -298,28 +276,24 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
 
   private getByEmail = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TEmailParam>(c)
-    const result = await this.getUserByEmailService.execute({
-      email: ctx.params.email,
-    })
+    const user = await this.usersRepository.getByEmail(ctx.params.email)
 
-    if (!result.success) {
+    if (!user) {
       throw AppError.notFound('User', ctx.params.email)
     }
 
-    return ctx.ok({ data: result.data })
+    return ctx.ok({ data: user })
   }
 
   private getByFirebaseUid = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TFirebaseUidParam>(c)
-    const result = await this.getUserByFirebaseUidService.execute({
-      firebaseUid: ctx.params.firebaseUid,
-    })
+    const user = await this.usersRepository.getByFirebaseUid(ctx.params.firebaseUid)
 
-    if (!result.success) {
+    if (!user) {
       throw AppError.notFound('User', ctx.params.firebaseUid)
     }
 
-    return ctx.ok({ data: result.data })
+    return ctx.ok({ data: user })
   }
 
   /**
@@ -346,15 +320,13 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
 
   private updateLastLogin = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TIdParam>(c)
-    const result = await this.updateLastLoginService.execute({
-      userId: ctx.params.id,
-    })
+    const user = await this.usersRepository.updateLastLogin(ctx.params.id)
 
-    if (!result.success) {
+    if (!user) {
       throw AppError.notFound('User', ctx.params.id)
     }
 
-    return ctx.ok({ data: result.data })
+    return ctx.ok({ data: user })
   }
 
   /**
@@ -429,16 +401,8 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
    */
   private listPaginated = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TAllUsersQuery>(c)
-
-    const result = await this.listAllUsersPaginatedService.execute({
-      query: ctx.query,
-    })
-
-    if (!result.success) {
-      throw AppError.internal(result.error)
-    }
-
-    return ctx.ok(result.data)
+    const result = await this.usersRepository.listAllUsersPaginated(ctx.query)
+    return ctx.ok(result)
   }
 
   /**
@@ -447,14 +411,8 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
    */
   private getRoles = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-
-    const result = await this.getAllRolesService.execute()
-
-    if (!result.success) {
-      throw AppError.internal(result.error)
-    }
-
-    return ctx.ok({ data: result.data })
+    const roles = await this.usersRepository.getAllRoles()
+    return ctx.ok({ data: roles })
   }
 
   /**
@@ -463,19 +421,13 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
    */
   private getFullDetails = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TIdParam>(c)
+    const details = await this.usersRepository.getUserFullDetails(ctx.params.id)
 
-    const result = await this.getUserFullDetailsService.execute({
-      userId: ctx.params.id,
-    })
-
-    if (!result.success) {
-      if (result.code === 'NOT_FOUND') {
-        throw AppError.notFound('User', ctx.params.id)
-      }
-      throw AppError.internal(result.error)
+    if (!details) {
+      throw AppError.notFound('User', ctx.params.id)
     }
 
-    return ctx.ok({ data: result.data })
+    return ctx.ok({ data: details })
   }
 
   /**
@@ -485,20 +437,13 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
   private updateStatus = async (c: Context): Promise<Response> => {
     const t = useTranslation(c)
     const ctx = this.ctx<{ isActive: boolean }, unknown, TIdParam>(c)
+    const result = await this.usersRepository.updateStatus(ctx.params.id, ctx.body.isActive)
 
-    const result = await this.updateUserStatusService.execute({
-      userId: ctx.params.id,
-      isActive: ctx.body.isActive,
-    })
-
-    if (!result.success) {
-      if (result.code === 'NOT_FOUND') {
-        throw AppError.notFound(t(LocaleDictionary.http.controllers.users.userNotFound))
-      }
-      throw AppError.internal(result.error)
+    if (!result) {
+      throw AppError.notFound(t(LocaleDictionary.http.controllers.users.userNotFound))
     }
 
-    return ctx.ok({ data: result.data, message: t(LocaleDictionary.http.controllers.users.statusUpdated) })
+    return ctx.ok({ data: result, message: t(LocaleDictionary.http.controllers.users.statusUpdated) })
   }
 
   /**
@@ -516,18 +461,18 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
       throw AppError.forbidden(t(LocaleDictionary.http.controllers.users.cannotModifyOwnPermissions))
     }
 
-    const result = await this.toggleUserPermissionService.execute({
-      userId: ctx.params.id,
-      permissionId: ctx.body.permissionId,
-      isEnabled: ctx.body.isEnabled,
-      assignedBy: currentUser.id,
-    })
+    const result = await this.userPermissionsRepository.togglePermission(
+      ctx.params.id,
+      ctx.body.permissionId,
+      ctx.body.isEnabled,
+      currentUser.id,
+    )
 
-    if (!result.success) {
-      throw AppError.internal(result.error)
+    if (!result) {
+      throw AppError.internal('Failed to toggle permission')
     }
 
-    return ctx.ok({ data: result.data, message: t(LocaleDictionary.http.controllers.users.permissionUpdated) })
+    return ctx.ok({ data: result, message: t(LocaleDictionary.http.controllers.users.permissionUpdated) })
   }
 
   /**
@@ -545,18 +490,14 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
       throw AppError.forbidden(t(LocaleDictionary.http.controllers.users.cannotModifyOwnPermissions))
     }
 
-    const result = await this.batchToggleUserPermissionsService.execute({
-      userId: ctx.params.id,
-      changes: ctx.body.changes,
-      assignedBy: currentUser.id,
-    })
-
-    if (!result.success) {
-      throw AppError.internal(result.error)
-    }
+    const result = await this.userPermissionsRepository.batchTogglePermissions(
+      ctx.params.id,
+      ctx.body.changes,
+      currentUser.id,
+    )
 
     return ctx.ok({
-      data: result.data,
+      data: result,
       message: t(LocaleDictionary.http.controllers.users.permissionsUpdated) || 'Permisos actualizados correctamente',
     })
   }

@@ -8,6 +8,8 @@ import {
   type TUserCreate,
   type TUserRoleCreate,
   type TSystemRole,
+  type TManagementCompany,
+  type TRole,
   ESystemRole,
 } from '@packages/domain'
 import type {
@@ -186,7 +188,7 @@ export class CreateMemberWithInvitationService {
    */
   private async validateInput(
     input: ICreateMemberWithInvitationInput
-  ): Promise<TServiceResult<{ company: any; role: any }>> {
+  ): Promise<TServiceResult<{ company: TManagementCompany; role: TRole }>> {
     // Validate management company exists
     const company = await this.companiesRepository.getById(input.managementCompanyId)
     if (!company) {
@@ -380,7 +382,7 @@ export class CreateMemberWithInvitationService {
    */
   private async sendUserEmail(
     user: TUser,
-    company: any,
+    company: TManagementCompany,
     roleName: string,
     token: string,
     expiresAt: Date
@@ -395,7 +397,7 @@ export class CreateMemberWithInvitationService {
         expiresAt,
       })
       return result.success
-    } catch (error) {
+    } catch (_error) {
       return false
     }
   }
@@ -404,7 +406,7 @@ export class CreateMemberWithInvitationService {
    * Sends notification email to management company
    */
   private async sendCompanyEmail(
-    company: any,
+    company: TManagementCompany,
     user: TUser,
     memberRole: TMemberRole
   ): Promise<boolean> {
@@ -421,7 +423,7 @@ export class CreateMemberWithInvitationService {
         memberRole: this.getRoleLabel(memberRole),
       })
       return result.success
-    } catch (error) {
+    } catch (_error) {
       return false
     }
   }

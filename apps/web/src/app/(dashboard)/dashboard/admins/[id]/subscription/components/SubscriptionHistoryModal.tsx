@@ -17,6 +17,7 @@ import {
 } from '@packages/http-client'
 import { formatCurrency } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
+import { getSubscriptionStatusColor } from '@/utils/status-colors'
 
 interface SubscriptionHistoryModalProps {
   isOpen: boolean
@@ -96,23 +97,6 @@ export function SubscriptionHistoryModal({
   }, [])
 
   const formatDate = (date: Date | string) => formatShortDate(date)
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'success'
-      case 'trial':
-        return 'primary'
-      case 'inactive':
-        return 'default'
-      case 'cancelled':
-        return 'warning'
-      case 'suspended':
-        return 'danger'
-      default:
-        return 'default'
-    }
-  }
 
   const getStatusLabel = (status: string) => {
     return t(`superadmin.companies.subscription.form.statuses.${status}`)
@@ -262,7 +246,7 @@ export function SubscriptionHistoryModal({
                                 {subscription.subscriptionName || 'Plan Personalizado'}
                               </Typography>
                               <Chip
-                                color={getStatusColor(subscription.status)}
+                                color={getSubscriptionStatusColor(subscription.status)}
                                 size="sm"
                                 variant={isActive ? 'solid' : 'flat'}
                               >

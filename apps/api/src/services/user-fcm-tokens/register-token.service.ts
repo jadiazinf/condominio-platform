@@ -1,6 +1,6 @@
 import type { TUserFcmToken } from '@packages/domain'
 import type { UserFcmTokensRepository } from '@database/repositories'
-import { type TServiceResult, success, failure } from '../base.service'
+import { type TServiceResult, success } from '../base.service'
 
 export interface IRegisterTokenInput {
   userId: string

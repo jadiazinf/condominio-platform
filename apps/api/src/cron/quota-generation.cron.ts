@@ -37,7 +37,7 @@ async function runQuotaGeneration(): Promise<void> {
     logger.info({ count: dueSchedules.length }, '[QuotaGen Cron] Processing due schedules')
 
     const service = new GenerateQuotasForScheduleService(
-      db, quotasRepo, rulesRepo, formulasRepo, schedulesRepo, logsRepo, unitsRepo, buildingsRepo
+      db as any, quotasRepo as any, rulesRepo as any, formulasRepo as any, schedulesRepo as any, logsRepo as any, unitsRepo as any, buildingsRepo as any
     )
 
     for (const schedule of dueSchedules) {

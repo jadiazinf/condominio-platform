@@ -3,6 +3,7 @@ export {
   EConceptTypes,
   ERecurrencePeriods,
   EChargeAdjustmentTypes,
+  EChargeGenerationStrategies,
   EAssignmentScopes,
   EDistributionMethods,
   paymentConceptAssignmentSchema,
@@ -10,12 +11,14 @@ export {
   paymentConceptAssignmentUpdateSchema,
   paymentConceptBankAccountSchema,
   paymentConceptBankAccountCreateSchema,
+  paymentConceptChangeSchema,
 } from './schema'
 export type {
   TPaymentConcept,
   TConceptType,
   TRecurrencePeriod,
   TChargeAdjustmentType,
+  TChargeGenerationStrategy,
   TAssignmentScope,
   TDistributionMethod,
   TPaymentConceptAssignment,
@@ -23,5 +26,6 @@ export type {
   TPaymentConceptAssignmentUpdate,
   TPaymentConceptBankAccount,
   TPaymentConceptBankAccountCreate,
+  TPaymentConceptChange,
 } from './types'
 export * from './dtos'

@@ -303,8 +303,15 @@ export {
   type IUpdatePaymentConceptVariables,
   type IDeactivatePaymentConceptOptions,
   type IDeactivatePaymentConceptVariables,
+  type IDeactivatePaymentConceptResult,
   usePaymentConceptAffectedUnits,
   useCreatePaymentConceptFull,
+  useUpdatePaymentConceptFull,
+  usePaymentConceptChangeHistory,
+  type IUpdatePaymentConceptFullVariables,
+  type IUpdatePaymentConceptFullOptions,
+  type TPaymentConceptChangeRecord,
+  type IUsePaymentConceptChangeHistoryOptions,
   type TAffectedUnit,
   type TAffectedUnitPeriod,
   type TAffectedUnitsResponse,
@@ -347,9 +354,11 @@ export {
 } from './use-payment-concept-bank-accounts'
 export {
   useGenerateCharges,
+  useGenerateChargesBulk,
   type IGenerateChargesVariables,
   type IGenerateChargesResult,
   type IGenerateChargesOptions,
+  type IGenerateChargesBulkResult,
 } from './use-generate-charges'
 export {
   useSupportTickets,

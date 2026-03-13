@@ -1,4 +1,5 @@
-export { SendNotificationService } from './send-notification.service'
+export { createSendNotificationService, SendNotificationService } from './send-notification.service'
+export type { ISendNotificationInput, ISendNotificationOutput } from './send-notification.service'
 export { SendTemplatedNotificationService } from './send-templated-notification.service'
 export { GetUserNotificationsService } from './get-user-notifications.service'
 export { GetUserNotificationsPaginatedService } from './get-user-notifications-paginated.service'

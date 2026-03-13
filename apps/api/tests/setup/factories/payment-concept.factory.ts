@@ -27,6 +27,7 @@ export class PaymentConceptFactory {
       earlyPaymentDaysBeforeDue: 0,
       issueDay: 1,
       dueDay: 15,
+      chargeGenerationStrategy: 'auto',
       isActive: true,
       metadata: null,
       createdBy: null,

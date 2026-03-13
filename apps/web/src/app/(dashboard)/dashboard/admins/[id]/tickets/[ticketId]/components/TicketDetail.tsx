@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 
 import { useSupportTicket } from '@packages/http-client'
+import { getTicketStatusColor, getTicketPriorityColor } from '@/utils/status-colors'
 import { useAuth } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 
@@ -55,25 +56,6 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
     })
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'open':
-        return 'primary'
-      case 'in_progress':
-        return 'secondary'
-      case 'waiting_customer':
-        return 'warning'
-      case 'resolved':
-        return 'success'
-      case 'closed':
-        return 'default'
-      case 'cancelled':
-        return 'danger'
-      default:
-        return 'default'
-    }
-  }
-
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       open: 'Abierto',
@@ -84,21 +66,6 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
       cancelled: 'Cancelado',
     }
     return labels[status.toLowerCase()] || status
-  }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case 'urgent':
-        return 'danger'
-      case 'high':
-        return 'warning'
-      case 'medium':
-        return 'primary'
-      case 'low':
-        return 'default'
-      default:
-        return 'default'
-    }
   }
 
   const getPriorityLabel = (priority: string) => {
@@ -177,10 +144,10 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
                 <div className="flex-1">
                   <Typography variant="h4">{ticket.subject}</Typography>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <Chip color={getStatusColor(ticket.status)} variant="flat">
+                    <Chip color={getTicketStatusColor(ticket.status)} variant="flat">
                       {getStatusLabel(ticket.status)}
                     </Chip>
-                    <Chip color={getPriorityColor(ticket.priority)} variant="flat">
+                    <Chip color={getTicketPriorityColor(ticket.priority)} variant="flat">
                       {getPriorityLabel(ticket.priority)}
                     </Chip>
                     {ticket.category && (

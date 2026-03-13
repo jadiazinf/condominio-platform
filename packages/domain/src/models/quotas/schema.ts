@@ -8,7 +8,7 @@ import { DomainLocaleDictionary } from '../../i18n/dictionary'
 
 const d = DomainLocaleDictionary.validation.models.quotas
 
-export const EQuotaStatuses = ['pending', 'paid', 'overdue', 'cancelled'] as const
+export const EQuotaStatuses = ['pending', 'paid', 'overdue', 'cancelled', 'exonerated'] as const
 
 export const quotaSchema = baseModelSchema.extend({
   unitId: z.uuid({ error: d.unitId.invalid }),

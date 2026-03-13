@@ -1,27 +1,19 @@
 import type { Context } from 'hono'
 import {
-  quotaAdjustmentCreateSchema,
   EAdjustmentTypes,
-  type TQuotaAdjustment,
-  type TQuotaAdjustmentCreate,
   ESystemRole,
 } from '@packages/domain'
 import type { QuotasRepository, QuotaAdjustmentsRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { HttpContext } from '../../context'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { createRouter } from '../create-router'
 import { z } from 'zod'
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
-import {
-  AdjustQuotaService,
-  GetAdjustmentsByQuotaService,
-  GetAdjustmentsByUserService,
-  GetAdjustmentsByTypeService,
-} from '@src/services/quota-adjustments'
+import { AdjustQuotaService } from '@src/services/quota-adjustments'
 
 const QuotaIdParamSchema = z.object({
   quotaId: z.string().uuid('Invalid quota ID format'),
@@ -65,21 +57,13 @@ type TIdParam = z.infer<typeof IdParamSchema>
  */
 export class QuotaAdjustmentsController {
   private readonly adjustQuotaService: AdjustQuotaService
-  private readonly getAdjustmentsByQuotaService: GetAdjustmentsByQuotaService
-  private readonly getAdjustmentsByUserService: GetAdjustmentsByUserService
-  private readonly getAdjustmentsByTypeService: GetAdjustmentsByTypeService
 
   constructor(
     private readonly db: TDrizzleClient,
     private readonly quotasRepository: QuotasRepository,
     private readonly quotaAdjustmentsRepository: QuotaAdjustmentsRepository
   ) {
-    // Initialize services
     this.adjustQuotaService = new AdjustQuotaService(db, quotasRepository, quotaAdjustmentsRepository)
-    this.getAdjustmentsByQuotaService = new GetAdjustmentsByQuotaService(quotaAdjustmentsRepository)
-    this.getAdjustmentsByUserService = new GetAdjustmentsByUserService(quotaAdjustmentsRepository)
-    this.getAdjustmentsByTypeService = new GetAdjustmentsByTypeService(quotaAdjustmentsRepository)
-
   }
 
   get routes(): TRouteDefinition[] {
@@ -137,7 +121,6 @@ export class QuotaAdjustmentsController {
 
   private list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     // TODO: Filter by condominiumId via JOIN through quota → unit → building.condominiumId
 
     try {
@@ -168,15 +151,8 @@ export class QuotaAdjustmentsController {
     const ctx = this.ctx<unknown, unknown, TQuotaIdParam>(c)
 
     try {
-      const result = await this.getAdjustmentsByQuotaService.execute({
-        quotaId: ctx.params.quotaId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
+      const adjustments = await this.quotaAdjustmentsRepository.getByQuotaId(ctx.params.quotaId)
+      return ctx.ok({ data: adjustments })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -186,15 +162,8 @@ export class QuotaAdjustmentsController {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
     try {
-      const result = await this.getAdjustmentsByUserService.execute({
-        userId: ctx.params.userId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
+      const adjustments = await this.quotaAdjustmentsRepository.getByCreatedBy(ctx.params.userId)
+      return ctx.ok({ data: adjustments })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -204,15 +173,8 @@ export class QuotaAdjustmentsController {
     const ctx = this.ctx<unknown, unknown, TAdjustmentTypeParam>(c)
 
     try {
-      const result = await this.getAdjustmentsByTypeService.execute({
-        adjustmentType: ctx.params.type,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
+      const adjustments = await this.quotaAdjustmentsRepository.getByType(ctx.params.type)
+      return ctx.ok({ data: adjustments })
     } catch (error) {
       return this.handleError(ctx, error)
     }

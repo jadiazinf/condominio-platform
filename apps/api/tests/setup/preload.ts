@@ -22,7 +22,8 @@ if (fs.existsSync(envPath)) {
 
       // Set both process.env and Bun.env
       process.env[trimmedKey] = value
-      // @ts-ignore - Bun.env is writable
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore - Bun.env is writable at runtime
       Bun.env[trimmedKey] = value
     }
   })
@@ -34,7 +35,8 @@ if (fs.existsSync(envPath)) {
 // Also set NODE_ENV to test if not set
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'test'
-  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore - Bun.env is writable at runtime
   Bun.env.NODE_ENV = 'test'
 }
 

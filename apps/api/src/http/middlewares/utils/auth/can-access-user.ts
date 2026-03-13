@@ -9,7 +9,6 @@ import {
   unitOwnerships,
   units,
   buildings,
-  condominiums,
   condominiumManagementCompanies,
 } from '@database/drizzle/schema'
 import { AUTHENTICATED_USER_PROP } from './is-user-authenticated'

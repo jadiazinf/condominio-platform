@@ -102,7 +102,7 @@ describe('RefundPaymentService', function () {
       update: async function (id, data: any) {
         return { ...mockPayment, ...data }
       },
-      withTx: function (tx: any) {
+      withTx: function (_tx: any) {
         return this
       },
     }
@@ -114,7 +114,7 @@ describe('RefundPaymentService', function () {
       hardDelete: async function () {
         return true
       },
-      withTx: function (tx: any) {
+      withTx: function (_tx: any) {
         return this
       },
     }
@@ -126,7 +126,7 @@ describe('RefundPaymentService', function () {
       update: async function (id, data: any) {
         return { ...mockQuota, ...data }
       },
-      withTx: function (tx: any) {
+      withTx: function (_tx: any) {
         return this
       },
     }

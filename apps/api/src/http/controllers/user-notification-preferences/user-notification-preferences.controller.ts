@@ -14,8 +14,6 @@ import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
 import {
-  GetUserPreferencesService,
-  UpdateUserPreferenceService,
   InitializeUserPreferencesService,
 } from '@src/services/user-notification-preferences'
 
@@ -53,17 +51,12 @@ export class UserNotificationPreferencesController extends BaseController<
   TUserNotificationPreferenceCreate,
   TUserNotificationPreferenceUpdate
 > {
-  private readonly getUserPreferencesService: GetUserPreferencesService
-  private readonly updateUserPreferenceService: UpdateUserPreferenceService
   private readonly initializeUserPreferencesService: InitializeUserPreferencesService
 
-  constructor(repository: UserNotificationPreferencesRepository) {
-    super(repository)
+  constructor(private readonly preferencesRepository: UserNotificationPreferencesRepository) {
+    super(preferencesRepository)
 
-    this.getUserPreferencesService = new GetUserPreferencesService(repository)
-    this.updateUserPreferenceService = new UpdateUserPreferenceService(repository)
-    this.initializeUserPreferencesService = new InitializeUserPreferencesService(repository)
-
+    this.initializeUserPreferencesService = new InitializeUserPreferencesService(preferencesRepository)
   }
 
   get routes(): TRouteDefinition[] {
@@ -125,42 +118,26 @@ export class UserNotificationPreferencesController extends BaseController<
   private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
-    try {
-      const result = await this.getUserPreferencesService.execute({
-        userId: ctx.params.userId,
-      })
+    const preferences = await this.preferencesRepository.getByUserId(ctx.params.userId)
 
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    return ctx.ok({ data: preferences })
   }
 
   private updateForUser = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TUpdatePreferenceBody, unknown, TUserIdParam>(c)
 
-    try {
-      const result = await this.updateUserPreferenceService.execute({
-        userId: ctx.params.userId,
-        category: ctx.body.category,
-        channel: ctx.body.channel,
+    const preference = await this.preferencesRepository.upsert(
+      ctx.params.userId,
+      ctx.body.category,
+      ctx.body.channel,
+      {
         isEnabled: ctx.body.isEnabled,
         quietHoursStart: ctx.body.quietHoursStart,
         quietHoursEnd: ctx.body.quietHoursEnd,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
       }
+    )
 
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    return ctx.ok({ data: preference })
   }
 
   private initializeForUser = async (c: Context): Promise<Response> => {

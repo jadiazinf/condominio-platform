@@ -1,4 +1,4 @@
-import type { Context, MiddlewareHandler, Handler } from 'hono'
+import type { MiddlewareHandler, Handler } from 'hono'
 import type { z } from 'zod'
 
 /**

@@ -14,21 +14,19 @@ export function translateZodMessages<T>(
   errorTree: z.ZodError<T> | z.core.$ZodErrorTree<z.output<T>, string>,
   t: (key: string) => string
 ): TTranslateZodMessages {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const normalize = (tree: any): string | string[] | Record<string, string[]> => {
+  const normalize = (tree: Record<string, unknown>): string | string[] | Record<string, string[]> => {
     if ('errors' in tree && Array.isArray(tree.errors) && tree.errors.length > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const translated = tree.errors.map((e: any) =>
-        typeof e === 'string' ? t(e) : t(e?.message ?? String(e))
+      const translated = tree.errors.map((e: unknown) =>
+        typeof e === 'string' ? t(e) : t((e as { message?: string })?.message ?? String(e))
       )
-      return translated.length === 1 ? translated[0] : translated
+      return translated.length === 1 ? translated[0]! : translated
     }
 
     if ('properties' in tree && tree.properties) {
       const result: Record<string, string[]> = {}
 
-      for (const [key, value] of Object.entries(tree.properties)) {
-        const nested = normalize(value)
+      for (const [key, value] of Object.entries(tree.properties as Record<string, unknown>)) {
+        const nested = normalize(value as Record<string, unknown>)
         if (typeof nested === 'string') {
           result[key] = [nested]
         } else if (Array.isArray(nested)) {
@@ -45,8 +43,8 @@ export function translateZodMessages<T>(
     if ('items' in tree && tree.items) {
       const result: Record<string, string[]> = {}
 
-      for (const [index, value] of Object.entries(tree.items)) {
-        const nested = normalize(value)
+      for (const [index, value] of Object.entries(tree.items as Record<string, unknown>)) {
+        const nested = normalize(value as Record<string, unknown>)
         if (typeof nested === 'string') {
           result[index] = [nested]
         } else if (Array.isArray(nested)) {
@@ -62,7 +60,7 @@ export function translateZodMessages<T>(
     return t(LocaleDictionary.http.locales.unknownError)
   }
 
-  return { payload: normalize(errorTree) }
+  return { payload: normalize(errorTree as Record<string, unknown>) }
 }
 
 /**

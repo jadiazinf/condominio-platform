@@ -5,6 +5,7 @@ import { StatusCodes } from 'http-status-codes'
 import type { TPayment, TPaymentCreate, TPaymentUpdate } from '@packages/domain'
 import { PaymentsController } from '@http/controllers/payments'
 import type { PaymentsRepository } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import {
   withId,
   createTestApp,
@@ -188,8 +189,9 @@ describe('PaymentsController', function () {
     }
 
     // Create controller with mock repository
-    const mockDb = {} as any
-    const controller = new PaymentsController(mockRepository as unknown as PaymentsRepository, mockDb)
+    const mockDb = {} as unknown as TDrizzleClient
+    const mockSendNotification = { execute: async () => ({ success: true }) } as any
+    const controller = new PaymentsController(mockRepository as unknown as PaymentsRepository, mockDb, {} as any, {} as any, mockSendNotification)
 
     // Create Hono app with controller routes
     app = createTestApp()

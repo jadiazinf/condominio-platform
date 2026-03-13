@@ -25,7 +25,7 @@ export class MarkPaymentAsFailedService {
   async execute(
     input: IMarkPaymentAsFailedInput
   ): Promise<TServiceResult<IMarkPaymentAsFailedOutput>> {
-    const { paymentId, failureReason, updatedByUserId } = input
+    const { paymentId, failureReason } = input
 
     // 1. Get the payment
     const existingPayment = await this.repository.getById(paymentId)

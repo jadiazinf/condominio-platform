@@ -160,7 +160,10 @@
         "servicesRequired": "Se requiere al menos un servicio con ejecución.",
         "executionCurrencyNotFound": "Moneda de ejecución no encontrada.",
         "currencyMismatch": "Todas las ejecuciones de servicio deben usar la misma moneda del concepto de pago.",
-        "conceptCreatedSuccessfully": "Concepto de pago creado exitosamente."
+        "conceptCreatedSuccessfully": "Concepto de pago creado exitosamente.",
+        "conceptNotFound": "Concepto de pago no encontrado.",
+        "noChangesDetected": "No se detectaron cambios.",
+        "conceptUpdatedSuccessfully": "Concepto de pago actualizado exitosamente."
       }
     },
     "locales": {

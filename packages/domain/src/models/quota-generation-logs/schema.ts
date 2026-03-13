@@ -4,7 +4,7 @@ import { DomainLocaleDictionary } from '../../i18n/dictionary'
 
 const d = DomainLocaleDictionary.validation.models.quotaGenerationLogs
 
-export const EGenerationMethods = ['manual_single', 'manual_batch', 'scheduled', 'range'] as const
+export const EGenerationMethods = ['manual_single', 'manual_batch', 'scheduled', 'range', 'bulk'] as const
 export const EGenerationStatuses = ['completed', 'partial', 'failed'] as const
 
 export const quotaGenerationLogSchema = z.object({

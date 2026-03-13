@@ -1,4 +1,4 @@
-import type { TNotification, TNotificationTemplate } from '@packages/domain'
+import type { TNotification } from '@packages/domain'
 import type {
   NotificationsRepository,
   NotificationDeliveriesRepository,
@@ -6,8 +6,9 @@ import type {
   UserNotificationPreferencesRepository,
   UserFcmTokensRepository,
 } from '@database/repositories'
-import { type TServiceResult, success, failure } from '../base.service'
-import { SendNotificationService } from './send-notification.service'
+import { type TServiceResult, failure } from '../base.service'
+import { createSendNotificationService } from './send-notification.service'
+import type { SendNotificationService } from './send-notification.service'
 
 export interface ISendTemplatedNotificationInput {
   userId: string
@@ -36,7 +37,7 @@ export class SendTemplatedNotificationService {
     preferencesRepository: UserNotificationPreferencesRepository,
     fcmTokensRepository?: UserFcmTokensRepository
   ) {
-    this.sendNotificationService = new SendNotificationService(
+    this.sendNotificationService = createSendNotificationService(
       notificationsRepository,
       deliveriesRepository,
       preferencesRepository,

@@ -90,7 +90,7 @@ export class GetUserCondominiumsService {
       .map(r => r.userRole.condominiumId!)
 
     // Fetch additional condominiums from roles
-    let additionalCondominiums: Array<{
+    const additionalCondominiums: Array<{
       id: string
       name: string
       code: string | null

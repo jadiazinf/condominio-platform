@@ -1,4 +1,3 @@
-import type { TNotificationTemplate } from '@packages/domain'
 import type { NotificationTemplatesRepository } from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 

@@ -1,4 +1,4 @@
-import type { Context, Next, Hono, ErrorHandler } from 'hono'
+import type { Context, Hono, ErrorHandler } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import { AppError, ErrorCode, isAppError, parseDbError } from '@errors/index'
 import { env } from '@config/environment'

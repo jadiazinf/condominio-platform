@@ -121,7 +121,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     END $$;
 
     DO $$ BEGIN
-      CREATE TYPE quota_status AS ENUM ('pending', 'paid', 'overdue', 'cancelled');
+      CREATE TYPE quota_status AS ENUM ('pending', 'paid', 'overdue', 'cancelled', 'exonerated');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -171,7 +171,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     END $$;
 
     DO $$ BEGIN
-      CREATE TYPE adjustment_type AS ENUM ('discount', 'increase', 'correction', 'waiver');
+      CREATE TYPE adjustment_type AS ENUM ('discount', 'increase', 'correction', 'waiver', 'exoneration', 'credit_note');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -317,6 +317,11 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
 
     DO $$ BEGIN
       CREATE TYPE charge_adjustment_type AS ENUM ('percentage', 'fixed', 'none');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE charge_generation_strategy AS ENUM ('auto', 'bulk', 'manual');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -547,6 +552,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       concept_type concept_type NOT NULL,
       is_recurring BOOLEAN DEFAULT true,
       recurrence_period VARCHAR(50),
+      charge_generation_strategy charge_generation_strategy DEFAULT 'auto',
       currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
       allows_partial_payment BOOLEAN DEFAULT true,
       late_payment_type charge_adjustment_type DEFAULT 'none',
@@ -1344,6 +1350,20 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       UNIQUE(payment_concept_id, bank_account_id)
     );
 
+    CREATE TABLE IF NOT EXISTS payment_concept_changes (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      payment_concept_id UUID NOT NULL REFERENCES payment_concepts(id) ON DELETE CASCADE,
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      changed_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+      previous_values JSONB NOT NULL,
+      new_values JSONB NOT NULL,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_pcc_concept ON payment_concept_changes(payment_concept_id);
+    CREATE INDEX IF NOT EXISTS idx_pcc_condominium ON payment_concept_changes(condominium_id);
+    CREATE INDEX IF NOT EXISTS idx_pcc_changed_by ON payment_concept_changes(changed_by);
+
     CREATE TABLE IF NOT EXISTS condominium_services (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
@@ -1380,6 +1400,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       updated_at TIMESTAMP DEFAULT NOW(),
       UNIQUE(payment_concept_id, service_id)
     );
+
   `)
   const elapsed = performance.now() - start
   console.log(`[TestContainer] createSchema took ${elapsed.toFixed(1)}ms`)
@@ -1421,77 +1442,76 @@ export async function stopTestContainer(): Promise<void> {
 
 /**
  * Cleans all data from tables (for test isolation).
- * Uses a single TRUNCATE command for better performance.
+ * Uses DELETE instead of TRUNCATE — much faster for small test datasets
+ * because it avoids the AccessExclusiveLock overhead of TRUNCATE.
  */
 export async function cleanDatabase(testDb: TTestDrizzleClient | import('@database/repositories/interfaces').TDrizzleClient): Promise<void> {
   const start = performance.now()
-  // Truncate all tables in one command for better performance
   await testDb.execute(sql`
-    TRUNCATE TABLE
-      payment_concept_services,
-      condominium_services,
-      bank_account_condominiums,
-      bank_accounts,
-      banks,
-      access_requests,
-      condominium_access_codes,
-      user_fcm_tokens,
-      user_notification_preferences,
-      notification_deliveries,
-      notifications,
-      notification_templates,
-      amenity_reservations,
-      amenities,
-      subscription_audit_history,
-      subscription_invoices,
-      subscription_acceptances,
-      management_company_subscriptions,
-      subscription_terms_conditions,
-      subscription_rates,
-      support_ticket_assignment_history,
-      support_ticket_messages,
-      support_tickets,
-      management_company_members,
-      audit_logs,
-      messages,
-      documents,
-      expenses,
-      expense_categories,
-      payment_pending_allocations,
-      payment_applications,
-      payments,
-      entity_payment_gateways,
-      payment_gateways,
-      quota_generation_logs,
-      quota_generation_schedules,
-      quota_generation_rules,
-      quota_formulas,
-      quota_adjustments,
-      quotas,
-      interest_configurations,
-      payment_concept_bank_accounts,
-      payment_concept_assignments,
-      payment_concepts,
-      unit_ownerships,
-      units,
-      user_roles,
-      buildings,
-      condominium_management_companies,
-      condominiums,
-      admin_invitations,
-      user_invitations,
-      user_permissions,
-      management_companies,
-      role_permissions,
-      roles,
-      superadmin_user_permissions,
-      superadmin_users,
-      permissions,
-      exchange_rates,
-      users,
-      currencies,
-      locations
-    CASCADE
+    DELETE FROM payment_concept_services;
+    DELETE FROM condominium_services;
+    DELETE FROM payment_concept_changes;
+    DELETE FROM payment_concept_bank_accounts;
+    DELETE FROM bank_account_condominiums;
+    DELETE FROM bank_accounts;
+    DELETE FROM banks;
+    DELETE FROM access_requests;
+    DELETE FROM condominium_access_codes;
+    DELETE FROM user_fcm_tokens;
+    DELETE FROM user_notification_preferences;
+    DELETE FROM notification_deliveries;
+    DELETE FROM notifications;
+    DELETE FROM notification_templates;
+    DELETE FROM amenity_reservations;
+    DELETE FROM amenities;
+    DELETE FROM subscription_audit_history;
+    DELETE FROM subscription_invoices;
+    DELETE FROM subscription_acceptances;
+    DELETE FROM management_company_subscriptions;
+    DELETE FROM subscription_terms_conditions;
+    DELETE FROM subscription_rates;
+    DELETE FROM support_ticket_assignment_history;
+    DELETE FROM support_ticket_messages;
+    DELETE FROM support_tickets;
+    DELETE FROM management_company_members;
+    DELETE FROM admin_invitations;
+    DELETE FROM user_invitations;
+    DELETE FROM audit_logs;
+    DELETE FROM messages;
+    DELETE FROM documents;
+    DELETE FROM expenses;
+    DELETE FROM expense_categories;
+    DELETE FROM payment_pending_allocations;
+    DELETE FROM payment_applications;
+    DELETE FROM payments;
+    DELETE FROM entity_payment_gateways;
+    DELETE FROM payment_gateways;
+    DELETE FROM quota_generation_logs;
+    DELETE FROM quota_generation_schedules;
+    DELETE FROM quota_generation_rules;
+    DELETE FROM quota_formulas;
+    DELETE FROM quota_adjustments;
+    DELETE FROM quotas;
+    DELETE FROM interest_configurations;
+    DELETE FROM payment_concept_assignments;
+    DELETE FROM payment_concepts;
+    DELETE FROM unit_ownerships;
+    DELETE FROM units;
+    DELETE FROM user_roles;
+    DELETE FROM buildings;
+    DELETE FROM condominium_management_companies;
+    DELETE FROM condominiums;
+    DELETE FROM user_permissions;
+    DELETE FROM superadmin_user_permissions;
+    DELETE FROM superadmin_users;
+    DELETE FROM role_permissions;
+    DELETE FROM roles;
+    DELETE FROM management_companies;
+    DELETE FROM permissions;
+    DELETE FROM exchange_rates;
+    DELETE FROM users;
+    DELETE FROM currencies;
+    DELETE FROM locations;
   `)
   const elapsed = performance.now() - start
   if (elapsed > 50) {

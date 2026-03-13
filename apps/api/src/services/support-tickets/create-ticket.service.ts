@@ -1,8 +1,8 @@
 import type { TSupportTicket, TSupportTicketCreate } from '@packages/domain'
 import type { SupportTicketsRepository } from '@database/repositories'
-import { type TServiceResult, success, failure } from '../base.service'
+import { type TServiceResult, success } from '../base.service'
 
-export interface ICreateTicketInput extends Omit<TSupportTicketCreate, 'ticketNumber'> {}
+export type ICreateTicketInput = Omit<TSupportTicketCreate, 'ticketNumber'>
 
 /**
  * Service for creating a new support ticket.

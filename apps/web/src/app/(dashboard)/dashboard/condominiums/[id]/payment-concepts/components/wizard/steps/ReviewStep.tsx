@@ -6,6 +6,7 @@ import { Chip } from '@/ui/components/chip'
 import { Card, CardBody } from '@/ui/components/card'
 import { Divider } from '@/ui/components/divider'
 import { Switch } from '@/ui/components/switch'
+import { Textarea } from '@/ui/components/textarea'
 import { useTranslation } from '@/contexts'
 import { useMyCompanyBankAccountsPaginated } from '@packages/http-client'
 import type { IWizardFormData } from '../CreatePaymentConceptWizard'
@@ -16,9 +17,10 @@ interface ReviewStepProps {
   currencies: Array<{ id: string; code: string }>
   buildings: Array<{ id: string; name: string }>
   managementCompanyId: string
+  isEditMode?: boolean
 }
 
-export function ReviewStep({ formData, onUpdate, currencies, buildings, managementCompanyId }: ReviewStepProps) {
+export function ReviewStep({ formData, onUpdate, currencies, buildings, managementCompanyId, isEditMode }: ReviewStepProps) {
   const { t } = useTranslation()
   const w = 'admin.condominiums.detail.paymentConcepts.wizard.review'
 
@@ -97,6 +99,17 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
               <>
                 <span className="text-default-500">{t(`${w}.recurrence`)}</span>
                 <span>{t(`admin.paymentConcepts.recurrence.${formData.recurrencePeriod}`)}</span>
+              </>
+            )}
+
+            {formData.isRecurring && (
+              <>
+                <span className="text-default-500">{t(`${w}.chargeGenerationStrategy`)}</span>
+                <span>
+                  {formData.chargeGenerationStrategy === 'auto' && t(`${w}.strategyAuto`)}
+                  {formData.chargeGenerationStrategy === 'bulk' && t(`${w}.strategyBulk`)}
+                  {formData.chargeGenerationStrategy === 'manual' && t(`${w}.strategyManual`)}
+                </span>
               </>
             )}
 
@@ -287,6 +300,28 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
                 {t(`${w}.bankAccountsSelected`)}
               </Typography>
             )}
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Change Reason (edit mode only) */}
+      {isEditMode && (
+        <Card>
+          <CardBody className="space-y-2">
+            <Typography variant="body2" className="font-semibold">
+              {t(`${w}.changeReasonTitle`)}
+            </Typography>
+            <Typography variant="caption" color="muted">
+              {t(`${w}.changeReasonHint`)}
+            </Typography>
+            <Textarea
+              placeholder={t(`${w}.changeReasonPlaceholder`)}
+              value={formData.changeReason}
+              onValueChange={(value) => onUpdate({ changeReason: value })}
+              minRows={2}
+              maxRows={4}
+              maxLength={5000}
+            />
           </CardBody>
         </Card>
       )}

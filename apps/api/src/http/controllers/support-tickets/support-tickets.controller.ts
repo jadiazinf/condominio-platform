@@ -10,13 +10,7 @@ import {
   ESystemRole,
 } from '@packages/domain'
 import type { SupportTicketsRepository } from '@database/repositories'
-import {
-  NotificationsRepository,
-  NotificationDeliveriesRepository,
-  UserNotificationPreferencesRepository,
-  UserFcmTokensRepository,
-} from '@database/repositories'
-import { SendNotificationService } from '../../../services/notifications'
+import type { SendNotificationService } from '../../../services/notifications'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BaseController } from '../base.controller'
 import {
@@ -113,7 +107,8 @@ export class SupportTicketsController extends BaseController<
 
   constructor(
     repository: SupportTicketsRepository,
-    private readonly db: TDrizzleClient
+    private readonly db: TDrizzleClient,
+    sendNotificationService: SendNotificationService,
   ) {
     super(repository)
     this.createService = new CreateTicketService(repository)
@@ -121,15 +116,7 @@ export class SupportTicketsController extends BaseController<
     this.resolveService = new ResolveTicketService(repository)
     this.closeService = new CloseTicketService(repository)
     this.updateStatusService = new UpdateTicketStatusService(repository)
-
-    // Initialize notification service
-    const notificationsRepo = new NotificationsRepository(db)
-    const deliveriesRepo = new NotificationDeliveriesRepository(db)
-    const preferencesRepo = new UserNotificationPreferencesRepository(db)
-    const fcmTokensRepo = new UserFcmTokensRepository(db)
-    this.sendNotificationService = new SendNotificationService(
-      notificationsRepo, deliveriesRepo, preferencesRepo, fcmTokensRepo
-    )
+    this.sendNotificationService = sendNotificationService
   }
 
   get routes(): TRouteDefinition[] {

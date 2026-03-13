@@ -136,7 +136,7 @@ export class WebSocketEndpoint implements IEndpoint {
       const ticketId = c.req.param('ticketId')
       const token = c.req.query('token') || ''
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Bun-specific server property
+       
       const server = (c.env as Record<string, unknown>)?.server as { upgrade?: (req: Request, options: { data: IWebSocketData }) => boolean } | undefined
 
       if (!server?.upgrade) {
@@ -158,7 +158,7 @@ export class WebSocketEndpoint implements IEndpoint {
     app.get('/notifications', (c) => {
       const token = c.req.query('token') || ''
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Bun-specific server property
+       
       const server = (c.env as Record<string, unknown>)?.server as { upgrade?: (req: Request, options: { data: IWebSocketData }) => boolean } | undefined
 
       if (!server?.upgrade) {

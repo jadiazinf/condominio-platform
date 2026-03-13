@@ -43,3 +43,21 @@ export function useGenerateCharges(
     invalidateKeys: [paymentConceptKeys.all, ['quotas']],
   })
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bulk Generation
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface IGenerateChargesBulkResult {
+  periodsGenerated: number
+  totalQuotas: number
+  totalAmount: number
+}
+
+export function useGenerateChargesBulk(companyId: string) {
+  return useApiMutation<TApiDataResponse<IGenerateChargesBulkResult>, { conceptId: string }>({
+    path: (variables) => `/${companyId}/me/payment-concepts/${variables.conceptId}/generate-bulk`,
+    method: 'POST',
+    invalidateKeys: [paymentConceptKeys.all, ['quotas']],
+  })
+}

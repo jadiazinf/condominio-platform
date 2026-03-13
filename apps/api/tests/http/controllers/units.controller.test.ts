@@ -5,6 +5,7 @@ import { StatusCodes } from 'http-status-codes'
 import type { TUnit, TUnitCreate, TUnitUpdate } from '@packages/domain'
 import { UnitsController } from '@http/controllers/units'
 import type { UnitsRepository } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { UnitFactory } from '../../setup/factories'
 import {
   withId,
@@ -102,7 +103,7 @@ describe('UnitsController', function () {
     }
 
     // Create controller with mock repository
-    const controller = new UnitsController(mockRepository as unknown as UnitsRepository, {} as any)
+    const controller = new UnitsController(mockRepository as unknown as UnitsRepository, {} as unknown as TDrizzleClient)
 
     // Create Hono app with controller routes
     app = createTestApp()

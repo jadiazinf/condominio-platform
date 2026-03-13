@@ -6,7 +6,10 @@ import { DomainLocaleDictionary } from '../../i18n/dictionary'
 
 const d = DomainLocaleDictionary.validation.models.quotaAdjustments
 
-export const EAdjustmentTypes = ['discount', 'increase', 'correction', 'waiver'] as const
+export const EAdjustmentTypes = [
+  'discount', 'increase', 'correction', 'waiver',
+  'exoneration', 'credit_note',
+] as const
 
 // Note: quota_adjustments doesn't have updatedAt, so we don't extend baseModelSchema
 export const quotaAdjustmentSchema = z.object({

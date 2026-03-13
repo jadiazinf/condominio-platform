@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["bun"],
+    "paths": {
+      "@worker/*": ["./src/*"],
+      "@database/*": ["../../packages/database/src/*"],
+      "@config/*": ["./src/config/*"],
+      "@packages/domain": ["../../packages/domain/src"],
+      "@packages/logger": ["../../packages/logger/src"],
+      "@packages/services": ["../../packages/services/src"],
+      "@packages/test-utils": ["../../packages/test-utils/src"]
+    }
+  },
+  "include": ["src", "tests"],
+  "exclude": ["node_modules"]
+}

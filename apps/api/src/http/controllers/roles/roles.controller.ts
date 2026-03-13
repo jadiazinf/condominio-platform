@@ -13,7 +13,6 @@ import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-
 import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
-import { GetAssignableRolesService } from '@src/services/roles'
 import { z } from 'zod'
 
 const NameParamSchema = z.object({
@@ -36,11 +35,8 @@ type TNameParam = z.infer<typeof NameParamSchema>
  * - DELETE /:id           Delete role (hard delete)
  */
 export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpdate> {
-  private getAssignableRolesService: GetAssignableRolesService
-
   constructor(repository: RolesRepository) {
     super(repository)
-    this.getAssignableRolesService = new GetAssignableRolesService(repository)
   }
 
   get routes(): TRouteDefinition[] {
@@ -131,15 +127,11 @@ export class RolesController extends BaseController<TRole, TRoleCreate, TRoleUpd
 
   private getAssignableRoles = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
+    const repo = this.repository as RolesRepository
 
     try {
-      const result = await this.getAssignableRolesService.execute()
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
+      const roles = await repo.getAssignableRoles()
+      return ctx.ok({ data: roles })
     } catch (error) {
       return this.handleError(ctx, error)
     }

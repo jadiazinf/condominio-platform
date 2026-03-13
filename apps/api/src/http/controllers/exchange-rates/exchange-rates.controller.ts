@@ -28,14 +28,6 @@ const DateParamSchema = z.object({
 
 type TDateParam = z.infer<typeof DateParamSchema>
 
-type TExchangeRatesQuery = {
-  page?: number
-  limit?: number
-  fromCurrencyId?: string
-  toCurrencyId?: string
-  dateFrom?: string
-  dateTo?: string
-}
 
 /**
  * Controller for managing exchange rate resources.

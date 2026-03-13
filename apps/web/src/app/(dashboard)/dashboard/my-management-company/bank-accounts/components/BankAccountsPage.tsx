@@ -101,10 +101,10 @@ export function BankAccountsPage({ managementCompanyId, memberRole }: BankAccoun
       { key: 'displayName', label: t('admin.company.myCompany.bankAccounts.columns.displayName') },
       { key: 'bankName', label: t('admin.company.myCompany.bankAccounts.columns.bankName') },
       { key: 'accountCategory', label: t('admin.company.myCompany.bankAccounts.columns.category') },
-      { key: 'currency', label: t('admin.company.myCompany.bankAccounts.columns.currency') },
-      { key: 'condominiums', label: t('admin.company.myCompany.bankAccounts.columns.condominiums') },
+      { key: 'currency', label: t('admin.company.myCompany.bankAccounts.columns.currency'), hideOnMobile: true },
+      { key: 'condominiums', label: t('admin.company.myCompany.bankAccounts.columns.condominiums'), hideOnMobile: true },
       { key: 'isActive', label: t('admin.company.myCompany.bankAccounts.columns.status') },
-      { key: 'createdAt', label: t('admin.company.myCompany.bankAccounts.columns.createdAt') },
+      { key: 'createdAt', label: t('admin.company.myCompany.bankAccounts.columns.createdAt'), hideOnMobile: true },
     ],
     [t]
   )
@@ -239,7 +239,7 @@ export function BankAccountsPage({ managementCompanyId, memberRole }: BankAccoun
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Typography variant="h3">
             {t('admin.company.myCompany.bankAccounts.title')}
@@ -249,7 +249,7 @@ export function BankAccountsPage({ managementCompanyId, memberRole }: BankAccoun
           </Typography>
         </div>
         {isAdmin && (
-          <Button color="primary" startContent={<Plus size={16} />} onPress={createModal.onOpen}>
+          <Button color="primary" startContent={<Plus size={16} />} onPress={createModal.onOpen} className="w-full sm:w-auto">
             {t('admin.company.myCompany.bankAccounts.addBankAccount')}
           </Button>
         )}

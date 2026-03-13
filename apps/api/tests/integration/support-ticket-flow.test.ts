@@ -36,7 +36,6 @@ let app: Hono
 let request: (path: string, options?: RequestInit) => Promise<Response>
 
 let companyId: string
-
 beforeAll(async () => {
   db = await startTestContainer()
 })
@@ -62,7 +61,8 @@ beforeEach(async () => {
 
   // 3. Set up controller + app
   const repository = new SupportTicketsRepository(db)
-  const controller = new SupportTicketsController(repository, db)
+  const mockSendNotification = { execute: async () => ({ success: true }) } as any
+  const controller = new SupportTicketsController(repository, db, mockSendNotification)
 
   app = createTestApp()
   app.route('', controller.createRouter())

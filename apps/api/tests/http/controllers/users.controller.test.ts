@@ -4,7 +4,8 @@ import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
 import type { TUser, TUserCreate, TUserUpdate } from '@packages/domain'
 import { UsersController } from '@http/controllers/users'
-import type { UsersRepository } from '@database/repositories'
+import type { UsersRepository, UserPermissionsRepository, UserRolesRepository, ManagementCompanyMembersRepository } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { UserFactory } from '../../setup/factories'
 import {
   withId,
@@ -96,17 +97,17 @@ describe('UsersController', function () {
     }
 
     // Create mock db client (not used in basic CRUD tests)
-    const mockDb = {} as any
+    const mockDb = {} as unknown as TDrizzleClient
 
     // Create mock user permissions repository
-    const mockUserPermissionsRepository = {} as any
+    const mockUserPermissionsRepository = {} as unknown as UserPermissionsRepository
 
     // Create mock user roles repository
-    const mockUserRolesRepository = {} as any
+    const mockUserRolesRepository = {} as unknown as UserRolesRepository
 
     // Create controller with mock repository, db, and user permissions repository
     // Create mock management company members repository
-    const mockManagementCompanyMembersRepository = {} as any
+    const mockManagementCompanyMembersRepository = {} as unknown as ManagementCompanyMembersRepository
 
     const controller = new UsersController(mockRepository as unknown as UsersRepository, mockDb, mockUserPermissionsRepository, mockUserRolesRepository, mockManagementCompanyMembersRepository)
 

@@ -110,37 +110,25 @@ export class PaymentConceptsController extends BaseController<
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)
     const repo = this.repository as PaymentConceptsRepository
 
-    try {
-      const concepts = await repo.getByBuildingId(ctx.params.buildingId)
-      return ctx.ok({ data: concepts })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const concepts = await repo.getByBuildingId(ctx.params.buildingId)
+    return ctx.ok({ data: concepts })
   }
 
   private getRecurringConcepts = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const repo = this.repository as PaymentConceptsRepository
 
-    try {
-      const concepts = await repo.getRecurringConcepts()
-      return ctx.ok({ data: concepts })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const concepts = await repo.getRecurringConcepts()
+    return ctx.ok({ data: concepts })
   }
 
   private getByConceptType = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TConceptTypeParam>(c)
     const repo = this.repository as PaymentConceptsRepository
 
-    try {
-      const concepts = await repo.getByConceptType(
-        ctx.params.conceptType as TPaymentConcept['conceptType']
-      )
-      return ctx.ok({ data: concepts })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const concepts = await repo.getByConceptType(
+      ctx.params.conceptType as TPaymentConcept['conceptType']
+    )
+    return ctx.ok({ data: concepts })
   }
 }

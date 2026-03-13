@@ -1,0 +1,33 @@
+{
+  "name": "@packages/services",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build --noEmit",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@packages/database": "workspace:*",
+    "@packages/domain": "workspace:*",
+    "@packages/logger": "workspace:*",
+    "firebase-admin": "^13.7.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "5.9.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

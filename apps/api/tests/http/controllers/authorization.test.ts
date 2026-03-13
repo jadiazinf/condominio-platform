@@ -29,7 +29,7 @@ import type {
   QuotasRepository,
 } from '@database/repositories'
 import { BuildingFactory } from '../../setup/factories'
-import { withId, createTestApp, type IApiResponse } from './test-utils'
+import { withId, createTestApp } from './test-utils'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 
 const CONDO_ID = '550e8400-e29b-41d4-a716-446655440010'
@@ -137,7 +137,7 @@ describe('Authorization Tests', function () {
         },
       }
 
-      const controller = new BuildingsController(mockRepository as unknown as BuildingsRepository, {} as any)
+      const controller = new BuildingsController(mockRepository as unknown as BuildingsRepository, {} as unknown as TDrizzleClient)
 
       app = createTestApp()
       app.route('/buildings', controller.createRouter())
@@ -240,16 +240,16 @@ describe('Authorization Tests', function () {
       create: (data: TManagementCompanyCreate) => Promise<TManagementCompany>
       update: (id: string, data: TManagementCompanyUpdate) => Promise<TManagementCompany | null>
       delete: (id: string) => Promise<boolean>
-      listPaginated: (query: any) => Promise<any>
+      listPaginated: (query: unknown) => Promise<{ data: TManagementCompany[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>
       toggleActive: (id: string, isActive: boolean) => Promise<TManagementCompany | null>
       getByTaxIdNumber: (taxIdNumber: string) => Promise<TManagementCompany | null>
       getByLocationId: (locationId: string) => Promise<TManagementCompany[]>
-      getUsageStats: (id: string) => Promise<any>
+      getUsageStats: (id: string) => Promise<{ condominiums: number; units: number; users: number }>
       getByEmail: (email: string) => Promise<TManagementCompany | null>
     }
-    let mockSubscriptionsRepository: any
-    let mockLocationsRepository: any
-    let mockUsersRepository: any
+    let mockSubscriptionsRepository: { getActiveByCompanyId: (...args: unknown[]) => Promise<null> }
+    let mockLocationsRepository: { getByIdWithHierarchy: (...args: unknown[]) => Promise<null> }
+    let mockUsersRepository: { getById: (...args: unknown[]) => Promise<null>; checkIsSuperadmin: (...args: unknown[]) => Promise<boolean> }
     let testCompanies: TManagementCompany[]
     let request: (path: string, options?: RequestInit) => Promise<Response>
 
@@ -446,7 +446,7 @@ describe('Authorization Tests', function () {
       update: (id: string, data: TPaymentUpdate) => Promise<TPayment | null>
       delete: (id: string) => Promise<boolean>
     }
-    let mockDb: any
+    let mockDb: TDrizzleClient
     let testPayments: TPayment[]
     let request: (path: string, options?: RequestInit) => Promise<Response>
 
@@ -511,9 +511,13 @@ describe('Authorization Tests', function () {
 
       mockDb = {} as TDrizzleClient
 
+      const mockSendNotification = { execute: async () => ({ success: true }) } as any
       const controller = new PaymentsController(
         mockRepository as unknown as PaymentsRepository,
-        mockDb
+        mockDb,
+        {} as any,
+        {} as any,
+        mockSendNotification
       )
 
       app = createTestApp()

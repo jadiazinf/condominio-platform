@@ -372,6 +372,7 @@ export function ServicesPageClient({
           {/* Desktop Table */}
           <div className="hidden md:block">
             <Table<TCondominiumService>
+              mobileCards={false}
               aria-label={t.title}
               columns={tableColumns}
               rows={services}

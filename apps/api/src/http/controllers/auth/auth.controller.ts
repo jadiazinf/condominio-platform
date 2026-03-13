@@ -6,7 +6,6 @@ import {
   type TGoogleRegisterSchema,
   type TRegisterSchema,
 } from '@packages/domain'
-import { ApiErrorCodes } from '@packages/http-client'
 import { admin } from '@libs/firebase/config'
 import type { UsersRepository } from '@database/repositories'
 import { HttpContext } from '../../context'

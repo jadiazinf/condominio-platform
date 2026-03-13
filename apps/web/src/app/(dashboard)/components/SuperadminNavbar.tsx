@@ -27,8 +27,8 @@ export function SuperadminNavbar({ onToggleSidebar, initialUser }: SuperadminNav
             <Menu size={24} />
           </Button>
         )}
-        <NavbarBrandPrimitive className="gap-3">
-          <Link className="font-bold text-inherit text-xl" href="/dashboard">
+        <NavbarBrandPrimitive className="gap-2 sm:gap-3">
+          <Link className="font-bold text-inherit text-xl hidden sm:inline" href="/dashboard">
             CondominioApp
           </Link>
           <Chip

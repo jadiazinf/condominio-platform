@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { formatCurrency } from '@packages/utils/currency'
 import { formatFullDate } from '@packages/utils/dates'
 import type { TManagementCompanySubscription } from '@packages/domain'
+import { getSubscriptionStatusColor } from '@/utils/status-colors'
 
 interface ReplaceSubscriptionModalProps {
   isOpen: boolean
@@ -46,17 +47,6 @@ export function ReplaceSubscriptionModal({
 
   const getBillingCycleLabel = (cycle: string) => {
     return t(`superadmin.companies.subscription.form.billingCycles.${cycle}`)
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'success'
-      case 'trial':
-        return 'primary'
-      default:
-        return 'default'
-    }
   }
 
   const handleConfirm = useCallback(async () => {
@@ -124,7 +114,7 @@ export function ReplaceSubscriptionModal({
                 <Typography variant="subtitle2">
                   {t('superadmin.companies.subscription.replace.currentSubscription')}
                 </Typography>
-                <Chip color={getStatusColor(currentSubscription.status)} size="sm" variant="flat">
+                <Chip color={getSubscriptionStatusColor(currentSubscription.status)} size="sm" variant="flat">
                   {t(`superadmin.companies.subscription.form.statuses.${currentSubscription.status}`)}
                 </Chip>
               </div>

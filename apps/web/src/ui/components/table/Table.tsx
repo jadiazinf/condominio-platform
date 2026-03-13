@@ -32,6 +32,8 @@ interface ITableColumn<T> {
   minWidth?: number
   maxWidth?: number
   className?: string
+  /** Hide this column in the mobile card view */
+  hideOnMobile?: boolean
 }
 
 interface ITableProps<T extends { id: string | number }> {
@@ -72,6 +74,8 @@ interface ITableProps<T extends { id: string | number }> {
   }
   onSelectionChange?: (keys: Selection) => void
   onRowClick?: (row: T) => void
+  /** Enable automatic mobile card view (default: true). Set to false if the parent already handles mobile layout. */
+  mobileCards?: boolean
 }
 
 export function Table<T extends { id: string | number }>({
@@ -99,6 +103,7 @@ export function Table<T extends { id: string | number }>({
   classNames,
   onSelectionChange,
   onRowClick,
+  mobileCards = true,
 }: ITableProps<T>) {
   const renderCellContent = useCallback(
     (row: T, columnKey: TableKey) => {
@@ -107,12 +112,46 @@ export function Table<T extends { id: string | number }>({
     [renderCell]
   )
 
-  return (
+  const mobileColumnsForCards = columns.filter(c => !c.hideOnMobile)
+
+  const mobileCardView = mobileCards ? (
+    <div className="block space-y-3 md:hidden">
+      {isLoading && loadingContent}
+      {!isLoading && rows.length === 0 && emptyContent && (
+        <div className="py-8 text-center text-default-400">{emptyContent}</div>
+      )}
+      {!isLoading &&
+        rows.map((row) => (
+          <div
+            key={String(row.id)}
+            className={cn(
+              'rounded-lg border border-default-200 bg-content1 p-3 space-y-2',
+              onRowClick && 'cursor-pointer active:bg-default-100 transition-colors'
+            )}
+            onClick={() => onRowClick?.(row)}
+          >
+            {mobileColumnsForCards.map((col) => {
+              const content = renderCellContent(row, String(col.key) as TableKey)
+              if (content === null || content === undefined) return null
+              return (
+                <div key={String(col.key)} className="flex items-start justify-between gap-2 min-w-0">
+                  <span className="text-xs text-default-500 shrink-0">{col.label}</span>
+                  <div className="text-sm text-right min-w-0 break-words">{content}</div>
+                </div>
+              )
+            })}
+          </div>
+        ))}
+    </div>
+  ) : null
+
+  const desktopTable = (
     <HeroUITable
       aria-label={ariaLabel}
       className={cn(className)}
       classNames={{
         ...classNames,
+        base: cn(mobileCards && 'hidden md:block', classNames?.base),
         thead: cn('[&>tr]:first:shadow-none', classNames?.thead),
         th: cn(
           'bg-transparent border-b border-divider text-default-500 font-medium',
@@ -168,6 +207,15 @@ export function Table<T extends { id: string | number }>({
         )}
       </HeroUITableBody>
     </HeroUITable>
+  )
+
+  if (!mobileCards) return desktopTable
+
+  return (
+    <>
+      {mobileCardView}
+      {desktopTable}
+    </>
   )
 }
 

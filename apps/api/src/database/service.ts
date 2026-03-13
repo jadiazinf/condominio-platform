@@ -10,9 +10,9 @@ export class DatabaseService {
   private pool: Pool
   private db: TDrizzleClient
 
-  private constructor() {
+  private constructor(connectionString: string) {
     this.pool = new Pool({
-      connectionString: env.DATABASE_URL,
+      connectionString,
     })
     // Ensure all sessions use UTC to avoid timestamp misinterpretation
     this.pool.on('connect', client => {
@@ -28,9 +28,14 @@ export class DatabaseService {
     logger.info('Database initialized with test container pool')
   }
 
+  public static createInstance(connectionString: string): DatabaseService {
+    DatabaseService.instance = new DatabaseService(connectionString)
+    return DatabaseService.instance
+  }
+
   public static getInstance(): DatabaseService {
     if (!DatabaseService.instance) {
-      DatabaseService.instance = new DatabaseService()
+      DatabaseService.instance = new DatabaseService(env.DATABASE_URL)
     }
     return DatabaseService.instance
   }

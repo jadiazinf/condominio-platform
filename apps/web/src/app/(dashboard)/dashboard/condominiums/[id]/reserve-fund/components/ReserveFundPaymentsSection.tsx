@@ -300,6 +300,7 @@ export function ReserveFundPaymentsSection({
           {/* Desktop Table */}
           <div className="hidden md:block">
             <Table<TPayment>
+              mobileCards={false}
               aria-label={t.title}
               columns={columns}
               rows={payments}

@@ -8,6 +8,7 @@ const SECTIONS = [
   { id: 'hero', labelKey: 'landing.nav.home' },
   { id: 'problems', labelKey: 'landing.nav.problems' },
   { id: 'benefits', labelKey: 'landing.nav.benefits' },
+  { id: 'residents', labelKey: 'landing.nav.residents' },
   { id: 'how-it-works', labelKey: 'landing.nav.howItWorks' },
   { id: 'cta', labelKey: 'landing.nav.cta' },
   { id: 'footer', labelKey: 'landing.nav.footer' },

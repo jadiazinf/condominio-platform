@@ -10,7 +10,7 @@ import type { ErrorCode } from '@errors/index'
  * Supports both old format (error as string) and new format (error as object).
  */
 export interface IApiResponse {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   data?: any
   error?: string | { code: ErrorCode; message: string; details?: Record<string, unknown> }
   message?: string

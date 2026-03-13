@@ -13,6 +13,7 @@ import type {
   PaymentConceptAssignmentsRepository,
   PaymentConceptBankAccountsRepository,
   PaymentConceptServicesRepository,
+  PaymentConceptChangesRepository,
   CondominiumsRepository,
   CondominiumServicesRepository,
   CurrenciesRepository,
@@ -58,6 +59,7 @@ function createPaymentConcept(overrides: Partial<TPaymentConcept> = {}): TPaymen
     dueDay: 15,
     effectiveFrom: null,
     effectiveUntil: null,
+    chargeGenerationStrategy: 'auto',
     isActive: true,
     metadata: null,
     createdBy: USER_ID,
@@ -169,6 +171,7 @@ describe('McPaymentConceptsController', function () {
         return { ...concept, ...(data as Partial<TPaymentConcept>) }
       },
       delete: async () => true,
+      withTx: function () { return this },
     }
 
     mockAssignmentsRepo = {
@@ -176,6 +179,8 @@ describe('McPaymentConceptsController', function () {
       getByConceptAndScope: async () => null,
       create: async (data) => createAssignment(data as Partial<TPaymentConceptAssignment>),
       update: async (id, data) => createAssignment({ id, ...(data as Partial<TPaymentConceptAssignment>) }),
+      deactivateAllByConceptId: async () => 1,
+      withTx: function () { return this },
     }
 
     mockConceptBankAccountsRepo = {
@@ -262,6 +267,8 @@ describe('McPaymentConceptsController', function () {
       createMany: async (records: Record<string, unknown>[]) =>
         records.map(() => ({ id: crypto.randomUUID() })),
       getDelinquentByConcept: async () => [],
+      cancelAllNonPaidByConceptId: async () => 0,
+      withTx: () => mockQuotasRepo,
     }
 
     const mockDb = {
@@ -294,6 +301,7 @@ describe('McPaymentConceptsController', function () {
       conceptServicesRepo: mockConceptServicesRepo as unknown as PaymentConceptServicesRepository,
       condominiumServicesRepo: mockCondominiumServicesRepo as unknown as CondominiumServicesRepository,
       executionsRepo: { create: async () => ({}) } as unknown as ServiceExecutionsRepository,
+      changesRepo: { create: async () => ({}), listByConceptId: async () => [] } as unknown as PaymentConceptChangesRepository,
     })
 
     app = createTestApp()
@@ -320,14 +328,15 @@ describe('McPaymentConceptsController', function () {
         bankAccountCondominiumsRepo: { getByBankAccountAndCondominium: async () => null },
         buildingsRepo: { getById: async () => null, getByCondominiumId: async () => [] },
         unitsRepo: { getById: async () => null, getByBuildingId: async () => [], getByCondominiumId: async () => [] },
-        quotasRepo: { existsForConceptAndPeriod: async () => false, createMany: async () => [], getDelinquentByConcept: async () => [] },
+        quotasRepo: { existsForConceptAndPeriod: async () => false, createMany: async () => [], getDelinquentByConcept: async () => [], cancelAllNonPaidByConceptId: async () => 0, withTx: function() { return this } },
         conceptServicesRepo: { listByConceptId: async () => [], linkService: async () => ({ id: 'link-1', paymentConceptId: '', serviceId: '', amount: 0, useDefaultAmount: true, createdAt: new Date(), updatedAt: new Date() }), unlinkById: async () => true } as unknown as PaymentConceptServicesRepository,
         condominiumServicesRepo: { getById: async () => null } as unknown as CondominiumServicesRepository,
         executionsRepo: { create: async () => ({}) } as unknown as ServiceExecutionsRepository,
+        changesRepo: { create: async () => ({}), listByConceptId: async () => [] } as unknown as PaymentConceptChangesRepository,
       })
 
       const routes = controller.routes
-      expect(routes.length).toBe(20)
+      expect(routes.length).toBe(23)
 
       // Currencies
       expect(routes[0]!.method).toBe('get')
@@ -360,48 +369,62 @@ describe('McPaymentConceptsController', function () {
       expect(routes[6]!.path).toContain('/me/payment-concepts/full')
       expect(routes[6]!.middlewares!.length).toBeGreaterThanOrEqual(4)
 
+      // Update concept (patch)
       expect(routes[7]!.method).toBe('patch')
       expect(routes[7]!.path).toContain('/me/payment-concepts/:conceptId')
 
-      expect(routes[8]!.method).toBe('patch')
-      expect(routes[8]!.path).toContain('/deactivate')
+      // Update concept full (put)
+      expect(routes[8]!.method).toBe('put')
+      expect(routes[8]!.path).toContain('/me/payment-concepts/:conceptId/full')
+
+      // Change history
+      expect(routes[9]!.method).toBe('get')
+      expect(routes[9]!.path).toContain('/change-history')
+
+      // Deactivate
+      expect(routes[10]!.method).toBe('patch')
+      expect(routes[10]!.path).toContain('/deactivate')
 
       // Assignments
-      expect(routes[9]!.method).toBe('get')
-      expect(routes[9]!.path).toContain('/assignments')
+      expect(routes[11]!.method).toBe('get')
+      expect(routes[11]!.path).toContain('/assignments')
 
-      expect(routes[10]!.method).toBe('post')
-      expect(routes[10]!.path).toContain('/assignments')
+      expect(routes[12]!.method).toBe('post')
+      expect(routes[12]!.path).toContain('/assignments')
 
-      expect(routes[11]!.method).toBe('patch')
-      expect(routes[11]!.path).toContain('/assignments/:assignmentId')
+      expect(routes[13]!.method).toBe('patch')
+      expect(routes[13]!.path).toContain('/assignments/:assignmentId')
 
-      expect(routes[12]!.method).toBe('patch')
-      expect(routes[12]!.path).toContain('/assignments/:assignmentId/deactivate')
+      expect(routes[14]!.method).toBe('patch')
+      expect(routes[14]!.path).toContain('/assignments/:assignmentId/deactivate')
 
       // Bank accounts
-      expect(routes[13]!.method).toBe('get')
-      expect(routes[13]!.path).toContain('/bank-accounts')
+      expect(routes[15]!.method).toBe('get')
+      expect(routes[15]!.path).toContain('/bank-accounts')
 
-      expect(routes[14]!.method).toBe('post')
-      expect(routes[14]!.path).toContain('/bank-accounts')
+      expect(routes[16]!.method).toBe('post')
+      expect(routes[16]!.path).toContain('/bank-accounts')
 
-      expect(routes[15]!.method).toBe('delete')
-      expect(routes[15]!.path).toContain('/bank-accounts/:linkId')
+      expect(routes[17]!.method).toBe('delete')
+      expect(routes[17]!.path).toContain('/bank-accounts/:linkId')
 
       // Generate
-      expect(routes[16]!.method).toBe('post')
-      expect(routes[16]!.path).toContain('/generate')
+      expect(routes[18]!.method).toBe('post')
+      expect(routes[18]!.path).toContain('/generate')
+
+      // Generate bulk
+      expect(routes[19]!.method).toBe('post')
+      expect(routes[19]!.path).toContain('/generate-bulk')
 
       // Concept Services
-      expect(routes[17]!.method).toBe('get')
-      expect(routes[17]!.path).toContain('/services')
+      expect(routes[20]!.method).toBe('get')
+      expect(routes[20]!.path).toContain('/services')
 
-      expect(routes[18]!.method).toBe('post')
-      expect(routes[18]!.path).toContain('/services')
+      expect(routes[21]!.method).toBe('post')
+      expect(routes[21]!.path).toContain('/services')
 
-      expect(routes[19]!.method).toBe('delete')
-      expect(routes[19]!.path).toContain('/services/:linkId')
+      expect(routes[22]!.method).toBe('delete')
+      expect(routes[22]!.path).toContain('/services/:linkId')
     })
   })
 
@@ -414,7 +437,7 @@ describe('McPaymentConceptsController', function () {
       const res = await request(`/${MC_ID}/me/payment-concepts`)
       expect(res.status).toBe(StatusCodes.OK)
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const json = (await res.json()) as any
       expect(json.data).toHaveLength(2)
       expect(json.pagination).toBeDefined()
@@ -510,16 +533,18 @@ describe('McPaymentConceptsController', function () {
     it('should deactivate a concept', async function () {
       const res = await request(`/${MC_ID}/me/payment-concepts/${CONCEPT_ID}/deactivate`, {
         method: 'PATCH',
+        headers: { 'x-condominium-id': CONDO_ID },
       })
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
-      expect(json.data.isActive).toBe(false)
+      expect(json.data.concept.isActive).toBe(false)
     })
 
     it('should return 404 for non-existent concept', async function () {
       const res = await request(`/${MC_ID}/me/payment-concepts/550e8400-e29b-41d4-a716-446655440099/deactivate`, {
         method: 'PATCH',
+        headers: { 'x-condominium-id': CONDO_ID },
       })
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
     })
@@ -686,10 +711,11 @@ describe('McPaymentConceptsController', function () {
         bankAccountCondominiumsRepo: { getByBankAccountAndCondominium: async () => null },
         buildingsRepo: { getById: async () => null, getByCondominiumId: async () => [] },
         unitsRepo: { getById: async () => null, getByBuildingId: async () => [], getByCondominiumId: async () => [] },
-        quotasRepo: { existsForConceptAndPeriod: async () => true, createMany: async () => [], getDelinquentByConcept: async () => [] },
+        quotasRepo: { existsForConceptAndPeriod: async () => true, createMany: async () => [], getDelinquentByConcept: async () => [], cancelAllNonPaidByConceptId: async () => 0, withTx: function() { return this } },
         conceptServicesRepo: { listByConceptId: async () => [], linkService: async () => ({ id: 'link-1', paymentConceptId: '', serviceId: '', amount: 0, useDefaultAmount: true, createdAt: new Date(), updatedAt: new Date() }), unlinkById: async () => true } as unknown as PaymentConceptServicesRepository,
         condominiumServicesRepo: { getById: async () => null } as unknown as CondominiumServicesRepository,
         executionsRepo: { create: async () => ({}) } as unknown as ServiceExecutionsRepository,
+        changesRepo: { create: async () => ({}), listByConceptId: async () => [] } as unknown as PaymentConceptChangesRepository,
       })
 
       const app2 = createTestApp()
@@ -722,7 +748,7 @@ describe('McPaymentConceptsController', function () {
       const res = await request(`/${MC_ID}/me/payment-concepts/${CONCEPT_ID}/affected-units`)
       expect(res.status).toBe(StatusCodes.OK)
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const json = (await res.json()) as any
       expect(json.data.isRecurring).toBe(true)
       expect(json.data.recurrencePeriod).toBe('monthly')
@@ -749,7 +775,7 @@ describe('McPaymentConceptsController', function () {
       const res = await request(`/${MC_ID}/me/payment-concepts/${CONCEPT_ID}/affected-units`)
       expect(res.status).toBe(StatusCodes.OK)
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const json = (await res.json()) as any
       expect(json.data.totalUnits).toBe(0)
       expect(json.data.units).toHaveLength(0)

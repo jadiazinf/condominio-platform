@@ -19,7 +19,6 @@ import type {
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
-import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
 import type { ISubscriptionHistoryQuery } from '@database/repositories/management-company-subscriptions.repository'

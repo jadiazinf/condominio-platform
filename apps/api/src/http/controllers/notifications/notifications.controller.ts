@@ -14,16 +14,14 @@ import type {
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
+import { AppError } from '@errors/index'
 import {
-  SendNotificationService,
-  GetUserNotificationsService,
-  GetUnreadCountService,
-  MarkAsReadService,
-  MarkAllAsReadService,
+  createSendNotificationService,
+  type SendNotificationService,
 } from '@src/services/notifications'
 
 const UserIdParamSchema = z.object({
@@ -70,10 +68,7 @@ export class NotificationsController extends BaseController<
   TNotificationUpdate
 > {
   private readonly sendNotificationService: SendNotificationService
-  private readonly getUserNotificationsService: GetUserNotificationsService
-  private readonly getUnreadCountService: GetUnreadCountService
-  private readonly markAsReadService: MarkAsReadService
-  private readonly markAllAsReadService: MarkAllAsReadService
+  private readonly notificationsRepository: NotificationsRepository
 
   constructor(
     repository: NotificationsRepository,
@@ -81,17 +76,13 @@ export class NotificationsController extends BaseController<
     preferencesRepository: UserNotificationPreferencesRepository
   ) {
     super(repository)
+    this.notificationsRepository = repository
 
-    this.sendNotificationService = new SendNotificationService(
+    this.sendNotificationService = createSendNotificationService(
       repository,
       deliveriesRepository,
       preferencesRepository
     )
-    this.getUserNotificationsService = new GetUserNotificationsService(repository)
-    this.getUnreadCountService = new GetUnreadCountService(repository)
-    this.markAsReadService = new MarkAsReadService(repository)
-    this.markAllAsReadService = new MarkAllAsReadService(repository)
-
   }
 
   get routes(): TRouteDefinition[] {
@@ -157,97 +148,50 @@ export class NotificationsController extends BaseController<
   private sendNotification = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TSendNotificationBody, unknown, unknown>(c)
 
-    try {
-      const result = await this.sendNotificationService.execute({
-        userId: ctx.body.userId,
-        category: ctx.body.category,
-        title: ctx.body.title,
-        body: ctx.body.body,
-        priority: ctx.body.priority,
-        data: ctx.body.data,
-        channels: ctx.body.channels,
-        expiresAt: ctx.body.expiresAt ? new Date(ctx.body.expiresAt) : undefined,
-      })
+    const result = await this.sendNotificationService.execute({
+      userId: ctx.body.userId,
+      category: ctx.body.category,
+      title: ctx.body.title,
+      body: ctx.body.body,
+      priority: ctx.body.priority,
+      data: ctx.body.data,
+      channels: ctx.body.channels,
+      expiresAt: ctx.body.expiresAt ? new Date(ctx.body.expiresAt) : undefined,
+    })
 
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.created({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!result.success) {
+      return ctx.internalError({ error: result.error })
     }
+
+    return ctx.created({ data: result.data })
   }
 
   private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
-
-    try {
-      const result = await this.getUserNotificationsService.execute({
-        userId: ctx.params.userId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const notifications = await this.notificationsRepository.getByUserId(ctx.params.userId)
+    return ctx.ok({ data: notifications })
   }
 
   private getUnreadCount = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
-
-    try {
-      const result = await this.getUnreadCountService.execute({
-        userId: ctx.params.userId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const count = await this.notificationsRepository.getUnreadCount(ctx.params.userId)
+    return ctx.ok({ data: { count } })
   }
 
   private markAsRead = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TIdParam>(c)
+    const notification = await this.notificationsRepository.markAsRead(ctx.params.id)
 
-    try {
-      const result = await this.markAsReadService.execute({
-        notificationId: ctx.params.id,
-      })
-
-      if (!result.success) {
-        return ctx.notFound({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!notification) {
+      throw AppError.notFound('Notification', ctx.params.id)
     }
+
+    return ctx.ok({ data: notification })
   }
 
   private markAllAsRead = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
-
-    try {
-      const result = await this.markAllAsReadService.execute({
-        userId: ctx.params.userId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const count = await this.notificationsRepository.markAllAsRead(ctx.params.userId)
+    return ctx.ok({ data: { count } })
   }
 }

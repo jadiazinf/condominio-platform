@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm'
-import { DatabaseService } from '../service'
-import { managementCompanySubscriptions } from '../drizzle/schema'
+import { DatabaseService } from '@database/service'
+import { managementCompanySubscriptions } from '@database/drizzle/schema'
 
 /**
  * Script to update existing subscriptions with default features enabled
@@ -12,7 +12,7 @@ async function updateSubscriptionFeatures() {
 
   try {
     // Update all subscriptions to have default features enabled
-    const result = await db.execute(sql`
+    await db.execute(sql`
       UPDATE management_company_subscriptions
       SET
         custom_features = jsonb_build_object(

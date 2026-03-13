@@ -13,7 +13,6 @@ import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-
 import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
-import { GetAmenitiesByCondominiumService } from '@src/services/amenities'
 
 /**
  * Controller for managing amenity resources.
@@ -30,12 +29,8 @@ export class AmenitiesController extends BaseController<
   TAmenityCreate,
   TAmenityUpdate
 > {
-  private readonly getAmenitiesByCondominiumService: GetAmenitiesByCondominiumService
-
   constructor(repository: AmenitiesRepository) {
     super(repository)
-
-    this.getAmenitiesByCondominiumService = new GetAmenitiesByCondominiumService(repository)
   }
 
   get routes(): TRouteDefinition[] {
@@ -80,14 +75,11 @@ export class AmenitiesController extends BaseController<
   protected override list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const repo = this.repository as AmenitiesRepository
 
-    const result = await this.getAmenitiesByCondominiumService.execute({ condominiumId })
+    const amenities = await repo.getByCondominiumId(condominiumId)
 
-    if (!result.success) {
-      return ctx.internalError({ error: result.error })
-    }
-
-    return ctx.ok({ data: result.data })
+    return ctx.ok({ data: amenities })
   }
 
   protected override create = async (c: Context): Promise<Response> => {

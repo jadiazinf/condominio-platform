@@ -24,6 +24,13 @@ import {
 import { QuotaFormulasController } from '@http/controllers/quota-formulas/quota-formulas.controller'
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+ 
+type TJsonResponse = { data: any; error?: string; message?: string }
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Setup
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -39,7 +46,6 @@ let condominiumId: string
 let currencyId: string
 let buildingId: string
 let unitId: string
-
 beforeAll(async () => {
   db = await startTestContainer()
 })
@@ -169,7 +175,7 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await createFormula(fixedFormulaBody())
       expect(res.status).toBe(201)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data).toBeDefined()
       expect(json.data.name).toBe('Fixed Maintenance Fee')
       expect(json.data.formulaType).toBe('fixed')
@@ -184,7 +190,7 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await createFormula(expressionFormulaBody())
       expect(res.status).toBe(201)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data).toBeDefined()
       expect(json.data.name).toBe('Area-based Fee')
       expect(json.data.formulaType).toBe('expression')
@@ -196,7 +202,7 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await createFormula(perUnitFormulaBody(unitId))
       expect(res.status).toBe(201)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data).toBeDefined()
       expect(json.data.name).toBe('Per-Unit Fee')
       expect(json.data.formulaType).toBe('per_unit')
@@ -208,7 +214,7 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await createFormula(body)
       expect(res.status).toBe(404)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.error).toContain('not found')
     })
 
@@ -217,7 +223,7 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await createFormula(body)
       expect(res.status).toBe(400)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.error).toContain('Fixed amount is required')
     })
 
@@ -226,7 +232,7 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await createFormula(body)
       expect(res.status).toBe(400)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.error).toContain('non-negative')
     })
 
@@ -235,7 +241,7 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await createFormula(body)
       expect(res.status).toBe(400)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.error).toContain('Expression is required')
     })
 
@@ -244,7 +250,7 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await createFormula(body)
       expect(res.status).toBe(400)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.error).toContain('Unit amounts are required')
     })
 
@@ -253,7 +259,7 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await createFormula(body)
       expect(res.status).toBe(400)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.error).toContain('Unit amounts are required')
     })
 
@@ -277,7 +283,7 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await createFormula(body)
       expect(res.status).toBe(400)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.error).toContain('forbidden')
     })
 
@@ -286,7 +292,7 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await createFormula(body)
       expect(res.status).toBe(400)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.error).toContain('Unknown variable')
     })
 
@@ -295,7 +301,7 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await createFormula(body)
       expect(res.status).toBe(400)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.error).toContain('parentheses')
     })
 
@@ -304,7 +310,7 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await createFormula(body)
       expect(res.status).toBe(201)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data.description).toBeNull()
     })
 
@@ -330,7 +336,7 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await request('/condominium/quota-formulas', { headers: headers() })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data).toEqual([])
     })
 
@@ -342,14 +348,14 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await request('/condominium/quota-formulas', { headers: headers() })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data.length).toBe(2)
     })
 
     it('should not return inactive formulas by default', async () => {
       // Create a formula then soft-delete it
       const createRes = await createFormula(fixedFormulaBody())
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       await request(`/condominium/quota-formulas/${formulaId}`, {
@@ -360,14 +366,14 @@ describe('Quota Formula Flow - Integration', () => {
       const res = await request('/condominium/quota-formulas', { headers: headers() })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data.length).toBe(0)
     })
 
     it('should return inactive formulas when includeInactive=true', async () => {
       // Create a formula then soft-delete it
       const createRes = await createFormula(fixedFormulaBody())
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       await request(`/condominium/quota-formulas/${formulaId}`, {
@@ -380,7 +386,7 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data.length).toBe(1)
       expect(json.data[0].isActive).toBe(false)
     })
@@ -403,7 +409,7 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data.length).toBe(0)
     })
   })
@@ -415,7 +421,7 @@ describe('Quota Formula Flow - Integration', () => {
   describe('GET /:id - Get formula by ID', () => {
     it('should return a formula by ID', async () => {
       const createRes = await createFormula(fixedFormulaBody())
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}`, {
@@ -423,7 +429,7 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data.id).toBe(formulaId)
       expect(json.data.name).toBe('Fixed Maintenance Fee')
     })
@@ -451,7 +457,7 @@ describe('Quota Formula Flow - Integration', () => {
   describe('PUT /:id - Update formula', () => {
     it('should update formula name', async () => {
       const createRes = await createFormula(fixedFormulaBody())
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}`, {
@@ -461,14 +467,14 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data.name).toBe('Updated Fee Name')
       expect(json.message).toBe('Formula updated successfully')
     })
 
     it('should update fixed amount', async () => {
       const createRes = await createFormula(fixedFormulaBody())
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}`, {
@@ -478,13 +484,13 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data.fixedAmount).toBe('200.00')
     })
 
     it('should update with update reason', async () => {
       const createRes = await createFormula(fixedFormulaBody())
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}`, {
@@ -494,7 +500,7 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data.updateReason).toBe('Price adjustment for 2026')
     })
 
@@ -509,7 +515,7 @@ describe('Quota Formula Flow - Integration', () => {
 
     it('should return 400 when changing to fixed type without amount', async () => {
       const createRes = await createFormula(expressionFormulaBody())
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}`, {
@@ -522,7 +528,7 @@ describe('Quota Formula Flow - Integration', () => {
 
     it('should deactivate formula via isActive=false', async () => {
       const createRes = await createFormula(fixedFormulaBody())
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}`, {
@@ -532,7 +538,7 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data.isActive).toBe(false)
     })
   })
@@ -544,7 +550,7 @@ describe('Quota Formula Flow - Integration', () => {
   describe('DELETE /:id - Soft delete formula', () => {
     it('should soft delete a formula', async () => {
       const createRes = await createFormula(fixedFormulaBody())
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}`, {
@@ -553,7 +559,7 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.message).toBe('Formula deactivated successfully')
     })
 
@@ -567,7 +573,7 @@ describe('Quota Formula Flow - Integration', () => {
 
     it('should not be retrievable by getById after soft delete', async () => {
       const createRes = await createFormula(fixedFormulaBody())
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       await request(`/condominium/quota-formulas/${formulaId}`, {
@@ -589,7 +595,7 @@ describe('Quota Formula Flow - Integration', () => {
   describe('POST /:id/calculate - Calculate amount', () => {
     it('should calculate fixed formula amount', async () => {
       const createRes = await createFormula(fixedFormulaBody({ fixedAmount: '250.00' }))
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}/calculate`, {
@@ -599,7 +605,7 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data.amount).toBe('250.00')
       expect(json.data.breakdown.formulaType).toBe('fixed')
       expect(json.data.breakdown.result).toBe(250)
@@ -609,7 +615,7 @@ describe('Quota Formula Flow - Integration', () => {
       const createRes = await createFormula(expressionFormulaBody({
         expression: 'base_rate * area_m2',
       }))
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}/calculate`, {
@@ -619,7 +625,7 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       // base_rate (2.5) * area_m2 (80.00) = 200.00
       expect(json.data.amount).toBe('200.00')
       expect(json.data.breakdown.formulaType).toBe('expression')
@@ -629,7 +635,7 @@ describe('Quota Formula Flow - Integration', () => {
 
     it('should calculate per_unit formula amount', async () => {
       const createRes = await createFormula(perUnitFormulaBody(unitId))
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}/calculate`, {
@@ -639,7 +645,7 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.data.amount).toBe('200.00')
       expect(json.data.breakdown.formulaType).toBe('per_unit')
     })
@@ -655,7 +661,7 @@ describe('Quota Formula Flow - Integration', () => {
 
     it('should return 404 when unit does not exist', async () => {
       const createRes = await createFormula(fixedFormulaBody())
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}/calculate`, {
@@ -668,7 +674,7 @@ describe('Quota Formula Flow - Integration', () => {
 
     it('should return 404 when formula is inactive (soft-deleted)', async () => {
       const createRes = await createFormula(fixedFormulaBody())
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       // Soft delete the formula
@@ -690,7 +696,7 @@ describe('Quota Formula Flow - Integration', () => {
       // Create per_unit formula with a different unit ID key
       const fakeKeyId = NON_EXISTENT_UUID
       const createRes = await createFormula(perUnitFormulaBody(fakeKeyId))
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}/calculate`, {
@@ -700,13 +706,13 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(400)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       expect(json.error).toContain('No amount defined')
     })
 
     it('should return 422 when unitId is missing from calculate body', async () => {
       const createRes = await createFormula(fixedFormulaBody())
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}/calculate`, {
@@ -721,7 +727,7 @@ describe('Quota Formula Flow - Integration', () => {
       const createRes = await createFormula(expressionFormulaBody({
         expression: 'base_rate * aliquot_percentage',
       }))
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}/calculate`, {
@@ -731,7 +737,7 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       // base_rate (1000) * aliquot_percentage (5.00) = 5000.00
       expect(json.data.amount).toBe('5000.00')
     })
@@ -740,7 +746,7 @@ describe('Quota Formula Flow - Integration', () => {
       const createRes = await createFormula(expressionFormulaBody({
         expression: 'base_rate * floor',
       }))
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}/calculate`, {
@@ -750,7 +756,7 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       // base_rate (50) * floor (3) = 150.00
       expect(json.data.amount).toBe('150.00')
       expect(json.data.breakdown.variables.floor).toBe(3)
@@ -760,7 +766,7 @@ describe('Quota Formula Flow - Integration', () => {
       const createRes = await createFormula(expressionFormulaBody({
         expression: 'base_rate + parking_spaces * base_rate',
       }))
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       const res = await request(`/condominium/quota-formulas/${formulaId}/calculate`, {
@@ -770,7 +776,7 @@ describe('Quota Formula Flow - Integration', () => {
       })
       expect(res.status).toBe(200)
 
-      const json: any = await res.json()
+      const json = (await res.json()) as TJsonResponse
       // base_rate (100) + parking_spaces (1) * base_rate (100) = 200.00
       expect(json.data.amount).toBe('200.00')
       expect(json.data.breakdown.variables.parking_spaces).toBe(1)
@@ -786,7 +792,7 @@ describe('Quota Formula Flow - Integration', () => {
       // CREATE
       const createRes = await createFormula(fixedFormulaBody({ name: 'Lifecycle Test' }))
       expect(createRes.status).toBe(201)
-      const createJson: any = await createRes.json()
+      const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
       // READ
@@ -794,7 +800,7 @@ describe('Quota Formula Flow - Integration', () => {
         headers: headers(),
       })
       expect(getRes.status).toBe(200)
-      const getJson: any = await getRes.json()
+      const getJson = (await getRes.json()) as TJsonResponse
       expect(getJson.data.name).toBe('Lifecycle Test')
 
       // UPDATE
@@ -804,14 +810,14 @@ describe('Quota Formula Flow - Integration', () => {
         body: JSON.stringify({ name: 'Lifecycle Updated', updateReason: 'Testing lifecycle' }),
       })
       expect(updateRes.status).toBe(200)
-      const updateJson: any = await updateRes.json()
+      const updateJson = (await updateRes.json()) as TJsonResponse
       expect(updateJson.data.name).toBe('Lifecycle Updated')
 
       // VERIFY update persisted
       const getAfterUpdateRes = await request(`/condominium/quota-formulas/${formulaId}`, {
         headers: headers(),
       })
-      const getAfterUpdateJson: any = await getAfterUpdateRes.json()
+      const getAfterUpdateJson = (await getAfterUpdateRes.json()) as TJsonResponse
       expect(getAfterUpdateJson.data.name).toBe('Lifecycle Updated')
 
       // DELETE (soft)
@@ -831,7 +837,7 @@ describe('Quota Formula Flow - Integration', () => {
       const listRes = await request('/condominium/quota-formulas?includeInactive=true', {
         headers: headers(),
       })
-      const listJson: any = await listRes.json()
+      const listJson = (await listRes.json()) as TJsonResponse
       expect(listJson.data.length).toBe(1)
       expect(listJson.data[0].isActive).toBe(false)
     })

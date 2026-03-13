@@ -1,0 +1,199 @@
+import { eq, and, or, ilike, sql, desc, inArray, type SQL } from 'drizzle-orm'
+import type {
+  TCondominiumService,
+  TCondominiumServiceCreate,
+  TCondominiumServiceUpdate,
+  TPaginatedResponse,
+  TCondominiumServicesQuerySchema,
+} from '@packages/domain'
+import { condominiumServices } from '../drizzle/schema'
+import type { TDrizzleClient, IRepository } from './interfaces'
+import { BaseRepository } from './base'
+
+type TCondominiumServiceRecord = typeof condominiumServices.$inferSelect
+
+export class CondominiumServicesRepository
+  extends BaseRepository<typeof condominiumServices, TCondominiumService, TCondominiumServiceCreate, TCondominiumServiceUpdate>
+  implements IRepository<TCondominiumService, TCondominiumServiceCreate, TCondominiumServiceUpdate>
+{
+  constructor(db: TDrizzleClient) {
+    super(db, condominiumServices)
+  }
+
+  protected mapToEntity(record: unknown): TCondominiumService {
+    const r = record as TCondominiumServiceRecord
+    return {
+      id: r.id,
+      condominiumId: r.condominiumId,
+      name: r.name,
+      description: r.description,
+      providerType: r.providerType as TCondominiumService['providerType'],
+      legalName: r.legalName,
+      taxIdType: r.taxIdType,
+      taxIdNumber: r.taxIdNumber,
+      email: r.email,
+      phoneCountryCode: r.phoneCountryCode,
+      phone: r.phone,
+      address: r.address,
+      locationId: r.locationId,
+      chargesIva: r.chargesIva ?? false,
+      ivaRate: r.ivaRate ? Number(r.ivaRate) : 0.16,
+      subjectToIslarRetention: r.subjectToIslarRetention ?? false,
+      islrRetentionRate: r.islrRetentionRate ? Number(r.islrRetentionRate) : 0.01,
+      isDefault: r.isDefault ?? false,
+      isActive: r.isActive ?? true,
+      metadata: r.metadata as Record<string, unknown> | null,
+      createdBy: r.createdBy,
+      createdAt: r.createdAt ?? new Date(),
+      updatedAt: r.updatedAt ?? new Date(),
+    }
+  }
+
+  protected override mapToInsertValues(dto: TCondominiumServiceCreate): Record<string, unknown> {
+    return {
+      condominiumId: dto.condominiumId,
+      name: dto.name,
+      description: dto.description,
+      providerType: dto.providerType,
+      legalName: dto.legalName,
+      taxIdType: dto.taxIdType,
+      taxIdNumber: dto.taxIdNumber,
+      email: dto.email,
+      phoneCountryCode: dto.phoneCountryCode,
+      phone: dto.phone,
+      address: dto.address,
+      locationId: dto.locationId,
+      chargesIva: dto.chargesIva ?? false,
+      ivaRate: dto.ivaRate != null ? String(dto.ivaRate) : '0.16',
+      subjectToIslarRetention: dto.subjectToIslarRetention ?? false,
+      islrRetentionRate: dto.islrRetentionRate != null ? String(dto.islrRetentionRate) : '0.01',
+    }
+  }
+
+  protected override mapToUpdateValues(dto: TCondominiumServiceUpdate): Record<string, unknown> {
+    const values: Record<string, unknown> = {}
+    if (dto.name !== undefined) values.name = dto.name
+    if (dto.description !== undefined) values.description = dto.description
+    if (dto.providerType !== undefined) values.providerType = dto.providerType
+    if (dto.legalName !== undefined) values.legalName = dto.legalName
+    if (dto.taxIdType !== undefined) values.taxIdType = dto.taxIdType
+    if (dto.taxIdNumber !== undefined) values.taxIdNumber = dto.taxIdNumber
+    if (dto.email !== undefined) values.email = dto.email
+    if (dto.phoneCountryCode !== undefined) values.phoneCountryCode = dto.phoneCountryCode
+    if (dto.phone !== undefined) values.phone = dto.phone
+    if (dto.address !== undefined) values.address = dto.address
+    if (dto.locationId !== undefined) values.locationId = dto.locationId
+    if (dto.chargesIva !== undefined) values.chargesIva = dto.chargesIva
+    if (dto.ivaRate !== undefined) values.ivaRate = String(dto.ivaRate)
+    if (dto.subjectToIslarRetention !== undefined) values.subjectToIslarRetention = dto.subjectToIslarRetention
+    if (dto.islrRetentionRate !== undefined) values.islrRetentionRate = String(dto.islrRetentionRate)
+    if (dto.isActive !== undefined) values.isActive = dto.isActive
+    values.updatedAt = new Date()
+    return values
+  }
+
+  /**
+   * List services for a condominium with pagination and filters.
+   */
+  async listByCondominiumPaginated(
+    condominiumId: string,
+    query: TCondominiumServicesQuerySchema
+  ): Promise<TPaginatedResponse<TCondominiumService>> {
+    const { page = 1, limit = 20, search, providerType, isActive } = query
+    const offset = (page - 1) * limit
+
+    const conditions: SQL[] = [eq(condominiumServices.condominiumId, condominiumId)]
+
+    if (isActive !== undefined) {
+      conditions.push(eq(condominiumServices.isActive, isActive))
+    }
+
+    if (providerType) {
+      conditions.push(eq(condominiumServices.providerType, providerType as TCondominiumService['providerType']))
+    }
+
+    if (search && search.trim()) {
+      const searchTerm = `%${search.trim()}%`
+      conditions.push(
+        or(
+          ilike(condominiumServices.name, searchTerm),
+          ilike(condominiumServices.legalName, searchTerm),
+          ilike(condominiumServices.taxIdNumber, searchTerm),
+          ilike(condominiumServices.email, searchTerm)
+        )!
+      )
+    }
+
+    const whereClause = and(...conditions)
+
+    const results = await this.db
+      .select()
+      .from(condominiumServices)
+      .where(whereClause)
+      .orderBy(desc(condominiumServices.createdAt))
+      .limit(limit)
+      .offset(offset)
+
+    const countResult = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(condominiumServices)
+      .where(whereClause)
+
+    const total = countResult[0]?.count ?? 0
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data: results.map(record => this.mapToEntity(record)),
+      pagination: { page, limit, total, totalPages },
+    }
+  }
+
+  /**
+   * Get all active services for a condominium.
+   */
+  async getByCondominiumId(condominiumId: string, includeInactive = false): Promise<TCondominiumService[]> {
+    const conditions: SQL[] = [eq(condominiumServices.condominiumId, condominiumId)]
+    if (!includeInactive) {
+      conditions.push(eq(condominiumServices.isActive, true))
+    }
+
+    const results = await this.db
+      .select()
+      .from(condominiumServices)
+      .where(and(...conditions))
+      .orderBy(desc(condominiumServices.createdAt))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Get services by a list of IDs.
+   */
+  async getByIds(ids: string[]): Promise<TCondominiumService[]> {
+    if (ids.length === 0) return []
+
+    const results = await this.db
+      .select()
+      .from(condominiumServices)
+      .where(inArray(condominiumServices.id, ids))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Get default services for a condominium (gastos comunes, fondo de reserva).
+   */
+  async getDefaultsByCondominiumId(condominiumId: string): Promise<TCondominiumService[]> {
+    const results = await this.db
+      .select()
+      .from(condominiumServices)
+      .where(
+        and(
+          eq(condominiumServices.condominiumId, condominiumId),
+          eq(condominiumServices.isDefault, true)
+        )
+      )
+
+    return results.map(record => this.mapToEntity(record))
+  }
+}

@@ -103,9 +103,11 @@ describe('AccessRequestsController', function () {
       },
     } as any
 
+    const mockSendNotification = { execute: async () => ({ success: true }) } as any
     const controller = new AccessRequestsController(
       mockRepository as unknown as AccessRequestsRepository,
-      mockDb
+      mockDb,
+      mockSendNotification
     )
 
     app = createTestApp()

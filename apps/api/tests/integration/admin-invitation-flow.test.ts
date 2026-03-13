@@ -12,7 +12,7 @@
  * It requires an Authorization: Bearer header. The mocked Firebase verifyIdToken
  * accepts any token and returns { uid: 'test-user-uid' }.
  */
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'bun:test'
+import { describe, it, expect, beforeAll, beforeEach } from 'bun:test'
 import { Hono } from 'hono'
 import { sql } from 'drizzle-orm'
 import { ESystemRole } from '@packages/domain'
@@ -47,12 +47,12 @@ let companiesRepo: ManagementCompaniesRepository
 let membersRepo: ManagementCompanyMembersRepository
 let userRolesRepo: UserRolesRepository
 let rolesRepo: RolesRepository
-
 beforeAll(async () => {
   // Clear Resend API key to force EmailService test bypass
   // (prevents hitting real Resend API during tests)
   delete process.env.RESEND_API_KEY
-  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore - Bun.env is writable at runtime
   delete Bun.env.RESEND_API_KEY
 
   db = await startTestContainer()

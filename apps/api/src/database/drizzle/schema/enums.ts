@@ -29,7 +29,13 @@ export const conceptTypeEnum = pgEnum('concept_type', [
 
 export const interestTypeEnum = pgEnum('interest_type', ['simple', 'compound', 'fixed_amount'])
 
-export const quotaStatusEnum = pgEnum('quota_status', ['pending', 'paid', 'overdue', 'cancelled'])
+export const quotaStatusEnum = pgEnum('quota_status', [
+  'pending',
+  'paid',
+  'overdue',
+  'cancelled',
+  'exonerated',
+])
 
 export const gatewayTypeEnum = pgEnum('gateway_type', [
   'stripe',
@@ -130,6 +136,8 @@ export const adjustmentTypeEnum = pgEnum('adjustment_type', [
   'increase',
   'correction',
   'waiver',
+  'exoneration',
+  'credit_note',
 ])
 
 export const formulaTypeEnum = pgEnum('formula_type', ['fixed', 'expression', 'per_unit'])
@@ -147,6 +155,7 @@ export const generationMethodEnum = pgEnum('generation_method', [
   'manual_batch',
   'scheduled',
   'range',
+  'bulk',
 ])
 
 export const generationStatusEnum = pgEnum('generation_status', ['completed', 'partial', 'failed'])
@@ -302,6 +311,12 @@ export const distributionMethodEnum = pgEnum('distribution_method', [
 
 export const chargeAdjustmentTypeEnum = pgEnum('charge_adjustment_type', ['percentage', 'fixed', 'none'])
 
+export const chargeGenerationStrategyEnum = pgEnum('charge_generation_strategy', [
+  'auto',
+  'bulk',
+  'manual',
+])
+
 export const bankPaymentMethodEnum = pgEnum('bank_payment_method', [
   // National (Venezuela)
   'transfer',
@@ -316,3 +331,4 @@ export const bankPaymentMethodEnum = pgEnum('bank_payment_method', [
   'crypto',
   'other',
 ])
+

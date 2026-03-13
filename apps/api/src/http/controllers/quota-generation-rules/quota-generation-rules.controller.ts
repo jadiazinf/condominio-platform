@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import { z } from 'zod'
-import { type TQuotaGenerationRule, ESystemRole } from '@packages/domain'
+import { ESystemRole } from '@packages/domain'
 import type {
   QuotaGenerationRulesRepository,
   CondominiumsRepository,
@@ -15,30 +15,18 @@ import {
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
-import { IdParamSchema } from '../common'
+import { IdParamSchema, IncludeInactiveQuerySchema, type TIncludeInactiveQuery } from '../common'
 import type { TRouteDefinition } from '../types'
 import { createRouter } from '../create-router'
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
 import {
   CreateQuotaGenerationRuleService,
   UpdateQuotaGenerationRuleService,
-  GetRulesByCondominiumService,
-  GetApplicableRuleService,
-  GetEffectiveRulesForDateService,
 } from '@src/services/quota-generation-rules'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Schemas
 // ─────────────────────────────────────────────────────────────────────────────
-
-const IncludeInactiveQuerySchema = z.object({
-  includeInactive: z
-    .enum(['true', 'false'])
-    .optional()
-    .transform(v => v === 'true'),
-})
-
-type TIncludeInactiveQuery = z.infer<typeof IncludeInactiveQuerySchema>
 
 const CreateQuotaGenerationRuleBodySchema = z.object({
   condominiumId: z.string().uuid(),
@@ -110,9 +98,6 @@ type TIdParam = z.infer<typeof IdParamSchema>
 export class QuotaGenerationRulesController {
   private readonly createQuotaGenerationRuleService: CreateQuotaGenerationRuleService
   private readonly updateQuotaGenerationRuleService: UpdateQuotaGenerationRuleService
-  private readonly getRulesByCondominiumService: GetRulesByCondominiumService
-  private readonly getApplicableRuleService: GetApplicableRuleService
-  private readonly getEffectiveRulesForDateService: GetEffectiveRulesForDateService
 
   constructor(
     private readonly quotaGenerationRulesRepository: QuotaGenerationRulesRepository,
@@ -121,7 +106,6 @@ export class QuotaGenerationRulesController {
     private readonly paymentConceptsRepository: PaymentConceptsRepository,
     private readonly quotaFormulasRepository: QuotaFormulasRepository
   ) {
-    // Initialize services
     this.createQuotaGenerationRuleService = new CreateQuotaGenerationRuleService(
       quotaGenerationRulesRepository,
       condominiumsRepository,
@@ -135,14 +119,6 @@ export class QuotaGenerationRulesController {
       paymentConceptsRepository,
       quotaFormulasRepository
     )
-    this.getRulesByCondominiumService = new GetRulesByCondominiumService(
-      quotaGenerationRulesRepository
-    )
-    this.getApplicableRuleService = new GetApplicableRuleService(quotaGenerationRulesRepository)
-    this.getEffectiveRulesForDateService = new GetEffectiveRulesForDateService(
-      quotaGenerationRulesRepository
-    )
-
   }
 
   get routes(): TRouteDefinition[] {
@@ -222,16 +198,11 @@ export class QuotaGenerationRulesController {
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
-      const result = await this.getRulesByCondominiumService.execute({
+      const rules = await this.quotaGenerationRulesRepository.getByCondominiumId(
         condominiumId,
-        includeInactive: ctx.query.includeInactive,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
+        ctx.query.includeInactive
+      )
+      return ctx.ok({ data: rules })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -258,21 +229,18 @@ export class QuotaGenerationRulesController {
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
-      const result = await this.getApplicableRuleService.execute({
+      const rule = await this.quotaGenerationRulesRepository.getApplicableRule(
         condominiumId,
-        paymentConceptId: ctx.query.paymentConceptId,
-        targetDate: ctx.query.targetDate,
-        buildingId: ctx.query.buildingId,
-      })
+        ctx.query.paymentConceptId,
+        ctx.query.targetDate,
+        ctx.query.buildingId
+      )
 
-      if (!result.success) {
-        if (result.code === 'NOT_FOUND') {
-          return ctx.notFound({ error: result.error })
-        }
-        return ctx.internalError({ error: result.error })
+      if (!rule) {
+        return ctx.notFound({ error: 'No applicable rule found for the given parameters' })
       }
 
-      return ctx.ok({ data: result.data })
+      return ctx.ok({ data: rule })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -283,16 +251,11 @@ export class QuotaGenerationRulesController {
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
-      const result = await this.getEffectiveRulesForDateService.execute({
+      const rules = await this.quotaGenerationRulesRepository.getEffectiveRulesForDate(
         condominiumId,
-        targetDate: ctx.query.targetDate,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
+        ctx.query.targetDate
+      )
+      return ctx.ok({ data: rules })
     } catch (error) {
       return this.handleError(ctx, error)
     }

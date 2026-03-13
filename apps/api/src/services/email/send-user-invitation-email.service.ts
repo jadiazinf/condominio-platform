@@ -3,6 +3,7 @@ import logger from '@utils/logger'
 import type { IService, TServiceResult } from '../base.service'
 import { success, failure } from '../base.service'
 import { EmailService } from './email.service'
+import { buildEmailHtml, buildEmailText, formatDateES, p } from './email-template'
 
 export interface ISendUserInvitationEmailInput {
   to: string
@@ -22,9 +23,6 @@ export interface ISendUserInvitationEmailResult {
   emailId: string
 }
 
-/**
- * Service for sending user invitation emails.
- */
 export class SendUserInvitationEmailService
   implements IService<ISendUserInvitationEmailInput, TServiceResult<ISendUserInvitationEmailResult>>
 {
@@ -36,54 +34,47 @@ export class SendUserInvitationEmailService
     const { to, recipientName, condominiumName, unitIdentifier, roleName, invitationToken, expiresAt } = input
 
     const invitationLink = `${env.APP_URL}/accept-user-invitation?token=${invitationToken}`
-    const expiresAtFormatted = expiresAt.toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+    const expiresAtFormatted = formatDateES(expiresAt)
 
-    // Build context text with condominium and unit info
-    let contextText: string
-    let contextTextPlain: string
+    let contextHtml: string
+    let contextPlain: string
     if (condominiumName && unitIdentifier) {
-      contextText = `el condominio <strong style="color: #006FEE;">${condominiumName}</strong> (Unidad: <strong>${unitIdentifier}</strong>)`
-      contextTextPlain = `el condominio ${condominiumName} (Unidad: ${unitIdentifier})`
+      contextHtml = `el condominio <strong style="color: #006FEE;">${condominiumName}</strong> (Unidad: <strong>${unitIdentifier}</strong>)`
+      contextPlain = `el condominio ${condominiumName} (Unidad: ${unitIdentifier})`
     } else if (condominiumName) {
-      contextText = `el condominio <strong style="color: #006FEE;">${condominiumName}</strong>`
-      contextTextPlain = `el condominio ${condominiumName}`
+      contextHtml = `el condominio <strong style="color: #006FEE;">${condominiumName}</strong>`
+      contextPlain = `el condominio ${condominiumName}`
     } else {
-      contextText = 'la plataforma'
-      contextTextPlain = 'la plataforma'
+      contextHtml = 'la plataforma'
+      contextPlain = 'la plataforma'
     }
 
     const subject = condominiumName
       ? `Invitación para unirte a ${condominiumName}`
       : `Invitación para unirte a la plataforma`
 
-    const html = this.generateEmailHtml({
-      recipientName,
-      contextText,
-      roleName,
-      invitationLink,
-      expiresAtFormatted,
-    })
-
-    const text = this.generateEmailText({
-      recipientName,
-      contextText: contextTextPlain,
-      roleName,
-      invitationLink,
-      expiresAtFormatted,
-    })
+    const template = {
+      title: 'Invitación',
+      headerIcon: { symbol: 'C', color: '#006FEE' },
+      headerTitle: 'Has sido invitado',
+      greeting: recipientName,
+      bodyHtml: [
+        p(`Has sido invitado a unirte a ${contextHtml} como <strong>${roleName}</strong>.`),
+        p('Haz clic en el siguiente botón para aceptar la invitación y crear tu cuenta:'),
+      ].join('\n'),
+      bodyText: `Has sido invitado a unirte a ${contextPlain} como ${roleName}.\n\nPara aceptar la invitación y crear tu cuenta, visita el siguiente enlace:`,
+      cta: { label: 'Aceptar invitación', url: invitationLink, color: '#006FEE' },
+      expiration: `Esta invitación expira el ${expiresAtFormatted}.`,
+      footerNote: 'Si no esperabas esta invitación, puedes ignorar este correo.',
+    }
 
     logger.info({ to, condominiumName, roleName, expiresAt: expiresAtFormatted }, 'Sending user invitation email')
 
     const result = await this.emailService.execute({
       to,
       subject,
-      html,
-      text,
+      html: buildEmailHtml(template),
+      text: buildEmailText(template),
     })
 
     if (!result.success) {
@@ -91,132 +82,5 @@ export class SendUserInvitationEmailService
     }
 
     return success({ emailId: result.data.id })
-  }
-
-  private generateEmailHtml(params: {
-    recipientName: string
-    contextText: string
-    roleName: string
-    invitationLink: string
-    expiresAtFormatted: string
-  }): string {
-    const { recipientName, contextText, roleName, invitationLink, expiresAtFormatted } = params
-
-    return `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invitación</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f5;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="min-width: 100%; background-color: #f4f4f5;">
-    <tr>
-      <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
-
-          <!-- Header -->
-          <tr>
-            <td style="padding: 40px 40px 30px; text-align: center; border-bottom: 1px solid #e4e4e7;">
-              <div style="width: 64px; height: 64px; background-color: #006FEE; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
-                <span style="color: white; font-size: 28px; font-weight: bold;">C</span>
-              </div>
-              <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #18181b;">
-                Has sido invitado
-              </h1>
-            </td>
-          </tr>
-
-          <!-- Content -->
-          <tr>
-            <td style="padding: 40px;">
-              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #3f3f46;">
-                Hola <strong>${recipientName}</strong>,
-              </p>
-
-              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #3f3f46;">
-                Has sido invitado a unirte a ${contextText} como <strong>${roleName}</strong>.
-              </p>
-
-              <p style="margin: 0 0 30px; font-size: 16px; line-height: 1.6; color: #3f3f46;">
-                Haz clic en el siguiente botón para aceptar la invitación y crear tu cuenta:
-              </p>
-
-              <!-- CTA Button -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td align="center" style="padding: 10px 0 30px;">
-                    <a href="${invitationLink}"
-                       style="display: inline-block; padding: 16px 32px; background-color: #006FEE; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 111, 238, 0.3);">
-                      Aceptar invitación
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Expiration Notice -->
-              <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px 20px; border-radius: 0 8px 8px 0; margin-bottom: 30px;">
-                <p style="margin: 0; font-size: 14px; color: #92400e;">
-                  <strong>Importante:</strong> Esta invitación expira el ${expiresAtFormatted}.
-                </p>
-              </div>
-
-              <!-- Alternative Link -->
-              <p style="margin: 0 0 10px; font-size: 14px; color: #71717a;">
-                Si el botón no funciona, copia y pega este enlace en tu navegador:
-              </p>
-              <p style="margin: 0; font-size: 12px; word-break: break-all;">
-                <a href="${invitationLink}" style="color: #006FEE;">${invitationLink}</a>
-              </p>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="padding: 30px 40px; background-color: #fafafa; border-radius: 0 0 12px 12px; border-top: 1px solid #e4e4e7;">
-              <p style="margin: 0 0 10px; font-size: 12px; color: #71717a; text-align: center;">
-                Si no esperabas esta invitación, puedes ignorar este correo.
-              </p>
-              <p style="margin: 0; font-size: 12px; color: #a1a1aa; text-align: center;">
-                © ${new Date().getFullYear()} Condominio App. Todos los derechos reservados.
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-`
-  }
-
-  private generateEmailText(params: {
-    recipientName: string
-    contextText: string
-    roleName: string
-    invitationLink: string
-    expiresAtFormatted: string
-  }): string {
-    const { recipientName, contextText, roleName, invitationLink, expiresAtFormatted } = params
-
-    return `
-Hola ${recipientName},
-
-Has sido invitado a unirte a ${contextText} como ${roleName}.
-
-Para aceptar la invitación y crear tu cuenta, visita el siguiente enlace:
-
-${invitationLink}
-
-IMPORTANTE: Esta invitación expira el ${expiresAtFormatted}.
-
-Si no esperabas esta invitación, puedes ignorar este correo.
-
----
-© ${new Date().getFullYear()} Condominio App. Todos los derechos reservados.
-`.trim()
   }
 }

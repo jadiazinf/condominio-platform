@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, CheckCircle, XCircle, ExternalLink } from 'lucide-react'
 import type { TPaymentStatus } from '@packages/domain'
 
+import { getPaymentStatusColor } from '@/utils/status-colors'
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
@@ -29,25 +30,6 @@ export default function PaymentDetailPage() {
 
   const { data, isLoading, error } = usePaymentDetail(id)
   const payment = data?.data
-
-  const getStatusColor = (status: TPaymentStatus) => {
-    switch (status) {
-      case 'pending':
-        return 'warning'
-      case 'pending_verification':
-        return 'secondary'
-      case 'completed':
-        return 'success'
-      case 'failed':
-        return 'danger'
-      case 'refunded':
-        return 'primary'
-      case 'rejected':
-        return 'danger'
-      default:
-        return 'default'
-    }
-  }
 
   const getPaymentMethodLabel = useCallback(
     (method: string) => t(`admin.payments.method.${method}`),
@@ -165,7 +147,7 @@ export default function PaymentDetailPage() {
           <DetailRow
             label={t('admin.payments.detail.status')}
           >
-            <Chip color={getStatusColor(payment.status)} variant="flat">
+            <Chip color={getPaymentStatusColor(payment.status)} variant="flat">
               {t(`admin.payments.status.${payment.status}`)}
             </Chip>
           </DetailRow>

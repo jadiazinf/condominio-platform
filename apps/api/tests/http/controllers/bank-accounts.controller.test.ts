@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes'
 import type { TBankAccount, TBankAccountCreate } from '@packages/domain'
 import { BankAccountsController } from '@http/controllers/bank-accounts/bank-accounts.controller'
 import type { BankAccountsRepository, BanksRepository } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import {
   withId,
   createTestApp,
@@ -101,7 +102,7 @@ describe('BankAccountsController', function () {
     testAccounts = [account1, account2]
 
     mockRepository = {
-      listByManagementCompanyPaginated: async function (mcId, query) {
+      listByManagementCompanyPaginated: async function (mcId, _query) {
         const filtered = testAccounts.filter(a => a.managementCompanyId === mcId)
         return {
           data: filtered,
@@ -135,7 +136,7 @@ describe('BankAccountsController', function () {
     const controller = new BankAccountsController(
       mockRepository as unknown as BankAccountsRepository,
       mockBanksRepository as unknown as BanksRepository,
-      mockDb as any
+      mockDb as unknown as TDrizzleClient
     )
 
     app = createTestApp()
@@ -288,7 +289,7 @@ describe('BankAccountsController', function () {
       const controller = new BankAccountsController(
         mockRepository as unknown as BankAccountsRepository,
         mockBanksRepository as unknown as BanksRepository,
-        mockDb as any
+        mockDb as unknown as TDrizzleClient
       )
       const routes = controller.routes
 
@@ -312,7 +313,7 @@ describe('BankAccountsController', function () {
       const controller = new BankAccountsController(
         mockRepository as unknown as BankAccountsRepository,
         mockBanksRepository as unknown as BanksRepository,
-        mockDb as any
+        mockDb as unknown as TDrizzleClient
       )
       const routes = controller.routes
 

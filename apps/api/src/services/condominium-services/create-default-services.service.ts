@@ -1,4 +1,4 @@
-import type { TCondominiumService } from '@packages/domain'
+import type { TCondominiumService, TCondominiumServiceCreate } from '@packages/domain'
 import type { CondominiumServicesRepository } from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 
@@ -40,7 +40,7 @@ export class CreateDefaultServicesService {
 
       const created: TCondominiumService[] = []
       for (const data of defaults) {
-        const service = await this.servicesRepo.create(data as any)
+        const service = await this.servicesRepo.create(data as unknown as TCondominiumServiceCreate)
         created.push(service)
       }
 

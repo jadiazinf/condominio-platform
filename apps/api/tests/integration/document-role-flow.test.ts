@@ -38,8 +38,7 @@ let app: Hono
 let request: (path: string, options?: RequestInit) => Promise<Response>
 
 let condominiumId: string
-let managementCompanyId: string
-
+let _managementCompanyId: string
 beforeAll(async () => {
   db = await startTestContainer()
 })
@@ -59,7 +58,7 @@ beforeEach(async () => {
     VALUES ('Test Company', ${MOCK_USER_ID})
     RETURNING id
   `) as unknown as { id: string }[]
-  managementCompanyId = companyResult[0]!.id
+  _managementCompanyId = companyResult[0]!.id
 
   // 3. Insert condominium
   const condoResult = await db.execute(sql`

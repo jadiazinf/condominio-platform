@@ -204,6 +204,7 @@ export function BuildingsTable({
       {/* Desktop Table */}
       <div className="hidden md:block">
         <Table<TBuildingRow>
+          mobileCards={false}
           aria-label="Buildings"
           columns={columns}
           rows={buildings}

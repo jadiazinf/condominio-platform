@@ -10,7 +10,7 @@ import {
 import type { AmenityReservationsRepository, AmenitiesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -184,7 +184,6 @@ export class AmenityReservationsController extends BaseController<
 
   protected override list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     // TODO: Filter by condominiumId via JOIN through amenity.condominiumId
     const entities = await this.repository.listAll()
     return ctx.ok({ data: entities })

@@ -15,10 +15,6 @@ import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewa
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
-import {
-  GetBuildingsByCondominiumService,
-  GetBuildingByCondominiumAndCodeService,
-} from '@src/services/buildings'
 import { BulkCreateBuildingsService } from '@src/services/buildings'
 
 const CodeParamSchema = z.object({
@@ -47,18 +43,13 @@ export class BuildingsController extends BaseController<
   TBuildingCreate,
   TBuildingUpdate
 > {
-  private readonly getBuildingsByCondominiumService: GetBuildingsByCondominiumService
-  private readonly getBuildingByCondominiumAndCodeService: GetBuildingByCondominiumAndCodeService
+  private readonly buildingsRepository: BuildingsRepository
   private readonly bulkCreateService: BulkCreateBuildingsService
 
   constructor(repository: BuildingsRepository, db: TDrizzleClient) {
     super(repository)
 
-    // Initialize services
-    this.getBuildingsByCondominiumService = new GetBuildingsByCondominiumService(repository)
-    this.getBuildingByCondominiumAndCodeService = new GetBuildingByCondominiumAndCodeService(
-      repository
-    )
+    this.buildingsRepository = repository
     this.bulkCreateService = new BulkCreateBuildingsService(db, repository)
   }
 
@@ -117,13 +108,9 @@ export class BuildingsController extends BaseController<
     const ctx = this.ctx(c)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
-    const result = await this.getBuildingsByCondominiumService.execute({ condominiumId })
+    const buildings = await this.buildingsRepository.getByCondominiumId(condominiumId)
 
-    if (!result.success) {
-      return ctx.internalError({ error: result.error })
-    }
-
-    return ctx.ok({ data: result.data })
+    return ctx.ok({ data: buildings })
   }
 
   protected override create = async (c: Context): Promise<Response> => {
@@ -157,19 +144,12 @@ export class BuildingsController extends BaseController<
     const ctx = this.ctx<unknown, unknown, TCodeParam>(c)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
-    try {
-      const result = await this.getBuildingByCondominiumAndCodeService.execute({
-        condominiumId,
-        code: ctx.params.code,
-      })
+    const building = await this.buildingsRepository.getByCondominiumAndCode(condominiumId, ctx.params.code)
 
-      if (!result.success) {
-        return ctx.notFound({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!building) {
+      return ctx.notFound({ error: 'Building not found' })
     }
+
+    return ctx.ok({ data: building })
   }
 }

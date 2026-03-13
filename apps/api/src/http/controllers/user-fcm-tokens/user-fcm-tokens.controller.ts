@@ -10,7 +10,6 @@ import type { TRouteDefinition } from '../types'
 import {
   RegisterTokenService,
   UnregisterTokenService,
-  GetUserTokensService,
 } from '@src/services/user-fcm-tokens'
 
 const UserIdParamSchema = z.object({
@@ -18,8 +17,6 @@ const UserIdParamSchema = z.object({
 })
 
 type TUserIdParam = z.infer<typeof UserIdParamSchema>
-type TIdParam = z.infer<typeof IdParamSchema>
-
 const RegisterTokenBodySchema = z.object({
   token: z.string().min(1).max(500),
   platform: z.enum(['web', 'ios', 'android']),
@@ -50,15 +47,12 @@ export class UserFcmTokensController extends BaseController<
 > {
   private readonly registerTokenService: RegisterTokenService
   private readonly unregisterTokenService: UnregisterTokenService
-  private readonly getUserTokensService: GetUserTokensService
 
-  constructor(repository: UserFcmTokensRepository) {
-    super(repository)
+  constructor(private readonly fcmTokensRepository: UserFcmTokensRepository) {
+    super(fcmTokensRepository)
 
-    this.registerTokenService = new RegisterTokenService(repository)
-    this.unregisterTokenService = new UnregisterTokenService(repository)
-    this.getUserTokensService = new GetUserTokensService(repository)
-
+    this.registerTokenService = new RegisterTokenService(fcmTokensRepository)
+    this.unregisterTokenService = new UnregisterTokenService(fcmTokensRepository)
   }
 
   get routes(): TRouteDefinition[] {
@@ -93,20 +87,9 @@ export class UserFcmTokensController extends BaseController<
   private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
 
-    try {
-      const result = await this.getUserTokensService.execute({
-        userId: ctx.params.userId,
-        activeOnly: true,
-      })
+    const tokens = await this.fcmTokensRepository.getActiveByUserId(ctx.params.userId)
 
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data.tokens })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    return ctx.ok({ data: tokens })
   }
 
   private registerToken = async (c: Context): Promise<Response> => {

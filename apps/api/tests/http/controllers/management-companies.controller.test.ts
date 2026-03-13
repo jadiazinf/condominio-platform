@@ -8,7 +8,7 @@ import type {
   TManagementCompanyUpdate,
 } from '@packages/domain'
 import { ManagementCompaniesController } from '@http/controllers/management-companies'
-import type { ManagementCompaniesRepository } from '@database/repositories'
+import type { ManagementCompaniesRepository, ManagementCompanySubscriptionsRepository, LocationsRepository, UsersRepository } from '@database/repositories'
 import { ManagementCompanyFactory } from '../../setup/factories'
 import {
   withId,
@@ -125,15 +125,15 @@ describe('ManagementCompaniesController', function () {
     }
 
     // Create mock repositories for other dependencies
-    const mockSubscriptionsRepository = {} as any
+    const mockSubscriptionsRepository = {} as unknown as ManagementCompanySubscriptionsRepository
     const mockLocationsRepository = {
       getById: async () => null,
       getByIdWithHierarchy: async () => null,
-    } as any
+    } as unknown as LocationsRepository
     const mockUsersRepository = {
       getById: async () => null,
       checkIsSuperadmin: async () => false,
-    } as any
+    } as unknown as UsersRepository
 
     // Create controller with mock repository
     const controller = new ManagementCompaniesController(

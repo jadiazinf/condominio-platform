@@ -11,7 +11,7 @@ import {
 import type { BankAccountsRepository, BanksRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware, requireRole, MANAGEMENT_COMPANY_ID_PROP } from '../../middlewares/auth'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { ManagementCompanyIdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { AppError } from '@errors/index'

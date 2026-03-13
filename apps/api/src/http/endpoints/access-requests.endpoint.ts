@@ -10,7 +10,7 @@ export class AccessRequestsEndpoint implements IEndpoint {
 
   constructor(db: TDrizzleClient) {
     const repository = new AccessRequestsRepository(db)
-    this.controller = new AccessRequestsController(repository, db)
+    this.controller = new AccessRequestsController(repository, db, null as any)
   }
 
   getRouter(): Hono {

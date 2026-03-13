@@ -53,7 +53,9 @@ const INITIAL_FORM_DATA: IWizardFormData = {
   services: [],
   assignments: [],
   bankAccountIds: [],
+  chargeGenerationStrategy: 'auto',
   notifyImmediately: false,
+  changeReason: '',
 }
 
 const SERVICES_REQUIRED_TYPES = ['maintenance'] as const

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { paymentConceptSchema, ERecurrencePeriods } from '../schema'
+import { paymentConceptSchema, ERecurrencePeriods, EChargeGenerationStrategies } from '../schema'
 
 export const paymentConceptCreateSchema = paymentConceptSchema
   .omit({
@@ -16,6 +16,7 @@ export const paymentConceptCreateSchema = paymentConceptSchema
     buildingId: z.uuid().nullable().optional(),
     description: z.string().nullable().optional(),
     recurrencePeriod: z.enum(ERecurrencePeriods).nullable().optional(),
+    chargeGenerationStrategy: z.enum(EChargeGenerationStrategies).optional().default('auto'),
     latePaymentValue: z.number().min(0).nullable().optional(),
     earlyPaymentValue: z.number().min(0).nullable().optional(),
     issueDay: z.number().int().min(1).max(28).nullable().optional(),
@@ -48,6 +49,44 @@ export const paymentConceptCreateSchema = paymentConceptSchema
           message: 'Due day is required for recurring concepts',
           path: ['dueDay'],
         })
+      }
+    }
+
+    // Bulk strategy requires effectiveUntil
+    if (data.isRecurring && data.chargeGenerationStrategy === 'bulk') {
+      if (!data.effectiveUntil) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'End date (effectiveUntil) is required for bulk generation strategy',
+          path: ['effectiveUntil'],
+        })
+      }
+      if (!data.effectiveFrom) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Start date (effectiveFrom) is required for bulk generation strategy',
+          path: ['effectiveFrom'],
+        })
+      }
+      if (data.effectiveFrom && data.effectiveUntil) {
+        const from = new Date(data.effectiveFrom)
+        const until = new Date(data.effectiveUntil)
+        if (until <= from) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'End date must be after start date',
+            path: ['effectiveUntil'],
+          })
+        }
+        // Max 12 months for bulk generation (fiscal period limit)
+        const monthsDiff = (until.getFullYear() - from.getFullYear()) * 12 + (until.getMonth() - from.getMonth())
+        if (monthsDiff > 12) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Bulk generation is limited to 12 months (fiscal period)',
+            path: ['effectiveUntil'],
+          })
+        }
       }
     }
 

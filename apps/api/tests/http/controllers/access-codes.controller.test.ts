@@ -5,6 +5,7 @@ import { StatusCodes } from 'http-status-codes'
 import type { TCondominiumAccessCode } from '@packages/domain'
 import { AccessCodesController } from '@http/controllers/access-codes'
 import type { CondominiumAccessCodesRepository } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { createTestApp, type IApiResponse } from './test-utils'
 
 const CONDO_ID = '550e8400-e29b-41d4-a716-446655440010'
@@ -32,7 +33,7 @@ describe('AccessCodesController', function () {
         return null
       },
       deactivateAllForCondominium: async function () {},
-      create: async function (data: any) {
+      create: async function (data: Record<string, unknown>) {
         return {
           id: crypto.randomUUID(),
           ...data,
@@ -43,7 +44,7 @@ describe('AccessCodesController', function () {
       getByCode: async function () {
         return null
       },
-      update: async function (id: string, data: any) {
+      update: async function (id: string, data: Record<string, unknown>) {
         if (id === activeCode.id) return { ...activeCode, ...data }
         return null
       },
@@ -62,10 +63,10 @@ describe('AccessCodesController', function () {
     }
 
     const mockDb = {
-      transaction: async function (fn: any) {
+      transaction: async function (fn: (tx: unknown) => Promise<unknown>) {
         return fn(mockDb)
       },
-    } as any
+    } as unknown as TDrizzleClient
 
     const controller = new AccessCodesController(
       mockRepository as unknown as CondominiumAccessCodesRepository,
@@ -237,10 +238,10 @@ describe('AccessCodesController', function () {
       }
 
       const mockDb = {
-        transaction: async function (fn: any) {
+        transaction: async function (fn: (tx: unknown) => Promise<unknown>) {
           return fn(mockDb)
         },
-      } as any
+      } as unknown as TDrizzleClient
 
       const controller = new AccessCodesController(
         failingRepository as unknown as CondominiumAccessCodesRepository,

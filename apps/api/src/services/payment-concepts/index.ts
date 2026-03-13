@@ -23,3 +23,6 @@ export { CalculateChargeAdjustmentsService } from './calculate-charge-adjustment
 
 export { LinkBankAccountsService } from './link-bank-accounts.service'
 export type { ILinkBankAccountInput, IUnlinkBankAccountInput } from './link-bank-accounts.service'
+
+export { UpdatePaymentConceptFullService } from './update-payment-concept-full.service'
+export type { IUpdatePaymentConceptFullInput } from './update-payment-concept-full.service'

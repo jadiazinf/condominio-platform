@@ -1,4 +1,4 @@
-import { and, eq, desc, lte, gte, or, sql, type SQL } from 'drizzle-orm'
+import { and, eq, desc, lte, gte, or, sql, inArray, type SQL } from 'drizzle-orm'
 import type { TQuota, TQuotaCreate, TQuotaUpdate, TPaginatedResponse } from '@packages/domain'
 import { quotas, paymentConcepts } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
@@ -305,5 +305,55 @@ export class QuotasRepository
       totalPending: totals?.totalPending ?? '0',
       conceptCount: count?.conceptCount ?? 0,
     }
+  }
+
+  /**
+   * Cancels all non-paid quotas (pending/overdue) for a payment concept.
+   * Returns the count of cancelled quotas.
+   */
+  async cancelAllNonPaidByConceptId(conceptId: string): Promise<number> {
+    const results = await this.db
+      .update(quotas)
+      .set({ status: 'cancelled', updatedAt: new Date() })
+      .where(
+        and(
+          eq(quotas.paymentConceptId, conceptId),
+          or(eq(quotas.status, 'pending'), eq(quotas.status, 'overdue'))
+        )
+      )
+      .returning()
+
+    return results.length
+  }
+
+  async getByPaymentConceptId(conceptId: string): Promise<TQuota[]> {
+    const results = await this.db
+      .select()
+      .from(quotas)
+      .where(eq(quotas.paymentConceptId, conceptId))
+      .orderBy(quotas.unitId, quotas.dueDate)
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  async getNonPaidByPaymentConceptAndUnits(
+    conceptId: string,
+    unitIds: string[]
+  ): Promise<TQuota[]> {
+    if (unitIds.length === 0) return []
+
+    const results = await this.db
+      .select()
+      .from(quotas)
+      .where(
+        and(
+          eq(quotas.paymentConceptId, conceptId),
+          inArray(quotas.unitId, unitIds),
+          or(eq(quotas.status, 'pending'), eq(quotas.status, 'overdue'))
+        )
+      )
+      .orderBy(quotas.unitId, quotas.dueDate)
+
+    return results.map(record => this.mapToEntity(record))
   }
 }

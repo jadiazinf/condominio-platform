@@ -5,11 +5,10 @@ import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewa
 import { ESystemRole } from '@packages/domain'
 import { queryValidator, getQuery } from '../../middlewares/utils/payload-validator'
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
-import { DatabaseService } from '@database/service'
-import { QuotasRepository } from '@database/repositories/quotas.repository'
-import { PaymentsRepository } from '@database/repositories/payments.repository'
-import { UnitsRepository } from '@database/repositories/units.repository'
-import { BuildingsRepository } from '@database/repositories/buildings.repository'
+import type { QuotasRepository } from '@database/repositories/quotas.repository'
+import type { PaymentsRepository } from '@database/repositories/payments.repository'
+import type { UnitsRepository } from '@database/repositories/units.repository'
+import type { BuildingsRepository } from '@database/repositories/buildings.repository'
 import { GenerateAccountStatementService } from '@services/reports/generate-account-statement.service'
 import { GenerateDebtorsReportService } from '@services/reports/generate-debtors-report.service'
 
@@ -41,6 +40,19 @@ type TDebtorsReportQuery = z.infer<typeof DebtorsReportQuerySchema>
  * Standalone controller (does not extend BaseController since it does not manage a CRUD resource).
  */
 export class ReportsController {
+  private readonly accountStatementService: GenerateAccountStatementService
+  private readonly debtorsReportService: GenerateDebtorsReportService
+
+  constructor(
+    quotasRepo: QuotasRepository,
+    paymentsRepo: PaymentsRepository,
+    unitsRepo: UnitsRepository,
+    buildingsRepo: BuildingsRepository,
+  ) {
+    this.accountStatementService = new GenerateAccountStatementService(quotasRepo, paymentsRepo, unitsRepo)
+    this.debtorsReportService = new GenerateDebtorsReportService(quotasRepo, unitsRepo, buildingsRepo)
+  }
+
   /**
    * Creates the Hono router with all report routes.
    */
@@ -76,14 +88,7 @@ export class ReportsController {
     const query = getQuery<TAccountStatementQuery>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 
-    const db = DatabaseService.getInstance().getDb()
-    const service = new GenerateAccountStatementService(
-      new QuotasRepository(db),
-      new PaymentsRepository(db),
-      new UnitsRepository(db),
-    )
-
-    const result = await service.execute({
+    const result = await this.accountStatementService.execute({
       unitId: query.unitId,
       format: query.format,
       startDate: query.startDate,
@@ -120,14 +125,7 @@ export class ReportsController {
     const user = c.get(AUTHENTICATED_USER_PROP)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
-    const db = DatabaseService.getInstance().getDb()
-    const service = new GenerateDebtorsReportService(
-      new QuotasRepository(db),
-      new UnitsRepository(db),
-      new BuildingsRepository(db),
-    )
-
-    const result = await service.execute({
+    const result = await this.debtorsReportService.execute({
       condominiumId,
       format: query.format,
       asOfDate: query.asOfDate,

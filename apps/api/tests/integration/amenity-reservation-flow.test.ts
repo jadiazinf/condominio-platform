@@ -11,7 +11,7 @@
  * 7. Availability checks
  * 8. Query endpoints (by amenity, by user)
  */
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'bun:test'
+import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll } from 'bun:test'
 import { Hono } from 'hono'
 import { sql } from 'drizzle-orm'
 import { startTestContainer, cleanDatabase } from '../setup/test-container'
@@ -66,6 +66,10 @@ beforeEach(async () => {
   app.route('/condominium/amenity-reservations', reservationsController.createRouter())
 
   request = async (path: string, options?: RequestInit) => app.request(path, options)
+})
+
+afterEach(async () => {
+  await cleanDatabase(db)
 })
 
 afterAll(async () => {

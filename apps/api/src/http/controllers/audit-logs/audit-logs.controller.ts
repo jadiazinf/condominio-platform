@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { auditLogCreateSchema, type TAuditLog, type TAuditLogCreate, ESystemRole } from '@packages/domain'
+import { auditLogCreateSchema, type TAuditLogCreate, ESystemRole } from '@packages/domain'
 import type { AuditLogsRepository } from '@database/repositories'
 import { HttpContext } from '../../context'
 import {

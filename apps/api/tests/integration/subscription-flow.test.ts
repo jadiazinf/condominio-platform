@@ -42,7 +42,6 @@ let app: Hono
 let request: (path: string, options?: RequestInit) => Promise<Response>
 
 let companyId: string
-
 beforeAll(async () => {
   db = await startTestContainer()
 })

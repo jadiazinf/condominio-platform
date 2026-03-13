@@ -13,6 +13,7 @@ import { CreditCard, Search, MoreVertical, Eye, CheckCircle, XCircle, Download }
 import { useRouter } from 'next/navigation'
 import type { TPayment, TPaymentStatus } from '@packages/domain'
 
+import { getPaymentStatusColor } from '@/utils/status-colors'
 import { useTranslation, useCondominium } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Pagination } from '@/ui/components/pagination'
@@ -171,25 +172,6 @@ export function PaymentsTable() {
     [queryClient, t, toast]
   )
 
-  const getStatusColor = (status: TPaymentStatus) => {
-    switch (status) {
-      case 'pending':
-        return 'warning'
-      case 'pending_verification':
-        return 'secondary'
-      case 'completed':
-        return 'success'
-      case 'failed':
-        return 'danger'
-      case 'refunded':
-        return 'primary'
-      case 'rejected':
-        return 'danger'
-      default:
-        return 'default'
-    }
-  }
-
   const getPaymentMethodLabel = (method: string) => {
     const key = `admin.payments.method.${method}`
     return t(key)
@@ -252,7 +234,7 @@ export function PaymentsTable() {
           return <span className="text-sm">{formatDate(payment.paymentDate)}</span>
         case 'status':
           return (
-            <Chip color={getStatusColor(payment.status)} variant="flat">
+            <Chip color={getPaymentStatusColor(payment.status)} variant="flat">
               {t(`admin.payments.status.${payment.status}`)}
             </Chip>
           )

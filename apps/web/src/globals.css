@@ -21,12 +21,19 @@
   --color-gold-light: #facc15;
   --color-gold-dark: #ca8a04;
 
-  /* Dark theme backgrounds */
+  /* Dark theme backgrounds (landing) */
   --color-dark-bg: #1e1f22;
   --color-dark-card: #27272a;
   --color-dark-hover: #3f3f46;
   --color-dark-active: #52525b;
   --color-dark-border: #3f3f46;
+
+  /* Dashboard dark theme backgrounds */
+  --color-dashboard-dark-bg: #131720;
+  --color-dashboard-dark-card: #1a2030;
+  --color-dashboard-dark-hover: #273040;
+  --color-dashboard-dark-active: #3a4458;
+  --color-dashboard-dark-border: #273040;
 
   /* Light theme */
   --color-light-bg: #fafafa;

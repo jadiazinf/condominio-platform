@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes'
 import type { TBuilding, TBuildingCreate, TBuildingUpdate } from '@packages/domain'
 import { BuildingsController } from '@http/controllers/buildings'
 import type { BuildingsRepository } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BuildingFactory } from '../../setup/factories'
 import {
   withId,
@@ -91,7 +92,7 @@ describe('BuildingsController', function () {
     }
 
     // Create controller with mock repository
-    const controller = new BuildingsController(mockRepository as unknown as BuildingsRepository, {} as any)
+    const controller = new BuildingsController(mockRepository as unknown as BuildingsRepository, {} as unknown as TDrizzleClient)
 
     // Create Hono app with controller routes
     app = createTestApp()

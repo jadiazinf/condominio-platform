@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
+import { Spinner } from '@/ui/components/spinner'
 import { Typography } from '@/ui/components/typography'
 import { Stepper, type IStepItem } from '@/ui/components/stepper'
 import { useTranslation } from '@/contexts'
@@ -10,9 +11,13 @@ import { useToast } from '@/ui/components/toast'
 import type { TWizardExecutionData } from '@packages/domain'
 import {
   useCreatePaymentConceptFull,
+  useUpdatePaymentConceptFull,
   useCreateAssignment,
   useLinkBankAccount,
   useCreateInterestConfiguration,
+  useGenerateChargesBulk,
+  usePaymentConceptDetail,
+  usePaymentConceptServices,
   paymentConceptKeys,
   useQueryClient,
   HttpError,
@@ -46,6 +51,8 @@ export interface IWizardAssignment {
   amount: number
 }
 
+export type TChargeGenerationStrategy = 'auto' | 'bulk' | 'manual'
+
 export interface IWizardFormData {
   // Step 1 - Basic Info
   name: string
@@ -56,6 +63,7 @@ export interface IWizardFormData {
   effectiveUntil: string
   isRecurring: boolean
   recurrencePeriod: string | null
+  chargeGenerationStrategy: TChargeGenerationStrategy
   // Step 2 - Charge Config
   issueDay: number | null
   dueDay: number | null
@@ -81,6 +89,8 @@ export interface IWizardFormData {
   bankAccountIds: string[]
   // Step 6 - Review
   notifyImmediately: boolean
+  /** Reason for the change — only used in edit mode */
+  changeReason: string
 }
 
 const INITIAL_FORM_DATA: IWizardFormData = {
@@ -92,6 +102,7 @@ const INITIAL_FORM_DATA: IWizardFormData = {
   effectiveUntil: '',
   isRecurring: true,
   recurrencePeriod: 'monthly',
+  chargeGenerationStrategy: 'auto',
   issueDay: null,
   dueDay: null,
   allowsPartialPayment: true,
@@ -111,6 +122,7 @@ const INITIAL_FORM_DATA: IWizardFormData = {
   assignments: [],
   bankAccountIds: [],
   notifyImmediately: false,
+  changeReason: '',
 }
 
 const SERVICES_REQUIRED_TYPES = ['maintenance'] as const
@@ -135,6 +147,8 @@ interface CreatePaymentConceptWizardProps {
   managementCompanyId: string
   currencies: Array<{ id: string; code: string; name?: string }>
   buildings: Array<{ id: string; name: string }>
+  /** When provided, the wizard enters edit mode and loads the existing concept */
+  editConceptId?: string
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -148,31 +162,111 @@ export function CreatePaymentConceptWizard({
   managementCompanyId,
   currencies,
   buildings,
+  editConceptId,
 }: CreatePaymentConceptWizardProps) {
   const { t } = useTranslation()
   const toast = useToast()
   const queryClient = useQueryClient()
   const w = 'admin.condominiums.detail.paymentConcepts.wizard'
+  const isEditMode = !!editConceptId
 
   const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState<IWizardFormData>(INITIAL_FORM_DATA)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showErrors, setShowErrors] = useState(false)
+  const [editDataLoaded, setEditDataLoaded] = useState(false)
 
   const { mutateAsync: createConceptFull } = useCreatePaymentConceptFull(managementCompanyId)
+  const { mutateAsync: updateConceptFull } = useUpdatePaymentConceptFull(managementCompanyId)
   const { mutateAsync: createAssignment } = useCreateAssignment(managementCompanyId)
   const { mutateAsync: linkBankAccount } = useLinkBankAccount(managementCompanyId)
   const { mutateAsync: createInterestConfig } = useCreateInterestConfiguration()
+  const { mutateAsync: generateBulk } = useGenerateChargesBulk(managementCompanyId)
 
-  // Default to VES currency when currencies load
+  // Load existing concept data for edit mode
+  const { data: editConceptData, isLoading: isLoadingEdit } = usePaymentConceptDetail({
+    companyId: managementCompanyId,
+    conceptId: editConceptId ?? '',
+    enabled: isEditMode && isOpen,
+  })
+
+  // Load linked services for edit mode
+  const { data: editServicesData, isFetched: editServicesFetched } = usePaymentConceptServices({
+    companyId: managementCompanyId,
+    conceptId: editConceptId ?? '',
+    enabled: isEditMode && isOpen,
+  })
+
+  // Pre-populate form when editing — wait for both concept and services to load
   useEffect(() => {
+    if (!isEditMode || !editConceptData?.data || !editServicesFetched || editDataLoaded) return
+    const c = editConceptData.data
+    const svcs = editServicesData?.data ?? []
+    setFormData({
+      name: c.name,
+      description: c.description ?? '',
+      conceptType: c.conceptType,
+      currencyId: c.currencyId,
+      effectiveFrom: c.effectiveFrom ? new Date(c.effectiveFrom).toISOString().split('T')[0]! : '',
+      effectiveUntil: c.effectiveUntil ? new Date(c.effectiveUntil).toISOString().split('T')[0]! : '',
+      isRecurring: c.isRecurring,
+      recurrencePeriod: c.recurrencePeriod ?? 'monthly',
+      chargeGenerationStrategy: 'auto',
+      issueDay: c.issueDay ?? null,
+      dueDay: c.dueDay ?? null,
+      allowsPartialPayment: c.allowsPartialPayment,
+      latePaymentType: (c.latePaymentType as IWizardFormData['latePaymentType']) ?? 'none',
+      latePaymentValue: c.latePaymentValue ?? undefined,
+      latePaymentGraceDays: c.latePaymentGraceDays ?? 0,
+      earlyPaymentType: (c.earlyPaymentType as IWizardFormData['earlyPaymentType']) ?? 'none',
+      earlyPaymentValue: c.earlyPaymentValue ?? undefined,
+      earlyPaymentDaysBeforeDue: c.earlyPaymentDaysBeforeDue ?? 0,
+      interestEnabled: false,
+      interestType: 'simple',
+      interestRate: undefined,
+      interestCalculationPeriod: 'monthly',
+      interestGracePeriodDays: 0,
+      fixedAmount: svcs.length > 0
+        ? 0
+        : Number((c.assignments ?? []).find((a: any) => a.isActive)?.amount ?? 0),
+      services: svcs.map((s: any) => ({
+        serviceId: s.serviceId,
+        serviceName: s.serviceName ?? s.serviceId,
+        amount: Number(s.amount),
+      })),
+      assignments: (c.assignments ?? [])
+        .filter((a: any) => a.isActive)
+        .map((a: any) => ({
+          scopeType: a.scopeType as IWizardAssignment['scopeType'],
+          buildingId: a.buildingId ?? undefined,
+          unitIds: a.unitId ? [a.unitId] : undefined,
+          distributionMethod: a.distributionMethod as IWizardAssignment['distributionMethod'],
+          amount: a.amount,
+        })),
+      bankAccountIds: (c.bankAccounts ?? []).map((b: any) => b.bankAccountId),
+      notifyImmediately: false,
+      changeReason: '',
+    })
+    setEditDataLoaded(true)
+  }, [isEditMode, editConceptData, editServicesFetched, editServicesData, editDataLoaded])
+
+  // Reset editDataLoaded when modal closes or editConceptId changes
+  useEffect(() => {
+    if (!isOpen) {
+      setEditDataLoaded(false)
+    }
+  }, [isOpen])
+
+  // Default to VES currency when currencies load (create mode only)
+  useEffect(() => {
+    if (isEditMode) return
     if (!formData.currencyId && currencies.length > 0) {
       const ves = currencies.find(c => c.code === 'VES')
       if (ves) {
         setFormData(prev => ({ ...prev, currencyId: ves.id }))
       }
     }
-  }, [currencies]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currencies, isEditMode]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateFormData = useCallback((updates: Partial<IWizardFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }))
@@ -198,13 +292,12 @@ export function CreatePaymentConceptWizard({
   const canProceed = () => {
     switch (currentStep) {
       case 0: // Basic Info
-        return !!(
-          formData.name &&
-          formData.conceptType &&
-          formData.currencyId &&
-          formData.effectiveFrom &&
-          (!formData.isRecurring || formData.recurrencePeriod)
-        )
+        if (!(formData.name && formData.conceptType && formData.currencyId && formData.effectiveFrom))
+          return false
+        if (formData.isRecurring && !formData.recurrencePeriod) return false
+        if (formData.isRecurring && formData.chargeGenerationStrategy === 'bulk' && !formData.effectiveUntil)
+          return false
+        return true
       case 1: // Charge Config
         if (formData.isRecurring && (formData.issueDay == null || formData.dueDay == null))
           return false
@@ -233,7 +326,87 @@ export function CreatePaymentConceptWizard({
     }
   }
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmitEdit = useCallback(async () => {
+    if (!editConceptId) return
+    setIsSubmitting(true)
+    try {
+      // Build assignments array for the update
+      type TAssignmentInput = { scopeType: string; condominiumId: string; buildingId?: string; unitId?: string; distributionMethod: string; amount: number }
+      const assignments: TAssignmentInput[] = []
+      for (const a of formData.assignments) {
+        if (a.scopeType === 'unit' && a.unitIds?.length) {
+          for (const unitId of a.unitIds) {
+            assignments.push({
+              scopeType: 'unit',
+              condominiumId,
+              unitId,
+              distributionMethod: 'fixed_per_unit',
+              amount: a.amount,
+            })
+          }
+        } else {
+          assignments.push({
+            scopeType: a.scopeType,
+            condominiumId,
+            buildingId: a.buildingId,
+            distributionMethod: a.distributionMethod,
+            amount: a.amount,
+          })
+        }
+      }
+
+      await updateConceptFull({
+        conceptId: editConceptId,
+        notes: formData.changeReason || null,
+        name: formData.name,
+        description: formData.description || null,
+        conceptType: formData.conceptType,
+        currencyId: formData.currencyId,
+        isRecurring: formData.isRecurring,
+        recurrencePeriod: formData.isRecurring ? formData.recurrencePeriod : null,
+        issueDay: formData.issueDay,
+        dueDay: formData.dueDay,
+        effectiveFrom: formData.effectiveFrom ? new Date(formData.effectiveFrom) : null,
+        effectiveUntil: formData.effectiveUntil ? new Date(formData.effectiveUntil) : null,
+        allowsPartialPayment: formData.allowsPartialPayment,
+        latePaymentType: formData.latePaymentType,
+        latePaymentValue: formData.latePaymentValue ?? null,
+        latePaymentGraceDays: formData.latePaymentGraceDays,
+        earlyPaymentType: formData.earlyPaymentType,
+        earlyPaymentValue: formData.earlyPaymentValue ?? null,
+        earlyPaymentDaysBeforeDue: formData.earlyPaymentDaysBeforeDue,
+        assignments,
+        bankAccountIds: formData.bankAccountIds,
+        services: formData.services.map(s => ({
+          serviceId: s.serviceId,
+          amount: s.amount,
+          useDefaultAmount: false,
+        })),
+      })
+
+      await queryClient.invalidateQueries({ queryKey: paymentConceptKeys.all })
+      toast.success(t(`${w}.editSuccess`))
+      handleClose()
+    } catch (error) {
+      if (HttpError.isHttpError(error)) {
+        const details = error.details
+        if (isApiValidationError(details)) {
+          const fieldMessages = details.error.fields
+            .map((f: any) => f.messages.join(', '))
+            .join('\n')
+          toast.error(fieldMessages || error.message)
+        } else {
+          toast.error(error.message)
+        }
+      } else if (error instanceof Error) {
+        toast.error(error.message)
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [formData, editConceptId, condominiumId, updateConceptFull, queryClient, handleClose, toast, t])
+
+  const handleSubmitCreate = useCallback(async () => {
     setIsSubmitting(true)
     try {
       // 1. Create concept + services + executions in a single transaction
@@ -312,6 +485,11 @@ export function CreatePaymentConceptWizard({
         } as any)
       }
 
+      // 5. Bulk-generate all charges if strategy is 'bulk'
+      if (formData.isRecurring && formData.chargeGenerationStrategy === 'bulk') {
+        await generateBulk({ conceptId })
+      }
+
       await queryClient.invalidateQueries({ queryKey: paymentConceptKeys.all })
       toast.success(t(`${w}.success`))
       handleClose()
@@ -344,6 +522,8 @@ export function CreatePaymentConceptWizard({
     toast,
     t,
   ])
+
+  const handleSubmit = isEditMode ? handleSubmitEdit : handleSubmitCreate
 
   const wizardSteps: IStepItem<(typeof STEPS)[number]>[] = [
     { key: 'basicInfo', title: t(`${w}.steps.basicInfo`) },
@@ -417,6 +597,7 @@ export function CreatePaymentConceptWizard({
             currencies={currencies}
             buildings={buildings}
             managementCompanyId={managementCompanyId}
+            isEditMode={isEditMode}
           />
         )
       default:
@@ -428,7 +609,9 @@ export function CreatePaymentConceptWizard({
     <Modal isOpen={isOpen} onClose={handleClose} size="3xl" scrollBehavior="inside">
       <ModalContent>
         <ModalHeader className="flex flex-col gap-2">
-          <Typography variant="h4">{t(`${w}.title`)}</Typography>
+          <Typography variant="h4">
+            {isEditMode ? t(`${w}.editTitle`) : t(`${w}.title`)}
+          </Typography>
           <Stepper
             steps={wizardSteps}
             currentStep={STEPS[currentStep]!}
@@ -443,7 +626,15 @@ export function CreatePaymentConceptWizard({
           />
         </ModalHeader>
 
-        <ModalBody>{renderStepContent()}</ModalBody>
+        <ModalBody>
+          {isEditMode && isLoadingEdit ? (
+            <div className="flex items-center justify-center py-12">
+              <Spinner size="lg" />
+            </div>
+          ) : (
+            renderStepContent()
+          )}
+        </ModalBody>
 
         <ModalFooter className="justify-end">
           <div className="flex gap-2">
@@ -469,11 +660,13 @@ export function CreatePaymentConceptWizard({
             ) : (
               <Button
                 color="primary"
-                isDisabled={isSubmitting}
+                isDisabled={isSubmitting || (isEditMode && isLoadingEdit)}
                 isLoading={isSubmitting}
                 onPress={handleSubmit}
               >
-                {isSubmitting ? t(`${w}.creating`) : t(`${w}.create`)}
+                {isSubmitting
+                  ? t(isEditMode ? `${w}.saving` : `${w}.creating`)
+                  : t(isEditMode ? `${w}.save` : `${w}.create`)}
               </Button>
             )}
           </div>

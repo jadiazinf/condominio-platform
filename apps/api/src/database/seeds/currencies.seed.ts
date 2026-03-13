@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import type { TDrizzleClient } from '../repositories/interfaces'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 
 type TCurrencySeed = {
   code: string

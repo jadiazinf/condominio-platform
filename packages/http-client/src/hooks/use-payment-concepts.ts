@@ -63,8 +63,14 @@ export interface IUpdatePaymentConceptVariables extends TPaymentConceptUpdate {
   conceptId: string
 }
 
+export interface IDeactivatePaymentConceptResult {
+  concept: TPaymentConcept
+  cancelledQuotas: number
+  deactivatedAssignments: number
+}
+
 export interface IDeactivatePaymentConceptOptions {
-  onSuccess?: (data: ApiResponse<TApiDataResponse<TPaymentConcept>>) => void
+  onSuccess?: (data: ApiResponse<TApiDataResponse<IDeactivatePaymentConceptResult>>) => void
   onError?: (error: Error) => void
 }
 
@@ -139,7 +145,7 @@ export function useUpdatePaymentConcept(companyId: string, options?: IUpdatePaym
 }
 
 export function useDeactivatePaymentConcept(companyId: string, options?: IDeactivatePaymentConceptOptions) {
-  return useApiMutation<TApiDataResponse<TPaymentConcept>, IDeactivatePaymentConceptVariables>({
+  return useApiMutation<TApiDataResponse<IDeactivatePaymentConceptResult>, IDeactivatePaymentConceptVariables>({
     path: (variables) => `/${companyId}/me/payment-concepts/${variables.conceptId}/deactivate`,
     method: 'PATCH',
     onSuccess: options?.onSuccess,
@@ -173,6 +179,90 @@ export function useCreatePaymentConceptFull(companyId: string, options?: ICreate
     onSuccess: options?.onSuccess,
     onError: options?.onError,
     invalidateKeys: [paymentConceptKeys.all],
+  })
+}
+
+// ─── Full update (concept + assignments + bank accounts + services) ──────────
+
+export interface IUpdatePaymentConceptFullVariables {
+  conceptId: string
+  name?: string
+  description?: string | null
+  conceptType?: string
+  isRecurring?: boolean
+  recurrencePeriod?: string | null
+  currencyId?: string
+  allowsPartialPayment?: boolean
+  latePaymentType?: string
+  latePaymentValue?: number | null
+  latePaymentGraceDays?: number
+  earlyPaymentType?: string
+  earlyPaymentValue?: number | null
+  earlyPaymentDaysBeforeDue?: number
+  issueDay?: number | null
+  dueDay?: number | null
+  effectiveFrom?: Date | null
+  effectiveUntil?: Date | null
+  isActive?: boolean
+  metadata?: Record<string, unknown> | null
+  notes?: string | null
+  assignments?: Array<{
+    scopeType: string
+    condominiumId: string
+    buildingId?: string
+    unitId?: string
+    distributionMethod: string
+    amount: number
+  }>
+  bankAccountIds?: string[]
+  services?: Array<{
+    serviceId: string
+    amount: number
+    useDefaultAmount: boolean
+  }>
+}
+
+export interface IUpdatePaymentConceptFullOptions {
+  onSuccess?: (data: ApiResponse<TApiDataResponse<TPaymentConcept>>) => void
+  onError?: (error: Error) => void
+}
+
+export function useUpdatePaymentConceptFull(companyId: string, options?: IUpdatePaymentConceptFullOptions) {
+  return useApiMutation<TApiDataResponse<TPaymentConcept>, IUpdatePaymentConceptFullVariables>({
+    path: (variables) => `/${companyId}/me/payment-concepts/${variables.conceptId}/full`,
+    method: 'PUT',
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+    invalidateKeys: [paymentConceptKeys.all],
+  })
+}
+
+// ─── Change History ─────────────────────────────────────────────────────────
+
+export type TPaymentConceptChangeRecord = {
+  id: string
+  paymentConceptId: string
+  condominiumId: string
+  changedBy: string
+  previousValues: Record<string, unknown>
+  newValues: Record<string, unknown>
+  notes: string | null
+  createdAt: string
+}
+
+export interface IUsePaymentConceptChangeHistoryOptions {
+  companyId: string
+  conceptId: string
+  enabled?: boolean
+}
+
+export function usePaymentConceptChangeHistory(options: IUsePaymentConceptChangeHistoryOptions) {
+  const { companyId, conceptId, enabled = true } = options
+
+  return useApiQuery<TApiDataResponse<TPaymentConceptChangeRecord[]>>({
+    path: `/${companyId}/me/payment-concepts/${conceptId}/change-history`,
+    queryKey: [...paymentConceptKeys.detail(companyId, conceptId), 'change-history'],
+    enabled: enabled && !!companyId && !!conceptId,
   })
 }
 

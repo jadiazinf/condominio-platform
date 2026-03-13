@@ -1,10 +1,55 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "WebSearch",
+      "WebFetch(domain:docs.bullmq.io)",
+      "Read(//home/jesusdicen/proyects/latorre/platform/**)",
+      "Bash(cp -r apps/api/src/database/drizzle packages/database/src/drizzle)",
+      "Bash(cp -r apps/api/src/database/repositories packages/database/src/repositories)",
+      "Bash(bun install)",
+      "Read(//home/jesusdicen/.claude/projects/-home-jesusdicen-proyects-latorre-platform/ef0fac02-6d9c-46d0-b8b1-2e85a545a440/subagents/**)",
+      "Bash(npx eslint src/ tests/)",
+      "Bash(npx eslint src/)",
+      "Bash(npx eslint src/services/quotas/generate-quotas-for-schedule.service.ts src/services/payment-concepts/generate-charges.service.ts src/services/payment-concepts/create-payment-concept-full.service.ts src/queue/boss-client.ts src/utils/logger.ts src/http/controllers/payment-concepts/mc-payment-concepts.controller.ts src/main.ts src/database/service.ts src/database/types.ts src/database/utils.ts src/database/scripts/update-subscription-features.ts src/database/seeds/banks.seed.ts src/database/seeds/currencies.seed.ts)",
+      "Bash(npx eslint src/services/quotas/generate-quotas-for-schedule.service.ts src/services/payment-concepts/generate-charges.service.ts src/services/payment-concepts/create-payment-concept-full.service.ts src/queue/boss-client.ts src/utils/logger.ts src/http/controllers/payment-concepts/mc-payment-concepts.controller.ts src/main.ts)",
+      "Bash(npx eslint tests/services/payment-concepts/*.test.ts tests/services/quota-generation-rules/*.test.ts tests/http/controllers/mc-payment-concepts.controller.test.ts tests/http/controllers/payment-concepts.controller.test.ts tests/setup/factories/payment-concept.factory.ts tests/database/repositories/quota-adjustments.repository.test.ts tests/setup/test-container.ts)",
+      "Bash(npx eslint apps/api/src/)",
+      "Bash(npx eslint packages/domain/)",
+      "Bash(bunx eslint apps/api/tests/)",
+      "Bash(bunx eslint apps/charges-worker/)",
+      "Bash(grep -c '\"\"type\"\":\"\"assistant\"\"' /tmp/claude-1000/-home-jesusdicen-proyects-latorre-platform/tasks/aa777f685a8c1c11a.output)",
+      "Bash(grep '\"\"stop_reason\"\"' /tmp/claude-1000/-home-jesusdicen-proyects-latorre-platform/tasks/aa777f685a8c1c11a.output)",
+      "Bash(grep '\"\"stop_reason\"\":\"\"end_turn\"\"' /tmp/claude-1000/-home-jesusdicen-proyects-latorre-platform/tasks/a684046eb727e2bae.output)",
+      "Bash(grep '\"\"stop_reason\"\":\"\"end_turn\"\"' /tmp/claude-1000/-home-jesusdicen-proyects-latorre-platform/tasks/afbf58d1226e2f0db.output)",
+      "Bash(BUN_DEBUG_QUIET_LOGS=1 bun run --filter '@apps/charges-worker' dev)",
+      "Bash(bun check)",
+      "Bash(grep -c '\"\"type\"\":\"\"assistant\"\"' /tmp/claude-1000/-home-jesusdicen-proyects-latorre-platform/tasks/aac48aae9a8df380c.output)",
+      "Bash(grep '\"\"type\"\":\"\"result\"\"' /tmp/claude-1000/-home-jesusdicen-proyects-latorre-platform/tasks/aac48aae9a8df380c.output)",
+      "Bash(for id in a7b8e60a40684c569 a41dcd21f87c5e844 acf29d6d1f951464b ab2ed07a5462cd0fa a5c3ea666acf4816d a93c25d816fe57f8c a4dbe80cff4feb840 a8e5538d061a515c0 a5db17061e00cd4e3 a26df75dfd2038ae7)",
+      "Bash(do echo \"=== $id ===\" grep '\"\"stop_reason\"\":\"\"end_turn\"\"' /tmp/claude-1000/-home-jesusdicen-proyects-latorre-platform/tasks/$id.output)",
+      "Read(//constructor/**)",
+      "Bash(sed -i \"s|from ''@database/drizzle/schema''|from ''./drizzle/schema''|g\" service.ts)",
+      "Bash(sed -i \"s|from ''@database/repositories/interfaces''|from ''./repositories/interfaces''|g\" service.ts)",
+      "Bash(grep -c \"^\\\\s*it\\(\" tests/integration/*.test.ts tests/http/middlewares/can-access-user.middleware.test.ts)",
+      "Read(//home/jesusdicen/proyects/latorre/platform/apps/api/**)",
+      "Bash(ls -la \"/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\(dashboard\\)/dashboard/payments/\")",
+      "Bash(ls -la \"/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\(dashboard\\)/dashboard/admins/[id]/subscription/components/\")",
+      "Bash(ls -la \"/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\(dashboard\\)/dashboard/condominiums/[id]/\")",
+      "Bash(ls -la \"/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\(dashboard\\)/dashboard/condominiums/[id]/reserve-fund/\")",
+      "Bash(ls -la \"/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\(dashboard\\)/dashboard/condominiums/[id]/config/\")",
+      "Bash(wc -l \"/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\(dashboard\\)/dashboard/condominiums/[id]/restructurings/create/components/CreateRestructuringClient.tsx\")",
+      "Bash(npx eslint src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/payment-concepts/components/wizard/CreatePaymentConceptWizard.tsx src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/payment-concepts/components/PaymentConceptDetailPageClient.tsx)",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/payment-concepts -type f -name \"*.tsx\" -o -name \"*.ts\")",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/admins/[id]/condominiums -type f -name \"*.tsx\")",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app -path \"*\\(landing\\)*\" -type f)"
     ],
     "additionalDirectories": [
-      "/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/(dashboard)/dashboard/condominiums/[id]/reserve-fund"
+      "/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/(dashboard)/dashboard/condominiums/[id]/reserve-fund",
+      "/home/jesusdicen/proyects/latorre/platform/apps/api/tests/services/audit-logs",
+      "/tmp",
+      "/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/(dashboard)/dashboard/condominiums/[id]/restructurings",
+      "/home/jesusdicen/proyects/latorre/platform/apps/api/src/services/concept-restructurings"
     ]
   }
 }

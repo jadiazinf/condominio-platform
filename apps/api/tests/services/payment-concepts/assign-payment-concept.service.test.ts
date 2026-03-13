@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
-import type { TPaymentConcept, TPaymentConceptAssignment, TPaymentConceptAssignmentCreate } from '@packages/domain'
+import type { TPaymentConcept, TPaymentConceptAssignment } from '@packages/domain'
 import { AssignPaymentConceptService } from '@src/services/payment-concepts/assign-payment-concept.service'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -58,6 +58,7 @@ function mockConcept(overrides: Partial<TPaymentConcept> = {}): TPaymentConcept 
     dueDay: 15,
     effectiveFrom: null,
     effectiveUntil: null,
+    chargeGenerationStrategy: 'auto',
     isActive: true,
     metadata: null,
     createdBy: userId,

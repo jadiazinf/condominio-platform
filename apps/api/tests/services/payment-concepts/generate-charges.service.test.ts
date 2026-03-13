@@ -72,6 +72,7 @@ function mockConcept(overrides: Partial<TPaymentConcept> = {}): TPaymentConcept 
     dueDay: 15,
     effectiveFrom: null,
     effectiveUntil: null,
+    chargeGenerationStrategy: 'auto',
     isActive: true,
     metadata: null,
     createdBy: userId,

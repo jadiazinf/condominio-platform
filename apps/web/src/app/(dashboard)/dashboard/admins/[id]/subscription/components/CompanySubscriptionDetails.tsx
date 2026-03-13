@@ -37,6 +37,7 @@ import {
 
 import { formatCurrency } from '@packages/utils/currency'
 import { formatFullDate } from '@packages/utils/dates'
+import { getSubscriptionStatusColor } from '@/utils/status-colors'
 import { SubscriptionFormModal } from './SubscriptionFormModal'
 import { CancelSubscriptionModal } from './CancelSubscriptionModal'
 import { SubscriptionHistoryModal } from './SubscriptionHistoryModal'
@@ -102,23 +103,6 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
   const hasAnySubscriptions = (historyData?.pagination?.total ?? 0) > 0
 
   const formatDate = (date: Date | string) => formatFullDate(date)
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'success'
-      case 'trial':
-        return 'primary'
-      case 'inactive':
-        return 'default'
-      case 'cancelled':
-        return 'warning'
-      case 'suspended':
-        return 'danger'
-      default:
-        return 'default'
-    }
-  }
 
   const getStatusLabel = (status: string) => {
     return t(`superadmin.companies.subscription.form.statuses.${status}`)
@@ -219,7 +203,7 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                       </Typography>
                     </div>
                   </div>
-                  <Chip color={getStatusColor(subscription.status)} size="md" variant="flat">
+                  <Chip color={getSubscriptionStatusColor(subscription.status)} size="md" variant="flat">
                     {getStatusLabel(subscription.status)}
                   </Chip>
                 </CardHeader>

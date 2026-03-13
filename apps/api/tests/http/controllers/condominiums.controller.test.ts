@@ -4,7 +4,8 @@ import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
 import type { TCondominium, TCondominiumCreate, TCondominiumUpdate } from '@packages/domain'
 import { CondominiumsController } from '@http/controllers/condominiums'
-import type { CondominiumsRepository } from '@database/repositories'
+import type { CondominiumsRepository, ManagementCompanySubscriptionsRepository, ManagementCompaniesRepository, LocationsRepository, CurrenciesRepository, UsersRepository, BuildingsRepository, UnitsRepository } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { CondominiumFactory } from '../../setup/factories'
 import {
   withId,
@@ -114,7 +115,7 @@ describe('CondominiumsController', function () {
         maxUnits: null,
         maxUsers: null,
       }),
-    } as any
+    } as unknown as ManagementCompanySubscriptionsRepository
     const mockCompaniesRepository = {
       getById: async () => null,
       getUsageStats: async () => ({
@@ -122,27 +123,27 @@ describe('CondominiumsController', function () {
         unitsCount: 0,
         usersCount: 0,
       }),
-    } as any
+    } as unknown as ManagementCompaniesRepository
     const mockLocationsRepository = {
       getById: async () => null,
       getByIdWithHierarchy: async () => null,
-    } as any
+    } as unknown as LocationsRepository
     const mockCurrenciesRepository = {
       getById: async () => null,
-    } as any
+    } as unknown as CurrenciesRepository
     const mockUsersRepository = {
       getById: async () => null,
       checkIsSuperadmin: async () => false,
-    } as any
+    } as unknown as UsersRepository
     const mockBuildingsRepository = {
       createBulk: async () => [],
       withTx: () => mockBuildingsRepository,
-    } as any
+    } as unknown as BuildingsRepository
     const mockUnitsRepository = {
       createBulk: async () => [],
       withTx: () => mockUnitsRepository,
-    } as any
-    const mockDb = {} as any
+    } as unknown as UnitsRepository
+    const mockDb = {} as unknown as TDrizzleClient
 
     // Create controller with mock repository
     const controller = new CondominiumsController(

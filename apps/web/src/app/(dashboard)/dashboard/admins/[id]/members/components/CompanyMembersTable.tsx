@@ -130,7 +130,7 @@ export function CompanyMembersTable({ companyId, isCompanyActive }: CompanyMembe
     () => [
       { key: 'member', label: 'MIEMBRO' },
       { key: 'roleName', label: 'ROL' },
-      { key: 'joinedAt', label: 'FECHA DE INGRESO' },
+      { key: 'joinedAt', label: 'FECHA DE INGRESO', hideOnMobile: true },
       { key: 'status', label: 'ESTADO' },
     ],
     []

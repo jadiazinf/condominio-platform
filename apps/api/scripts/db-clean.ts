@@ -66,6 +66,7 @@ const TABLES_TO_CLEAN = [
   'quotas',
   'payment_gateways',
   'interest_configurations',
+  'payment_concept_changes',
   'payment_concepts',
 
   // Units
@@ -237,6 +238,15 @@ async function cleanDatabase(databaseUrl: string): Promise<void> {
           console.log(`    Warning: ${table} - ${errorMessage}`)
         }
       }
+    }
+
+    // Clean pg-boss schema (charges-worker job queue)
+    try {
+      await db.execute(sql.raw(`DROP SCHEMA IF EXISTS pgboss CASCADE`))
+      console.log(`    Cleaned: pgboss schema (will be recreated on worker startup)`)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      console.log(`    Warning: pgboss schema - ${errorMessage}`)
     }
 
     // Re-enable foreign key checks

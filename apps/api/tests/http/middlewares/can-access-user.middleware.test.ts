@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, beforeAll, afterAll } from 'bun:test'
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'bun:test'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
 import { canAccessUser } from '@http/middlewares/utils/auth/can-access-user'
@@ -6,7 +6,7 @@ import { isUserAuthenticated } from '@http/middlewares/utils/auth/is-user-authen
 import { env } from '@config/environment'
 import { applyI18nMiddleware } from '@http/middlewares/locales'
 import {
-  cleanDatabase,
+  beginTestTransaction,
   startTestContainer,
   stopTestContainer,
   type TTestDrizzleClient,
@@ -100,6 +100,7 @@ describe('Can Access User Middleware', () => {
   let buildingsRepo: BuildingsRepository
   let unitsRepo: UnitsRepository
   let unitOwnershipsRepo: UnitOwnershipsRepository
+  let rollback: () => Promise<void>
 
   beforeAll(async () => {
     // Enable full auth middleware testing (disable bypass)
@@ -113,7 +114,8 @@ describe('Can Access User Middleware', () => {
 
   beforeEach(async () => {
     if (!db) throw new Error('Database not initialized')
-    await cleanDatabase(db)
+    const tx = await beginTestTransaction()
+    rollback = tx.rollback
 
     DatabaseService.getInstance().setDb(db)
 
@@ -134,6 +136,10 @@ describe('Can Access User Middleware', () => {
       const targetId = c.req.param('id')
       return c.json({ user: { id: targetId } })
     })
+  })
+
+  afterEach(async () => {
+    await rollback()
   })
 
   describe('Self-access', () => {

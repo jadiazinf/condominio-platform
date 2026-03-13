@@ -15,7 +15,7 @@ import { sql } from 'drizzle-orm'
 import { startTestContainer, cleanDatabase } from '../setup/test-container'
 import { createTestApp } from '../http/controllers/test-utils'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
-import { PaymentsRepository } from '@database/repositories'
+import { PaymentsRepository, PaymentApplicationsRepository, QuotasRepository } from '@database/repositories'
 import { PaymentsController } from '@http/controllers/payments/payments.controller'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -31,7 +31,6 @@ let request: (path: string, options?: RequestInit) => Promise<Response>
 // IDs populated during beforeEach
 let unitId: string
 let currencyId: string
-
 beforeAll(async () => {
   db = await startTestContainer()
 })
@@ -79,7 +78,10 @@ beforeEach(async () => {
 
   // 6. Set up controller + app
   const repository = new PaymentsRepository(db)
-  const controller = new PaymentsController(repository, db)
+  const paymentApplicationsRepo = new PaymentApplicationsRepository(db)
+  const quotasRepo = new QuotasRepository(db)
+  const mockSendNotification = { execute: async () => ({ success: true }) } as any
+  const controller = new PaymentsController(repository, db, paymentApplicationsRepo, quotasRepo, mockSendNotification)
 
   app = createTestApp()
   app.route('/condominium/payments', controller.createRouter())

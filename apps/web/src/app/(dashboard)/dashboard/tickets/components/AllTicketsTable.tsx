@@ -12,6 +12,7 @@ import { Search } from 'lucide-react'
 import type { TSupportTicket, TPaginationMeta } from '@packages/domain'
 
 import { Pagination } from '@/ui/components/pagination'
+import { getTicketStatusColor, getTicketPriorityColor } from '@/utils/status-colors'
 import { useI18n } from '@/contexts'
 
 type TTicketRow = TSupportTicket & { id: string }
@@ -126,44 +127,10 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
     })
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'open':
-        return 'primary'
-      case 'in_progress':
-        return 'secondary'
-      case 'waiting_customer':
-        return 'warning'
-      case 'resolved':
-        return 'success'
-      case 'closed':
-        return 'default'
-      case 'cancelled':
-        return 'danger'
-      default:
-        return 'default'
-    }
-  }
-
   const getStatusLabel = (status: string) => {
     const key = `tickets.status.${status.toLowerCase()}`
     const translation = t(key)
     return translation !== key ? translation : status
-  }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case 'urgent':
-        return 'danger'
-      case 'high':
-        return 'warning'
-      case 'medium':
-        return 'primary'
-      case 'low':
-        return 'default'
-      default:
-        return 'default'
-    }
   }
 
   const getPriorityLabel = (priority: string) => {
@@ -232,13 +199,13 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
           return <p className="text-sm text-default-600">{getCategoryLabel(ticket.category)}</p>
         case 'priority':
           return (
-            <Chip color={getPriorityColor(ticket.priority)} variant="flat">
+            <Chip color={getTicketPriorityColor(ticket.priority)} variant="flat">
               {getPriorityLabel(ticket.priority)}
             </Chip>
           )
         case 'status':
           return (
-            <Chip color={getStatusColor(ticket.status)} variant="flat">
+            <Chip color={getTicketStatusColor(ticket.status)} variant="flat">
               {getStatusLabel(ticket.status)}
             </Chip>
           )
@@ -317,7 +284,7 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
                         {ticket.ticketNumber}
                       </p>
                     </div>
-                    <Chip color={getStatusColor(ticket.status)} variant="flat">
+                    <Chip color={getTicketStatusColor(ticket.status)} variant="flat">
                       {getStatusLabel(ticket.status)}
                     </Chip>
                   </div>
@@ -337,7 +304,7 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
                   </div>
 
                   <div className="flex flex-wrap gap-2 items-center">
-                    <Chip color={getPriorityColor(ticket.priority)} variant="dot">
+                    <Chip color={getTicketPriorityColor(ticket.priority)} variant="dot">
                       {getPriorityLabel(ticket.priority)}
                     </Chip>
                     <Chip variant="flat">{getCategoryLabel(ticket.category)}</Chip>
@@ -353,6 +320,7 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
           {/* Desktop Table View */}
           <div className="hidden md:block">
             <Table<TTicketRow>
+              mobileCards={false}
               aria-label="Tabla de todos los tickets de soporte"
               columns={tableColumns}
               rows={tickets}

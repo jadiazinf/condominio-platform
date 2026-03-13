@@ -35,7 +35,7 @@ export class PlatformCondominiumsController extends BaseController<
         middlewares: [
           authMiddleware,
           paramsValidator(ManagementCompanyIdParamSchema),
-          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER),
+          requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER),
           queryValidator(condominiumsQuerySchema),
         ],
       },

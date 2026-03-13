@@ -21,7 +21,11 @@ import type {
   CurrenciesRepository,
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
+import {
+  bodyValidator,
+  paramsValidator,
+  queryValidator,
+} from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { CONDOMINIUM_ID_PROP } from '@src/http/middlewares/utils/auth/require-role'
 import { ManagementCompanyIdParamSchema } from '../common'
@@ -31,9 +35,25 @@ import { AssignPaymentConceptService } from '@src/services/payment-concepts/assi
 import { GenerateChargesService } from '@src/services/payment-concepts/generate-charges.service'
 import { LinkBankAccountsService } from '@src/services/payment-concepts/link-bank-accounts.service'
 import { LinkServiceToConceptService } from '@src/services/payment-concept-services/link-service-to-concept.service'
-import { CreatePaymentConceptFullService, type ICreatePaymentConceptFullInput } from '@src/services/payment-concepts/create-payment-concept-full.service'
-import { calculateUnitCharges, calculateElapsedPeriods } from '@src/services/payment-concepts/calculate-unit-charges'
-import type { PaymentConceptServicesRepository, CondominiumServicesRepository, ServiceExecutionsRepository } from '@database/repositories'
+import {
+  CreatePaymentConceptFullService,
+  type ICreatePaymentConceptFullInput,
+} from '@src/services/payment-concepts/create-payment-concept-full.service'
+import {
+  UpdatePaymentConceptFullService,
+  type IUpdatePaymentConceptFullInput,
+} from '@src/services/payment-concepts/update-payment-concept-full.service'
+import { DeactivatePaymentConceptService } from '@src/services/payment-concepts/deactivate-payment-concept.service'
+import {
+  calculateUnitCharges,
+  calculateElapsedPeriods,
+} from '@src/services/payment-concepts/calculate-unit-charges'
+import type {
+  PaymentConceptServicesRepository,
+  CondominiumServicesRepository,
+  ServiceExecutionsRepository,
+} from '@database/repositories'
+import { PaymentConceptChangesRepository } from '@database/repositories/payment-concept-changes.repository'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { useTranslation } from '@intlify/hono'
 import { LocaleDictionary } from '@locales/dictionary'
@@ -151,7 +171,10 @@ const serviceWithExecutionSchema = z.object({
     title: z.string().min(1).max(255),
     description: z.string().max(2000).optional(),
     executionDate: z.string().min(1),
-    totalAmount: z.string().or(z.number()).transform(v => String(v)),
+    totalAmount: z
+      .string()
+      .or(z.number())
+      .transform(v => String(v)),
     currencyId: z.string().uuid(),
     invoiceNumber: z.string().max(100).optional(),
     items: z.array(executionItemSchema).default([]),
@@ -166,11 +189,42 @@ const paymentConceptCreateFullSchema = paymentConceptCreateSchema.extend({
 
 type TPaymentConceptCreateFullBody = z.infer<typeof paymentConceptCreateFullSchema>
 
+// ─── Full concept update (concept + assignments + bank accounts + services) ──
+
+const updateAssignmentInputSchema = z.object({
+  scopeType: z.enum(['condominium', 'building', 'unit'] as const),
+  condominiumId: z.string().uuid(),
+  buildingId: z.string().uuid().optional(),
+  unitId: z.string().uuid().optional(),
+  distributionMethod: z.enum(['by_aliquot', 'equal_split', 'fixed_per_unit'] as const),
+  amount: z.number().positive(),
+})
+
+const updateServiceInputSchema = z.object({
+  serviceId: z.string().uuid(),
+  amount: z.number().positive(),
+  useDefaultAmount: z.boolean().default(true),
+})
+
+const paymentConceptUpdateFullSchema = paymentConceptUpdateSchema.extend({
+  notes: z.string().max(5000).nullable().optional(),
+  assignments: z.array(updateAssignmentInputSchema).optional(),
+  bankAccountIds: z.array(z.string().uuid()).optional(),
+  services: z.array(updateServiceInputSchema).optional(),
+})
+
+type TPaymentConceptUpdateFullBody = z.infer<typeof paymentConceptUpdateFullSchema>
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Roles
 // ─────────────────────────────────────────────────────────────────────────────
 
-const allMcRoles = [ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER] as const
+const allMcRoles = [
+  ESystemRole.ADMIN,
+  ESystemRole.ACCOUNTANT,
+  ESystemRole.SUPPORT,
+  ESystemRole.VIEWER,
+] as const
 const adminOnly = [ESystemRole.ADMIN] as const
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -197,24 +251,55 @@ type TBankAccountsRepo = {
 }
 
 type TBankAccountCondominiumsRepo = {
-  getByBankAccountAndCondominium: (bankAccountId: string, condominiumId: string) => Promise<{ id: string } | null>
+  getByBankAccountAndCondominium: (
+    bankAccountId: string,
+    condominiumId: string
+  ) => Promise<{ id: string } | null>
 }
 
 type TBuildingsRepo = {
-  getById: (id: string) => Promise<{ id: string; condominiumId: string; name: string; isActive: boolean } | null>
-  getByCondominiumId: (condominiumId: string) => Promise<{ id: string; condominiumId: string; name: string; isActive: boolean }[]>
+  getById: (
+    id: string
+  ) => Promise<{ id: string; condominiumId: string; name: string; isActive: boolean } | null>
+  getByCondominiumId: (
+    condominiumId: string
+  ) => Promise<{ id: string; condominiumId: string; name: string; isActive: boolean }[]>
 }
 
 type TUnitsRepo = {
-  getById: (id: string) => Promise<{ id: string; buildingId: string; unitNumber: string; isActive: boolean; aliquotPercentage: string | null } | null>
-  getByBuildingId: (buildingId: string) => Promise<{ id: string; buildingId: string; unitNumber: string; aliquotPercentage: string | null; isActive: boolean }[]>
-  getByCondominiumId: (condominiumId: string) => Promise<{ id: string; buildingId: string; unitNumber: string; aliquotPercentage: string | null; isActive: boolean }[]>
+  getById: (id: string) => Promise<{
+    id: string
+    buildingId: string
+    unitNumber: string
+    isActive: boolean
+    aliquotPercentage: string | null
+  } | null>
+  getByBuildingId: (buildingId: string) => Promise<
+    {
+      id: string
+      buildingId: string
+      unitNumber: string
+      aliquotPercentage: string | null
+      isActive: boolean
+    }[]
+  >
+  getByCondominiumId: (condominiumId: string) => Promise<
+    {
+      id: string
+      buildingId: string
+      unitNumber: string
+      aliquotPercentage: string | null
+      isActive: boolean
+    }[]
+  >
 }
 
 type TQuotasRepo = {
   existsForConceptAndPeriod: (conceptId: string, year: number, month: number) => Promise<boolean>
   createMany: (quotas: Record<string, unknown>[]) => Promise<{ id: string }[]>
   getDelinquentByConcept: (conceptId: string, asOfDate: string) => Promise<TQuota[]>
+  cancelAllNonPaidByConceptId: (conceptId: string) => Promise<number>
+  withTx: (tx: TDrizzleClient) => TQuotasRepo
 }
 
 export interface IMcPaymentConceptsDeps {
@@ -231,6 +316,7 @@ export interface IMcPaymentConceptsDeps {
   unitsRepo: TUnitsRepo
   quotasRepo: TQuotasRepo
   conceptServicesRepo: PaymentConceptServicesRepository
+  changesRepo: PaymentConceptChangesRepository
   condominiumServicesRepo: CondominiumServicesRepository
   executionsRepo: ServiceExecutionsRepository
 }
@@ -242,10 +328,12 @@ export class McPaymentConceptsController extends BaseController<
 > {
   private readonly createService: CreatePaymentConceptService
   private readonly createFullService: CreatePaymentConceptFullService
+  private readonly updateFullService: UpdatePaymentConceptFullService
   private readonly assignService: AssignPaymentConceptService
   private readonly generateService: GenerateChargesService
   private readonly linkService: LinkBankAccountsService
   private readonly linkServiceToConcept: LinkServiceToConceptService
+  private readonly deactivateService: DeactivatePaymentConceptService
   private readonly conceptsRepo: PaymentConceptsRepository
   private readonly assignmentsRepo: PaymentConceptAssignmentsRepository
   private readonly currenciesRepo: CurrenciesRepository
@@ -253,9 +341,12 @@ export class McPaymentConceptsController extends BaseController<
   private readonly buildingsRepo: TBuildingsRepo
   private readonly unitsRepo: TUnitsRepo
   private readonly quotasRepo: TQuotasRepo
+  private readonly changesRepo: PaymentConceptChangesRepository
+  private readonly db: TDrizzleClient
 
   constructor(deps: IMcPaymentConceptsDeps) {
     super(deps.conceptsRepo)
+    this.db = deps.db
     this.conceptsRepo = deps.conceptsRepo
     this.assignmentsRepo = deps.assignmentsRepo
     this.currenciesRepo = deps.currenciesRepo
@@ -263,6 +354,7 @@ export class McPaymentConceptsController extends BaseController<
     this.buildingsRepo = deps.buildingsRepo
     this.unitsRepo = deps.unitsRepo
     this.quotasRepo = deps.quotasRepo
+    this.changesRepo = new PaymentConceptChangesRepository(deps.db)
 
     this.linkServiceToConcept = new LinkServiceToConceptService(
       deps.conceptServicesRepo,
@@ -288,6 +380,18 @@ export class McPaymentConceptsController extends BaseController<
       deps.executionsRepo
     )
 
+    this.updateFullService = new UpdatePaymentConceptFullService(
+      deps.db,
+      deps.conceptsRepo,
+      deps.assignmentsRepo,
+      deps.conceptBankAccountsRepo,
+      deps.conceptServicesRepo,
+      deps.changesRepo,
+      deps.condominiumsRepo,
+      deps.currenciesRepo,
+      deps.condominiumMCRepo
+    )
+
     this.assignService = new AssignPaymentConceptService(
       deps.conceptsRepo,
       deps.assignmentsRepo,
@@ -308,6 +412,13 @@ export class McPaymentConceptsController extends BaseController<
       deps.bankAccountsRepo,
       deps.bankAccountCondominiumsRepo,
       deps.conceptBankAccountsRepo
+    )
+
+    this.deactivateService = new DeactivatePaymentConceptService(
+      deps.db,
+      deps.conceptsRepo,
+      deps.assignmentsRepo,
+      deps.quotasRepo
     )
   }
 
@@ -398,6 +509,27 @@ export class McPaymentConceptsController extends BaseController<
           paramsValidator(ConceptIdParamSchema),
           requireRole(...adminOnly),
           bodyValidator(paymentConceptUpdateSchema),
+        ],
+      },
+      {
+        method: 'put',
+        path: '/:managementCompanyId/me/payment-concepts/:conceptId/full',
+        handler: this.updateConceptFull,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ConceptIdParamSchema),
+          requireRole(...adminOnly),
+          bodyValidator(paymentConceptUpdateFullSchema),
+        ],
+      },
+      {
+        method: 'get',
+        path: '/:managementCompanyId/me/payment-concepts/:conceptId/change-history',
+        handler: this.listChangeHistory,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ConceptIdParamSchema),
+          requireRole(...allMcRoles),
         ],
       },
       {
@@ -500,6 +632,16 @@ export class McPaymentConceptsController extends BaseController<
           bodyValidator(generateChargesBodySchema),
         ],
       },
+      {
+        method: 'post',
+        path: '/:managementCompanyId/me/payment-concepts/:conceptId/generate-bulk',
+        handler: this.generateChargesBulk,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ConceptIdParamSchema),
+          requireRole(...adminOnly),
+        ],
+      },
 
       // ── Concept Services ───────────────────────────────────────────
       {
@@ -584,11 +726,13 @@ export class McPaymentConceptsController extends BaseController<
 
       const bankAccountLinks = bankAccounts.success ? bankAccounts.data : []
       const enrichedBankAccounts = await Promise.all(
-        bankAccountLinks.map(async (link) => {
+        bankAccountLinks.map(async link => {
           const account = await this.bankAccountsRepo.getById(link.bankAccountId)
           let maskedAccount: string | null = null
           if (account) {
-            const accNum = (account.accountDetails as Record<string, unknown>)?.accountNumber as string | undefined
+            const accNum = (account.accountDetails as Record<string, unknown>)?.accountNumber as
+              | string
+              | undefined
             if (accNum && accNum.length >= 4) {
               maskedAccount = '********' + accNum.slice(-4)
             }
@@ -613,7 +757,9 @@ export class McPaymentConceptsController extends BaseController<
       return ctx.ok({
         data: {
           ...concept,
-          currency: currency ? { id: currency.id, code: currency.code, name: currency.name, symbol: currency.symbol } : null,
+          currency: currency
+            ? { id: currency.id, code: currency.code, name: currency.name, symbol: currency.symbol }
+            : null,
           assignments,
           bankAccounts: enrichedBankAccounts,
         },
@@ -658,7 +804,9 @@ export class McPaymentConceptsController extends BaseController<
         const periodInfo = calculateElapsedPeriods(
           concept.createdAt,
           issueDay,
-          concept.isRecurring ? (concept.recurrencePeriod as 'monthly' | 'quarterly' | 'yearly') : null,
+          concept.isRecurring
+            ? (concept.recurrencePeriod as 'monthly' | 'quarterly' | 'yearly')
+            : null,
           uc.baseAmount,
           now
         )
@@ -722,8 +870,12 @@ export class McPaymentConceptsController extends BaseController<
       const units = Array.from(byUnit.entries()).map(([unitId, unitQuotas]) => {
         const unit = unitsMap.get(unitId)
         const totalBalance = unitQuotas.reduce((s, q) => s + Number(q.balance), 0)
-        const totalInterestAmount = unitQuotas.reduce((s, q) => s + Number(q.interestAmount ?? 0), 0)
-        const oldestDueDate = [...unitQuotas].sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0]?.dueDate
+        const totalInterestAmount = unitQuotas.reduce(
+          (s, q) => s + Number(q.interestAmount ?? 0),
+          0
+        )
+        const oldestDueDate = [...unitQuotas].sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0]
+          ?.dueDate
 
         return {
           unitId,
@@ -736,7 +888,10 @@ export class McPaymentConceptsController extends BaseController<
           oldestDueDate,
           quotas: unitQuotas.map(q => {
             const due = new Date(q.dueDate)
-            const daysOverdue = Math.max(0, Math.floor((now.getTime() - due.getTime()) / 86_400_000))
+            const daysOverdue = Math.max(
+              0,
+              Math.floor((now.getTime() - due.getTime()) / 86_400_000)
+            )
             return {
               id: q.id,
               periodYear: q.periodYear,
@@ -856,15 +1011,121 @@ export class McPaymentConceptsController extends BaseController<
     }
   }
 
-  private deactivateConcept = async (c: Context): Promise<Response> => {
+  private updateConceptFull = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TPaymentConceptUpdateFullBody, unknown, TConceptIdParam>(c)
+    const user = ctx.getAuthenticatedUser()
+    const t = useTranslation(c)
+    const dict = LocaleDictionary.http.controllers.paymentConcepts
+
+    try {
+      const { notes, assignments, bankAccountIds, services, ...conceptData } = ctx.body
+
+      const result = await this.updateFullService.execute({
+        conceptId: ctx.params.conceptId,
+        managementCompanyId: ctx.params.managementCompanyId,
+        changedBy: user.id,
+        notes: notes ?? null,
+        // Spread all concept base fields with defaults from existing concept
+        name: conceptData.name ?? '',
+        description: conceptData.description ?? null,
+        conceptType: conceptData.conceptType ?? 'other',
+        isRecurring: conceptData.isRecurring ?? true,
+        recurrencePeriod: conceptData.recurrencePeriod ?? null,
+        currencyId: conceptData.currencyId ?? '',
+        allowsPartialPayment: conceptData.allowsPartialPayment ?? true,
+        latePaymentType: conceptData.latePaymentType ?? 'none',
+        latePaymentValue: conceptData.latePaymentValue ?? null,
+        latePaymentGraceDays: conceptData.latePaymentGraceDays ?? 0,
+        earlyPaymentType: conceptData.earlyPaymentType ?? 'none',
+        earlyPaymentValue: conceptData.earlyPaymentValue ?? null,
+        earlyPaymentDaysBeforeDue: conceptData.earlyPaymentDaysBeforeDue ?? 0,
+        issueDay: conceptData.issueDay ?? null,
+        dueDay: conceptData.dueDay ?? null,
+        effectiveFrom: conceptData.effectiveFrom ?? null,
+        effectiveUntil: conceptData.effectiveUntil ?? null,
+        chargeGenerationStrategy: 'auto',
+        isActive: conceptData.isActive ?? true,
+        metadata: conceptData.metadata ?? null,
+        assignments,
+        bankAccountIds,
+        services,
+      } as IUpdatePaymentConceptFullInput)
+
+      if (!result.success) {
+        const errorMap: Record<string, { method: 'notFound' | 'badRequest'; key: string }> = {
+          CONCEPT_NOT_FOUND: {
+            method: 'notFound',
+            key: dict.conceptNotFound ?? 'Payment concept not found',
+          },
+          CONDOMINIUM_NOT_FOUND: { method: 'notFound', key: dict.condominiumNotFound },
+          CONDOMINIUM_NOT_IN_COMPANY: { method: 'notFound', key: dict.condominiumNotInCompany },
+          CURRENCY_NOT_FOUND: { method: 'notFound', key: dict.currencyNotFound },
+          NO_CHANGES_DETECTED: {
+            method: 'badRequest',
+            key: dict.noChangesDetected ?? 'No changes detected',
+          },
+        }
+
+        const mapped = errorMap[result.error]
+        if (mapped) {
+          const translatedMsg = typeof mapped.key === 'string' ? t(mapped.key) : result.error
+          return ctx[mapped.method]({ error: translatedMsg })
+        }
+
+        if (result.code === 'NOT_FOUND') {
+          return ctx.notFound({ error: result.error })
+        }
+        return ctx.badRequest({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private listChangeHistory = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TConceptIdParam>(c)
 
     try {
-      const concept = await this.conceptsRepo.update(ctx.params.conceptId, { isActive: false } as TPaymentConceptUpdate)
+      const concept = await this.conceptsRepo.getById(ctx.params.conceptId)
       if (!concept) {
         return ctx.notFound({ error: 'Payment concept not found' })
       }
-      return ctx.ok({ data: concept })
+
+      const changes = await this.changesRepo.listByConceptId(ctx.params.conceptId)
+      return ctx.ok({ data: changes })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private deactivateConcept = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TConceptIdParam>(c)
+    const user = ctx.getAuthenticatedUser()
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+
+    try {
+      const result = await this.deactivateService.execute({
+        conceptId: ctx.params.conceptId,
+        condominiumId,
+        deactivatedBy: user.id,
+      })
+
+      if (!result.success) {
+        if (result.code === 'NOT_FOUND') {
+          return ctx.notFound({ error: result.error })
+        }
+        if (result.code === 'CONFLICT') {
+          return ctx.conflict({ error: result.error })
+        }
+        if (result.code === 'FORBIDDEN') {
+          return ctx.forbidden({ error: result.error })
+        }
+        return ctx.badRequest({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -1052,6 +1313,23 @@ export class McPaymentConceptsController extends BaseController<
     }
   }
 
+  private generateChargesBulk = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TConceptIdParam>(c)
+    const user = ctx.getAuthenticatedUser()
+
+    try {
+      const { enqueueBulkGeneration } = await import('@src/queue/boss-client')
+      const jobId = await enqueueBulkGeneration({
+        paymentConceptId: ctx.params.conceptId,
+        generatedBy: user.id,
+      })
+
+      return c.json({ data: { jobId, message: 'Bulk generation queued' } }, 202)
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // Concept Service Handlers
   // ─────────────────────────────────────────────────────────────────────────
@@ -1068,7 +1346,11 @@ export class McPaymentConceptsController extends BaseController<
   }
 
   private linkConceptService = async (c: Context): Promise<Response> => {
-    const ctx = this.ctx<{ serviceId: string; amount: number; useDefaultAmount: boolean }, unknown, TConceptIdParam>(c)
+    const ctx = this.ctx<
+      { serviceId: string; amount: number; useDefaultAmount: boolean },
+      unknown,
+      TConceptIdParam
+    >(c)
 
     try {
       const result = await this.linkServiceToConcept.execute({
@@ -1095,7 +1377,11 @@ export class McPaymentConceptsController extends BaseController<
   }
 
   private unlinkConceptService = async (c: Context): Promise<Response> => {
-    const ctx = this.ctx<unknown, unknown, { managementCompanyId: string; conceptId: string; linkId: string }>(c)
+    const ctx = this.ctx<
+      unknown,
+      unknown,
+      { managementCompanyId: string; conceptId: string; linkId: string }
+    >(c)
 
     try {
       const result = await this.linkServiceToConcept.unlinkById(ctx.params.linkId)

@@ -160,7 +160,10 @@
         "servicesRequired": "At least one service with execution is required.",
         "executionCurrencyNotFound": "Execution currency not found.",
         "currencyMismatch": "All service executions must use the same currency as the payment concept.",
-        "conceptCreatedSuccessfully": "Payment concept created successfully."
+        "conceptCreatedSuccessfully": "Payment concept created successfully.",
+        "conceptNotFound": "Payment concept not found.",
+        "noChangesDetected": "No changes were detected.",
+        "conceptUpdatedSuccessfully": "Payment concept updated successfully."
       }
     },
     "locales": {

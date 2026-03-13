@@ -20,6 +20,8 @@ import {
   AlertTriangle,
   Users,
   Wrench,
+  Pencil,
+  History,
 } from 'lucide-react'
 import type { TPaymentConceptAssignment } from '@packages/domain'
 import { AffectedUnitsModal } from './AffectedUnitsModal'
@@ -28,9 +30,13 @@ import { DelinquencyModal } from './DelinquencyModal'
 import {
   usePaymentConceptDetail,
   useDeactivatePaymentConcept,
+  useApiQuery,
+  useCondominiumBuildingsList,
   paymentConceptKeys,
   useQueryClient,
 } from '@packages/http-client'
+import type { TApiDataResponse } from '@packages/http-client'
+import { CreatePaymentConceptWizard } from './wizard/CreatePaymentConceptWizard'
 
 interface PaymentConceptDetailPageClientProps {
   condominiumId: string
@@ -61,6 +67,7 @@ export function PaymentConceptDetailPageClient({
 
   const [confirmDeactivate, setConfirmDeactivate] = useState(false)
   const [affectedUnitsOpen, setAffectedUnitsOpen] = useState(false)
+  const [editWizardOpen, setEditWizardOpen] = useState(false)
 
   const { data, isLoading } = usePaymentConceptDetail({
     companyId: managementCompanyId,
@@ -73,9 +80,37 @@ export function PaymentConceptDetailPageClient({
   const [servicesOpen, setServicesOpen] = useState(false)
   const [delinquencyOpen, setDelinquencyOpen] = useState(false)
 
+  // Data for the edit wizard
+  const { data: currenciesData } = useApiQuery<TApiDataResponse<Array<{ id: string; code: string; name?: string }>>>({
+    path: `/${managementCompanyId}/me/currencies`,
+    queryKey: ['currencies', 'mc', managementCompanyId],
+    enabled: editWizardOpen && !!managementCompanyId,
+  })
+  const { data: buildingsData } = useCondominiumBuildingsList({
+    condominiumId,
+    managementCompanyId,
+    enabled: editWizardOpen,
+  })
+
+  const currencies = useMemo(() => {
+    const list = currenciesData?.data ?? []
+    return list.map((c: any) => ({ id: c.id, code: c.code, name: c.name }))
+  }, [currenciesData])
+
+  const buildings = useMemo(() => {
+    const list = buildingsData?.data ?? []
+    return list.map((b: any) => ({ id: b.id, name: b.name }))
+  }, [buildingsData])
+
+  const changeHistoryUrl = `/dashboard/condominiums/${condominiumId}/payment-concepts/${conceptId}/change-history`
+
   const deactivateConcept = useDeactivatePaymentConcept(managementCompanyId, {
-    onSuccess: () => {
-      toast.success(t(`${d}.deactivated`))
+    onSuccess: (response) => {
+      const result = response.data?.data
+      toast.success(t(`${d}.deactivated`, {
+        cancelledQuotas: result?.cancelledQuotas ?? 0,
+        deactivatedAssignments: result?.deactivatedAssignments ?? 0,
+      }))
       queryClient.invalidateQueries({ queryKey: paymentConceptKeys.all })
       setConfirmDeactivate(false)
       router.push(backUrl)
@@ -160,7 +195,7 @@ export function PaymentConceptDetailPageClient({
         {concept.description && (
           <Typography color="muted" variant="body2">{concept.description}</Typography>
         )}
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="flat"
             size="sm"
@@ -186,17 +221,36 @@ export function PaymentConceptDetailPageClient({
           >
             {t(`${d}.delinquency`)}
           </Button>
+          <Button
+            variant="flat"
+            size="sm"
+            startContent={<History size={14} />}
+            onPress={() => router.push(changeHistoryUrl)}
+          >
+            {t(`${d}.changeHistory`)}
+          </Button>
           {concept.isActive && (
-            <Button
-              color="danger"
-              variant="bordered"
-              size="sm"
-              startContent={<Ban size={14} />}
-              onPress={() => setConfirmDeactivate(true)}
-              isDisabled={confirmDeactivate}
-            >
-              {t(`${d}.deactivate`)}
-            </Button>
+            <>
+              <Button
+                color="primary"
+                variant="flat"
+                size="sm"
+                startContent={<Pencil size={14} />}
+                onPress={() => setEditWizardOpen(true)}
+              >
+                {t(`${d}.edit`)}
+              </Button>
+              <Button
+                color="danger"
+                variant="bordered"
+                size="sm"
+                startContent={<Ban size={14} />}
+                onPress={() => setConfirmDeactivate(true)}
+                isDisabled={confirmDeactivate}
+              >
+                {t(`${d}.deactivate`)}
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -479,6 +533,7 @@ export function PaymentConceptDetailPageClient({
         isRecurring={concept.isRecurring}
       />
 
+      {/* Change History Section */}
       {/* Delinquency Modal */}
       <DelinquencyModal
         isOpen={delinquencyOpen}
@@ -487,6 +542,17 @@ export function PaymentConceptDetailPageClient({
         managementCompanyId={managementCompanyId}
         currencySymbol={conceptAny?.currency?.symbol ?? ''}
         currencyCode={conceptAny?.currency?.code ?? ''}
+      />
+
+      {/* Edit Wizard Modal */}
+      <CreatePaymentConceptWizard
+        isOpen={editWizardOpen}
+        onClose={() => setEditWizardOpen(false)}
+        condominiumId={condominiumId}
+        managementCompanyId={managementCompanyId}
+        currencies={currencies}
+        buildings={buildings}
+        editConceptId={conceptId}
       />
     </div>
   )

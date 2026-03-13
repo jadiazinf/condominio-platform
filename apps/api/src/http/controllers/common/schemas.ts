@@ -21,6 +21,17 @@ export const ManagementCompanyIdParamSchema = z.object({
   managementCompanyId: z.string().uuid('Invalid managementCompanyId format'),
 })
 
+/**
+ * Common schema for optional includeInactive query parameter.
+ */
+export const IncludeInactiveQuerySchema = z.object({
+  includeInactive: z
+    .string()
+    .optional()
+    .transform((val) => val === 'true'),
+})
+
 export type TIdParam = z.infer<typeof IdParamSchema>
 export type TCodeParam = z.infer<typeof CodeParamSchema>
 export type TManagementCompanyIdParam = z.infer<typeof ManagementCompanyIdParamSchema>
+export type TIncludeInactiveQuery = z.infer<typeof IncludeInactiveQuerySchema>

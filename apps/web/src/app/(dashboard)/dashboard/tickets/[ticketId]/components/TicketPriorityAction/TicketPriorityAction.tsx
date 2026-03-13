@@ -13,6 +13,7 @@ import {
 import { Chip } from '@/ui/components/chip'
 import { AlertCircle, Check } from 'lucide-react'
 import type { TTicketPriority } from '@packages/domain'
+import { getTicketPriorityColor } from '@/utils/status-colors'
 
 export interface ITicketPriorityActionTranslations {
   changePriority: string
@@ -43,21 +44,6 @@ export function TicketPriorityAction({
   const [selectedPriority, setSelectedPriority] = useState<TTicketPriority>(currentPriority)
 
   const priorities: TTicketPriority[] = ['low', 'medium', 'high', 'urgent']
-
-  const getPriorityColor = (
-    priority: TTicketPriority
-  ): 'default' | 'primary' | 'success' | 'warning' | 'danger' => {
-    switch (priority) {
-      case 'urgent':
-        return 'danger'
-      case 'high':
-        return 'warning'
-      case 'medium':
-        return 'primary'
-      default:
-        return 'default'
-    }
-  }
 
   const handleConfirm = () => {
     if (selectedPriority !== currentPriority) {
@@ -104,7 +90,7 @@ export function TicketPriorityAction({
                       disabled={priority === currentPriority}
                       onClick={() => setSelectedPriority(priority)}
                     >
-                      <Chip color={getPriorityColor(priority)} size="sm" variant="flat">
+                      <Chip color={getTicketPriorityColor(priority)} size="sm" variant="flat">
                         {translations.priorities[priority]}
                       </Chip>
                       {selectedPriority === priority && (

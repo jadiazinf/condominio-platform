@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import { z } from 'zod'
-import { EFormulaTypes, type TQuotaFormula, ESystemRole } from '@packages/domain'
+import { EFormulaTypes, ESystemRole } from '@packages/domain'
 import type {
   QuotaFormulasRepository,
   CondominiumsRepository,
@@ -13,29 +13,19 @@ import {
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
-import { IdParamSchema } from '../common'
+import { IdParamSchema, IncludeInactiveQuerySchema, type TIncludeInactiveQuery } from '../common'
 import type { TRouteDefinition } from '../types'
 import { createRouter } from '../create-router'
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
 import {
   CreateQuotaFormulaService,
   UpdateQuotaFormulaService,
-  GetFormulasByCondominiumService,
   CalculateFormulaAmountService,
 } from '@src/services/quota-formulas'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Schemas
 // ─────────────────────────────────────────────────────────────────────────────
-
-const IncludeInactiveQuerySchema = z.object({
-  includeInactive: z
-    .enum(['true', 'false'])
-    .optional()
-    .transform(v => v === 'true'),
-})
-
-type TIncludeInactiveQuery = z.infer<typeof IncludeInactiveQuerySchema>
 
 const CreateQuotaFormulaBodySchema = z.object({
   condominiumId: z.string().uuid(),
@@ -90,7 +80,6 @@ type TIdParam = z.infer<typeof IdParamSchema>
 export class QuotaFormulasController {
   private readonly createQuotaFormulaService: CreateQuotaFormulaService
   private readonly updateQuotaFormulaService: UpdateQuotaFormulaService
-  private readonly getFormulasByCondominiumService: GetFormulasByCondominiumService
   private readonly calculateFormulaAmountService: CalculateFormulaAmountService
 
   constructor(
@@ -98,20 +87,15 @@ export class QuotaFormulasController {
     private readonly condominiumsRepository: CondominiumsRepository,
     private readonly unitsRepository: UnitsRepository
   ) {
-    // Initialize services
     this.createQuotaFormulaService = new CreateQuotaFormulaService(
       quotaFormulasRepository,
       condominiumsRepository
     )
     this.updateQuotaFormulaService = new UpdateQuotaFormulaService(quotaFormulasRepository)
-    this.getFormulasByCondominiumService = new GetFormulasByCondominiumService(
-      quotaFormulasRepository
-    )
     this.calculateFormulaAmountService = new CalculateFormulaAmountService(
-      quotaFormulasRepository,
-      unitsRepository
+      quotaFormulasRepository as any,
+      unitsRepository as any
     )
-
   }
 
   get routes(): TRouteDefinition[] {
@@ -182,16 +166,11 @@ export class QuotaFormulasController {
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
-      const result = await this.getFormulasByCondominiumService.execute({
+      const formulas = await this.quotaFormulasRepository.getByCondominiumId(
         condominiumId,
-        includeInactive: ctx.query.includeInactive,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
+        ctx.query.includeInactive
+      )
+      return ctx.ok({ data: formulas })
     } catch (error) {
       return this.handleError(ctx, error)
     }

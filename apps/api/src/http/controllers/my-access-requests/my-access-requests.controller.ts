@@ -8,12 +8,6 @@ import {
   type TValidateAccessCode,
   type TUser,
 } from '@packages/domain'
-import {
-  NotificationsRepository,
-  NotificationDeliveriesRepository,
-  UserNotificationPreferencesRepository,
-  UserFcmTokensRepository,
-} from '@database/repositories'
 import { userRoles, roles, condominiumManagementCompanies } from '@database/drizzle/schema'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { bodyValidator } from '../../middlewares/utils/payload-validator'
@@ -23,24 +17,17 @@ import { createRouter } from '../create-router'
 import type { TRouteDefinition } from '../types'
 import { ValidateAccessCodeService } from '@src/services/access-codes/validate-access-code.service'
 import { SubmitAccessRequestService } from '@src/services/access-requests/submit-access-request.service'
-import { SendNotificationService } from '@src/services/notifications'
+import type { SendNotificationService } from '@src/services/notifications'
 
 export class MyAccessRequestsController {
   private readonly validateCodeService: ValidateAccessCodeService
   private readonly submitRequestService: SubmitAccessRequestService
   private readonly sendNotificationService: SendNotificationService
 
-  constructor(private readonly db: TDrizzleClient) {
+  constructor(private readonly db: TDrizzleClient, sendNotificationService: SendNotificationService) {
     this.validateCodeService = new ValidateAccessCodeService(db)
     this.submitRequestService = new SubmitAccessRequestService(db)
-
-    const notificationsRepo = new NotificationsRepository(db)
-    const deliveriesRepo = new NotificationDeliveriesRepository(db)
-    const preferencesRepo = new UserNotificationPreferencesRepository(db)
-    const fcmTokensRepo = new UserFcmTokensRepository(db)
-    this.sendNotificationService = new SendNotificationService(
-      notificationsRepo, deliveriesRepo, preferencesRepo, fcmTokensRepo
-    )
+    this.sendNotificationService = sendNotificationService
   }
 
   get routes(): TRouteDefinition[] {

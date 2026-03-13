@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import { z } from 'zod'
-import { EAllocationStatuses, type TPaymentPendingAllocation, ESystemRole } from '@packages/domain'
+import { EAllocationStatuses, ESystemRole } from '@packages/domain'
 import type { PaymentPendingAllocationsRepository, QuotasRepository } from '@database/repositories'
 import { HttpContext } from '../../context'
 import {
@@ -8,7 +8,7 @@ import {
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
-import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
+import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { createRouter } from '../create-router'
@@ -16,8 +16,6 @@ import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-au
 import {
   AllocatePendingToQuotaService,
   RefundPendingAllocationService,
-  GetPendingAllocationsService,
-  GetAllocationsByPaymentService,
 } from '@src/services/payment-pending-allocations'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -65,14 +63,11 @@ type TIdParam = z.infer<typeof IdParamSchema>
 export class PaymentPendingAllocationsController {
   private readonly allocatePendingToQuotaService: AllocatePendingToQuotaService
   private readonly refundPendingAllocationService: RefundPendingAllocationService
-  private readonly getPendingAllocationsService: GetPendingAllocationsService
-  private readonly getAllocationsByPaymentService: GetAllocationsByPaymentService
 
   constructor(
     private readonly paymentPendingAllocationsRepository: PaymentPendingAllocationsRepository,
     private readonly quotasRepository: QuotasRepository
   ) {
-    // Initialize services
     this.allocatePendingToQuotaService = new AllocatePendingToQuotaService(
       paymentPendingAllocationsRepository,
       quotasRepository
@@ -80,13 +75,6 @@ export class PaymentPendingAllocationsController {
     this.refundPendingAllocationService = new RefundPendingAllocationService(
       paymentPendingAllocationsRepository
     )
-    this.getPendingAllocationsService = new GetPendingAllocationsService(
-      paymentPendingAllocationsRepository
-    )
-    this.getAllocationsByPaymentService = new GetAllocationsByPaymentService(
-      paymentPendingAllocationsRepository
-    )
-
   }
 
   get routes(): TRouteDefinition[] {
@@ -148,27 +136,17 @@ export class PaymentPendingAllocationsController {
 
   private listPending = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TStatusQuery>(c)
-    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     // TODO: Filter by condominiumId via JOIN through payment → unit → building.condominiumId
 
-    try {
-      if (ctx.query.status) {
-        const allocations = await this.paymentPendingAllocationsRepository.getByStatus(
-          ctx.query.status
-        )
-        return ctx.ok({ data: allocations })
-      }
-
-      const result = await this.getPendingAllocationsService.execute({})
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (ctx.query.status) {
+      const allocations = await this.paymentPendingAllocationsRepository.getByStatus(
+        ctx.query.status
+      )
+      return ctx.ok({ data: allocations })
     }
+
+    const allocations = await this.paymentPendingAllocationsRepository.getPendingAllocations()
+    return ctx.ok({ data: allocations })
   }
 
   private getById = async (c: Context): Promise<Response> => {
@@ -190,19 +168,10 @@ export class PaymentPendingAllocationsController {
   private getByPaymentId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPaymentIdParam>(c)
 
-    try {
-      const result = await this.getAllocationsByPaymentService.execute({
-        paymentId: ctx.params.paymentId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const allocations = await this.paymentPendingAllocationsRepository.getByPaymentId(
+      ctx.params.paymentId
+    )
+    return ctx.ok({ data: allocations })
   }
 
   private allocateToQuota = async (c: Context): Promise<Response> => {

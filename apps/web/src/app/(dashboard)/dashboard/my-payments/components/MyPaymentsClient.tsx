@@ -13,7 +13,7 @@ import { usePaymentsByUser } from '@packages/http-client'
 import { formatAmount } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
 import type { TPayment, TPaymentStatus } from '@packages/domain'
-import type { TChipColor } from '@/ui/components/chip'
+import { getPaymentStatusColor } from '@/utils/status-colors'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -23,29 +23,6 @@ type TStatusFilter = 'all' | 'pending_verification' | 'completed' | 'rejected'
 
 interface IMyPaymentsClientProps {
   userId: string
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
-function getStatusColor(status: TPaymentStatus): TChipColor {
-  switch (status) {
-    case 'pending':
-      return 'warning'
-    case 'pending_verification':
-      return 'secondary'
-    case 'completed':
-      return 'success'
-    case 'failed':
-      return 'danger'
-    case 'refunded':
-      return 'primary'
-    case 'rejected':
-      return 'danger'
-    default:
-      return 'default'
-  }
 }
 
 function formatDate(date: Date | string | null): string {
@@ -202,7 +179,7 @@ export function MyPaymentsClient({ userId }: IMyPaymentsClientProps) {
 
                   {/* Right side: status chip */}
                   <div className="flex items-center">
-                    <Chip color={getStatusColor(payment.status)} variant="flat">
+                    <Chip color={getPaymentStatusColor(payment.status)} variant="flat">
                       {t(`resident.myPayments.status.${payment.status}`)}
                     </Chip>
                   </div>

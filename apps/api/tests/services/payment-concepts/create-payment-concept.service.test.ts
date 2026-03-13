@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
 import type { TPaymentConcept, TPaymentConceptCreate } from '@packages/domain'
 import { CreatePaymentConceptService } from '@src/services/payment-concepts/create-payment-concept.service'
-import { type TServiceResult } from '@src/services/base.service'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mock Types
@@ -54,6 +53,7 @@ function mockPaymentConcept(overrides: Partial<TPaymentConcept> = {}): TPaymentC
     dueDay: 15,
     effectiveFrom: null,
     effectiveUntil: null,
+    chargeGenerationStrategy: 'auto',
     isActive: true,
     metadata: null,
     createdBy: userId,
@@ -82,6 +82,7 @@ function createInput(overrides: Partial<TPaymentConceptCreate & { managementComp
     earlyPaymentDaysBeforeDue: 0,
     issueDay: 1,
     dueDay: 15,
+    chargeGenerationStrategy: 'auto' as const,
     isActive: true,
     metadata: null,
     createdBy: userId,

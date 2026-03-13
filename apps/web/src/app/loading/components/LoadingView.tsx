@@ -1,8 +1,6 @@
 'use client'
 
 import { Button } from '@/ui/components/button'
-import { Progress } from '@/ui/components/progress'
-
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 
@@ -13,9 +11,16 @@ interface LoadingViewProps {
   onRetry?: () => void
   onLogout?: () => void
   step?: TLoadingStep
+  isSigningOut?: boolean
 }
 
-export function LoadingView({ error, onRetry, onLogout, step = 'auth' }: LoadingViewProps) {
+export function LoadingView({
+  error,
+  onRetry,
+  onLogout,
+  step = 'auth',
+  isSigningOut = false,
+}: LoadingViewProps) {
   const { t } = useTranslation()
 
   if (error) {
@@ -62,8 +67,91 @@ export function LoadingView({ error, onRetry, onLogout, step = 'auth' }: Loading
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-4 bg-background">
-      <Progress aria-label="Loading..." className="max-w-md" color="primary" isIndeterminate />
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-4 bg-background overflow-hidden">
+      {/* Subtle radial glow */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="w-[400px] h-[400px] rounded-full bg-primary/[0.04] blur-3xl animate-pulse" />
+      </div>
+
+      <div className="relative flex flex-col items-center gap-8">
+        {/* Animated ring + icon */}
+        <div className="relative w-20 h-20">
+          {/* Outer rotating arc */}
+          <svg
+            className="absolute inset-0 w-20 h-20 animate-[spin_3s_linear_infinite]"
+            viewBox="0 0 80 80"
+            fill="none"
+          >
+            <circle
+              cx="40"
+              cy="40"
+              r="36"
+              stroke="currentColor"
+              strokeWidth="1"
+              className="text-default-200/50"
+            />
+            <path
+              d="M40 4a36 36 0 0 1 36 36"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              className="text-primary"
+            />
+          </svg>
+
+          {/* Inner icon */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center animate-[pulse_2.5s_ease-in-out_infinite]">
+              <svg
+                className="w-6 h-6 text-primary"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                {isSigningOut ? (
+                  <>
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </>
+                ) : (
+                  <>
+                    <rect x="4" y="2" width="16" height="20" rx="2" />
+                    <path d="M9 22v-4h6v4" />
+                    <path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01" />
+                  </>
+                )}
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Text */}
+        <div className="flex flex-col items-center gap-2 text-center">
+          <Typography variant="h4">
+            {isSigningOut ? t('auth.loading.signingOut') : t('auth.loading.title')}
+          </Typography>
+          <Typography color="muted" variant="body2">
+            {isSigningOut ? t('auth.loading.signingOutSubtitle') : t('auth.loading.subtitle')}
+          </Typography>
+        </div>
+
+        {/* Animated dots */}
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-[bounce_1.2s_ease-in-out_infinite]" />
+          <span
+            className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-[bounce_1.2s_ease-in-out_infinite]"
+            style={{ animationDelay: '0.15s' }}
+          />
+          <span
+            className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-[bounce_1.2s_ease-in-out_infinite]"
+            style={{ animationDelay: '0.3s' }}
+          />
+        </div>
+      </div>
     </div>
   )
 }

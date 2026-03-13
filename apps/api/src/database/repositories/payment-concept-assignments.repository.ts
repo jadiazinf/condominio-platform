@@ -53,6 +53,21 @@ export class PaymentConceptAssignmentsRepository extends BaseRepository<
     return values
   }
 
+  async deactivateAllByConceptId(conceptId: string): Promise<number> {
+    const results = await this.db
+      .update(paymentConceptAssignments)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(
+        and(
+          eq(paymentConceptAssignments.paymentConceptId, conceptId),
+          eq(paymentConceptAssignments.isActive, true)
+        )
+      )
+      .returning()
+
+    return results.length
+  }
+
   async listByConceptId(conceptId: string, activeOnly = true): Promise<TPaymentConceptAssignment[]> {
     const conditions = [eq(paymentConceptAssignments.paymentConceptId, conceptId)]
     if (activeOnly) {

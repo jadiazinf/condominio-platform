@@ -4,7 +4,7 @@ import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
 import { WebSocketManager } from '@libs/websocket'
 
-export interface ICreateMessageInput extends TSupportTicketMessageCreate {}
+export type ICreateMessageInput = TSupportTicketMessageCreate
 
 /**
  * Service for creating a new ticket message.

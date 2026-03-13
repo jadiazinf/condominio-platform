@@ -1,4 +1,4 @@
-import type { TPaymentConcept, TPaymentConceptCreate } from '@packages/domain'
+import type { TPaymentConcept, TPaymentConceptCreate, TServiceExecutionCreate } from '@packages/domain'
 import type {
   PaymentConceptsRepository,
   CondominiumsRepository,
@@ -8,6 +8,8 @@ import type {
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
+import { enqueueBulkGeneration } from '@src/queue/boss-client'
+import logger from '@utils/logger'
 
 type TCondominiumMCRepo = {
   getByCondominiumAndMC: (condominiumId: string, mcId: string) => Promise<{ id: string } | null>
@@ -72,6 +74,18 @@ export class CreatePaymentConceptFullService {
       if (!input.recurrencePeriod) return failure('Recurrence period is required for recurring concepts', 'BAD_REQUEST')
       if (input.issueDay == null) return failure('Issue day is required for recurring concepts', 'BAD_REQUEST')
       if (input.dueDay == null) return failure('Due day is required for recurring concepts', 'BAD_REQUEST')
+    }
+
+    // Validate bulk generation strategy requirements
+    const strategy = input.chargeGenerationStrategy ?? 'auto'
+    if (input.isRecurring && strategy === 'bulk') {
+      if (!input.effectiveFrom) return failure('Start date is required for bulk generation', 'BAD_REQUEST')
+      if (!input.effectiveUntil) return failure('End date is required for bulk generation', 'BAD_REQUEST')
+      const from = new Date(input.effectiveFrom)
+      const until = new Date(input.effectiveUntil)
+      if (until <= from) return failure('End date must be after start date', 'BAD_REQUEST')
+      const monthsDiff = (until.getFullYear() - from.getFullYear()) * 12 + (until.getMonth() - from.getMonth())
+      if (monthsDiff > 12) return failure('Bulk generation is limited to 12 months', 'BAD_REQUEST')
     }
 
     if (input.issueDay != null && (input.issueDay < 1 || input.issueDay > 28)) {
@@ -147,7 +161,7 @@ export class CreatePaymentConceptFullService {
 
     // ── Transaction: create concept + link services + create executions ────
 
-    return await this.db.transaction(async (tx) => {
+    const result = await this.db.transaction(async (tx) => {
       const txConceptsRepo = this.paymentConceptsRepo.withTx(tx)
       const txConceptServicesRepo = this.conceptServicesRepo.withTx(tx)
       const txExecutionsRepo = this.executionsRepo.withTx(tx)
@@ -175,12 +189,30 @@ export class CreatePaymentConceptFullService {
           currencyId: svc.execution.currencyId,
           invoiceNumber: svc.execution.invoiceNumber,
           items: svc.execution.items,
-          attachments: svc.execution.attachments as any,
+          attachments: svc.execution.attachments as TServiceExecutionCreate['attachments'],
           notes: svc.execution.notes,
         })
       }
 
       return success(concept)
     })
+
+    // ── Post-transaction: enqueue bulk generation if strategy is 'bulk' ───
+
+    if (result.success && input.isRecurring && strategy === 'bulk') {
+      try {
+        await enqueueBulkGeneration({
+          paymentConceptId: result.data.id,
+          generatedBy: input.createdBy ?? input.managementCompanyId,
+        })
+        logger.info({ conceptId: result.data.id }, 'Bulk generation job enqueued')
+      } catch (error) {
+        // Don't fail the concept creation if enqueue fails
+        // The user can manually trigger bulk generation later
+        logger.error({ error, conceptId: result.data.id }, 'Failed to enqueue bulk generation job')
+      }
+    }
+
+    return result
   }
 }

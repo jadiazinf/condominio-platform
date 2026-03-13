@@ -15,7 +15,6 @@ import type { TRouteDefinition } from '../types'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { z } from 'zod'
 import {
-  GetTemplateByCodeService,
   RenderTemplateService,
 } from '@src/services/notification-templates'
 
@@ -24,8 +23,6 @@ const CodeParamSchema = z.object({
 })
 
 type TCodeParam = z.infer<typeof CodeParamSchema>
-type TIdParam = z.infer<typeof IdParamSchema>
-
 const RenderTemplateBodySchema = z.object({
   variables: z.record(z.string(), z.string()),
 })
@@ -49,15 +46,12 @@ export class NotificationTemplatesController extends BaseController<
   TNotificationTemplateCreate,
   TNotificationTemplateUpdate
 > {
-  private readonly getTemplateByCodeService: GetTemplateByCodeService
   private readonly renderTemplateService: RenderTemplateService
 
   constructor(repository: NotificationTemplatesRepository) {
     super(repository)
 
-    this.getTemplateByCodeService = new GetTemplateByCodeService(repository)
     this.renderTemplateService = new RenderTemplateService(repository)
-
   }
 
   get routes(): TRouteDefinition[] {
@@ -109,20 +103,15 @@ export class NotificationTemplatesController extends BaseController<
 
   private getByCode = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TCodeParam>(c)
+    const repo = this.repository as NotificationTemplatesRepository
 
-    try {
-      const result = await this.getTemplateByCodeService.execute({
-        code: ctx.params.code,
-      })
+    const template = await repo.getByCode(ctx.params.code)
 
-      if (!result.success) {
-        return ctx.notFound({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!template) {
+      return ctx.notFound({ error: 'Notification template not found' })
     }
+
+    return ctx.ok({ data: template })
   }
 
   private renderTemplate = async (c: Context): Promise<Response> => {

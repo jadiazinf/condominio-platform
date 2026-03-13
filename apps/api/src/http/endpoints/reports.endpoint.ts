@@ -12,7 +12,7 @@ export class ReportsEndpoint implements IEndpoint {
   private readonly controller: ReportsController
 
   constructor() {
-    this.controller = new ReportsController()
+    this.controller = new ReportsController(null as any, null as any, null as any, null as any)
   }
 
   getRouter(): Hono {

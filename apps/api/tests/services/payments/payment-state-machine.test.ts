@@ -163,7 +163,7 @@ describe('Payment State Machine', function () {
         paymentStore.set(id, updated)
         return updated
       },
-      withTx: function (tx: any) {
+      withTx: function (_tx: any) {
         return this
       },
     }
@@ -178,7 +178,7 @@ describe('Payment State Machine', function () {
       hardDelete: async function () {
         return true
       },
-      withTx: function (tx: any) {
+      withTx: function (_tx: any) {
         return this
       },
     }
@@ -190,7 +190,7 @@ describe('Payment State Machine', function () {
       update: async function (id, data: any) {
         return { ...mockQuota, ...data }
       },
-      withTx: function (tx: any) {
+      withTx: function (_tx: any) {
         return this
       },
     }

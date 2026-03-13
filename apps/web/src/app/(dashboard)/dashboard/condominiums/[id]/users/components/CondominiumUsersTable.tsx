@@ -185,6 +185,7 @@ export function CondominiumUsersTable({
       {/* Desktop Table */}
       <div className="hidden md:block">
         <Table<TUserRow>
+          mobileCards={false}
           aria-label="Condominium Users"
           columns={columns}
           rows={users}

@@ -1,7 +1,5 @@
 import type { Context } from 'hono'
 import {
-  subscriptionInvoiceCreateSchema,
-  subscriptionInvoiceUpdateSchema,
   type TSubscriptionInvoice,
   type TSubscriptionInvoiceCreate,
   type TSubscriptionInvoiceUpdate,
@@ -15,7 +13,6 @@ import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
 import {
-  GenerateInvoiceService,
   MarkInvoicePaidService,
 } from '../../../services/subscription-invoices'
 

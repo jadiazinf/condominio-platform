@@ -13,6 +13,7 @@ import {
 import { Chip } from '@/ui/components/chip'
 import { Settings, Check } from 'lucide-react'
 import type { TTicketStatus } from '@packages/domain'
+import { getTicketStatusColor } from '@/utils/status-colors'
 
 export interface ITicketStatusActionTranslations {
   changeStatus: string
@@ -49,27 +50,6 @@ export function TicketStatusAction({
     'in_progress',
     'waiting_customer',
   ]
-
-  const getStatusColor = (
-    status: TTicketStatus
-  ): 'default' | 'primary' | 'success' | 'warning' | 'danger' => {
-    switch (status) {
-      case 'open':
-        return 'primary'
-      case 'in_progress':
-        return 'warning'
-      case 'waiting_customer':
-        return 'default'
-      case 'resolved':
-        return 'success'
-      case 'closed':
-        return 'default'
-      case 'cancelled':
-        return 'danger'
-      default:
-        return 'default'
-    }
-  }
 
   const handleConfirm = () => {
     if (selectedStatus !== currentStatus) {
@@ -116,7 +96,7 @@ export function TicketStatusAction({
                       disabled={status === currentStatus}
                       onClick={() => setSelectedStatus(status)}
                     >
-                      <Chip color={getStatusColor(status)} size="sm" variant="flat">
+                      <Chip color={getTicketStatusColor(status)} size="sm" variant="flat">
                         {translations.statuses[status]}
                       </Chip>
                       {selectedStatus === status && (

@@ -35,6 +35,7 @@ export function ReserveFundPageClient({
         color="primary"
         variant="underlined"
         defaultSelectedKey="summary"
+        classNames={{ tabList: 'overflow-x-auto flex-nowrap' }}
       >
         <Tab key="summary" title={t.tabs.summary}>
           <div className="pt-4">

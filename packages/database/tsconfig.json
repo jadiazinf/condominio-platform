@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "paths": {
+      "@database/*": ["./src/*"],
+      "@packages/domain": ["../domain/src"],
+      "@packages/logger": ["../logger/src"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}

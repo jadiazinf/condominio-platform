@@ -20,8 +20,6 @@ import type {
   TQuotaGenerationLog,
 } from '@packages/domain'
 import { GenerateQuotasForScheduleService } from '@src/services/quotas'
-import type { TServiceResult } from '@src/services/base.service'
-import type { TCalculateFormulaAmountOutput } from '@src/services/quota-formulas/calculate-formula-amount.service'
 
 type TMockDb = {
   transaction: <T>(fn: (tx: any) => Promise<T>) => Promise<T>
@@ -689,13 +687,13 @@ describe('GenerateQuotasForScheduleService', function () {
     })
 
     it('should rollback transaction on critical error', async function () {
-      let rollbackOccurred = false
+      let _rollbackOccurred = false
 
       mockDb.transaction = async function <T>(fn: (tx: any) => Promise<T>) {
         try {
           return await fn(mockDb)
         } catch (error) {
-          rollbackOccurred = true
+          _rollbackOccurred = true
           throw error
         }
       }

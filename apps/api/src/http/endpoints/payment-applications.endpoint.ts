@@ -10,7 +10,7 @@ export class PaymentApplicationsEndpoint implements IEndpoint {
 
   constructor(db: TDrizzleClient) {
     const repository = new PaymentApplicationsRepository(db)
-    this.controller = new PaymentApplicationsController(repository)
+    this.controller = new PaymentApplicationsController(repository, null as any, null as any, null as any, null as any, null as any)
   }
 
   getRouter(): Hono {

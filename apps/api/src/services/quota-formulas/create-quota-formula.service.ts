@@ -135,8 +135,7 @@ export class CreateQuotaFormulaService {
       'parking_spaces',
     ]
 
-    // Allowed operators and functions
-    const allowedPattern = /^[\d\s+\-*/().]+$|^[\w\s+\-*/().]+$/
+    // Dangerous patterns to reject
     const dangerousPatterns = [
       /function/i,
       /eval/i,

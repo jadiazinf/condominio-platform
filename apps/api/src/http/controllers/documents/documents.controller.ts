@@ -14,15 +14,6 @@ import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { z } from 'zod'
-import {
-  GetPublicDocumentsService,
-  GetDocumentsByTypeService,
-  GetDocumentsByCondominiumService,
-  GetDocumentsByBuildingService,
-  GetDocumentsByUnitService,
-  GetDocumentsByUserService,
-  GetDocumentsByPaymentService,
-} from '@src/services/documents'
 
 const DocumentTypeParamSchema = z.object({
   documentType: z.string().min(1),
@@ -75,26 +66,11 @@ export class DocumentsController extends BaseController<
   TDocumentCreate,
   TDocumentUpdate
 > {
-  private readonly getPublicDocumentsService: GetPublicDocumentsService
-  private readonly getDocumentsByTypeService: GetDocumentsByTypeService
-  private readonly getDocumentsByCondominiumService: GetDocumentsByCondominiumService
-  private readonly getDocumentsByBuildingService: GetDocumentsByBuildingService
-  private readonly getDocumentsByUnitService: GetDocumentsByUnitService
-  private readonly getDocumentsByUserService: GetDocumentsByUserService
-  private readonly getDocumentsByPaymentService: GetDocumentsByPaymentService
+  private readonly documentsRepository: DocumentsRepository
 
   constructor(repository: DocumentsRepository) {
     super(repository)
-
-    // Initialize services
-    this.getPublicDocumentsService = new GetPublicDocumentsService(repository)
-    this.getDocumentsByTypeService = new GetDocumentsByTypeService(repository)
-    this.getDocumentsByCondominiumService = new GetDocumentsByCondominiumService(repository)
-    this.getDocumentsByBuildingService = new GetDocumentsByBuildingService(repository)
-    this.getDocumentsByUnitService = new GetDocumentsByUnitService(repository)
-    this.getDocumentsByUserService = new GetDocumentsByUserService(repository)
-    this.getDocumentsByPaymentService = new GetDocumentsByPaymentService(repository)
-
+    this.documentsRepository = repository
   }
 
   get routes(): TRouteDefinition[] {
@@ -165,14 +141,8 @@ export class DocumentsController extends BaseController<
   protected override list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
-
-    const result = await this.getDocumentsByCondominiumService.execute({ condominiumId })
-
-    if (!result.success) {
-      return ctx.internalError({ error: result.error })
-    }
-
-    return ctx.ok({ data: result.data })
+    const data = await this.documentsRepository.getByCondominiumId(condominiumId)
+    return ctx.ok({ data })
   }
 
   protected override create = async (c: Context): Promise<Response> => {
@@ -188,107 +158,37 @@ export class DocumentsController extends BaseController<
 
   private getPublicDocuments = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-
-    try {
-      const result = await this.getPublicDocumentsService.execute()
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.documentsRepository.getPublicDocuments()
+    return ctx.ok({ data })
   }
 
   private getByType = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TDocumentTypeParam>(c)
-
-    try {
-      const result = await this.getDocumentsByTypeService.execute({
-        documentType: ctx.params.documentType as TDocument['documentType'],
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.documentsRepository.getByType(ctx.params.documentType as TDocument['documentType'])
+    return ctx.ok({ data })
   }
 
   private getByBuildingId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)
-
-    try {
-      const result = await this.getDocumentsByBuildingService.execute({
-        buildingId: ctx.params.buildingId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.documentsRepository.getByBuildingId(ctx.params.buildingId)
+    return ctx.ok({ data })
   }
 
   private getByUnitId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)
-
-    try {
-      const result = await this.getDocumentsByUnitService.execute({
-        unitId: ctx.params.unitId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.documentsRepository.getByUnitId(ctx.params.unitId)
+    return ctx.ok({ data })
   }
 
   private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
-
-    try {
-      const result = await this.getDocumentsByUserService.execute({
-        userId: ctx.params.userId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.documentsRepository.getByUserId(ctx.params.userId)
+    return ctx.ok({ data })
   }
 
   private getByPaymentId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPaymentIdParam>(c)
-
-    try {
-      const result = await this.getDocumentsByPaymentService.execute({
-        paymentId: ctx.params.paymentId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.documentsRepository.getByPaymentId(ctx.params.paymentId)
+    return ctx.ok({ data })
   }
 }

@@ -231,6 +231,7 @@ export function PaymentsTable({ payments, translations: t }: PaymentsTableProps)
       {/* Desktop Table */}
       <div className="hidden md:block">
         <Table<TPayment>
+          mobileCards={false}
           aria-label={t.title}
           columns={columns}
           rows={filteredPayments}

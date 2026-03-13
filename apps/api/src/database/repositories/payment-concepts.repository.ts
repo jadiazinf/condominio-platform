@@ -41,6 +41,7 @@ export class PaymentConceptsRepository
       conceptType: r.conceptType as TPaymentConcept['conceptType'],
       isRecurring: r.isRecurring ?? true,
       recurrencePeriod: r.recurrencePeriod as TPaymentConcept['recurrencePeriod'],
+      chargeGenerationStrategy: (r as any).chargeGenerationStrategy ?? 'auto',
       currencyId: r.currencyId,
       allowsPartialPayment: r.allowsPartialPayment ?? true,
       latePaymentType: (r.latePaymentType as TPaymentConcept['latePaymentType']) ?? 'none',

@@ -8,7 +8,7 @@ export class MyAccessRequestsEndpoint implements IEndpoint {
   private readonly controller: MyAccessRequestsController
 
   constructor(db: TDrizzleClient) {
-    this.controller = new MyAccessRequestsController(db)
+    this.controller = new MyAccessRequestsController(db, null as any)
   }
 
   getRouter(): Hono {

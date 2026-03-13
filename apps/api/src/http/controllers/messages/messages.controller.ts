@@ -14,13 +14,6 @@ import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { z } from 'zod'
-import {
-  GetMessagesBySenderService,
-  GetMessagesByRecipientService,
-  GetUnreadMessagesByUserService,
-  GetMessagesByTypeService,
-  MarkMessageAsReadService,
-} from '@src/services/messages'
 
 const SenderIdParamSchema = z.object({
   senderId: z.string().uuid('Invalid sender ID format'),
@@ -61,22 +54,11 @@ type TIdParam = z.infer<typeof IdParamSchema>
  * - DELETE /:id                              Delete message (hard delete)
  */
 export class MessagesController extends BaseController<TMessage, TMessageCreate, TMessageUpdate> {
-  private readonly getMessagesBySenderService: GetMessagesBySenderService
-  private readonly getMessagesByRecipientService: GetMessagesByRecipientService
-  private readonly getUnreadMessagesByUserService: GetUnreadMessagesByUserService
-  private readonly getMessagesByTypeService: GetMessagesByTypeService
-  private readonly markMessageAsReadService: MarkMessageAsReadService
+  private readonly messagesRepository: MessagesRepository
 
   constructor(repository: MessagesRepository) {
     super(repository)
-
-    // Initialize services
-    this.getMessagesBySenderService = new GetMessagesBySenderService(repository)
-    this.getMessagesByRecipientService = new GetMessagesByRecipientService(repository)
-    this.getUnreadMessagesByUserService = new GetUnreadMessagesByUserService(repository)
-    this.getMessagesByTypeService = new GetMessagesByTypeService(repository)
-    this.markMessageAsReadService = new MarkMessageAsReadService(repository)
-
+    this.messagesRepository = repository
   }
 
   get routes(): TRouteDefinition[] {
@@ -146,8 +128,7 @@ export class MessagesController extends BaseController<TMessage, TMessageCreate,
   protected override list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
-    const repo = this.repository as MessagesRepository
-    const messages = await repo.getByCondominiumId(condominiumId)
+    const messages = await this.messagesRepository.getByCondominiumId(condominiumId)
     return ctx.ok({ data: messages })
   }
 
@@ -157,91 +138,36 @@ export class MessagesController extends BaseController<TMessage, TMessageCreate,
 
   private getBySenderId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TSenderIdParam>(c)
-
-    try {
-      const result = await this.getMessagesBySenderService.execute({
-        senderId: ctx.params.senderId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const messages = await this.messagesRepository.getBySenderId(ctx.params.senderId)
+    return ctx.ok({ data: messages })
   }
 
   private getByRecipientUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TRecipientUserIdParam>(c)
-
-    try {
-      const result = await this.getMessagesByRecipientService.execute({
-        recipientUserId: ctx.params.recipientUserId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const messages = await this.messagesRepository.getByRecipientUserId(ctx.params.recipientUserId)
+    return ctx.ok({ data: messages })
   }
 
   private getUnreadByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TRecipientUserIdParam>(c)
-
-    try {
-      const result = await this.getUnreadMessagesByUserService.execute({
-        recipientUserId: ctx.params.recipientUserId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const messages = await this.messagesRepository.getUnreadByUserId(ctx.params.recipientUserId)
+    return ctx.ok({ data: messages })
   }
 
   private getByType = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TMessageTypeParam>(c)
-
-    try {
-      const result = await this.getMessagesByTypeService.execute({
-        messageType: ctx.params.messageType as TMessage['messageType'],
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const messages = await this.messagesRepository.getByType(ctx.params.messageType as TMessage['messageType'])
+    return ctx.ok({ data: messages })
   }
 
   private markAsRead = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TIdParam>(c)
+    const message = await this.messagesRepository.markAsRead(ctx.params.id)
 
-    try {
-      const result = await this.markMessageAsReadService.execute({
-        messageId: ctx.params.id,
-      })
-
-      if (!result.success) {
-        return ctx.notFound({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!message) {
+      return ctx.notFound({ error: 'Message not found' })
     }
+
+    return ctx.ok({ data: message })
   }
 }

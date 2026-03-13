@@ -1,12 +1,6 @@
 import type { Context } from 'hono'
 import { accessRequestReviewSchema, ESystemRole, type TUser, type TAccessRequestReview } from '@packages/domain'
 import type { AccessRequestsRepository } from '@database/repositories'
-import {
-  NotificationsRepository,
-  NotificationDeliveriesRepository,
-  UserNotificationPreferencesRepository,
-  UserFcmTokensRepository,
-} from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP, MANAGEMENT_COMPANY_ID_PROP } from '../../middlewares/auth'
@@ -15,7 +9,7 @@ import { createRouter } from '../create-router'
 import type { TRouteDefinition } from '../types'
 import { IdParamSchema } from '../common'
 import { ReviewAccessRequestService } from '@src/services/access-requests/review-access-request.service'
-import { SendNotificationService } from '@src/services/notifications'
+import type { SendNotificationService } from '@src/services/notifications'
 import { SendAccessRequestApprovedEmailService } from '@src/services/email'
 
 export class AccessRequestsController {
@@ -23,17 +17,14 @@ export class AccessRequestsController {
   private readonly sendNotificationService: SendNotificationService
   private readonly sendApprovedEmailService: SendAccessRequestApprovedEmailService
 
-  constructor(private readonly repository: AccessRequestsRepository, db: TDrizzleClient) {
+  constructor(
+    private readonly repository: AccessRequestsRepository,
+    db: TDrizzleClient,
+    sendNotificationService: SendNotificationService,
+  ) {
     this.reviewService = new ReviewAccessRequestService(db, repository)
     this.sendApprovedEmailService = new SendAccessRequestApprovedEmailService()
-
-    const notificationsRepo = new NotificationsRepository(db)
-    const deliveriesRepo = new NotificationDeliveriesRepository(db)
-    const preferencesRepo = new UserNotificationPreferencesRepository(db)
-    const fcmTokensRepo = new UserFcmTokensRepository(db)
-    this.sendNotificationService = new SendNotificationService(
-      notificationsRepo, deliveriesRepo, preferencesRepo, fcmTokensRepo
-    )
+    this.sendNotificationService = sendNotificationService
   }
 
   get routes(): TRouteDefinition[] {

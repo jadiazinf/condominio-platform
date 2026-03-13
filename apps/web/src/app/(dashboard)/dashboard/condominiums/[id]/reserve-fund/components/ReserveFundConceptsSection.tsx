@@ -226,6 +226,7 @@ export function ReserveFundConceptsSection({
           {/* Desktop Table */}
           <div className="hidden md:block">
             <Table<TPaymentConcept>
+              mobileCards={false}
               aria-label={t.title}
               columns={columns}
               rows={concepts}

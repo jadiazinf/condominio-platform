@@ -118,6 +118,9 @@ export const LocaleDictionary = {
         executionCurrencyNotFound: 'http.controllers.paymentConcepts.executionCurrencyNotFound',
         currencyMismatch: 'http.controllers.paymentConcepts.currencyMismatch',
         conceptCreatedSuccessfully: 'http.controllers.paymentConcepts.conceptCreatedSuccessfully',
+        conceptNotFound: 'http.controllers.paymentConcepts.conceptNotFound',
+        noChangesDetected: 'http.controllers.paymentConcepts.noChangesDetected',
+        conceptUpdatedSuccessfully: 'http.controllers.paymentConcepts.conceptUpdatedSuccessfully',
       },
     },
     locales: {

@@ -59,10 +59,10 @@ let buildingsRepo: BuildingsRepository
 let unitsRepo: UnitsRepository
 let userRolesRepo: UserRolesRepository
 let rolesRepo: RolesRepository
-
 beforeAll(async () => {
   delete process.env.RESEND_API_KEY
-  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore - Bun.env is writable at runtime
   delete Bun.env.RESEND_API_KEY
 
   db = await startTestContainer()

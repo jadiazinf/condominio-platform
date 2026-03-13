@@ -24,7 +24,6 @@ import { validateSubscriptionLimit } from '../../middlewares/utils/validate-subs
 import { IdParamSchema, CodeParamSchema, type TCodeParam } from '../common'
 import type { TRouteDefinition } from '../types'
 import {
-  GetCondominiumByCodeService,
   GenerateCondominiumCodeService,
   GetCondominiumUsersService,
   CreateCondominiumWizardService,
@@ -60,7 +59,6 @@ export class CondominiumsController extends BaseController<
   TCondominiumUpdate
 > {
   private readonly condominiumsRepository: CondominiumsRepository
-  private readonly getCondominiumByCodeService: GetCondominiumByCodeService
   private readonly generateCondominiumCodeService: GenerateCondominiumCodeService
   private readonly getCondominiumUsersService: GetCondominiumUsersService
   private readonly wizardService: CreateCondominiumWizardService
@@ -95,7 +93,6 @@ export class CondominiumsController extends BaseController<
     this.usersRepository = usersRepository
 
     // Initialize services
-    this.getCondominiumByCodeService = new GetCondominiumByCodeService(repository)
     this.generateCondominiumCodeService = new GenerateCondominiumCodeService(repository)
     this.getCondominiumUsersService = new GetCondominiumUsersService(db)
     this.wizardService = new CreateCondominiumWizardService(db, repository, buildingsRepository, unitsRepository)
@@ -189,20 +186,13 @@ export class CondominiumsController extends BaseController<
 
   private getByCode = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TCodeParam>(c)
+    const condominium = await this.condominiumsRepository.getByCode(ctx.params.code)
 
-    try {
-      const result = await this.getCondominiumByCodeService.execute({
-        code: ctx.params.code,
-      })
-
-      if (!result.success) {
-        return ctx.notFound({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
+    if (!condominium) {
+      return ctx.notFound({ error: 'Condominium not found' })
     }
+
+    return ctx.ok({ data: condominium })
   }
 
   private generateCode = async (c: Context): Promise<Response> => {

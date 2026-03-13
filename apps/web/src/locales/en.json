@@ -71,63 +71,86 @@
       "home": "Home",
       "problems": "Problems",
       "benefits": "Benefits",
+      "residents": "Residents",
       "howItWorks": "Process",
       "cta": "Start",
       "footer": "Contact"
     },
     "hero": {
-      "title": "Managing your condo",
-      "titleHighlight": "doesn't have to be a headache anymore",
-      "subtitle": "The tool that helps you collect fees, keep neighbors informed, and keep your accounts in order. Simple, as it should be.",
-      "cta": "Try it free",
+      "title": "Your condo,",
+      "titleHighlight": "connected as it should be",
+      "subtitle": "The platform that brings administrators and residents together in one place. Efficient management, transparent information, and a connected community.",
+      "cta": "Get started",
       "howItWorks": "How does it work?",
-      "noCreditCard": "No credit card · Cancel anytime"
+      "noCreditCard": "Setup in minutes · Support included"
     },
     "problems": {
-      "title": "We know how hard it is",
-      "subtitle": "Managing a condo can be exhausting. We make it easier.",
+      "title": "A disconnected condo is a condo in conflict",
+      "subtitle": "When information doesn't flow, problems grow. This happens to administrators and residents alike.",
       "items": {
         "payments": {
-          "problem": "Tired of chasing payments?",
-          "solution": "Neighbors pay online and you see everything instantly"
+          "problem": "Payments without control or visibility",
+          "solution": "Residents pay from their phone and administrators see everything in real time"
         },
         "meetings": {
-          "problem": "Endless meetings?",
-          "solution": "Send announcements and receive responses from home"
+          "problem": "Communication that doesn't reach anyone",
+          "solution": "Notices, announcements, and documents straight to each resident's phone"
         },
         "communication": {
-          "problem": "Neighbors who don't find out?",
-          "solution": "Automatic notifications that actually arrive and get read"
+          "problem": "Lack of trust and transparency",
+          "solution": "Every resident can access their account status, receipts, and condo expenses anytime"
         },
         "spreadsheets": {
-          "problem": "Excel with a thousand tabs?",
-          "solution": "A simple system that does the calculations for you"
+          "problem": "Manual management prone to errors",
+          "solution": "A system that automates calculations, fees, and reminders for you"
         }
       }
     },
     "benefits": {
       "label": "Benefits",
-      "title": "Everything you need, nothing you don't",
+      "title": "One platform, two experiences",
       "items": {
         "paperwork": {
-          "title": "Forget the paperwork",
-          "description": "Everything in one place: fees, payments, announcements. No Excel sheets or lost folders.",
-          "highlight": "Save time"
+          "title": "Centralized management",
+          "description": "Everything in one place: fees, payments, announcements, documents. No spreadsheets or lost folders.",
+          "highlight": "For administrators"
         },
         "collections": {
-          "title": "Collect without chasing anyone",
-          "description": "Neighbors receive automatic reminders and can pay from their phone.",
-          "highlight": "Less stress"
+          "title": "Frictionless collections",
+          "description": "Automatic reminders, mobile payments, and instant reconciliation. Less chasing, more managing.",
+          "highlight": "For administrators"
         },
         "informed": {
-          "title": "Everyone informed",
-          "description": "Announcements, notices, and documents go directly to each resident's phone.",
-          "highlight": "No misunderstandings"
+          "title": "Information at your fingertips",
+          "description": "Residents see notices, documents, and condo updates directly on their phone, whenever they want.",
+          "highlight": "For residents"
         },
         "transparency": {
-          "title": "Clear accounts",
-          "description": "Each neighbor sees their payments, receipts, and account status whenever they want, without calling you.",
-          "highlight": "Total transparency"
+          "title": "Total transparency",
+          "description": "Every resident can check their account status, payment history, and common expenses. Clear accounts, real trust.",
+          "highlight": "For residents"
+        }
+      }
+    },
+    "residents": {
+      "title": "Designed for those who live there",
+      "subtitle": "Your condo is where you live your life. You deserve to know what's happening, participate, and trust how it's managed.",
+      "items": {
+        "visibility": {
+          "title": "Everything in sight",
+          "description": "Check your fees, payments, receipts, and your condo's financial status whenever you want. No depending on anyone."
+        },
+        "payments": {
+          "title": "Pay easily",
+          "description": "Make payments from your phone, get instant confirmations, and keep your history with you at all times."
+        },
+        "communication": {
+          "title": "Stay in the loop",
+          "description": "Receive notices, announcements, and important documents directly. No WhatsApp groups or ignored bulletin boards."
+        },
+        "trust": {
+          "title": "Trust your management",
+          "description": "Access expenses, budgets, and decisions about your condo. Transparency builds stronger communities."
         }
       }
     },
@@ -138,24 +161,24 @@
         "register": {
           "step": "1",
           "title": "Register your condo",
-          "description": "In less than 5 minutes you're all set"
+          "description": "In less than 5 minutes you're all set up"
         },
         "invite": {
           "step": "2",
-          "title": "Invite the neighbors",
-          "description": "They get a link and that's it, they're in"
+          "title": "Invite the residents",
+          "description": "They get a link and they're in with full access"
         },
         "manage": {
           "step": "3",
-          "title": "Start managing",
-          "description": "Generate fees, receive payments, send notices"
+          "title": "Connect your community",
+          "description": "Manage, communicate, and collect. Residents see everything from their phone"
         }
       }
     },
     "cta": {
-      "title": "Ready to simplify your life?",
-      "subtitle": "Join the administrators who already stopped suffering with paperwork and late payments.",
-      "button": "Start free",
+      "title": "Your condo deserves to work better",
+      "subtitle": "Join the communities that already connected their administrators and residents on a single platform.",
+      "button": "Get started",
       "note": "Setup in minutes · Support included"
     },
     "pricing": {
@@ -185,7 +208,8 @@
     }
   },
   "footer": {
-    "description": "The easiest way to manage your condo.",
+    "description": "The platform that connects administrators and residents for better community living.",
+    "residents": "Residents",
     "product": "Product",
     "benefits": "Benefits",
     "join": "Join",
@@ -197,7 +221,7 @@
     "privacy": "Privacy",
     "terms": "Terms of use",
     "copyright": "© {year} CondominioApp. All rights reserved.",
-    "madeWith": "Made with ❤️ for condo administrators"
+    "madeWith": "Made with ❤️ for communities that want to live better"
   },
   "auth": {
     "signIn": {
@@ -283,6 +307,8 @@
     "loading": {
       "title": "Getting everything ready...",
       "subtitle": "We're loading your information",
+      "signingOut": "Signing out...",
+      "signingOutSubtitle": "See you soon",
       "error": "Error loading your information",
       "retry": "Retry",
       "logout": "Log out",
@@ -3741,6 +3767,10 @@
               "review": "Review"
             },
             "success": "Payment concept created successfully",
+            "editTitle": "Edit Payment Concept",
+            "editSuccess": "Payment concept updated successfully",
+            "saving": "Saving...",
+            "save": "Save Changes",
             "creating": "Creating...",
             "create": "Create Concept",
             "cancel": "Cancel",
@@ -3774,6 +3804,17 @@
                 "effectiveFrom": "Date from which this payment concept becomes effective",
                 "effectiveUntil": "Date until which this concept is valid. Leave empty if it has no expiration date",
                 "recurrencePeriod": "Frequency at which charges will be automatically generated"
+              },
+              "chargeGeneration": {
+                "title": "Charge Generation",
+                "description": "Choose how charges will be generated for this concept",
+                "auto": "Automatic generation",
+                "autoHint": "The system will generate charges period by period based on the selected recurrence",
+                "bulk": "Full upfront generation",
+                "bulkHint": "All charges from the start date to the end date will be created when the concept is saved",
+                "manual": "Manual generation",
+                "manualHint": "Charges will be generated manually from the concept detail page",
+                "bulkRequiresEndDate": "Upfront generation requires an effective end date"
               },
               "errors": {
                 "typeRequired": "Select a concept type",
@@ -3949,6 +3990,10 @@
               "effectiveUntil": "Effective Until",
               "recurring": "Recurring",
               "recurrence": "Recurrence",
+              "chargeGenerationStrategy": "Charge Generation",
+              "strategyAuto": "Automatic (by period)",
+              "strategyBulk": "Full upfront",
+              "strategyManual": "Manual",
               "descriptionLabel": "Description",
               "chargeConfig": "Charge Configuration",
               "issueDay": "Issue Day",
@@ -3965,13 +4010,17 @@
               "interestDaily": "daily",
               "assignments": "Assignments",
               "bankAccounts": "Bank Accounts",
-              "bankAccountsSelected": "accounts selected"
+              "bankAccountsSelected": "accounts selected",
+              "changeReasonTitle": "Reason for change",
+              "changeReasonHint": "Briefly describe why this concept was modified. It will be saved in the change history.",
+              "changeReasonPlaceholder": "E.g.: Rate adjustment due to increased operating costs"
             }
           },
           "detail": {
             "basicInfo": "Basic Information",
             "type": "Type",
             "currency": "Currency",
+            "amount": "Amount",
             "effectiveFrom": "Effective From",
             "effectiveUntil": "Effective Until",
             "recurring": "Recurring",
@@ -3994,11 +4043,11 @@
             "noAssignments": "No assignments configured",
             "bankAccounts": "Bank Accounts",
             "noBankAccounts": "No bank accounts linked",
-            "deactivate": "Deactivate",
-            "deactivateConfirm": "Deactivate concept?",
-            "deactivateWarning": "Existing quotas will not be affected, but new charges cannot be generated",
+            "deactivate": "Deactivate Concept",
+            "deactivateConfirm": "Deactivate concept and cancel pending quotas?",
+            "deactivateWarning": "This action will deactivate the payment concept, cancel all pending and overdue quotas, and deactivate all active assignments. Already paid quotas will not be affected. This action cannot be reversed.",
             "confirmDeactivate": "Confirm Deactivation",
-            "deactivated": "Concept deactivated successfully",
+            "deactivated": "Concept deactivated: {cancelledQuotas} quotas cancelled, {deactivatedAssignments} assignments deactivated",
             "deactivateError": "Error deactivating concept",
             "assignmentDeactivated": "Assignment deactivated",
             "assignmentDeactivateError": "Error deactivating assignment",
@@ -4020,7 +4069,11 @@
             "noServiceExecutions": "No executions recorded",
             "executionDraft": "Draft",
             "executionConfirmed": "Confirmed",
-            "totalAmount": "Total Amount"
+            "totalAmount": "Total Amount",
+            "edit": "Edit",
+            "changeHistory": "Change History",
+            "noChanges": "No changes recorded",
+            "backToConcept": "Back to concept"
           },
           "generate": {
             "title": "Generate Charges",

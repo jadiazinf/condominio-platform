@@ -48,6 +48,7 @@ const STATUS_CHIP_COLOR: Record<TQuotaStatus, 'warning' | 'danger' | 'success' |
   overdue: 'danger',
   paid: 'success',
   cancelled: 'default',
+  exonerated: 'default',
 }
 
 const STATUS_ICON: Record<TQuotaStatus, typeof Clock> = {
@@ -55,6 +56,7 @@ const STATUS_ICON: Record<TQuotaStatus, typeof Clock> = {
   overdue: AlertCircle,
   paid: CheckCircle2,
   cancelled: XCircle,
+  exonerated: XCircle,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

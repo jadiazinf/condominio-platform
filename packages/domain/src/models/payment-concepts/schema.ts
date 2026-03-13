@@ -21,6 +21,8 @@ export const ERecurrencePeriods = ['monthly', 'quarterly', 'yearly'] as const
 
 export const EChargeAdjustmentTypes = ['percentage', 'fixed', 'none'] as const
 
+export const EChargeGenerationStrategies = ['auto', 'bulk', 'manual'] as const
+
 export const EAssignmentScopes = ['condominium', 'building', 'unit'] as const
 
 export const EDistributionMethods = ['by_aliquot', 'equal_split', 'fixed_per_unit'] as const
@@ -33,6 +35,7 @@ export const paymentConceptSchema = baseModelSchema.extend({
   conceptType: z.enum(EConceptTypes, { error: d.conceptType.invalid }),
   isRecurring: z.boolean().default(true),
   recurrencePeriod: z.enum(ERecurrencePeriods, { error: d.recurrencePeriod.invalid }).nullable(),
+  chargeGenerationStrategy: z.enum(EChargeGenerationStrategies).default('auto'),
   currencyId: z.uuid({ error: d.currencyId.invalid }),
   // Partial payment
   allowsPartialPayment: z.boolean().default(true),
@@ -129,4 +132,19 @@ export const paymentConceptBankAccountSchema = z.object({
 export const paymentConceptBankAccountCreateSchema = z.object({
   paymentConceptId: z.uuid(),
   bankAccountId: z.uuid(),
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Payment Concept Changes (Change History)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const paymentConceptChangeSchema = z.object({
+  id: z.uuid(),
+  paymentConceptId: z.uuid(),
+  condominiumId: z.uuid(),
+  changedBy: z.uuid(),
+  previousValues: z.record(z.string(), z.unknown()),
+  newValues: z.record(z.string(), z.unknown()),
+  notes: z.string().nullable(),
+  createdAt: z.coerce.date(),
 })

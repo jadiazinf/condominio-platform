@@ -5,9 +5,11 @@ import { Select, type ISelectItem } from '@/ui/components/select'
 import { Switch } from '@/ui/components/switch'
 import { Textarea } from '@/ui/components/textarea'
 import { Typography } from '@/ui/components/typography'
+import { RadioGroup, Radio } from '@/ui/components/radio'
 import { useTranslation } from '@/contexts'
+import { Info } from 'lucide-react'
 import { useMemo } from 'react'
-import type { IWizardFormData } from '../CreatePaymentConceptWizard'
+import type { IWizardFormData, TChargeGenerationStrategy } from '../CreatePaymentConceptWizard'
 
 interface BasicInfoStepProps {
   formData: IWizardFormData
@@ -154,6 +156,41 @@ export function BasicInfoStep({ formData, onUpdate, currencies, showErrors }: Ba
           errorMessage={showErrors && formData.isRecurring && !formData.recurrencePeriod ? t(`${w}.errors.recurrenceRequired`) : undefined}
           variant="bordered"
         />
+      )}
+
+      {formData.isRecurring && (
+        <div className="flex flex-col gap-3 rounded-lg border border-default-200 p-4">
+          <Typography variant="body2" className="font-semibold">
+            {t(`${w}.chargeGeneration.title`)}
+          </Typography>
+          <Typography variant="caption" color="muted">
+            {t(`${w}.chargeGeneration.description`)}
+          </Typography>
+          <RadioGroup
+            value={formData.chargeGenerationStrategy}
+            onValueChange={(val) => onUpdate({ chargeGenerationStrategy: val as TChargeGenerationStrategy })}
+            color="primary"
+          >
+            <Radio value="auto" description={t(`${w}.chargeGeneration.autoHint`)}>
+              {t(`${w}.chargeGeneration.auto`)}
+            </Radio>
+            <Radio value="bulk" description={t(`${w}.chargeGeneration.bulkHint`)}>
+              {t(`${w}.chargeGeneration.bulk`)}
+            </Radio>
+            <Radio value="manual" description={t(`${w}.chargeGeneration.manualHint`)}>
+              {t(`${w}.chargeGeneration.manual`)}
+            </Radio>
+          </RadioGroup>
+
+          {formData.chargeGenerationStrategy === 'bulk' && !formData.effectiveUntil && (
+            <div className="flex items-start gap-2 rounded-lg bg-warning-50 p-3">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+              <Typography variant="caption" className="text-warning-700">
+                {t(`${w}.chargeGeneration.bulkRequiresEndDate`)}
+              </Typography>
+            </div>
+          )}
+        </div>
       )}
     </div>
   )

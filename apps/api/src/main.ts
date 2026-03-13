@@ -4,12 +4,11 @@ import { env } from '@config/environment'
 import { DatabaseService } from '@database/service'
 import { websocket, handleWebSocketUpgrade } from '@http/endpoints'
 import { startBcvExchangeRatesCron } from '@src/cron/bcv-exchange-rates.cron'
-import { startQuotaGenerationCron } from '@src/cron/quota-generation.cron'
 
 async function main() {
-  DatabaseService.getInstance()
+  DatabaseService.createInstance(env.DATABASE_URL)
   startBcvExchangeRatesCron()
-  startQuotaGenerationCron()
+  // Quota generation cron moved to apps/charges-worker (pg-boss scheduled job)
 
   const app = Server.getInstance().buildApp()
 

@@ -101,6 +101,7 @@ describe('CreateQuotaGenerationRuleService', function () {
     dueDay: null,
     effectiveFrom: null,
     effectiveUntil: null,
+    chargeGenerationStrategy: 'auto',
     isActive: true,
     metadata: null,
     createdBy: null,

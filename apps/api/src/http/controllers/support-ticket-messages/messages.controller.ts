@@ -2,7 +2,6 @@ import type { Context } from 'hono'
 import { useTranslation } from '@intlify/hono'
 import {
   supportTicketMessageCreateSchema,
-  supportTicketMessageUpdateSchema,
   type TSupportTicketMessage,
   type TSupportTicketMessageCreate,
   type TSupportTicketMessageUpdate,

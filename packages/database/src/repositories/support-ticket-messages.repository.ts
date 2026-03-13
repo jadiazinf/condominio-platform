@@ -1,0 +1,98 @@
+import { eq, desc } from 'drizzle-orm'
+import type {
+  TSupportTicketMessage,
+  TSupportTicketMessageCreate,
+  TSupportTicketMessageUpdate,
+  TAttachment,
+} from '@packages/domain'
+import { supportTicketMessages, users } from '../drizzle/schema'
+import type { TDrizzleClient, IRepository } from './interfaces'
+import { BaseRepository } from './base'
+
+type TMessageRecord = typeof supportTicketMessages.$inferSelect
+
+/**
+ * Repository for managing support ticket message entities.
+ */
+export class SupportTicketMessagesRepository
+  extends BaseRepository<
+    typeof supportTicketMessages,
+    TSupportTicketMessage,
+    TSupportTicketMessageCreate,
+    TSupportTicketMessageUpdate
+  >
+  implements IRepository<TSupportTicketMessage, TSupportTicketMessageCreate, TSupportTicketMessageUpdate>
+{
+  constructor(db: TDrizzleClient) {
+    super(db, supportTicketMessages)
+  }
+
+  protected mapToEntity(record: unknown): TSupportTicketMessage {
+    const r = record as TMessageRecord
+    return {
+      id: r.id,
+      ticketId: r.ticketId,
+      userId: r.userId,
+      message: r.message,
+      isInternal: r.isInternal,
+      attachments: r.attachments as TAttachment[] | null,
+      isActive: r.isActive ?? true,
+      createdAt: r.createdAt ?? new Date(),
+      updatedAt: r.updatedAt ?? new Date(),
+    }
+  }
+
+  protected override mapToUpdateValues(dto: TSupportTicketMessageUpdate): Record<string, unknown> {
+    const values: Record<string, unknown> = {}
+
+    if (dto.message !== undefined) values.message = dto.message
+    if (dto.isInternal !== undefined) values.isInternal = dto.isInternal
+    if (dto.attachments !== undefined) values.attachments = dto.attachments
+
+    // Always update updatedAt
+    values.updatedAt = new Date()
+
+    return values
+  }
+
+  /**
+   * List all messages for a ticket with user information
+   */
+  async listByTicketId(ticketId: string): Promise<TSupportTicketMessage[]> {
+    const results = await this.db
+      .select({
+        message: supportTicketMessages,
+        user: users,
+      })
+      .from(supportTicketMessages)
+      .leftJoin(users, eq(supportTicketMessages.userId, users.id))
+      .where(eq(supportTicketMessages.ticketId, ticketId))
+      .orderBy(desc(supportTicketMessages.createdAt))
+
+    return results.map(({ message, user }) => ({
+      ...this.mapToEntity(message),
+      user: user ? {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        photoUrl: user.photoUrl,
+      } : null,
+    }))
+  }
+
+  /**
+   * Get latest message for a ticket
+   */
+  async getLatestMessage(ticketId: string): Promise<TSupportTicketMessage | null> {
+    const results = await this.db
+      .select()
+      .from(supportTicketMessages)
+      .where(eq(supportTicketMessages.ticketId, ticketId))
+      .orderBy(desc(supportTicketMessages.createdAt))
+      .limit(1)
+
+    return results.length === 0 ? null : this.mapToEntity(results[0])
+  }
+}

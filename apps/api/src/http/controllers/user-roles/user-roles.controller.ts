@@ -19,13 +19,6 @@ import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
-import {
-  GetRolesByUserService,
-  GetGlobalRolesByUserService,
-  GetRolesByUserAndCondominiumService,
-  GetRolesByUserAndBuildingService,
-  CheckUserHasRoleService,
-} from '@src/services/user-roles'
 import { AppError } from '@errors/index'
 import { LocaleDictionary } from '@src/locales/dictionary'
 
@@ -87,22 +80,8 @@ export class UserRolesController extends BaseController<
   TUserRoleCreate,
   TUserRoleUpdate
 > {
-  private readonly getRolesByUserService: GetRolesByUserService
-  private readonly getGlobalRolesByUserService: GetGlobalRolesByUserService
-  private readonly getRolesByUserAndCondominiumService: GetRolesByUserAndCondominiumService
-  private readonly getRolesByUserAndBuildingService: GetRolesByUserAndBuildingService
-  private readonly checkUserHasRoleService: CheckUserHasRoleService
-
   constructor(repository: UserRolesRepository) {
     super(repository)
-
-    // Initialize services
-    this.getRolesByUserService = new GetRolesByUserService(repository)
-    this.getGlobalRolesByUserService = new GetGlobalRolesByUserService(repository)
-    this.getRolesByUserAndCondominiumService = new GetRolesByUserAndCondominiumService(repository)
-    this.getRolesByUserAndBuildingService = new GetRolesByUserAndBuildingService(repository)
-    this.checkUserHasRoleService = new CheckUserHasRoleService(repository)
-
   }
 
   get routes(): TRouteDefinition[] {
@@ -223,17 +202,11 @@ export class UserRolesController extends BaseController<
 
   private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
+    const repo = this.repository as UserRolesRepository
 
     try {
-      const result = await this.getRolesByUserService.execute({
-        userId: ctx.params.userId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
+      const userRoles = await repo.getByUserId(ctx.params.userId)
+      return ctx.ok({ data: userRoles })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -241,17 +214,11 @@ export class UserRolesController extends BaseController<
 
   private getGlobalRolesByUser = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
+    const repo = this.repository as UserRolesRepository
 
     try {
-      const result = await this.getGlobalRolesByUserService.execute({
-        userId: ctx.params.userId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
+      const userRoles = await repo.getGlobalRolesByUser(ctx.params.userId)
+      return ctx.ok({ data: userRoles })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -259,18 +226,11 @@ export class UserRolesController extends BaseController<
 
   private getByUserAndCondominium = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserAndCondominiumParam>(c)
+    const repo = this.repository as UserRolesRepository
 
     try {
-      const result = await this.getRolesByUserAndCondominiumService.execute({
-        userId: ctx.params.userId,
-        condominiumId: ctx.params.condominiumId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
+      const userRoles = await repo.getByUserAndCondominium(ctx.params.userId, ctx.params.condominiumId)
+      return ctx.ok({ data: userRoles })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -278,18 +238,11 @@ export class UserRolesController extends BaseController<
 
   private getByUserAndBuilding = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserAndBuildingParam>(c)
+    const repo = this.repository as UserRolesRepository
 
     try {
-      const result = await this.getRolesByUserAndBuildingService.execute({
-        userId: ctx.params.userId,
-        buildingId: ctx.params.buildingId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
+      const userRoles = await repo.getByUserAndBuilding(ctx.params.userId, ctx.params.buildingId)
+      return ctx.ok({ data: userRoles })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -297,20 +250,16 @@ export class UserRolesController extends BaseController<
 
   private checkUserHasRole = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TCheckRoleQuery, TUserIdParam>(c)
+    const repo = this.repository as UserRolesRepository
 
     try {
-      const result = await this.checkUserHasRoleService.execute({
-        userId: ctx.params.userId,
-        roleId: ctx.query.roleId,
-        condominiumId: ctx.query.condominiumId,
-        buildingId: ctx.query.buildingId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
+      const hasRole = await repo.userHasRole(
+        ctx.params.userId,
+        ctx.query.roleId,
+        ctx.query.condominiumId,
+        ctx.query.buildingId
+      )
+      return ctx.ok({ data: { hasRole } })
     } catch (error) {
       return this.handleError(ctx, error)
     }

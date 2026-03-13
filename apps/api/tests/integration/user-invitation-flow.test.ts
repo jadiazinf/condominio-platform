@@ -49,11 +49,11 @@ let condominiumsRepo: CondominiumsRepository
 // Pre-created test data IDs
 let testRoleId: string
 let testCondominiumId: string
-
 beforeAll(async () => {
   // Clear Resend API key to force EmailService test bypass
   delete process.env.RESEND_API_KEY
-  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore - Bun.env is writable at runtime
   delete Bun.env.RESEND_API_KEY
 
   db = await startTestContainer()

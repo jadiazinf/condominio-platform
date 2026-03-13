@@ -1,4 +1,3 @@
-import type { TCondominiumAccessCode } from '@packages/domain'
 import {
   CondominiumAccessCodesRepository,
   CondominiumsRepository,

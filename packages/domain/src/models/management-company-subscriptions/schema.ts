@@ -3,7 +3,7 @@ import { baseModelSchema } from '../../shared/base-model.schema'
 import { managementCompanySchema } from '../management-companies/schema'
 import { currencySchema } from '../currencies/schema'
 import { userSchema } from '../users/schema'
-import { subscriptionRateSchema } from '../subscription-rates/schema'
+
 
 // Subscription status options
 export const ESubscriptionStatus = ['trial', 'active', 'inactive', 'cancelled', 'suspended'] as const

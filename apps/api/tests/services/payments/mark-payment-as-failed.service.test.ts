@@ -44,8 +44,8 @@ describe('MarkPaymentAsFailedService', function () {
       getById: async function () {
         return mockPayment
       },
-      update: async function (id, data: any) {
-        return { ...mockPayment, ...data }
+      update: async function (_id, data: unknown) {
+        return { ...mockPayment, ...(data as Record<string, unknown>) }
       },
     }
 

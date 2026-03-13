@@ -18,14 +18,6 @@ import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewa
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
-import {
-  GetPendingApprovalExpensesService,
-  GetExpensesByCondominiumService,
-  GetExpensesByBuildingService,
-  GetExpensesByCategoryService,
-  GetExpensesByStatusService,
-  GetExpensesByDateRangeService,
-} from '@src/services/expenses'
 
 const BuildingIdParamSchema = z.object({
   buildingId: z.string().uuid('Invalid building ID format'),
@@ -68,24 +60,11 @@ type TDateRangeQuery = z.infer<typeof DateRangeQuerySchema>
  * - DELETE /:id                           Delete expense (hard delete)
  */
 export class ExpensesController extends BaseController<TExpense, TExpenseCreate, TExpenseUpdate> {
-  private readonly getPendingApprovalExpensesService: GetPendingApprovalExpensesService
-  private readonly getExpensesByCondominiumService: GetExpensesByCondominiumService
-  private readonly getExpensesByBuildingService: GetExpensesByBuildingService
-  private readonly getExpensesByCategoryService: GetExpensesByCategoryService
-  private readonly getExpensesByStatusService: GetExpensesByStatusService
-  private readonly getExpensesByDateRangeService: GetExpensesByDateRangeService
+  private readonly expensesRepository: ExpensesRepository
 
   constructor(repository: ExpensesRepository) {
     super(repository)
-
-    // Initialize services
-    this.getPendingApprovalExpensesService = new GetPendingApprovalExpensesService(repository)
-    this.getExpensesByCondominiumService = new GetExpensesByCondominiumService(repository)
-    this.getExpensesByBuildingService = new GetExpensesByBuildingService(repository)
-    this.getExpensesByCategoryService = new GetExpensesByCategoryService(repository)
-    this.getExpensesByStatusService = new GetExpensesByStatusService(repository)
-    this.getExpensesByDateRangeService = new GetExpensesByDateRangeService(repository)
-
+    this.expensesRepository = repository
   }
 
   get routes(): TRouteDefinition[] {
@@ -160,14 +139,8 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
   protected override list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
-
-    const result = await this.getExpensesByCondominiumService.execute({ condominiumId })
-
-    if (!result.success) {
-      return ctx.internalError({ error: result.error })
-    }
-
-    return ctx.ok({ data: result.data })
+    const data = await this.expensesRepository.getByCondominiumId(condominiumId)
+    return ctx.ok({ data })
   }
 
   protected override create = async (c: Context): Promise<Response> => {
@@ -183,90 +156,31 @@ export class ExpensesController extends BaseController<TExpense, TExpenseCreate,
 
   private getPendingApproval = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-
-    try {
-      const result = await this.getPendingApprovalExpensesService.execute()
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.expensesRepository.getPendingApproval()
+    return ctx.ok({ data })
   }
 
   private getByBuildingId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)
-
-    try {
-      const result = await this.getExpensesByBuildingService.execute({
-        buildingId: ctx.params.buildingId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.expensesRepository.getByBuildingId(ctx.params.buildingId)
+    return ctx.ok({ data })
   }
 
   private getByCategoryId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TCategoryIdParam>(c)
-
-    try {
-      const result = await this.getExpensesByCategoryService.execute({
-        categoryId: ctx.params.categoryId,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.expensesRepository.getByCategoryId(ctx.params.categoryId)
+    return ctx.ok({ data })
   }
 
   private getByStatus = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TStatusParam>(c)
-
-    try {
-      const result = await this.getExpensesByStatusService.execute({
-        status: ctx.params.status,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.expensesRepository.getByStatus(ctx.params.status)
+    return ctx.ok({ data })
   }
 
   private getByDateRange = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TDateRangeQuery>(c)
-
-    try {
-      const result = await this.getExpensesByDateRangeService.execute({
-        startDate: ctx.query.startDate,
-        endDate: ctx.query.endDate,
-      })
-
-      if (!result.success) {
-        return ctx.internalError({ error: result.error })
-      }
-
-      return ctx.ok({ data: result.data })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
+    const data = await this.expensesRepository.getByDateRange(ctx.query.startDate, ctx.query.endDate)
+    return ctx.ok({ data })
   }
 }
