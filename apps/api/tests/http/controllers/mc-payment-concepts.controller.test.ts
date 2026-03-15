@@ -106,6 +106,7 @@ type TMockConceptsRepo = {
   listAll: () => Promise<TPaymentConcept[]>
   listByManagementCompanyPaginated: (mcId: string, query: unknown) => Promise<{ data: (TPaymentConcept & { condominiumName: string | null })[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>
   getById: (id: string) => Promise<TPaymentConcept | null>
+  withTx: (tx?: unknown) => TMockConceptsRepo
   create: (data: TPaymentConceptCreate) => Promise<TPaymentConcept>
   update: (id: string, data: unknown) => Promise<TPaymentConcept | null>
   delete: (id: string) => Promise<boolean>
@@ -116,6 +117,8 @@ type TMockAssignmentsRepo = {
   getByConceptAndScope: (conceptId: string, scope: string, buildingId: string | null, unitId: string | null) => Promise<TPaymentConceptAssignment | null>
   create: (data: unknown) => Promise<TPaymentConceptAssignment>
   update: (id: string, data: unknown) => Promise<TPaymentConceptAssignment | null>
+  deactivateAllByConceptId: (conceptId: string) => Promise<number>
+  withTx: (tx?: unknown) => TMockAssignmentsRepo
 }
 
 type TMockConceptBankAccountsRepo = {

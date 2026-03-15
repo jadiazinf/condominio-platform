@@ -5,7 +5,7 @@ import { Button } from '@/ui/components/button'
 import { Avatar } from '@/ui/components/avatar-base'
 import { X } from 'lucide-react'
 
-import { useTranslation, useUser } from '@/contexts'
+import { useTranslation, useUser, useActiveRole } from '@/contexts'
 
 interface IDrawerHeaderProps {
   onClose: () => void
@@ -14,11 +14,14 @@ interface IDrawerHeaderProps {
 export function DrawerHeader({ onClose }: IDrawerHeaderProps) {
   const { t } = useTranslation()
   const { user } = useUser()
+  const { activeRole } = useActiveRole()
 
   const displayName =
     user?.displayName ||
     `${user?.firstName || ''} ${user?.lastName || ''}`.trim() ||
     t('common.user')
+
+  const roleLabel = activeRole ? t(`common.activeRoles.${activeRole}`) : null
 
   return (
     <HeroUIDrawerHeader className="flex flex-col gap-0 p-0">
@@ -39,6 +42,9 @@ export function DrawerHeader({ onClose }: IDrawerHeaderProps) {
           <div className="flex flex-col min-w-0">
             <span className="text-sm font-medium truncate">{displayName}</span>
             <span className="text-xs text-default-400 truncate">{user?.email}</span>
+            {roleLabel && (
+              <span className="text-xs text-emerald-500 font-medium truncate">{roleLabel}</span>
+            )}
           </div>
         </div>
 

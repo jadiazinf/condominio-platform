@@ -39,6 +39,11 @@
       "support": "Support",
       "viewer": "Viewer"
     },
+    "activeRoles": {
+      "superadmin": "Super Admin",
+      "management_company": "Management Company",
+      "condominium": "Resident"
+    },
     "ownershipTypes": {
       "owner": "Owner",
       "tenant": "Tenant",
@@ -559,82 +564,181 @@
     "myQuotas": {
       "title": "My Quotas",
       "subtitle": "View and track all your condominium quotas",
-      "filterAll": "All",
-      "filterPending": "Pending",
-      "filterOverdue": "Overdue",
-      "filterPaid": "Paid",
-      "filterCancelled": "Cancelled",
-      "noQuotas": "No quotas found",
-      "noQuotasDescription": "You don't have any quotas matching the selected filter",
+      "quota": "Quota",
+      "empty": "No quotas found",
       "concept": "Concept",
       "period": "Period",
       "amount": "Amount",
       "dueDate": "Due Date",
-      "status": "Status",
       "balance": "Balance",
       "unit": "Unit",
       "totalPending": "Total Pending",
       "overdueCount": "Overdue",
       "paidThisMonth": "Paid this month",
-      "status_pending": "Pending",
-      "status_overdue": "Overdue",
-      "status_paid": "Paid",
-      "status_cancelled": "Cancelled",
+      "filter": {
+        "all": "All",
+        "pending": "Pending",
+        "overdue": "Overdue",
+        "paid": "Paid",
+        "cancelled": "Cancelled",
+        "exonerated": "Exonerated"
+      },
+      "status": {
+        "pending": "Pending",
+        "overdue": "Overdue",
+        "paid": "Paid",
+        "cancelled": "Cancelled",
+        "exonerated": "Exonerated"
+      },
       "export": {
         "csv": "Export CSV",
         "pdf": "Export PDF",
         "downloading": "Downloading...",
         "success": "Export downloaded successfully",
         "error": "Failed to export. Please try again."
+      },
+      "detail": {
+        "title": "Quota Detail",
+        "error": "Failed to load quota",
+        "backToQuotas": "Back to My Quotas",
+        "conceptInfo": "Concept",
+        "datesAndUnit": "Dates & Unit",
+        "concept": "Payment concept",
+        "period": "Period",
+        "currency": "Currency",
+        "unit": "Unit",
+        "issueDate": "Issue date",
+        "dueDate": "Due date",
+        "baseAmount": "Base amount",
+        "interest": "Interest",
+        "paid": "Paid",
+        "balance": "Balance due",
+        "notes": "Notes",
+        "reportPayment": "Report Payment",
+        "paymentHistory": "Payment History",
+        "noPayments": "No payments have been recorded for this quota",
+        "principal": "Principal",
+        "interestPaid": "Interest",
+        "status": {
+          "pending": "Pending",
+          "overdue": "Overdue",
+          "paid": "Paid",
+          "cancelled": "Cancelled",
+          "exonerated": "Exonerated"
+        }
       }
     },
     "myPayments": {
       "title": "My Payments",
       "subtitle": "View your payment history and track payment status",
-      "filterAll": "All",
-      "filterPendingVerification": "Pending Verification",
-      "filterCompleted": "Completed",
-      "filterRejected": "Rejected",
-      "noPayments": "No payments found",
-      "noPaymentsDescription": "You haven't made any payments yet",
-      "amount": "Amount",
-      "method": "Method",
-      "date": "Date",
-      "status": "Status",
-      "receiptNumber": "Receipt #",
+      "empty": "No payments found",
+      "emptyDescription": "You haven't made any payments yet",
       "reportPayment": "Report Payment",
       "unit": "Unit",
       "verificationNotes": "Verification Notes",
-      "status_pending": "Pending",
-      "status_pending_verification": "Pending Verification",
-      "status_completed": "Completed",
-      "status_failed": "Failed",
-      "status_refunded": "Refunded",
-      "status_rejected": "Rejected",
-      "method_transfer": "Bank Transfer",
-      "method_cash": "Cash",
-      "method_card": "Card",
-      "method_mobile_payment": "Mobile Payment",
-      "method_gateway": "Payment Gateway",
-      "method_other": "Other"
+      "error": "Failed to load payments",
+      "filter": {
+        "all": "All",
+        "pendingVerification": "Pending Verification",
+        "completed": "Completed",
+        "rejected": "Rejected"
+      },
+      "status": {
+        "pending": "Pending",
+        "pending_verification": "Pending Verification",
+        "completed": "Completed",
+        "failed": "Failed",
+        "refunded": "Refunded",
+        "rejected": "Rejected"
+      },
+      "method": {
+        "transfer": "Bank Transfer",
+        "cash": "Cash",
+        "card": "Card",
+        "mobile_payment": "Mobile Payment",
+        "gateway": "Payment Gateway",
+        "other": "Other"
+      },
+      "detail": {
+        "title": "Payment Detail",
+        "error": "Failed to load payment",
+        "backToPayments": "Back to My Payments",
+        "paymentInfo": "Payment Information",
+        "unitAndDates": "Unit & Dates",
+        "amount": "Amount",
+        "paidAmount": "Paid amount",
+        "exchangeRate": "Exchange rate",
+        "method": "Payment method",
+        "paymentDate": "Payment date",
+        "receiptNumber": "Receipt number",
+        "unit": "Unit",
+        "registeredAt": "Registered on",
+        "verifiedAt": "Verified on",
+        "viewReceipt": "View receipt",
+        "notes": "Notes",
+        "appliedQuotas": "Applied Quotas",
+        "totalApplied": "Total applied",
+        "principal": "Principal",
+        "interest": "Interest",
+        "adminNotes": "Admin notes",
+        "methods": {
+          "transfer": "Bank Transfer",
+          "cash": "Cash",
+          "card": "Card",
+          "mobile_payment": "Mobile Payment",
+          "gateway": "Payment Gateway",
+          "other": "Other"
+        },
+        "status": {
+          "pending": "Pending",
+          "pending_verification": "Pending Verification",
+          "completed": "Completed",
+          "failed": "Failed",
+          "refunded": "Refunded",
+          "rejected": "Rejected"
+        },
+        "statusMessage": {
+          "pending_verification": "Your payment is being reviewed by the administrator. You'll be notified when it's verified.",
+          "completed": "Your payment has been verified and applied successfully.",
+          "rejected": "Your payment was rejected by the administrator. Please review the notes for details.",
+          "refunded": "This payment has been refunded."
+        }
+      }
     },
     "reportPayment": {
       "title": "Report Payment",
       "subtitle": "Report an external payment for admin verification",
-      "selectUnit": "Select Unit",
-      "amount": "Amount",
-      "amountPlaceholder": "0.00",
-      "paymentMethod": "Payment Method",
-      "paymentDate": "Payment Date",
-      "receiptNumber": "Receipt/Reference Number",
-      "receiptNumberPlaceholder": "e.g. TRF-123456",
-      "notes": "Notes",
-      "notesPlaceholder": "Add any details about this payment...",
+      "formTitle": "Payment Details",
+      "backToPayments": "Back to My Payments",
       "submit": "Submit Payment Report",
       "submitting": "Submitting...",
       "success": "Payment reported successfully! It will be reviewed by an administrator.",
       "error": "Failed to report payment. Please try again.",
-      "backToPayments": "Back to My Payments"
+      "fields": {
+        "unit": "Unit",
+        "unitPlaceholder": "Select Unit",
+        "amount": "Amount",
+        "currency": "Currency",
+        "currencyPlaceholder": "Select currency",
+        "loadingCurrencies": "Loading currencies...",
+        "paymentMethod": "Payment Method",
+        "paymentMethodPlaceholder": "Select method",
+        "paymentDate": "Payment Date",
+        "receiptNumber": "Receipt/Reference Number",
+        "receiptNumberPlaceholder": "e.g. TRF-123456",
+        "externalReference": "Bank reference (for automatic verification)",
+        "externalReferencePlaceholder": "e.g. bank confirmation number",
+        "externalReferenceHelp": "If you provide the bank reference, the system will try to verify your payment automatically",
+        "notes": "Notes",
+        "notesPlaceholder": "Add any details about this payment..."
+      },
+      "methods": {
+        "transfer": "Transfer",
+        "cash": "Cash",
+        "card": "Card",
+        "mobile_payment": "Mobile Payment",
+        "other": "Other"
+      }
     }
   },
   "condominium": {
@@ -2534,6 +2638,68 @@
     "payments": {
       "title": "Payments",
       "subtitle": "Manage and verify platform payments",
+      "register": {
+        "button": "Register Payment",
+        "title": "Register Payment",
+        "subtitle": "Register a payment on behalf of a resident",
+        "back": "Back to payments",
+        "success": "Payment registered successfully",
+        "error": "Error registering payment",
+        "submit": "Register Payment",
+        "next": "Next",
+        "previous": "Previous",
+        "steps": {
+          "unit": "Unit & Quota",
+          "unitDescription": "Select the condominium, unit, and quota to pay",
+          "bank": "Bank Information",
+          "bankDescription": "Select the banks and transaction reference",
+          "payment": "Payment Details",
+          "paymentDescription": "Enter the amount, method, and payment date"
+        },
+        "loadingCondominiums": "Loading condominiums...",
+        "loadingUnits": "Loading units...",
+        "fields": {
+          "condominium": "Condominium",
+          "condominiumPlaceholder": "Select a condominium",
+          "unit": "Unit",
+          "unitPlaceholder": "Select a unit",
+          "amount": "Amount",
+          "currency": "Currency",
+          "currencyPlaceholder": "Select a currency",
+          "loadingCurrencies": "Loading currencies...",
+          "paymentMethod": "Payment Method",
+          "paymentMethodPlaceholder": "Select a method",
+          "paymentDate": "Payment Date",
+          "externalReference": "Bank Reference",
+          "externalReferencePlaceholder": "Reference number",
+          "senderBank": "Sender Bank",
+          "senderBankPlaceholder": "Select sender bank",
+          "destinationBank": "Destination Bank",
+          "destinationBankPlaceholder": "Select destination account",
+          "noDestinationBanks": "No bank accounts registered",
+          "quota": "Quota",
+          "quotaPlaceholder": "Select a pending quota",
+          "noQuotas": "No pending quotas",
+          "loadingQuotas": "Loading quotas...",
+          "notes": "Notes",
+          "notesPlaceholder": "Additional notes about the payment..."
+        },
+        "methods": {
+          "transfer": "Transfer",
+          "cash": "Cash",
+          "card": "Card",
+          "mobile_payment": "Mobile Payment",
+          "other": "Other"
+        },
+        "verification": {
+          "button": "Verify reference",
+          "found": "Reference found in bank",
+          "notFound": "Reference not found",
+          "error": "Error verifying reference",
+          "amount": "Verified amount",
+          "tooltip": "Enter the bank reference number and press the search button to verify if the transaction exists in the destination bank. The reference will be checked along with the sender bank and transaction date to confirm the payment was processed correctly."
+        }
+      },
       "empty": "No payments found",
       "emptyDescription": "No payments found with the selected filters",
       "loading": "Loading payments...",
@@ -2579,7 +2745,16 @@
         "rejectError": "Error rejecting payment",
         "confirmVerify": "Are you sure you want to verify this payment?",
         "confirmReject": "Are you sure you want to reject this payment?",
-        "back": "Back to payments"
+        "back": "Back to payments",
+        "refund": "Refund payment",
+        "refundSuccess": "Payment refunded successfully",
+        "refundError": "Error refunding payment",
+        "confirmRefund": "Are you sure you want to refund this payment? All associated applications will be reversed.",
+        "refundReason": "Refund reason",
+        "refundReasonPlaceholder": "Enter the refund reason...",
+        "applyToQuota": "Apply to quota",
+        "applyToQuotaSuccess": "Payment applied to quota successfully",
+        "applyToQuotaError": "Error applying payment to quota"
       },
       "detail": {
         "title": "Payment Detail",
@@ -2608,9 +2783,73 @@
         "receiptNumber": "Receipt Number",
         "verification": "Verification",
         "verifiedBy": "Verified By",
+        "verifiedBySystem": "Verified by bank",
+        "autoVerified": "Automatically verified payment",
+        "autoVerifiedDescription": "This payment was automatically verified through the bank integration. The reference was confirmed by the bank.",
         "verificationNotes": "Verification Notes",
         "notes": "Notes",
         "notAvailable": "Not available"
+      },
+      "applications": {
+        "title": "Payment Applications",
+        "subtitle": "Apply payments to pending quotas",
+        "empty": "No payment applications",
+        "selectQuota": "Select the quota to apply the payment to",
+        "amount": "Amount to apply",
+        "amountPlaceholder": "0.00",
+        "availableBalance": "Available payment balance",
+        "quotaBalance": "Quota balance",
+        "apply": "Apply payment",
+        "success": "Payment applied successfully",
+        "error": "Error applying payment",
+        "interestReversed": "Interest reversed due to timely payment",
+        "excessCreated": "Excess of {amount} created, pending resolution",
+        "noAvailableBalance": "This payment has no available balance to apply"
+      },
+      "pendingAllocations": {
+        "title": "Payment Excess",
+        "subtitle": "Manage payment excess amounts that exceeded quota amounts",
+        "empty": "No pending excess payments",
+        "emptyDescription": "All excess payments have been resolved",
+        "table": {
+          "payment": "Payment",
+          "amount": "Excess Amount",
+          "currency": "Currency",
+          "status": "Status",
+          "createdAt": "Date",
+          "actions": "Actions"
+        },
+        "status": {
+          "all": "All",
+          "pending": "Pending",
+          "allocated": "Allocated",
+          "refunded": "Refunded",
+          "refund_pending": "Refund in progress",
+          "refund_failed": "Refund failed"
+        },
+        "actions": {
+          "allocate": "Allocate to quota",
+          "refund": "Mark as refunded",
+          "refundViaBank": "Refund via bank",
+          "view": "View details"
+        },
+        "allocateModal": {
+          "title": "Allocate Excess to Quota",
+          "selectQuota": "Select destination quota",
+          "notes": "Resolution notes (optional)",
+          "notesPlaceholder": "Enter allocation details...",
+          "confirm": "Allocate excess",
+          "success": "Excess allocated successfully",
+          "error": "Error allocating excess"
+        },
+        "refundModal": {
+          "title": "Register Refund",
+          "notes": "Resolution notes",
+          "notesPlaceholder": "Enter refund details...",
+          "confirm": "Confirm refund",
+          "success": "Refund registered successfully",
+          "error": "Error registering refund"
+        }
       }
     }
   },
@@ -3066,6 +3305,9 @@
       "nav": {
         "dashboard": "Dashboard",
         "condominiums": "Condominiums",
+        "payments": "Payments",
+        "quotas": "Quotas",
+        "pendingAllocations": "Pending Allocations",
         "members": "Members",
         "billing": "Billing",
         "tickets": "Support Tickets",
@@ -3098,6 +3340,7 @@
           "noMembers": "No members",
           "noMembersHint": "Your management company has no registered members yet",
           "addMember": "New Member",
+          "limitReached": "Limit reached: your plan allows {max} users and you currently have {current}. Upgrade your subscription to add more members.",
           "error": "Error loading members",
           "retry": "Retry",
           "columns": {
@@ -3106,7 +3349,156 @@
             "joinedAt": "Joined Date",
             "status": "Status"
           },
-          "clear": "Clear"
+          "clear": "Clear",
+          "invite": {
+            "title": "Invite Member",
+            "success": "Invitation sent successfully. The member will receive an email to join.",
+            "error": "Error sending invitation",
+            "submit": "Send Invitation",
+            "inviteNote": "An invitation email will be sent to the user. The member will appear as inactive until they accept the invitation.",
+            "fields": {
+              "email": "Email",
+              "emailPlaceholder": "email@example.com",
+              "firstName": "First Name",
+              "firstNamePlaceholder": "Member's first name",
+              "lastName": "Last Name",
+              "lastNamePlaceholder": "Member's last name",
+              "phone": "Phone",
+              "idDocument": "ID Document",
+              "idDocumentTypePlaceholder": "Type",
+              "idDocumentNumberPlaceholder": "Document number",
+              "role": "Role"
+            },
+            "validation": {
+              "emailRequired": "Email is required",
+              "emailInvalid": "Enter a valid email",
+              "firstNameRequired": "First name is required",
+              "lastNameRequired": "Last name is required",
+              "phoneRequired": "Phone is required",
+              "idDocumentRequired": "ID document is required",
+              "roleRequired": "Select a role"
+            }
+          },
+          "detail": {
+            "title": "Member Detail",
+            "back": "Back to Members",
+            "error": "Error loading member detail",
+            "notFound": "Member not found",
+            "userInfo": {
+              "title": "User Information",
+              "email": "Email",
+              "name": "Full name",
+              "phone": "Phone",
+              "idDocument": "ID Document",
+              "emailVerified": "Email verified",
+              "emailNotVerified": "Email not verified",
+              "lastLogin": "Last login",
+              "neverLoggedIn": "Never"
+            },
+            "roleAndPermissions": {
+              "title": "Role & Permissions",
+              "currentRole": "Current role",
+              "changeRole": "Change role",
+              "primaryAdmin": "Primary admin",
+              "permissions": "Role permissions",
+              "canChangeSubscription": "Can change subscription",
+              "canManageMembers": "Can manage members",
+              "canCreateTickets": "Can create tickets",
+              "canViewInvoices": "Can view invoices",
+              "roleUpdated": "Role updated successfully",
+              "roleUpdateError": "Error updating role",
+              "cannotChangePrimaryAdmin": "Cannot change the primary admin's role"
+            },
+            "membership": {
+              "title": "Membership Information",
+              "invitedAt": "Invited at",
+              "invitedBy": "Invited by",
+              "joinedAt": "Joined at",
+              "createdAt": "Created at",
+              "deactivatedAt": "Deactivated at",
+              "deactivatedBy": "Deactivated by",
+              "pendingInvitation": "Pending acceptance"
+            },
+            "actions": {
+              "deactivate": "Deactivate",
+              "reactivate": "Reactivate",
+              "deactivateSuccess": "Member deactivated successfully",
+              "deactivateError": "Error deactivating member",
+              "reactivateSuccess": "Member reactivated successfully",
+              "reactivateError": "Error reactivating member",
+              "cannotDeactivateSelf": "You cannot deactivate yourself",
+              "cannotReactivateUnverified": "Cannot reactivate a user who hasn't accepted their invitation"
+            },
+            "deactivateModal": {
+              "title": "Deactivate Member",
+              "message": "Are you sure you want to deactivate {name}? The member will lose access to the management company.",
+              "confirm": "Confirm Deactivation",
+              "cancel": "Cancel"
+            },
+            "auditLogs": {
+              "title": "Activity History",
+              "noLogs": "No activity recorded",
+              "viewAll": "View all",
+              "action": {
+                "INSERT": "Created",
+                "UPDATE": "Updated",
+                "DELETE": "Deleted"
+              },
+              "fields": {
+                "isActive": "Status",
+                "roleName": "Role",
+                "permissions": "Permissions",
+                "joinedAt": "Joined at",
+                "deactivatedAt": "Deactivated at",
+                "deactivatedBy": "Deactivated by",
+                "invitedBy": "Invited by",
+                "isPrimaryAdmin": "Primary admin"
+              }
+            },
+            "auditLogsModal": {
+              "title": "Full Activity History",
+              "filters": {
+                "dateFrom": "From",
+                "dateTo": "To",
+                "action": "Action type",
+                "allActions": "All actions",
+                "clear": "Clear"
+              },
+              "table": {
+                "action": "Action",
+                "changedFields": "Changed fields",
+                "date": "Date"
+              }
+            },
+            "activityDetail": {
+              "title": "Activity Detail",
+              "backToMember": "Back to Member",
+              "notFound": "Activity not found",
+              "generalInfo": "General Information",
+              "actionType": "Action type",
+              "date": "Date and time",
+              "table": "Table",
+              "recordId": "Record ID",
+              "userId": "User ID",
+              "ipAddress": "IP Address",
+              "userAgent": "User Agent",
+              "changedFields": "Changed Fields",
+              "valuesComparison": "Values Comparison",
+              "oldValues": "Previous Values",
+              "newValues": "New Values",
+              "noData": "No data"
+            },
+            "roles": {
+              "admin": "Administrator",
+              "accountant": "Accountant",
+              "support": "Support",
+              "viewer": "Viewer"
+            },
+            "status": {
+              "active": "Active",
+              "inactive": "Inactive"
+            }
+          }
         },
         "bankAccounts": {
           "title": "Bank Accounts",
@@ -3452,7 +3844,8 @@
         "units": "units",
         "active": "Active",
         "inactive": "Inactive",
-        "empty": "No condominiums registered"
+        "empty": "No condominiums registered",
+        "total": "total"
       },
       "payments": {
         "title": "Recent Payments",
@@ -3884,7 +4277,9 @@
                 "daysBeforeDueRequired": "Enter the days before due",
                 "interestRateRequired": "Enter the interest rate"
               },
-              "dueDayNextMonthHint": "The due day is before the issue day. The due date will fall in the month after the billing period."
+              "dueDayNextMonthHint": "The due day is before the issue day. The due date will fall in the month after the billing period.",
+              "surchargeStartDayHint": "The surcharge will apply starting from day {{day}} of the month.",
+              "discountCutoffDayHint": "The discount applies if paid before day {{day}} of the month."
             },
             "assignments": {
               "description": "Define how charges are distributed among units",
@@ -4349,6 +4744,68 @@
     "payments": {
       "title": "Payments",
       "subtitle": "View and manage payment records",
+      "register": {
+        "button": "Register Payment",
+        "title": "Register Payment",
+        "subtitle": "Register a payment on behalf of a resident",
+        "back": "Back to payments",
+        "success": "Payment registered successfully",
+        "error": "Error registering payment",
+        "submit": "Register Payment",
+        "next": "Next",
+        "previous": "Previous",
+        "steps": {
+          "unit": "Unit & Quota",
+          "unitDescription": "Select the condominium, unit, and quota to pay",
+          "bank": "Bank Information",
+          "bankDescription": "Select the banks and transaction reference",
+          "payment": "Payment Details",
+          "paymentDescription": "Enter the amount, method, and payment date"
+        },
+        "loadingCondominiums": "Loading condominiums...",
+        "loadingUnits": "Loading units...",
+        "fields": {
+          "condominium": "Condominium",
+          "condominiumPlaceholder": "Select a condominium",
+          "unit": "Unit",
+          "unitPlaceholder": "Select a unit",
+          "amount": "Amount",
+          "currency": "Currency",
+          "currencyPlaceholder": "Select a currency",
+          "loadingCurrencies": "Loading currencies...",
+          "paymentMethod": "Payment Method",
+          "paymentMethodPlaceholder": "Select a method",
+          "paymentDate": "Payment Date",
+          "externalReference": "Bank Reference",
+          "externalReferencePlaceholder": "Reference number",
+          "senderBank": "Sender Bank",
+          "senderBankPlaceholder": "Select sender bank",
+          "destinationBank": "Destination Bank",
+          "destinationBankPlaceholder": "Select destination account",
+          "noDestinationBanks": "No bank accounts registered",
+          "quota": "Quota",
+          "quotaPlaceholder": "Select a pending quota",
+          "noQuotas": "No pending quotas",
+          "loadingQuotas": "Loading quotas...",
+          "notes": "Notes",
+          "notesPlaceholder": "Additional notes about the payment..."
+        },
+        "methods": {
+          "transfer": "Transfer",
+          "cash": "Cash",
+          "card": "Card",
+          "mobile_payment": "Mobile Payment",
+          "other": "Other"
+        },
+        "verification": {
+          "button": "Verify reference",
+          "found": "Reference found in bank",
+          "notFound": "Reference not found",
+          "error": "Error verifying reference",
+          "amount": "Verified amount",
+          "tooltip": "Enter the bank reference number and press the search button to verify if the transaction exists in the destination bank. The reference will be checked along with the sender bank and transaction date to confirm the payment was processed correctly."
+        }
+      },
       "empty": "No payments found",
       "emptyDescription": "Payments will appear here when residents report them",
       "error": "Error loading payments",
@@ -4381,7 +4838,13 @@
       },
       "filters": {
         "searchPlaceholder": "Search by payment number...",
-        "status": "Status"
+        "status": "Status",
+        "condominium": "Condominium",
+        "condominiumAll": "All condominiums",
+        "startDate": "Date from",
+        "endDate": "Date to",
+        "bank": "Bank",
+        "bankAll": "All banks"
       },
       "detail": {
         "title": "Payment Detail",
@@ -4409,6 +4872,9 @@
         "receiptNumber": "Receipt Number",
         "verification": "Verification",
         "verifiedBy": "Verified By",
+        "verifiedBySystem": "Verified by bank",
+        "autoVerified": "Automatically verified payment",
+        "autoVerifiedDescription": "This payment was automatically verified through the bank integration. The reference was confirmed by the bank.",
         "verificationNotes": "Verification Notes",
         "notes": "Notes",
         "notAvailable": "Not available"
@@ -4431,6 +4897,49 @@
         "downloading": "Downloading...",
         "success": "Export downloaded successfully",
         "error": "Failed to export. Please try again."
+      },
+      "pendingAllocations": {
+        "title": "Payment Surpluses",
+        "subtitle": "Manage payment surpluses that exceeded the quota amount",
+        "empty": "No pending surpluses",
+        "emptyDescription": "All surpluses have been resolved",
+        "table": {
+          "payment": "Payment",
+          "amount": "Surplus Amount",
+          "status": "Status",
+          "createdAt": "Date",
+          "actions": "Actions"
+        },
+        "status": {
+          "all": "All",
+          "pending": "Pending",
+          "allocated": "Allocated",
+          "refunded": "Refunded",
+          "refund_pending": "Refund in progress",
+          "refund_failed": "Refund failed"
+        },
+        "actions": {
+          "view": "View details",
+          "allocate": "Apply to quota",
+          "refund": "Mark as refunded"
+        },
+        "allocateModal": {
+          "title": "Apply Surplus to Quota",
+          "selectQuota": "Select destination quota",
+          "notes": "Resolution notes (optional)",
+          "notesPlaceholder": "Enter the reason for allocation...",
+          "confirm": "Apply surplus",
+          "success": "Surplus applied successfully",
+          "error": "Failed to apply surplus"
+        },
+        "refundModal": {
+          "title": "Register Refund",
+          "notes": "Resolution notes",
+          "notesPlaceholder": "Enter refund details...",
+          "confirm": "Confirm refund",
+          "success": "Refund registered successfully",
+          "error": "Failed to register refund"
+        }
       }
     },
     "expenses": {

@@ -132,6 +132,7 @@ function createMockPaymentsRepo(payments: TPayment[]) {
 function createMockQuotasRepo(quotas: TQuota[]) {
   return {
     getById: async (id: string) => quotas.find(q => q.id === id) || null,
+    getUnpaidByConceptAndUnit: async () => [],
     update: async () => null,
     withTx: function () { return this },
   } as unknown as QuotasRepository
@@ -288,7 +289,7 @@ describe('PaymentApplicationsController', function () {
         body: JSON.stringify({
           paymentId: paymentId2,
           quotaId: quotaId2,
-          appliedAmount: '100.00',
+          appliedAmount: '75.00',
         }),
       })
 
@@ -362,6 +363,83 @@ describe('PaymentApplicationsController', function () {
       })
 
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
+    })
+
+    it('should return 400 when older unpaid quotas exist for the same concept', async function () {
+      const olderQuota = makeQuota('550e8400-e29b-41d4-a716-446655440025', {
+        dueDate: '2024-12-31',
+        periodYear: 2024,
+        periodMonth: 12,
+        status: 'overdue',
+      })
+      const newerQuota = makeQuota(quotaId2, {
+        dueDate: '2025-02-28',
+        periodYear: 2025,
+        periodMonth: 2,
+      })
+
+      const mockQuotasWithOlder = createMockQuotasRepo([olderQuota, newerQuota])
+      // Override to return the older quota as unpaid
+      mockQuotasWithOlder.getUnpaidByConceptAndUnit = async () => [olderQuota, newerQuota]
+
+      const controller = new PaymentApplicationsController(
+        mockAppsRepo,
+        createMockDb(),
+        createMockPaymentsRepo(testPayments),
+        mockQuotasWithOlder,
+        createMockAdjustmentsRepo(),
+        createMockInterestConfigsRepo(),
+      )
+      const testApp = createTestApp()
+      testApp.route('/pa', controller.createRouter())
+
+      const res = await testApp.request('/pa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentId: paymentId1,
+          quotaId: quotaId2,
+          appliedAmount: '50.00',
+        }),
+      })
+
+      expect(res.status).toBe(StatusCodes.BAD_REQUEST)
+      const json = (await res.json()) as IApiResponse
+      expect(json.error).toContain('cuota(s) anteriores pendientes')
+    })
+
+    it('should allow payment when target quota is the oldest unpaid', async function () {
+      const oldestQuota = makeQuota(quotaId1, {
+        dueDate: '2025-01-31',
+        periodYear: 2025,
+        periodMonth: 1,
+      })
+
+      const mockQuotasOldest = createMockQuotasRepo([oldestQuota])
+      mockQuotasOldest.getUnpaidByConceptAndUnit = async () => [oldestQuota]
+
+      const controller = new PaymentApplicationsController(
+        createMockPaymentApplicationsRepo([]),
+        createMockDb(),
+        createMockPaymentsRepo(testPayments),
+        mockQuotasOldest,
+        createMockAdjustmentsRepo(),
+        createMockInterestConfigsRepo(),
+      )
+      const testApp = createTestApp()
+      testApp.route('/pa', controller.createRouter())
+
+      const res = await testApp.request('/pa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentId: paymentId1,
+          quotaId: quotaId1,
+          appliedAmount: '50.00',
+        }),
+      })
+
+      expect(res.status).toBe(StatusCodes.CREATED)
     })
   })
 

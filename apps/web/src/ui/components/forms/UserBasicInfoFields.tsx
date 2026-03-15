@@ -58,8 +58,9 @@ export function UserBasicInfoFields({
       />
 
       {/* First Name & Last Name */}
-      <div className="grid gap-x-8 gap-y-10 sm:grid-cols-2">
+      <div className="flex flex-col gap-10 sm:flex-row sm:gap-8">
         <InputField
+          className="flex-1"
           name={getFieldName('firstName')}
           label={labels.firstName}
           placeholder={labels.firstNamePlaceholder}
@@ -68,6 +69,7 @@ export function UserBasicInfoFields({
           translateError={translateError}
         />
         <InputField
+          className="flex-1"
           name={getFieldName('lastName')}
           label={labels.lastName}
           placeholder={labels.lastNamePlaceholder}

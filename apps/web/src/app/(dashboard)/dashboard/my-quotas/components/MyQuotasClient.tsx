@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Spinner } from '@/ui/components/spinner'
@@ -111,6 +112,7 @@ function formatPeriod(year: number, month: number | null, description: string | 
 
 export function MyQuotasClient({ unitIds, userId: _userId }: IMyQuotasClientProps) {
   const { t } = useTranslation()
+  const router = useRouter()
   const toast = useToast()
   const [statusFilter, setStatusFilter] = useState<TStatusFilter>('all')
   const [exporting, setExporting] = useState<TReportFormat | null>(null)
@@ -319,7 +321,12 @@ export function MyQuotasClient({ unitIds, userId: _userId }: IMyQuotasClientProp
             const currencySymbol = quota.currency?.symbol ?? '$'
 
             return (
-              <Card key={quota.id} className="transition-shadow hover:shadow-md">
+              <Card
+                key={quota.id}
+                className="cursor-pointer transition-shadow hover:shadow-md"
+                isPressable
+                onPress={() => router.push(`/dashboard/my-quotas/${quota.id}`)}
+              >
                 <CardBody className="p-4">
                   <div className="flex items-center justify-between gap-4">
                     {/* Left: Icon + Info */}

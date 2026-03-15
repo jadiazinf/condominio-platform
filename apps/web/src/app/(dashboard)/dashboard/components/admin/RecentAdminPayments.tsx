@@ -55,7 +55,7 @@ export function RecentAdminPayments({ payments, translations: t }: RecentAdminPa
         </div>
         <Link
           className="flex items-center gap-1 text-small text-emerald-600 dark:text-emerald-400 hover:underline"
-          href="/dashboard/condominiums"
+          href="/dashboard/payments"
         >
           {t.viewAll}
           <ArrowRight size={14} />

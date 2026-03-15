@@ -168,9 +168,10 @@ export class CreateMemberWithInvitationService {
 
     const member = memberResult.data
 
-    // Step 7: Send emails (non-blocking, don't fail if email fails)
+    // Step 7: Send invitation email to user (non-blocking)
+    // Company notification is sent when the invitation is accepted, not at creation time
     const userEmailSent = await this.sendUserEmail(user, company, role.name, token, invitation.expiresAt)
-    const companyEmailSent = await this.sendCompanyEmail(company, user, input.memberRole)
+    const companyEmailSent = false
 
     return success({
       user,
@@ -335,7 +336,8 @@ export class CreateMemberWithInvitationService {
       input.isPrimaryAdmin ?? false,
       permissions,
       input.createdBy,
-      userRoleId
+      userRoleId,
+      false // inactive until invitation is accepted
     )
 
     return success(member)

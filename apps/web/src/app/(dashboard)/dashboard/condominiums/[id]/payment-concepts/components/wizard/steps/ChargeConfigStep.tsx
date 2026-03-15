@@ -63,49 +63,47 @@ export function ChargeConfigStep({ formData, onUpdate, showErrors, currencies }:
         {t(`${w}.description`)}
       </Typography>
 
-      {/* Scheduling (for recurring) */}
-      {formData.isRecurring && (
-        <div className="flex flex-col gap-4">
-          <Typography variant="body2" className="font-semibold">
-            {t(`${w}.scheduling`)}
-          </Typography>
-          <div className="grid grid-cols-2 gap-5">
-            <Select
-              label={t(`${w}.issueDay`)}
-              placeholder={t(`${w}.issueDayPlaceholder`)}
-              tooltip={t(`${w}.tooltips.issueDay`)}
-              items={dayOptions}
-              value={formData.issueDay != null ? String(formData.issueDay) : ''}
-              onChange={(key) => key && onUpdate({ issueDay: Number(key) })}
-              isRequired
-              isInvalid={showErrors && formData.isRecurring && formData.issueDay == null}
-              errorMessage={showErrors && formData.isRecurring && formData.issueDay == null ? t(`${w}.errors.issueDayRequired`) : undefined}
-              variant="bordered"
-            />
-            <Select
-              label={t(`${w}.dueDay`)}
-              placeholder={t(`${w}.dueDayPlaceholder`)}
-              tooltip={t(`${w}.tooltips.dueDay`)}
-              items={dayOptions}
-              value={formData.dueDay != null ? String(formData.dueDay) : ''}
-              onChange={(key) => key && onUpdate({ dueDay: Number(key) })}
-              isRequired
-              isInvalid={showErrors && formData.isRecurring && formData.dueDay == null}
-              errorMessage={showErrors && formData.isRecurring && formData.dueDay == null ? t(`${w}.errors.dueDayRequired`) : undefined}
-              variant="bordered"
-            />
-          </div>
-
-          {formData.issueDay != null && formData.dueDay != null && formData.dueDay < formData.issueDay && (
-            <div className="flex items-start gap-2 rounded-lg bg-primary-50 p-3">
-              <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <Typography variant="caption" className="text-primary-700">
-                {t(`${w}.dueDayNextMonthHint`)}
-              </Typography>
-            </div>
-          )}
+      {/* Scheduling */}
+      <div className="flex flex-col gap-4">
+        <Typography variant="body2" className="font-semibold">
+          {t(`${w}.scheduling`)}
+        </Typography>
+        <div className="grid grid-cols-2 gap-5">
+          <Select
+            label={t(`${w}.issueDay`)}
+            placeholder={t(`${w}.issueDayPlaceholder`)}
+            tooltip={t(`${w}.tooltips.issueDay`)}
+            items={dayOptions}
+            value={formData.issueDay != null ? String(formData.issueDay) : ''}
+            onChange={(key) => key && onUpdate({ issueDay: Number(key) })}
+            isRequired
+            isInvalid={showErrors && formData.issueDay == null}
+            errorMessage={showErrors && formData.issueDay == null ? t(`${w}.errors.issueDayRequired`) : undefined}
+            variant="bordered"
+          />
+          <Select
+            label={t(`${w}.dueDay`)}
+            placeholder={t(`${w}.dueDayPlaceholder`)}
+            tooltip={t(`${w}.tooltips.dueDay`)}
+            items={dayOptions}
+            value={formData.dueDay != null ? String(formData.dueDay) : ''}
+            onChange={(key) => key && onUpdate({ dueDay: Number(key) })}
+            isRequired
+            isInvalid={showErrors && formData.dueDay == null}
+            errorMessage={showErrors && formData.dueDay == null ? t(`${w}.errors.dueDayRequired`) : undefined}
+            variant="bordered"
+          />
         </div>
-      )}
+
+        {formData.issueDay != null && formData.dueDay != null && formData.dueDay < formData.issueDay && (
+          <div className="flex items-start gap-2 rounded-lg bg-primary-50 p-3">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <Typography variant="caption" className="text-primary-700">
+              {t(`${w}.dueDayNextMonthHint`)}
+            </Typography>
+          </div>
+        )}
+      </div>
 
       {/* Partial payment */}
       <div className="flex items-center justify-between rounded-lg border border-default-200 p-4">
@@ -177,6 +175,14 @@ export function ChargeConfigStep({ formData, onUpdate, showErrors, currencies }:
             />
           </div>
         )}
+        {formData.latePaymentType !== 'none' && formData.dueDay != null && (
+          <div className="flex items-start gap-2 rounded-lg bg-warning-50 p-3">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-warning-600" />
+            <Typography variant="caption" className="text-warning-700">
+              {t(`${w}.surchargeStartDayHint`, { day: formData.dueDay + (formData.latePaymentGraceDays || 0) })}
+            </Typography>
+          </div>
+        )}
       </div>
 
       {/* Early payment discount */}
@@ -233,6 +239,14 @@ export function ChargeConfigStep({ formData, onUpdate, showErrors, currencies }:
               isInvalid={showErrors && !formData.earlyPaymentDaysBeforeDue}
               errorMessage={showErrors && !formData.earlyPaymentDaysBeforeDue ? t(`${w}.errors.daysBeforeDueRequired`) : undefined}
             />
+          </div>
+        )}
+        {formData.earlyPaymentType !== 'none' && formData.dueDay != null && (
+          <div className="flex items-start gap-2 rounded-lg bg-success-50 p-3">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-success-600" />
+            <Typography variant="caption" className="text-success-700">
+              {t(`${w}.discountCutoffDayHint`, { day: formData.dueDay - (formData.earlyPaymentDaysBeforeDue || 0) })}
+            </Typography>
           </div>
         )}
       </div>

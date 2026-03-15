@@ -127,7 +127,7 @@ export function CreatePaymentConceptClient({
         return !!(formData.name && formData.conceptType && formData.currencyId &&
           (!formData.isRecurring || formData.recurrencePeriod))
       case 1: // Charge Config
-        if (formData.isRecurring && (formData.issueDay == null || formData.dueDay == null)) return false
+        if (formData.issueDay == null || formData.dueDay == null) return false
         if (formData.latePaymentType !== 'none' && !formData.latePaymentValue) return false
         if (formData.earlyPaymentType !== 'none' && (!formData.earlyPaymentValue || !formData.earlyPaymentDaysBeforeDue)) return false
         if (formData.interestEnabled && !formData.interestRate) return false

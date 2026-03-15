@@ -30,6 +30,7 @@ export * from './interest-configurations'
 export * from './quotas'
 export * from './quota-generation'
 export * from './payment-gateways'
+export { gatewayTransactions } from '@packages/database'
 export * from './payments'
 
 // Expenses

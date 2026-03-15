@@ -1,9 +1,19 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, CheckCircle, XCircle, ExternalLink } from 'lucide-react'
-import type { TPaymentStatus } from '@packages/domain'
+import {
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
+  ExternalLink,
+  RotateCcw,
+  FileCheck,
+  AlertTriangle,
+  Banknote,
+  ShieldCheck,
+} from 'lucide-react'
+import type { TPaymentStatus, TQuota } from '@packages/domain'
 
 import { getPaymentStatusColor } from '@/utils/status-colors'
 import { Typography } from '@/ui/components/typography'
@@ -11,13 +21,27 @@ import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { Skeleton } from '@/ui/components/skeleton'
+import { Input } from '@/ui/components/input'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Textarea } from '@/ui/components/textarea'
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@/ui/components/modal'
 import { useTranslation } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
 import {
   usePaymentDetail,
+  usePaymentApplicationsByPayment,
+  usePendingAllocationsByPayment,
+  useQuotasPendingByUnit,
   verifyPayment,
   rejectPayment,
+  refundPayment,
+  applyPaymentToQuota,
+  allocatePending,
+  refundPending,
   paymentKeys,
+  paymentApplicationKeys,
+  pendingAllocationKeys,
+  quotaKeys,
   useQueryClient,
 } from '@packages/http-client'
 
@@ -28,14 +52,57 @@ export default function PaymentDetailPage() {
   const toast = useToast()
   const queryClient = useQueryClient()
 
+  // Data fetching
   const { data, isLoading, error } = usePaymentDetail(id)
   const payment = data?.data
 
-  const getPaymentMethodLabel = useCallback(
-    (method: string) => t(`admin.payments.method.${method}`),
-    [t]
-  )
+  const { data: applicationsData } = usePaymentApplicationsByPayment(id, {
+    enabled: !!payment,
+  })
+  const applications = applicationsData?.data ?? []
 
+  const { data: allocationsData } = usePendingAllocationsByPayment(id, {
+    enabled: !!payment,
+  })
+  const allocations = allocationsData?.data ?? []
+
+  // Fetch pending quotas for the payment's unit (for the apply modal)
+  const { data: pendingQuotasData } = useQuotasPendingByUnit(
+    payment?.unitId ?? '',
+    { enabled: !!payment?.unitId && payment?.status === 'completed' }
+  )
+  const pendingQuotas = pendingQuotasData?.data ?? []
+
+  // Modals
+  const applyModal = useDisclosure()
+  const refundModal = useDisclosure()
+  const allocateModal = useDisclosure()
+  const refundAllocationModal = useDisclosure()
+
+  // Form state
+  const [selectedQuotaId, setSelectedQuotaId] = useState('')
+  const [applyAmount, setApplyAmount] = useState('')
+  const [refundReason, setRefundReason] = useState('')
+  const [allocationQuotaId, setAllocationQuotaId] = useState('')
+  const [allocationNotes, setAllocationNotes] = useState('')
+  const [refundAllocationId, setRefundAllocationId] = useState('')
+  const [refundAllocationNotes, setRefundAllocationNotes] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Computed
+  const totalApplied = useMemo(() => {
+    return applications.reduce(
+      (sum, app) => sum + Math.round(parseFloat(app.appliedAmount) * 100),
+      0
+    ) / 100
+  }, [applications])
+
+  const availableBalance = useMemo(() => {
+    if (!payment) return 0
+    return Math.round((parseFloat(payment.amount) - totalApplied) * 100) / 100
+  }, [payment, totalApplied])
+
+  // Helpers
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return t('admin.payments.detail.notAvailable')
     const d = typeof date === 'string' ? new Date(date) : date
@@ -48,19 +115,63 @@ export default function PaymentDetailPage() {
     return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
+  const getPaymentMethodLabel = useCallback(
+    (method: string) => t(`admin.payments.method.${method}`),
+    [t]
+  )
+
+  const invalidateAll = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: paymentKeys.all })
+    queryClient.invalidateQueries({ queryKey: paymentKeys.detail(id) })
+    queryClient.invalidateQueries({ queryKey: paymentApplicationKeys.all })
+    queryClient.invalidateQueries({ queryKey: pendingAllocationKeys.all })
+    queryClient.invalidateQueries({ queryKey: quotaKeys.all })
+  }, [queryClient, id])
+
+  // Quota select items
+  const quotaSelectItems: ISelectItem[] = useMemo(
+    () =>
+      pendingQuotas.map((q) => {
+        const period = q.periodMonth
+          ? `${q.periodMonth}/${q.periodYear}`
+          : `${q.periodYear}`
+        return {
+          key: q.id,
+          label: `${period} — ${t('admin.payments.applications.quotaBalance')}: ${formatAmount(q.balance)}`,
+        }
+      }),
+    [pendingQuotas, t]
+  )
+
+  // Allocation select items (reuse same pending quotas)
+  const allocationQuotaItems: ISelectItem[] = useMemo(
+    () =>
+      pendingQuotas.map((q) => {
+        const period = q.periodMonth
+          ? `${q.periodMonth}/${q.periodYear}`
+          : `${q.periodYear}`
+        return {
+          key: q.id,
+          label: `${period} — ${t('admin.payments.applications.quotaBalance')}: ${formatAmount(q.balance)}`,
+        }
+      }),
+    [pendingQuotas, t]
+  )
+
+  // ── Handlers ────────────────────────────────────────────────────────────────
+
   const handleVerify = useCallback(async () => {
     if (!payment) return
     if (!window.confirm(t('admin.payments.actions.confirmVerify'))) return
 
     try {
       await verifyPayment(payment.id)
-      queryClient.invalidateQueries({ queryKey: paymentKeys.all })
-      queryClient.invalidateQueries({ queryKey: paymentKeys.detail(payment.id) })
+      invalidateAll()
       toast.success(t('admin.payments.actions.verifySuccess'))
     } catch {
       toast.error(t('admin.payments.actions.verifyError'))
     }
-  }, [payment, queryClient, t, toast])
+  }, [payment, invalidateAll, t, toast])
 
   const handleReject = useCallback(async () => {
     if (!payment) return
@@ -68,17 +179,99 @@ export default function PaymentDetailPage() {
 
     try {
       await rejectPayment(payment.id)
-      queryClient.invalidateQueries({ queryKey: paymentKeys.all })
-      queryClient.invalidateQueries({ queryKey: paymentKeys.detail(payment.id) })
+      invalidateAll()
       toast.success(t('admin.payments.actions.rejectSuccess'))
     } catch {
       toast.error(t('admin.payments.actions.rejectError'))
     }
-  }, [payment, queryClient, t, toast])
+  }, [payment, invalidateAll, t, toast])
 
-  if (isLoading) {
-    return <PaymentDetailSkeleton />
-  }
+  const handleApplyToQuota = useCallback(async () => {
+    if (!payment || !selectedQuotaId || !applyAmount) return
+
+    setIsSubmitting(true)
+    try {
+      const result = await applyPaymentToQuota({
+        paymentId: payment.id,
+        quotaId: selectedQuotaId,
+        appliedAmount: applyAmount,
+      })
+
+      invalidateAll()
+      toast.success(result.message || t('admin.payments.actions.applyToQuotaSuccess'))
+      applyModal.onClose()
+      setSelectedQuotaId('')
+      setApplyAmount('')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('admin.payments.actions.applyToQuotaError')
+      toast.error(message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [payment, selectedQuotaId, applyAmount, invalidateAll, t, toast, applyModal])
+
+  const handleRefund = useCallback(async () => {
+    if (!payment || !refundReason.trim()) return
+
+    setIsSubmitting(true)
+    try {
+      await refundPayment(payment.id, { refundReason: refundReason.trim() })
+      invalidateAll()
+      toast.success(t('admin.payments.actions.refundSuccess'))
+      refundModal.onClose()
+      setRefundReason('')
+    } catch {
+      toast.error(t('admin.payments.actions.refundError'))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [payment, refundReason, invalidateAll, t, toast, refundModal])
+
+  const handleAllocateExcess = useCallback(async () => {
+    const allocation = allocations.find((a) => a.status === 'pending')
+    if (!allocation || !allocationQuotaId) return
+
+    setIsSubmitting(true)
+    try {
+      await allocatePending(allocation.id, {
+        quotaId: allocationQuotaId,
+        resolutionNotes: allocationNotes.trim() || null,
+      })
+      invalidateAll()
+      toast.success(t('admin.payments.pendingAllocations.allocateModal.success'))
+      allocateModal.onClose()
+      setAllocationQuotaId('')
+      setAllocationNotes('')
+    } catch {
+      toast.error(t('admin.payments.pendingAllocations.allocateModal.error'))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [allocations, allocationQuotaId, allocationNotes, invalidateAll, t, toast, allocateModal])
+
+  const handleRefundAllocation = useCallback(async () => {
+    if (!refundAllocationId || !refundAllocationNotes.trim()) return
+
+    setIsSubmitting(true)
+    try {
+      await refundPending(refundAllocationId, {
+        resolutionNotes: refundAllocationNotes.trim(),
+      })
+      invalidateAll()
+      toast.success(t('admin.payments.pendingAllocations.refundModal.success'))
+      refundAllocationModal.onClose()
+      setRefundAllocationId('')
+      setRefundAllocationNotes('')
+    } catch {
+      toast.error(t('admin.payments.pendingAllocations.refundModal.error'))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [refundAllocationId, refundAllocationNotes, invalidateAll, t, toast, refundAllocationModal])
+
+  // ── Loading / Error ─────────────────────────────────────────────────────────
+
+  if (isLoading) return <PaymentDetailSkeleton />
 
   if (error || !payment) {
     return (
@@ -97,8 +290,28 @@ export default function PaymentDetailPage() {
     )
   }
 
+  const isCompleted = payment.status === 'completed'
+  const isPendingVerification = payment.status === 'pending_verification'
+  const isAutoVerified = payment.verifiedBy === '00000000-0000-0000-0000-000000000000'
+  const pendingAllocations = allocations.filter((a) => a.status === 'pending' || a.status === 'refund_failed')
+
   return (
     <div className="space-y-6">
+      {/* Auto-verified banner */}
+      {isAutoVerified && (
+        <div className="flex items-center gap-3 rounded-lg border border-success-200 bg-success-50 p-4">
+          <ShieldCheck size={20} className="shrink-0 text-success" />
+          <div>
+            <p className="text-sm font-medium text-success-700">
+              {t('admin.payments.detail.autoVerified')}
+            </p>
+            <p className="text-xs text-success-600">
+              {t('admin.payments.detail.autoVerifiedDescription')}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
@@ -116,25 +329,46 @@ export default function PaymentDetailPage() {
             </Typography>
           </div>
         </div>
-        {payment.status === 'pending_verification' && (
-          <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {isPendingVerification && (
+            <>
+              <Button
+                color="success"
+                startContent={<CheckCircle size={18} />}
+                onPress={handleVerify}
+              >
+                {t('admin.payments.actions.verify')}
+              </Button>
+              <Button
+                color="danger"
+                variant="bordered"
+                startContent={<XCircle size={18} />}
+                onPress={handleReject}
+              >
+                {t('admin.payments.actions.reject')}
+              </Button>
+            </>
+          )}
+          {isCompleted && availableBalance > 0 && (
             <Button
-              color="success"
-              startContent={<CheckCircle size={18} />}
-              onPress={handleVerify}
+              color="primary"
+              startContent={<FileCheck size={18} />}
+              onPress={applyModal.onOpen}
             >
-              {t('admin.payments.actions.verify')}
+              {t('admin.payments.actions.applyToQuota')}
             </Button>
+          )}
+          {isCompleted && (
             <Button
-              color="danger"
+              color="warning"
               variant="bordered"
-              startContent={<XCircle size={18} />}
-              onPress={handleReject}
+              startContent={<RotateCcw size={18} />}
+              onPress={refundModal.onOpen}
             >
-              {t('admin.payments.actions.reject')}
+              {t('admin.payments.actions.refund')}
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -144,9 +378,7 @@ export default function PaymentDetailPage() {
             label={t('admin.payments.detail.paymentNumber')}
             value={payment.paymentNumber || t('admin.payments.detail.notAvailable')}
           />
-          <DetailRow
-            label={t('admin.payments.detail.status')}
-          >
+          <DetailRow label={t('admin.payments.detail.status')}>
             <Chip color={getPaymentStatusColor(payment.status)} variant="flat">
               {t(`admin.payments.status.${payment.status}`)}
             </Chip>
@@ -217,6 +449,14 @@ export default function PaymentDetailPage() {
               value={payment.exchangeRate}
             />
           )}
+          {isCompleted && (
+            <>
+              <DetailRow
+                label={t('admin.payments.applications.availableBalance')}
+                value={formatAmount(availableBalance.toFixed(2))}
+              />
+            </>
+          )}
         </DetailSection>
 
         {/* Dates */}
@@ -257,15 +497,20 @@ export default function PaymentDetailPage() {
         {/* Verification */}
         {(payment.verifiedBy || payment.verificationNotes) && (
           <DetailSection title={t('admin.payments.detail.verification')}>
-            {payment.verifiedByUser && (
-              <DetailRow
-                label={t('admin.payments.detail.verifiedBy')}
-                value={
-                  `${payment.verifiedByUser.firstName || ''} ${payment.verifiedByUser.lastName || ''}`.trim() ||
-                  payment.verifiedByUser.email
-                }
-              />
-            )}
+            <DetailRow label={t('admin.payments.detail.verifiedBy')}>
+              {isAutoVerified ? (
+                <Chip color="success" size="sm" variant="flat" startContent={<ShieldCheck size={12} />}>
+                  {t('admin.payments.detail.verifiedBySystem')}
+                </Chip>
+              ) : payment.verifiedByUser ? (
+                <span className="text-sm font-medium">
+                  {`${payment.verifiedByUser.firstName || ''} ${payment.verifiedByUser.lastName || ''}`.trim() ||
+                    payment.verifiedByUser.email}
+                </span>
+              ) : (
+                <span className="text-sm font-medium">{t('admin.payments.detail.notAvailable')}</span>
+              )}
+            </DetailRow>
             {payment.verificationNotes && (
               <DetailRow
                 label={t('admin.payments.detail.verificationNotes')}
@@ -282,8 +527,276 @@ export default function PaymentDetailPage() {
           </DetailSection>
         )}
       </div>
+
+      {/* ── Payment Applications ──────────────────────────────────────────── */}
+      {applications.length > 0 && (
+        <div className="rounded-lg border border-default-200 p-4">
+          <Typography className="mb-3" variant="h4">
+            {t('admin.payments.applications.title')}
+          </Typography>
+          <div className="space-y-2">
+            {applications.map((app) => (
+              <div
+                key={app.id}
+                className="flex flex-col gap-1 rounded-md bg-default-50 p-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-medium">
+                    {formatAmount(app.appliedAmount)} {payment.currency?.code ?? ''}
+                  </span>
+                  <span className="text-xs text-default-500">
+                    {t('admin.payments.detail.paymentDate')}: {formatDate(app.appliedAt)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-default-500">
+                  {parseFloat(app.appliedToPrincipal ?? '0') > 0 && (
+                    <span>Principal: {formatAmount(app.appliedToPrincipal)}</span>
+                  )}
+                  {parseFloat(app.appliedToInterest ?? '0') > 0 && (
+                    <span>Intereses: {formatAmount(app.appliedToInterest)}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Pending Allocations (Excess) ──────────────────────────────────── */}
+      {allocations.length > 0 && (
+        <div className="rounded-lg border border-warning-200 bg-warning-50 p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <AlertTriangle size={18} className="text-warning" />
+            <Typography variant="h4">
+              {t('admin.payments.pendingAllocations.title')}
+            </Typography>
+          </div>
+          <div className="space-y-2">
+            {allocations.map((alloc) => (
+              <div
+                key={alloc.id}
+                className="flex flex-col gap-2 rounded-md bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-medium">
+                    {formatAmount(alloc.pendingAmount)} {payment.currency?.code ?? ''}
+                  </span>
+                  <Chip
+                    color={getAllocationStatusColor(alloc.status)}
+                    size="sm"
+                    variant="flat"
+                  >
+                    {t(`admin.payments.pendingAllocations.status.${alloc.status}`)}
+                  </Chip>
+                </div>
+                {(alloc.status === 'pending' || alloc.status === 'refund_failed') && (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      color="primary"
+                      variant="flat"
+                      startContent={<FileCheck size={14} />}
+                      onPress={() => {
+                        allocateModal.onOpen()
+                      }}
+                    >
+                      {t('admin.payments.pendingAllocations.actions.allocate')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      color="warning"
+                      variant="flat"
+                      startContent={<Banknote size={14} />}
+                      onPress={() => {
+                        setRefundAllocationId(alloc.id)
+                        refundAllocationModal.onOpen()
+                      }}
+                    >
+                      {t('admin.payments.pendingAllocations.actions.refund')}
+                    </Button>
+                  </div>
+                )}
+                {alloc.resolutionNotes && (
+                  <span className="text-xs text-default-500">{alloc.resolutionNotes}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: Apply Payment to Quota ─────────────────────────────────── */}
+      <Modal isOpen={applyModal.isOpen} onOpenChange={applyModal.onOpenChange} size="lg">
+        <ModalContent>
+          <ModalHeader>{t('admin.payments.actions.applyToQuota')}</ModalHeader>
+          <ModalBody>
+            <div className="space-y-4">
+              <div className="rounded-md bg-default-100 p-3">
+                <Typography variant="body2" color="muted">
+                  {t('admin.payments.applications.availableBalance')}
+                </Typography>
+                <Typography variant="h4">
+                  {formatAmount(availableBalance.toFixed(2))} {payment.currency?.code ?? ''}
+                </Typography>
+              </div>
+
+              {pendingQuotas.length === 0 ? (
+                <Typography color="muted" variant="body2">
+                  {t('admin.payments.applications.noAvailableBalance')}
+                </Typography>
+              ) : (
+                <>
+                  <Select
+                    isRequired
+                    items={quotaSelectItems}
+                    label={t('admin.payments.applications.selectQuota')}
+                    value={selectedQuotaId}
+                    onChange={(key) => setSelectedQuotaId(key ?? '')}
+                  />
+
+                  <Input
+                    isRequired
+                    label={t('admin.payments.applications.amount')}
+                    placeholder={t('admin.payments.applications.amountPlaceholder')}
+                    type="number"
+                    value={applyAmount}
+                    onValueChange={setApplyAmount}
+                    inputMode="decimal"
+                  />
+                </>
+              )}
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="flat" onPress={applyModal.onClose}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              color="primary"
+              isDisabled={!selectedQuotaId || !applyAmount || parseFloat(applyAmount) <= 0}
+              isLoading={isSubmitting}
+              onPress={handleApplyToQuota}
+            >
+              {t('admin.payments.applications.apply')}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* ── Modal: Refund Payment ─────────────────────────────────────────── */}
+      <Modal isOpen={refundModal.isOpen} onOpenChange={refundModal.onOpenChange} size="md">
+        <ModalContent>
+          <ModalHeader>{t('admin.payments.actions.refund')}</ModalHeader>
+          <ModalBody>
+            <Textarea
+              isRequired
+              label={t('admin.payments.actions.refundReason')}
+              placeholder={t('admin.payments.actions.refundReasonPlaceholder')}
+              value={refundReason}
+              onValueChange={setRefundReason}
+              minRows={3}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="flat" onPress={refundModal.onClose}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              color="warning"
+              isDisabled={!refundReason.trim()}
+              isLoading={isSubmitting}
+              onPress={handleRefund}
+            >
+              {t('admin.payments.actions.refund')}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* ── Modal: Allocate Excess to Quota ───────────────────────────────── */}
+      <Modal isOpen={allocateModal.isOpen} onOpenChange={allocateModal.onOpenChange} size="lg">
+        <ModalContent>
+          <ModalHeader>{t('admin.payments.pendingAllocations.allocateModal.title')}</ModalHeader>
+          <ModalBody>
+            <div className="space-y-4">
+              <Select
+                isRequired
+                items={allocationQuotaItems}
+                label={t('admin.payments.pendingAllocations.allocateModal.selectQuota')}
+                value={allocationQuotaId}
+                onChange={(key) => setAllocationQuotaId(key ?? '')}
+              />
+              <Textarea
+                label={t('admin.payments.pendingAllocations.allocateModal.notes')}
+                placeholder={t('admin.payments.pendingAllocations.allocateModal.notesPlaceholder')}
+                value={allocationNotes}
+                onValueChange={setAllocationNotes}
+                minRows={2}
+              />
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="flat" onPress={allocateModal.onClose}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              color="primary"
+              isDisabled={!allocationQuotaId}
+              isLoading={isSubmitting}
+              onPress={handleAllocateExcess}
+            >
+              {t('admin.payments.pendingAllocations.allocateModal.confirm')}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* ── Modal: Refund Allocation ──────────────────────────────────────── */}
+      <Modal isOpen={refundAllocationModal.isOpen} onOpenChange={refundAllocationModal.onOpenChange} size="md">
+        <ModalContent>
+          <ModalHeader>{t('admin.payments.pendingAllocations.refundModal.title')}</ModalHeader>
+          <ModalBody>
+            <Textarea
+              isRequired
+              label={t('admin.payments.pendingAllocations.refundModal.notes')}
+              placeholder={t('admin.payments.pendingAllocations.refundModal.notesPlaceholder')}
+              value={refundAllocationNotes}
+              onValueChange={setRefundAllocationNotes}
+              minRows={3}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="flat" onPress={refundAllocationModal.onClose}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              color="warning"
+              isDisabled={!refundAllocationNotes.trim()}
+              isLoading={isSubmitting}
+              onPress={handleRefundAllocation}
+            >
+              {t('admin.payments.pendingAllocations.refundModal.confirm')}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+function getAllocationStatusColor(status: string) {
+  switch (status) {
+    case 'pending': return 'warning' as const
+    case 'allocated': return 'success' as const
+    case 'refunded': return 'default' as const
+    case 'refund_pending': return 'secondary' as const
+    case 'refund_failed': return 'danger' as const
+    default: return 'default' as const
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -204,6 +204,25 @@ export class PaymentsRepository
   }
 
   /**
+   * Retrieves payments by receipt number (bank reference).
+   * Excludes rejected payments since those references can be re-used.
+   */
+  async getByReceiptNumber(receiptNumber: string): Promise<TPayment[]> {
+    const results = await this.db
+      .select()
+      .from(payments)
+      .where(
+        and(
+          eq(payments.receiptNumber, receiptNumber),
+          sql`${payments.status} != 'rejected'`
+        )
+      )
+      .orderBy(desc(payments.paymentDate))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
    * Retrieves payments pending verification.
    */
   async getPendingVerification(): Promise<TPayment[]> {

@@ -10,7 +10,8 @@ import { Input } from '@/ui/components/input'
 import { Spinner } from '@/ui/components/spinner'
 import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
-import { User, Plus, Crown, Search, X } from 'lucide-react'
+import { Tooltip } from '@/ui/components/tooltip'
+import { User, Plus, Crown, Search, X, Info } from 'lucide-react'
 import { Avatar } from '@/ui/components/avatar-base'
 import { useTranslation } from '@/contexts'
 import type { TManagementCompanyMembersQuery } from '@packages/domain'
@@ -18,7 +19,11 @@ import type { TManagementCompanyMembersQuery } from '@packages/domain'
 import {
   useMyCompanyMembersPaginated,
   useCompanyCondominiumsPaginated,
+  useMyCompanyCanCreateResource,
+  useQueryClient,
+  managementCompanyMemberKeys,
 } from '@packages/http-client'
+import { InviteMemberModal } from './InviteMemberModal'
 
 type TRoleFilter = 'all' | 'admin' | 'accountant' | 'support' | 'viewer'
 type TStatusFilter = 'all' | 'active' | 'inactive'
@@ -55,6 +60,8 @@ function getMemberDisplayName(user: TMemberRow['user']): string {
 export function MyCompanyMembersPage({ managementCompanyId }: MyCompanyMembersPageProps) {
   const router = useRouter()
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
 
   // Filter state
   const [searchInput, setSearchInput] = useState('')
@@ -74,6 +81,16 @@ export function MyCompanyMembersPage({ managementCompanyId }: MyCompanyMembersPa
 
     return () => clearTimeout(timer)
   }, [searchInput])
+
+  // Check subscription limit for adding members
+  const { data: canCreateData } = useMyCompanyCanCreateResource({
+    managementCompanyId,
+    resourceType: 'user',
+    enabled: !!managementCompanyId,
+  })
+
+  const limitInfo = canCreateData?.data
+  const canAddMember = limitInfo?.canCreate ?? false
 
   // Fetch condominiums for filter dropdown
   const { data: condominiumsData } = useCompanyCondominiumsPaginated({
@@ -281,6 +298,7 @@ export function MyCompanyMembersPage({ managementCompanyId }: MyCompanyMembersPa
   }
 
   return (
+    <>
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -290,9 +308,29 @@ export function MyCompanyMembersPage({ managementCompanyId }: MyCompanyMembersPa
             {t('admin.company.myCompany.members.subtitle')}
           </Typography>
         </div>
-        <Button color="primary" startContent={<Plus size={16} />} isDisabled>
-          {t('admin.company.myCompany.members.addMember')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button color="primary" startContent={<Plus size={16} />} isDisabled={!canAddMember} onPress={() => setIsInviteModalOpen(true)}>
+            {t('admin.company.myCompany.members.addMember')}
+          </Button>
+          {!canAddMember && limitInfo?.limitReached && (
+            <Tooltip
+              content={
+                <div className="max-w-xs">
+                  {t('admin.company.myCompany.members.limitReached', {
+                    current: limitInfo.currentCount,
+                    max: limitInfo.maxAllowed ?? '∞',
+                  })}
+                </div>
+              }
+              placement="top"
+              showArrow
+            >
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-default-100 hover:bg-default-200 transition-colors cursor-help">
+                <Info className="text-default-500" size={18} />
+              </div>
+            </Tooltip>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
@@ -386,5 +424,15 @@ export function MyCompanyMembersPage({ managementCompanyId }: MyCompanyMembersPa
         </>
       )}
     </div>
+
+    <InviteMemberModal
+      isOpen={isInviteModalOpen}
+      onClose={() => setIsInviteModalOpen(false)}
+      managementCompanyId={managementCompanyId}
+      onSuccess={() => {
+        queryClient.invalidateQueries({ queryKey: managementCompanyMemberKeys.all })
+      }}
+    />
+    </>
   )
 }

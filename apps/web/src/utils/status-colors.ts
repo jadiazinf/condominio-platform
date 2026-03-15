@@ -33,6 +33,7 @@ const PAYMENT_STATUS_COLORS: Record<string, ChipColor> = {
   completed: 'success',
   failed: 'danger',
   refunded: 'default',
+  rejected: 'danger',
   cancelled: 'default',
   partially_refunded: 'warning',
 }

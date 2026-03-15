@@ -58,6 +58,9 @@ import {
   UserRolesRepository,
   UsersRepository,
 } from '@database/repositories'
+import {
+  GatewayTransactionsRepository,
+} from '@database/repositories/gateway-transactions.repository'
 import { PaymentConceptChangesRepository } from '@database/repositories/payment-concept-changes.repository'
 
 import {
@@ -123,7 +126,12 @@ import { AccessCodesController } from '../controllers/access-codes'
 import { AccessRequestsController } from '../controllers/access-requests'
 import { BankAccountsController } from '../controllers/bank-accounts/bank-accounts.controller'
 import { AddUnitOwnerService } from '@services/unit-ownerships/add-unit-owner.service'
+import { ProcessWebhookService } from '@services/webhooks'
+import { PaymentGatewayManager } from '@services/payment-gateways/gateway-manager'
 import { createSendNotificationService } from '../../services/notifications'
+import { Hono } from 'hono'
+import type { TGatewayType } from '@packages/domain'
+import logger from '@packages/logger'
 
 import type { TApiEndpointDefinition } from './types'
 
@@ -146,6 +154,7 @@ export function createRepositories(db: TDrizzleClient) {
     exchangeRates: new ExchangeRatesRepository(db),
     expenseCategories: new ExpenseCategoriesRepository(db),
     expenses: new ExpensesRepository(db),
+    gatewayTransactions: new GatewayTransactionsRepository(db),
     interestConfigurations: new InterestConfigurationsRepository(db),
     locations: new LocationsRepository(db),
     managementCompanies: new ManagementCompaniesRepository(db),
@@ -236,6 +245,8 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
   const bankAccountCondominiumsRepo = createBankAccountCondominiumsAdapter(r.bankAccounts)
 
   // Shared services
+  const gatewayManager = new PaymentGatewayManager()
+
   const sendNotificationService = createSendNotificationService(
     r.notifications, r.notificationDeliveries, r.userNotificationPreferences, r.userFcmTokens
   )
@@ -290,9 +301,9 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
     // Payments
     { path: '/platform/payment-gateways', router: new PaymentGatewaysController(r.paymentGateways).createRouter() },
     { path: '/condominium/entity-payment-gateways', router: new EntityPaymentGatewaysController(r.entityPaymentGateways).createRouter() },
-    { path: '/condominium/payments', router: new PaymentsController(r.payments, db, r.paymentApplications, r.quotas, sendNotificationService).createRouter() },
-    { path: '/condominium/payment-applications', router: new PaymentApplicationsController(r.paymentApplications, db, r.payments, r.quotas, r.quotaAdjustments, r.interestConfigurations).createRouter() },
-    { path: '/condominium/payment-pending-allocations', router: new PaymentPendingAllocationsController(r.paymentPendingAllocations, r.quotas).createRouter() },
+    { path: '/condominium/payments', router: new PaymentsController(r.payments, db, r.paymentApplications, r.quotas, sendNotificationService, r.paymentGateways, r.entityPaymentGateways, r.gatewayTransactions, gatewayManager, r.bankAccounts).createRouter() },
+    { path: '/condominium/payment-applications', router: new PaymentApplicationsController(r.paymentApplications, db, r.payments, r.quotas, r.quotaAdjustments, r.interestConfigurations, r.paymentPendingAllocations).createRouter() },
+    { path: '/condominium/payment-pending-allocations', router: new PaymentPendingAllocationsController(r.paymentPendingAllocations, r.quotas, r.payments, r.paymentGateways, r.entityPaymentGateways, r.gatewayTransactions, gatewayManager).createRouter() },
 
     // Expenses
     { path: '/condominium/expense-categories', router: new ExpenseCategoriesController(r.expenseCategories).createRouter() },
@@ -409,5 +420,98 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
     // Reports
     { path: '/condominium/reports', router: new ReportsController(r.quotas, r.payments, r.units, r.buildings).createRouter() },
 
+    // Health check
+    { path: '/health', router: createHealthRouter() },
+
+    // Webhooks (no auth — authenticated by gateway signature)
+    { path: '/webhooks', router: createWebhookRouter(db, r, sendNotificationService, gatewayManager) },
+
+    // WebSocket fallback (main upgrade handled in main.ts via Bun server)
+    { path: '/ws', router: createWebSocketFallbackRouter() },
   ]
+}
+
+function createHealthRouter(): Hono {
+  const router = new Hono()
+  router.get('/', (c) => {
+    return c.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    })
+  })
+  return router
+}
+
+function createWebhookRouter(
+  db: TDrizzleClient,
+  r: TRepositories,
+  sendNotificationService: ReturnType<typeof createSendNotificationService>,
+  gatewayManager: PaymentGatewayManager,
+): Hono {
+  const processWebhookService = new ProcessWebhookService(
+    db,
+    gatewayManager,
+    r.paymentGateways,
+    r.gatewayTransactions,
+    r.payments,
+    sendNotificationService,
+    r.paymentPendingAllocations,
+  )
+
+  const router = new Hono()
+
+  router.post('/:gatewayType', async (c) => {
+    const gatewayType = c.req.param('gatewayType') as TGatewayType
+
+    try {
+      const headers: Record<string, string> = {}
+      c.req.raw.headers.forEach((value, key) => {
+        headers[key] = value
+      })
+
+      const rawBody = await c.req.text()
+      let body: unknown
+      try {
+        body = JSON.parse(rawBody)
+      } catch {
+        return c.json({ error: 'Invalid JSON body' }, 400)
+      }
+
+      const result = await processWebhookService.execute({
+        gatewayType,
+        headers,
+        body,
+        rawBody,
+      })
+
+      if (!result.success) {
+        const statusCode = result.code === 'NOT_FOUND' ? 404
+          : result.code === 'FORBIDDEN' ? 403
+          : 400
+        return c.json({ error: result.error }, statusCode)
+      }
+
+      return c.json({ received: true }, 200)
+    } catch (error) {
+      logger.error({ error, gatewayType }, '[Webhook] Processing failed')
+      return c.json({ error: 'Webhook processing failed' }, 500)
+    }
+  })
+
+  return router
+}
+
+function createWebSocketFallbackRouter(): Hono {
+  const router = new Hono()
+
+  router.get('/tickets/:ticketId', (c) => {
+    return c.text('WebSocket upgrade must be handled by Bun server directly', 426)
+  })
+
+  router.get('/notifications', (c) => {
+    return c.text('WebSocket upgrade must be handled by Bun server directly', 426)
+  })
+
+  return router
 }

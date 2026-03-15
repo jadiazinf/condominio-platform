@@ -168,6 +168,7 @@ describe('CreatePaymentService', function () {
         amount: '100.00',
         currencyId: mockCurrency.id,
         paymentMethod: 'gateway',
+        paymentGatewayId: '550e8400-e29b-41d4-a716-446655440099',
         paymentDate: '2025-01-01',
         registeredByUserId: mockUser.id,
       })
@@ -176,6 +177,24 @@ describe('CreatePaymentService', function () {
       if (result.success) {
         expect(result.data.payment.status).toBe('pending')
         expect(result.data.message).toContain('pending automatic processing')
+      }
+    })
+
+    it('should fail when gateway payment method has no paymentGatewayId', async function () {
+      const result = await service.execute({
+        userId: mockUser.id,
+        unitId: mockUnit.id,
+        amount: '100.00',
+        currencyId: mockCurrency.id,
+        paymentMethod: 'gateway',
+        paymentDate: '2025-01-01',
+        registeredByUserId: mockUser.id,
+      })
+
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.code).toBe('BAD_REQUEST')
+        expect(result.error).toContain('paymentGatewayId')
       }
     })
 

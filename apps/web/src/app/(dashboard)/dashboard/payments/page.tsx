@@ -1,6 +1,8 @@
 import { Suspense } from 'react'
+import { Plus } from 'lucide-react'
 
 import { Typography } from '@/ui/components/typography'
+import { Link } from '@/ui/components/link'
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
 import { redirect } from 'next/navigation'
@@ -11,7 +13,8 @@ import { PaymentsTableSkeleton } from './components/PaymentsTableSkeleton'
 async function PaymentsContent() {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
 
-  if (!session.condominiums?.length) {
+  const isAdmin = session.activeRole === 'management_company'
+  if (!isAdmin && !session.condominiums?.length) {
     redirect('/dashboard')
   }
 
@@ -25,6 +28,16 @@ async function PaymentsContent() {
             {t('admin.payments.subtitle')}
           </Typography>
         </div>
+        {isAdmin && (
+          <Link
+            href="/dashboard/payments/register"
+            className="inline-flex items-center gap-2 rounded-medium bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            underline="none"
+          >
+            <Plus size={16} />
+            {t('admin.payments.register.button')}
+          </Link>
+        )}
       </div>
 
       {/* Payments Table */}

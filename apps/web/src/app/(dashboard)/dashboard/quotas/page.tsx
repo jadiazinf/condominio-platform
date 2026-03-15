@@ -11,7 +11,8 @@ import { QuotasTableSkeleton } from './components/QuotasTableSkeleton'
 async function QuotasContent() {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
 
-  if (!session.condominiums?.length) {
+  const isAdmin = session.activeRole === 'management_company'
+  if (!isAdmin && !session.condominiums?.length) {
     redirect('/dashboard')
   }
 

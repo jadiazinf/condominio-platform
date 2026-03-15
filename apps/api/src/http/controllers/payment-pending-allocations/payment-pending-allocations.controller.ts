@@ -1,7 +1,15 @@
 import type { Context } from 'hono'
 import { z } from 'zod'
 import { EAllocationStatuses, ESystemRole } from '@packages/domain'
-import type { PaymentPendingAllocationsRepository, QuotasRepository } from '@database/repositories'
+import type {
+  PaymentPendingAllocationsRepository,
+  QuotasRepository,
+  PaymentsRepository,
+  PaymentGatewaysRepository,
+  EntityPaymentGatewaysRepository,
+} from '@database/repositories'
+import type { GatewayTransactionsRepository } from '@database/repositories/gateway-transactions.repository'
+import type { PaymentGatewayManager } from '@src/services/payment-gateways/gateway-manager'
 import { HttpContext } from '../../context'
 import {
   bodyValidator,
@@ -16,6 +24,7 @@ import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-au
 import {
   AllocatePendingToQuotaService,
   RefundPendingAllocationService,
+  RefundExcessViaBankService,
 } from '@src/services/payment-pending-allocations'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -63,10 +72,16 @@ type TIdParam = z.infer<typeof IdParamSchema>
 export class PaymentPendingAllocationsController {
   private readonly allocatePendingToQuotaService: AllocatePendingToQuotaService
   private readonly refundPendingAllocationService: RefundPendingAllocationService
+  private readonly refundExcessViaBankService: RefundExcessViaBankService | null
 
   constructor(
     private readonly paymentPendingAllocationsRepository: PaymentPendingAllocationsRepository,
-    private readonly quotasRepository: QuotasRepository
+    private readonly quotasRepository: QuotasRepository,
+    paymentsRepo?: PaymentsRepository,
+    paymentGatewaysRepo?: PaymentGatewaysRepository,
+    entityPaymentGatewaysRepo?: EntityPaymentGatewaysRepository,
+    gatewayTransactionsRepo?: GatewayTransactionsRepository,
+    gatewayManager?: PaymentGatewayManager,
   ) {
     this.allocatePendingToQuotaService = new AllocatePendingToQuotaService(
       paymentPendingAllocationsRepository,
@@ -75,6 +90,16 @@ export class PaymentPendingAllocationsController {
     this.refundPendingAllocationService = new RefundPendingAllocationService(
       paymentPendingAllocationsRepository
     )
+    this.refundExcessViaBankService = (paymentsRepo && paymentGatewaysRepo && entityPaymentGatewaysRepo && gatewayTransactionsRepo && gatewayManager)
+      ? new RefundExcessViaBankService(
+          paymentPendingAllocationsRepository,
+          paymentsRepo,
+          paymentGatewaysRepo,
+          entityPaymentGatewaysRepo,
+          gatewayTransactionsRepo,
+          gatewayManager,
+        )
+      : null
   }
 
   get routes(): TRouteDefinition[] {
@@ -112,6 +137,17 @@ export class PaymentPendingAllocationsController {
         method: 'post',
         path: '/:id/refund',
         handler: this.refund,
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(IdParamSchema),
+          bodyValidator(RefundBodySchema),
+        ],
+      },
+      {
+        method: 'post',
+        path: '/:id/refund-via-bank',
+        handler: this.refundViaBank,
         middlewares: [
           authMiddleware,
           requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
@@ -224,6 +260,42 @@ export class PaymentPendingAllocationsController {
       }
 
       return ctx.ok({ data: result.data, message: 'Refund processed successfully' })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private refundViaBank = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TRefundBody, unknown, TIdParam>(c)
+    const user = c.get(AUTHENTICATED_USER_PROP)
+
+    if (!this.refundExcessViaBankService) {
+      return ctx.badRequest({ error: 'Bank refund is not configured. Gateway dependencies are missing.' })
+    }
+
+    try {
+      const result = await this.refundExcessViaBankService.execute({
+        allocationId: ctx.params.id,
+        refundedByUserId: user.id,
+        resolutionNotes: ctx.body.resolutionNotes,
+      })
+
+      if (!result.success) {
+        if (result.code === 'NOT_FOUND') {
+          return ctx.notFound({ error: result.error })
+        }
+        if (result.code === 'BAD_REQUEST') {
+          return ctx.badRequest({ error: result.error })
+        }
+        return ctx.internalError({ error: result.error })
+      }
+
+      return ctx.ok({
+        data: result.data.allocation,
+        refundId: result.data.refundId,
+        refundStatus: result.data.refundStatus,
+        message: 'Bank refund processed successfully',
+      })
     } catch (error) {
       return this.handleError(ctx, error)
     }

@@ -17,8 +17,11 @@ import { getPaymentStatusColor } from '@/utils/status-colors'
 import { useTranslation, useCondominium } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Pagination } from '@/ui/components/pagination'
+import { useSessionStore } from '@/stores'
 import {
   usePaymentsPaginated,
+  useCompanyCondominiumsPaginated,
+  useMyCompanyBankAccountsPaginated,
   verifyPayment,
   rejectPayment,
   paymentKeys,
@@ -38,14 +41,36 @@ export function PaymentsTable() {
   const queryClient = useQueryClient()
   const toast = useToast()
   const { selectedCondominium } = useCondominium()
+  const managementCompanies = useSessionStore(s => s.managementCompanies)
+  const managementCompanyId = managementCompanies?.[0]?.managementCompanyId ?? ''
 
   // Filter state
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<TStatusFilter>('pending_verification')
+  const [condominiumFilter, setCondominiumFilter] = useState('')
+  const [bankAccountFilter, setBankAccountFilter] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(20)
   const [actionInProgress, setActionInProgress] = useState<string | null>(null)
   const [exporting, setExporting] = useState<TReportFormat | null>(null)
+
+  // Fetch condominiums for filter
+  const { data: condominiumsData } = useCompanyCondominiumsPaginated({
+    companyId: managementCompanyId,
+    query: { page: 1, limit: 100 },
+    enabled: !!managementCompanyId,
+  })
+  const condominiums = condominiumsData?.data ?? []
+
+  // Fetch bank accounts for filter
+  const { data: bankAccountsData } = useMyCompanyBankAccountsPaginated({
+    companyId: managementCompanyId,
+    query: { page: 1, limit: 100, isActive: true },
+    enabled: !!managementCompanyId,
+  })
+  const bankAccounts = bankAccountsData?.data ?? []
 
   // Build query
   const query = useMemo(
@@ -53,15 +78,27 @@ export function PaymentsTable() {
       page,
       limit,
       status: statusFilter === 'all' ? undefined : statusFilter,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
     }),
-    [page, limit, statusFilter]
+    [page, limit, statusFilter, startDate, endDate]
   )
 
   // Fetch data from API
   const { data, isLoading, error, refetch } = usePaymentsPaginated({ query })
 
-  const payments = data?.data ?? []
+  const rawPayments = data?.data ?? []
   const pagination = data?.pagination ?? { page: 1, limit: 20, total: 0, totalPages: 0 }
+
+  // Client-side condominium filter (API doesn't support condominiumId filter directly)
+  const payments = useMemo(() => {
+    if (!condominiumFilter) return rawPayments
+    return rawPayments.filter(
+      (p: any) =>
+        p.unit?.building?.condominiumId === condominiumFilter ||
+        p.unit?.building?.condominium?.id === condominiumFilter
+    )
+  }, [rawPayments, condominiumFilter])
 
   // Status filter items
   const statusFilterItems: ISelectItem[] = useMemo(
@@ -105,9 +142,42 @@ export function PaymentsTable() {
     }
   }, [])
 
+  const handleCondominiumChange = useCallback((key: string | null) => {
+    setCondominiumFilter(key ?? '')
+    setPage(1)
+  }, [])
+
+  const condominiumFilterItems: ISelectItem[] = useMemo(
+    () => [
+      { key: '', label: t('admin.payments.filters.condominiumAll') },
+      ...condominiums.map((c: any) => ({ key: c.id, label: c.name })),
+    ],
+    [condominiums, t]
+  )
+
+  const handleBankAccountChange = useCallback((key: string | null) => {
+    setBankAccountFilter(key ?? '')
+    setPage(1)
+  }, [])
+
+  const bankAccountFilterItems: ISelectItem[] = useMemo(
+    () => [
+      { key: '', label: t('admin.payments.filters.bankAll') },
+      ...bankAccounts.map((b: any) => ({
+        key: b.id,
+        label: `${b.bankName} - ${b.accountNumber?.slice(-4) ?? ''}`,
+      })),
+    ],
+    [bankAccounts, t]
+  )
+
   const handleClearFilters = useCallback(() => {
     setSearch('')
     setStatusFilter('pending_verification')
+    setCondominiumFilter('')
+    setBankAccountFilter('')
+    setStartDate('')
+    setEndDate('')
     setPage(1)
   }, [])
 
@@ -193,17 +263,14 @@ export function PaymentsTable() {
     (payment: TPayment, columnKey: string) => {
       switch (columnKey) {
         case 'paymentNumber':
-          return (
-            <span className="font-medium text-sm">
-              {payment.paymentNumber || '-'}
-            </span>
-          )
+          return <span className="font-medium text-sm">{payment.paymentNumber || '-'}</span>
         case 'user':
           return (
             <div className="flex flex-col">
               <span className="text-sm font-medium">
                 {payment.user
-                  ? `${payment.user.firstName || ''} ${payment.user.lastName || ''}`.trim() || payment.user.email
+                  ? `${payment.user.firstName || ''} ${payment.user.lastName || ''}`.trim() ||
+                    payment.user.email
                   : '-'}
               </span>
               {payment.user?.email && (
@@ -212,11 +279,7 @@ export function PaymentsTable() {
             </div>
           )
         case 'unit':
-          return (
-            <span className="text-sm">
-              {payment.unit?.unitNumber || '-'}
-            </span>
-          )
+          return <span className="text-sm">{payment.unit?.unitNumber || '-'}</span>
         case 'amount':
           return (
             <div className="flex flex-col">
@@ -227,9 +290,7 @@ export function PaymentsTable() {
             </div>
           )
         case 'method':
-          return (
-            <span className="text-sm">{getPaymentMethodLabel(payment.paymentMethod)}</span>
-          )
+          return <span className="text-sm">{getPaymentMethodLabel(payment.paymentMethod)}</span>
         case 'date':
           return <span className="text-sm">{formatDate(payment.paymentDate)}</span>
         case 'status':
@@ -316,50 +377,100 @@ export function PaymentsTable() {
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <Input
-            className="w-full sm:max-w-xs"
-            placeholder={t('admin.payments.filters.searchPlaceholder')}
-            startContent={<Search className="text-default-400" size={16} />}
-            value={search}
-            onValueChange={handleSearchChange}
-          />
+      {/* Export buttons */}
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="bordered"
+          startContent={<Download size={16} />}
+          isLoading={exporting === 'csv'}
+          isDisabled={exporting !== null}
+          onPress={() => handleExport('csv')}
+        >
+          {t('admin.payments.export.csv')}
+        </Button>
+        <Button
+          variant="bordered"
+          startContent={<Download size={16} />}
+          isLoading={exporting === 'pdf'}
+          isDisabled={exporting !== null}
+          onPress={() => handleExport('pdf')}
+        >
+          {t('admin.payments.export.pdf')}
+        </Button>
+      </div>
+
+      {/* All filters in one row */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <Input
+          className="w-full sm:max-w-xs"
+          placeholder={t('admin.payments.filters.searchPlaceholder')}
+          startContent={<Search className="text-default-400" size={16} />}
+          value={search}
+          onValueChange={handleSearchChange}
+          size="lg"
+        />
+        <Select
+          aria-label={t('admin.payments.filters.status')}
+          className="w-full sm:w-44"
+          items={statusFilterItems}
+          value={statusFilter}
+          onChange={handleStatusChange}
+          variant="bordered"
+          size="lg"
+        />
+        {condominiums.length > 0 && (
           <Select
-            aria-label={t('admin.payments.filters.status')}
-            className="w-full sm:w-48"
-            items={statusFilterItems}
-            value={statusFilter}
-            onChange={handleStatusChange}
+            aria-label={t('admin.payments.filters.condominium')}
+            className="w-full sm:w-56"
+            items={condominiumFilterItems}
+            value={condominiumFilter}
+            onChange={handleCondominiumChange}
             variant="bordered"
+            placeholder={t('admin.payments.filters.condominiumAll')}
+            size="lg"
           />
-          {(search || statusFilter !== 'pending_verification') && (
-            <ClearFiltersButton onClear={handleClearFilters} />
-          )}
-        </div>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
+        )}
+        {bankAccounts.length > 0 && (
+          <Select
+            aria-label={t('admin.payments.filters.bank')}
+            className="w-full sm:w-44"
+            items={bankAccountFilterItems}
+            value={bankAccountFilter}
+            onChange={handleBankAccountChange}
             variant="bordered"
-            startContent={<Download size={16} />}
-            isLoading={exporting === 'csv'}
-            isDisabled={exporting !== null}
-            onPress={() => handleExport('csv')}
-          >
-            {t('admin.payments.export.csv')}
-          </Button>
-          <Button
-            size="sm"
-            variant="bordered"
-            startContent={<Download size={16} />}
-            isLoading={exporting === 'pdf'}
-            isDisabled={exporting !== null}
-            onPress={() => handleExport('pdf')}
-          >
-            {t('admin.payments.export.pdf')}
-          </Button>
-        </div>
+            placeholder={t('admin.payments.filters.bankAll')}
+          />
+        )}
+        <Input
+          className="w-full sm:w-36"
+          label={t('admin.payments.filters.startDate')}
+          type="date"
+          value={startDate}
+          onValueChange={v => {
+            setStartDate(v)
+            setPage(1)
+          }}
+          size="sm"
+          labelPlacement="inside"
+        />
+        <Input
+          className="w-full sm:w-36"
+          label={t('admin.payments.filters.endDate')}
+          type="date"
+          value={endDate}
+          onValueChange={v => {
+            setEndDate(v)
+            setPage(1)
+          }}
+          size="sm"
+          labelPlacement="inside"
+        />
+        {(search ||
+          statusFilter !== 'pending_verification' ||
+          condominiumFilter ||
+          bankAccountFilter ||
+          startDate ||
+          endDate) && <ClearFiltersButton onClear={handleClearFilters} />}
       </div>
 
       {/* Table */}

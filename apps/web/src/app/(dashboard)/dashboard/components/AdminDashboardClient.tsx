@@ -1,8 +1,10 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Building2, Wallet, AlertTriangle } from 'lucide-react'
+import { Spinner } from '@/ui/components/spinner'
 
 import {
   AdminKpiStat,
@@ -12,6 +14,15 @@ import {
   RecentAdminPayments,
 } from './admin'
 import type { ICondominium, IAdminPayment } from './admin'
+import {
+  useCompanyCondominiumsPaginated,
+  usePaymentsPaginated,
+  useQuotasOverdue,
+  usePaymentsByDateRange,
+  useQuotasByPeriod,
+} from '@packages/http-client'
+import type { TPayment, TQuota } from '@packages/domain'
+import { formatShortDate } from '@packages/utils/dates'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -19,34 +30,130 @@ import type { ICondominium, IAdminPayment } from './admin'
 
 interface AdminDashboardClientProps {
   displayName: string
-  companyName?: string
+  managementCompanyId: string
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Mock Data (sustituir por datos reales de la API)
+// Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-const MOCK_CONDOMINIUMS: ICondominium[] = [
-  { id: '1', name: 'Residencias del Parque', units: 48, isActive: true },
-  { id: '2', name: 'Torres del Sol', units: 120, isActive: true },
-  { id: '3', name: 'Villa Marina', units: 32, isActive: true },
-  { id: '4', name: 'Conjunto Los Pinos', units: 64, isActive: false },
-]
+function getMonthRange(): { startDate: string; endDate: string } {
+  const now = new Date()
+  const start = new Date(now.getFullYear(), now.getMonth(), 1)
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  return {
+    startDate: start.toISOString().split('T')[0],
+    endDate: end.toISOString().split('T')[0],
+  }
+}
 
-const MOCK_PAYMENTS: IAdminPayment[] = [
-  { id: '1', condominium: 'Residencias del Parque', unit: 'A-101', amount: 1500, currency: '$', status: 'completed', date: '10 Feb 2026' },
-  { id: '2', condominium: 'Torres del Sol', unit: 'B-305', amount: 2200, currency: '$', status: 'pending_verification', date: '09 Feb 2026' },
-  { id: '3', condominium: 'Villa Marina', unit: 'C-12', amount: 950, currency: '$', status: 'completed', date: '08 Feb 2026' },
-  { id: '4', condominium: 'Residencias del Parque', unit: 'A-204', amount: 1500, currency: '$', status: 'rejected', date: '07 Feb 2026' },
-  { id: '5', condominium: 'Torres del Sol', unit: 'D-501', amount: 3100, currency: '$', status: 'completed', date: '06 Feb 2026' },
-]
+function mapCondominiums(data: any[] | undefined): ICondominium[] {
+  if (!data) return []
+  return data.map((c) => ({
+    id: c.id,
+    name: c.name,
+    units: c._count?.units ?? c.unitsCount ?? 0,
+    isActive: c.isActive,
+  }))
+}
+
+function mapPayments(payments: TPayment[] | undefined): IAdminPayment[] {
+  if (!payments) return []
+  return payments.slice(0, 5).map((p) => ({
+    id: p.id,
+    condominium: p.unit?.building?.condominium?.name ?? p.unit?.unitNumber ?? '-',
+    unit: p.unit?.unitNumber ?? '-',
+    amount: parseFloat(p.amount) || 0,
+    currency: p.currency?.symbol ?? '$',
+    status: (p.status === 'completed' || p.status === 'pending_verification' || p.status === 'rejected')
+      ? p.status as 'completed' | 'pending_verification' | 'rejected'
+      : 'completed',
+    date: formatShortDate(p.paymentDate),
+  }))
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function AdminDashboardClient({ displayName, companyName }: AdminDashboardClientProps) {
+export function AdminDashboardClient({ displayName, managementCompanyId }: AdminDashboardClientProps) {
   const { t } = useTranslation()
+
+  // ── Data fetching ─────────────────────────────────────────────────────────
+
+  // Condominiums
+  const { data: condominiumsData, isLoading: condosLoading } = useCompanyCondominiumsPaginated({
+    companyId: managementCompanyId,
+    query: { page: 1, limit: 50 },
+    enabled: !!managementCompanyId,
+  })
+  const condominiums = condominiumsData?.data ?? []
+
+  // Recent payments (paginated, limit 5)
+  const { data: recentPaymentsData, isLoading: paymentsLoading } = usePaymentsPaginated({
+    query: { page: 1, limit: 5 },
+  })
+  const recentPayments = recentPaymentsData?.data ?? []
+
+  // Current month payments (for monthly income card)
+  const { startDate, endDate } = useMemo(getMonthRange, [])
+  const { data: monthPaymentsData } = usePaymentsByDateRange(startDate, endDate)
+  const monthPayments: TPayment[] = monthPaymentsData?.data ?? []
+
+  // Current month quotas (for expected amount)
+  const now = new Date()
+  const { data: monthQuotasData } = useQuotasByPeriod(now.getFullYear(), now.getMonth() + 1)
+  const monthQuotas: TQuota[] = monthQuotasData?.data ?? []
+
+  // Overdue quotas (delinquency)
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], [])
+  const { data: overdueData } = useQuotasOverdue(todayStr)
+  const overdueQuotas: TQuota[] = overdueData?.data ?? []
+
+  // ── Computed values ───────────────────────────────────────────────────────
+
+  // Monthly income: sum of completed payments this month
+  const monthlyCollected = useMemo(() => {
+    return monthPayments
+      .filter((p) => p.status === 'completed')
+      .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+  }, [monthPayments])
+
+  // Monthly expected: sum of all quota base amounts this month
+  const monthlyExpected = useMemo(() => {
+    return monthQuotas.reduce((sum, q) => sum + (parseFloat(q.baseAmount) || 0), 0)
+  }, [monthQuotas])
+
+  // Delinquency: sum of overdue quota balances
+  const totalDelinquency = useMemo(() => {
+    return overdueQuotas.reduce((sum, q) => sum + (parseFloat(q.balance) || 0), 0)
+  }, [overdueQuotas])
+
+  // Active condominiums count
+  const activeCondoCount = useMemo(() => {
+    return condominiums.filter((c: any) => c.isActive).length
+  }, [condominiums])
+
+  // Currency symbol from first payment or quota
+  const currencySymbol = useMemo(() => {
+    const fromPayment = recentPayments.find((p: any) => p.currency)?.currency?.symbol
+    const fromQuota = monthQuotas.find((q: TQuota) => q.currency)?.currency?.symbol
+    return fromPayment ?? fromQuota ?? '$'
+  }, [recentPayments, monthQuotas])
+
+  // Mapped data for sub-components
+  const mappedCondominiums = useMemo(() => mapCondominiums(condominiums), [condominiums])
+  const mappedPayments = useMemo(() => mapPayments(recentPayments as TPayment[]), [recentPayments])
+
+  // ── Show loading if critical data still loading ───────────────────────────
+
+  if (condosLoading && paymentsLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Spinner size="lg" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -58,69 +165,37 @@ export function AdminDashboardClient({ displayName, companyName }: AdminDashboar
         <Typography className="mt-1" color="muted" variant="body2">
           {t('admin.dashboard.subtitle')}
         </Typography>
-        {companyName && (
-          <Typography className="mt-2" color="muted" variant="caption">
-            {companyName}
-          </Typography>
-        )}
       </div>
 
-      {/*
-        KPI Cards Row — 3 columnas:
-        1. Condominios activos (stat con trend)
-        2. Pagos del Mes vs Esperado (progress bar)
-        3. Mora / Deuda vencida (stat con trend)
-      */}
+      {/* KPI Cards Row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-
-        {/*
-          KPI: Pagos del Mes vs Ingreso Esperado
-          - collected: suma de pagos completados del mes en curso
-          - expected: suma total de cuotas generadas para el mes en curso
-          Endpoints:
-            GET /condominium/payments?status=completed (filtrar por date-range del mes)
-            GET /condominium/quotas/period?year=YYYY&month=MM (sumar baseAmount)
-        */}
         <MonthlyIncomeCard
           title={t('admin.dashboard.kpi.monthlyIncome')}
-          collected={5550}
-          expected={18500}
-          currency="$"
+          collected={monthlyCollected}
+          expected={monthlyExpected}
+          currency={currencySymbol}
           label={t('admin.dashboard.kpi.of')}
           icon={<Wallet size={18} />}
           color="success"
           viewAllLabel={t('admin.dashboard.kpi.viewPayments')}
-          viewAllHref="/dashboard/condominiums"
+          viewAllHref="/dashboard/payments"
         />
 
-        {/*
-          KPI: Mora (Deuda Vencida)
-          Dato real: suma de cuotas con status=overdue (vencidas y no pagadas)
-          Endpoint: GET /condominium/quotas?status=overdue
-          Trend: comparar total de mora actual vs mes anterior
-          changeType: si la mora sube = negative (malo), si baja = positive (bueno)
-        */}
         <AdminKpiStat
           title={t('admin.dashboard.kpi.delinquency')}
-          value="$ 12,450"
-          change="3.3%"
-          changeType="negative"
+          value={`${currencySymbol} ${totalDelinquency.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          change={`${overdueQuotas.length}`}
+          changeType={totalDelinquency > 0 ? 'negative' : 'positive'}
           icon={<AlertTriangle className="text-danger" size={20} />}
           iconBg="bg-danger-50"
           viewAllLabel={t('admin.dashboard.kpi.viewDelinquency')}
-          viewAllHref="/dashboard/condominiums"
+          viewAllHref="/dashboard/quotas"
         />
 
-        {/*
-          KPI: Condominios Activos
-          Dato real: contar condominiums con isActive=true del management company
-          Endpoint: GET /platform/condominiums/management-company/:companyId
-          Trend: comparar con el mes anterior (nuevos condominios agregados)
-        */}
         <AdminKpiStat
           title={t('admin.dashboard.kpi.condominiums')}
-          value={String(MOCK_CONDOMINIUMS.filter(c => c.isActive).length)}
-          change="8.3%"
+          value={String(activeCondoCount)}
+          change={`${condominiums.length} ${t('admin.dashboard.condominiums.total')}`}
           changeType="positive"
           icon={<Building2 className="text-success" size={20} />}
           iconBg="bg-success-50"
@@ -129,14 +204,10 @@ export function AdminDashboardClient({ displayName, companyName }: AdminDashboar
         />
       </div>
 
-      {/*
-        Grafico de Ingresos por Periodo
-        Muestra la evolucion de pagos completados agrupados por periodo.
-        Permite filtrar: 6 meses, 3 meses, 30 dias, 7 dias.
-        Dato real: GET /condominium/payments?status=completed con date-range
-        Agrupar por mes/semana/dia segun el filtro seleccionado.
-      */}
+      {/* Income Chart */}
       <IncomeChart
+        managementCompanyId={managementCompanyId}
+        currencySymbol={currencySymbol}
         translations={{
           title: t('admin.dashboard.chart.title'),
           periods: {
@@ -149,19 +220,10 @@ export function AdminDashboardClient({ displayName, companyName }: AdminDashboar
         }}
       />
 
-      {/*
-        Bottom Row: Condominios Overview + Pagos Recientes
-      */}
+      {/* Bottom Row: Condominios + Pagos Recientes */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-
-        {/*
-          Condominios Overview
-          Lista los condominios de la empresa con nombre, cantidad de unidades y estado.
-          Dato real: GET /platform/condominiums/management-company/:companyId
-          Cada condominio muestra: name, units count (from buildings/units), isActive
-        */}
         <CondominiumsOverview
-          condominiums={MOCK_CONDOMINIUMS}
+          condominiums={mappedCondominiums}
           translations={{
             title: t('admin.dashboard.condominiums.title'),
             viewAll: t('admin.dashboard.condominiums.viewAll'),
@@ -172,14 +234,8 @@ export function AdminDashboardClient({ displayName, companyName }: AdminDashboar
           }}
         />
 
-        {/*
-          Pagos Recientes
-          Ultimos 5 pagos recibidos en todos los condominios de la empresa.
-          Dato real: GET /condominium/payments (limit=5, ordenado por fecha desc)
-          Muestra: nombre del condominio, unidad, monto, estado, fecha
-        */}
         <RecentAdminPayments
-          payments={MOCK_PAYMENTS}
+          payments={mappedPayments}
           translations={{
             title: t('admin.dashboard.payments.title'),
             viewAll: t('admin.dashboard.payments.viewAll'),

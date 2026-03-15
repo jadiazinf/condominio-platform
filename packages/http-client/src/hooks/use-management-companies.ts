@@ -188,6 +188,20 @@ export function useCanCreateResource(options: UseCanCreateResourceOptions) {
 }
 
 /**
+ * Hook to check if the authenticated user's own management company can create a resource
+ * based on their subscription limits. Uses the /me/ endpoint (requires ADMIN role).
+ */
+export function useMyCompanyCanCreateResource(options: UseCanCreateResourceOptions) {
+  const { managementCompanyId, resourceType, enabled = true } = options
+
+  return useApiQuery<TApiDataResponse<TSubscriptionLimitValidation>>({
+    path: `/platform/management-companies/${managementCompanyId}/me/subscription/can-create/${resourceType}`,
+    queryKey: ['management-companies', managementCompanyId, 'me', 'can-create', resourceType],
+    enabled: enabled && !!managementCompanyId && !!resourceType,
+  })
+}
+
+/**
  * Hook to create a management company.
  */
 export function useCreateManagementCompany(options: UseCreateManagementCompanyOptions) {

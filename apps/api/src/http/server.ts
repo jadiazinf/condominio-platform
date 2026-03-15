@@ -1,7 +1,8 @@
 import { Hono } from 'hono'
 import { applyLogger } from './middlewares/logger'
 import { applyErrorHandler } from './middlewares/error-handler'
-import { ApiRoutes } from './endpoints'
+import { createRoutes } from './endpoints/composition-root'
+import { DatabaseService } from '@database/service'
 import {
   applyBodyLimit,
   applyCors,
@@ -52,7 +53,8 @@ export class Server {
   }
 
   private setupRoutes(app: Hono) {
-    for (const { path, router } of new ApiRoutes().getRoutes()) {
+    const db = DatabaseService.getInstance().getDb()
+    for (const { path, router } of createRoutes(db)) {
       app.route(`/api${path}`, router)
     }
   }

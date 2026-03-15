@@ -164,6 +164,8 @@ export const allocationStatusEnum = pgEnum('allocation_status', [
   'pending',
   'allocated',
   'refunded',
+  'refund_pending',
+  'refund_failed',
 ])
 
 // ============================================================================

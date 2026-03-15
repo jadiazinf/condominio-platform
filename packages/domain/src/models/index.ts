@@ -30,6 +30,7 @@ export * from './payment-applications'
 export * from './payment-pending-allocations'
 export * from './payment-gateways'
 export * from './entity-payment-gateways'
+export * from './gateway-transactions'
 export * from './interest-configurations'
 
 // Expenses

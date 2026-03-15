@@ -20,19 +20,24 @@ import type {
   ManagementCompanySubscriptionsRepository,
   LocationsRepository,
   UsersRepository,
+  UserInvitationsRepository,
+  UserRolesRepository,
+  RolesRepository,
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
+import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
 import { IdParamSchema, ManagementCompanyIdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
 import type { ISubscriptionHistoryQuery } from '@database/repositories/management-company-subscriptions.repository'
 import { ValidateSubscriptionLimitsService, CancelSubscriptionService, type TResourceType } from '@src/services/subscriptions'
+import { CreateMemberWithInvitationService } from '@src/services/management-company-members/create-member-with-invitation.service'
 import { SendSubscriptionCancellationEmailService } from '@src/services/email'
 import { DatabaseService } from '@database/service'
 import { AppError } from '@errors/index'
-import type { ManagementCompanyMembersRepository, PaymentConceptsRepository } from '@database/repositories'
+import type { ManagementCompanyMembersRepository, PaymentConceptsRepository, AuditLogsRepository } from '@database/repositories'
 
 const TaxIdNumberParamSchema = z.object({
   taxIdNumber: z.string().min(1),
@@ -59,6 +64,26 @@ const CheckLimitParamSchema = z.object({
 
 type TCheckLimitParam = z.infer<typeof CheckLimitParamSchema>
 
+const MyCompanyCheckLimitParamSchema = z.object({
+  managementCompanyId: z.string().uuid('Invalid management company ID format'),
+  resourceType: z.enum(['condominium', 'unit', 'user']),
+})
+
+type TMyCompanyCheckLimitParam = z.infer<typeof MyCompanyCheckLimitParamSchema>
+
+const InviteMemberBodySchema = z.object({
+  email: z.string().email(),
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+  phoneCountryCode: z.string().optional(),
+  phoneNumber: z.string().optional(),
+  idDocumentType: z.enum(['J', 'G', 'V', 'E', 'P']).optional(),
+  idDocumentNumber: z.string().optional(),
+  memberRole: z.enum(['admin', 'accountant', 'support', 'viewer']),
+})
+
+type TInviteMemberBody = z.infer<typeof InviteMemberBodySchema>
+
 const MemberSubscriptionHistoryQuerySchema = z.object({
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
@@ -77,6 +102,37 @@ const MemberCancelSubscriptionBodySchema = z.object({
 })
 
 type TMemberCancelSubscriptionBody = z.infer<typeof MemberCancelSubscriptionBodySchema>
+
+const MemberIdParamSchema = z.object({
+  managementCompanyId: z.string().uuid(),
+  memberId: z.string().uuid(),
+})
+
+type TMemberIdParam = z.infer<typeof MemberIdParamSchema>
+
+const MemberAuditLogIdParamSchema = z.object({
+  managementCompanyId: z.string().uuid(),
+  memberId: z.string().uuid(),
+  logId: z.string().uuid(),
+})
+
+type TMemberAuditLogIdParam = z.infer<typeof MemberAuditLogIdParamSchema>
+
+const UpdateMemberRoleBodySchema = z.object({
+  role: z.enum(['admin', 'accountant', 'support', 'viewer']),
+})
+
+type TUpdateMemberRoleBody = z.infer<typeof UpdateMemberRoleBodySchema>
+
+const MemberAuditLogsQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+  action: z.enum(['INSERT', 'UPDATE', 'DELETE']).optional(),
+  dateFrom: z.string().optional(),
+  dateTo: z.string().optional(),
+})
+
+type TMemberAuditLogsQuery = z.infer<typeof MemberAuditLogsQuerySchema>
 
 /**
  * Controller for managing management company resources.
@@ -98,11 +154,13 @@ export class ManagementCompaniesController extends BaseController<
   private readonly managementCompaniesRepository: ManagementCompaniesRepository
   private readonly validateLimitsService: ValidateSubscriptionLimitsService
   private readonly cancelService: CancelSubscriptionService
+  private readonly createMemberWithInvitationService: CreateMemberWithInvitationService | null
   private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository
   private readonly locationsRepository: LocationsRepository
   private readonly usersRepository: UsersRepository
   private readonly membersRepository?: ManagementCompanyMembersRepository
   private readonly paymentConceptsRepository?: PaymentConceptsRepository
+  private readonly auditLogsRepository?: AuditLogsRepository
 
   constructor(
     repository: ManagementCompaniesRepository,
@@ -110,7 +168,11 @@ export class ManagementCompaniesController extends BaseController<
     locationsRepository: LocationsRepository,
     usersRepository: UsersRepository,
     membersRepository?: ManagementCompanyMembersRepository,
-    paymentConceptsRepository?: PaymentConceptsRepository
+    paymentConceptsRepository?: PaymentConceptsRepository,
+    invitationsRepository?: UserInvitationsRepository,
+    userRolesRepository?: UserRolesRepository,
+    rolesRepository?: RolesRepository,
+    auditLogsRepository?: AuditLogsRepository
   ) {
     super(repository)
     this.managementCompaniesRepository = repository
@@ -119,6 +181,7 @@ export class ManagementCompaniesController extends BaseController<
     this.usersRepository = usersRepository
     this.membersRepository = membersRepository
     this.paymentConceptsRepository = paymentConceptsRepository
+    this.auditLogsRepository = auditLogsRepository
     this.validateLimitsService = new ValidateSubscriptionLimitsService(
       subscriptionsRepository,
       repository
@@ -131,6 +194,17 @@ export class ManagementCompaniesController extends BaseController<
       emailService: new SendSubscriptionCancellationEmailService(),
       db,
     })
+    this.createMemberWithInvitationService =
+      membersRepository && invitationsRepository && userRolesRepository && rolesRepository
+        ? new CreateMemberWithInvitationService(
+            membersRepository,
+            repository,
+            invitationsRepository,
+            usersRepository,
+            userRolesRepository,
+            rolesRepository
+          )
+        : null
   }
 
   get routes(): TRouteDefinition[] {
@@ -204,9 +278,63 @@ export class ManagementCompaniesController extends BaseController<
       },
       {
         method: 'get',
+        path: '/:managementCompanyId/me/subscription/can-create/:resourceType',
+        handler: this.checkMyCompanyCanCreateResource,
+        middlewares: [authMiddleware, paramsValidator(MyCompanyCheckLimitParamSchema), requireRole(ESystemRole.ADMIN)],
+      },
+      {
+        method: 'post',
+        path: '/:managementCompanyId/me/members/invite',
+        handler: this.inviteMyCompanyMember,
+        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN), bodyValidator(InviteMemberBodySchema)],
+      },
+      {
+        method: 'get',
         path: '/:managementCompanyId/me/members',
         handler: this.getMyCompanyMembers,
         middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN), queryValidator(managementCompanyMembersQuerySchema)],
+      },
+      {
+        method: 'get',
+        path: '/:managementCompanyId/me/members/:memberId',
+        handler: this.getMyCompanyMemberDetail,
+        middlewares: [authMiddleware, paramsValidator(MemberIdParamSchema), requireRole(ESystemRole.ADMIN)],
+      },
+      {
+        method: 'patch',
+        path: '/:managementCompanyId/me/members/:memberId/role',
+        handler: this.updateMyCompanyMemberRole,
+        middlewares: [authMiddleware, paramsValidator(MemberIdParamSchema), requireRole(ESystemRole.ADMIN), bodyValidator(UpdateMemberRoleBodySchema)],
+      },
+      {
+        method: 'post',
+        path: '/:managementCompanyId/me/members/:memberId/deactivate',
+        handler: this.deactivateMyCompanyMember,
+        middlewares: [authMiddleware, paramsValidator(MemberIdParamSchema), requireRole(ESystemRole.ADMIN)],
+      },
+      {
+        method: 'post',
+        path: '/:managementCompanyId/me/members/:memberId/reactivate',
+        handler: this.reactivateMyCompanyMember,
+        middlewares: [authMiddleware, paramsValidator(MemberIdParamSchema), requireRole(ESystemRole.ADMIN)],
+      },
+      {
+        method: 'get',
+        path: '/:managementCompanyId/me/members/:memberId/audit-logs',
+        handler: this.getMyCompanyMemberAuditLogs,
+        middlewares: [authMiddleware, paramsValidator(MemberIdParamSchema), requireRole(ESystemRole.ADMIN)],
+      },
+      {
+        method: 'get',
+        path: '/:managementCompanyId/me/members/:memberId/audit-logs/paginated',
+        handler: this.getMyCompanyMemberAuditLogsPaginated,
+        middlewares: [authMiddleware, paramsValidator(MemberIdParamSchema), requireRole(ESystemRole.ADMIN), queryValidator(MemberAuditLogsQuerySchema)],
+      },
+      {
+        method: 'get',
+        path: '/:managementCompanyId/me/members/:memberId/audit-logs/:logId',
+        handler: this.getMyCompanyMemberAuditLogDetail,
+        middlewares: [authMiddleware, paramsValidator(MemberAuditLogIdParamSchema), requireRole(ESystemRole.ADMIN)],
       },
       {
         method: 'get',
@@ -525,6 +653,65 @@ export class ManagementCompaniesController extends BaseController<
     }
   }
 
+  private checkMyCompanyCanCreateResource = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TMyCompanyCheckLimitParam>(c)
+
+    try {
+      const result = await this.validateLimitsService.execute({
+        managementCompanyId: ctx.params.managementCompanyId,
+        resourceType: ctx.params.resourceType as TResourceType,
+      })
+
+      if (!result.success) {
+        return ctx.notFound({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private inviteMyCompanyMember = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TInviteMemberBody, unknown, { managementCompanyId: string }>(c)
+
+    if (!this.createMemberWithInvitationService) {
+      return ctx.badRequest({ error: 'Member invitation service not configured' })
+    }
+
+    const authenticatedUser = c.get(AUTHENTICATED_USER_PROP)
+
+    try {
+      const result = await this.createMemberWithInvitationService.execute({
+        managementCompanyId: ctx.params.managementCompanyId,
+        email: ctx.body.email,
+        firstName: ctx.body.firstName ?? null,
+        lastName: ctx.body.lastName ?? null,
+        displayName: ctx.body.firstName && ctx.body.lastName
+          ? `${ctx.body.firstName} ${ctx.body.lastName}`
+          : null,
+        phoneCountryCode: ctx.body.phoneCountryCode ?? null,
+        phoneNumber: ctx.body.phoneNumber ?? null,
+        idDocumentType: ctx.body.idDocumentType ?? null,
+        idDocumentNumber: ctx.body.idDocumentNumber ?? null,
+        memberRole: ctx.body.memberRole,
+        isPrimaryAdmin: false,
+        createdBy: authenticatedUser?.id,
+      })
+
+      if (!result.success) {
+        if (result.code === 'CONFLICT') {
+          return ctx.conflict({ error: result.error })
+        }
+        return ctx.badRequest({ error: result.error })
+      }
+
+      return ctx.created({ data: result.data })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
   private getMyCompanyMembers = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TManagementCompanyMembersQuerySchema, { managementCompanyId: string }>(c)
 
@@ -540,6 +727,199 @@ export class ManagementCompaniesController extends BaseController<
       )
 
       return ctx.ok(result)
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private getMyCompanyMemberDetail = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TMemberIdParam>(c)
+
+    try {
+      if (!this.membersRepository) {
+        return ctx.badRequest({ error: 'Members repository not configured' })
+      }
+
+      const member = await this.membersRepository.getByIdWithUser(ctx.params.memberId)
+
+      if (!member || member.managementCompanyId !== ctx.params.managementCompanyId) {
+        return ctx.notFound({ error: 'Member not found' })
+      }
+
+      return ctx.ok({ data: member })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private updateMyCompanyMemberRole = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TUpdateMemberRoleBody, unknown, TMemberIdParam>(c)
+
+    try {
+      if (!this.membersRepository) {
+        return ctx.badRequest({ error: 'Members repository not configured' })
+      }
+
+      const member = await this.membersRepository.getById(ctx.params.memberId)
+      if (!member || member.managementCompanyId !== ctx.params.managementCompanyId) {
+        return ctx.notFound({ error: 'Member not found' })
+      }
+
+      if (!member.isActive) {
+        return ctx.badRequest({ error: 'Cannot change role of an inactive member' })
+      }
+
+      if (member.isPrimaryAdmin) {
+        return ctx.badRequest({ error: 'Cannot change role of the primary admin' })
+      }
+
+      const updated = await this.membersRepository.updateRole(ctx.params.memberId, ctx.body.role)
+      if (!updated) {
+        return ctx.notFound({ error: 'Member not found' })
+      }
+
+      return ctx.ok({ data: updated })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private deactivateMyCompanyMember = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TMemberIdParam>(c)
+    const authenticatedUser = c.get(AUTHENTICATED_USER_PROP)
+
+    try {
+      if (!this.membersRepository) {
+        return ctx.badRequest({ error: 'Members repository not configured' })
+      }
+
+      const member = await this.membersRepository.getById(ctx.params.memberId)
+      if (!member || member.managementCompanyId !== ctx.params.managementCompanyId) {
+        return ctx.notFound({ error: 'Member not found' })
+      }
+
+      if (!member.isActive) {
+        return ctx.badRequest({ error: 'Member is already inactive' })
+      }
+
+      // Cannot deactivate yourself
+      if (member.userId === authenticatedUser?.id) {
+        return ctx.badRequest({ error: 'Cannot deactivate yourself' })
+      }
+
+      const deactivated = await this.membersRepository.removeMember(ctx.params.memberId, authenticatedUser?.id)
+      if (!deactivated) {
+        return ctx.notFound({ error: 'Member not found' })
+      }
+
+      return ctx.ok({ data: deactivated })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private reactivateMyCompanyMember = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TMemberIdParam>(c)
+
+    try {
+      if (!this.membersRepository) {
+        return ctx.badRequest({ error: 'Members repository not configured' })
+      }
+
+      const member = await this.membersRepository.getByIdWithUser(ctx.params.memberId)
+      if (!member || member.managementCompanyId !== ctx.params.managementCompanyId) {
+        return ctx.notFound({ error: 'Member not found' })
+      }
+
+      if (member.isActive) {
+        return ctx.badRequest({ error: 'Member is already active' })
+      }
+
+      // Cannot reactivate if user hasn't verified email (hasn't accepted invitation)
+      if (member.user && !member.user.isEmailVerified) {
+        return ctx.badRequest({ error: 'Cannot reactivate a user who has not accepted their invitation' })
+      }
+
+      const reactivated = await this.membersRepository.reactivateMember(ctx.params.memberId)
+      if (!reactivated) {
+        return ctx.notFound({ error: 'Member not found' })
+      }
+
+      return ctx.ok({ data: reactivated })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private getMyCompanyMemberAuditLogs = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TMemberIdParam>(c)
+
+    try {
+      if (!this.membersRepository || !this.auditLogsRepository) {
+        return ctx.badRequest({ error: 'Required repositories not configured' })
+      }
+
+      // Verify member belongs to the company
+      const member = await this.membersRepository.getById(ctx.params.memberId)
+      if (!member || member.managementCompanyId !== ctx.params.managementCompanyId) {
+        return ctx.notFound({ error: 'Member not found' })
+      }
+
+      const logs = await this.auditLogsRepository.getByTableAndRecord(
+        'management_company_members',
+        ctx.params.memberId
+      )
+
+      return ctx.ok({ data: logs })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private getMyCompanyMemberAuditLogsPaginated = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, TMemberAuditLogsQuery, TMemberIdParam>(c)
+
+    try {
+      if (!this.membersRepository || !this.auditLogsRepository) {
+        return ctx.badRequest({ error: 'Required repositories not configured' })
+      }
+
+      const member = await this.membersRepository.getById(ctx.params.memberId)
+      if (!member || member.managementCompanyId !== ctx.params.managementCompanyId) {
+        return ctx.notFound({ error: 'Member not found' })
+      }
+
+      const result = await this.auditLogsRepository.getByTableAndRecordPaginated(
+        'management_company_members',
+        ctx.params.memberId,
+        ctx.query
+      )
+
+      return ctx.ok(result)
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private getMyCompanyMemberAuditLogDetail = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TMemberAuditLogIdParam>(c)
+
+    try {
+      if (!this.membersRepository || !this.auditLogsRepository) {
+        return ctx.badRequest({ error: 'Required repositories not configured' })
+      }
+
+      const member = await this.membersRepository.getById(ctx.params.memberId)
+      if (!member || member.managementCompanyId !== ctx.params.managementCompanyId) {
+        return ctx.notFound({ error: 'Member not found' })
+      }
+
+      const log = await this.auditLogsRepository.getById(ctx.params.logId)
+      if (!log || log.tableName !== 'management_company_members' || log.recordId !== ctx.params.memberId) {
+        return ctx.notFound({ error: 'Audit log not found' })
+      }
+
+      return ctx.ok({ data: log })
     } catch (error) {
       return this.handleError(ctx, error)
     }

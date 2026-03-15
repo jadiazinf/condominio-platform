@@ -42,14 +42,41 @@
       "Bash(npx eslint src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/payment-concepts/components/wizard/CreatePaymentConceptWizard.tsx src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/payment-concepts/components/PaymentConceptDetailPageClient.tsx)",
       "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/payment-concepts -type f -name \"*.tsx\" -o -name \"*.ts\")",
       "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/admins/[id]/condominiums -type f -name \"*.tsx\")",
-      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app -path \"*\\(landing\\)*\" -type f)"
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app -path \"*\\(landing\\)*\" -type f)",
+      "Bash(ls /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-management-company/members/components/)",
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-management-company/members/)",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/admins/[id] -type d)",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/admins/[id]/members -type f -name \"*.tsx\")",
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-management-company/bank-accounts/)",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/admins/[id]/tickets/[ticketId] -type f -name \"*.tsx\")",
+      "Bash(ls -la \"/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\(dashboard\\)/dashboard/my-management-company/members/\")",
+      "Bash(ls /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-management-company/members/[memberId]/)",
+      "Bash(bunx drizzle-kit:*)",
+      "Bash(PGPASSWORD=jesud11176 psql -h localhost -U jesusdicen -d condominio_db -c \"SELECT * FROM __drizzle_migrations ORDER BY created_at;\")",
+      "Bash(PGPASSWORD=jesud11176 psql -h localhost -U jesusdicen -d condominio_db -c \"SELECT typname FROM pg_type WHERE typname = ''adjustment_type'';\")",
+      "Bash(PGPASSWORD=jesud11176 psql -h localhost -U jesusdicen -d condominio_db -c \"SELECT schemaname, tablename FROM pg_tables WHERE tablename LIKE ''%drizzle%'';\")",
+      "Bash(PGPASSWORD=jesud11176 psql -h localhost -U jesusdicen -d condominio_db -c \"SELECT hash, created_at FROM drizzle.__drizzle_migrations ORDER BY created_at;\")",
+      "Bash(PGPASSWORD=jesud11176 psql -h localhost -U jesusdicen -d condominio_db -c \":*)",
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/)",
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/payments/)",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/payments -type f)",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/quotas -type f)",
+      "Bash(ls /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/payments/)",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/quotas -type f -name \"*.tsx\" -o -name \"*.ts\")",
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/components/)",
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/components/)",
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/components/admin/)",
+      "Bash(ls apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/payments/)",
+      "Bash(awk 'NR==1 || NR==3227 || NR==3849 || NR==4777' /home/jesusdicen/proyects/latorre/platform/apps/web/src/locales/es.json)",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/users -type f -name \"*.tsx\" -o -name \"*.ts\")"
     ],
     "additionalDirectories": [
       "/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/(dashboard)/dashboard/condominiums/[id]/reserve-fund",
       "/home/jesusdicen/proyects/latorre/platform/apps/api/tests/services/audit-logs",
       "/tmp",
       "/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/(dashboard)/dashboard/condominiums/[id]/restructurings",
-      "/home/jesusdicen/proyects/latorre/platform/apps/api/src/services/concept-restructurings"
+      "/home/jesusdicen/proyects/latorre/platform/apps/api/src/services/concept-restructurings",
+      "/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/(dashboard)/dashboard/my-management-company/members"
     ]
   }
 }

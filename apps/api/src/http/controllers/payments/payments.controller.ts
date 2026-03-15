@@ -7,9 +7,18 @@ import {
   type TPaymentUpdate,
   ESystemRole,
 } from '@packages/domain'
-import type { PaymentsRepository, PaymentApplicationsRepository, QuotasRepository } from '@database/repositories'
+import type {
+  PaymentsRepository,
+  PaymentApplicationsRepository,
+  QuotasRepository,
+  PaymentGatewaysRepository,
+  EntityPaymentGatewaysRepository,
+  BankAccountsRepository,
+} from '@database/repositories'
+import type { GatewayTransactionsRepository } from '@database/repositories/gateway-transactions.repository'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import type { SendNotificationService } from '@src/services/notifications'
+import type { PaymentGatewayManager } from '@src/services/payment-gateways/gateway-manager'
 import { BaseController } from '../base.controller'
 import {
   bodyValidator,
@@ -88,6 +97,22 @@ const RefundBodySchema = z.object({
 
 type TRefundBody = z.infer<typeof RefundBodySchema>
 
+const VerifyReferenceBodySchema = z.object({
+  externalReference: z.string().min(1, 'External reference is required'),
+  bankAccountId: z.string().uuid('Invalid bank account ID'),
+  senderBankCode: z.string().optional(),
+  transactionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)').optional(),
+})
+
+type TVerifyReferenceBody = z.infer<typeof VerifyReferenceBodySchema>
+
+const ReportPaymentBodySchema = paymentCreateSchema.extend({
+  externalReference: z.string().optional(),
+  condominiumId: z.string().uuid().optional(),
+})
+
+type TReportPaymentBody = z.infer<typeof ReportPaymentBodySchema>
+
 type TIdParam = z.infer<typeof IdParamSchema>
 
 /**
@@ -117,6 +142,9 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
   private readonly rejectPaymentService: RejectPaymentService
   private readonly refundPaymentService: RefundPaymentService
   private readonly sendNotificationService: SendNotificationService
+  private readonly bankAccountsRepository?: BankAccountsRepository
+  private readonly paymentGatewaysRepository?: PaymentGatewaysRepository
+  private readonly gatewayManagerInstance?: PaymentGatewayManager
 
   constructor(
     repository: PaymentsRepository,
@@ -124,14 +152,28 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
     paymentApplicationsRepo: PaymentApplicationsRepository,
     quotasRepo: QuotasRepository,
     sendNotificationService: SendNotificationService,
+    paymentGatewaysRepo?: PaymentGatewaysRepository,
+    entityPaymentGatewaysRepo?: EntityPaymentGatewaysRepository,
+    gatewayTransactionsRepo?: GatewayTransactionsRepository,
+    gatewayManager?: PaymentGatewayManager,
+    bankAccountsRepo?: BankAccountsRepository,
   ) {
     super(repository)
 
     this.paymentsRepository = repository
     this.sendNotificationService = sendNotificationService
+    this.bankAccountsRepository = bankAccountsRepo
+    this.paymentGatewaysRepository = paymentGatewaysRepo
+    this.gatewayManagerInstance = gatewayManager
 
     // Initialize non-trivial services
-    this.reportPaymentService = new ReportPaymentService(repository)
+    this.reportPaymentService = new ReportPaymentService(
+      repository,
+      paymentGatewaysRepo,
+      entityPaymentGatewaysRepo,
+      gatewayTransactionsRepo,
+      gatewayManager,
+    )
     this.verifyPaymentService = new VerifyPaymentService(repository)
     this.rejectPaymentService = new RejectPaymentService(repository)
     this.refundPaymentService = new RefundPaymentService(db, repository, paymentApplicationsRepo, quotasRepo)
@@ -203,7 +245,17 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         method: 'post',
         path: '/report',
         handler: this.reportPayment,
-        middlewares: [authMiddleware, bodyValidator(paymentCreateSchema)],
+        middlewares: [authMiddleware, bodyValidator(ReportPaymentBodySchema)],
+      },
+      {
+        method: 'post',
+        path: '/verify-reference',
+        handler: this.verifyReference,
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          bodyValidator(VerifyReferenceBodySchema),
+        ],
       },
       {
         method: 'post',
@@ -332,20 +384,27 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
   }
 
   private reportPayment = async (c: Context): Promise<Response> => {
-    const ctx = this.ctx<TPaymentCreate>(c)
+    const ctx = this.ctx<TReportPaymentBody>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
 
     try {
+      const { externalReference, condominiumId, ...paymentData } = ctx.body
+
       const result = await this.reportPaymentService.execute({
-        paymentData: ctx.body,
+        paymentData,
         registeredByUserId: user.id,
+        externalReference,
+        condominiumId,
       })
 
       if (!result.success) {
         return this.handleServiceError(ctx, result)
       }
 
-      return ctx.created({ data: result.data })
+      return ctx.created({
+        data: result.data.payment,
+        autoVerified: result.data.autoVerified,
+      })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -481,6 +540,69 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         data: result.data.payment,
         message: result.data.message,
         reversedApplications: result.data.reversedApplications,
+      })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Standalone Reference Verification
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  private verifyReference = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TVerifyReferenceBody>(c)
+
+    try {
+      if (!this.bankAccountsRepository || !this.paymentGatewaysRepository || !this.gatewayManagerInstance) {
+        return ctx.badRequest({ error: 'Gateway verification is not configured' })
+      }
+
+      const { externalReference, bankAccountId, senderBankCode, transactionDate } = ctx.body
+
+      // Look up the bank account to find its associated gateway
+      const bankAccount = await this.bankAccountsRepository.getById(bankAccountId)
+      if (!bankAccount) {
+        return ctx.notFound({ error: 'Bank account not found' })
+      }
+
+      // Find the payment gateway associated with this bank account
+      const gateways = await this.paymentGatewaysRepository.listAll()
+      const gateway = gateways.find(
+        g => g.isActive && this.gatewayManagerInstance!.hasAdapter(g.gatewayType)
+      )
+
+      if (!gateway) {
+        return ctx.badRequest({ error: 'No active payment gateway configured' })
+      }
+
+      const adapter = this.gatewayManagerInstance.getAdapter(gateway.gatewayType)
+      const config = (gateway.configuration as Record<string, unknown>) ?? {}
+
+      const configValidation = adapter.validateConfiguration(config)
+      if (!configValidation.valid) {
+        return ctx.badRequest({
+          error: 'Gateway configuration incomplete',
+          missingFields: configValidation.missingFields,
+        })
+      }
+
+      const verification = await adapter.verifyPayment({
+        paymentId: '', // No payment yet — standalone check
+        externalReference,
+        gatewayConfiguration: config,
+        senderBankCode,
+        transactionDate,
+      })
+
+      return ctx.ok({
+        data: {
+          found: verification.found,
+          status: verification.status,
+          verifiedAmount: verification.verifiedAmount ?? null,
+          verifiedAt: verification.verifiedAt ?? null,
+          externalTransactionId: verification.externalTransactionId ?? null,
+        },
       })
     } catch (error) {
       return this.handleError(ctx, error)

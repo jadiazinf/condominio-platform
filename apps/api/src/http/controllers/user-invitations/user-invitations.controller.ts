@@ -12,6 +12,8 @@ import type {
   CondominiumsRepository,
   PermissionsRepository,
   UnitOwnershipsRepository,
+  ManagementCompanyMembersRepository,
+  ManagementCompaniesRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { HttpContext } from '../../context'
@@ -110,7 +112,9 @@ export class UserInvitationsController {
     private readonly rolesRepository: RolesRepository,
     private readonly condominiumsRepository: CondominiumsRepository,
     private readonly permissionsRepository: PermissionsRepository,
-    private readonly unitOwnershipsRepository?: UnitOwnershipsRepository
+    private readonly unitOwnershipsRepository?: UnitOwnershipsRepository,
+    private readonly membersRepository?: ManagementCompanyMembersRepository,
+    private readonly managementCompaniesRepository?: ManagementCompaniesRepository
   ) {
     this.createUserInvitationService = new CreateUserInvitationService(
       invitationsRepository,
@@ -140,7 +144,9 @@ export class UserInvitationsController {
       invitationsRepository,
       usersRepository,
       userRolesRepository,
-      unitOwnershipsRepository
+      unitOwnershipsRepository,
+      membersRepository,
+      managementCompaniesRepository
     )
     this.sendUserInvitationEmailService = new SendUserInvitationEmailService()
   }

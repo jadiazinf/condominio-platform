@@ -39,9 +39,9 @@ function RegularDashboardContent({ session }: { session: FullSession }) {
 // Management company admin dashboard content
 function AdminDashboardContent({ session }: { session: FullSession }) {
   const displayName = session.user?.displayName || session.user?.firstName || 'Admin'
-  const companyName = session.managementCompanies?.[0]?.managementCompanyName
+  const companyId = session.managementCompanies?.[0]?.managementCompanyId ?? ''
 
-  return <AdminDashboardClient companyName={companyName} displayName={displayName} />
+  return <AdminDashboardClient displayName={displayName} managementCompanyId={companyId} />
 }
 
 // Superadmin dashboard content

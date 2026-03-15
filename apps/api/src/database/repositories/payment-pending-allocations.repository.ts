@@ -69,8 +69,8 @@ export class PaymentPendingAllocationsRepository
     if (dto.allocatedToQuotaId !== undefined) values.allocatedToQuotaId = dto.allocatedToQuotaId
     if (dto.allocatedBy !== undefined) values.allocatedBy = dto.allocatedBy
 
-    // Set allocatedAt when allocation is made
-    if (dto.status === 'allocated' || dto.status === 'refunded') {
+    // Set allocatedAt when allocation is resolved
+    if (dto.status === 'allocated' || dto.status === 'refunded' || dto.status === 'refund_pending') {
       values.allocatedAt = new Date()
     }
 

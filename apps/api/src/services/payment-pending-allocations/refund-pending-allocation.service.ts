@@ -28,8 +28,9 @@ export class RefundPendingAllocationService {
       return failure('Pending allocation not found', 'NOT_FOUND')
     }
 
-    // 2. Verify it's still pending
-    if (allocation.status !== 'pending') {
+    // 2. Verify it can be marked as refunded (pending, refund_failed, or refund_pending)
+    const refundableStatuses = ['pending', 'refund_failed', 'refund_pending']
+    if (!refundableStatuses.includes(allocation.status)) {
       return failure(
         `Allocation has already been resolved with status: ${allocation.status}`,
         'BAD_REQUEST'

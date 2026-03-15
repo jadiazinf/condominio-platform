@@ -5,6 +5,7 @@ import type {
   QuotasRepository,
   QuotaAdjustmentsRepository,
   InterestConfigurationsRepository,
+  PaymentPendingAllocationsRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
@@ -20,6 +21,7 @@ export interface IApplyPaymentToQuotaOutput {
   application: TPaymentApplication
   quotaUpdated: boolean
   interestReversed: boolean
+  excessAmount: string | null
   message: string
 }
 
@@ -40,6 +42,7 @@ export class ApplyPaymentToQuotaService {
     private readonly quotasRepo: QuotasRepository,
     private readonly adjustmentsRepo: QuotaAdjustmentsRepository,
     private readonly interestConfigsRepo: InterestConfigurationsRepository,
+    private readonly pendingAllocationsRepo?: PaymentPendingAllocationsRepository,
   ) {}
 
   async execute(input: IApplyPaymentToQuotaInput): Promise<TServiceResult<IApplyPaymentToQuotaOutput>> {
@@ -66,9 +69,52 @@ export class ApplyPaymentToQuotaService {
       return failure('Cannot apply payment to a cancelled quota', 'BAD_REQUEST')
     }
 
+    // Enforce chronological payment order — oldest unpaid quotas first (per concept)
+    const unpaidQuotas = await this.quotasRepo.getUnpaidByConceptAndUnit(
+      quota.paymentConceptId,
+      quota.unitId
+    )
+    const olderUnpaid = unpaidQuotas.filter(q =>
+      q.id !== quotaId && new Date(q.dueDate) < new Date(quota.dueDate)
+    )
+    if (olderUnpaid.length > 0) {
+      const oldestDue = olderUnpaid[0]!
+      const periodLabel = oldestDue.periodMonth
+        ? `${oldestDue.periodMonth}/${oldestDue.periodYear}`
+        : `${oldestDue.periodYear}`
+      return failure(
+        `No se puede aplicar pago a esta cuota porque existen ${olderUnpaid.length} cuota(s) anteriores pendientes del mismo concepto. ` +
+        `La cuota más antigua pendiente es del período ${periodLabel} (vence: ${oldestDue.dueDate}). ` +
+        `Debe pagar las cuotas más antiguas primero.`,
+        'BAD_REQUEST'
+      )
+    }
+
     const applied = parseFloat(appliedAmount)
     if (isNaN(applied) || applied <= 0) {
       return failure('Applied amount must be a positive number', 'BAD_REQUEST')
+    }
+
+    // Validate remaining unapplied balance — prevent double-spending
+    // Use integer cents to avoid floating-point accumulation errors
+    const existingApplications = await this.paymentApplicationsRepo.getByPaymentId(paymentId)
+    const totalAlreadyAppliedCents = existingApplications.reduce(
+      (sum, app) => sum + Math.round(parseFloat(app.appliedAmount) * 100), 0
+    )
+    const paymentTotalCents = Math.round(parseFloat(payment.amount) * 100)
+    const appliedCents = Math.round(applied * 100)
+    const remainingUnappliedCents = paymentTotalCents - totalAlreadyAppliedCents
+
+    const paymentTotal = paymentTotalCents / 100
+    const totalAlreadyApplied = totalAlreadyAppliedCents / 100
+    const remainingUnapplied = remainingUnappliedCents / 100
+
+    if (appliedCents > remainingUnappliedCents) {
+      return failure(
+        `El monto a aplicar (${applied.toFixed(2)}) excede el saldo disponible del pago (${remainingUnapplied.toFixed(2)}). ` +
+        `Pago total: ${paymentTotal.toFixed(2)}, ya aplicado: ${totalAlreadyApplied.toFixed(2)}.`,
+        'BAD_REQUEST'
+      )
     }
 
     const baseAmount = parseFloat(quota.baseAmount)
@@ -157,13 +203,29 @@ export class ApplyPaymentToQuotaService {
         })
       }
 
+      // 4. Detect excess payment (overpayment) and create pending allocation
+      let excessAmount: string | null = null
+      if (newBalance < 0 && this.pendingAllocationsRepo) {
+        excessAmount = Math.abs(newBalance).toFixed(2)
+        const txPendingRepo = this.pendingAllocationsRepo.withTx(tx)
+        await txPendingRepo.create({
+          paymentId,
+          pendingAmount: excessAmount,
+          currencyId: payment.currencyId,
+          status: 'pending',
+        })
+      }
+
       return success({
         application,
         quotaUpdated: true,
         interestReversed,
-        message: newStatus === 'paid'
-          ? 'Payment applied. Quota is now fully paid.'
-          : `Payment applied. Remaining balance: ${newBalance.toFixed(2)}`,
+        excessAmount,
+        message: newBalance < 0
+          ? `Payment applied. Quota is now fully paid. Excess of ${Math.abs(newBalance).toFixed(2)} pending resolution.`
+          : newStatus === 'paid'
+            ? 'Payment applied. Quota is now fully paid.'
+            : `Payment applied. Remaining balance: ${newBalance.toFixed(2)}`,
       })
     })
   }

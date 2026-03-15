@@ -9,3 +9,6 @@ export type { TGetPendingAllocationsInput } from './get-pending-allocations.serv
 
 export { GetAllocationsByPaymentService } from './get-allocations-by-payment.service'
 export type { TGetAllocationsByPaymentInput } from './get-allocations-by-payment.service'
+
+export { RefundExcessViaBankService } from './refund-excess-via-bank.service'
+export type { TRefundExcessViaBankInput, IRefundExcessViaBankOutput } from './refund-excess-via-bank.service'

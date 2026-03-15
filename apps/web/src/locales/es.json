@@ -46,6 +46,11 @@
       "support": "Soporte",
       "viewer": "Visualizador"
     },
+    "activeRoles": {
+      "superadmin": "Superadministrador",
+      "management_company": "Administradora",
+      "condominium": "Residente"
+    },
     "goHome": "Ir al Inicio",
     "login": "Iniciar Sesión",
     "ownershipTypes": {
@@ -568,82 +573,181 @@
     "myQuotas": {
       "title": "Mis Cuotas",
       "subtitle": "Consulta y da seguimiento a todas tus cuotas del condominio",
-      "filterAll": "Todas",
-      "filterPending": "Pendientes",
-      "filterOverdue": "Vencidas",
-      "filterPaid": "Pagadas",
-      "filterCancelled": "Canceladas",
-      "noQuotas": "No se encontraron cuotas",
-      "noQuotasDescription": "No tienes cuotas que coincidan con el filtro seleccionado",
+      "quota": "Cuota",
+      "empty": "No se encontraron cuotas",
       "concept": "Concepto",
       "period": "Periodo",
       "amount": "Monto",
       "dueDate": "Fecha de vencimiento",
-      "status": "Estado",
       "balance": "Saldo",
       "unit": "Unidad",
       "totalPending": "Total pendiente",
       "overdueCount": "Vencidas",
       "paidThisMonth": "Pagadas este mes",
-      "status_pending": "Pendiente",
-      "status_overdue": "Vencida",
-      "status_paid": "Pagada",
-      "status_cancelled": "Cancelada",
+      "filter": {
+        "all": "Todas",
+        "pending": "Pendientes",
+        "overdue": "Vencidas",
+        "paid": "Pagadas",
+        "cancelled": "Canceladas",
+        "exonerated": "Exoneradas"
+      },
+      "status": {
+        "pending": "Pendiente",
+        "overdue": "Vencida",
+        "paid": "Pagada",
+        "cancelled": "Cancelada",
+        "exonerated": "Exonerada"
+      },
       "export": {
         "csv": "Exportar CSV",
         "pdf": "Exportar PDF",
         "downloading": "Descargando...",
         "success": "Exportación descargada exitosamente",
         "error": "Error al exportar. Intenta de nuevo."
+      },
+      "detail": {
+        "title": "Detalle de Cuota",
+        "error": "Error al cargar la cuota",
+        "backToQuotas": "Volver a Mis Cuotas",
+        "conceptInfo": "Concepto",
+        "datesAndUnit": "Fechas y Unidad",
+        "concept": "Concepto de pago",
+        "period": "Período",
+        "currency": "Moneda",
+        "unit": "Unidad",
+        "issueDate": "Fecha de emisión",
+        "dueDate": "Fecha de vencimiento",
+        "baseAmount": "Monto base",
+        "interest": "Intereses",
+        "paid": "Pagado",
+        "balance": "Saldo pendiente",
+        "notes": "Notas",
+        "reportPayment": "Reportar Pago",
+        "paymentHistory": "Historial de Pagos",
+        "noPayments": "No se han registrado pagos para esta cuota",
+        "principal": "Capital",
+        "interestPaid": "Intereses",
+        "status": {
+          "pending": "Pendiente",
+          "overdue": "Vencida",
+          "paid": "Pagada",
+          "cancelled": "Cancelada",
+          "exonerated": "Exonerada"
+        }
       }
     },
     "myPayments": {
       "title": "Mis Pagos",
       "subtitle": "Consulta tu historial de pagos y estado de verificación",
-      "filterAll": "Todos",
-      "filterPendingVerification": "En verificación",
-      "filterCompleted": "Completados",
-      "filterRejected": "Rechazados",
-      "noPayments": "No se encontraron pagos",
-      "noPaymentsDescription": "Aún no has realizado ningún pago",
-      "amount": "Monto",
-      "method": "Método",
-      "date": "Fecha",
-      "status": "Estado",
-      "receiptNumber": "# Recibo",
+      "empty": "No se encontraron pagos",
+      "emptyDescription": "Aún no has realizado ningún pago",
       "reportPayment": "Reportar Pago",
       "unit": "Unidad",
       "verificationNotes": "Notas de verificación",
-      "status_pending": "Pendiente",
-      "status_pending_verification": "En verificación",
-      "status_completed": "Completado",
-      "status_failed": "Fallido",
-      "status_refunded": "Reembolsado",
-      "status_rejected": "Rechazado",
-      "method_transfer": "Transferencia",
-      "method_cash": "Efectivo",
-      "method_card": "Tarjeta",
-      "method_mobile_payment": "Pago Móvil",
-      "method_gateway": "Pasarela de Pago",
-      "method_other": "Otro"
+      "error": "Error al cargar los pagos",
+      "filter": {
+        "all": "Todos",
+        "pendingVerification": "En verificación",
+        "completed": "Completados",
+        "rejected": "Rechazados"
+      },
+      "status": {
+        "pending": "Pendiente",
+        "pending_verification": "En verificación",
+        "completed": "Completado",
+        "failed": "Fallido",
+        "refunded": "Reembolsado",
+        "rejected": "Rechazado"
+      },
+      "method": {
+        "transfer": "Transferencia",
+        "cash": "Efectivo",
+        "card": "Tarjeta",
+        "mobile_payment": "Pago Móvil",
+        "gateway": "Pasarela de Pago",
+        "other": "Otro"
+      },
+      "detail": {
+        "title": "Detalle de Pago",
+        "error": "Error al cargar el pago",
+        "backToPayments": "Volver a Mis Pagos",
+        "paymentInfo": "Información del Pago",
+        "unitAndDates": "Unidad y Fechas",
+        "amount": "Monto",
+        "paidAmount": "Monto pagado",
+        "exchangeRate": "Tasa de cambio",
+        "method": "Método de pago",
+        "paymentDate": "Fecha de pago",
+        "receiptNumber": "Número de recibo",
+        "unit": "Unidad",
+        "registeredAt": "Registrado el",
+        "verifiedAt": "Verificado el",
+        "viewReceipt": "Ver comprobante",
+        "notes": "Notas",
+        "appliedQuotas": "Cuotas Aplicadas",
+        "totalApplied": "Total aplicado",
+        "principal": "Capital",
+        "interest": "Intereses",
+        "adminNotes": "Nota del administrador",
+        "methods": {
+          "transfer": "Transferencia",
+          "cash": "Efectivo",
+          "card": "Tarjeta",
+          "mobile_payment": "Pago Móvil",
+          "gateway": "Pasarela de Pago",
+          "other": "Otro"
+        },
+        "status": {
+          "pending": "Pendiente",
+          "pending_verification": "En verificación",
+          "completed": "Completado",
+          "failed": "Fallido",
+          "refunded": "Reembolsado",
+          "rejected": "Rechazado"
+        },
+        "statusMessage": {
+          "pending_verification": "Tu pago está siendo revisado por el administrador. Te notificaremos cuando sea verificado.",
+          "completed": "Tu pago ha sido verificado y aplicado exitosamente.",
+          "rejected": "Tu pago fue rechazado por el administrador. Revisa las notas para más detalles.",
+          "refunded": "Este pago ha sido reembolsado."
+        }
+      }
     },
     "reportPayment": {
       "title": "Reportar Pago",
       "subtitle": "Reporta un pago externo para verificación del administrador",
-      "selectUnit": "Seleccionar Unidad",
-      "amount": "Monto",
-      "amountPlaceholder": "0.00",
-      "paymentMethod": "Método de Pago",
-      "paymentDate": "Fecha de Pago",
-      "receiptNumber": "Número de Recibo/Referencia",
-      "receiptNumberPlaceholder": "ej. TRF-123456",
-      "notes": "Notas",
-      "notesPlaceholder": "Agrega detalles sobre este pago...",
+      "formTitle": "Datos del Pago",
+      "backToPayments": "Volver a Mis Pagos",
       "submit": "Enviar Reporte de Pago",
       "submitting": "Enviando...",
       "success": "Pago reportado exitosamente. Será revisado por un administrador.",
       "error": "Error al reportar el pago. Intenta de nuevo.",
-      "backToPayments": "Volver a Mis Pagos"
+      "fields": {
+        "unit": "Unidad",
+        "unitPlaceholder": "Seleccionar Unidad",
+        "amount": "Monto",
+        "currency": "Divisa",
+        "currencyPlaceholder": "Seleccionar divisa",
+        "loadingCurrencies": "Cargando divisas...",
+        "paymentMethod": "Método de Pago",
+        "paymentMethodPlaceholder": "Seleccionar método",
+        "paymentDate": "Fecha de Pago",
+        "receiptNumber": "Número de Recibo/Referencia",
+        "receiptNumberPlaceholder": "ej. TRF-123456",
+        "externalReference": "Referencia bancaria (para verificación automática)",
+        "externalReferencePlaceholder": "ej. número de confirmación del banco",
+        "externalReferenceHelp": "Si proporcionas la referencia bancaria, el sistema intentará verificar tu pago automáticamente",
+        "notes": "Notas",
+        "notesPlaceholder": "Agrega detalles sobre este pago..."
+      },
+      "methods": {
+        "transfer": "Transferencia",
+        "cash": "Efectivo",
+        "card": "Tarjeta",
+        "mobile_payment": "Pago Móvil",
+        "other": "Otro"
+      }
     }
   },
   "condominium": {
@@ -2538,6 +2642,68 @@
     "payments": {
       "title": "Pagos",
       "subtitle": "Gestiona y verifica los pagos de la plataforma",
+      "register": {
+        "button": "Registrar Pago",
+        "title": "Registrar Pago",
+        "subtitle": "Registra un pago en nombre de un residente",
+        "back": "Volver a pagos",
+        "success": "Pago registrado exitosamente",
+        "error": "Error al registrar el pago",
+        "submit": "Registrar Pago",
+        "next": "Siguiente",
+        "previous": "Anterior",
+        "steps": {
+          "unit": "Unidad y Cuota",
+          "unitDescription": "Selecciona el condominio, la unidad y la cuota a pagar",
+          "bank": "Información Bancaria",
+          "bankDescription": "Selecciona los bancos y la referencia de la transacción",
+          "payment": "Detalles del Pago",
+          "paymentDescription": "Indica el monto, método y fecha del pago"
+        },
+        "loadingCondominiums": "Cargando condominios...",
+        "loadingUnits": "Cargando unidades...",
+        "fields": {
+          "condominium": "Condominio",
+          "condominiumPlaceholder": "Selecciona un condominio",
+          "unit": "Unidad",
+          "unitPlaceholder": "Selecciona una unidad",
+          "amount": "Monto",
+          "currency": "Divisa",
+          "currencyPlaceholder": "Selecciona una divisa",
+          "loadingCurrencies": "Cargando divisas...",
+          "paymentMethod": "Método de Pago",
+          "paymentMethodPlaceholder": "Selecciona un método",
+          "paymentDate": "Fecha de Pago",
+          "externalReference": "Referencia Bancaria",
+          "externalReferencePlaceholder": "Nro. de referencia",
+          "senderBank": "Banco Emisor",
+          "senderBankPlaceholder": "Selecciona el banco emisor",
+          "destinationBank": "Banco Destino",
+          "destinationBankPlaceholder": "Selecciona la cuenta destino",
+          "noDestinationBanks": "Sin cuentas bancarias registradas",
+          "quota": "Cuota",
+          "quotaPlaceholder": "Selecciona una cuota pendiente",
+          "noQuotas": "No hay cuotas pendientes",
+          "loadingQuotas": "Cargando cuotas...",
+          "notes": "Notas",
+          "notesPlaceholder": "Notas adicionales sobre el pago..."
+        },
+        "methods": {
+          "transfer": "Transferencia",
+          "cash": "Efectivo",
+          "card": "Tarjeta",
+          "mobile_payment": "Pago Móvil",
+          "other": "Otro"
+        },
+        "verification": {
+          "button": "Verificar referencia",
+          "found": "Referencia encontrada en el banco",
+          "notFound": "Referencia no encontrada",
+          "error": "Error al verificar la referencia",
+          "amount": "Monto verificado",
+          "tooltip": "Ingresa el número de referencia bancaria y presiona el botón de búsqueda para verificar si la transacción existe en el banco destino. Se consultará la referencia junto con el banco emisor y la fecha de la transacción para confirmar que el pago fue realizado correctamente."
+        }
+      },
       "empty": "No hay pagos registrados",
       "emptyDescription": "No se encontraron pagos con los filtros seleccionados",
       "loading": "Cargando pagos...",
@@ -2583,7 +2749,16 @@
         "rejectError": "Error al rechazar el pago",
         "confirmVerify": "\u00bfEst\u00e1s seguro de que deseas verificar este pago?",
         "confirmReject": "\u00bfEst\u00e1s seguro de que deseas rechazar este pago?",
-        "back": "Volver a pagos"
+        "back": "Volver a pagos",
+        "refund": "Reembolsar pago",
+        "refundSuccess": "Pago reembolsado correctamente",
+        "refundError": "Error al reembolsar el pago",
+        "confirmRefund": "¿Estás seguro de que deseas reembolsar este pago? Se revertirán todas las aplicaciones asociadas.",
+        "refundReason": "Motivo del reembolso",
+        "refundReasonPlaceholder": "Indica el motivo del reembolso...",
+        "applyToQuota": "Aplicar a cuota",
+        "applyToQuotaSuccess": "Pago aplicado a cuota correctamente",
+        "applyToQuotaError": "Error al aplicar el pago a la cuota"
       },
       "detail": {
         "title": "Detalle del Pago",
@@ -2612,9 +2787,73 @@
         "receiptNumber": "N\u00famero de Recibo",
         "verification": "Verificaci\u00f3n",
         "verifiedBy": "Verificado por",
+        "verifiedBySystem": "Verificado por el banco",
+        "autoVerified": "Pago verificado autom\u00e1ticamente",
+        "autoVerifiedDescription": "Este pago fue verificado autom\u00e1ticamente a trav\u00e9s de la integraci\u00f3n bancaria. La referencia fue confirmada por el banco.",
         "verificationNotes": "Notas de Verificaci\u00f3n",
         "notes": "Notas",
         "notAvailable": "No disponible"
+      },
+      "applications": {
+        "title": "Aplicaciones de Pago",
+        "subtitle": "Aplica pagos a cuotas pendientes",
+        "empty": "No hay aplicaciones de pago",
+        "selectQuota": "Selecciona la cuota a la que deseas aplicar el pago",
+        "amount": "Monto a aplicar",
+        "amountPlaceholder": "0.00",
+        "availableBalance": "Saldo disponible del pago",
+        "quotaBalance": "Saldo de la cuota",
+        "apply": "Aplicar pago",
+        "success": "Pago aplicado exitosamente",
+        "error": "Error al aplicar el pago",
+        "interestReversed": "Se revirtieron intereses por pago oportuno",
+        "excessCreated": "Se generó un excedente de {amount} pendiente de resolución",
+        "noAvailableBalance": "Este pago no tiene saldo disponible para aplicar"
+      },
+      "pendingAllocations": {
+        "title": "Excedentes de Pago",
+        "subtitle": "Gestiona los excedentes de pagos que superaron el monto de la cuota",
+        "empty": "No hay excedentes pendientes",
+        "emptyDescription": "Todos los excedentes han sido resueltos",
+        "table": {
+          "payment": "Pago",
+          "amount": "Monto Excedente",
+          "currency": "Divisa",
+          "status": "Estado",
+          "createdAt": "Fecha",
+          "actions": "Acciones"
+        },
+        "status": {
+          "all": "Todos",
+          "pending": "Pendiente",
+          "allocated": "Aplicado",
+          "refunded": "Reembolsado",
+          "refund_pending": "Reembolso en proceso",
+          "refund_failed": "Reembolso fallido"
+        },
+        "actions": {
+          "allocate": "Aplicar a cuota",
+          "refund": "Marcar como reembolsado",
+          "refundViaBank": "Reembolsar vía banco",
+          "view": "Ver detalles"
+        },
+        "allocateModal": {
+          "title": "Aplicar Excedente a Cuota",
+          "selectQuota": "Selecciona la cuota destino",
+          "notes": "Notas de resolución (opcional)",
+          "notesPlaceholder": "Indica el motivo de la aplicación...",
+          "confirm": "Aplicar excedente",
+          "success": "Excedente aplicado exitosamente",
+          "error": "Error al aplicar el excedente"
+        },
+        "refundModal": {
+          "title": "Registrar Reembolso",
+          "notes": "Notas de resolución",
+          "notesPlaceholder": "Indica los detalles del reembolso...",
+          "confirm": "Confirmar reembolso",
+          "success": "Reembolso registrado exitosamente",
+          "error": "Error al registrar el reembolso"
+        }
       }
     }
   },
@@ -3103,6 +3342,9 @@
       "nav": {
         "dashboard": "Panel",
         "condominiums": "Condominios",
+        "payments": "Pagos",
+        "quotas": "Cuotas",
+        "pendingAllocations": "Asignaciones Pendientes",
         "members": "Miembros",
         "billing": "Facturación",
         "tickets": "Tickets de Soporte",
@@ -3135,6 +3377,7 @@
           "noMembers": "No hay miembros",
           "noMembersHint": "Tu administradora aún no tiene miembros registrados",
           "addMember": "Nuevo Miembro",
+          "limitReached": "Límite alcanzado: tu plan permite {max} usuarios y actualmente tienes {current}. Actualiza tu suscripción para agregar más miembros.",
           "error": "Error al cargar los miembros",
           "retry": "Reintentar",
           "columns": {
@@ -3143,7 +3386,156 @@
             "joinedAt": "Fecha de Ingreso",
             "status": "Estado"
           },
-          "clear": "Limpiar"
+          "clear": "Limpiar",
+          "invite": {
+            "title": "Invitar Miembro",
+            "success": "Invitación enviada exitosamente. El miembro recibirá un correo para unirse.",
+            "error": "Error al enviar la invitación",
+            "submit": "Enviar Invitación",
+            "inviteNote": "Se enviará un correo de invitación al usuario. El miembro aparecerá como inactivo hasta que acepte la invitación.",
+            "fields": {
+              "email": "Correo electrónico",
+              "emailPlaceholder": "correo@ejemplo.com",
+              "firstName": "Nombre",
+              "firstNamePlaceholder": "Nombre del miembro",
+              "lastName": "Apellido",
+              "lastNamePlaceholder": "Apellido del miembro",
+              "phone": "Teléfono",
+              "idDocument": "Documento de identidad",
+              "idDocumentTypePlaceholder": "Tipo",
+              "idDocumentNumberPlaceholder": "Número de documento",
+              "role": "Rol"
+            },
+            "validation": {
+              "emailRequired": "El correo es requerido",
+              "emailInvalid": "Ingresa un correo válido",
+              "firstNameRequired": "El nombre es requerido",
+              "lastNameRequired": "El apellido es requerido",
+              "phoneRequired": "El teléfono es requerido",
+              "idDocumentRequired": "El documento es requerido",
+              "roleRequired": "Selecciona un rol"
+            }
+          },
+          "detail": {
+            "title": "Detalle del Miembro",
+            "back": "Volver a Miembros",
+            "error": "Error al cargar el detalle del miembro",
+            "notFound": "Miembro no encontrado",
+            "userInfo": {
+              "title": "Información del Usuario",
+              "email": "Correo electrónico",
+              "name": "Nombre completo",
+              "phone": "Teléfono",
+              "idDocument": "Documento de identidad",
+              "emailVerified": "Email verificado",
+              "emailNotVerified": "Email no verificado",
+              "lastLogin": "Último inicio de sesión",
+              "neverLoggedIn": "Nunca"
+            },
+            "roleAndPermissions": {
+              "title": "Rol y Permisos",
+              "currentRole": "Rol actual",
+              "changeRole": "Cambiar rol",
+              "primaryAdmin": "Admin primario",
+              "permissions": "Permisos del rol",
+              "canChangeSubscription": "Puede cambiar suscripción",
+              "canManageMembers": "Puede gestionar miembros",
+              "canCreateTickets": "Puede crear tickets",
+              "canViewInvoices": "Puede ver facturas",
+              "roleUpdated": "Rol actualizado exitosamente",
+              "roleUpdateError": "Error al actualizar el rol",
+              "cannotChangePrimaryAdmin": "No se puede cambiar el rol del admin primario"
+            },
+            "membership": {
+              "title": "Información de Membresía",
+              "invitedAt": "Fecha de invitación",
+              "invitedBy": "Invitado por",
+              "joinedAt": "Fecha de ingreso",
+              "createdAt": "Fecha de creación",
+              "deactivatedAt": "Fecha de baja",
+              "deactivatedBy": "Dado de baja por",
+              "pendingInvitation": "Pendiente de aceptación"
+            },
+            "actions": {
+              "deactivate": "Dar de Baja",
+              "reactivate": "Reactivar",
+              "deactivateSuccess": "Miembro dado de baja exitosamente",
+              "deactivateError": "Error al dar de baja al miembro",
+              "reactivateSuccess": "Miembro reactivado exitosamente",
+              "reactivateError": "Error al reactivar al miembro",
+              "cannotDeactivateSelf": "No puedes darte de baja a ti mismo",
+              "cannotReactivateUnverified": "No se puede reactivar un usuario que no ha aceptado su invitación"
+            },
+            "deactivateModal": {
+              "title": "Dar de Baja a Miembro",
+              "message": "¿Estás seguro de que deseas dar de baja a {name}? El miembro perderá acceso a la administradora.",
+              "confirm": "Confirmar Baja",
+              "cancel": "Cancelar"
+            },
+            "auditLogs": {
+              "title": "Historial de Actividad",
+              "noLogs": "No hay actividad registrada",
+              "viewAll": "Ver todo",
+              "action": {
+                "INSERT": "Creación",
+                "UPDATE": "Actualización",
+                "DELETE": "Eliminación"
+              },
+              "fields": {
+                "isActive": "Estado",
+                "roleName": "Rol",
+                "permissions": "Permisos",
+                "joinedAt": "Fecha de ingreso",
+                "deactivatedAt": "Fecha de baja",
+                "deactivatedBy": "Dado de baja por",
+                "invitedBy": "Invitado por",
+                "isPrimaryAdmin": "Admin primario"
+              }
+            },
+            "auditLogsModal": {
+              "title": "Historial Completo de Actividad",
+              "filters": {
+                "dateFrom": "Desde",
+                "dateTo": "Hasta",
+                "action": "Tipo de acción",
+                "allActions": "Todas las acciones",
+                "clear": "Limpiar"
+              },
+              "table": {
+                "action": "Acción",
+                "changedFields": "Campos modificados",
+                "date": "Fecha"
+              }
+            },
+            "activityDetail": {
+              "title": "Detalle de Actividad",
+              "backToMember": "Volver al Miembro",
+              "notFound": "Actividad no encontrada",
+              "generalInfo": "Información General",
+              "actionType": "Tipo de acción",
+              "date": "Fecha y hora",
+              "table": "Tabla",
+              "recordId": "ID del registro",
+              "userId": "ID del usuario",
+              "ipAddress": "Dirección IP",
+              "userAgent": "Agente de usuario",
+              "changedFields": "Campos Modificados",
+              "valuesComparison": "Comparación de Valores",
+              "oldValues": "Valores Anteriores",
+              "newValues": "Valores Nuevos",
+              "noData": "Sin datos"
+            },
+            "roles": {
+              "admin": "Administrador",
+              "accountant": "Contador",
+              "support": "Soporte",
+              "viewer": "Visualizador"
+            },
+            "status": {
+              "active": "Activo",
+              "inactive": "Inactivo"
+            }
+          }
         },
         "bankAccounts": {
           "title": "Cuentas Bancarias",
@@ -3490,7 +3882,8 @@
         "units": "unidades",
         "active": "Activo",
         "inactive": "Inactivo",
-        "empty": "No hay condominios registrados"
+        "empty": "No hay condominios registrados",
+        "total": "total"
       },
       "payments": {
         "title": "Pagos Recientes",
@@ -3934,7 +4327,9 @@
                 "daysBeforeDueRequired": "Ingresa los días antes del vencimiento",
                 "interestRateRequired": "Ingresa la tasa de interés"
               },
-              "dueDayNextMonthHint": "El día de vencimiento es anterior al día de emisión. El vencimiento caerá en el mes siguiente al período de emisión."
+              "dueDayNextMonthHint": "El día de vencimiento es anterior al día de emisión. El vencimiento caerá en el mes siguiente al período de emisión.",
+              "surchargeStartDayHint": "El recargo se aplicará a partir del día {{day}} del mes.",
+              "discountCutoffDayHint": "El descuento aplica si se paga antes del día {{day}} del mes."
             },
             "assignments": {
               "description": "Define cómo se distribuyen los cargos entre las unidades",
@@ -4414,6 +4809,68 @@
     "payments": {
       "title": "Pagos",
       "subtitle": "Ver y gestionar registros de pagos",
+      "register": {
+        "button": "Registrar Pago",
+        "title": "Registrar Pago",
+        "subtitle": "Registra un pago en nombre de un residente",
+        "back": "Volver a pagos",
+        "success": "Pago registrado exitosamente",
+        "error": "Error al registrar el pago",
+        "submit": "Registrar Pago",
+        "next": "Siguiente",
+        "previous": "Anterior",
+        "steps": {
+          "unit": "Unidad y Cuota",
+          "unitDescription": "Selecciona el condominio, la unidad y la cuota a pagar",
+          "bank": "Información Bancaria",
+          "bankDescription": "Selecciona los bancos y la referencia de la transacción",
+          "payment": "Detalles del Pago",
+          "paymentDescription": "Indica el monto, método y fecha del pago"
+        },
+        "loadingCondominiums": "Cargando condominios...",
+        "loadingUnits": "Cargando unidades...",
+        "fields": {
+          "condominium": "Condominio",
+          "condominiumPlaceholder": "Selecciona un condominio",
+          "unit": "Unidad",
+          "unitPlaceholder": "Selecciona una unidad",
+          "amount": "Monto",
+          "currency": "Divisa",
+          "currencyPlaceholder": "Selecciona una divisa",
+          "loadingCurrencies": "Cargando divisas...",
+          "paymentMethod": "Método de Pago",
+          "paymentMethodPlaceholder": "Selecciona un método",
+          "paymentDate": "Fecha de Pago",
+          "externalReference": "Referencia Bancaria",
+          "externalReferencePlaceholder": "Nro. de referencia",
+          "senderBank": "Banco Emisor",
+          "senderBankPlaceholder": "Selecciona el banco emisor",
+          "destinationBank": "Banco Destino",
+          "destinationBankPlaceholder": "Selecciona la cuenta destino",
+          "noDestinationBanks": "Sin cuentas bancarias registradas",
+          "quota": "Cuota",
+          "quotaPlaceholder": "Selecciona una cuota pendiente",
+          "noQuotas": "No hay cuotas pendientes",
+          "loadingQuotas": "Cargando cuotas...",
+          "notes": "Notas",
+          "notesPlaceholder": "Notas adicionales sobre el pago..."
+        },
+        "methods": {
+          "transfer": "Transferencia",
+          "cash": "Efectivo",
+          "card": "Tarjeta",
+          "mobile_payment": "Pago Móvil",
+          "other": "Otro"
+        },
+        "verification": {
+          "button": "Verificar referencia",
+          "found": "Referencia encontrada en el banco",
+          "notFound": "Referencia no encontrada",
+          "error": "Error al verificar la referencia",
+          "amount": "Monto verificado",
+          "tooltip": "Ingresa el número de referencia bancaria y presiona el botón de búsqueda para verificar si la transacción existe en el banco destino. Se consultará la referencia junto con el banco emisor y la fecha de la transacción para confirmar que el pago fue realizado correctamente."
+        }
+      },
       "empty": "No se encontraron pagos",
       "emptyDescription": "Los pagos aparecerán aquí cuando los residentes los reporten",
       "error": "Error al cargar los pagos",
@@ -4446,7 +4903,13 @@
       },
       "filters": {
         "searchPlaceholder": "Buscar por número de pago...",
-        "status": "Estado"
+        "status": "Estado",
+        "condominium": "Condominio",
+        "condominiumAll": "Todos los condominios",
+        "startDate": "Fecha desde",
+        "endDate": "Fecha hasta",
+        "bank": "Banco",
+        "bankAll": "Todos los bancos"
       },
       "detail": {
         "title": "Detalle del Pago",
@@ -4474,6 +4937,9 @@
         "receiptNumber": "Número de Recibo",
         "verification": "Verificación",
         "verifiedBy": "Verificado por",
+        "verifiedBySystem": "Verificado por el banco",
+        "autoVerified": "Pago verificado automáticamente",
+        "autoVerifiedDescription": "Este pago fue verificado automáticamente a través de la integración bancaria. La referencia fue confirmada por el banco.",
         "verificationNotes": "Notas de Verificación",
         "notes": "Notas",
         "notAvailable": "No disponible"
@@ -4496,6 +4962,49 @@
         "downloading": "Descargando...",
         "success": "Exportación descargada exitosamente",
         "error": "Error al exportar. Intenta de nuevo."
+      },
+      "pendingAllocations": {
+        "title": "Excedentes de Pago",
+        "subtitle": "Gestiona los excedentes de pagos que superaron el monto de la cuota",
+        "empty": "No hay excedentes pendientes",
+        "emptyDescription": "Todos los excedentes han sido resueltos",
+        "table": {
+          "payment": "Pago",
+          "amount": "Monto Excedente",
+          "status": "Estado",
+          "createdAt": "Fecha",
+          "actions": "Acciones"
+        },
+        "status": {
+          "all": "Todos",
+          "pending": "Pendiente",
+          "allocated": "Aplicado",
+          "refunded": "Reembolsado",
+          "refund_pending": "Reembolso en proceso",
+          "refund_failed": "Reembolso fallido"
+        },
+        "actions": {
+          "view": "Ver detalles",
+          "allocate": "Aplicar a cuota",
+          "refund": "Marcar como reembolsado"
+        },
+        "allocateModal": {
+          "title": "Aplicar Excedente a Cuota",
+          "selectQuota": "Selecciona la cuota destino",
+          "notes": "Notas de resolución (opcional)",
+          "notesPlaceholder": "Indica el motivo de la aplicación...",
+          "confirm": "Aplicar excedente",
+          "success": "Excedente aplicado exitosamente",
+          "error": "Error al aplicar el excedente"
+        },
+        "refundModal": {
+          "title": "Registrar Reembolso",
+          "notes": "Notas de resolución",
+          "notesPlaceholder": "Indica los detalles del reembolso...",
+          "confirm": "Confirmar reembolso",
+          "success": "Reembolso registrado exitosamente",
+          "error": "Error al registrar el reembolso"
+        }
       }
     },
     "expenses": {

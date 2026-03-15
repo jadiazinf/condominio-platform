@@ -1,4 +1,4 @@
-import { and, eq, desc, lte, gte, or, sql, inArray, type SQL } from 'drizzle-orm'
+import { and, eq, desc, asc, lte, gte, or, sql, inArray, type SQL } from 'drizzle-orm'
 import type { TQuota, TQuotaCreate, TQuotaUpdate, TPaginatedResponse } from '@packages/domain'
 import { quotas, paymentConcepts } from '@database/drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
@@ -164,6 +164,30 @@ export class QuotasRepository
       .from(quotas)
       .where(and(eq(quotas.unitId, unitId), eq(quotas.status, 'pending')))
       .orderBy(desc(quotas.dueDate))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Retrieves unpaid quotas (pending/overdue) for a unit and payment concept,
+   * ordered by dueDate ascending (oldest first).
+   * Used for enforcing chronological payment order.
+   */
+  async getUnpaidByConceptAndUnit(
+    paymentConceptId: string,
+    unitId: string
+  ): Promise<TQuota[]> {
+    const results = await this.db
+      .select()
+      .from(quotas)
+      .where(
+        and(
+          eq(quotas.paymentConceptId, paymentConceptId),
+          eq(quotas.unitId, unitId),
+          or(eq(quotas.status, 'pending'), eq(quotas.status, 'overdue'))
+        )
+      )
+      .orderBy(asc(quotas.dueDate))
 
     return results.map(record => this.mapToEntity(record))
   }

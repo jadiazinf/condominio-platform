@@ -19,6 +19,7 @@ import {
   ScrollText,
   KeyRound,
   Bell,
+  ArrowLeftRight,
 } from 'lucide-react'
 
 type TSidebarItemConfig = Omit<TSidebarItem, 'icon'> & {
@@ -33,40 +34,22 @@ export const dashboardSidebarItems: TSidebarItemConfig[] = [
     href: '/dashboard',
   },
   {
-    key: 'quotas',
-    title: 'admin.nav.quotas',
-    icon: Receipt,
-    href: '/dashboard/quotas',
-  },
-  {
-    key: 'payments',
-    title: 'admin.nav.payments',
-    icon: Wallet,
-    href: '/dashboard/payments',
-  },
-  {
-    key: 'expenses',
-    title: 'admin.nav.expenses',
-    icon: ClipboardList,
-    href: '/dashboard/expenses',
-  },
-  {
     key: 'amenities',
     title: 'admin.nav.amenities',
     icon: Building2,
     href: '/dashboard/amenities',
   },
   {
-    key: 'join-condominium',
-    title: 'resident.nav.joinCondominium',
-    icon: KeyRound,
-    href: '/dashboard/join-condominium',
+    key: 'quotas',
+    title: 'admin.nav.quotas',
+    icon: Receipt,
+    href: '/dashboard/quotas',
   },
   {
-    key: 'my-requests',
-    title: 'resident.nav.myRequests',
-    icon: ClipboardCheck,
-    href: '/dashboard/my-requests',
+    key: 'expenses',
+    title: 'admin.nav.expenses',
+    icon: ClipboardList,
+    href: '/dashboard/expenses',
   },
   {
     key: 'my-quotas',
@@ -81,6 +64,18 @@ export const dashboardSidebarItems: TSidebarItemConfig[] = [
     href: '/dashboard/my-payments',
   },
   {
+    key: 'my-requests',
+    title: 'resident.nav.myRequests',
+    icon: ClipboardCheck,
+    href: '/dashboard/my-requests',
+  },
+  {
+    key: 'payments',
+    title: 'admin.nav.payments',
+    icon: Wallet,
+    href: '/dashboard/payments',
+  },
+  {
     key: 'report-payment',
     title: 'resident.nav.reportPayment',
     icon: CreditCard,
@@ -91,6 +86,12 @@ export const dashboardSidebarItems: TSidebarItemConfig[] = [
     title: 'resident.nav.reservations',
     icon: CalendarDays,
     href: '/dashboard/reservations',
+  },
+  {
+    key: 'join-condominium',
+    title: 'resident.nav.joinCondominium',
+    icon: KeyRound,
+    href: '/dashboard/join-condominium',
   },
   {
     key: 'notifications',
@@ -114,16 +115,34 @@ export const adminSidebarItems: TSidebarItemConfig[] = [
     href: '/dashboard',
   },
   {
+    key: 'pending-allocations',
+    title: 'admin.company.nav.pendingAllocations',
+    icon: ArrowLeftRight,
+    href: '/dashboard/payments/pending-allocations',
+  },
+  {
     key: 'condominiums',
     title: 'admin.company.nav.condominiums',
     icon: Building2,
     href: '/dashboard/condominiums',
   },
   {
+    key: 'quotas',
+    title: 'admin.company.nav.quotas',
+    icon: Receipt,
+    href: '/dashboard/quotas',
+  },
+  {
     key: 'my-management-company',
     title: 'admin.company.nav.myCompany',
     icon: Building,
     href: '/dashboard/my-management-company',
+  },
+  {
+    key: 'payments',
+    title: 'admin.company.nav.payments',
+    icon: Wallet,
+    href: '/dashboard/payments',
   },
   {
     key: 'subscription',

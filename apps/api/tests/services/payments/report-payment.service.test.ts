@@ -80,8 +80,8 @@ describe('ReportPaymentService', function () {
 
       expect(result.success).toBe(true)
       if (result.success) {
-        expect(result.data.status).toBe('pending_verification')
-        expect(result.data.id).toBeDefined()
+        expect(result.data.payment.status).toBe('pending_verification')
+        expect(result.data.payment.id).toBeDefined()
       }
     })
 

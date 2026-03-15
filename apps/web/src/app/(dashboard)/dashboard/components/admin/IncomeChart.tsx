@@ -1,25 +1,14 @@
 'use client'
 
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Card } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Tabs, Tab } from '@/ui/components/tabs'
-import { cn } from '@heroui/theme'
+import { Spinner } from '@/ui/components/spinner'
 import { TrendingUp, TrendingDown, ArrowRight } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
-
-/**
- * Grafico de Ingresos por Periodo
- *
- * Muestra la evolución de los ingresos (pagos completados) a lo largo del tiempo.
- * Permite filtrar por periodo: 6 meses, 3 meses, 30 dias, 7 dias.
- *
- * Datos reales:
- * - Obtener pagos completados agrupados por mes/semana/dia segun el periodo seleccionado
- * - Endpoint: GET /condominium/payments?status=completed con date-range
- * - Agrupar por periodo y sumar montos
- * - El cambio porcentual se calcula comparando el periodo actual vs el anterior
- */
+import { usePaymentsByDateRange } from '@packages/http-client'
+import type { TPayment } from '@packages/domain'
 
 type TChartData = {
   month: string
@@ -29,6 +18,8 @@ type TChartData = {
 type TPeriodKey = '6-months' | '3-months' | '30-days' | '7-days'
 
 interface IncomeChartProps {
+  managementCompanyId: string
+  currencySymbol: string
   translations: {
     title: string
     periods: {
@@ -41,57 +32,126 @@ interface IncomeChartProps {
   }
 }
 
-// Mock data - ingresos mensuales de los ultimos 12 meses
-const CHART_DATA: Record<TPeriodKey, TChartData[]> = {
-  '6-months': [
-    { month: 'Sep', value: 42000 },
-    { month: 'Oct', value: 48500 },
-    { month: 'Nov', value: 45200 },
-    { month: 'Dic', value: 51000 },
-    { month: 'Ene', value: 47800 },
-    { month: 'Feb', value: 52300 },
-  ],
-  '3-months': [
-    { month: 'Dic', value: 51000 },
-    { month: 'Ene', value: 47800 },
-    { month: 'Feb', value: 52300 },
-  ],
-  '30-days': [
-    { month: 'Sem 1', value: 12500 },
-    { month: 'Sem 2', value: 14200 },
-    { month: 'Sem 3', value: 11800 },
-    { month: 'Sem 4', value: 13800 },
-  ],
-  '7-days': [
-    { month: 'Lun', value: 2100 },
-    { month: 'Mar', value: 3400 },
-    { month: 'Mie', value: 1800 },
-    { month: 'Jue', value: 2900 },
-    { month: 'Vie', value: 4200 },
-    { month: 'Sab', value: 1200 },
-    { month: 'Dom', value: 800 },
-  ],
+function getDateRange(period: TPeriodKey): { startDate: string; endDate: string } {
+  const now = new Date()
+  const end = now.toISOString().split('T')[0]
+  let start: Date
+
+  switch (period) {
+    case '6-months':
+      start = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+      break
+    case '3-months':
+      start = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+      break
+    case '30-days':
+      start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      break
+    case '7-days':
+      start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      break
+  }
+
+  return { startDate: start.toISOString().split('T')[0], endDate: end }
 }
 
-const PERIOD_TOTALS: Record<TPeriodKey, { value: number; change: string; changeType: 'positive' | 'negative' | 'neutral' }> = {
-  '6-months': { value: 286800, change: '12.4%', changeType: 'positive' },
-  '3-months': { value: 151100, change: '8.2%', changeType: 'positive' },
-  '30-days': { value: 52300, change: '-2.1%', changeType: 'negative' },
-  '7-days': { value: 16400, change: '5.7%', changeType: 'positive' },
+const MONTH_NAMES_SHORT = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+const DAY_NAMES_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+
+function groupPaymentsByPeriod(payments: TPayment[], period: TPeriodKey): TChartData[] {
+  const completed = payments.filter((p) => p.status === 'completed')
+
+  if (period === '7-days') {
+    // Group by day of the week
+    const now = new Date()
+    const days: Record<string, number> = {}
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
+      const key = `${d.getDate()}/${d.getMonth() + 1}`
+      const label = DAY_NAMES_SHORT[d.getDay()]
+      days[`${label} ${key}`] = 0
+    }
+
+    for (const p of completed) {
+      const d = new Date(p.paymentDate)
+      const key = `${d.getDate()}/${d.getMonth() + 1}`
+      const label = DAY_NAMES_SHORT[d.getDay()]
+      const dayKey = `${label} ${key}`
+      if (dayKey in days) {
+        days[dayKey] += parseFloat(p.amount) || 0
+      }
+    }
+
+    return Object.entries(days).map(([month, value]) => ({ month, value: Math.round(value * 100) / 100 }))
+  }
+
+  if (period === '30-days') {
+    // Group by week
+    const now = new Date()
+    const weeks: { label: string; start: Date; end: Date; value: number }[] = []
+    for (let i = 3; i >= 0; i--) {
+      const weekEnd = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000)
+      const weekStart = new Date(weekEnd.getTime() - 7 * 24 * 60 * 60 * 1000)
+      weeks.push({
+        label: `Sem ${4 - i}`,
+        start: weekStart,
+        end: weekEnd,
+        value: 0,
+      })
+    }
+
+    for (const p of completed) {
+      const d = new Date(p.paymentDate)
+      for (const week of weeks) {
+        if (d >= week.start && d <= week.end) {
+          week.value += parseFloat(p.amount) || 0
+          break
+        }
+      }
+    }
+
+    return weeks.map((w) => ({ month: w.label, value: Math.round(w.value * 100) / 100 }))
+  }
+
+  // Group by month (3-months or 6-months)
+  const monthsCount = period === '6-months' ? 6 : 3
+  const now = new Date()
+  const months: { key: string; label: string; value: number }[] = []
+
+  for (let i = monthsCount - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    months.push({
+      key: `${d.getFullYear()}-${d.getMonth()}`,
+      label: MONTH_NAMES_SHORT[d.getMonth()],
+      value: 0,
+    })
+  }
+
+  for (const p of completed) {
+    const d = new Date(p.paymentDate)
+    const key = `${d.getFullYear()}-${d.getMonth()}`
+    const month = months.find((m) => m.key === key)
+    if (month) {
+      month.value += parseFloat(p.amount) || 0
+    }
+  }
+
+  return months.map((m) => ({ month: m.label, value: Math.round(m.value * 100) / 100 }))
 }
 
-export function IncomeChart({ translations: t }: IncomeChartProps) {
+export function IncomeChart({ currencySymbol, translations: t }: IncomeChartProps) {
   const [activePeriod, setActivePeriod] = React.useState<TPeriodKey>('6-months')
 
-  const chartData = CHART_DATA[activePeriod]
-  const totals = PERIOD_TOTALS[activePeriod]
+  const { startDate, endDate } = useMemo(() => getDateRange(activePeriod), [activePeriod])
 
-  const color =
-    totals.changeType === 'positive'
-      ? 'success'
-      : totals.changeType === 'negative'
-        ? 'danger'
-        : 'default'
+  const { data: paymentsData, isLoading } = usePaymentsByDateRange(startDate, endDate)
+  const payments: TPayment[] = paymentsData?.data ?? []
+
+  const chartData = useMemo(() => groupPaymentsByPeriod(payments, activePeriod), [payments, activePeriod])
+
+  const total = useMemo(() => chartData.reduce((sum, d) => sum + d.value, 0), [chartData])
+
+  const color = total > 0 ? 'success' : 'default'
 
   return (
     <Card className="dark:border-default-100 border border-transparent">
@@ -114,35 +174,13 @@ export function IncomeChart({ translations: t }: IncomeChartProps) {
             </div>
 
             <div className="mt-2 flex items-center gap-x-3">
-              <span className="text-foreground text-3xl font-bold">
-                $ {totals.value.toLocaleString()}
-              </span>
-              <Chip
-                classNames={{
-                  content: 'font-medium',
-                }}
-                color={
-                  totals.changeType === 'positive'
-                    ? 'success'
-                    : totals.changeType === 'negative'
-                      ? 'danger'
-                      : 'default'
-                }
-                radius="sm"
-                size="sm"
-                startContent={
-                  totals.changeType === 'positive' ? (
-                    <TrendingUp size={14} />
-                  ) : totals.changeType === 'negative' ? (
-                    <TrendingDown size={14} />
-                  ) : (
-                    <ArrowRight size={14} />
-                  )
-                }
-                variant="flat"
-              >
-                {totals.change}
-              </Chip>
+              {isLoading ? (
+                <Spinner size="sm" />
+              ) : (
+                <span className="text-foreground text-3xl font-bold">
+                  {currencySymbol} {total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              )}
             </div>
             <span className="text-tiny text-default-400">{t.collected}</span>
           </div>
@@ -191,7 +229,7 @@ export function IncomeChart({ translations: t }: IncomeChartProps) {
                     {payload?.map((p, index) => (
                       <div key={`${index}-${p.name}`} className="flex w-full items-center gap-x-2">
                         <span className="text-small text-background flex w-full items-center gap-x-1">
-                          $ {(p.value as number).toLocaleString()}
+                          {currencySymbol} {(p.value as number).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </span>
                       </div>
                     ))}

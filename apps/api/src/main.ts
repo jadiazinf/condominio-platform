@@ -2,7 +2,7 @@ import { serve } from 'bun'
 import { Server } from '@http/server'
 import { env } from '@config/environment'
 import { DatabaseService } from '@database/service'
-import { websocket, handleWebSocketUpgrade } from '@http/endpoints'
+import { websocket, handleWebSocketUpgrade } from '@libs/websocket'
 import { startBcvExchangeRatesCron } from '@src/cron/bcv-exchange-rates.cron'
 
 async function main() {

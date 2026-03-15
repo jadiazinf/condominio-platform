@@ -588,6 +588,14 @@ export const DomainLocaleDictionary = {
           invalid: 'validation.models.paymentGateways.registeredBy.invalid',
         },
       },
+      gatewayTransactions: {
+        paymentId: {
+          invalid: 'validation.models.gatewayTransactions.paymentId.invalid',
+        },
+        gatewayType: {
+          invalid: 'validation.models.gatewayTransactions.gatewayType.invalid',
+        },
+      },
       rolePermissions: {
         roleId: {
           required: 'validation.models.rolePermissions.roleId.required',

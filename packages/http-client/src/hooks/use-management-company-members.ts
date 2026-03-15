@@ -7,6 +7,7 @@ import type {
   TManagementCompanyMemberUpdate,
   TMemberPermissions,
   TManagementCompanyMembersQuery,
+  TMemberRole,
 } from '@packages/domain'
 import type { TApiPaginatedResponse } from '../types/api-responses'
 
@@ -35,6 +36,12 @@ export const managementCompanyMemberKeys = {
   detail: (id: string) => [...managementCompanyMemberKeys.details(), id] as const,
   primaryAdmin: (companyId: string) =>
     [...managementCompanyMemberKeys.all, 'primary-admin', companyId] as const,
+  auditLogs: (memberId: string) =>
+    [...managementCompanyMemberKeys.all, 'audit-logs', memberId] as const,
+  auditLogsPaginated: (memberId: string, query: Record<string, unknown>) =>
+    [...managementCompanyMemberKeys.all, 'audit-logs-paginated', memberId, query] as const,
+  auditLogDetail: (logId: string) =>
+    [...managementCompanyMemberKeys.all, 'audit-log-detail', logId] as const,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -261,6 +268,45 @@ export async function addMember(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Mutations - Invite Member (for management company admins via /me/ endpoint)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface IInviteMemberRequest {
+  email: string
+  firstName?: string
+  lastName?: string
+  phoneCountryCode?: string
+  phoneNumber?: string
+  idDocumentType?: 'J' | 'G' | 'V' | 'E' | 'P'
+  idDocumentNumber?: string
+  memberRole: 'admin' | 'accountant' | 'support' | 'viewer'
+}
+
+export interface IInviteMemberOptions {
+  onSuccess?: () => void
+  onError?: (error: Error) => void
+}
+
+/**
+ * Hook to invite a new member to the authenticated user's own management company.
+ * Creates or finds the user, adds them as an inactive member, and sends an invitation email.
+ */
+export function useMyCompanyInviteMember(companyId: string, options?: IInviteMemberOptions) {
+  return useApiMutation<TApiDataResponse<TManagementCompanyMember>, IInviteMemberRequest>({
+    path: `/platform/management-companies/${companyId}/me/members/invite`,
+    method: 'POST',
+    config: {},
+    onSuccess: () => options?.onSuccess?.(),
+    onError: options?.onError,
+    invalidateKeys: [
+      managementCompanyMemberKeys.list(companyId),
+      managementCompanyMemberKeys.myCompanyPaginated(companyId, {}),
+      ['management-companies', companyId, 'me', 'can-create', 'user'],
+    ],
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Mutations - Update Member
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -376,4 +422,192 @@ export function useRemoveMember(
 export async function removeMember(memberId: string): Promise<void> {
   const client = getHttpClient()
   await client.delete<TApiDataResponse<void>>(`/platform/management-company-members/${memberId}`)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Types - Member Detail
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type TMemberDetailUser = {
+  id: string
+  email: string
+  displayName: string | null
+  firstName: string | null
+  lastName: string | null
+  photoUrl: string | null
+  isEmailVerified: boolean
+  isActive: boolean
+  phoneCountryCode: string | null
+  phoneNumber: string | null
+  idDocumentType: string | null
+  idDocumentNumber: string | null
+  lastLogin: Date | null
+}
+
+export type TMemberDetailRelatedUser = {
+  id: string
+  displayName: string | null
+  email: string
+}
+
+export type TMemberDetail = Omit<TManagementCompanyMember, 'user' | 'invitedByUser' | 'deactivatedByUser' | 'managementCompany'> & {
+  user: TMemberDetailUser | null
+  invitedByUser: TMemberDetailRelatedUser | null
+  deactivatedByUser: TMemberDetailRelatedUser | null
+}
+
+export type TAuditLogEntry = {
+  id: string
+  tableName: string
+  recordId: string
+  action: 'INSERT' | 'UPDATE' | 'DELETE'
+  oldValues: Record<string, unknown> | null
+  newValues: Record<string, unknown> | null
+  changedFields: string[] | null
+  userId: string | null
+  ipAddress: string | null
+  userAgent: string | null
+  createdAt: string
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hooks - My Company Member Detail
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useMyCompanyMemberDetail(
+  companyId: string,
+  memberId: string,
+  options?: { enabled?: boolean }
+) {
+  return useApiQuery<TApiDataResponse<TMemberDetail>>({
+    path: `/platform/management-companies/${companyId}/me/members/${memberId}`,
+    queryKey: managementCompanyMemberKeys.detail(memberId),
+    enabled: (options?.enabled !== false) && !!companyId && !!memberId,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hooks - My Company Member Audit Logs
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useMyCompanyMemberAuditLogs(
+  companyId: string,
+  memberId: string,
+  options?: { enabled?: boolean }
+) {
+  return useApiQuery<TApiDataResponse<TAuditLogEntry[]>>({
+    path: `/platform/management-companies/${companyId}/me/members/${memberId}/audit-logs`,
+    queryKey: managementCompanyMemberKeys.auditLogs(memberId),
+    enabled: (options?.enabled !== false) && !!companyId && !!memberId,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mutations - My Company Member Actions (admin-scoped /me/ endpoints)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useMyCompanyUpdateMemberRole(
+  companyId: string,
+  memberId: string,
+  options?: { onSuccess?: () => void; onError?: (error: Error) => void }
+) {
+  return useApiMutation<TApiDataResponse<TManagementCompanyMember>, { role: TMemberRole }>({
+    path: `/platform/management-companies/${companyId}/me/members/${memberId}/role`,
+    method: 'PATCH',
+    config: {},
+    onSuccess: () => options?.onSuccess?.(),
+    onError: options?.onError,
+    invalidateKeys: [
+      managementCompanyMemberKeys.detail(memberId),
+      managementCompanyMemberKeys.myCompanyPaginated(companyId, {}),
+    ],
+  })
+}
+
+export function useMyCompanyDeactivateMember(
+  companyId: string,
+  memberId: string,
+  options?: { onSuccess?: () => void; onError?: (error: Error) => void }
+) {
+  return useApiMutation<TApiDataResponse<TManagementCompanyMember>, void>({
+    path: `/platform/management-companies/${companyId}/me/members/${memberId}/deactivate`,
+    method: 'POST',
+    config: {},
+    onSuccess: () => options?.onSuccess?.(),
+    onError: options?.onError,
+    invalidateKeys: [
+      managementCompanyMemberKeys.detail(memberId),
+      managementCompanyMemberKeys.myCompanyPaginated(companyId, {}),
+    ],
+  })
+}
+
+export function useMyCompanyReactivateMember(
+  companyId: string,
+  memberId: string,
+  options?: { onSuccess?: () => void; onError?: (error: Error) => void }
+) {
+  return useApiMutation<TApiDataResponse<TManagementCompanyMember>, void>({
+    path: `/platform/management-companies/${companyId}/me/members/${memberId}/reactivate`,
+    method: 'POST',
+    config: {},
+    onSuccess: () => options?.onSuccess?.(),
+    onError: options?.onError,
+    invalidateKeys: [
+      managementCompanyMemberKeys.detail(memberId),
+      managementCompanyMemberKeys.myCompanyPaginated(companyId, {}),
+    ],
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hooks - My Company Member Audit Logs (Paginated)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface IMemberAuditLogsQuery {
+  page?: number
+  limit?: number
+  action?: 'INSERT' | 'UPDATE' | 'DELETE'
+  dateFrom?: string
+  dateTo?: string
+}
+
+export function useMyCompanyMemberAuditLogsPaginated(
+  companyId: string,
+  memberId: string,
+  query: IMemberAuditLogsQuery = {},
+  options?: { enabled?: boolean }
+) {
+  const params = new URLSearchParams()
+  if (query.page) params.set('page', String(query.page))
+  if (query.limit) params.set('limit', String(query.limit))
+  if (query.action) params.set('action', query.action)
+  if (query.dateFrom) params.set('dateFrom', query.dateFrom)
+  if (query.dateTo) params.set('dateTo', query.dateTo)
+
+  const queryString = params.toString()
+  const path = `/platform/management-companies/${companyId}/me/members/${memberId}/audit-logs/paginated${queryString ? `?${queryString}` : ''}`
+
+  return useApiQuery<TApiPaginatedResponse<TAuditLogEntry>>({
+    path,
+    queryKey: managementCompanyMemberKeys.auditLogsPaginated(memberId, { ...query }),
+    enabled: (options?.enabled !== false) && !!companyId && !!memberId,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hooks - My Company Member Audit Log Detail
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useMyCompanyMemberAuditLogDetail(
+  companyId: string,
+  memberId: string,
+  logId: string,
+  options?: { enabled?: boolean }
+) {
+  return useApiQuery<TApiDataResponse<TAuditLogEntry>>({
+    path: `/platform/management-companies/${companyId}/me/members/${memberId}/audit-logs/${logId}`,
+    queryKey: managementCompanyMemberKeys.auditLogDetail(logId),
+    enabled: (options?.enabled !== false) && !!companyId && !!memberId && !!logId,
+  })
 }

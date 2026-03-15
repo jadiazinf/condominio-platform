@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Card, CardBody } from '@/ui/components/card'
@@ -41,6 +42,7 @@ function formatPaymentAmount(amount: string | null): string {
 
 export function MyPaymentsClient({ userId }: IMyPaymentsClientProps) {
   const { t } = useTranslation()
+  const router = useRouter()
   const [statusFilter, setStatusFilter] = useState<TStatusFilter>('all')
 
   const { data, isLoading, error, refetch } = usePaymentsByUser(userId)
@@ -132,7 +134,13 @@ export function MyPaymentsClient({ userId }: IMyPaymentsClientProps) {
         /* Payment cards list */
         <div className="space-y-3">
           {filteredPayments.map((payment) => (
-            <Card key={payment.id} isHoverable>
+            <Card
+              key={payment.id}
+              isHoverable
+              isPressable
+              onPress={() => router.push(`/dashboard/my-payments/${payment.id}`)}
+              className="cursor-pointer"
+            >
               <CardBody className="p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   {/* Left side: payment info */}

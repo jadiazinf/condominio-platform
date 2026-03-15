@@ -50,6 +50,7 @@ export function ReportPaymentClient({ userId, unitOptions }: IReportPaymentClien
   const [paymentMethod, setPaymentMethod] = useState<TPaymentMethodOption | ''>('')
   const [paymentDate, setPaymentDate] = useState('')
   const [receiptNumber, setReceiptNumber] = useState('')
+  const [externalReference, setExternalReference] = useState('')
   const [notes, setNotes] = useState('')
 
   // Fetch available currencies
@@ -118,7 +119,7 @@ export function ReportPaymentClient({ userId, unitOptions }: IReportPaymentClien
 
       if (!isFormValid) return
 
-      const data: TPaymentCreate = {
+      const data: TPaymentCreate & { externalReference?: string } = {
         userId,
         unitId,
         amount,
@@ -139,6 +140,10 @@ export function ReportPaymentClient({ userId, unitOptions }: IReportPaymentClien
         registeredBy: userId,
       }
 
+      if (externalReference.trim()) {
+        data.externalReference = externalReference.trim()
+      }
+
       reportPayment.mutate(data)
     },
     [
@@ -150,6 +155,7 @@ export function ReportPaymentClient({ userId, unitOptions }: IReportPaymentClien
       paymentMethod,
       paymentDate,
       receiptNumber,
+      externalReference,
       notes,
       reportPayment,
     ]
@@ -240,6 +246,15 @@ export function ReportPaymentClient({ userId, unitOptions }: IReportPaymentClien
               placeholder={t('resident.reportPayment.fields.receiptNumberPlaceholder')}
               value={receiptNumber}
               onValueChange={setReceiptNumber}
+            />
+
+            {/* External Reference (optional - for auto-verification) */}
+            <Input
+              label={t('resident.reportPayment.fields.externalReference')}
+              placeholder={t('resident.reportPayment.fields.externalReferencePlaceholder')}
+              description={t('resident.reportPayment.fields.externalReferenceHelp')}
+              value={externalReference}
+              onValueChange={setExternalReference}
             />
 
             {/* Notes (optional) */}

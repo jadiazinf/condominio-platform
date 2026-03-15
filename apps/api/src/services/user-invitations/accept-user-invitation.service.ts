@@ -1,12 +1,15 @@
-import type { TUserInvitation, TUser, TUserRole } from '@packages/domain'
+import type { TUserInvitation, TUser, TUserRole, TMemberRole } from '@packages/domain'
 import type {
   UserInvitationsRepository,
   UsersRepository,
   UserRolesRepository,
   UnitOwnershipsRepository,
+  ManagementCompanyMembersRepository,
+  ManagementCompaniesRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
+import { SendManagementCompanyMemberNotificationService } from '../email/send-management-company-member-notification.service'
 
 export interface IAcceptUserInvitationInput {
   token: string
@@ -25,13 +28,19 @@ export interface IAcceptUserInvitationResult {
  * and marks the invitation as accepted.
  */
 export class AcceptUserInvitationService {
+  private readonly sendCompanyNotification: SendManagementCompanyMemberNotificationService
+
   constructor(
     private readonly db: TDrizzleClient,
     private readonly invitationsRepository: UserInvitationsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly userRolesRepository: UserRolesRepository,
-    private readonly unitOwnershipsRepository?: UnitOwnershipsRepository
-  ) {}
+    private readonly unitOwnershipsRepository?: UnitOwnershipsRepository,
+    private readonly membersRepository?: ManagementCompanyMembersRepository,
+    private readonly companiesRepository?: ManagementCompaniesRepository
+  ) {
+    this.sendCompanyNotification = new SendManagementCompanyMemberNotificationService()
+  }
 
   async execute(
     input: IAcceptUserInvitationInput
@@ -75,7 +84,7 @@ export class AcceptUserInvitationService {
     )
 
     // All writes inside a transaction (auto-rollback on failure)
-    return await this.db.transaction(async (tx) => {
+    const result: TServiceResult<IAcceptUserInvitationResult> = await this.db.transaction(async (tx) => {
       const txUsersRepo = this.usersRepository.withTx(tx)
       const txUserRolesRepo = this.userRolesRepository.withTx(tx)
       const txInvitationsRepo = this.invitationsRepository.withTx(tx)
@@ -115,11 +124,73 @@ export class AcceptUserInvitationService {
         )
       }
 
+      // Activate management company member if this is an MC-scoped invitation
+      if (this.membersRepository && updatedUserRole?.managementCompanyId) {
+        const txMembersRepo = this.membersRepository.withTx(tx)
+        const member = await txMembersRepo.getByCompanyAndUser(
+          updatedUserRole.managementCompanyId,
+          user.id
+        )
+        if (member) {
+          await txMembersRepo.update(member.id, {
+            isActive: true,
+            joinedAt: new Date(),
+          })
+        }
+      }
+
       return success({
         invitation: acceptedInvitation,
         user: updatedUser,
         userRole: updatedUserRole,
       })
     })
+
+    // Send company notification email after successful acceptance (non-blocking)
+    if (result.success) {
+      await this.sendCompanyNotificationEmail(result.data.user, result.data.userRole)
+    }
+
+    return result
+  }
+
+  /**
+   * Sends notification email to the management company when a member accepts the invitation
+   */
+  private async sendCompanyNotificationEmail(
+    user: TUser,
+    userRole: TUserRole | null
+  ): Promise<void> {
+    if (!this.companiesRepository || !this.membersRepository || !userRole?.managementCompanyId) {
+      return
+    }
+
+    try {
+      const company = await this.companiesRepository.getById(userRole.managementCompanyId)
+      if (!company?.email) return
+
+      const member = await this.membersRepository.getByCompanyAndUser(
+        userRole.managementCompanyId,
+        user.id
+      )
+      if (!member) return
+
+      const roleLabels: Record<TMemberRole, string> = {
+        admin: 'Administrador',
+        accountant: 'Contador',
+        support: 'Soporte',
+        viewer: 'Visualizador',
+      }
+
+      await this.sendCompanyNotification.execute({
+        to: company.email,
+        companyName: company.name,
+        newMemberName: user.displayName || user.firstName || user.email,
+        newMemberEmail: user.email,
+        memberRole: roleLabels[member.roleName],
+      })
+    } catch {
+      // Non-blocking: log but don't fail the acceptance
+    }
   }
 }

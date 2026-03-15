@@ -12,6 +12,7 @@ import type {
   QuotasRepository,
   QuotaAdjustmentsRepository,
   InterestConfigurationsRepository,
+  PaymentPendingAllocationsRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BaseController } from '../base.controller'
@@ -68,10 +69,11 @@ export class PaymentApplicationsController extends BaseController<
     private readonly quotasRepo: QuotasRepository,
     private readonly adjustmentsRepo: QuotaAdjustmentsRepository,
     private readonly interestConfigsRepo: InterestConfigurationsRepository,
+    private readonly pendingAllocationsRepo?: PaymentPendingAllocationsRepository,
   ) {
     super(repository)
     this.applyService = new ApplyPaymentToQuotaService(
-      db, repository, paymentsRepo, quotasRepo, adjustmentsRepo, interestConfigsRepo,
+      db, repository, paymentsRepo, quotasRepo, adjustmentsRepo, interestConfigsRepo, pendingAllocationsRepo,
     )
   }
 

@@ -51,6 +51,7 @@ export { QuotaGenerationSchedulesRepository } from './quota-generation-schedules
 export { QuotaGenerationLogsRepository } from './quota-generation-logs.repository'
 export { PaymentGatewaysRepository } from './payment-gateways.repository'
 export { EntityPaymentGatewaysRepository } from './entity-payment-gateways.repository'
+export { GatewayTransactionsRepository } from './gateway-transactions.repository'
 export { PaymentsRepository } from './payments.repository'
 export { PaymentApplicationsRepository } from './payment-applications.repository'
 export { ExpenseCategoriesRepository } from './expense-categories.repository'

@@ -299,7 +299,7 @@ export function CreatePaymentConceptWizard({
           return false
         return true
       case 1: // Charge Config
-        if (formData.isRecurring && (formData.issueDay == null || formData.dueDay == null))
+        if (formData.issueDay == null || formData.dueDay == null)
           return false
         if (formData.latePaymentType !== 'none' && !formData.latePaymentValue) return false
         if (

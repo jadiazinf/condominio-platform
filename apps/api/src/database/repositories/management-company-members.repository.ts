@@ -133,6 +133,96 @@ export class ManagementCompanyMembersRepository
   }
 
   /**
+   * Get a single member by ID with full user details (for detail view)
+   */
+  async getByIdWithUser(id: string): Promise<(Omit<TManagementCompanyMember, 'user' | 'invitedByUser' | 'deactivatedByUser' | 'managementCompany'> & {
+    user: (TMemberUserInfo & { isEmailVerified: boolean; isActive: boolean; phoneCountryCode: string | null; phoneNumber: string | null; idDocumentType: string | null; idDocumentNumber: string | null; lastLogin: Date | null }) | null
+    invitedByUser: { id: string; displayName: string | null; email: string } | null
+    deactivatedByUser: { id: string; displayName: string | null; email: string } | null
+  }) | null> {
+    const results = await this.db
+      .select({
+        member: managementCompanyMembers,
+        user: {
+          id: users.id,
+          email: users.email,
+          displayName: users.displayName,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          photoUrl: users.photoUrl,
+          isEmailVerified: users.isEmailVerified,
+          isActive: users.isActive,
+          phoneCountryCode: users.phoneCountryCode,
+          phoneNumber: users.phoneNumber,
+          idDocumentType: users.idDocumentType,
+          idDocumentNumber: users.idDocumentNumber,
+          lastLogin: users.lastLogin,
+        },
+      })
+      .from(managementCompanyMembers)
+      .leftJoin(users, eq(managementCompanyMembers.userId, users.id))
+      .where(eq(managementCompanyMembers.id, id))
+      .limit(1)
+
+    if (results.length === 0) return null
+
+    const { member, user } = results[0]!
+    const mapped = this.mapToEntity(member)
+
+    // Fetch invitedBy and deactivatedBy users separately (simpler than CTE/alias)
+    let invitedByUser: { id: string; displayName: string | null; email: string } | null = null
+    if (mapped.invitedBy) {
+      const invRows = await this.db
+        .select({ id: users.id, displayName: users.displayName, email: users.email })
+        .from(users)
+        .where(eq(users.id, mapped.invitedBy))
+        .limit(1)
+      invitedByUser = invRows[0] ?? null
+    }
+
+    let deactivatedByUser: { id: string; displayName: string | null; email: string } | null = null
+    if (mapped.deactivatedBy) {
+      const deacRows = await this.db
+        .select({ id: users.id, displayName: users.displayName, email: users.email })
+        .from(users)
+        .where(eq(users.id, mapped.deactivatedBy))
+        .limit(1)
+      deactivatedByUser = deacRows[0] ?? null
+    }
+
+    return {
+      ...mapped,
+      user: user ? {
+        ...user,
+        isEmailVerified: user.isEmailVerified ?? false,
+        isActive: user.isActive ?? false,
+      } : null,
+      invitedByUser,
+      deactivatedByUser,
+    }
+  }
+
+  /**
+   * Reactivate a member (set isActive to true and joinedAt to now)
+   */
+  async reactivateMember(id: string): Promise<TManagementCompanyMember | null> {
+    const results = await this.db
+      .update(managementCompanyMembers)
+      .set({
+        isActive: true,
+        joinedAt: new Date(),
+        deactivatedAt: null,
+        deactivatedBy: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(managementCompanyMembers.id, id))
+      .returning()
+
+    if (results.length === 0) return null
+    return this.mapToEntity(results[0])
+  }
+
+  /**
    * Get all members by management company ID with user details
    */
   async listByCompanyIdWithUsers(
@@ -363,7 +453,8 @@ export class ManagementCompanyMembersRepository
     isPrimary: boolean,
     permissions: TMemberPermissions | null,
     invitedBy?: string | null,
-    userRoleId?: string | null
+    userRoleId?: string | null,
+    isActive: boolean = true
   ): Promise<TManagementCompanyMember> {
     const dto: TManagementCompanyMemberCreate = {
       managementCompanyId: companyId,
@@ -372,8 +463,8 @@ export class ManagementCompanyMembersRepository
       userRoleId: userRoleId ?? null,
       isPrimaryAdmin: isPrimary,
       permissions,
-      isActive: true,
-      joinedAt: new Date(),
+      isActive,
+      joinedAt: isActive ? new Date() : null,
       invitedAt: invitedBy ? new Date() : null,
       invitedBy: invitedBy ?? null,
       deactivatedAt: null,

@@ -86,12 +86,27 @@ export interface IDeletePaymentOptions {
   onError?: (error: Error) => void
 }
 
+export interface IRefundPaymentOptions {
+  onSuccess?: (data: ApiResponse<TApiDataResponse<TPayment>>) => void
+  onError?: (error: Error) => void
+}
+
 export interface IVerifyPaymentData {
   notes?: string
 }
 
 export interface IRejectPaymentData {
   notes?: string
+}
+
+export interface IRefundPaymentData {
+  refundReason: string
+}
+
+export interface IRefundPaymentResponse {
+  data: TPayment
+  message: string
+  reversedApplications: number
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -119,6 +134,8 @@ export function usePaymentsPaginated(options?: IUsePaymentsOptions) {
   if (query.page) params.set('page', String(query.page))
   if (query.limit) params.set('limit', String(query.limit))
   if (query.status) params.set('status', query.status)
+  if (query.startDate) params.set('startDate', query.startDate)
+  if (query.endDate) params.set('endDate', query.endDate)
 
   const queryString = params.toString()
   const path = `/condominium/payments${queryString ? `?${queryString}` : ''}`
@@ -338,6 +355,21 @@ export function useUpdatePayment(id: string, options?: IUpdatePaymentOptions) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Mutations - Refund Payment
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useRefundPayment(id: string, options?: IRefundPaymentOptions) {
+  return useApiMutation<TApiDataResponse<TPayment>, IRefundPaymentData>({
+    path: `/condominium/payments/${id}/refund`,
+    method: 'POST',
+    config: {},
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+    invalidateKeys: [paymentKeys.all, paymentKeys.detail(id)],
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Mutations - Delete Payment
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -473,5 +505,42 @@ export async function updatePayment(id: string, data: TPaymentUpdate): Promise<T
 export async function deletePayment(id: string): Promise<TPayment> {
   const client = getHttpClient()
   const response = await client.delete<TApiDataResponse<TPayment>>(`/condominium/payments/${id}`)
+  return response.data.data
+}
+
+export async function refundPayment(id: string, data: IRefundPaymentData): Promise<IRefundPaymentResponse> {
+  const client = getHttpClient()
+  const response = await client.post<IRefundPaymentResponse>(
+    `/condominium/payments/${id}/refund`,
+    data
+  )
+  return response.data
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Verify Reference (standalone — check if bank reference exists)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface IVerifyReferenceData {
+  externalReference: string
+  bankAccountId: string
+  senderBankCode?: string
+  transactionDate?: string
+}
+
+export interface IVerifyReferenceResponse {
+  found: boolean
+  status: string
+  verifiedAmount: string | null
+  verifiedAt: string | null
+  externalTransactionId: string | null
+}
+
+export async function verifyPaymentReference(data: IVerifyReferenceData): Promise<IVerifyReferenceResponse> {
+  const client = getHttpClient()
+  const response = await client.post<TApiDataResponse<IVerifyReferenceResponse>>(
+    '/condominium/payments/verify-reference',
+    data
+  )
   return response.data.data
 }
