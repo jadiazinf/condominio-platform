@@ -1,6 +1,6 @@
 ---
 name: code-quality
-description: "Aplica esta skill a TODO el código que generes o modifiques en este proyecto. Define los estándares obligatorios de calidad: Clean Code, principios SOLID, arquitectura hexagonal, patrones de diseño. Usa esta skill como referencia constante antes y durante cualquier tarea de codificación, refactorización o revisión."
+description: 'Aplica esta skill a TODO el código que generes o modifiques en este proyecto. Define los estándares obligatorios de calidad: Clean Code, principios SOLID, arquitectura hexagonal, patrones de diseño. Usa esta skill como referencia constante antes y durante cualquier tarea de codificación, refactorización o revisión.'
 ---
 
 # Estándares de Calidad de Código
@@ -35,6 +35,7 @@ Esta skill define las reglas de calidad que TODO el código generado o modificad
 - **Máximo ~30 líneas por función.** Si es más larga, extraé subfunciones con nombres descriptivos.
 - **Sin side effects ocultos.** Si la función modifica estado externo, el nombre debe indicarlo (`updateQuotaBalance`, no `getQuotaBalance` si además lo modifica).
 - **Retorno temprano (early return).** Manejar errores y casos borde al inicio, no anidar en else.
+
   ```typescript
   // ✅
   if (!payment) return failure('Payment not found', 'NOT_FOUND')
@@ -52,6 +53,7 @@ Esta skill define las reglas de calidad que TODO el código generado o modificad
     return failure(...)
   }
   ```
+
 - **Sin funciones que mezclen niveles de abstracción.** Una función de alto nivel no debe contener SQL inline junto con lógica de negocio.
 
 ### Archivos y estructura
@@ -60,6 +62,7 @@ Esta skill define las reglas de calidad que TODO el código generado o modificad
 - **Imports organizados:** externos → internos (packages/domain) → relativos del proyecto. Separados por línea en blanco.
 - **Sin código muerto.** No dejar funciones, imports, o variables sin usar. No comentar código "por si acaso".
 - **Sin números mágicos.** Extraer a constantes con nombre.
+
   ```typescript
   // ✅
   const MAX_INVITATION_EXPIRY_DAYS = 7
@@ -72,6 +75,7 @@ Esta skill define las reglas de calidad que TODO el código generado o modificad
 ### Comentarios
 
 - **El código debe ser autoexplicativo.** No comentar QUÉ hace, solo POR QUÉ cuando no es obvio.
+
   ```typescript
   // ✅ — Explica una decisión de negocio no obvia
   // Gateway payments start as 'pending' for automatic processing
@@ -82,6 +86,7 @@ Esta skill define las reglas de calidad que TODO el código generado o modificad
   // Check if payment exists
   const payment = await this.repository.getById(id)
   ```
+
 - **JSDoc en interfaces públicas** (inputs/outputs de servicios, interfaces de repos). No en métodos internos triviales.
 - **TODO con contexto.** `// TODO(auth): Add rate limiting per user` no solo `// TODO: fix`
 
@@ -138,6 +143,7 @@ NO crear una interfaz gigante que todas las clases deban implementar.
 Los módulos de alto nivel no dependen de módulos de bajo nivel. Ambos dependen de abstracciones.
 
 - Los servicios reciben repos por **inyección de constructor**, no por instanciación directa.
+
   ```typescript
   // ✅
   class RefundPaymentService {
@@ -153,6 +159,7 @@ Los módulos de alto nivel no dependen de módulos de bajo nivel. Ambos dependen
     private readonly paymentsRepo = new PaymentsRepository(DatabaseService.getInstance().getDb())
   }
   ```
+
 - Los controllers reciben servicios por constructor, los endpoints los ensamblan.
 - EXCEPCIÓN aceptada: `DatabaseService.getInstance()` se usa en middlewares (singleton pattern). No refactorizar esto.
 
@@ -226,7 +233,9 @@ class PaymentsRepository {
 class PaymentsController {
   private verifyPayment = async (c: Context) => {
     const payment = await this.repo.getById(id)
-    if (payment.amount > 1000) { /* ... */ }  // NO — lógica de negocio en controller
+    if (payment.amount > 1000) {
+      /* ... */
+    } // NO — lógica de negocio en controller
   }
 }
 ```
@@ -338,6 +347,7 @@ Orden siempre: Auth → Authorization → Validation → Handler
 - **Errores de negocio:** Usar `TServiceResult` con `failure()`. El controller los mapea a HTTP.
 - **Errores de infraestructura:** Throw `AppError` que el global error handler middleware captura.
 - **NUNCA** catch genérico que traga errores silenciosamente.
+
   ```typescript
   // ❌
   try { ... } catch (e) { return null }
@@ -356,6 +366,7 @@ Orden siempre: Auth → Authorization → Validation → Handler
 - **NO usar `any`.** Usa `unknown` si el tipo es desconocido, luego narrowing.
 - **NO usar `!` (non-null assertion)** excepto en tests o cuando TypeScript no puede inferir un null check previo.
 - **Interfaces para contratos públicos, types para uniones/utilidades.**
+
   ```typescript
   // Interface para contratos
   interface ICreatePaymentInput { ... }
@@ -366,6 +377,7 @@ Orden siempre: Auth → Authorization → Validation → Handler
   // Type para derivados
   type TPaymentWithUnit = TPayment & { unit: TUnit }
   ```
+
 - **Readonly por defecto.** Params de constructor con `private readonly`.
 - **Discriminated unions** para resultados:
   ```typescript

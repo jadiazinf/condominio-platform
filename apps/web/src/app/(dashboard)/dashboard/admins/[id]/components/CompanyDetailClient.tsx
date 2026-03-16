@@ -1,13 +1,16 @@
 'use client'
 
+import type { TManagementCompany } from '@packages/domain'
+
 import { useState } from 'react'
+import { Pencil } from 'lucide-react'
+
+import { EditCompanyForm } from './EditCompanyForm'
+
 import { Card } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
-import { Pencil } from 'lucide-react'
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
-import { EditCompanyForm } from './EditCompanyForm'
-import type { TManagementCompany } from '@packages/domain'
 
 interface CompanyDetailClientProps {
   company: TManagementCompany
@@ -36,14 +39,14 @@ export function CompanyDetailClient({
       <div className="flex items-center justify-between">
         <div>
           <Typography variant="h3">{t('superadmin.companies.detail.tabs.general')}</Typography>
-          <Typography color="muted" variant="body2" className="mt-1">
+          <Typography className="mt-1" color="muted" variant="body2">
             Información básica y de contacto de la administradora
           </Typography>
         </div>
         <Button
           color="primary"
-          variant="flat"
           startContent={<Pencil className="h-4 w-4" />}
+          variant="flat"
           onPress={() => setIsEditModalOpen(true)}
         >
           {t('superadmin.companies.actions.edit')}
@@ -52,7 +55,7 @@ export function CompanyDetailClient({
 
       {/* Basic Information */}
       <Card className="p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('superadmin.companies.detail.general.basicInfo')}
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -83,7 +86,7 @@ export function CompanyDetailClient({
 
       {/* Contact Information */}
       <Card className="p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('superadmin.companies.detail.general.contactInfo')}
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -100,14 +103,14 @@ export function CompanyDetailClient({
             }
           />
           <InfoRow
+            className="md:col-span-2"
             label={t('superadmin.companies.detail.general.website')}
             value={company.website || noDataText}
-            className="md:col-span-2"
           />
           <InfoRow
+            className="md:col-span-2"
             label={t('superadmin.companies.detail.general.address')}
             value={company.address || noDataText}
-            className="md:col-span-2"
           />
           <InfoRow label={t('common.country')} value={locationParts.country || noDataText} />
           <InfoRow label={t('common.province')} value={locationParts.state || noDataText} />
@@ -117,7 +120,7 @@ export function CompanyDetailClient({
 
       {/* Metadata */}
       <Card className="p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('superadmin.companies.detail.general.metadata')}
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -131,9 +134,9 @@ export function CompanyDetailClient({
 
       {/* Edit Modal */}
       <EditCompanyForm
+        company={company}
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        company={company}
         onSuccess={() => window.location.reload()}
       />
     </div>
@@ -153,7 +156,7 @@ function InfoRow({ label, value, valueClassName, className }: IInfoRowProps) {
       <Typography color="muted" variant="body2">
         {label}
       </Typography>
-      <Typography variant="body1" className={valueClassName}>
+      <Typography className={valueClassName} variant="body1">
         {value}
       </Typography>
     </div>

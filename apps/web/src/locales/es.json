@@ -544,8 +544,10 @@
       "dueDate": "Vence",
       "status": {
         "pending": "Pendiente",
+        "partial": "Parcial",
         "overdue": "Vencida",
-        "paid": "Pagada"
+        "paid": "Pagada",
+        "exonerated": "Exonerada"
       },
       "recentPayments": "Pagos recientes",
       "noRecentPayments": "No hay pagos recientes",
@@ -587,6 +589,7 @@
       "filter": {
         "all": "Todas",
         "pending": "Pendientes",
+        "partial": "Parciales",
         "overdue": "Vencidas",
         "paid": "Pagadas",
         "cancelled": "Canceladas",
@@ -594,6 +597,7 @@
       },
       "status": {
         "pending": "Pendiente",
+        "partial": "Parcial",
         "overdue": "Vencida",
         "paid": "Pagada",
         "cancelled": "Cancelada",
@@ -630,6 +634,7 @@
         "interestPaid": "Intereses",
         "status": {
           "pending": "Pendiente",
+          "partial": "Parcial",
           "overdue": "Vencida",
           "paid": "Pagada",
           "cancelled": "Cancelada",
@@ -1817,9 +1822,11 @@
           },
           "quotaStatuses": {
             "pending": "Pendiente",
+            "partial": "Parcial",
             "paid": "Pagado",
             "overdue": "Vencido",
-            "cancelled": "Cancelado"
+            "cancelled": "Cancelado",
+            "exonerated": "Exonerado"
           },
           "paymentStatuses": {
             "pending": "Pendiente",
@@ -4117,9 +4124,11 @@
           },
           "status": {
             "pending": "Pendiente",
+            "partial": "Parcial",
             "paid": "Pagada",
             "overdue": "Vencida",
-            "cancelled": "Cancelada"
+            "cancelled": "Cancelada",
+            "exonerated": "Exonerada"
           },
           "filters": {
             "all": "Todas",
@@ -4769,9 +4778,11 @@
       "status": {
         "all": "Todos",
         "pending": "Pendiente",
+        "partial": "Parcial",
         "paid": "Pagada",
         "overdue": "Vencida",
-        "cancelled": "Cancelada"
+        "cancelled": "Cancelada",
+        "exonerated": "Exonerada"
       },
       "filters": {
         "searchPlaceholder": "Buscar por unidad o concepto...",

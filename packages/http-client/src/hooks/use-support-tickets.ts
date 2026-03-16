@@ -125,7 +125,10 @@ export function useAllSupportTickets(options?: IUseSupportTicketsOptions) {
 /**
  * Standalone function to fetch all tickets
  */
-export async function getAllSupportTickets(filters?: ITicketFilters, token?: string): Promise<TApiPaginatedResponse<TSupportTicket>> {
+export async function getAllSupportTickets(
+  filters?: ITicketFilters,
+  token?: string
+): Promise<TApiPaginatedResponse<TSupportTicket>> {
   const client = getHttpClient()
   const queryParams = new URLSearchParams()
   if (filters?.status) queryParams.set('status', filters.status)

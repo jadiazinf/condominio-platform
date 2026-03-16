@@ -1,24 +1,35 @@
 'use client'
 
+import type { TQuota } from '@packages/domain'
+
 import { useState, useMemo, useCallback } from 'react'
+import { Receipt, Search, Calendar } from 'lucide-react'
+import { formatAmount } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
 import { Card, CardBody } from '@/ui/components/card'
 import { Typography } from '@/ui/components/typography'
 import { Input } from '@/ui/components/input'
-import { Receipt, Search, Calendar } from 'lucide-react'
-import type { TQuota } from '@packages/domain'
-import { formatAmount } from '@packages/utils/currency'
-import { formatShortDate } from '@packages/utils/dates'
 
-type TQuotaStatusFilter = 'all' | 'pending' | 'paid' | 'overdue' | 'cancelled'
+type TQuotaStatusFilter =
+  | 'all'
+  | 'pending'
+  | 'partial'
+  | 'paid'
+  | 'overdue'
+  | 'cancelled'
+  | 'exonerated'
 
 const STATUS_COLORS = {
   pending: 'warning',
+  partial: 'primary',
   paid: 'success',
   overdue: 'danger',
   cancelled: 'default',
+  exonerated: 'secondary',
 } as const
 
 interface QuotasTableProps {
@@ -39,9 +50,11 @@ interface QuotasTableProps {
     }
     status: {
       pending: string
+      partial: string
       paid: string
       overdue: string
       cancelled: string
+      exonerated: string
     }
     filters: {
       all: string
@@ -59,20 +72,24 @@ export function QuotasTable({ quotas, translations: t }: QuotasTableProps) {
     () => [
       { key: 'all', label: t.filters.all },
       { key: 'pending', label: t.status.pending },
+      { key: 'partial', label: t.status.partial },
       { key: 'paid', label: t.status.paid },
       { key: 'overdue', label: t.status.overdue },
       { key: 'cancelled', label: t.status.cancelled },
+      { key: 'exonerated', label: t.status.exonerated },
     ],
     [t]
   )
 
   const filteredQuotas = useMemo(() => {
     let filtered = quotas
+
     if (statusFilter !== 'all') {
       filtered = filtered.filter(q => q.status === statusFilter)
     }
     if (searchInput.trim()) {
       const search = searchInput.toLowerCase()
+
       filtered = filtered.filter(
         q =>
           q.unit?.unitNumber?.toLowerCase().includes(search) ||
@@ -80,6 +97,7 @@ export function QuotasTable({ quotas, translations: t }: QuotasTableProps) {
           q.periodDescription?.toLowerCase().includes(search)
       )
     }
+
     return filtered
   }, [quotas, statusFilter, searchInput])
 
@@ -104,32 +122,23 @@ export function QuotasTable({ quotas, translations: t }: QuotasTableProps) {
     (quota: TQuota, columnKey: string) => {
       switch (columnKey) {
         case 'unit':
-          return (
-            <span className="font-medium text-sm">
-              {quota.unit?.unitNumber || '-'}
-            </span>
-          )
+          return <span className="font-medium text-sm">{quota.unit?.unitNumber || '-'}</span>
         case 'concept':
           return (
-            <span className="text-sm text-default-700">
-              {quota.paymentConcept?.name || '-'}
-            </span>
+            <span className="text-sm text-default-700">{quota.paymentConcept?.name || '-'}</span>
           )
         case 'period':
           return (
             <div className="flex items-center gap-1.5">
-              <Calendar size={14} className="text-default-400" />
+              <Calendar className="text-default-400" size={14} />
               <span className="text-sm text-default-600">
-                {quota.periodDescription || `${quota.periodYear}${quota.periodMonth ? `/${String(quota.periodMonth).padStart(2, '0')}` : ''}`}
+                {quota.periodDescription ||
+                  `${quota.periodYear}${quota.periodMonth ? `/${String(quota.periodMonth).padStart(2, '0')}` : ''}`}
               </span>
             </div>
           )
         case 'amount':
-          return (
-            <span className="text-sm font-medium">
-              {formatAmount(quota.baseAmount)}
-            </span>
-          )
+          return <span className="text-sm font-medium">{formatAmount(quota.baseAmount)}</span>
         case 'balance':
           return (
             <span className="text-sm font-medium text-default-600">
@@ -140,18 +149,14 @@ export function QuotasTable({ quotas, translations: t }: QuotasTableProps) {
           return (
             <Chip
               color={STATUS_COLORS[quota.status as keyof typeof STATUS_COLORS] || 'default'}
-              variant="flat"
               size="sm"
+              variant="flat"
             >
               {t.status[quota.status as keyof typeof t.status] || quota.status}
             </Chip>
           )
         case 'dueDate':
-          return (
-            <span className="text-sm text-default-600">
-              {formatShortDate(quota.dueDate)}
-            </span>
-          )
+          return <span className="text-sm text-default-600">{formatShortDate(quota.dueDate)}</span>
         default:
           return null
       }
@@ -186,12 +191,12 @@ export function QuotasTable({ quotas, translations: t }: QuotasTableProps) {
         />
         <Select
           aria-label={t.filters.status}
-          placeholder={t.filters.status}
           className="w-full sm:w-40"
           items={statusFilterItems}
+          placeholder={t.filters.status}
           value={statusFilter}
-          onChange={handleStatusChange}
           variant="bordered"
+          onChange={handleStatusChange}
         />
       </div>
 
@@ -207,8 +212,8 @@ export function QuotasTable({ quotas, translations: t }: QuotasTableProps) {
                 </div>
                 <Chip
                   color={STATUS_COLORS[quota.status as keyof typeof STATUS_COLORS] || 'default'}
-                  variant="flat"
                   size="sm"
+                  variant="flat"
                 >
                   {t.status[quota.status as keyof typeof t.status] || quota.status}
                 </Chip>
@@ -231,11 +236,11 @@ export function QuotasTable({ quotas, translations: t }: QuotasTableProps) {
       {/* Desktop Table */}
       <div className="hidden md:block">
         <Table<TQuota>
-          mobileCards={false}
           aria-label={t.title}
           columns={columns}
-          rows={filteredQuotas}
+          mobileCards={false}
           renderCell={renderCell}
+          rows={filteredQuotas}
         />
       </div>
     </div>

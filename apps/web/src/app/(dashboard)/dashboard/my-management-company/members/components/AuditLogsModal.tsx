@@ -2,6 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { X } from 'lucide-react'
+import {
+  useMyCompanyMemberAuditLogsPaginated,
+  type TAuditLogEntry,
+} from '@packages/http-client/hooks'
+
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
@@ -11,12 +17,7 @@ import { Button } from '@/ui/components/button'
 import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
 import { Spinner } from '@/ui/components/spinner'
-import { X } from 'lucide-react'
 import { useTranslation } from '@/contexts'
-import {
-  useMyCompanyMemberAuditLogsPaginated,
-  type TAuditLogEntry,
-} from '@packages/http-client/hooks'
 
 const T_PREFIX = 'admin.company.myCompany.members.detail'
 const ITEMS_PER_PAGE = 10
@@ -36,7 +37,12 @@ const actionColors: Record<string, 'success' | 'danger' | 'primary' | 'default'>
   DELETE: 'danger',
 }
 
-export function AuditLogsModal({ isOpen, onClose, managementCompanyId, memberId }: AuditLogsModalProps) {
+export function AuditLogsModal({
+  isOpen,
+  onClose,
+  managementCompanyId,
+  memberId,
+}: AuditLogsModalProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const [page, setPage] = useState(1)
@@ -71,7 +77,11 @@ export function AuditLogsModal({ isOpen, onClose, managementCompanyId, memberId 
 
   const columns: ITableColumn<TAuditLogRow>[] = [
     { key: 'action', label: t(`${T_PREFIX}.auditLogsModal.table.action`) },
-    { key: 'changedFields', label: t(`${T_PREFIX}.auditLogsModal.table.changedFields`), hideOnMobile: true },
+    {
+      key: 'changedFields',
+      label: t(`${T_PREFIX}.auditLogsModal.table.changedFields`),
+      hideOnMobile: true,
+    },
     { key: 'createdAt', label: t(`${T_PREFIX}.auditLogsModal.table.date`) },
   ]
 
@@ -79,26 +89,24 @@ export function AuditLogsModal({ isOpen, onClose, managementCompanyId, memberId 
     switch (columnKey) {
       case 'action':
         return (
-          <Chip
-            color={actionColors[log.action] || 'default'}
-            variant="flat"
-            size="sm"
-          >
+          <Chip color={actionColors[log.action] || 'default'} size="sm" variant="flat">
             {t(`${T_PREFIX}.auditLogs.action.${log.action}`)}
           </Chip>
         )
       case 'changedFields': {
         const fields = log.changedFields ?? []
+
         if (fields.length === 0) return '-'
+
         return (
           <div className="flex flex-wrap gap-1">
-            {fields.slice(0, 3).map((field) => (
-              <Chip key={field} variant="flat" size="sm" className="text-xs">
+            {fields.slice(0, 3).map(field => (
+              <Chip key={field} className="text-xs" size="sm" variant="flat">
                 {t(`${T_PREFIX}.auditLogs.fields.${field}`) || field}
               </Chip>
             ))}
             {fields.length > 3 && (
-              <Chip variant="flat" size="sm" className="text-xs">
+              <Chip className="text-xs" size="sm" variant="flat">
                 +{fields.length - 3}
               </Chip>
             )}
@@ -125,7 +133,7 @@ export function AuditLogsModal({ isOpen, onClose, managementCompanyId, memberId 
   ]
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="4xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="4xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader>
           <Typography variant="h4">{t(`${T_PREFIX}.auditLogsModal.title`)}</Typography>
@@ -135,33 +143,47 @@ export function AuditLogsModal({ isOpen, onClose, managementCompanyId, memberId 
           <div className="mb-4 flex flex-wrap items-end gap-3">
             <div className="min-w-[140px]">
               <Input
-                type="date"
                 label={t(`${T_PREFIX}.auditLogsModal.filters.dateFrom`)}
                 size="sm"
+                type="date"
                 value={dateFrom}
-                onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
+                onChange={e => {
+                  setDateFrom(e.target.value)
+                  setPage(1)
+                }}
               />
             </div>
             <div className="min-w-[140px]">
               <Input
-                type="date"
                 label={t(`${T_PREFIX}.auditLogsModal.filters.dateTo`)}
                 size="sm"
+                type="date"
                 value={dateTo}
-                onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
+                onChange={e => {
+                  setDateTo(e.target.value)
+                  setPage(1)
+                }}
               />
             </div>
             <div className="min-w-[150px]">
               <Select
-                label={t(`${T_PREFIX}.auditLogsModal.filters.action`)}
-                size="sm"
-                selectedKeys={action ? [action] : []}
-                onChange={(key) => { setAction(key ?? ''); setPage(1) }}
                 items={actionOptions}
+                label={t(`${T_PREFIX}.auditLogsModal.filters.action`)}
+                selectedKeys={action ? [action] : []}
+                size="sm"
+                onChange={key => {
+                  setAction(key ?? '')
+                  setPage(1)
+                }}
               />
             </div>
             {hasFilters && (
-              <Button size="sm" variant="light" onPress={handleClearFilters} startContent={<X size={14} />}>
+              <Button
+                size="sm"
+                startContent={<X size={14} />}
+                variant="light"
+                onPress={handleClearFilters}
+              >
                 {t(`${T_PREFIX}.auditLogsModal.filters.clear`)}
               </Button>
             )}
@@ -173,31 +195,31 @@ export function AuditLogsModal({ isOpen, onClose, managementCompanyId, memberId 
               <Spinner />
             </div>
           ) : logs.length === 0 ? (
-            <Typography variant="body2" color="muted" className="py-8 text-center">
+            <Typography className="py-8 text-center" color="muted" variant="body2">
               {t(`${T_PREFIX}.auditLogs.noLogs`)}
             </Typography>
           ) : (
             <>
               <Table<TAuditLogRow>
                 aria-label={t(`${T_PREFIX}.auditLogsModal.title`)}
-                columns={columns}
-                rows={logs}
-                renderCell={renderCell}
-                onRowClick={handleRowClick}
                 classNames={{
                   wrapper: 'shadow-none border-none p-0',
                   tr: 'hover:bg-default-50 cursor-pointer',
                 }}
+                columns={columns}
+                renderCell={renderCell}
+                rows={logs}
+                onRowClick={handleRowClick}
               />
               {pagination && pagination.totalPages > 1 && (
                 <div className="mt-4">
                   <Pagination
-                    page={pagination.page}
-                    totalPages={pagination.totalPages}
-                    total={pagination.total}
                     limit={pagination.limit}
-                    onPageChange={setPage}
+                    page={pagination.page}
                     showLimitSelector={false}
+                    total={pagination.total}
+                    totalPages={pagination.totalPages}
+                    onPageChange={setPage}
                   />
                 </div>
               )}

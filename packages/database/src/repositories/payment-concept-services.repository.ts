@@ -13,9 +13,12 @@ type TPaymentConceptServiceCreate = {
   useDefaultAmount?: boolean
 }
 
-export class PaymentConceptServicesRepository
-  extends BaseRepository<typeof paymentConceptServices, TPaymentConceptService, TPaymentConceptServiceCreate, Partial<TPaymentConceptServiceCreate>>
-{
+export class PaymentConceptServicesRepository extends BaseRepository<
+  typeof paymentConceptServices,
+  TPaymentConceptService,
+  TPaymentConceptServiceCreate,
+  Partial<TPaymentConceptServiceCreate>
+> {
   constructor(db: TDrizzleClient) {
     super(db, paymentConceptServices)
   }
@@ -42,7 +45,9 @@ export class PaymentConceptServicesRepository
     }
   }
 
-  protected override mapToUpdateValues(dto: Partial<TPaymentConceptServiceCreate>): Record<string, unknown> {
+  protected override mapToUpdateValues(
+    dto: Partial<TPaymentConceptServiceCreate>
+  ): Record<string, unknown> {
     const values: Record<string, unknown> = {}
     if (dto.amount !== undefined) values.amount = String(dto.amount)
     if (dto.useDefaultAmount !== undefined) values.useDefaultAmount = dto.useDefaultAmount
@@ -53,7 +58,9 @@ export class PaymentConceptServicesRepository
   /**
    * List all services linked to a payment concept (with service details).
    */
-  async listByConceptId(conceptId: string): Promise<(TPaymentConceptService & { serviceName: string; providerType: string })[]> {
+  async listByConceptId(
+    conceptId: string
+  ): Promise<(TPaymentConceptService & { serviceName: string; providerType: string })[]> {
     const results = await this.db
       .select({
         id: paymentConceptServices.id,

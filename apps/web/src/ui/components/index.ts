@@ -1,11 +1,29 @@
 // Auto-generated barrel export for UI components
 export { Input, CurrencyInput, InputField, CurrencyInputField } from './input'
-export type { IInputProps, ICurrencyInputProps, IInputFieldProps, ICurrencyInputFieldProps, TInputType, TInputSize, TInputColor, TInputVariant, TInputRadius, TLabelPlacement } from './input'
+export type {
+  IInputProps,
+  ICurrencyInputProps,
+  IInputFieldProps,
+  ICurrencyInputFieldProps,
+  TInputType,
+  TInputSize,
+  TInputColor,
+  TInputVariant,
+  TInputRadius,
+  TLabelPlacement,
+} from './input'
 export * from './label'
 export * from './switch'
 export * from './button'
 export { Select } from './select'
-export type { ISelectProps, ISelectItem, TSelectSize, TSelectColor, TSelectVariant, TSelectRadius } from './select'
+export type {
+  ISelectProps,
+  ISelectItem,
+  TSelectSize,
+  TSelectColor,
+  TSelectVariant,
+  TSelectRadius,
+} from './select'
 export * from './textarea'
 export * from './table'
 export * from './toast'

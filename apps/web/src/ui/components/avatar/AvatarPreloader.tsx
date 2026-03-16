@@ -25,6 +25,7 @@ export function AvatarPreloader() {
 
     // Preload the image
     const img = new Image()
+
     img.crossOrigin = 'anonymous'
     img.src = photoUrl
 
@@ -42,14 +43,17 @@ export function AvatarPreloader() {
   // Also add a preload link for the image
   useEffect(() => {
     const photoUrl = user?.photoUrl
+
     if (!photoUrl) return
 
     // Check if preload link already exists
     const existingLink = document.querySelector(`link[href="${photoUrl}"]`)
+
     if (existingLink) return
 
     // Create preload link
     const link = document.createElement('link')
+
     link.rel = 'preload'
     link.as = 'image'
     link.href = photoUrl

@@ -1,8 +1,12 @@
 'use client'
 
-import { useState } from 'react'
 import type { TQuota } from '@packages/domain'
+
+import { useState } from 'react'
 import { useQuotasByUnitPaginated } from '@packages/http-client/hooks'
+import { X } from 'lucide-react'
+import { formatAmount } from '@packages/utils/currency'
+
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
@@ -12,8 +16,6 @@ import { Button } from '@/ui/components/button'
 import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
 import { Spinner } from '@/ui/components/spinner'
-import { X } from 'lucide-react'
-import { formatAmount } from '@packages/utils/currency'
 
 interface AllQuotasModalProps {
   isOpen: boolean
@@ -45,11 +47,16 @@ const ITEMS_PER_PAGE = 10
 
 type TQuotaRow = TQuota & { id: string }
 
-const quotaStatusColors: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
+const quotaStatusColors: Record<
+  string,
+  'success' | 'warning' | 'danger' | 'default' | 'secondary' | 'primary'
+> = {
   paid: 'success',
   pending: 'warning',
+  partial: 'primary',
   overdue: 'danger',
   cancelled: 'default',
+  exonerated: 'secondary',
 }
 
 export function AllQuotasModal({ isOpen, onClose, unitId, translations: t }: AllQuotasModalProps) {
@@ -97,9 +104,14 @@ export function AllQuotasModal({ isOpen, onClose, unitId, translations: t }: All
         return quota.paymentConcept?.name || quota.periodDescription || '-'
       case 'period': {
         if (quota.periodMonth) {
-          const monthName = new Date(quota.periodYear, quota.periodMonth - 1).toLocaleDateString('es-VE', { month: 'short' })
+          const monthName = new Date(quota.periodYear, quota.periodMonth - 1).toLocaleDateString(
+            'es-VE',
+            { month: 'short' }
+          )
+
           return `${monthName} ${quota.periodYear}`
         }
+
         return quota.periodDescription || `${quota.periodYear}`
       }
       case 'amount':
@@ -114,7 +126,7 @@ export function AllQuotasModal({ isOpen, onClose, unitId, translations: t }: All
         )
       case 'status':
         return (
-          <Chip color={quotaStatusColors[quota.status] || 'default'} variant="flat" size="sm">
+          <Chip color={quotaStatusColors[quota.status] || 'default'} size="sm" variant="flat">
             {t.statuses[quota.status] || quota.status}
           </Chip>
         )
@@ -126,13 +138,15 @@ export function AllQuotasModal({ isOpen, onClose, unitId, translations: t }: All
   const statusOptions = [
     { label: t.filters.allStatuses, value: '' },
     { label: t.statuses.pending || 'Pendiente', value: 'pending' },
+    { label: t.statuses.partial || 'Parcial', value: 'partial' },
     { label: t.statuses.paid || 'Pagado', value: 'paid' },
     { label: t.statuses.overdue || 'Vencido', value: 'overdue' },
     { label: t.statuses.cancelled || 'Cancelado', value: 'cancelled' },
+    { label: t.statuses.exonerated || 'Exonerada', value: 'exonerated' },
   ]
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="4xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="4xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader>
           <Typography variant="h4">{t.title}</Typography>
@@ -142,33 +156,47 @@ export function AllQuotasModal({ isOpen, onClose, unitId, translations: t }: All
           <div className="mb-4 flex flex-wrap items-end gap-3">
             <div className="min-w-[140px]">
               <Input
-                type="date"
                 label={t.filters.dateFrom}
                 size="sm"
+                type="date"
                 value={startDate}
-                onChange={(e) => { setStartDate(e.target.value); setPage(1) }}
+                onChange={e => {
+                  setStartDate(e.target.value)
+                  setPage(1)
+                }}
               />
             </div>
             <div className="min-w-[140px]">
               <Input
-                type="date"
                 label={t.filters.dateTo}
                 size="sm"
+                type="date"
                 value={endDate}
-                onChange={(e) => { setEndDate(e.target.value); setPage(1) }}
+                onChange={e => {
+                  setEndDate(e.target.value)
+                  setPage(1)
+                }}
               />
             </div>
             <div className="min-w-[150px]">
               <Select
-                label={t.filters.status}
-                size="sm"
-                selectedKeys={status ? [status] : []}
-                onChange={(key) => { setStatus(key ?? ''); setPage(1) }}
                 items={statusOptions.map(o => ({ key: o.value, label: o.label }))}
+                label={t.filters.status}
+                selectedKeys={status ? [status] : []}
+                size="sm"
+                onChange={key => {
+                  setStatus(key ?? '')
+                  setPage(1)
+                }}
               />
             </div>
             {hasFilters && (
-              <Button size="sm" variant="light" onPress={handleClearFilters} startContent={<X size={14} />}>
+              <Button
+                size="sm"
+                startContent={<X size={14} />}
+                variant="light"
+                onPress={handleClearFilters}
+              >
                 {t.filters.clear}
               </Button>
             )}
@@ -180,30 +208,30 @@ export function AllQuotasModal({ isOpen, onClose, unitId, translations: t }: All
               <Spinner />
             </div>
           ) : quotas.length === 0 ? (
-            <Typography variant="body2" color="muted" className="py-8 text-center">
+            <Typography className="py-8 text-center" color="muted" variant="body2">
               {t.noResults}
             </Typography>
           ) : (
             <>
               <Table<TQuotaRow>
                 aria-label={t.title}
-                columns={columns}
-                rows={quotas}
-                renderCell={renderCell}
                 classNames={{
                   wrapper: 'shadow-none border-none p-0',
                   tr: 'hover:bg-default-50',
                 }}
+                columns={columns}
+                renderCell={renderCell}
+                rows={quotas}
               />
               {pagination && pagination.totalPages > 1 && (
                 <div className="mt-4">
                   <Pagination
-                    page={pagination.page}
-                    totalPages={pagination.totalPages}
-                    total={pagination.total}
                     limit={pagination.limit}
-                    onPageChange={setPage}
+                    page={pagination.page}
                     showLimitSelector={false}
+                    total={pagination.total}
+                    totalPages={pagination.totalPages}
+                    onPageChange={setPage}
                   />
                 </div>
               )}

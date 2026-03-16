@@ -1,6 +1,7 @@
 'use client'
 
 import { CheckCircle } from 'lucide-react'
+
 import { Button } from '@/ui/components/button'
 
 export interface ISubmissionSuccessTranslations {
@@ -24,7 +25,7 @@ export function SubmissionSuccess({
   return (
     <div className="flex flex-col items-center justify-center gap-6 py-12 text-center">
       <div className="w-16 h-16 rounded-full bg-success-100 flex items-center justify-center">
-        <CheckCircle size={32} className="text-success" />
+        <CheckCircle className="text-success" size={32} />
       </div>
       <div className="space-y-2">
         <p className="text-xl font-bold">{translations.title}</p>

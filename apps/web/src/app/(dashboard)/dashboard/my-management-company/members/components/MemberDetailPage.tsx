@@ -1,15 +1,9 @@
 'use client'
 
+import type { TMemberRole } from '@packages/domain'
+
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card } from '@/ui/components/card'
-import { Chip } from '@/ui/components/chip'
-import { Button } from '@/ui/components/button'
-import { Spinner } from '@/ui/components/spinner'
-import { Select, type ISelectItem } from '@/ui/components/select'
-import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
-import { useTranslation } from '@/contexts'
-import { useToast } from '@/ui/components/toast'
 import {
   useMyCompanyMemberDetail,
   useMyCompanyMemberAuditLogs,
@@ -19,9 +13,18 @@ import {
   type TMemberDetail,
   type TAuditLogEntry,
 } from '@packages/http-client/hooks'
-import type { TMemberRole } from '@packages/domain'
 import { ArrowLeft } from 'lucide-react'
+
 import { AuditLogsModal } from './AuditLogsModal'
+
+import { Card } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
+import { Spinner } from '@/ui/components/spinner'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
+import { useTranslation } from '@/contexts'
+import { useToast } from '@/ui/components/toast'
 
 const T_PREFIX = 'admin.company.myCompany.members.detail'
 
@@ -100,7 +103,7 @@ export function MemberDetailPage({ managementCompanyId, memberId }: MemberDetail
         toast.success(t(`${T_PREFIX}.actions.deactivateSuccess`))
         setIsDeactivateModalOpen(false)
       },
-      onError: (err) => toast.error(err.message || t(`${T_PREFIX}.actions.deactivateError`)),
+      onError: err => toast.error(err.message || t(`${T_PREFIX}.actions.deactivateError`)),
     }
   )
 
@@ -109,7 +112,7 @@ export function MemberDetailPage({ managementCompanyId, memberId }: MemberDetail
     memberId,
     {
       onSuccess: () => toast.success(t(`${T_PREFIX}.actions.reactivateSuccess`)),
-      onError: (err) => toast.error(err.message || t(`${T_PREFIX}.actions.reactivateError`)),
+      onError: err => toast.error(err.message || t(`${T_PREFIX}.actions.reactivateError`)),
     }
   )
 
@@ -127,14 +130,21 @@ export function MemberDetailPage({ managementCompanyId, memberId }: MemberDetail
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20">
         <p className="text-default-500">{t(`${T_PREFIX}.${error ? 'error' : 'notFound'}`)}</p>
-        <Button variant="flat" onPress={() => router.push('/dashboard/my-management-company/members')}>
+        <Button
+          variant="flat"
+          onPress={() => router.push('/dashboard/my-management-company/members')}
+        >
           {t(`${T_PREFIX}.back`)}
         </Button>
       </div>
     )
   }
 
-  const userName = member.user?.displayName || `${member.user?.firstName ?? ''} ${member.user?.lastName ?? ''}`.trim() || member.user?.email || '—'
+  const userName =
+    member.user?.displayName ||
+    `${member.user?.firstName ?? ''} ${member.user?.lastName ?? ''}`.trim() ||
+    member.user?.email ||
+    '—'
   const canDeactivate = member.isActive && !member.isPrimaryAdmin
   const canReactivate = !member.isActive && member.user?.isEmailVerified === true
 
@@ -153,7 +163,12 @@ export function MemberDetailPage({ managementCompanyId, memberId }: MemberDetail
   }
 
   const permissions = DEFAULT_PERMISSIONS[member.roleName] ?? DEFAULT_PERMISSIONS.viewer
-  const permissionKeys = ['can_change_subscription', 'can_manage_members', 'can_create_tickets', 'can_view_invoices'] as const
+  const permissionKeys = [
+    'can_change_subscription',
+    'can_manage_members',
+    'can_create_tickets',
+    'can_view_invoices',
+  ] as const
 
   return (
     <div className="flex flex-col gap-6">
@@ -161,9 +176,9 @@ export function MemberDetailPage({ managementCompanyId, memberId }: MemberDetail
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <Button
-            variant="light"
             size="sm"
             startContent={<ArrowLeft size={16} />}
+            variant="light"
             onPress={() => router.push('/dashboard/my-management-company/members')}
           >
             {t(`${T_PREFIX}.back`)}
@@ -173,19 +188,15 @@ export function MemberDetailPage({ managementCompanyId, memberId }: MemberDetail
           {canReactivate && (
             <Button
               color="success"
-              variant="flat"
               isLoading={isReactivating}
+              variant="flat"
               onPress={() => reactivate()}
             >
               {t(`${T_PREFIX}.actions.reactivate`)}
             </Button>
           )}
           {canDeactivate && (
-            <Button
-              color="danger"
-              variant="flat"
-              onPress={() => setIsDeactivateModalOpen(true)}
-            >
+            <Button color="danger" variant="flat" onPress={() => setIsDeactivateModalOpen(true)}>
               {t(`${T_PREFIX}.actions.deactivate`)}
             </Button>
           )}
@@ -195,20 +206,16 @@ export function MemberDetailPage({ managementCompanyId, memberId }: MemberDetail
       {/* Name + Status */}
       <div className="flex items-center gap-3">
         <h2 className="text-2xl font-semibold">{userName}</h2>
-        <Chip
-          color={member.isActive ? 'success' : 'default'}
-          variant="flat"
-          size="sm"
-        >
+        <Chip color={member.isActive ? 'success' : 'default'} size="sm" variant="flat">
           {t(`${T_PREFIX}.status.${member.isActive ? 'active' : 'inactive'}`)}
         </Chip>
         {member.isPrimaryAdmin && (
-          <Chip color="warning" variant="flat" size="sm">
+          <Chip color="warning" size="sm" variant="flat">
             {t(`${T_PREFIX}.roleAndPermissions.primaryAdmin`)}
           </Chip>
         )}
         {!member.isActive && member.user && !member.user.isEmailVerified && (
-          <Chip color="warning" variant="dot" size="sm">
+          <Chip color="warning" size="sm" variant="dot">
             {t(`${T_PREFIX}.membership.pendingInvitation`)}
           </Chip>
         )}
@@ -251,10 +258,12 @@ export function MemberDetailPage({ managementCompanyId, memberId }: MemberDetail
             <span className="w-48 text-sm text-default-500">{t(`${T_PREFIX}.userInfo.email`)}</span>
             <Chip
               color={member.user?.isEmailVerified ? 'success' : 'warning'}
-              variant="flat"
               size="sm"
+              variant="flat"
             >
-              {t(`${T_PREFIX}.userInfo.${member.user?.isEmailVerified ? 'emailVerified' : 'emailNotVerified'}`)}
+              {t(
+                `${T_PREFIX}.userInfo.${member.user?.isEmailVerified ? 'emailVerified' : 'emailNotVerified'}`
+              )}
             </Chip>
           </div>
         </div>
@@ -265,38 +274,42 @@ export function MemberDetailPage({ managementCompanyId, memberId }: MemberDetail
         <h3 className="mb-4 text-lg font-medium">{t(`${T_PREFIX}.roleAndPermissions.title`)}</h3>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-            <span className="w-48 text-sm text-default-500">{t(`${T_PREFIX}.roleAndPermissions.currentRole`)}</span>
+            <span className="w-48 text-sm text-default-500">
+              {t(`${T_PREFIX}.roleAndPermissions.currentRole`)}
+            </span>
             {member.isPrimaryAdmin ? (
               <Chip color="warning" variant="flat">
-                {t(`${T_PREFIX}.roles.${member.roleName}`)} ({t(`${T_PREFIX}.roleAndPermissions.primaryAdmin`)})
+                {t(`${T_PREFIX}.roles.${member.roleName}`)} (
+                {t(`${T_PREFIX}.roleAndPermissions.primaryAdmin`)})
               </Chip>
             ) : (
               <Select
-                label={t(`${T_PREFIX}.roleAndPermissions.changeRole`)}
+                className="max-w-xs"
+                isDisabled={!member.isActive || isUpdatingRole}
                 items={roleItems}
+                label={t(`${T_PREFIX}.roleAndPermissions.changeRole`)}
                 selectedKeys={[member.roleName]}
-                onSelectionChange={(keys) => {
+                size="sm"
+                onSelectionChange={keys => {
                   const selected = Array.from(keys)[0] as string
+
                   if (selected) handleRoleChange(selected)
                 }}
-                isDisabled={!member.isActive || isUpdatingRole}
-                className="max-w-xs"
-                size="sm"
               />
             )}
           </div>
 
           <div className="mt-2">
-            <span className="text-sm font-medium text-default-600">{t(`${T_PREFIX}.roleAndPermissions.permissions`)}</span>
+            <span className="text-sm font-medium text-default-600">
+              {t(`${T_PREFIX}.roleAndPermissions.permissions`)}
+            </span>
             <div className="mt-2 flex flex-col gap-2">
-              {permissionKeys.map((key) => (
+              {permissionKeys.map(key => (
                 <div key={key} className="flex items-center gap-2">
-                  <Chip
-                    color={permissions[key] ? 'success' : 'default'}
-                    variant="dot"
-                    size="sm"
-                  >
-                    {t(`${T_PREFIX}.roleAndPermissions.${key === 'can_change_subscription' ? 'canChangeSubscription' : key === 'can_manage_members' ? 'canManageMembers' : key === 'can_create_tickets' ? 'canCreateTickets' : 'canViewInvoices'}`)}
+                  <Chip color={permissions[key] ? 'success' : 'default'} size="sm" variant="dot">
+                    {t(
+                      `${T_PREFIX}.roleAndPermissions.${key === 'can_change_subscription' ? 'canChangeSubscription' : key === 'can_manage_members' ? 'canManageMembers' : key === 'can_create_tickets' ? 'canCreateTickets' : 'canViewInvoices'}`
+                    )}
                   </Chip>
                 </div>
               ))}
@@ -329,11 +342,15 @@ export function MemberDetailPage({ managementCompanyId, memberId }: MemberDetail
             <>
               <InfoRow
                 label={t(`${T_PREFIX}.membership.deactivatedAt`)}
-                value={member.deactivatedAt ? new Date(member.deactivatedAt).toLocaleDateString() : '—'}
+                value={
+                  member.deactivatedAt ? new Date(member.deactivatedAt).toLocaleDateString() : '—'
+                }
               />
               <InfoRow
                 label={t(`${T_PREFIX}.membership.deactivatedBy`)}
-                value={member.deactivatedByUser?.displayName || member.deactivatedByUser?.email || '—'}
+                value={
+                  member.deactivatedByUser?.displayName || member.deactivatedByUser?.email || '—'
+                }
               />
             </>
           )}
@@ -345,11 +362,7 @@ export function MemberDetailPage({ managementCompanyId, memberId }: MemberDetail
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-medium">{t(`${T_PREFIX}.auditLogs.title`)}</h3>
           {auditLogs.length > 0 && (
-            <Button
-              variant="light"
-              size="sm"
-              onPress={() => setIsAuditLogsModalOpen(true)}
-            >
+            <Button size="sm" variant="light" onPress={() => setIsAuditLogsModalOpen(true)}>
               {t(`${T_PREFIX}.auditLogs.viewAll`)}
             </Button>
           )}
@@ -358,8 +371,8 @@ export function MemberDetailPage({ managementCompanyId, memberId }: MemberDetail
           <p className="text-sm text-default-400">{t(`${T_PREFIX}.auditLogs.noLogs`)}</p>
         ) : (
           <div className="flex flex-col gap-3">
-            {recentLogs.map((log) => (
-              <AuditLogRow key={log.id} log={log} t={t} memberId={memberId} />
+            {recentLogs.map(log => (
+              <AuditLogRow key={log.id} log={log} memberId={memberId} t={t} />
             ))}
           </div>
         )}
@@ -377,11 +390,7 @@ export function MemberDetailPage({ managementCompanyId, memberId }: MemberDetail
               <Button variant="flat" onPress={() => setIsDeactivateModalOpen(false)}>
                 {t(`${T_PREFIX}.deactivateModal.cancel`)}
               </Button>
-              <Button
-                color="danger"
-                isLoading={isDeactivating}
-                onPress={() => deactivate()}
-              >
+              <Button color="danger" isLoading={isDeactivating} onPress={() => deactivate()}>
                 {t(`${T_PREFIX}.deactivateModal.confirm`)}
               </Button>
             </div>
@@ -392,9 +401,9 @@ export function MemberDetailPage({ managementCompanyId, memberId }: MemberDetail
       {/* Audit Logs Modal */}
       <AuditLogsModal
         isOpen={isAuditLogsModalOpen}
-        onClose={() => setIsAuditLogsModalOpen(false)}
         managementCompanyId={managementCompanyId}
         memberId={memberId}
+        onClose={() => setIsAuditLogsModalOpen(false)}
       />
     </div>
   )
@@ -413,7 +422,15 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-function AuditLogRow({ log, t, memberId }: { log: TAuditLogEntry; t: (key: string) => string; memberId: string }) {
+function AuditLogRow({
+  log,
+  t,
+  memberId,
+}: {
+  log: TAuditLogEntry
+  t: (key: string) => string
+  memberId: string
+}) {
   const router = useRouter()
   const actionLabel = t(`${T_PREFIX}.auditLogs.action.${log.action}`)
   const date = new Date(log.createdAt).toLocaleString()
@@ -422,13 +439,17 @@ function AuditLogRow({ log, t, memberId }: { log: TAuditLogEntry; t: (key: strin
   return (
     <div
       className="flex cursor-pointer flex-col gap-1 rounded-lg bg-default-50 px-4 py-3 transition-colors hover:bg-default-100"
-      onClick={() => router.push(`/dashboard/my-management-company/members/${memberId}/activity/${log.id}`)}
+      onClick={() =>
+        router.push(`/dashboard/my-management-company/members/${memberId}/activity/${log.id}`)
+      }
     >
       <div className="flex items-center justify-between">
         <Chip
-          color={log.action === 'INSERT' ? 'success' : log.action === 'DELETE' ? 'danger' : 'primary'}
-          variant="flat"
+          color={
+            log.action === 'INSERT' ? 'success' : log.action === 'DELETE' ? 'danger' : 'primary'
+          }
           size="sm"
+          variant="flat"
         >
           {actionLabel}
         </Chip>
@@ -436,8 +457,8 @@ function AuditLogRow({ log, t, memberId }: { log: TAuditLogEntry; t: (key: strin
       </div>
       {fields.length > 0 && (
         <div className="mt-1 flex flex-wrap gap-1">
-          {fields.map((field) => (
-            <Chip key={field} variant="flat" size="sm" className="text-xs">
+          {fields.map(field => (
+            <Chip key={field} className="text-xs" size="sm" variant="flat">
               {t(`${T_PREFIX}.auditLogs.fields.${field}`) || field}
             </Chip>
           ))}

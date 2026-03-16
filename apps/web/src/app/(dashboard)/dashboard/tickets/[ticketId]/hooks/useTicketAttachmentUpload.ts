@@ -52,6 +52,7 @@ export function useTicketAttachmentUpload(options: IUseTicketAttachmentUploadOpt
     // Check file size
     if (!validateFileSize(mimeType, file.size)) {
       const maxSize = getFileSizeLimit(mimeType)
+
       return { file, reason: 'file_too_large', maxSize: maxSize ?? undefined }
     }
 
@@ -68,6 +69,7 @@ export function useTicketAttachmentUpload(options: IUseTicketAttachmentUploadOpt
       // Validate each file
       for (const file of fileArray) {
         const error = validateFile(file)
+
         if (error) {
           validationErrors.push(error)
         } else {
@@ -82,14 +84,14 @@ export function useTicketAttachmentUpload(options: IUseTicketAttachmentUploadOpt
 
       // Add valid files to the uploading list and start uploads
       if (validFiles.length > 0) {
-        const newUploadingFiles: IUploadingFile[] = validFiles.map((file) => ({
+        const newUploadingFiles: IUploadingFile[] = validFiles.map(file => ({
           id: crypto.randomUUID(),
           file,
           progress: 0,
           status: 'pending' as const,
         }))
 
-        setUploadingFiles((prev) => [...prev, ...newUploadingFiles])
+        setUploadingFiles(prev => [...prev, ...newUploadingFiles])
 
         // Start uploading each file
         for (const uploadingFile of newUploadingFiles) {
@@ -113,23 +115,25 @@ export function useTicketAttachmentUpload(options: IUseTicketAttachmentUploadOpt
         const storageRef = ref(storage, storagePath)
 
         // Update status to uploading
-        setUploadingFiles((prev) =>
-          prev.map((f) => (f.id === id ? { ...f, status: 'uploading' as const } : f))
+        setUploadingFiles(prev =>
+          prev.map(f => (f.id === id ? { ...f, status: 'uploading' as const } : f))
         )
 
         const uploadTask = uploadBytesResumable(storageRef, file)
+
         uploadTasksRef.current.set(id, uploadTask)
 
         uploadTask.on(
           'state_changed',
-          (snapshot) => {
+          snapshot => {
             const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
-            setUploadingFiles((prev) => prev.map((f) => (f.id === id ? { ...f, progress } : f)))
+
+            setUploadingFiles(prev => prev.map(f => (f.id === id ? { ...f, progress } : f)))
           },
-          (error) => {
+          error => {
             // Upload failed
-            setUploadingFiles((prev) =>
-              prev.map((f) =>
+            setUploadingFiles(prev =>
+              prev.map(f =>
                 f.id === id ? { ...f, status: 'error' as const, error: error.message } : f
               )
             )
@@ -147,16 +151,16 @@ export function useTicketAttachmentUpload(options: IUseTicketAttachmentUploadOpt
                 mimeType: file.type as TAttachment['mimeType'],
               }
 
-              setUploadingFiles((prev) =>
-                prev.map((f) =>
+              setUploadingFiles(prev =>
+                prev.map(f =>
                   f.id === id
                     ? { ...f, status: 'completed' as const, progress: 100, attachment }
                     : f
                 )
               )
             } catch (error) {
-              setUploadingFiles((prev) =>
-                prev.map((f) =>
+              setUploadingFiles(prev =>
+                prev.map(f =>
                   f.id === id
                     ? { ...f, status: 'error' as const, error: 'Failed to get download URL' }
                     : f
@@ -167,8 +171,8 @@ export function useTicketAttachmentUpload(options: IUseTicketAttachmentUploadOpt
           }
         )
       } catch (error) {
-        setUploadingFiles((prev) =>
-          prev.map((f) =>
+        setUploadingFiles(prev =>
+          prev.map(f =>
             f.id === id ? { ...f, status: 'error' as const, error: 'Failed to start upload' } : f
           )
         )
@@ -181,18 +185,20 @@ export function useTicketAttachmentUpload(options: IUseTicketAttachmentUploadOpt
   const removeFile = useCallback((id: string) => {
     // Cancel upload if in progress
     const uploadTask = uploadTasksRef.current.get(id)
+
     if (uploadTask) {
       uploadTask.cancel()
       uploadTasksRef.current.delete(id)
     }
 
-    setUploadingFiles((prev) => prev.filter((f) => f.id !== id))
+    setUploadingFiles(prev => prev.filter(f => f.id !== id))
   }, [])
 
   // Clear all files
   const clearAll = useCallback(() => {
     // Cancel all uploads
     const entries = Array.from(uploadTasksRef.current.entries())
+
     for (const [id, uploadTask] of entries) {
       uploadTask.cancel()
       uploadTasksRef.current.delete(id)
@@ -204,10 +210,11 @@ export function useTicketAttachmentUpload(options: IUseTicketAttachmentUploadOpt
   // Retry a failed upload
   const retryFile = useCallback(
     (id: string) => {
-      const fileToRetry = uploadingFiles.find((f) => f.id === id)
+      const fileToRetry = uploadingFiles.find(f => f.id === id)
+
       if (fileToRetry && fileToRetry.status === 'error') {
-        setUploadingFiles((prev) =>
-          prev.map((f) =>
+        setUploadingFiles(prev =>
+          prev.map(f =>
             f.id === id ? { ...f, status: 'pending' as const, progress: 0, error: undefined } : f
           )
         )
@@ -219,12 +226,12 @@ export function useTicketAttachmentUpload(options: IUseTicketAttachmentUploadOpt
 
   // Computed values
   const completedAttachments = uploadingFiles
-    .filter((f) => f.status === 'completed' && f.attachment)
-    .map((f) => f.attachment!)
+    .filter(f => f.status === 'completed' && f.attachment)
+    .map(f => f.attachment!)
 
-  const isUploading = uploadingFiles.some((f) => f.status === 'uploading' || f.status === 'pending')
+  const isUploading = uploadingFiles.some(f => f.status === 'uploading' || f.status === 'pending')
 
-  const hasErrors = uploadingFiles.some((f) => f.status === 'error')
+  const hasErrors = uploadingFiles.some(f => f.status === 'error')
 
   const totalProgress =
     uploadingFiles.length > 0

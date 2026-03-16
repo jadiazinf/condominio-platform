@@ -34,7 +34,7 @@ packages/
 
 ## Code Quality Principles (Non-Negotiable)
 
-- **Readability above all.** Code must read like human language. If it needs a comment to explain *what* it does, rewrite it. Comments are only for *why*.
+- **Readability above all.** Code must read like human language. If it needs a comment to explain _what_ it does, rewrite it. Comments are only for _why_.
 - **Simplicity wins.** The simplest solution that solves the problem is the correct one.
 - **Clean Code + SOLID.** Small functions, single responsibility, dependency inversion, open/closed.
 - **Small components/modules.** Each unit does one thing well. Prefer composition over configuration.

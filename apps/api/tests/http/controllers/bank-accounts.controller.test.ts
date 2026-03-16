@@ -5,11 +5,7 @@ import type { TBankAccount, TBankAccountCreate } from '@packages/domain'
 import { BankAccountsController } from '@http/controllers/bank-accounts/bank-accounts.controller'
 import type { BankAccountsRepository, BanksRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
-import {
-  withId,
-  createTestApp,
-  type IApiResponse,
-} from './test-utils'
+import { withId, createTestApp, type IApiResponse } from './test-utils'
 
 const MC_ID = '550e8400-e29b-41d4-a716-446655440010'
 const USER_ID = '550e8400-e29b-41d4-a716-446655440000'
@@ -51,12 +47,21 @@ type TMockBankAccountsRepository = {
   listByManagementCompanyPaginated: (
     mcId: string,
     query: Record<string, unknown>
-  ) => Promise<{ data: TBankAccount[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>
-  getByIdWithCondominiums: (id: string) => Promise<(TBankAccount & { condominiumIds?: string[] }) | null>
+  ) => Promise<{
+    data: TBankAccount[]
+    pagination: { page: number; limit: number; total: number; totalPages: number }
+  }>
+  getByIdWithCondominiums: (
+    id: string
+  ) => Promise<(TBankAccount & { condominiumIds?: string[] }) | null>
   create: (data: TBankAccountCreate) => Promise<TBankAccount>
   deactivate: (id: string, deactivatedBy: string) => Promise<TBankAccount | null>
   getById: (id: string, includeInactive?: boolean) => Promise<TBankAccount | null>
-  assignCondominiums: (bankAccountId: string, condominiumIds: string[], assignedBy: string) => Promise<void>
+  assignCondominiums: (
+    bankAccountId: string,
+    condominiumIds: string[],
+    assignedBy: string
+  ) => Promise<void>
   withTx: (tx: unknown) => TMockBankAccountsRepository
 }
 
@@ -163,7 +168,9 @@ describe('BankAccountsController', function () {
     })
 
     it('should accept query parameters', async function () {
-      const res = await request(`/${MC_ID}/me/bank-accounts?accountCategory=national&isActive=true&page=1&limit=10`)
+      const res = await request(
+        `/${MC_ID}/me/bank-accounts?accountCategory=national&isActive=true&page=1&limit=10`
+      )
       expect(res.status).toBe(StatusCodes.OK)
     })
   })
@@ -186,7 +193,9 @@ describe('BankAccountsController', function () {
     it('should return 404 when bank account belongs to different company', async function () {
       // account1 belongs to MC_ID, requesting from another MC
       const otherMcId = '550e8400-e29b-41d4-a716-446655440099'
-      const res = await request(`/${otherMcId}/me/bank-accounts/550e8400-e29b-41d4-a716-446655440001`)
+      const res = await request(
+        `/${otherMcId}/me/bank-accounts/550e8400-e29b-41d4-a716-446655440001`
+      )
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
     })
   })
@@ -247,9 +256,12 @@ describe('BankAccountsController', function () {
 
   describe('PATCH /:managementCompanyId/me/bank-accounts/:bankAccountId/deactivate', function () {
     it('should deactivate an active bank account', async function () {
-      const res = await request(`/${MC_ID}/me/bank-accounts/550e8400-e29b-41d4-a716-446655440001/deactivate`, {
-        method: 'PATCH',
-      })
+      const res = await request(
+        `/${MC_ID}/me/bank-accounts/550e8400-e29b-41d4-a716-446655440001/deactivate`,
+        {
+          method: 'PATCH',
+        }
+      )
       expect(res.status).toBe(StatusCodes.OK)
 
       const json = (await res.json()) as IApiResponse
@@ -262,9 +274,12 @@ describe('BankAccountsController', function () {
         return null
       }
 
-      const res = await request(`/${MC_ID}/me/bank-accounts/550e8400-e29b-41d4-a716-446655440099/deactivate`, {
-        method: 'PATCH',
-      })
+      const res = await request(
+        `/${MC_ID}/me/bank-accounts/550e8400-e29b-41d4-a716-446655440099/deactivate`,
+        {
+          method: 'PATCH',
+        }
+      )
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
     })
 
@@ -277,9 +292,12 @@ describe('BankAccountsController', function () {
         })
       }
 
-      const res = await request(`/${MC_ID}/me/bank-accounts/550e8400-e29b-41d4-a716-446655440001/deactivate`, {
-        method: 'PATCH',
-      })
+      const res = await request(
+        `/${MC_ID}/me/bank-accounts/550e8400-e29b-41d4-a716-446655440001/deactivate`,
+        {
+          method: 'PATCH',
+        }
+      )
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
     })
   })
@@ -306,7 +324,9 @@ describe('BankAccountsController', function () {
       expect(routes[2]!.path).toBe('/:managementCompanyId/me/bank-accounts')
 
       expect(routes[3]!.method).toBe('patch')
-      expect(routes[3]!.path).toBe('/:managementCompanyId/me/bank-accounts/:bankAccountId/deactivate')
+      expect(routes[3]!.path).toBe(
+        '/:managementCompanyId/me/bank-accounts/:bankAccountId/deactivate'
+      )
     })
 
     it('should have correct number of middlewares per route', function () {

@@ -10,7 +10,10 @@ async function main() {
     const db = DatabaseService.getInstance().getDb()
 
     // Read the migration SQL
-    const migrationPath = join(__dirname, '../src/database/drizzle/migrations/0007_fix_subscription_unique_constraint.sql')
+    const migrationPath = join(
+      __dirname,
+      '../src/database/drizzle/migrations/0007_fix_subscription_unique_constraint.sql'
+    )
     const sql = readFileSync(migrationPath, 'utf-8')
 
     // Execute the migration

@@ -95,8 +95,16 @@ export class CondominiumsController extends BaseController<
     // Initialize services
     this.generateCondominiumCodeService = new GenerateCondominiumCodeService(repository)
     this.getCondominiumUsersService = new GetCondominiumUsersService(db)
-    this.wizardService = new CreateCondominiumWizardService(db, repository, buildingsRepository, unitsRepository)
-    this.validateSubscriptionService = new ValidateSubscriptionLimitsService(subscriptionsRepository, companiesRepository)
+    this.wizardService = new CreateCondominiumWizardService(
+      db,
+      repository,
+      buildingsRepository,
+      unitsRepository
+    )
+    this.validateSubscriptionService = new ValidateSubscriptionLimitsService(
+      subscriptionsRepository,
+      companiesRepository
+    )
   }
 
   get routes(): TRouteDefinition[] {
@@ -105,25 +113,51 @@ export class CondominiumsController extends BaseController<
         method: 'get',
         path: '/',
         handler: this.list,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER)],
+        middlewares: [
+          authMiddleware,
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.USER
+          ),
+        ],
       },
       {
         method: 'get',
         path: '/code/:code',
         handler: this.getByCode,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(CodeParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(CodeParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id/users',
         handler: this.getCondominiumUsers,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(
+            ESystemRole.SUPERADMIN,
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.USER
+          ),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
@@ -139,7 +173,11 @@ export class CondominiumsController extends BaseController<
           authMiddleware,
           requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN),
           bodyValidator(condominiumCreateSchema),
-          validateSubscriptionLimit('condominium', this.subscriptionsRepository, this.companiesRepository),
+          validateSubscriptionLimit(
+            'condominium',
+            this.subscriptionsRepository,
+            this.companiesRepository
+          ),
         ],
       },
       {
@@ -163,7 +201,11 @@ export class CondominiumsController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }
@@ -236,11 +278,19 @@ export class CondominiumsController extends BaseController<
   private async populateCondominium(condominium: TCondominium): Promise<TCondominium> {
     const [managementCompanies, location, defaultCurrency, createdByUser] = await Promise.all([
       condominium.managementCompanyIds.length > 0
-        ? Promise.all(condominium.managementCompanyIds.map(id => this.companiesRepository.getById(id, true)))
+        ? Promise.all(
+            condominium.managementCompanyIds.map(id => this.companiesRepository.getById(id, true))
+          )
         : Promise.resolve([]),
-      condominium.locationId ? this.locationsRepository.getByIdWithHierarchy(condominium.locationId) : Promise.resolve(null),
-      condominium.defaultCurrencyId ? this.currenciesRepository.getById(condominium.defaultCurrencyId) : Promise.resolve(null),
-      condominium.createdBy ? this.usersRepository.getById(condominium.createdBy, true) : Promise.resolve(null),
+      condominium.locationId
+        ? this.locationsRepository.getByIdWithHierarchy(condominium.locationId)
+        : Promise.resolve(null),
+      condominium.defaultCurrencyId
+        ? this.currenciesRepository.getById(condominium.defaultCurrencyId)
+        : Promise.resolve(null),
+      condominium.createdBy
+        ? this.usersRepository.getById(condominium.createdBy, true)
+        : Promise.resolve(null),
     ])
 
     let enrichedCreatedByUser = createdByUser

@@ -46,9 +46,7 @@ export class AcceptInvitationService {
     private readonly rolesRepository: RolesRepository
   ) {}
 
-  async execute(
-    input: IAcceptInvitationInput
-  ): Promise<TServiceResult<IAcceptInvitationResult>> {
+  async execute(input: IAcceptInvitationInput): Promise<TServiceResult<IAcceptInvitationResult>> {
     // Find invitation by token
     const invitation = await this.invitationsRepository.getByToken(input.token)
 
@@ -58,10 +56,7 @@ export class AcceptInvitationService {
 
     // Check if invitation is still valid
     if (invitation.status !== 'pending') {
-      return failure(
-        `Invitation has already been ${invitation.status}`,
-        'BAD_REQUEST'
-      )
+      return failure(`Invitation has already been ${invitation.status}`, 'BAD_REQUEST')
     }
 
     const now = new Date()
@@ -79,7 +74,8 @@ export class AcceptInvitationService {
 
     // Get management company (include inactive — company is inactive until invitation accepted)
     const managementCompany = await this.managementCompaniesRepository.getById(
-      invitation.managementCompanyId, true
+      invitation.managementCompanyId,
+      true
     )
     if (!managementCompany) {
       return failure('Management company not found', 'NOT_FOUND')
@@ -90,10 +86,7 @@ export class AcceptInvitationService {
       input.firebaseUid
     )
     if (existingUserWithFirebaseUid && existingUserWithFirebaseUid.id !== user.id) {
-      return failure(
-        'This account is already linked to another user',
-        'CONFLICT'
-      )
+      return failure('This account is already linked to another user', 'CONFLICT')
     }
 
     // Look up roles before starting the transaction (read-only, avoids
@@ -109,7 +102,7 @@ export class AcceptInvitationService {
     }
 
     // All writes inside a transaction for atomicity
-    return await this.db.transaction(async (tx) => {
+    return await this.db.transaction(async tx => {
       const txUsersRepo = this.usersRepository.withTx(tx)
       const txCompaniesRepo = this.managementCompaniesRepository.withTx(tx)
       const txInvitationsRepo = this.invitationsRepository.withTx(tx)
@@ -128,19 +121,14 @@ export class AcceptInvitationService {
       }
 
       // Activate management company
-      const updatedCompany = await txCompaniesRepo.update(
-        managementCompany.id,
-        { isActive: true }
-      )
+      const updatedCompany = await txCompaniesRepo.update(managementCompany.id, { isActive: true })
 
       if (!updatedCompany) {
         return failure('Failed to update management company', 'INTERNAL_ERROR')
       }
 
       // Mark invitation as accepted
-      const acceptedInvitation = await txInvitationsRepo.markAsAccepted(
-        invitation.id
-      )
+      const acceptedInvitation = await txInvitationsRepo.markAsAccepted(invitation.id)
 
       if (!acceptedInvitation) {
         return failure('Failed to accept invitation', 'INTERNAL_ERROR')

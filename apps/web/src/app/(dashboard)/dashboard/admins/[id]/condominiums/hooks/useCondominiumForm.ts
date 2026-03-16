@@ -1,15 +1,17 @@
 'use client'
 
+import type { TCondominiumCreate } from '@packages/domain'
+
 import { useState, useCallback, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
-import { useToast } from '@/ui/components/toast'
-import { useTranslation } from '@/contexts'
 import {
   useCreateCondominium,
   useQueryClient,
   companyCondominiumsKeys,
 } from '@packages/http-client'
-import type { TCondominiumCreate } from '@packages/domain'
+
+import { useToast } from '@/ui/components/toast'
+import { useTranslation } from '@/contexts'
 
 export type TCondominiumStep = 'basic' | 'location' | 'contact' | 'confirmation'
 
@@ -90,7 +92,7 @@ export function useCondominiumForm({
       queryClient.invalidateQueries({ queryKey: companyCondominiumsKeys.all })
       // Invalidate can-create-resource check (subscription limits)
       queryClient.invalidateQueries({
-        queryKey: ['management-companies', managementCompanyId, 'can-create', 'condominium']
+        queryKey: ['management-companies', managementCompanyId, 'can-create', 'condominium'],
       })
       onSuccess?.()
       onClose()
@@ -112,14 +114,18 @@ export function useCondominiumForm({
 
   const validateCurrentStep = useCallback(async (): Promise<boolean> => {
     const fields = stepFields[currentStep]
+
     if (fields.length === 0) return true
+
     return await trigger(fields)
   }, [currentStep, trigger])
 
   const goToNextStep = useCallback(async () => {
     const isValid = await validateCurrentStep()
+
     if (isValid && currentStepIndex < STEPS.length - 1) {
       const nextIndex = currentStepIndex + 1
+
       setCurrentStepIndex(nextIndex)
       setTouchedSteps(prev => new Set([...Array.from(prev), nextIndex]))
     }
@@ -134,11 +140,13 @@ export function useCondominiumForm({
   const goToStep = useCallback(
     async (step: TCondominiumStep) => {
       const targetIndex = STEPS.indexOf(step)
+
       if (targetIndex < 0) return
 
       // Can always go back
       if (targetIndex < currentStepIndex) {
         setCurrentStepIndex(targetIndex)
+
         return
       }
 
@@ -146,10 +154,13 @@ export function useCondominiumForm({
       for (let i = currentStepIndex; i < targetIndex; i++) {
         const stepToValidate = STEPS[i]
         const fields = stepFields[stepToValidate]
+
         if (fields.length > 0) {
           const isValid = await trigger(fields)
+
           if (!isValid) {
             setCurrentStepIndex(i)
+
             return
           }
         }
@@ -185,6 +196,7 @@ export function useCondominiumForm({
   const handleSubmit = useCallback(() => {
     rhfHandleSubmit(data => {
       const condominiumData = buildCondominiumData(data)
+
       createCondominium(condominiumData)
     })()
   }, [rhfHandleSubmit, buildCondominiumData, createCondominium])
@@ -199,7 +211,9 @@ export function useCondominiumForm({
   const translateError = useCallback(
     (field: keyof ICondominiumFormData): string | undefined => {
       const error = errors[field]
+
       if (!error?.message) return undefined
+
       return error.message as string
     },
     [errors]

@@ -1,13 +1,13 @@
 'use client'
 
-import { Avatar } from '@/ui/components/avatar-base'
-import { Button } from '@/ui/components/button'
 import { Camera, Trash2 } from 'lucide-react'
 
 import { Section } from '../Section'
 import { FormField } from '../FormField'
 import { useProfilePhoto } from '../../hooks'
 
+import { Button } from '@/ui/components/button'
+import { Avatar } from '@/ui/components/avatar-base'
 import { useTranslation } from '@/contexts'
 
 export function ProfilePhotoSection() {

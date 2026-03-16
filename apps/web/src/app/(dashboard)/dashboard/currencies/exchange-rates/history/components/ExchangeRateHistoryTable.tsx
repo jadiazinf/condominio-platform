@@ -1,6 +1,17 @@
 'use client'
 
+import type { TExchangeRate, TCurrency } from '@packages/domain'
+
 import { useState, useCallback, useMemo } from 'react'
+import { ArrowRightLeft, MoreVertical, Trash2 } from 'lucide-react'
+import {
+  useExchangeRatesPaginated,
+  useCurrencies,
+  useDeleteExchangeRate,
+  exchangeRateKeys,
+  useQueryClient,
+} from '@packages/http-client'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Input } from '@/ui/components/input'
@@ -10,18 +21,8 @@ import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/comp
 import { Spinner } from '@/ui/components/spinner'
 import { ClearFiltersButton } from '@/ui/components/filters'
 import { Pagination } from '@/ui/components/pagination'
-import { ArrowRightLeft, MoreVertical, Trash2 } from 'lucide-react'
-import type { TExchangeRate, TCurrency } from '@packages/domain'
-
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
-import {
-  useExchangeRatesPaginated,
-  useCurrencies,
-  useDeleteExchangeRate,
-  exchangeRateKeys,
-  useQueryClient,
-} from '@packages/http-client'
 import { useToast } from '@/ui/components/toast'
 
 type TRateRow = TExchangeRate & { id: string }
@@ -45,7 +46,7 @@ export function ExchangeRateHistoryTable() {
   const currencyItems: ISelectItem[] = useMemo(
     () => [
       { key: '', label: t('superadmin.currencies.status.all') },
-      ...(currenciesData?.data ?? []).map((c) => ({
+      ...(currenciesData?.data ?? []).map(c => ({
         key: c.id,
         label: `${c.code} - ${c.name}`,
       })),
@@ -74,9 +75,11 @@ export function ExchangeRateHistoryTable() {
   // Currency lookup map
   const currencyMap = useMemo(() => {
     const map = new Map<string, TCurrency>()
+
     for (const c of currenciesData?.data ?? []) {
       map.set(c.id, c)
     }
+
     return map
   }, [currenciesData])
 
@@ -117,6 +120,7 @@ export function ExchangeRateHistoryTable() {
 
   const formatDate = (date: Date | string) => {
     const d = typeof date === 'string' ? new Date(`${date}T12:00:00`) : date
+
     return d.toLocaleDateString('es-VE', {
       day: '2-digit',
       month: 'short',
@@ -126,14 +130,19 @@ export function ExchangeRateHistoryTable() {
 
   const formatDateTime = (date: Date | string) => {
     const d = typeof date === 'string' ? new Date(date) : date
-    return d.toLocaleDateString('es-VE', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }) + ' ' + d.toLocaleTimeString('es-VE', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+
+    return (
+      d.toLocaleDateString('es-VE', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }) +
+      ' ' +
+      d.toLocaleTimeString('es-VE', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    )
   }
 
   const tableColumns: ITableColumn<TRateRow>[] = useMemo(
@@ -155,7 +164,9 @@ export function ExchangeRateHistoryTable() {
         case 'fromCurrency':
           return (
             <div className="flex flex-col">
-              <span className="font-mono font-semibold">{getCurrencyCode(rate.fromCurrencyId)}</span>
+              <span className="font-mono font-semibold">
+                {getCurrencyCode(rate.fromCurrencyId)}
+              </span>
               <span className="text-xs text-default-500">
                 {currencyMap.get(rate.fromCurrencyId)?.name ?? ''}
               </span>
@@ -173,16 +184,14 @@ export function ExchangeRateHistoryTable() {
         case 'rate':
           return (
             <span className="text-sm font-medium">
-              {parseFloat(rate.rate).toFixed(
-                currencyMap.get(rate.toCurrencyId)?.decimals ?? 2
-              )}
+              {parseFloat(rate.rate).toFixed(currencyMap.get(rate.toCurrencyId)?.decimals ?? 2)}
             </span>
           )
         case 'effectiveDate':
           return <span className="text-sm">{formatDate(rate.effectiveDate)}</span>
         case 'source':
           return rate.source ? (
-            <Chip variant="flat" size="sm">
+            <Chip size="sm" variant="flat">
               {rate.source}
             </Chip>
           ) : (
@@ -192,7 +201,7 @@ export function ExchangeRateHistoryTable() {
           return <span className="text-xs text-default-500">{formatDateTime(rate.createdAt)}</span>
         case 'actions':
           return (
-            <div onClick={(e) => e.stopPropagation()}>
+            <div onClick={e => e.stopPropagation()}>
               <Dropdown>
                 <DropdownTrigger>
                   <Button isIconOnly variant="light">
@@ -240,46 +249,46 @@ export function ExchangeRateHistoryTable() {
         <Select
           aria-label={t('superadmin.currencies.exchangeRates.filters.fromCurrency')}
           className="w-full sm:w-48"
+          isLoading={currenciesLoading}
           items={currencyItems}
           label={t('superadmin.currencies.exchangeRates.filters.fromCurrency')}
           value={fromCurrencyId}
-          onChange={(key) => {
+          variant="bordered"
+          onChange={key => {
             setFromCurrencyId(key ?? '')
             setPage(1)
           }}
-          isLoading={currenciesLoading}
-          variant="bordered"
         />
         <Select
           aria-label={t('superadmin.currencies.exchangeRates.filters.toCurrency')}
           className="w-full sm:w-48"
+          isLoading={currenciesLoading}
           items={currencyItems}
           label={t('superadmin.currencies.exchangeRates.filters.toCurrency')}
           value={toCurrencyId}
-          onChange={(key) => {
+          variant="bordered"
+          onChange={key => {
             setToCurrencyId(key ?? '')
             setPage(1)
           }}
-          isLoading={currenciesLoading}
-          variant="bordered"
         />
         <Input
-          type="date"
-          label={t('superadmin.currencies.exchangeRates.filters.dateFrom')}
           className="w-full sm:w-44"
+          label={t('superadmin.currencies.exchangeRates.filters.dateFrom')}
+          type="date"
           value={dateFrom}
-          onChange={(e) => {
-            setDateFrom(typeof e === 'string' ? e : (e?.target as HTMLInputElement)?.value ?? '')
+          onChange={e => {
+            setDateFrom(typeof e === 'string' ? e : ((e?.target as HTMLInputElement)?.value ?? ''))
             setPage(1)
           }}
         />
         <Input
-          type="date"
-          label={t('superadmin.currencies.exchangeRates.filters.dateTo')}
           className="w-full sm:w-44"
+          label={t('superadmin.currencies.exchangeRates.filters.dateTo')}
+          type="date"
           value={dateTo}
-          onChange={(e) => {
-            setDateTo(typeof e === 'string' ? e : (e?.target as HTMLInputElement)?.value ?? '')
+          onChange={e => {
+            setDateTo(typeof e === 'string' ? e : ((e?.target as HTMLInputElement)?.value ?? ''))
             setPage(1)
           }}
         />
@@ -306,8 +315,8 @@ export function ExchangeRateHistoryTable() {
           <Table<TRateRow>
             aria-label={t('superadmin.currencies.exchangeRates.history.title')}
             columns={tableColumns}
-            rows={rates}
             renderCell={renderCell}
+            rows={rates}
           />
 
           {/* Pagination */}
@@ -318,7 +327,7 @@ export function ExchangeRateHistoryTable() {
             page={pagination.page}
             total={pagination.total}
             totalPages={pagination.totalPages}
-            onLimitChange={(newLimit) => {
+            onLimitChange={newLimit => {
               setLimit(newLimit)
               setPage(1)
             }}

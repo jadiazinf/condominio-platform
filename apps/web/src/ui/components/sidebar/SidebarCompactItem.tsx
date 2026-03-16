@@ -1,7 +1,8 @@
-import { Tooltip } from '@/ui/components/tooltip'
+import type { TSidebarItem } from './types'
 
 import { SidebarIcon } from './SidebarIcon'
-import type { TSidebarItem } from './types'
+
+import { Tooltip } from '@/ui/components/tooltip'
 
 interface SidebarCompactItemProps {
   item: TSidebarItem

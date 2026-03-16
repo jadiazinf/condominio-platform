@@ -1,10 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Textarea } from '@/ui/components/textarea'
-import { Button } from '@/ui/components/button'
-import { Checkbox } from '@/ui/components/checkbox'
-import { Progress } from '@/ui/components/progress'
 import { Send, Paperclip, X, FileText, Image as ImageIcon, Video, RefreshCw } from 'lucide-react'
 import { useCreateTicketMessage } from '@packages/http-client'
 import {
@@ -15,9 +11,14 @@ import {
   getFileTypeCategory,
 } from '@packages/domain'
 
+import { useTicketAttachmentUpload, type IFileValidationError } from '../hooks'
+
+import { Textarea } from '@/ui/components/textarea'
+import { Button } from '@/ui/components/button'
+import { Checkbox } from '@/ui/components/checkbox'
+import { Progress } from '@/ui/components/progress'
 import { useToast } from '@/ui/components/toast'
 import { Typography } from '@/ui/components/typography'
-import { useTicketAttachmentUpload, type IFileValidationError } from '../hooks'
 
 // Build accept string for file input
 const ACCEPT_STRING = [
@@ -47,7 +48,11 @@ interface ISendMessageFormProps {
   }
 }
 
-export function SendMessageForm({ ticketId, isTicketClosed = false, translations }: ISendMessageFormProps) {
+export function SendMessageForm({
+  ticketId,
+  isTicketClosed = false,
+  translations,
+}: ISendMessageFormProps) {
   const [message, setMessage] = useState('')
   const [isInternal, setIsInternal] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
@@ -89,6 +94,7 @@ export function SendMessageForm({ ticketId, isTicketClosed = false, translations
   // Auto-resize textarea
   useEffect(() => {
     const textarea = textareaRef.current
+
     if (textarea) {
       textarea.style.height = 'auto'
       textarea.style.height = `${textarea.scrollHeight}px`
@@ -127,6 +133,7 @@ export function SendMessageForm({ ticketId, isTicketClosed = false, translations
   const handleFileSelect = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = event.target.files
+
       if (files && files.length > 0) {
         addFiles(files)
       }
@@ -165,6 +172,7 @@ export function SendMessageForm({ ticketId, isTicketClosed = false, translations
       setIsDragging(false)
 
       const files = e.dataTransfer.files
+
       if (files && files.length > 0) {
         addFiles(files)
       }
@@ -175,15 +183,16 @@ export function SendMessageForm({ ticketId, isTicketClosed = false, translations
   // Get icon for file type
   const getFileIcon = (mimeType: string) => {
     const category = getFileTypeCategory(mimeType)
+
     switch (category) {
       case 'image':
-        return <ImageIcon size={16} className="text-blue-500" />
+        return <ImageIcon className="text-blue-500" size={16} />
       case 'video':
-        return <Video size={16} className="text-purple-500" />
+        return <Video className="text-purple-500" size={16} />
       case 'pdf':
-        return <FileText size={16} className="text-red-500" />
+        return <FileText className="text-red-500" size={16} />
       default:
-        return <FileText size={16} className="text-default-400" />
+        return <FileText className="text-default-400" size={16} />
     }
   }
 
@@ -197,7 +206,8 @@ export function SendMessageForm({ ticketId, isTicketClosed = false, translations
     )
   }
 
-  const canSubmit = (message.trim() || completedAttachments.length > 0) && !isPending && !isUploading
+  const canSubmit =
+    (message.trim() || completedAttachments.length > 0) && !isPending && !isUploading
 
   return (
     <form
@@ -213,10 +223,10 @@ export function SendMessageForm({ ticketId, isTicketClosed = false, translations
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
+        multiple
         accept={ACCEPT_STRING}
         aria-label={translations.attachFiles || 'Attach files'}
         className="hidden"
-        multiple
         type="file"
         onChange={handleFileSelect}
       />
@@ -245,21 +255,20 @@ export function SendMessageForm({ ticketId, isTicketClosed = false, translations
           radius="lg"
           value={message}
           variant="flat"
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={e => setMessage(e.target.value)}
         />
       )}
 
       {/* File previews */}
       {uploadingFiles.length > 0 && (
         <div className="space-y-2">
-          {uploadingFiles.map((file) => (
-            <div
-              key={file.id}
-              className="flex items-center gap-3 rounded-lg bg-default-100 p-2"
-            >
+          {uploadingFiles.map(file => (
+            <div key={file.id} className="flex items-center gap-3 rounded-lg bg-default-100 p-2">
               {/* Preview thumbnail or icon */}
               <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded bg-default-200">
-                {file.file.type.startsWith('image/') && file.status === 'completed' && file.attachment ? (
+                {file.file.type.startsWith('image/') &&
+                file.status === 'completed' &&
+                file.attachment ? (
                   <img
                     alt={file.file.name}
                     className="h-full w-full rounded object-cover"
@@ -280,12 +289,7 @@ export function SendMessageForm({ ticketId, isTicketClosed = false, translations
                 </Typography>
                 {/* Progress bar */}
                 {(file.status === 'uploading' || file.status === 'pending') && (
-                  <Progress
-                    className="mt-1"
-                    color="primary"
-                    size="sm"
-                    value={file.progress}
-                  />
+                  <Progress className="mt-1" color="primary" size="sm" value={file.progress} />
                 )}
                 {/* Error message */}
                 {file.status === 'error' && (
@@ -298,21 +302,11 @@ export function SendMessageForm({ ticketId, isTicketClosed = false, translations
               {/* Actions */}
               <div className="flex items-center gap-1">
                 {file.status === 'error' && (
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    onPress={() => retryFile(file.id)}
-                  >
+                  <Button isIconOnly size="sm" variant="light" onPress={() => retryFile(file.id)}>
                     <RefreshCw size={14} />
                   </Button>
                 )}
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  onPress={() => removeFile(file.id)}
-                >
+                <Button isIconOnly size="sm" variant="light" onPress={() => removeFile(file.id)}>
                   <X size={14} />
                 </Button>
               </div>

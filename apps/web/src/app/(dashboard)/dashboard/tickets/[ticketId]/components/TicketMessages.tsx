@@ -1,16 +1,17 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { Card, CardHeader, CardBody } from '@/ui/components/card'
-import { Chip } from '@/ui/components/chip'
-import { Divider } from '@/ui/components/divider'
-import { MessageSquare, Wifi, WifiOff, FileText, Download, Play } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { MessageSquare, Wifi, WifiOff, FileText, Download } from 'lucide-react'
 import { useTicketMessages, useTicketWebSocket } from '@packages/http-client'
 import { type TAttachment, getFileTypeCategory, formatFileSize } from '@packages/domain'
 
-import { Typography } from '@/ui/components/typography'
 import { SendMessageForm } from './SendMessageForm'
 import { AttachmentsGallery } from './AttachmentsGallery'
+
+import { Typography } from '@/ui/components/typography'
+import { Divider } from '@/ui/components/divider'
+import { Chip } from '@/ui/components/chip'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { getSessionCookie } from '@/libs/cookies'
 import { useUser } from '@/contexts'
 
@@ -101,11 +102,7 @@ function AttachmentDisplay({
   if (category === 'video') {
     return (
       <div className="mt-2">
-        <video
-          className="max-h-64 max-w-full rounded-lg"
-          controls
-          preload="metadata"
-        >
+        <video controls className="max-h-64 max-w-full rounded-lg" preload="metadata">
           <source src={attachment.url} type={attachment.mimeType} />
           Your browser does not support video playback.
         </video>
@@ -122,34 +119,24 @@ function AttachmentDisplay({
   return (
     <a
       className={`mt-2 flex items-center gap-2 rounded-lg p-2 transition-colors ${
-        isCurrentUser
-          ? 'bg-white/10 hover:bg-white/20'
-          : 'bg-default-100 hover:bg-default-200'
+        isCurrentUser ? 'bg-white/10 hover:bg-white/20' : 'bg-default-100 hover:bg-default-200'
       }`}
       href={attachment.url}
       rel="noopener noreferrer"
       target="_blank"
     >
-      <FileText
-        className={isCurrentUser ? 'text-white' : 'text-red-500'}
-        size={24}
-      />
+      <FileText className={isCurrentUser ? 'text-white' : 'text-red-500'} size={24} />
       <div className="min-w-0 flex-1">
         <Typography
           className={`truncate text-sm ${isCurrentUser ? 'text-white' : 'text-default-900'}`}
         >
           {attachment.name}
         </Typography>
-        <Typography
-          className={`text-xs ${isCurrentUser ? 'text-white/70' : 'text-default-400'}`}
-        >
+        <Typography className={`text-xs ${isCurrentUser ? 'text-white/70' : 'text-default-400'}`}>
           {formatFileSize(attachment.size)}
         </Typography>
       </div>
-      <Download
-        className={isCurrentUser ? 'text-white/80' : 'text-default-400'}
-        size={16}
-      />
+      <Download className={isCurrentUser ? 'text-white/80' : 'text-default-400'} size={16} />
     </a>
   )
 }
@@ -172,12 +159,14 @@ export function TicketMessages({
     if (typeof window !== 'undefined') {
       return getSessionCookie() || ''
     }
+
     return ''
   })
 
   // Keep token updated if it changes (e.g., token refresh)
   useEffect(() => {
     const sessionToken = getSessionCookie()
+
     if (sessionToken && sessionToken !== token) {
       setToken(sessionToken)
     }
@@ -351,8 +340,8 @@ export function TicketMessages({
           <Divider />
 
           <SendMessageForm
-            ticketId={ticketId}
             isTicketClosed={isTicketClosed}
+            ticketId={ticketId}
             translations={{
               messagePlaceholder: translations.messagePlaceholder,
               internalCheckbox: translations.internalCheckbox,
@@ -373,8 +362,8 @@ export function TicketMessages({
           {/* Attachments Gallery - Accordion at the bottom */}
           {messages && messages.length > 0 && (
             <AttachmentsGallery
-              messages={messages}
               locale={locale}
+              messages={messages}
               translations={{
                 title: translations.galleryTitle || translations.attachments,
                 noAttachments: translations.galleryNoAttachments || 'No attachments',

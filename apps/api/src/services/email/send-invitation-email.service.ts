@@ -17,9 +17,10 @@ export interface ISendInvitationEmailResult {
   emailId: string
 }
 
-export class SendInvitationEmailService
-  implements IService<ISendInvitationEmailInput, TServiceResult<ISendInvitationEmailResult>>
-{
+export class SendInvitationEmailService implements IService<
+  ISendInvitationEmailInput,
+  TServiceResult<ISendInvitationEmailResult>
+> {
   constructor(private readonly emailService: EmailService = EmailService.getInstance()) {}
 
   async execute(
@@ -37,7 +38,9 @@ export class SendInvitationEmailService
       headerTitle: 'Has sido invitado',
       greeting: recipientName,
       bodyHtml: [
-        p(`Has sido invitado a administrar <strong style="color: #006FEE;">${companyName}</strong> en nuestra plataforma de gestión de condominios.`),
+        p(
+          `Has sido invitado a administrar <strong style="color: #006FEE;">${companyName}</strong> en nuestra plataforma de gestión de condominios.`
+        ),
         p('Haz clic en el siguiente botón para aceptar la invitación y crear tu cuenta:'),
       ].join('\n'),
       bodyText: `Has sido invitado a administrar ${companyName} en nuestra plataforma de gestión de condominios.\n\nPara aceptar la invitación y crear tu cuenta, visita el siguiente enlace:`,

@@ -62,9 +62,7 @@ export interface IDeactivateCondominiumServiceVariables {
 // Hooks - List (Paginated)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useCondominiumServicesPaginated(
-  options: IUseCondominiumServicesPaginatedOptions
-) {
+export function useCondominiumServicesPaginated(options: IUseCondominiumServicesPaginatedOptions) {
   const { companyId, condominiumId, query, enabled = true } = options
 
   const params = new URLSearchParams()
@@ -104,7 +102,11 @@ export function useCondominiumServiceDetail(options: IUseCondominiumServiceDetai
 // Mutations
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useCreateCondominiumService(companyId: string, condominiumId?: string, options?: ICreateCondominiumServiceOptions) {
+export function useCreateCondominiumService(
+  companyId: string,
+  condominiumId?: string,
+  options?: ICreateCondominiumServiceOptions
+) {
   const config = condominiumId ? { headers: { 'x-condominium-id': condominiumId } } : undefined
   return useApiMutation<TApiDataResponse<TCondominiumService>, TCondominiumServiceCreate>({
     path: `/${companyId}/me/condominium-services`,
@@ -116,10 +118,14 @@ export function useCreateCondominiumService(companyId: string, condominiumId?: s
   })
 }
 
-export function useUpdateCondominiumService(companyId: string, condominiumId?: string, options?: IUpdateCondominiumServiceOptions) {
+export function useUpdateCondominiumService(
+  companyId: string,
+  condominiumId?: string,
+  options?: IUpdateCondominiumServiceOptions
+) {
   const config = condominiumId ? { headers: { 'x-condominium-id': condominiumId } } : undefined
   return useApiMutation<TApiDataResponse<TCondominiumService>, IUpdateCondominiumServiceVariables>({
-    path: (variables) => `/${companyId}/me/condominium-services/${variables.serviceId}`,
+    path: variables => `/${companyId}/me/condominium-services/${variables.serviceId}`,
     method: 'PATCH',
     config,
     onSuccess: options?.onSuccess,
@@ -130,8 +136,11 @@ export function useUpdateCondominiumService(companyId: string, condominiumId?: s
 
 export function useDeactivateCondominiumService(companyId: string, condominiumId?: string) {
   const config = condominiumId ? { headers: { 'x-condominium-id': condominiumId } } : undefined
-  return useApiMutation<TApiDataResponse<TCondominiumService>, IDeactivateCondominiumServiceVariables>({
-    path: (variables) => `/${companyId}/me/condominium-services/${variables.serviceId}/deactivate`,
+  return useApiMutation<
+    TApiDataResponse<TCondominiumService>,
+    IDeactivateCondominiumServiceVariables
+  >({
+    path: variables => `/${companyId}/me/condominium-services/${variables.serviceId}/deactivate`,
     method: 'PATCH',
     config,
     invalidateKeys: [condominiumServiceKeys.all],

@@ -2,6 +2,7 @@
 
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
+
 import { Button } from '@/ui/components/button'
 import { Link } from '@/ui/components/link'
 import { useTranslation } from '@/contexts'
@@ -13,8 +14,8 @@ export function CTASection() {
 
   return (
     <section
-      id="cta"
       className="snap-section flex items-center justify-center bg-content2 dark:bg-[#1E1F22] relative overflow-hidden"
+      id="cta"
     >
       {/* Decorative elements — outside animation so they don't shift */}
       <div className="absolute left-0 top-1/4 bottom-1/4 w-[3px] bg-brick" />
@@ -24,10 +25,10 @@ export function CTASection() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-12 items-center">
           {/* Left: decorative number */}
           <motion.div
-            initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
             className="hidden md:flex md:col-span-2 justify-center"
+            initial={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
           >
             <span className="text-[120px] md:text-[180px] font-extralight text-brick/10 leading-none select-none">
               CA
@@ -36,10 +37,10 @@ export function CTASection() {
 
           {/* Right: content */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-            transition={{ duration: 0.7, ease: 'easeOut' }}
             className="md:col-span-3"
+            initial={{ opacity: 0, y: 30 }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
           >
             <div className="h-[2px] w-12 bg-brick mb-8" />
 
@@ -65,9 +66,7 @@ export function CTASection() {
               </Button>
             </div>
 
-            <p className="mt-6 text-sm text-foreground/30">
-              {t('landing.hero.noCreditCard')}
-            </p>
+            <p className="mt-6 text-sm text-foreground/30">{t('landing.hero.noCreditCard')}</p>
           </motion.div>
         </div>
       </div>

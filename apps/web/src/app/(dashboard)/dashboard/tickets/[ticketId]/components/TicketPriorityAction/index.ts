@@ -1,1 +1,4 @@
-export { TicketPriorityAction, type ITicketPriorityActionTranslations } from './TicketPriorityAction'
+export {
+  TicketPriorityAction,
+  type ITicketPriorityActionTranslations,
+} from './TicketPriorityAction'

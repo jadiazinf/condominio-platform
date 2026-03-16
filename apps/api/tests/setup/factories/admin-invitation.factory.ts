@@ -74,7 +74,10 @@ export class AdminInvitationFactory {
   /**
    * Creates fake data for an invitation with specific user.
    */
-  static forUser(userId: string, overrides: Partial<TAdminInvitationCreate> = {}): TAdminInvitationCreate {
+  static forUser(
+    userId: string,
+    overrides: Partial<TAdminInvitationCreate> = {}
+  ): TAdminInvitationCreate {
     return this.create({
       userId,
       ...overrides,

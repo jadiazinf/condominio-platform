@@ -4,6 +4,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
+import { useCreateSubscriptionRate } from '@packages/http-client'
 
 import { Button } from '@/ui/components/button'
 import { Input, CurrencyInput } from '@/ui/components/input'
@@ -12,7 +13,6 @@ import { Switch } from '@/ui/components/switch'
 import { Card, CardBody } from '@/ui/components/card'
 import { useToast } from '@/ui/components/toast'
 import { useTranslation } from '@/contexts'
-import { useCreateSubscriptionRate } from '@packages/http-client'
 
 const createRateSchema = z.object({
   name: z.string().min(1).max(100),
@@ -61,7 +61,7 @@ export function CreateRateForm({ onSuccess, onCancel, isEmbedded }: CreateRateFo
   })
 
   const createMutation = useCreateSubscriptionRate({
-    onSuccess: (data) => {
+    onSuccess: data => {
       toast.success(t('superadmin.rates.form.success'))
       if (onSuccess) {
         onSuccess(data.data.data.id)
@@ -99,232 +99,226 @@ export function CreateRateForm({ onSuccess, onCancel, isEmbedded }: CreateRateFo
   }
 
   const formContent = (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          {/* Basic Information */}
-          <div className="space-y-4 flex flex-col gap-2">
-            <Typography variant="h4" className="text-default-700">
-              {t('superadmin.rates.form.fields.name.label')}
-            </Typography>
+    <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
+      {/* Basic Information */}
+      <div className="space-y-4 flex flex-col gap-2">
+        <Typography className="text-default-700" variant="h4">
+          {t('superadmin.rates.form.fields.name.label')}
+        </Typography>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <Controller
-                name="name"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    label={t('superadmin.rates.form.fields.name.label')}
-                    placeholder={t('superadmin.rates.form.fields.name.placeholder')}
-                    errorMessage={
-                      errors.name ? t('superadmin.rates.form.validation.name') : undefined
-                    }
-                    isRequired
-                  />
-                )}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <Controller
+            control={control}
+            name="name"
+            render={({ field }) => (
+              <Input
+                {...field}
+                isRequired
+                errorMessage={errors.name ? t('superadmin.rates.form.validation.name') : undefined}
+                label={t('superadmin.rates.form.fields.name.label')}
+                placeholder={t('superadmin.rates.form.fields.name.placeholder')}
               />
+            )}
+          />
 
-              <Controller
-                name="version"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    label={t('superadmin.rates.form.fields.version.label')}
-                    placeholder={t('superadmin.rates.form.fields.version.placeholder')}
-                    errorMessage={
-                      errors.version ? t('superadmin.rates.form.validation.version') : undefined
-                    }
-                    isRequired
-                  />
-                )}
+          <Controller
+            control={control}
+            name="version"
+            render={({ field }) => (
+              <Input
+                {...field}
+                isRequired
+                errorMessage={
+                  errors.version ? t('superadmin.rates.form.validation.version') : undefined
+                }
+                label={t('superadmin.rates.form.fields.version.label')}
+                placeholder={t('superadmin.rates.form.fields.version.placeholder')}
               />
-            </div>
+            )}
+          />
+        </div>
 
-            <Controller
-              name="description"
-              control={control}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  value={field.value || ''}
-                  label={t('superadmin.rates.form.fields.description.label')}
-                  placeholder={t('superadmin.rates.form.fields.description.placeholder')}
-                />
-              )}
+        <Controller
+          control={control}
+          name="description"
+          render={({ field }) => (
+            <Input
+              {...field}
+              label={t('superadmin.rates.form.fields.description.label')}
+              placeholder={t('superadmin.rates.form.fields.description.placeholder')}
+              value={field.value || ''}
             />
-          </div>
+          )}
+        />
+      </div>
 
-          {/* Pricing */}
-          <div className="space-y-4">
-            <Typography variant="h4" className="text-default-700">
-              Tarifas
-            </Typography>
+      {/* Pricing */}
+      <div className="space-y-4">
+        <Typography className="text-default-700" variant="h4">
+          Tarifas
+        </Typography>
 
-            {/* Monetary rates — 3 columns */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-              <Controller
-                name="condominiumRate"
-                control={control}
-                render={({ field }) => (
-                  <CurrencyInput
-                    label={t('superadmin.rates.form.fields.condominiumRate.label')}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    errorMessage={
-                      errors.condominiumRate
-                        ? t('superadmin.rates.form.validation.condominiumRate')
-                        : undefined
-                    }
-                    isInvalid={!!errors.condominiumRate}
-                    isRequired
-                  />
-                )}
+        {/* Monetary rates — 3 columns */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <Controller
+            control={control}
+            name="condominiumRate"
+            render={({ field }) => (
+              <CurrencyInput
+                isRequired
+                errorMessage={
+                  errors.condominiumRate
+                    ? t('superadmin.rates.form.validation.condominiumRate')
+                    : undefined
+                }
+                isInvalid={!!errors.condominiumRate}
+                label={t('superadmin.rates.form.fields.condominiumRate.label')}
+                value={field.value}
+                onValueChange={field.onChange}
               />
+            )}
+          />
 
-              <Controller
-                name="unitRate"
-                control={control}
-                render={({ field }) => (
-                  <CurrencyInput
-                    label={t('superadmin.rates.form.fields.unitRate.label')}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    errorMessage={
-                      errors.unitRate ? t('superadmin.rates.form.validation.unitRate') : undefined
-                    }
-                    isInvalid={!!errors.unitRate}
-                    isRequired
-                  />
-                )}
+          <Controller
+            control={control}
+            name="unitRate"
+            render={({ field }) => (
+              <CurrencyInput
+                isRequired
+                errorMessage={
+                  errors.unitRate ? t('superadmin.rates.form.validation.unitRate') : undefined
+                }
+                isInvalid={!!errors.unitRate}
+                label={t('superadmin.rates.form.fields.unitRate.label')}
+                value={field.value}
+                onValueChange={field.onChange}
               />
+            )}
+          />
 
-              <Controller
-                name="userRate"
-                control={control}
-                render={({ field }) => (
-                  <CurrencyInput
-                    label={t('superadmin.rates.form.fields.userRate.label')}
-                    value={field.value || '0'}
-                    onValueChange={field.onChange}
-                  />
-                )}
+          <Controller
+            control={control}
+            name="userRate"
+            render={({ field }) => (
+              <CurrencyInput
+                label={t('superadmin.rates.form.fields.userRate.label')}
+                value={field.value || '0'}
+                onValueChange={field.onChange}
               />
-            </div>
+            )}
+          />
+        </div>
 
-            {/* Percentage fields — 2 columns */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <Controller
-                name="annualDiscountPercentage"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    value={field.value || ''}
-                    onValueChange={field.onChange}
-                    type="number"
-                    label={t('superadmin.rates.form.fields.annualDiscountPercentage.label')}
-                    placeholder={t(
-                      'superadmin.rates.form.fields.annualDiscountPercentage.placeholder'
-                    )}
-                    endContent={<span className="text-default-400 text-sm">%</span>}
-                  />
-                )}
+        {/* Percentage fields — 2 columns */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <Controller
+            control={control}
+            name="annualDiscountPercentage"
+            render={({ field }) => (
+              <Input
+                endContent={<span className="text-default-400 text-sm">%</span>}
+                label={t('superadmin.rates.form.fields.annualDiscountPercentage.label')}
+                placeholder={t('superadmin.rates.form.fields.annualDiscountPercentage.placeholder')}
+                type="number"
+                value={field.value || ''}
+                onValueChange={field.onChange}
               />
+            )}
+          />
 
-              <Controller
-                name="taxRate"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    value={field.value || ''}
-                    onValueChange={field.onChange}
-                    type="number"
-                    label="Tasa de IVA"
-                    placeholder="Ej: 16"
-                    description="Deja vacío si esta tarifa no incluye IVA"
-                    endContent={<span className="text-default-400 text-sm">%</span>}
-                  />
-                )}
+          <Controller
+            control={control}
+            name="taxRate"
+            render={({ field }) => (
+              <Input
+                description="Deja vacío si esta tarifa no incluye IVA"
+                endContent={<span className="text-default-400 text-sm">%</span>}
+                label="Tasa de IVA"
+                placeholder="Ej: 16"
+                type="number"
+                value={field.value || ''}
+                onValueChange={field.onChange}
               />
-            </div>
-          </div>
+            )}
+          />
+        </div>
+      </div>
 
-          {/* Dates */}
-          <div className="space-y-4">
-            <Typography variant="h4" className="text-default-700">
-              {t('superadmin.rates.form.fields.effectiveFrom.label')}
-            </Typography>
+      {/* Dates */}
+      <div className="space-y-4">
+        <Typography className="text-default-700" variant="h4">
+          {t('superadmin.rates.form.fields.effectiveFrom.label')}
+        </Typography>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <Controller
-                name="effectiveFrom"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    type="date"
-                    label={t('superadmin.rates.form.fields.effectiveFrom.label')}
-                    placeholder={t('superadmin.rates.form.fields.effectiveFrom.placeholder')}
-                    errorMessage={
-                      errors.effectiveFrom
-                        ? t('superadmin.rates.form.validation.effectiveFrom')
-                        : undefined
-                    }
-                    isRequired
-                  />
-                )}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <Controller
+            control={control}
+            name="effectiveFrom"
+            render={({ field }) => (
+              <Input
+                {...field}
+                isRequired
+                errorMessage={
+                  errors.effectiveFrom
+                    ? t('superadmin.rates.form.validation.effectiveFrom')
+                    : undefined
+                }
+                label={t('superadmin.rates.form.fields.effectiveFrom.label')}
+                placeholder={t('superadmin.rates.form.fields.effectiveFrom.placeholder')}
+                type="date"
               />
+            )}
+          />
 
-              <Controller
-                name="effectiveUntil"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    value={field.value || ''}
-                    type="date"
-                    label={t('superadmin.rates.form.fields.effectiveUntil.label')}
-                    placeholder={t('superadmin.rates.form.fields.effectiveUntil.placeholder')}
-                  />
-                )}
+          <Controller
+            control={control}
+            name="effectiveUntil"
+            render={({ field }) => (
+              <Input
+                {...field}
+                label={t('superadmin.rates.form.fields.effectiveUntil.label')}
+                placeholder={t('superadmin.rates.form.fields.effectiveUntil.placeholder')}
+                type="date"
+                value={field.value || ''}
               />
-            </div>
-          </div>
+            )}
+          />
+        </div>
+      </div>
 
-          {/* Active toggle */}
-          <div className="flex items-center gap-3">
-            <Controller
-              name="isActive"
-              control={control}
-              render={({ field }) => (
-                <Switch color="success" isSelected={field.value} onValueChange={field.onChange} />
-              )}
-            />
-            <Typography variant="body2">
-              {t('superadmin.rates.form.fields.isActive.label')}
-            </Typography>
-          </div>
+      {/* Active toggle */}
+      <div className="flex items-center gap-3">
+        <Controller
+          control={control}
+          name="isActive"
+          render={({ field }) => (
+            <Switch color="success" isSelected={field.value} onValueChange={field.onChange} />
+          )}
+        />
+        <Typography variant="body2">{t('superadmin.rates.form.fields.isActive.label')}</Typography>
+      </div>
 
-          {/* Submit */}
-          <div className="flex justify-end gap-3">
-            <Button
-              variant="flat"
-              onPress={() => (onCancel ? onCancel() : router.push('/dashboard/rates'))}
-              isDisabled={isSubmitting || createMutation.isPending}
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button
-              color="success"
-              className="text-white"
-              type="submit"
-              isLoading={isSubmitting || createMutation.isPending}
-            >
-              {createMutation.isPending
-                ? t('superadmin.rates.form.submitting')
-                : t('superadmin.rates.form.submit')}
-            </Button>
-          </div>
-        </form>
+      {/* Submit */}
+      <div className="flex justify-end gap-3">
+        <Button
+          isDisabled={isSubmitting || createMutation.isPending}
+          variant="flat"
+          onPress={() => (onCancel ? onCancel() : router.push('/dashboard/rates'))}
+        >
+          {t('common.cancel')}
+        </Button>
+        <Button
+          className="text-white"
+          color="success"
+          isLoading={isSubmitting || createMutation.isPending}
+          type="submit"
+        >
+          {createMutation.isPending
+            ? t('superadmin.rates.form.submitting')
+            : t('superadmin.rates.form.submit')}
+        </Button>
+      </div>
+    </form>
   )
 
   if (isEmbedded) return formContent

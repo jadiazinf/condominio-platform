@@ -1,13 +1,15 @@
 'use client'
 
+import type { ISubscriptionFormData } from '../../hooks'
+
+import { DollarSign, Calendar, HardDrive, Users, Building2, Home, Check } from 'lucide-react'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
+
 import { Card, CardBody } from '@/ui/components/card'
 import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
-import { DollarSign, Calendar, HardDrive, Users, Building2, Home, Check } from 'lucide-react'
 import { useTranslation } from '@/contexts'
-import { formatCurrency } from '@packages/utils/currency'
-import { formatFullDate } from '@packages/utils/dates'
-import type { ISubscriptionFormData } from '../../hooks'
 
 interface ConfirmationStepProps {
   data: ISubscriptionFormData
@@ -18,6 +20,7 @@ export function ConfirmationStep({ data }: ConfirmationStepProps) {
 
   const formatDate = (date: string) => {
     if (!date) return '-'
+
     return formatFullDate(date)
   }
 
@@ -52,7 +55,9 @@ export function ConfirmationStep({ data }: ConfirmationStepProps) {
     backup_automatico: t('superadmin.companies.subscription.form.features.backup_automatico'),
     multi_moneda: t('superadmin.companies.subscription.form.features.multi_moneda'),
     integracion_bancaria: t('superadmin.companies.subscription.form.features.integracion_bancaria'),
-    facturacion_electronica: t('superadmin.companies.subscription.form.features.facturacion_electronica'),
+    facturacion_electronica: t(
+      'superadmin.companies.subscription.form.features.facturacion_electronica'
+    ),
   }
 
   return (
@@ -61,7 +66,7 @@ export function ConfirmationStep({ data }: ConfirmationStepProps) {
         <Typography variant="subtitle2">
           {t('superadmin.companies.subscription.form.confirmation.title')}
         </Typography>
-        <Typography variant="caption" color="muted">
+        <Typography color="muted" variant="caption">
           {t('superadmin.companies.subscription.form.confirmation.description')}
         </Typography>
       </div>
@@ -80,37 +85,33 @@ export function ConfirmationStep({ data }: ConfirmationStepProps) {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1">
-              <Typography variant="caption" color="muted">
+              <Typography color="muted" variant="caption">
                 {t('superadmin.companies.subscription.form.fields.subscriptionName')}
               </Typography>
-              <Typography variant="body2">
-                {data.subscriptionName || '-'}
-              </Typography>
+              <Typography variant="body2">{data.subscriptionName || '-'}</Typography>
             </div>
 
             <div className="space-y-1">
-              <Typography variant="caption" color="muted">
+              <Typography color="muted" variant="caption">
                 {t('superadmin.companies.subscription.form.fields.billingCycle')}
               </Typography>
-              <Typography variant="body2">
-                {getBillingCycleLabel(data.billingCycle)}
-              </Typography>
+              <Typography variant="body2">{getBillingCycleLabel(data.billingCycle)}</Typography>
             </div>
 
             <div className="space-y-1">
-              <Typography variant="caption" color="muted">
+              <Typography color="muted" variant="caption">
                 {t('superadmin.companies.subscription.form.fields.basePrice')}
               </Typography>
               <div className="flex items-center gap-1">
-                <DollarSign size={14} className="text-success" />
-                <Typography variant="body2" className="font-semibold">
+                <DollarSign className="text-success" size={14} />
+                <Typography className="font-semibold" variant="body2">
                   {formatCurrency(data.basePrice)}
                 </Typography>
               </div>
             </div>
 
             <div className="space-y-1">
-              <Typography variant="caption" color="muted">
+              <Typography color="muted" variant="caption">
                 {t('superadmin.companies.subscription.form.fields.autoRenew')}
               </Typography>
               <Typography variant="body2">
@@ -119,22 +120,22 @@ export function ConfirmationStep({ data }: ConfirmationStepProps) {
             </div>
 
             <div className="space-y-1">
-              <Typography variant="caption" color="muted">
+              <Typography color="muted" variant="caption">
                 {t('superadmin.companies.subscription.form.fields.startDate')}
               </Typography>
               <div className="flex items-center gap-1">
-                <Calendar size={14} className="text-default-400" />
+                <Calendar className="text-default-400" size={14} />
                 <Typography variant="body2">{formatDate(data.startDate)}</Typography>
               </div>
             </div>
 
             {data.endDate && (
               <div className="space-y-1">
-                <Typography variant="caption" color="muted">
+                <Typography color="muted" variant="caption">
                   {t('superadmin.companies.subscription.form.fields.endDate')}
                 </Typography>
                 <div className="flex items-center gap-1">
-                  <Calendar size={14} className="text-default-400" />
+                  <Calendar className="text-default-400" size={14} />
                   <Typography variant="body2">{formatDate(data.endDate)}</Typography>
                 </div>
               </div>
@@ -142,11 +143,11 @@ export function ConfirmationStep({ data }: ConfirmationStepProps) {
 
             {data.status === 'trial' && data.trialEndsAt && (
               <div className="space-y-1">
-                <Typography variant="caption" color="muted">
+                <Typography color="muted" variant="caption">
                   {t('superadmin.companies.subscription.form.fields.trialEndsAt')}
                 </Typography>
                 <div className="flex items-center gap-1">
-                  <Calendar size={14} className="text-warning" />
+                  <Calendar className="text-warning" size={14} />
                   <Typography variant="body2">{formatDate(data.trialEndsAt)}</Typography>
                 </div>
               </div>
@@ -164,48 +165,51 @@ export function ConfirmationStep({ data }: ConfirmationStepProps) {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="flex items-center gap-3 rounded-lg bg-default-50 p-3">
-              <Building2 size={20} className="text-primary" />
+              <Building2 className="text-primary" size={20} />
               <div>
-                <Typography variant="caption" color="muted">
+                <Typography color="muted" variant="caption">
                   {t('superadmin.companies.subscription.form.fields.maxCondominiums')}
                 </Typography>
-                <Typography variant="body2" className="font-semibold">
-                  {data.maxCondominiums || t('superadmin.companies.subscription.form.confirmation.unlimited')}
+                <Typography className="font-semibold" variant="body2">
+                  {data.maxCondominiums ||
+                    t('superadmin.companies.subscription.form.confirmation.unlimited')}
                 </Typography>
               </div>
             </div>
 
             <div className="flex items-center gap-3 rounded-lg bg-default-50 p-3">
-              <Home size={20} className="text-secondary" />
+              <Home className="text-secondary" size={20} />
               <div>
-                <Typography variant="caption" color="muted">
+                <Typography color="muted" variant="caption">
                   {t('superadmin.companies.subscription.form.fields.maxUnits')}
                 </Typography>
-                <Typography variant="body2" className="font-semibold">
-                  {data.maxUnits || t('superadmin.companies.subscription.form.confirmation.unlimited')}
+                <Typography className="font-semibold" variant="body2">
+                  {data.maxUnits ||
+                    t('superadmin.companies.subscription.form.confirmation.unlimited')}
                 </Typography>
               </div>
             </div>
 
             <div className="flex items-center gap-3 rounded-lg bg-default-50 p-3">
-              <Users size={20} className="text-primary" />
+              <Users className="text-primary" size={20} />
               <div>
-                <Typography variant="caption" color="muted">
+                <Typography color="muted" variant="caption">
                   {t('superadmin.companies.subscription.form.fields.maxUsers')}
                 </Typography>
-                <Typography variant="body2" className="font-semibold">
-                  {data.maxUsers || t('superadmin.companies.subscription.form.confirmation.unlimited')}
+                <Typography className="font-semibold" variant="body2">
+                  {data.maxUsers ||
+                    t('superadmin.companies.subscription.form.confirmation.unlimited')}
                 </Typography>
               </div>
             </div>
 
             <div className="flex items-center gap-3 rounded-lg bg-default-50 p-3">
-              <HardDrive size={20} className="text-primary" />
+              <HardDrive className="text-primary" size={20} />
               <div>
-                <Typography variant="caption" color="muted">
+                <Typography color="muted" variant="caption">
                   {t('superadmin.companies.subscription.form.fields.maxStorageGb')}
                 </Typography>
-                <Typography variant="body2" className="font-semibold">
+                <Typography className="font-semibold" variant="body2">
                   {data.maxStorageGb
                     ? `${data.maxStorageGb} GB`
                     : t('superadmin.companies.subscription.form.confirmation.unlimited')}
@@ -225,17 +229,18 @@ export function ConfirmationStep({ data }: ConfirmationStepProps) {
                 {t('superadmin.companies.subscription.form.confirmation.featuresInfo')}
               </Typography>
               <Chip color="success" size="sm" variant="flat">
-                {enabledFeatures.length} {t('superadmin.companies.subscription.form.confirmation.enabled')}
+                {enabledFeatures.length}{' '}
+                {t('superadmin.companies.subscription.form.confirmation.enabled')}
               </Chip>
             </div>
 
             <div className="grid gap-2 sm:grid-cols-2">
               {enabledFeatures.map(([key]) => (
                 <div key={key} className="flex items-center gap-2">
-                  <Check size={14} className="text-success" />
+                  <Check className="text-success" size={14} />
                   <Typography variant="body2">
                     {featureLabels[key] ||
-                      key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                      key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                   </Typography>
                 </div>
               ))}
@@ -251,7 +256,7 @@ export function ConfirmationStep({ data }: ConfirmationStepProps) {
             <Typography variant="subtitle2">
               {t('superadmin.companies.subscription.form.sections.pricingNotes')}
             </Typography>
-            <Typography variant="body2" color="muted">
+            <Typography color="muted" variant="body2">
               {data.pricingNotes}
             </Typography>
           </CardBody>
@@ -265,7 +270,7 @@ export function ConfirmationStep({ data }: ConfirmationStepProps) {
             <Typography variant="subtitle2">
               {t('superadmin.companies.subscription.form.sections.notes')}
             </Typography>
-            <Typography variant="body2" color="muted">
+            <Typography color="muted" variant="body2">
               {data.notes}
             </Typography>
           </CardBody>

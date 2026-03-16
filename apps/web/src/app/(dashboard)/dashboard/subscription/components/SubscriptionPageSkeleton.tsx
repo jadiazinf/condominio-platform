@@ -46,7 +46,6 @@ export function SubscriptionPageSkeleton() {
           ))}
         </div>
       </Card>
-
     </div>
   )
 }

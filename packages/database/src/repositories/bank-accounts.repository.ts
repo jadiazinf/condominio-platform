@@ -12,7 +12,12 @@ import { BaseRepository } from './base'
 type TBankAccountRecord = typeof bankAccounts.$inferSelect
 
 export class BankAccountsRepository
-  extends BaseRepository<typeof bankAccounts, TBankAccount, TBankAccountCreate, Partial<TBankAccountCreate>>
+  extends BaseRepository<
+    typeof bankAccounts,
+    TBankAccount,
+    TBankAccountCreate,
+    Partial<TBankAccountCreate>
+  >
   implements IRepository<TBankAccount, TBankAccountCreate, Partial<TBankAccountCreate>>
 {
   constructor(db: TDrizzleClient) {
@@ -32,7 +37,8 @@ export class BankAccountsRepository
       currency: r.currency,
       currencyId: r.currencyId ?? null,
       accountDetails: r.accountDetails as Record<string, unknown>,
-      acceptedPaymentMethods: (r.acceptedPaymentMethods ?? []) as TBankAccount['acceptedPaymentMethods'],
+      acceptedPaymentMethods: (r.acceptedPaymentMethods ??
+        []) as TBankAccount['acceptedPaymentMethods'],
       appliesToAllCondominiums: r.appliesToAllCondominiums ?? false,
       isActive: r.isActive ?? true,
       notes: r.notes,
@@ -151,7 +157,9 @@ export class BankAccountsRepository
   /**
    * Get a bank account by ID with its assigned condominiums and user relations.
    */
-  async getByIdWithCondominiums(id: string): Promise<(TBankAccount & { condominiumIds: string[] }) | null> {
+  async getByIdWithCondominiums(
+    id: string
+  ): Promise<(TBankAccount & { condominiumIds: string[] }) | null> {
     const results = await this.db
       .select()
       .from(bankAccounts)

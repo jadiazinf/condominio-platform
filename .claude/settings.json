@@ -68,7 +68,13 @@
       "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/components/admin/)",
       "Bash(ls apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/payments/)",
       "Bash(awk 'NR==1 || NR==3227 || NR==3849 || NR==4777' /home/jesusdicen/proyects/latorre/platform/apps/web/src/locales/es.json)",
-      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/users -type f -name \"*.tsx\" -o -name \"*.ts\")"
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/users -type f -name \"*.tsx\" -o -name \"*.ts\")",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/payment-concepts -type f)",
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/payment-concepts/)",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/quotas -type f -name \"*.tsx\")",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/payments -type f -name \"*.tsx\")",
+      "Bash(grep -r \"chargeGenerationStrategy\\\\|changeReason\\\\|notes\" /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/payment-concepts/components/wizard --include=\"*.tsx\")",
+      "Bash(bunx eslint:*)"
     ],
     "additionalDirectories": [
       "/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/(dashboard)/dashboard/condominiums/[id]/reserve-fund",

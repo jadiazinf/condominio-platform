@@ -1,19 +1,18 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { KeyRound, ClipboardCheck, Clock, CheckCircle, XCircle, AlertCircle, Settings } from 'lucide-react'
 import type { TAccessRequest } from '@packages/domain'
 
-import { Typography } from '@/ui/components/typography'
-import { Card, CardBody, CardHeader } from '@/ui/components/card'
-import { Button } from '@/ui/components/button'
-import { Input } from '@/ui/components/input'
-import { Chip } from '@/ui/components/chip'
-import { Link } from '@/ui/components/link'
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@/ui/components/modal'
-import { useToast } from '@/ui/components/toast'
-import { useUser } from '@/contexts'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import {
+  KeyRound,
+  ClipboardCheck,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Settings,
+} from 'lucide-react'
 import {
   useValidateAccessCode,
   type TValidateAccessCodeResponse,
@@ -23,6 +22,23 @@ import {
   JoinCondominiumModal,
   type IJoinCondominiumModalTranslations,
 } from './JoinCondominiumModal'
+
+import { Typography } from '@/ui/components/typography'
+import { Card, CardBody, CardHeader } from '@/ui/components/card'
+import { Button } from '@/ui/components/button'
+import { Input } from '@/ui/components/input'
+import { Chip } from '@/ui/components/chip'
+import { Link } from '@/ui/components/link'
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from '@/ui/components/modal'
+import { useToast } from '@/ui/components/toast'
+import { useUser } from '@/contexts'
 
 interface INewUserDashboardClientProps {
   displayName: string
@@ -80,7 +96,7 @@ export function NewUserDashboardClient({
   const profileModal = useDisclosure()
 
   const validateMutation = useValidateAccessCode({
-    onSuccess: (response) => {
+    onSuccess: response => {
       setValidationResult(response.data)
       setIsModalOpen(true)
     },
@@ -94,8 +110,10 @@ export function NewUserDashboardClient({
 
     const hasPhone = user?.phoneCountryCode && user?.phoneNumber
     const hasDocument = user?.idDocumentType && user?.idDocumentNumber
+
     if (!hasPhone || !hasDocument) {
       profileModal.onOpen()
+
       return
     }
 
@@ -122,7 +140,7 @@ export function NewUserDashboardClient({
       <Card className="border-success-200 bg-success-50/30">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
-            <KeyRound size={20} className="text-success" />
+            <KeyRound className="text-success" size={20} />
             <span className="text-lg font-semibold">{translations.joinTitle}</span>
           </div>
         </CardHeader>
@@ -130,18 +148,18 @@ export function NewUserDashboardClient({
           <p className="text-sm text-default-600">{translations.joinDescription}</p>
           <div className="flex gap-2 max-w-md">
             <Input
-              value={code}
-              onValueChange={val => setCode(val.toUpperCase())}
-              placeholder={translations.codePlaceholder}
-              maxLength={8}
               className="font-mono text-lg tracking-widest"
+              maxLength={8}
+              placeholder={translations.codePlaceholder}
+              value={code}
               onKeyDown={e => e.key === 'Enter' && handleValidate()}
+              onValueChange={val => setCode(val.toUpperCase())}
             />
             <Button
               color="success"
-              onPress={handleValidate}
-              isLoading={validateMutation.isPending}
               isDisabled={code.length < 6}
+              isLoading={validateMutation.isPending}
+              onPress={handleValidate}
             >
               {validateMutation.isPending ? translations.validating : translations.validate}
             </Button>
@@ -154,7 +172,7 @@ export function NewUserDashboardClient({
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-2">
-              <ClipboardCheck size={18} className="text-default-500" />
+              <ClipboardCheck className="text-default-500" size={18} />
               <span className="font-semibold">{translations.pendingRequests}</span>
             </div>
             {initialRequests.length > 0 && (
@@ -175,6 +193,7 @@ export function NewUserDashboardClient({
             <div className="space-y-3">
               {initialRequests.map(request => {
                 const StatusIcon = STATUS_ICON_MAP[request.status as keyof typeof STATUS_ICON_MAP]
+
                 return (
                   <div
                     key={request.id}
@@ -189,10 +208,10 @@ export function NewUserDashboardClient({
                       </span>
                     </div>
                     <Chip
-                      size="sm"
                       color={STATUS_COLOR_MAP[request.status as keyof typeof STATUS_COLOR_MAP]}
-                      variant="flat"
+                      size="sm"
                       startContent={StatusIcon ? <StatusIcon size={12} /> : undefined}
+                      variant="flat"
                     >
                       {translations.status[request.status as keyof typeof translations.status]}
                     </Chip>
@@ -207,17 +226,17 @@ export function NewUserDashboardClient({
       {validationResult && (
         <JoinCondominiumModal
           isOpen={isModalOpen}
-          onClose={handleModalClose}
-          validationResult={validationResult}
           translations={translations.modal}
+          validationResult={validationResult}
+          onClose={handleModalClose}
         />
       )}
 
       {/* Profile Incomplete Modal */}
-      <Modal isOpen={profileModal.isOpen} onClose={profileModal.onClose} size="md">
+      <Modal isOpen={profileModal.isOpen} size="md" onClose={profileModal.onClose}>
         <ModalContent>
           <ModalHeader className="flex items-center gap-2">
-            <AlertCircle size={20} className="text-warning" />
+            <AlertCircle className="text-warning" size={20} />
             <span>{translations.profileIncomplete.title}</span>
           </ModalHeader>
           <ModalBody>

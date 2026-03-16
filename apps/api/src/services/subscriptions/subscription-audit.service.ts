@@ -28,7 +28,9 @@ export class SubscriptionAuditService {
   /**
    * Create a manual audit entry
    */
-  async createEntry(input: ICreateAuditEntryInput): Promise<TServiceResult<TSubscriptionAuditHistory>> {
+  async createEntry(
+    input: ICreateAuditEntryInput
+  ): Promise<TServiceResult<TSubscriptionAuditHistory>> {
     const entry = await this.auditRepository.create({
       subscriptionId: input.subscriptionId,
       action: input.action,
@@ -251,7 +253,9 @@ export class SubscriptionAuditService {
   /**
    * Convert subscription to a plain record for logging
    */
-  private subscriptionToRecord(subscription: TManagementCompanySubscription): Record<string, unknown> {
+  private subscriptionToRecord(
+    subscription: TManagementCompanySubscription
+  ): Record<string, unknown> {
     return {
       id: subscription.id,
       managementCompanyId: subscription.managementCompanyId,

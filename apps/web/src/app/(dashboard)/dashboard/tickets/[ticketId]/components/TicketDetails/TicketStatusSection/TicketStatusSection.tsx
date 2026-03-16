@@ -1,10 +1,12 @@
 'use client'
 
-import { Chip } from '@/ui/components/chip'
-import { Typography } from '@/ui/components/typography'
+import type { TTicketStatus } from '@packages/domain'
+
 import { TicketStatusAction, type ITicketStatusActionTranslations } from '../../TicketStatusAction'
 import { getStatusColor } from '../../ticket-helpers'
-import type { TTicketStatus } from '@packages/domain'
+
+import { Chip } from '@/ui/components/chip'
+import { Typography } from '@/ui/components/typography'
 
 interface ITicketStatusSectionProps {
   status: TTicketStatus
@@ -38,8 +40,8 @@ export function TicketStatusSection({
         </Chip>
         {canManage && (
           <TicketStatusAction
-            currentStatus={status}
             iconOnly
+            currentStatus={status}
             isLoading={isLoading}
             translations={{
               changeStatus: translations.changeStatus,

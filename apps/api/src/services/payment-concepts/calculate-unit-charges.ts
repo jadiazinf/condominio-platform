@@ -1,4 +1,5 @@
 import type { TPaymentConceptAssignment } from '@packages/domain'
+import { parseAmount, roundCurrency } from '@packages/utils/money'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -73,7 +74,7 @@ export function calculateUnitCharges(
   const unitAssignments = assignments.filter(a => a.scopeType === 'unit' && a.isActive)
   for (const assignment of unitAssignments) {
     if (!assignment.unitId) continue
-    unitAmountMap.set(assignment.unitId, Number(assignment.amount))
+    unitAmountMap.set(assignment.unitId, parseAmount(assignment.amount))
   }
 
   // Build result array
@@ -83,7 +84,7 @@ export function calculateUnitCharges(
       unitId,
       unitNumber: unit?.unitNumber ?? '',
       buildingId: unit?.buildingId ?? '',
-      aliquotPercentage: unit?.aliquotPercentage ? Number(unit.aliquotPercentage) : null,
+      aliquotPercentage: unit?.aliquotPercentage ? parseAmount(unit.aliquotPercentage) : null,
       baseAmount,
     }
   })
@@ -100,24 +101,24 @@ function calculateDistribution(
   const result = new Map<string, number>()
   if (units.length === 0) return result
 
-  const total = Number(assignment.amount)
+  const total = parseAmount(assignment.amount)
 
   switch (assignment.distributionMethod) {
     case 'by_aliquot': {
       const unitsWithAliquot = units.filter(
-        u => u.aliquotPercentage != null && Number(u.aliquotPercentage) > 0
+        u => u.aliquotPercentage != null && parseAmount(u.aliquotPercentage) > 0
       )
       if (unitsWithAliquot.length === 0) return result
 
       const totalAliquot = unitsWithAliquot.reduce(
-        (sum, u) => sum + Number(u.aliquotPercentage!),
+        (sum, u) => sum + parseAmount(u.aliquotPercentage),
         0
       )
 
       let distributed = 0
       for (let i = 0; i < unitsWithAliquot.length; i++) {
         const unit = unitsWithAliquot[i]!
-        const proportion = Number(unit.aliquotPercentage!) / totalAliquot
+        const proportion = parseAmount(unit.aliquotPercentage) / totalAliquot
 
         if (i === unitsWithAliquot.length - 1) {
           result.set(unit.id, roundCurrency(total - distributed))
@@ -218,7 +219,3 @@ export function calculateElapsedPeriods(
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
-
-function roundCurrency(amount: number): number {
-  return Math.round(amount * 100) / 100
-}

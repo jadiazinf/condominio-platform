@@ -53,7 +53,7 @@ export function NoCondominiums({ onContactSupport }: NoCondominiumsProps) {
 
       {/* Access code entry */}
       <div className="flex flex-col gap-3 w-full max-w-sm">
-        <Typography color="default" variant="body2" className="font-medium">
+        <Typography className="font-medium" color="default" variant="body2">
           {t('condominium.selection.enterAccessCode')}
         </Typography>
         <Typography color="muted" variant="caption">
@@ -61,19 +61,15 @@ export function NoCondominiums({ onContactSupport }: NoCondominiumsProps) {
         </Typography>
         <div className="flex gap-2">
           <Input
-            value={accessCode}
-            onValueChange={(val) => setAccessCode(val.toUpperCase())}
-            placeholder="ABC123"
-            maxLength={8}
             className="font-mono tracking-widest"
-            startContent={<KeyRound size={16} className="text-default-400" />}
-            onKeyDown={(e) => e.key === 'Enter' && handleEnterCode()}
+            maxLength={8}
+            placeholder="ABC123"
+            startContent={<KeyRound className="text-default-400" size={16} />}
+            value={accessCode}
+            onKeyDown={e => e.key === 'Enter' && handleEnterCode()}
+            onValueChange={val => setAccessCode(val.toUpperCase())}
           />
-          <Button
-            color="primary"
-            onPress={handleEnterCode}
-            isDisabled={accessCode.length < 6}
-          >
+          <Button color="primary" isDisabled={accessCode.length < 6} onPress={handleEnterCode}>
             {t('condominium.selection.validateCode')}
           </Button>
         </div>

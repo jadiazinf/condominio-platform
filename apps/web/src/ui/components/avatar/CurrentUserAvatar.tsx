@@ -4,7 +4,6 @@ import type { TUser } from '@packages/domain'
 
 import { Avatar, type IAvatarProps } from '@/ui/components/avatar-base'
 import { Link } from '@/ui/components/link'
-
 import { useUser } from '@/contexts'
 
 export interface CurrentUserAvatarProps {
@@ -40,25 +39,26 @@ export function CurrentUserAvatar({
     if (!user) return ''
     if (user.displayName) return user.displayName
     const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim()
+
     return fullName || user.email || ''
   }
 
   const avatarElement = (
     <Avatar
       key={user?.photoUrl}
-      name={displayName || undefined}
-      src={user?.photoUrl || undefined}
-      size={size}
       className={className}
-      isBordered={isBordered}
-      color="default"
       classNames={{
         base: isClickable ? 'cursor-pointer transition-transform hover:scale-105' : '',
       }}
+      color="default"
       imgProps={{
         loading: 'eager',
         fetchPriority: 'high',
       }}
+      isBordered={isBordered}
+      name={displayName || undefined}
+      size={size}
+      src={user?.photoUrl || undefined}
     />
   )
 

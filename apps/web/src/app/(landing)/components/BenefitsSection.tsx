@@ -2,8 +2,10 @@
 
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { useTranslation } from '@/contexts'
+
 import { ScrollSection } from './ScrollSection'
+
+import { useTranslation } from '@/contexts'
 
 const benefitKeys = ['paperwork', 'collections', 'informed', 'transparency'] as const
 
@@ -20,14 +22,14 @@ export function BenefitsSection() {
   const isInView = useInView(ref, { amount: 0.3 })
 
   return (
-    <ScrollSection id="benefits" className="bg-content2 dark:bg-[#1E1F22]">
+    <ScrollSection className="bg-content2 dark:bg-[#1E1F22]" id="benefits">
       <div ref={ref} className="max-w-7xl mx-auto px-8 md:px-16 py-24">
         {/* Section header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
           className="mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
         >
           <div className="h-[2px] w-12 bg-brick mb-6" />
           <h2 className="text-3xl md:text-4xl font-bold text-foreground leading-tight">
@@ -40,12 +42,12 @@ export function BenefitsSection() {
           {benefitKeys.map((key, index) => (
             <motion.div
               key={key}
-              initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: 0.3 + index * 0.15, ease: 'easeOut' }}
               className={`p-8 md:p-10 ${
                 index % 2 === 0 ? 'md:border-r border-foreground/10' : ''
               } ${index < 2 ? 'border-b border-foreground/10' : ''}`}
+              initial={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.5, delay: 0.3 + index * 0.15, ease: 'easeOut' }}
             >
               <span className="text-5xl md:text-6xl font-extralight text-brick/30 leading-none">
                 {benefitNumbers[key]}

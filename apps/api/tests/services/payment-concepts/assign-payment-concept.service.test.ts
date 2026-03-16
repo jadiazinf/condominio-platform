@@ -12,7 +12,12 @@ type TMockPaymentConceptsRepo = {
 
 type TMockAssignmentsRepo = {
   create: (data: Record<string, unknown>) => Promise<TPaymentConceptAssignment>
-  getByConceptAndScope: (conceptId: string, scopeType: string, buildingId: string | null, unitId: string | null) => Promise<TPaymentConceptAssignment | null>
+  getByConceptAndScope: (
+    conceptId: string,
+    scopeType: string,
+    buildingId: string | null,
+    unitId: string | null
+  ) => Promise<TPaymentConceptAssignment | null>
   update: (id: string, data: Record<string, unknown>) => Promise<TPaymentConceptAssignment | null>
 }
 
@@ -21,9 +26,18 @@ type TMockBuildingsRepo = {
 }
 
 type TMockUnitsRepo = {
-  getById: (id: string) => Promise<{ id: string; buildingId: string; isActive: boolean; aliquotPercentage: string | null } | null>
-  getByBuildingId: (buildingId: string) => Promise<{ id: string; aliquotPercentage: string | null; isActive: boolean }[]>
-  getByCondominiumId: (condominiumId: string) => Promise<{ id: string; aliquotPercentage: string | null; isActive: boolean }[]>
+  getById: (id: string) => Promise<{
+    id: string
+    buildingId: string
+    isActive: boolean
+    aliquotPercentage: string | null
+  } | null>
+  getByBuildingId: (
+    buildingId: string
+  ) => Promise<{ id: string; aliquotPercentage: string | null; isActive: boolean }[]>
+  getByCondominiumId: (
+    condominiumId: string
+  ) => Promise<{ id: string; aliquotPercentage: string | null; isActive: boolean }[]>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -68,7 +82,9 @@ function mockConcept(overrides: Partial<TPaymentConcept> = {}): TPaymentConcept 
   }
 }
 
-function mockAssignment(overrides: Partial<TPaymentConceptAssignment> = {}): TPaymentConceptAssignment {
+function mockAssignment(
+  overrides: Partial<TPaymentConceptAssignment> = {}
+): TPaymentConceptAssignment {
   return {
     id: '550e8400-e29b-41d4-a716-446655440050',
     paymentConceptId: conceptId,
@@ -99,9 +115,10 @@ describe('AssignPaymentConceptService', function () {
     }
 
     mockAssignmentsRepo = {
-      create: async (data) => mockAssignment(data as Partial<TPaymentConceptAssignment>),
+      create: async data => mockAssignment(data as Partial<TPaymentConceptAssignment>),
       getByConceptAndScope: async () => null,
-      update: async (id, data) => mockAssignment({ id, ...data } as Partial<TPaymentConceptAssignment>),
+      update: async (id, data) =>
+        mockAssignment({ id, ...data } as Partial<TPaymentConceptAssignment>),
     }
 
     mockBuildingsRepo = {
@@ -109,14 +126,27 @@ describe('AssignPaymentConceptService', function () {
     }
 
     mockUnitsRepo = {
-      getById: async () => ({ id: unitId, buildingId, isActive: true, aliquotPercentage: '10.000000' }),
+      getById: async () => ({
+        id: unitId,
+        buildingId,
+        isActive: true,
+        aliquotPercentage: '10.000000',
+      }),
       getByBuildingId: async () => [
         { id: unitId, aliquotPercentage: '50.000000', isActive: true },
-        { id: '550e8400-e29b-41d4-a716-446655440031', aliquotPercentage: '50.000000', isActive: true },
+        {
+          id: '550e8400-e29b-41d4-a716-446655440031',
+          aliquotPercentage: '50.000000',
+          isActive: true,
+        },
       ],
       getByCondominiumId: async () => [
         { id: unitId, aliquotPercentage: '50.000000', isActive: true },
-        { id: '550e8400-e29b-41d4-a716-446655440031', aliquotPercentage: '50.000000', isActive: true },
+        {
+          id: '550e8400-e29b-41d4-a716-446655440031',
+          aliquotPercentage: '50.000000',
+          isActive: true,
+        },
       ],
     }
 
@@ -246,7 +276,7 @@ describe('AssignPaymentConceptService', function () {
     })
 
     it('should deactivate an assignment', async function () {
-      mockAssignmentsRepo.update = async (id) => mockAssignment({ id, isActive: false })
+      mockAssignmentsRepo.update = async id => mockAssignment({ id, isActive: false })
 
       const result = await service.deactivate('550e8400-e29b-41d4-a716-446655440050')
 
@@ -328,7 +358,11 @@ describe('AssignPaymentConceptService', function () {
     })
 
     it('should fail when building is not in concepts condominium', async function () {
-      mockBuildingsRepo.getById = async () => ({ id: buildingId, condominiumId: '550e8400-e29b-41d4-a716-446655440099', isActive: true })
+      mockBuildingsRepo.getById = async () => ({
+        id: buildingId,
+        condominiumId: '550e8400-e29b-41d4-a716-446655440099',
+        isActive: true,
+      })
 
       const result = await service.execute({
         paymentConceptId: conceptId,
@@ -401,7 +435,12 @@ describe('AssignPaymentConceptService', function () {
     })
 
     it('should fail when unit is inactive', async function () {
-      mockUnitsRepo.getById = async () => ({ id: unitId, buildingId, isActive: false, aliquotPercentage: '10.000000' })
+      mockUnitsRepo.getById = async () => ({
+        id: unitId,
+        buildingId,
+        isActive: false,
+        aliquotPercentage: '10.000000',
+      })
 
       const result = await service.execute({
         paymentConceptId: conceptId,

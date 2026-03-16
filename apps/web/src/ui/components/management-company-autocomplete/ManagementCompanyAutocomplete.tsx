@@ -1,12 +1,13 @@
 'use client'
 
+import type { TManagementCompany } from '@packages/domain'
+
 import { useMemo, useState, useCallback, useRef, Key } from 'react'
 import { Building2 } from 'lucide-react'
-import type { TManagementCompany } from '@packages/domain'
+import { useManagementCompaniesPaginated } from '@packages/http-client'
 
 import { useAuth, useTranslation } from '@/contexts'
 import { Autocomplete, type IAutocompleteItem } from '@/ui/components/autocomplete'
-import { useManagementCompaniesPaginated } from '@packages/http-client'
 
 interface IManagementCompanyAutocompleteProps {
   value?: string | null
@@ -61,7 +62,8 @@ export function ManagementCompanyAutocomplete({
   // Update selected company ref when data changes and we have a selected value
   useMemo(() => {
     if (value && companiesData?.data) {
-      const company = companiesData.data.find((c) => c.id === value)
+      const company = companiesData.data.find(c => c.id === value)
+
       if (company) {
         selectedCompanyRef.current = company
       }
@@ -75,7 +77,7 @@ export function ManagementCompanyAutocomplete({
     const itemsMap = new Map<string, IAutocompleteItem>()
 
     // Add fetched companies
-    companies.forEach((company) => {
+    companies.forEach(company => {
       itemsMap.set(company.id, {
         key: company.id,
         label: company.name,
@@ -124,7 +126,10 @@ export function ManagementCompanyAutocomplete({
       aria-label={label || t('common.managementCompany')}
       className={className}
       description={description}
-      emptyContent={t('superadmin.condominiums.form.fields.noCompaniesFound') || 'No se encontraron administradoras'}
+      emptyContent={
+        t('superadmin.condominiums.form.fields.noCompaniesFound') ||
+        'No se encontraron administradoras'
+      }
       errorMessage={errorMessage}
       isDisabled={isDisabled || isAuthLoading}
       isInvalid={!!errorMessage}
@@ -132,7 +137,9 @@ export function ManagementCompanyAutocomplete({
       isRequired={isRequired}
       items={items}
       label={label}
-      placeholder={placeholder || t('superadmin.condominiums.form.fields.managementCompanyPlaceholder')}
+      placeholder={
+        placeholder || t('superadmin.condominiums.form.fields.managementCompanyPlaceholder')
+      }
       tooltip={tooltip}
       value={selectedValue}
       onInputChange={handleInputChange}

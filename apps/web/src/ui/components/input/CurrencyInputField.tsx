@@ -1,10 +1,13 @@
 'use client'
 
 import { Controller, useFormContext } from 'react-hook-form'
+
 import { CurrencyInput, type ICurrencyInputProps } from './CurrencyInput'
+
 import { getTranslatedError } from '@/utils/formErrors'
 
-interface ICurrencyInputFieldProps extends Omit<ICurrencyInputProps, 'value' | 'onValueChange' | 'isInvalid'> {
+interface ICurrencyInputFieldProps
+  extends Omit<ICurrencyInputProps, 'value' | 'onValueChange' | 'isInvalid'> {
   name: string
   translateError?: (message: string | undefined) => string | undefined
 }
@@ -27,7 +30,10 @@ export function CurrencyInputField({
   errorMessage: customErrorMessage,
   ...props
 }: ICurrencyInputFieldProps) {
-  const { control, formState: { errors } } = useFormContext()
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext()
 
   const formErrorMessage = getTranslatedError(errors, name, translateError)
   const finalErrorMessage = customErrorMessage || formErrorMessage
@@ -38,10 +44,10 @@ export function CurrencyInputField({
       name={name}
       render={({ field }) => (
         <CurrencyInput
+          errorMessage={finalErrorMessage}
+          isInvalid={!!finalErrorMessage}
           value={field.value || ''}
           onValueChange={field.onChange}
-          isInvalid={!!finalErrorMessage}
-          errorMessage={finalErrorMessage}
           {...props}
         />
       )}

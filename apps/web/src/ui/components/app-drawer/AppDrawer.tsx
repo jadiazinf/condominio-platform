@@ -15,12 +15,12 @@ interface IAppDrawerProps {
 export function AppDrawer({ isOpen, onOpenChange, onClose, children }: IAppDrawerProps) {
   return (
     <Drawer
+      hideCloseButton
       classNames={{
         base: 'max-w-[280px] bg-background',
         body: 'p-0',
         footer: 'p-0',
       }}
-      hideCloseButton
       isOpen={isOpen}
       placement="left"
       onOpenChange={onOpenChange}

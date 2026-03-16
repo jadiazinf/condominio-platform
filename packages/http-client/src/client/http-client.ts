@@ -109,7 +109,8 @@ export function createHttpClient(config: HttpClientConfig = {}) {
     }
 
     // Only handle auth token if not already provided in request headers
-    const hasManualAuth = requestConfig?.headers?.['Authorization'] || requestConfig?.headers?.['authorization']
+    const hasManualAuth =
+      requestConfig?.headers?.['Authorization'] || requestConfig?.headers?.['authorization']
 
     if (!hasManualAuth) {
       if (config.getAuthToken) {
@@ -160,12 +161,19 @@ export function createHttpClient(config: HttpClientConfig = {}) {
           // Strip manual Authorization header so the retry uses getAuthToken()
           // which reads the freshly refreshed token from cookies
           let retryConfig = requestConfig
-          if (requestConfig?.headers?.['Authorization'] || requestConfig?.headers?.['authorization']) {
-            const { Authorization, authorization, ...restHeaders } = requestConfig.headers as Record<string, string>
+          if (
+            requestConfig?.headers?.['Authorization'] ||
+            requestConfig?.headers?.['authorization']
+          ) {
+            const {
+              Authorization: _Authorization,
+              authorization: _authorization,
+              ...restHeaders
+            } = requestConfig.headers as Record<string, string>
             retryConfig = { ...requestConfig, headers: restHeaders }
           }
           return await request<T>(method, path, body, retryConfig, true)
-        } catch (refreshError) {
+        } catch (_refreshError) {
           // If refresh fails, continue with the original error response
         }
       }
@@ -214,9 +222,7 @@ export type HttpClient = ReturnType<typeof createHttpClient>
 // Global locale getter (can be set by the app)
 let globalLocaleGetter: (() => string | null | Promise<string | null>) | null = null
 
-export function setGlobalLocale(
-  localeGetter: () => string | null | Promise<string | null>
-): void {
+export function setGlobalLocale(localeGetter: () => string | null | Promise<string | null>): void {
   globalLocaleGetter = localeGetter
   // Reset the default client so it picks up the new locale getter
   if (defaultClient) {

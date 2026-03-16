@@ -82,6 +82,7 @@ class TokenRefreshManager {
 
     // Prevent too frequent refreshes (debounce)
     const now = Date.now()
+
     if (now - this.lastRefreshTime < this.MIN_REFRESH_INTERVAL) {
       return
     }
@@ -140,7 +141,8 @@ class TokenRefreshManager {
   private isTokenExpiredError(error: unknown): boolean {
     if (!error) return false
 
-    const errorMessage = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
+    const errorMessage =
+      error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
     const errorCode = (error as { code?: string })?.code?.toLowerCase() || ''
 
     // Firebase Auth error codes for expired/invalid tokens
@@ -197,6 +199,7 @@ class TokenRefreshManager {
    */
   private processQueue(success: boolean, error?: Error): void {
     const queue = [...this.requestQueue]
+
     this.requestQueue = []
 
     for (const request of queue) {

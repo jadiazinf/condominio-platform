@@ -93,7 +93,9 @@ export class QuotaFormulasController {
     )
     this.updateQuotaFormulaService = new UpdateQuotaFormulaService(quotaFormulasRepository)
     this.calculateFormulaAmountService = new CalculateFormulaAmountService(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       quotaFormulasRepository as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       unitsRepository as any
     )
   }
@@ -104,19 +106,31 @@ export class QuotaFormulasController {
         method: 'get',
         path: '/',
         handler: this.list,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), queryValidator(IncludeInactiveQuerySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          queryValidator(IncludeInactiveQuerySchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), bodyValidator(CreateQuotaFormulaBodySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          bodyValidator(CreateQuotaFormulaBodySchema),
+        ],
       },
       {
         method: 'put',
@@ -133,7 +147,11 @@ export class QuotaFormulasController {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',

@@ -11,9 +11,7 @@ export interface IGetUserManagementCompaniesInput {
  * Returns active memberships with company info, role, and permissions.
  */
 export class GetUserManagementCompaniesService {
-  constructor(
-    private readonly membersRepository: ManagementCompanyMembersRepository
-  ) {}
+  constructor(private readonly membersRepository: ManagementCompanyMembersRepository) {}
 
   async execute(
     input: IGetUserManagementCompaniesInput

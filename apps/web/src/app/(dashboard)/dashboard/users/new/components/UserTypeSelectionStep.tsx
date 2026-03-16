@@ -1,12 +1,14 @@
 'use client'
 
+import type { TUserType } from '../hooks/useCreateUserForm'
+
 import { Controller, useFormContext } from 'react-hook-form'
+import { Info, User, Building, Shield } from 'lucide-react'
+
 import { RadioGroup, Radio } from '@/ui/components/radio'
 import { Typography } from '@/ui/components/typography'
 import { Tooltip } from '@/ui/components/tooltip'
-import { Info, User, Building, Shield } from 'lucide-react'
 import { useTranslation } from '@/contexts'
-import type { TUserType } from '../hooks/useCreateUserForm'
 
 interface UserTypeSelectionStepProps {
   translateError: (message: string | undefined) => string | undefined
@@ -15,16 +17,16 @@ interface UserTypeSelectionStepProps {
 function SectionHeader({ title, tooltip }: { title: string; tooltip: string }) {
   return (
     <div className="flex items-center gap-2">
-      <Typography variant="subtitle1" className="font-semibold">
+      <Typography className="font-semibold" variant="subtitle1">
         {title}
       </Typography>
       <Tooltip
-        content={tooltip}
-        placement="right"
         showArrow
         classNames={{
           content: 'max-w-xs text-sm',
         }}
+        content={tooltip}
+        placement="right"
       >
         <Info className="h-4 w-4 text-default-400 cursor-help" />
       </Tooltip>
@@ -34,9 +36,17 @@ function SectionHeader({ title, tooltip }: { title: string; tooltip: string }) {
 
 export function UserTypeSelectionStep({ translateError }: UserTypeSelectionStepProps) {
   const { t } = useTranslation()
-  const { control, formState: { errors } } = useFormContext()
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext()
 
-  const userTypeOptions: Array<{ value: TUserType; label: string; description: string; icon: React.ReactNode }> = [
+  const userTypeOptions: Array<{
+    value: TUserType
+    label: string
+    description: string
+    icon: React.ReactNode
+  }> = [
     {
       value: 'general',
       label: t('superadmin.users.create.userType.general.label'),
@@ -69,21 +79,21 @@ export function UserTypeSelectionStep({ translateError }: UserTypeSelectionStepP
         name="userType"
         render={({ field }) => (
           <RadioGroup
-            value={field.value}
-            onValueChange={field.onChange}
-            orientation="vertical"
             classNames={{
               wrapper: 'gap-4',
             }}
+            orientation="vertical"
+            value={field.value}
+            onValueChange={field.onChange}
           >
-            {userTypeOptions.map((option) => (
+            {userTypeOptions.map(option => (
               <div
                 key={option.value}
                 className="relative flex items-start gap-3 rounded-lg border-2 border-default-200 p-4 transition-colors hover:border-primary/50 cursor-pointer"
-                onClick={() => field.onChange(option.value)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => {
+                onClick={() => field.onChange(option.value)}
+                onKeyDown={e => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
                     field.onChange(option.value)
@@ -94,10 +104,10 @@ export function UserTypeSelectionStep({ translateError }: UserTypeSelectionStepP
                 <div className="flex flex-1 items-start gap-3 pointer-events-none">
                   <div className="mt-0.5 text-default-500">{option.icon}</div>
                   <div className="flex-1">
-                    <Typography variant="subtitle2" className="font-semibold">
+                    <Typography className="font-semibold" variant="subtitle2">
                       {option.label}
                     </Typography>
-                    <Typography color="muted" variant="body2" className="mt-1">
+                    <Typography className="mt-1" color="muted" variant="body2">
                       {option.description}
                     </Typography>
                   </div>

@@ -18,7 +18,11 @@ import type {
   SubscriptionAuditHistoryRepository,
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
+import {
+  bodyValidator,
+  paramsValidator,
+  queryValidator,
+} from '../../middlewares/utils/payload-validator'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
 import type { ISubscriptionHistoryQuery } from '@database/repositories/management-company-subscriptions.repository'
@@ -30,7 +34,10 @@ import {
   CalculatePricingService,
   SubscriptionAuditService,
 } from '../../../services/subscriptions'
-import { SendSubscriptionCancellationEmailService, SendSubscriptionAcceptanceEmailService } from '../../../services/email'
+import {
+  SendSubscriptionCancellationEmailService,
+  SendSubscriptionAcceptanceEmailService,
+} from '../../../services/email'
 import { DatabaseService } from '@database/service'
 import { isUserAuthenticated } from '../../middlewares/utils/auth/is-user-authenticated'
 import { requireRole } from '../../middlewares/auth'
@@ -139,7 +146,6 @@ export class ManagementCompanySubscriptionsController extends BaseController<
     })
     this.renewService = new RenewSubscriptionService(repository)
     this.pricingService = new CalculatePricingService(db)
-
   }
 
   get routes(): TRouteDefinition[] {
@@ -247,7 +253,9 @@ export class ManagementCompanySubscriptionsController extends BaseController<
       const subscription = await repo.getActiveByCompanyId(ctx.params.companyId)
 
       if (!subscription) {
-        return ctx.notFound({ error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription) })
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription),
+        })
       }
 
       return ctx.ok({ data: subscription })
@@ -335,7 +343,9 @@ export class ManagementCompanySubscriptionsController extends BaseController<
       const subscription = await repo.getActiveByCompanyId(ctx.params.companyId)
 
       if (!subscription) {
-        return ctx.notFound({ error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription) })
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription),
+        })
       }
 
       const result = await this.updateService.execute({
@@ -363,7 +373,9 @@ export class ManagementCompanySubscriptionsController extends BaseController<
       const subscription = await repo.getActiveByCompanyId(ctx.params.companyId)
 
       if (!subscription) {
-        return ctx.notFound({ error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription) })
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription),
+        })
       }
 
       const result = await this.cancelService.execute({
@@ -392,7 +404,9 @@ export class ManagementCompanySubscriptionsController extends BaseController<
       const subscription = await repo.getActiveByCompanyId(ctx.params.companyId)
 
       if (!subscription) {
-        return ctx.notFound({ error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription) })
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription),
+        })
       }
 
       const result = await this.renewService.execute({

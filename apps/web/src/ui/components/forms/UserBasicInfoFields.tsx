@@ -48,33 +48,33 @@ export function UserBasicInfoFields({
     <div className="flex flex-col gap-10">
       {/* Email */}
       <InputField
-        name={getFieldName('email')}
-        type="email"
+        isRequired
         label={labels.email}
+        name={getFieldName('email')}
         placeholder={labels.emailPlaceholder}
         tooltip={labels.emailTooltip}
-        isRequired
         translateError={translateError}
+        type="email"
       />
 
       {/* First Name & Last Name */}
       <div className="flex flex-col gap-10 sm:flex-row sm:gap-8">
         <InputField
+          isRequired
           className="flex-1"
-          name={getFieldName('firstName')}
           label={labels.firstName}
+          name={getFieldName('firstName')}
           placeholder={labels.firstNamePlaceholder}
           tooltip={labels.firstNameTooltip}
-          isRequired
           translateError={translateError}
         />
         <InputField
+          isRequired
           className="flex-1"
-          name={getFieldName('lastName')}
           label={labels.lastName}
+          name={getFieldName('lastName')}
           placeholder={labels.lastNamePlaceholder}
           tooltip={labels.lastNameTooltip}
-          isRequired
           translateError={translateError}
         />
       </div>
@@ -82,24 +82,24 @@ export function UserBasicInfoFields({
       {/* Document Fields (optional) */}
       {showDocumentFields && (
         <DocumentInputField
-          documentTypeFieldName={getFieldName('idDocumentType')}
+          isRequired
           documentNumberFieldName={getFieldName('idDocumentNumber')}
+          documentTypeFieldName={getFieldName('idDocumentType')}
           label={labels.idDocument}
-          typePlaceholder={labels.idDocumentTypePlaceholder}
           numberPlaceholder={labels.idDocumentNumberPlaceholder}
           tooltip={labels.idDocumentTooltip}
-          isRequired
           translateError={translateError}
+          typePlaceholder={labels.idDocumentTypePlaceholder}
         />
       )}
 
       {/* Phone */}
       <PhoneInputField
-        countryCodeFieldName={getFieldName('phoneCountryCode')}
-        phoneNumberFieldName={getFieldName('phoneNumber')}
-        label={labels.phone}
-        tooltip={labels.phoneTooltip}
         isRequired
+        countryCodeFieldName={getFieldName('phoneCountryCode')}
+        label={labels.phone}
+        phoneNumberFieldName={getFieldName('phoneNumber')}
+        tooltip={labels.phoneTooltip}
         translateError={translateError}
       />
     </div>

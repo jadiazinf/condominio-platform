@@ -1,20 +1,21 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
-import { Button } from '@/ui/components/button'
-import { Input } from '@/ui/components/input'
-import { Textarea } from '@/ui/components/textarea'
-import { Typography } from '@/ui/components/typography'
 import { AlertTriangle, Lock, Eye, EyeOff } from 'lucide-react'
-import { useToast } from '@/ui/components/toast'
-import { useTranslation } from '@/contexts'
-import { useAuth } from '@/contexts/AuthContext'
 import {
   useCancelSubscription,
   managementCompanySubscriptionKeys,
   useQueryClient,
 } from '@packages/http-client'
+
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
+import { Button } from '@/ui/components/button'
+import { Input } from '@/ui/components/input'
+import { Textarea } from '@/ui/components/textarea'
+import { Typography } from '@/ui/components/typography'
+import { useToast } from '@/ui/components/toast'
+import { useTranslation } from '@/contexts'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface CancelSubscriptionModalProps {
   isOpen: boolean
@@ -48,7 +49,7 @@ export function CancelSubscriptionModal({
       queryClient.invalidateQueries({ queryKey: managementCompanySubscriptionKeys.all })
       handleClose()
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || t('superadmin.companies.subscription.cancelError'))
     },
   })
@@ -60,6 +61,7 @@ export function CancelSubscriptionModal({
     // Validate password is entered
     if (!password.trim()) {
       setPasswordError(t('superadmin.companies.subscription.cancel.passwordRequired'))
+
       return
     }
 
@@ -71,6 +73,7 @@ export function CancelSubscriptionModal({
       if (!isValid) {
         setPasswordError(t('superadmin.companies.subscription.cancel.passwordInvalid'))
         setIsVerifying(false)
+
         return
       }
 
@@ -95,13 +98,13 @@ export function CancelSubscriptionModal({
   }, [onClose])
 
   const togglePasswordVisibility = useCallback(() => {
-    setShowPassword((prev) => !prev)
+    setShowPassword(prev => !prev)
   }, [])
 
   const isProcessing = isVerifying || isPending
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="md">
+    <Modal isOpen={isOpen} size="md" onClose={handleClose}>
       <ModalContent>
         <ModalHeader className="flex items-center gap-2">
           <AlertTriangle className="text-danger" size={20} />
@@ -109,7 +112,7 @@ export function CancelSubscriptionModal({
         </ModalHeader>
         <ModalBody className="space-y-4">
           <div className="rounded-lg bg-danger-50 p-4">
-            <Typography variant="body2" color="danger">
+            <Typography color="danger" variant="body2">
               {t('superadmin.companies.subscription.cancel.warning', {
                 name: subscriptionName || 'Plan Personalizado',
               })}
@@ -117,68 +120,67 @@ export function CancelSubscriptionModal({
           </div>
 
           <div className="rounded-lg bg-warning-50 p-4">
-            <Typography variant="body2" color="warning">
+            <Typography color="warning" variant="body2">
               {t('superadmin.companies.subscription.cancel.emailNotice')}
             </Typography>
           </div>
 
           <Textarea
             label={t('superadmin.companies.subscription.cancel.reasonLabel')}
+            minRows={3}
             placeholder={t('superadmin.companies.subscription.cancel.reasonPlaceholder')}
             value={reason}
             onValueChange={setReason}
-            minRows={3}
           />
 
           <div className="space-y-2">
-            <Typography variant="subtitle2" className="flex items-center gap-2">
-              <Lock size={16} className="text-danger" />
+            <Typography className="flex items-center gap-2" variant="subtitle2">
+              <Lock className="text-danger" size={16} />
               {t('superadmin.companies.subscription.cancel.passwordTitle')}
             </Typography>
-            <Typography variant="caption" color="muted">
+            <Typography color="muted" variant="caption">
               {t('superadmin.companies.subscription.cancel.passwordDescription')}
             </Typography>
             <Input
-              type={showPassword ? 'text' : 'password'}
-              label={t('superadmin.companies.subscription.cancel.passwordLabel')}
-              placeholder={t('superadmin.companies.subscription.cancel.passwordPlaceholder')}
-              value={password}
-              onValueChange={(value) => {
-                setPassword(value)
-                setPasswordError(null)
-              }}
-              isInvalid={!!passwordError}
-              errorMessage={passwordError ?? undefined}
               endContent={
                 <button
+                  className="focus:outline-none"
                   type="button"
                   onClick={togglePasswordVisibility}
-                  className="focus:outline-none"
                 >
                   {showPassword ? (
-                    <EyeOff size={18} className="text-default-400" />
+                    <EyeOff className="text-default-400" size={18} />
                   ) : (
-                    <Eye size={18} className="text-default-400" />
+                    <Eye className="text-default-400" size={18} />
                   )}
                 </button>
               }
+              errorMessage={passwordError ?? undefined}
+              isInvalid={!!passwordError}
+              label={t('superadmin.companies.subscription.cancel.passwordLabel')}
+              placeholder={t('superadmin.companies.subscription.cancel.passwordPlaceholder')}
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onValueChange={value => {
+                setPassword(value)
+                setPasswordError(null)
+              }}
             />
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button variant="flat" onPress={handleClose} isDisabled={isProcessing}>
+          <Button isDisabled={isProcessing} variant="flat" onPress={handleClose}>
             {t('superadmin.companies.subscription.cancel.backButton')}
           </Button>
           <Button
             color="danger"
-            onPress={handleCancel}
-            isLoading={isProcessing}
             isDisabled={!password.trim()}
+            isLoading={isProcessing}
+            onPress={handleCancel}
           >
             {isVerifying
               ? t('superadmin.companies.subscription.cancel.verifying')
-              : t('superadmin.companies.subscription.cancel.confirmButton')
-            }
+              : t('superadmin.companies.subscription.cancel.confirmButton')}
           </Button>
         </ModalFooter>
       </ModalContent>

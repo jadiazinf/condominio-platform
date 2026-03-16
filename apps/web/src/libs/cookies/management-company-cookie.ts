@@ -72,6 +72,7 @@ export function getActiveRoleCookie(): TActiveRoleType | null {
   }
 
   const value = cookie.split('=')[1]?.trim()
+
   if (value === 'superadmin' || value === 'management_company' || value === 'condominium') {
     return value
   }

@@ -8,6 +8,7 @@ import {
   ESystemRole,
 } from '@packages/domain'
 import type { PaymentConceptsRepository } from '@database/repositories'
+import { AppError } from '@errors/index'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
@@ -52,45 +53,91 @@ export class PaymentConceptsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)] },
-      { method: 'get', path: '/recurring', handler: this.getRecurringConcepts, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)] },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.list,
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)],
+      },
+      {
+        method: 'get',
+        path: '/recurring',
+        handler: this.getRecurringConcepts,
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)],
+      },
       {
         method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(BuildingIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(BuildingIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/type/:conceptType',
         handler: this.getByConceptType,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(ConceptTypeParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(ConceptTypeParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(paymentConceptCreateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          bodyValidator(paymentConceptCreateSchema),
+        ],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema), bodyValidator(paymentConceptUpdateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+          bodyValidator(paymentConceptUpdateSchema),
+        ],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
+  }
+
+  protected override getById = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, { id: string }>(c)
+    const entity = await this.repository.getById(ctx.params.id)
+    if (!entity) throw AppError.notFound('Resource', ctx.params.id)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    if (condominiumId && entity.condominiumId !== condominiumId) {
+      throw AppError.notFound('Resource', ctx.params.id)
+    }
+    return ctx.ok({ data: entity })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -108,26 +155,31 @@ export class PaymentConceptsController extends BaseController<
 
   private getByBuildingId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     const repo = this.repository as PaymentConceptsRepository
 
-    const concepts = await repo.getByBuildingId(ctx.params.buildingId)
+    const concepts = await repo.getByBuildingId(ctx.params.buildingId, false, condominiumId)
     return ctx.ok({ data: concepts })
   }
 
   private getRecurringConcepts = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     const repo = this.repository as PaymentConceptsRepository
 
-    const concepts = await repo.getRecurringConcepts()
+    const concepts = await repo.getRecurringConcepts(false, condominiumId)
     return ctx.ok({ data: concepts })
   }
 
   private getByConceptType = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TConceptTypeParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     const repo = this.repository as PaymentConceptsRepository
 
     const concepts = await repo.getByConceptType(
-      ctx.params.conceptType as TPaymentConcept['conceptType']
+      ctx.params.conceptType as TPaymentConcept['conceptType'],
+      false,
+      condominiumId
     )
     return ctx.ok({ data: concepts })
   }

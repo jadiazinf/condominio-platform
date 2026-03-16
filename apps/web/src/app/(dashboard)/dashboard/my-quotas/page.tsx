@@ -1,10 +1,10 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 
+import { MyQuotasClient } from './components/MyQuotasClient'
+
 import { getFullSession } from '@/libs/session'
 import { Skeleton } from '@/ui/components/skeleton'
-
-import { MyQuotasClient } from './components/MyQuotasClient'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Skeleton
@@ -54,7 +54,7 @@ async function MyQuotasContent() {
   }
 
   // Collect unit IDs from all condominiums the user has access to
-  const unitIds = condominiums.flatMap((c) => c.units.map((u) => u.unit.id))
+  const unitIds = condominiums.flatMap(c => c.units.map(u => u.unit.id))
 
   if (unitIds.length === 0) {
     redirect('/dashboard')

@@ -872,18 +872,15 @@ export {
 
 // Interest Configurations
 export {
+  useInterestConfigsByPaymentConcept,
   useCreateInterestConfiguration,
   interestConfigurationKeys,
+  type IUseInterestConfigsByPaymentConceptOptions,
   type ICreateInterestConfigurationOptions,
 } from './use-interest-configurations'
 
 // Banks & Bank Accounts
-export {
-  useBanks,
-  getBanks,
-  bankKeys,
-  type IUseBanksOptions,
-} from './use-banks'
+export { useBanks, getBanks, bankKeys, type IUseBanksOptions } from './use-banks'
 export {
   useMyCompanyBankAccountsPaginated,
   useMyCompanyBankAccountDetail,

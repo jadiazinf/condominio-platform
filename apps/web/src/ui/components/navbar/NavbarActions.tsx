@@ -1,9 +1,9 @@
 'use client'
 
 import { NavbarContent, NavbarItem } from '@heroui/navbar'
+
 import { Button } from '@/ui/components/button'
 import { Link } from '@/ui/components/link'
-
 import { useTranslation } from '@/contexts'
 import { ThemeSwitch } from '@/ui/components/themeSwitch/ThemeSwitch'
 import { LanguageSwitcher } from '@/ui/components/language-switcher'

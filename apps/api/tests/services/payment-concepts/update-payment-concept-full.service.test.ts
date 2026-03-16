@@ -34,14 +34,25 @@ type TMockAssignmentsRepo = {
 
 type TMockBankAccountsRepo = {
   listByConceptId: (conceptId: string) => Promise<TPaymentConceptBankAccount[]>
-  linkBankAccount: (conceptId: string, bankAccountId: string, assignedBy: string | null) => Promise<TPaymentConceptBankAccount>
+  linkBankAccount: (
+    conceptId: string,
+    bankAccountId: string,
+    assignedBy: string | null
+  ) => Promise<TPaymentConceptBankAccount>
   unlinkBankAccount: (conceptId: string, bankAccountId: string) => Promise<boolean>
   withTx: (tx: unknown) => TMockBankAccountsRepo
 }
 
 type TMockConceptServicesRepo = {
-  listByConceptId: (conceptId: string) => Promise<Array<{ id: string; serviceId: string; amount: number; useDefaultAmount: boolean }>>
-  linkService: (conceptId: string, serviceId: string, amount: number, useDefault: boolean) => Promise<unknown>
+  listByConceptId: (
+    conceptId: string
+  ) => Promise<Array<{ id: string; serviceId: string; amount: number; useDefaultAmount: boolean }>>
+  linkService: (
+    conceptId: string,
+    serviceId: string,
+    amount: number,
+    useDefault: boolean
+  ) => Promise<unknown>
   unlinkService: (conceptId: string, serviceId: string) => Promise<boolean>
   withTx: (tx: unknown) => TMockConceptServicesRepo
 }
@@ -61,6 +72,13 @@ type TMockCurrenciesRepo = {
 
 type TMockCondominiumMCRepo = {
   getByCondominiumAndMC: (condominiumId: string, mcId: string) => Promise<{ id: string } | null>
+}
+
+type TMockInterestConfigsRepo = {
+  getByPaymentConceptId: (id: string, includeInactive?: boolean) => Promise<any[]>
+  create: (data: any) => Promise<any>
+  update: (id: string, data: any) => Promise<any>
+  withTx: (tx: any) => TMockInterestConfigsRepo
 }
 
 type TMockDb = {
@@ -117,7 +135,9 @@ function mockPaymentConcept(overrides: Partial<TPaymentConcept> = {}): TPaymentC
   }
 }
 
-function mockAssignment(overrides: Partial<TPaymentConceptAssignment> = {}): TPaymentConceptAssignment {
+function mockAssignment(
+  overrides: Partial<TPaymentConceptAssignment> = {}
+): TPaymentConceptAssignment {
   return {
     id: assignmentId1,
     paymentConceptId: conceptId,
@@ -135,7 +155,9 @@ function mockAssignment(overrides: Partial<TPaymentConceptAssignment> = {}): TPa
   }
 }
 
-function mockBankAccount(overrides: Partial<TPaymentConceptBankAccount> = {}): TPaymentConceptBankAccount {
+function mockBankAccount(
+  overrides: Partial<TPaymentConceptBankAccount> = {}
+): TPaymentConceptBankAccount {
   return {
     id: '550e8400-e29b-41d4-a716-446655440050',
     paymentConceptId: conceptId,
@@ -146,7 +168,9 @@ function mockBankAccount(overrides: Partial<TPaymentConceptBankAccount> = {}): T
   }
 }
 
-function createUpdateInput(overrides: Partial<IUpdatePaymentConceptFullInput> = {}): IUpdatePaymentConceptFullInput {
+function createUpdateInput(
+  overrides: Partial<IUpdatePaymentConceptFullInput> = {}
+): IUpdatePaymentConceptFullInput {
   return {
     conceptId,
     managementCompanyId: mcId,
@@ -196,6 +220,7 @@ describe('UpdatePaymentConceptFullService', function () {
   let mockCondominiumsRepo: TMockCondominiumsRepo
   let mockCurrenciesRepo: TMockCurrenciesRepo
   let mockCondominiumMCRepo: TMockCondominiumMCRepo
+  let mockInterestConfigsRepo: TMockInterestConfigsRepo
 
   beforeEach(function () {
     const existingConcept = mockPaymentConcept()
@@ -209,13 +234,13 @@ describe('UpdatePaymentConceptFullService', function () {
     mockAssignmentsRepo = {
       listByConceptId: async () => [mockAssignment()],
       deactivateAllByConceptId: async () => 1,
-      create: async (data) => mockAssignment(data as Partial<TPaymentConceptAssignment>),
+      create: async data => mockAssignment(data as Partial<TPaymentConceptAssignment>),
       withTx: () => mockAssignmentsRepo,
     }
 
     mockBankAccountsRepo = {
       listByConceptId: async () => [mockBankAccount()],
-      linkBankAccount: async (cId, baId, by) => mockBankAccount({ bankAccountId: baId }),
+      linkBankAccount: async (cId, baId, _by) => mockBankAccount({ bankAccountId: baId }),
       unlinkBankAccount: async () => true,
       withTx: () => mockBankAccountsRepo,
     }
@@ -228,7 +253,7 @@ describe('UpdatePaymentConceptFullService', function () {
     }
 
     mockChangesRepo = {
-      create: async (data) => ({
+      create: async data => ({
         id: '550e8400-e29b-41d4-a716-446655440060',
         paymentConceptId: conceptId,
         condominiumId,
@@ -254,9 +279,24 @@ describe('UpdatePaymentConceptFullService', function () {
       getByCondominiumAndMC: async () => ({ id: '550e8400-e29b-41d4-a716-446655440099' }),
     }
 
+    mockInterestConfigsRepo = {
+      getByPaymentConceptId: async function () {
+        return []
+      },
+      create: async function (data: any) {
+        return { id: crypto.randomUUID(), ...data, createdAt: new Date(), updatedAt: new Date() }
+      },
+      update: async function (id: string, data: any) {
+        return { id, ...data, updatedAt: new Date() }
+      },
+      withTx: function () {
+        return this
+      },
+    }
+
     // Mock db.transaction — just executes the callback passing db itself as tx
     mockDb = {
-      transaction: async (fn) => fn(mockDb),
+      transaction: async fn => fn(mockDb),
     }
 
     service = new UpdatePaymentConceptFullService(
@@ -268,7 +308,9 @@ describe('UpdatePaymentConceptFullService', function () {
       mockChangesRepo as never,
       mockCondominiumsRepo as never,
       mockCurrenciesRepo as never,
-      mockCondominiumMCRepo as never
+      mockCondominiumMCRepo as never,
+      undefined as never,
+      mockInterestConfigsRepo as never
     )
   })
 
@@ -329,7 +371,7 @@ describe('UpdatePaymentConceptFullService', function () {
         deactivateCalled = true
         return 1
       }
-      mockAssignmentsRepo.create = async (data) => {
+      mockAssignmentsRepo.create = async data => {
         createCalled = true
         return mockAssignment(data as Partial<TPaymentConceptAssignment>)
       }
@@ -393,9 +435,7 @@ describe('UpdatePaymentConceptFullService', function () {
       }
 
       const input = createUpdateInput({
-        services: [
-          { serviceId: newServiceId, amount: 100, useDefaultAmount: false },
-        ],
+        services: [{ serviceId: newServiceId, amount: 100, useDefaultAmount: false }],
       })
 
       const result = await service.execute(input)
@@ -407,14 +447,17 @@ describe('UpdatePaymentConceptFullService', function () {
     it('should record change log with previous and new values', async function () {
       let savedChange: Record<string, unknown> | null = null
 
-      mockChangesRepo.create = async (data) => {
+      mockChangesRepo.create = async data => {
         savedChange = data as Record<string, unknown>
         return {
           id: '550e8400-e29b-41d4-a716-446655440060',
           paymentConceptId: conceptId,
           condominiumId,
           changedBy: userId,
-          previousValues: (data as Record<string, unknown>).previousValues as Record<string, unknown>,
+          previousValues: (data as Record<string, unknown>).previousValues as Record<
+            string,
+            unknown
+          >,
           newValues: (data as Record<string, unknown>).newValues as Record<string, unknown>,
           notes: null,
           createdAt: new Date(),
@@ -428,13 +471,15 @@ describe('UpdatePaymentConceptFullService', function () {
       expect(savedChange).not.toBeNull()
       expect(savedChange!.paymentConceptId).toBe(conceptId)
       expect(savedChange!.changedBy).toBe(userId)
-      expect((savedChange!.previousValues as Record<string, unknown>).name).toBe('Monthly Maintenance')
+      expect((savedChange!.previousValues as Record<string, unknown>).name).toBe(
+        'Monthly Maintenance'
+      )
       expect((savedChange!.newValues as Record<string, unknown>).name).toBe('Changed Name')
     })
 
     it('should save notes in change log when provided', async function () {
       let savedNotes = ''
-      mockChangesRepo.create = async (data) => {
+      mockChangesRepo.create = async data => {
         savedNotes = (data as Record<string, unknown>).notes as string
         return {
           id: '550e8400-e29b-41d4-a716-446655440060',
@@ -560,10 +605,12 @@ describe('UpdatePaymentConceptFullService', function () {
     })
 
     it('should fail when recurring concept missing recurrence period', async function () {
-      const result = await service.execute(createUpdateInput({
-        isRecurring: true,
-        recurrencePeriod: null,
-      }))
+      const result = await service.execute(
+        createUpdateInput({
+          isRecurring: true,
+          recurrencePeriod: null,
+        })
+      )
 
       expect(result.success).toBe(false)
       if (!result.success) {
@@ -572,10 +619,12 @@ describe('UpdatePaymentConceptFullService', function () {
     })
 
     it('should fail when recurring concept missing issueDay', async function () {
-      const result = await service.execute(createUpdateInput({
-        isRecurring: true,
-        issueDay: null,
-      }))
+      const result = await service.execute(
+        createUpdateInput({
+          isRecurring: true,
+          issueDay: null,
+        })
+      )
 
       expect(result.success).toBe(false)
       if (!result.success) {
@@ -584,10 +633,12 @@ describe('UpdatePaymentConceptFullService', function () {
     })
 
     it('should fail when recurring concept missing dueDay', async function () {
-      const result = await service.execute(createUpdateInput({
-        isRecurring: true,
-        dueDay: null,
-      }))
+      const result = await service.execute(
+        createUpdateInput({
+          isRecurring: true,
+          dueDay: null,
+        })
+      )
 
       expect(result.success).toBe(false)
       if (!result.success) {
@@ -611,10 +662,12 @@ describe('UpdatePaymentConceptFullService', function () {
     })
 
     it('should fail when latePaymentType is percentage with value 0', async function () {
-      const result = await service.execute(createUpdateInput({
-        latePaymentType: 'percentage',
-        latePaymentValue: 0,
-      }))
+      const result = await service.execute(
+        createUpdateInput({
+          latePaymentType: 'percentage',
+          latePaymentValue: 0,
+        })
+      )
 
       expect(result.success).toBe(false)
       if (!result.success) {
@@ -623,10 +676,12 @@ describe('UpdatePaymentConceptFullService', function () {
     })
 
     it('should fail when latePaymentType is percentage with value over 100', async function () {
-      const result = await service.execute(createUpdateInput({
-        latePaymentType: 'percentage',
-        latePaymentValue: 150,
-      }))
+      const result = await service.execute(
+        createUpdateInput({
+          latePaymentType: 'percentage',
+          latePaymentValue: 150,
+        })
+      )
 
       expect(result.success).toBe(false)
       if (!result.success) {
@@ -635,11 +690,13 @@ describe('UpdatePaymentConceptFullService', function () {
     })
 
     it('should fail when earlyPaymentType is percentage with daysBeforeDue=0', async function () {
-      const result = await service.execute(createUpdateInput({
-        earlyPaymentType: 'percentage',
-        earlyPaymentValue: 5,
-        earlyPaymentDaysBeforeDue: 0,
-      }))
+      const result = await service.execute(
+        createUpdateInput({
+          earlyPaymentType: 'percentage',
+          earlyPaymentValue: 5,
+          earlyPaymentDaysBeforeDue: 0,
+        })
+      )
 
       expect(result.success).toBe(false)
       if (!result.success) {
@@ -648,11 +705,13 @@ describe('UpdatePaymentConceptFullService', function () {
     })
 
     it('should fail when earlyPaymentType is percentage with value over 100', async function () {
-      const result = await service.execute(createUpdateInput({
-        earlyPaymentType: 'percentage',
-        earlyPaymentValue: 150,
-        earlyPaymentDaysBeforeDue: 10,
-      }))
+      const result = await service.execute(
+        createUpdateInput({
+          earlyPaymentType: 'percentage',
+          earlyPaymentValue: 150,
+          earlyPaymentDaysBeforeDue: 10,
+        })
+      )
 
       expect(result.success).toBe(false)
     })
@@ -792,6 +851,225 @@ describe('UpdatePaymentConceptFullService', function () {
       const input = createUpdateInput({
         name: 'Changed',
         bankAccountIds: [bankAccountId1],
+      })
+
+      const result = await service.execute(input)
+      expect(result.success).toBe(true)
+    })
+  })
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Interest Configuration Handling
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('Interest configuration handling', function () {
+    it('should create interest config when provided and none exists', async function () {
+      let createCalledWith: any = null
+      mockInterestConfigsRepo.getByPaymentConceptId = async () => []
+      mockInterestConfigsRepo.create = async function (data: any) {
+        createCalledWith = data
+        return { id: crypto.randomUUID(), ...data, createdAt: new Date(), updatedAt: new Date() }
+      }
+
+      const input = createUpdateInput({
+        name: 'Changed Name',
+        interestConfiguration: {
+          interestType: 'simple',
+          interestRate: '0.02',
+          fixedAmount: null,
+          calculationPeriod: 'monthly',
+          gracePeriodDays: 5,
+          effectiveFrom: '2025-01-01',
+          effectiveTo: null,
+        },
+      })
+
+      const result = await service.execute(input)
+      expect(result.success).toBe(true)
+      expect(createCalledWith).not.toBeNull()
+      expect(createCalledWith.paymentConceptId).toBe(conceptId)
+      expect(createCalledWith.condominiumId).toBe(condominiumId)
+      expect(createCalledWith.interestType).toBe('simple')
+      expect(createCalledWith.interestRate).toBe('0.02')
+      expect(createCalledWith.gracePeriodDays).toBe(5)
+      expect(createCalledWith.isActive).toBe(true)
+    })
+
+    it('should update existing interest config when provided', async function () {
+      let updateCalledWith: { id: string; data: any } | null = null
+      mockInterestConfigsRepo.getByPaymentConceptId = async () => [
+        {
+          id: 'ic-1',
+          isActive: true,
+          interestType: 'simple',
+          interestRate: '0.01',
+          fixedAmount: null,
+          calculationPeriod: 'monthly',
+          gracePeriodDays: 3,
+          effectiveFrom: '2025-01-01',
+          effectiveTo: null,
+        },
+      ]
+      mockInterestConfigsRepo.update = async function (id: string, data: any) {
+        updateCalledWith = { id, data }
+        return { id, ...data, updatedAt: new Date() }
+      }
+
+      const input = createUpdateInput({
+        interestConfiguration: {
+          interestType: 'simple',
+          interestRate: '0.03',
+          fixedAmount: null,
+          calculationPeriod: 'monthly',
+          gracePeriodDays: 3,
+          effectiveFrom: '2025-01-01',
+          effectiveTo: null,
+        },
+      })
+
+      const result = await service.execute(input)
+      expect(result.success).toBe(true)
+      expect(updateCalledWith).not.toBeNull()
+      expect(updateCalledWith!.id).toBe('ic-1')
+      expect(updateCalledWith!.data.interestRate).toBe('0.03')
+    })
+
+    it('should not touch interest config when undefined in input', async function () {
+      let createCalled = false
+      let updateCalled = false
+      mockInterestConfigsRepo.create = async function (data: any) {
+        createCalled = true
+        return { id: crypto.randomUUID(), ...data }
+      }
+      mockInterestConfigsRepo.update = async function (id: string, data: any) {
+        updateCalled = true
+        return { id, ...data }
+      }
+
+      const input = createUpdateInput({ name: 'Just rename' })
+      // interestConfiguration is undefined by default
+      const result = await service.execute(input)
+
+      expect(result.success).toBe(true)
+      expect(createCalled).toBe(false)
+      expect(updateCalled).toBe(false)
+    })
+
+    it('should deactivate interest config when explicitly set to null', async function () {
+      let updateCalledWith: { id: string; data: any } | null = null
+      mockInterestConfigsRepo.getByPaymentConceptId = async () => [
+        {
+          id: 'ic-1',
+          isActive: true,
+          interestType: 'simple',
+          interestRate: '0.01',
+          fixedAmount: null,
+          calculationPeriod: 'monthly',
+          gracePeriodDays: 3,
+          effectiveFrom: '2025-01-01',
+          effectiveTo: null,
+        },
+      ]
+      mockInterestConfigsRepo.update = async function (id: string, data: any) {
+        updateCalledWith = { id, data }
+        return { id, ...data, updatedAt: new Date() }
+      }
+
+      const input = createUpdateInput({
+        interestConfiguration: null,
+      })
+
+      const result = await service.execute(input)
+      expect(result.success).toBe(true)
+      expect(updateCalledWith).not.toBeNull()
+      expect(updateCalledWith!.id).toBe('ic-1')
+      expect(updateCalledWith!.data.isActive).toBe(false)
+    })
+
+    it('should include interest config in change log diff', async function () {
+      let savedChange: Record<string, unknown> | null = null
+      mockInterestConfigsRepo.getByPaymentConceptId = async () => []
+      mockChangesRepo.create = async data => {
+        savedChange = data as Record<string, unknown>
+        return {
+          id: '550e8400-e29b-41d4-a716-446655440060',
+          paymentConceptId: conceptId,
+          condominiumId,
+          changedBy: userId,
+          previousValues: (data as Record<string, unknown>).previousValues as Record<
+            string,
+            unknown
+          >,
+          newValues: (data as Record<string, unknown>).newValues as Record<string, unknown>,
+          notes: null,
+          createdAt: new Date(),
+        }
+      }
+
+      const input = createUpdateInput({
+        name: 'Changed Name',
+        interestConfiguration: {
+          interestType: 'simple',
+          interestRate: '0.02',
+          fixedAmount: null,
+          calculationPeriod: 'monthly',
+          gracePeriodDays: 5,
+          effectiveFrom: '2025-01-01',
+          effectiveTo: null,
+        },
+      })
+
+      const result = await service.execute(input)
+      expect(result.success).toBe(true)
+      expect(savedChange).not.toBeNull()
+      expect(
+        (savedChange!.previousValues as Record<string, unknown>).interestConfiguration
+      ).toBeNull()
+      expect((savedChange!.newValues as Record<string, unknown>).interestConfiguration).toEqual({
+        interestType: 'simple',
+        interestRate: '0.02',
+        fixedAmount: null,
+        calculationPeriod: 'monthly',
+        gracePeriodDays: 5,
+        effectiveFrom: '2025-01-01',
+        effectiveTo: null,
+      })
+    })
+
+    it('should detect interest config change even when base fields are unchanged', async function () {
+      mockInterestConfigsRepo.getByPaymentConceptId = async () => []
+
+      const input = createUpdateInput({
+        // All base fields match existing concept exactly
+        name: 'Monthly Maintenance',
+        description: 'Regular maintenance fee',
+        conceptType: 'maintenance',
+        isRecurring: true,
+        recurrencePeriod: 'monthly',
+        allowsPartialPayment: true,
+        latePaymentType: 'none',
+        latePaymentValue: null,
+        latePaymentGraceDays: 0,
+        earlyPaymentType: 'none',
+        earlyPaymentValue: null,
+        earlyPaymentDaysBeforeDue: 0,
+        issueDay: 1,
+        dueDay: 15,
+        effectiveFrom: null,
+        effectiveUntil: null,
+        chargeGenerationStrategy: 'auto',
+        isActive: true,
+        metadata: null,
+        // But interest config is new
+        interestConfiguration: {
+          interestType: 'simple',
+          interestRate: '0.02',
+          fixedAmount: null,
+          calculationPeriod: 'monthly',
+          gracePeriodDays: 5,
+          effectiveFrom: '2025-01-01',
+          effectiveTo: null,
+        },
       })
 
       const result = await service.execute(input)

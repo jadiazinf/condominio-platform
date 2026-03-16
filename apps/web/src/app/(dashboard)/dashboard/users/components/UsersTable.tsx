@@ -1,24 +1,24 @@
 'use client'
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
-import { Table, type ITableColumn } from '@/ui/components/table'
-import { Input } from '@/ui/components/input'
-import { Select, type ISelectItem } from '@/ui/components/select'
-import { Chip } from '@/ui/components/chip'
-import { Button } from '@/ui/components/button'
-import { Spinner } from '@/ui/components/spinner'
 import { Users, Search, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-
-import { useTranslation, useAuth } from '@/contexts'
-import { Typography } from '@/ui/components/typography'
-import { Pagination } from '@/ui/components/pagination'
 import {
   useUsersPaginated,
   useRoles,
   type TUserWithRoles,
   type TUsersQuery,
 } from '@packages/http-client/hooks'
+
+import { Table, type ITableColumn } from '@/ui/components/table'
+import { Input } from '@/ui/components/input'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
+import { Spinner } from '@/ui/components/spinner'
+import { useTranslation, useAuth } from '@/contexts'
+import { Typography } from '@/ui/components/typography'
+import { Pagination } from '@/ui/components/pagination'
 import { Avatar } from '@/ui/components/avatar-base'
 
 type TStatusFilter = 'all' | 'active' | 'inactive'
@@ -88,6 +88,7 @@ export function UsersTable() {
     (roleName: string) => {
       const translationKey = `superadmin.users.roles.${roleName}`
       const translated = t(translationKey)
+
       // If translation returns the key itself, use the original role name
       return translated === translationKey ? roleName : translated
     },
@@ -97,6 +98,7 @@ export function UsersTable() {
   // Role filter items
   const roleFilterItems: ISelectItem[] = useMemo(() => {
     const items: ISelectItem[] = [{ key: 'all', label: t('superadmin.users.filters.allRoles') }]
+
     if (rolesData?.data) {
       rolesData.data.forEach(role => {
         items.push({
@@ -105,6 +107,7 @@ export function UsersTable() {
         })
       })
     }
+
     return items
   }, [rolesData, t, getRoleLabel])
 
@@ -157,6 +160,7 @@ export function UsersTable() {
 
   const formatDate = useCallback((date: Date | null | undefined) => {
     if (!date) return '-'
+
     return new Date(date).toLocaleDateString('es', {
       day: '2-digit',
       month: 'short',
@@ -165,7 +169,6 @@ export function UsersTable() {
       minute: '2-digit',
     })
   }, [])
-
 
   const renderCell = useCallback(
     (user: TUserWithRoles, columnKey: string | number | symbol) => {
@@ -208,9 +211,9 @@ export function UsersTable() {
                 user.roles.slice(0, 3).map((role, index) => (
                   <Chip
                     key={index}
+                    color={role.roleName === 'SUPERADMIN' ? 'warning' : 'primary'}
                     size="sm"
                     variant="flat"
-                    color={role.roleName === 'SUPERADMIN' ? 'warning' : 'primary'}
                   >
                     {getRoleLabel(role.roleName)}
                   </Chip>
@@ -219,7 +222,7 @@ export function UsersTable() {
                 <span className="text-sm text-default-400">-</span>
               )}
               {user.roles && user.roles.length > 3 && (
-                <Chip size="sm" variant="flat" color="default">
+                <Chip color="default" size="sm" variant="flat">
                   +{user.roles.length - 3}
                 </Chip>
               )}
@@ -234,9 +237,7 @@ export function UsersTable() {
             </Chip>
           )
         case 'lastAccess':
-          return (
-            <span className="text-sm text-default-500">{formatDate(user.lastLogin)}</span>
-          )
+          return <span className="text-sm text-default-500">{formatDate(user.lastLogin)}</span>
         default:
           return null
       }
@@ -276,16 +277,16 @@ export function UsersTable() {
           className="w-full sm:w-40"
           items={statusFilterItems}
           value={statusFilter}
-          onChange={handleStatusChange}
           variant="bordered"
+          onChange={handleStatusChange}
         />
         <Select
           aria-label={t('superadmin.users.filters.role')}
           className="w-full sm:w-48"
           items={roleFilterItems}
           value={roleFilter}
-          onChange={handleRoleChange}
           variant="bordered"
+          onChange={handleRoleChange}
         />
         {hasFiltersApplied && (
           <Button startContent={<X size={14} />} variant="flat" onPress={handleClearFilters}>
@@ -313,13 +314,13 @@ export function UsersTable() {
         <>
           <Table<TUserRow>
             aria-label={t('superadmin.users.title')}
-            columns={tableColumns}
-            rows={users}
-            renderCell={renderCell}
-            onRowClick={user => handleViewDetails(user.id)}
             classNames={{
               tr: 'cursor-pointer transition-colors hover:bg-default-100',
             }}
+            columns={tableColumns}
+            renderCell={renderCell}
+            rows={users}
+            onRowClick={user => handleViewDetails(user.id)}
           />
 
           {/* Pagination */}

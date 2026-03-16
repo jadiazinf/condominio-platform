@@ -10,15 +10,15 @@
  */
 export function getNestedError(errors: any, fieldPath: string): any {
   if (!errors || !fieldPath) return undefined
-  
+
   const parts = fieldPath.split('.')
   let error: any = errors
-  
+
   for (const part of parts) {
     error = error?.[part]
     if (!error) return undefined
   }
-  
+
   return error
 }
 
@@ -29,6 +29,7 @@ export function getNestedError(errors: any, fieldPath: string): any {
  */
 export function getErrorMessage(errors: any, fieldPath: string): string | undefined {
   const error = getNestedError(errors, fieldPath)
+
   return error?.message
 }
 
@@ -52,5 +53,6 @@ export function getTranslatedError(
   translateFn?: (message: string | undefined) => string | undefined
 ): string | undefined {
   const message = getErrorMessage(errors, fieldPath)
+
   return translateFn ? translateFn(message) : message
 }

@@ -12,8 +12,7 @@ export const bankAccountKeys = {
   all: ['bank-accounts'] as const,
   myCompanyPaginated: (companyId: string, query: TBankAccountsQuery) =>
     [...bankAccountKeys.all, 'my-company-paginated', companyId, query] as const,
-  detail: (bankAccountId: string) =>
-    [...bankAccountKeys.all, 'detail', bankAccountId] as const,
+  detail: (bankAccountId: string) => [...bankAccountKeys.all, 'detail', bankAccountId] as const,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -83,9 +82,7 @@ export function useMyCompanyBankAccountsPaginated(
 /**
  * Hook to fetch a single bank account detail
  */
-export function useMyCompanyBankAccountDetail(
-  options: IUseMyCompanyBankAccountDetailOptions
-) {
+export function useMyCompanyBankAccountDetail(options: IUseMyCompanyBankAccountDetailOptions) {
   const { bankAccountId, companyId, enabled = true } = options
 
   return useApiQuery<TApiDataResponse<TBankAccount>>({
@@ -119,9 +116,12 @@ export function useCreateBankAccount(companyId: string, options?: ICreateBankAcc
 /**
  * Hook to deactivate a bank account
  */
-export function useDeactivateBankAccount(companyId: string, options?: IDeactivateBankAccountOptions) {
+export function useDeactivateBankAccount(
+  companyId: string,
+  options?: IDeactivateBankAccountOptions
+) {
   return useApiMutation<TApiDataResponse<TBankAccount>, IDeactivateBankAccountVariables>({
-    path: (variables) => `/${companyId}/me/bank-accounts/${variables.bankAccountId}/deactivate`,
+    path: variables => `/${companyId}/me/bank-accounts/${variables.bankAccountId}/deactivate`,
     method: 'PATCH',
     onSuccess: options?.onSuccess,
     onError: options?.onError,

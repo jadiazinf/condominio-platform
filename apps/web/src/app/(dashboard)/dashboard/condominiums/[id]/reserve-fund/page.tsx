@@ -1,6 +1,7 @@
+import { ReserveFundPageClient } from './components/ReserveFundPageClient'
+
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
-import { ReserveFundPageClient } from './components/ReserveFundPageClient'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -10,9 +11,10 @@ export default async function CondominiumReserveFundPage({ params }: PageProps) 
   const { id } = await params
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
 
-  const managementCompanyId = session?.activeRole === 'management_company'
-    ? session.managementCompanies?.[0]?.managementCompanyId ?? ''
-    : ''
+  const managementCompanyId =
+    session?.activeRole === 'management_company'
+      ? (session.managementCompanies?.[0]?.managementCompanyId ?? '')
+      : ''
 
   const p = 'admin.condominiums.detail.reserveFund'
 

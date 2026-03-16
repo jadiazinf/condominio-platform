@@ -15,15 +15,17 @@ export const supportTicketAssignmentHistorySchema = baseModelSchema.extend({
   assignedByUser: userSchema.optional(),
 })
 
-export const supportTicketAssignmentHistoryCreateSchema =
-  supportTicketAssignmentHistorySchema.omit({
+export const supportTicketAssignmentHistoryCreateSchema = supportTicketAssignmentHistorySchema.omit(
+  {
     id: true,
     createdAt: true,
     updatedAt: true,
-  })
+  }
+)
 
-export const supportTicketAssignmentHistoryUpdateSchema =
-  supportTicketAssignmentHistorySchema.partial().omit({
+export const supportTicketAssignmentHistoryUpdateSchema = supportTicketAssignmentHistorySchema
+  .partial()
+  .omit({
     id: true,
     ticketId: true,
     createdAt: true,

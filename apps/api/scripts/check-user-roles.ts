@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { users, userRoles, roles } from '../src/database/drizzle/schema'
+import { users, userRoles, roles } from '@database/drizzle/schema'
 import { eq } from 'drizzle-orm'
 
 const DATABASE_URL = process.env.DATABASE_URL
@@ -21,11 +21,7 @@ async function checkUserRoles() {
     console.log(`Checking roles for user ${userId}...\n`)
 
     // Get user info
-    const userResult = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1)
+    const userResult = await db.select().from(users).where(eq(users.id, userId)).limit(1)
 
     if (userResult.length === 0) {
       console.log('❌ User not found')
@@ -69,7 +65,7 @@ async function checkUserRoles() {
       }
     } else {
       console.log('✅ User has the following roles:\n')
-      userRolesResult.forEach((role) => {
+      userRolesResult.forEach(role => {
         console.log(`  Role: ${role.roleName}`)
         console.log(`  Role ID: ${role.roleId}`)
         console.log(`  Condominium ID: ${role.condominiumId || 'null (global)'}`)
@@ -79,7 +75,7 @@ async function checkUserRoles() {
       })
 
       const hasSuperadmin = userRolesResult.some(
-        (role) => role.roleName === 'SUPERADMIN' && !role.condominiumId && !role.buildingId
+        role => role.roleName === 'SUPERADMIN' && !role.condominiumId && !role.buildingId
       )
 
       if (hasSuperadmin) {

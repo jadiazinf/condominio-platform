@@ -225,15 +225,18 @@ export function useCreateManagementCompany(options: UseCreateManagementCompanyOp
 export function useUpdateManagementCompany(options: UseUpdateManagementCompanyOptions) {
   const { token } = options
 
-  return useApiMutation<TApiDataResponse<TManagementCompany>, TManagementCompanyUpdate & { id: string }>({
-    path: (data) => `/platform/management-companies/${data.id}`,
+  return useApiMutation<
+    TApiDataResponse<TManagementCompany>,
+    TManagementCompanyUpdate & { id: string }
+  >({
+    path: data => `/platform/management-companies/${data.id}`,
     method: 'PATCH',
     config: {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     },
-    invalidateKeys: (data) => [
+    invalidateKeys: data => [
       ['management-companies'],
       ['management-companies', data.id],
       ['management-companies', 'paginated'],
@@ -542,7 +545,13 @@ export async function getMyCompanyUsageStats(
 export async function getMyCompanySubscriptionsPaginated(
   token: string,
   managementCompanyId: string,
-  query?: { page?: number; limit?: number; search?: string; startDateFrom?: string; startDateTo?: string }
+  query?: {
+    page?: number
+    limit?: number
+    search?: string
+    startDateFrom?: string
+    startDateTo?: string
+  }
 ): Promise<TApiPaginatedResponse<TManagementCompanySubscription>> {
   const client = getHttpClient()
   const params = new URLSearchParams()

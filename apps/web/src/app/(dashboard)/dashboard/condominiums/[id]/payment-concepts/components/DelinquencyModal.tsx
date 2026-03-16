@@ -1,18 +1,17 @@
 'use client'
 
+import type { TConceptDelinquencyQuota, TConceptDelinquencyUnit } from '@packages/http-client/hooks'
+
 import { useState } from 'react'
+import { AlertTriangle, Building2, ChevronDown } from 'lucide-react'
+import { usePaymentConceptDelinquency } from '@packages/http-client/hooks/use-payment-concept-delinquency'
+
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Accordion, AccordionItem } from '@/ui/components/accordion'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
-import { AlertTriangle, Building2, ChevronDown } from 'lucide-react'
-import type {
-  TConceptDelinquencyQuota,
-  TConceptDelinquencyUnit,
-} from '@packages/http-client/hooks'
-import { usePaymentConceptDelinquency } from '@packages/http-client/hooks/use-payment-concept-delinquency'
 
 const MONTH_NAMES_ES = [
   'Enero',
@@ -63,11 +62,14 @@ export function DelinquencyModal({
   const groupedByBuilding = delinquency
     ? (() => {
         const map = new Map<string, TConceptDelinquencyUnit[]>()
+
         for (const unit of delinquency.units) {
           const list = map.get(unit.buildingId) ?? []
+
           list.push(unit)
           map.set(unit.buildingId, list)
         }
+
         return Array.from(map.entries()).map(([buildingId, units]) => ({
           buildingId,
           buildingName: units[0]?.buildingName ?? '',
@@ -77,13 +79,13 @@ export function DelinquencyModal({
     : []
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="4xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="4xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader className="flex items-center gap-3">
-          <AlertTriangle size={18} className="text-warning" />
+          <AlertTriangle className="text-warning" size={18} />
           <Typography variant="h4">{t(`${d}.delinquency`)}</Typography>
           {delinquency && delinquency.totalDelinquentUnits > 0 && (
-            <Chip size="sm" variant="flat" color="warning">
+            <Chip color="warning" size="sm" variant="flat">
               {delinquency.totalDelinquentUnits}
             </Chip>
           )}
@@ -96,7 +98,7 @@ export function DelinquencyModal({
             </div>
           ) : !delinquency || delinquency.units.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 gap-2">
-              <AlertTriangle size={32} className="text-default-300" />
+              <AlertTriangle className="text-default-300" size={32} />
               <Typography color="muted" variant="body1">
                 {t(`${d}.noDelinquency`)}
               </Typography>
@@ -144,9 +146,9 @@ export function DelinquencyModal({
                     key={group.buildingId}
                     title={
                       <div className="flex items-center gap-2">
-                        <Building2 size={14} className="text-warning" />
+                        <Building2 className="text-warning" size={14} />
                         <span className="text-sm font-medium">{group.buildingName}</span>
-                        <Chip size="sm" variant="flat" color="warning">
+                        <Chip color="warning" size="sm" variant="flat">
                           {group.units.length} {t(`${d}.delinquentUnits`)}
                         </Chip>
                       </div>
@@ -156,10 +158,10 @@ export function DelinquencyModal({
                       {group.units.map(unit => (
                         <DelinquencyUnitRow
                           key={unit.unitId}
-                          unit={unit}
+                          d={d}
                           formatAmount={formatAmount}
                           t={t}
-                          d={d}
+                          unit={unit}
                         />
                       ))}
                     </div>
@@ -212,13 +214,13 @@ function DelinquencyUnitRow({ unit, formatAmount, t, d }: DelinquencyUnitRowProp
       {unit.quotas.length > 0 && (
         <>
           <button
+            className="mt-2 text-xs text-warning-600 flex items-center gap-1 hover:underline"
             type="button"
             onClick={() => setShowQuotas(!showQuotas)}
-            className="mt-2 text-xs text-warning-600 flex items-center gap-1 hover:underline"
           >
             <ChevronDown
-              size={12}
               className={`transition-transform duration-200 ${showQuotas ? 'rotate-180' : ''}`}
+              size={12}
             />
             {t(`${d}.quotaDetail`)}
           </button>
@@ -228,10 +230,10 @@ function DelinquencyUnitRow({ unit, formatAmount, t, d }: DelinquencyUnitRowProp
               {unit.quotas.map(quota => (
                 <DelinquencyQuotaRow
                   key={quota.id}
-                  quota={quota}
-                  formatAmount={formatAmount}
-                  t={t}
                   d={d}
+                  formatAmount={formatAmount}
+                  quota={quota}
+                  t={t}
                 />
               ))}
             </div>
@@ -283,6 +285,7 @@ function DelinquencyQuotaRow({ quota, formatAmount, t, d }: DelinquencyQuotaRowP
 function formatDate(dateStr: string): string {
   try {
     const date = new Date(dateStr)
+
     return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
   } catch {
     return dateStr

@@ -101,7 +101,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     END $$;
 
     DO $$ BEGIN
-      CREATE TYPE quota_status AS ENUM ('pending', 'paid', 'overdue', 'cancelled');
+      CREATE TYPE quota_status AS ENUM ('pending', 'partial', 'paid', 'overdue', 'cancelled', 'exonerated');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -111,7 +111,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     END $$;
 
     DO $$ BEGIN
-      CREATE TYPE payment_method AS ENUM ('transfer', 'cash', 'card', 'gateway');
+      CREATE TYPE payment_method AS ENUM ('transfer', 'cash', 'card', 'mobile_payment', 'gateway', 'other');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -151,7 +151,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     END $$;
 
     DO $$ BEGIN
-      CREATE TYPE adjustment_type AS ENUM ('discount', 'increase', 'correction', 'waiver');
+      CREATE TYPE adjustment_type AS ENUM ('discount', 'increase', 'correction', 'waiver', 'exoneration', 'credit_note');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -181,7 +181,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     END $$;
 
     DO $$ BEGIN
-      CREATE TYPE allocation_status AS ENUM ('pending', 'allocated', 'refunded');
+      CREATE TYPE allocation_status AS ENUM ('pending', 'allocated', 'refunded', 'refund_pending', 'refund_failed');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -607,6 +607,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       issue_date DATE NOT NULL,
       due_date DATE NOT NULL,
       status quota_status DEFAULT 'pending',
+      adjustments_total DECIMAL(15, 2) DEFAULT 0,
       paid_amount DECIMAL(15, 2) DEFAULT 0,
       balance DECIMAL(15, 2) NOT NULL,
       notes TEXT,
@@ -623,9 +624,9 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       new_amount DECIMAL(15, 2) NOT NULL,
       adjustment_type adjustment_type NOT NULL,
       reason TEXT NOT NULL,
+      tag TEXT,
       created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-      created_at TIMESTAMP DEFAULT NOW(),
-      CONSTRAINT check_amount_changed CHECK (previous_amount != new_amount)
+      created_at TIMESTAMP DEFAULT NOW()
     );
 
     CREATE TABLE IF NOT EXISTS quota_formulas (
@@ -1410,7 +1411,9 @@ export async function stopTestContainer(): Promise<void> {
  * Uses DELETE instead of TRUNCATE — much faster for small test datasets
  * because it avoids the AccessExclusiveLock overhead of TRUNCATE.
  */
-export async function cleanDatabase(testDb: TTestDrizzleClient | import('@database/repositories/interfaces').TDrizzleClient): Promise<void> {
+export async function cleanDatabase(
+  testDb: TTestDrizzleClient | import('@database/repositories/interfaces').TDrizzleClient
+): Promise<void> {
   const start = performance.now()
   await testDb.execute(sql`
     DELETE FROM payment_concept_services;

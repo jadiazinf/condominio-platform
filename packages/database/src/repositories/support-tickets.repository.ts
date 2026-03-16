@@ -144,10 +144,7 @@ export class SupportTicketsRepository
           eq(supportTicketAssignmentHistory.isActive, true)
         )
       )
-      .leftJoin(
-        users,
-        eq(supportTicketAssignmentHistory.assignedTo, users.id)
-      )
+      .leftJoin(users, eq(supportTicketAssignmentHistory.assignedTo, users.id))
       .where(and(...conditions))
       .orderBy(asc(supportTickets.createdAt))
       .limit(limit)
@@ -240,10 +237,7 @@ export class SupportTicketsRepository
           eq(supportTicketAssignmentHistory.isActive, true)
         )
       )
-      .leftJoin(
-        users,
-        eq(supportTicketAssignmentHistory.assignedTo, users.id)
-      )
+      .leftJoin(users, eq(supportTicketAssignmentHistory.assignedTo, users.id))
 
     const results =
       conditions.length > 0
@@ -305,7 +299,6 @@ export class SupportTicketsRepository
 
     return results.length === 0 ? null : this.mapToEntity(results[0])
   }
-
 
   /**
    * Update ticket status
@@ -415,10 +408,7 @@ export class SupportTicketsRepository
         assignedToUser: users,
       })
       .from(supportTicketAssignmentHistory)
-      .innerJoin(
-        users,
-        eq(supportTicketAssignmentHistory.assignedTo, users.id)
-      )
+      .innerJoin(users, eq(supportTicketAssignmentHistory.assignedTo, users.id))
       .where(
         and(
           eq(supportTicketAssignmentHistory.ticketId, ticketId),

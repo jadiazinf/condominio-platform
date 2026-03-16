@@ -1,10 +1,10 @@
 'use client'
 
 import { DrawerHeader as HeroUIDrawerHeader } from '@heroui/drawer'
-import { Button } from '@/ui/components/button'
-import { Avatar } from '@/ui/components/avatar-base'
 import { X } from 'lucide-react'
 
+import { Button } from '@/ui/components/button'
+import { Avatar } from '@/ui/components/avatar-base'
 import { useTranslation, useUser, useActiveRole } from '@/contexts'
 
 interface IDrawerHeaderProps {
@@ -31,13 +31,13 @@ export function DrawerHeader({ onClose }: IDrawerHeaderProps) {
         <div className="flex items-center gap-3 min-w-0">
           <Avatar
             classNames={{ base: 'flex-shrink-0' }}
-            name={displayName}
-            size="sm"
-            src={user?.photoUrl || undefined}
             imgProps={{
               loading: 'eager',
               fetchPriority: 'high',
             }}
+            name={displayName}
+            size="sm"
+            src={user?.photoUrl || undefined}
           />
           <div className="flex flex-col min-w-0">
             <span className="text-sm font-medium truncate">{displayName}</span>
@@ -50,8 +50,8 @@ export function DrawerHeader({ onClose }: IDrawerHeaderProps) {
 
         <Button
           isIconOnly
-          size="sm"
           className="text-default-400 flex-shrink-0"
+          size="sm"
           variant="light"
           onPress={onClose}
         >

@@ -2,12 +2,13 @@
 
 import type { Tier } from './pricing-types'
 
+import { cn } from '@heroui/theme'
+
 import { Button } from '@/ui/components/button'
 import { Card, CardBody, CardFooter, CardHeader } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Divider } from '@/ui/components/divider'
 import { Link } from '@/ui/components/link'
-import { cn } from '@heroui/theme'
 
 interface PricingCardProps {
   tier: Tier

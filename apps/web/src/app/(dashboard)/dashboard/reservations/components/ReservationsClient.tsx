@@ -1,6 +1,16 @@
 'use client'
 
+import type { TAmenity, TAmenityReservation } from '@packages/domain'
+
 import { useState, useCallback, useMemo } from 'react'
+import { CalendarDays, MapPin, Users, Clock, ShieldCheck } from 'lucide-react'
+import {
+  useAmenitiesByCondominium,
+  useReservationsByUser,
+  useCreateReservation,
+  useCancelReservation,
+} from '@packages/http-client'
+
 import { Card, CardBody, CardFooter, CardHeader } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
@@ -16,17 +26,8 @@ import {
   ModalFooter,
   useDisclosure,
 } from '@/ui/components/modal'
-import { CalendarDays, MapPin, Users, Clock, ShieldCheck } from 'lucide-react'
-
 import { useTranslation, useCondominium, useUser } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
-import {
-  useAmenitiesByCondominium,
-  useReservationsByUser,
-  useCreateReservation,
-  useCancelReservation,
-} from '@packages/http-client'
-import type { TAmenity, TAmenityReservation } from '@packages/domain'
 
 type TReservationFormData = {
   date: string
@@ -67,23 +68,20 @@ export function ReservationsClient() {
   const reserveModal = useDisclosure()
 
   // Fetch amenities for the selected condominium
-  const {
-    data: amenitiesData,
-    isLoading: amenitiesLoading,
-  } = useAmenitiesByCondominium(condominiumId, {
-    enabled: !!condominiumId,
-  })
+  const { data: amenitiesData, isLoading: amenitiesLoading } = useAmenitiesByCondominium(
+    condominiumId,
+    {
+      enabled: !!condominiumId,
+    }
+  )
 
   // Fetch user's reservations
-  const {
-    data: reservationsData,
-    isLoading: reservationsLoading,
-  } = useReservationsByUser(userId, {
+  const { data: reservationsData, isLoading: reservationsLoading } = useReservationsByUser(userId, {
     enabled: !!userId,
   })
 
   const amenities = useMemo(
-    () => (amenitiesData?.data ?? []).filter((a) => a.isActive),
+    () => (amenitiesData?.data ?? []).filter(a => a.isActive),
     [amenitiesData]
   )
   const reservations = reservationsData?.data ?? []
@@ -152,6 +150,7 @@ export function ReservationsClient() {
 
   const formatDateTime = (dateStr: string | Date) => {
     const d = typeof dateStr === 'string' ? new Date(dateStr) : dateStr
+
     return d.toLocaleString()
   }
 
@@ -169,7 +168,7 @@ export function ReservationsClient() {
     <div className="space-y-8">
       {/* Available Amenities */}
       <section>
-        <Typography variant="h3" className="mb-4">
+        <Typography className="mb-4" variant="h3">
           {t('resident.reservations.availableAmenities')}
         </Typography>
         {amenities.length === 0 ? (
@@ -181,15 +180,15 @@ export function ReservationsClient() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {amenities.map((amenity) => (
+            {amenities.map(amenity => (
               <Card key={amenity.id} shadow="sm">
                 <CardHeader className="pb-2">
                   <div className="flex w-full items-start justify-between gap-2">
-                    <Typography variant="h4" className="truncate">
+                    <Typography className="truncate" variant="h4">
                       {amenity.name}
                     </Typography>
                     {amenity.requiresApproval && (
-                      <Chip color="warning" variant="flat" size="sm">
+                      <Chip color="warning" size="sm" variant="flat">
                         <div className="flex items-center gap-1">
                           <ShieldCheck size={12} />
                           {t('admin.amenities.requiresApproval')}
@@ -200,7 +199,7 @@ export function ReservationsClient() {
                 </CardHeader>
                 <CardBody className="gap-2 py-2">
                   {amenity.description && (
-                    <Typography color="muted" variant="body2" className="line-clamp-2">
+                    <Typography className="line-clamp-2" color="muted" variant="body2">
                       {amenity.description}
                     </Typography>
                   )}
@@ -223,9 +222,9 @@ export function ReservationsClient() {
                 </CardBody>
                 <CardFooter className="pt-2">
                   <Button
+                    className="w-full"
                     color="primary"
                     size="sm"
-                    className="w-full"
                     startContent={<CalendarDays size={16} />}
                     onPress={() => handleReserve(amenity)}
                   >
@@ -240,7 +239,7 @@ export function ReservationsClient() {
 
       {/* My Reservations */}
       <section>
-        <Typography variant="h3" className="mb-4">
+        <Typography className="mb-4" variant="h3">
           {t('resident.reservations.myReservations')}
         </Typography>
         {reservations.length === 0 ? (
@@ -252,16 +251,16 @@ export function ReservationsClient() {
           </div>
         ) : (
           <div className="space-y-3">
-            {reservations.map((reservation) => (
+            {reservations.map(reservation => (
               <Card key={reservation.id} shadow="sm">
                 <CardBody className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
-                      <Typography variant="body1" className="font-medium">
+                      <Typography className="font-medium" variant="body1">
                         {formatDateTime(reservation.startTime)}
                       </Typography>
                       <span className="text-default-400">-</span>
-                      <Typography variant="body1" className="font-medium">
+                      <Typography className="font-medium" variant="body1">
                         {formatDateTime(reservation.endTime)}
                       </Typography>
                     </div>
@@ -277,18 +276,15 @@ export function ReservationsClient() {
                     )}
                   </div>
                   <div className="flex items-center gap-3">
-                    <Chip
-                      color={STATUS_COLOR_MAP[reservation.status] ?? 'default'}
-                      variant="flat"
-                    >
+                    <Chip color={STATUS_COLOR_MAP[reservation.status] ?? 'default'} variant="flat">
                       {t(`resident.reservations.status.${reservation.status}`)}
                     </Chip>
                     {(reservation.status === 'pending' || reservation.status === 'approved') && (
                       <Button
-                        size="sm"
                         color="danger"
-                        variant="light"
                         isLoading={cancellingId === reservation.id && cancelMutation.isPending}
+                        size="sm"
+                        variant="light"
                         onPress={() => handleCancel(reservation)}
                       >
                         {t('resident.reservations.cancel')}
@@ -303,9 +299,9 @@ export function ReservationsClient() {
       </section>
 
       {/* Reserve Modal */}
-      <Modal isOpen={reserveModal.isOpen} onOpenChange={reserveModal.onOpenChange} size="lg">
+      <Modal isOpen={reserveModal.isOpen} size="lg" onOpenChange={reserveModal.onOpenChange}>
         <ModalContent>
-          {(onClose) => (
+          {onClose => (
             <>
               <ModalHeader>
                 {t('resident.reservations.reserve')} - {selectedAmenity?.name}
@@ -313,47 +309,39 @@ export function ReservationsClient() {
               <ModalBody>
                 <div className="flex flex-col gap-4">
                   <Input
+                    isRequired
                     label={t('resident.reservations.date')}
                     type="date"
                     value={formData.date}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, date: value }))
-                    }
-                    isRequired
                     variant="bordered"
+                    onValueChange={value => setFormData(prev => ({ ...prev, date: value }))}
                   />
                   <div className="grid grid-cols-2 gap-4">
                     <Input
-                      label={t('resident.reservations.startTime')}
-                      type="text"
-                      placeholder="09:00"
-                      value={formData.startTime}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({ ...prev, startTime: value }))
-                      }
                       isRequired
+                      label={t('resident.reservations.startTime')}
+                      placeholder="09:00"
+                      type="text"
+                      value={formData.startTime}
                       variant="bordered"
+                      onValueChange={value => setFormData(prev => ({ ...prev, startTime: value }))}
                     />
                     <Input
-                      label={t('resident.reservations.endTime')}
-                      type="text"
-                      placeholder="11:00"
-                      value={formData.endTime}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({ ...prev, endTime: value }))
-                      }
                       isRequired
+                      label={t('resident.reservations.endTime')}
+                      placeholder="11:00"
+                      type="text"
+                      value={formData.endTime}
                       variant="bordered"
+                      onValueChange={value => setFormData(prev => ({ ...prev, endTime: value }))}
                     />
                   </div>
                   <Textarea
                     label={t('resident.reservations.notes')}
                     placeholder={t('resident.reservations.notes')}
                     value={formData.notes}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, notes: value }))
-                    }
                     variant="bordered"
+                    onValueChange={value => setFormData(prev => ({ ...prev, notes: value }))}
                   />
                 </div>
               </ModalBody>
@@ -363,11 +351,9 @@ export function ReservationsClient() {
                 </Button>
                 <Button
                   color="primary"
-                  onPress={handleSubmitReservation}
+                  isDisabled={!formData.date || !formData.startTime || !formData.endTime}
                   isLoading={createMutation.isPending}
-                  isDisabled={
-                    !formData.date || !formData.startTime || !formData.endTime
-                  }
+                  onPress={handleSubmitReservation}
                 >
                   {t('resident.reservations.submit')}
                 </Button>

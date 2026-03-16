@@ -59,105 +59,110 @@ interface IInputProps {
   onPaste?: (e: ClipboardEvent<HTMLInputElement>) => void
 }
 
-export const Input = forwardRef<HTMLInputElement, IInputProps>(({
-  id,
-  name,
-  type = 'text',
-  size = 'md',
-  color = 'default',
-  variant = 'bordered',
-  radius = 'sm',
-  label,
-  labelPlacement = 'outside',
-  placeholder,
-  description,
-  tooltip,
-  errorMessage,
-  error,
-  value,
-  defaultValue,
-  isRequired = false,
-  isInvalid = false,
-  isDisabled = false,
-  isReadOnly = false,
-  isClearable = false,
-  fullWidth = false,
-  startContent,
-  endContent,
-  className,
-  minLength,
-  maxLength,
-  pattern,
-  inputMode,
-  onChange,
-  onValueChange,
-  onBlur,
-  onClear,
-  onKeyDown,
-  onPaste,
-}, ref) => {
-  // Create label with tooltip and required asterisk (always on the left)
-  const labelContent = label ? (
-    <span className="flex items-center gap-1.5">
-      {isRequired && <span className="text-danger">*</span>}
-      {label}
-      {tooltip && (
-        <Tooltip
-          content={tooltip}
-          placement="right"
-          showArrow
-          classNames={{
-            content: 'max-w-xs text-sm',
-          }}
-        >
-          <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
-        </Tooltip>
-      )}
-    </span>
-  ) : undefined
+export const Input = forwardRef<HTMLInputElement, IInputProps>(
+  (
+    {
+      id,
+      name,
+      type = 'text',
+      size = 'md',
+      color = 'default',
+      variant = 'bordered',
+      radius = 'sm',
+      label,
+      labelPlacement = 'outside',
+      placeholder,
+      description,
+      tooltip,
+      errorMessage,
+      error,
+      value,
+      defaultValue,
+      isRequired = false,
+      isInvalid = false,
+      isDisabled = false,
+      isReadOnly = false,
+      isClearable = false,
+      fullWidth = false,
+      startContent,
+      endContent,
+      className,
+      minLength,
+      maxLength,
+      pattern,
+      inputMode,
+      onChange,
+      onValueChange,
+      onBlur,
+      onClear,
+      onKeyDown,
+      onPaste,
+    },
+    ref
+  ) => {
+    // Create label with tooltip and required asterisk (always on the left)
+    const labelContent = label ? (
+      <span className="flex items-center gap-1.5">
+        {isRequired && <span className="text-danger">*</span>}
+        {label}
+        {tooltip && (
+          <Tooltip
+            showArrow
+            classNames={{
+              content: 'max-w-xs text-sm',
+            }}
+            content={tooltip}
+            placement="right"
+          >
+            <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
+          </Tooltip>
+        )}
+      </span>
+    ) : undefined
 
-  return (
-    <HeroUIInput
-      ref={ref}
-      id={id}
-      name={name}
-      className={cn(className)}
-      classNames={{
-        input: 'placeholder:text-default-400 placeholder:opacity-70',
-      }}
-      color={color}
-      defaultValue={defaultValue}
-      description={tooltip ? undefined : description}
-      endContent={endContent}
-      errorMessage={error || errorMessage}
-      fullWidth={fullWidth}
-      isClearable={isClearable}
-      isDisabled={isDisabled}
-      isInvalid={isInvalid || !!error}
-      isReadOnly={isReadOnly}
-      isRequired={false}
-      label={labelContent}
-      labelPlacement={labelPlacement}
-      maxLength={maxLength}
-      minLength={minLength}
-      pattern={pattern}
-      placeholder={placeholder || (labelPlacement !== 'inside' ? ' ' : undefined)}
-      radius={radius}
-      size={size}
-      startContent={startContent}
-      type={type}
-      value={value}
-      variant={variant}
-      inputMode={inputMode}
-      onChange={onChange}
-      onBlur={onBlur}
-      onClear={onClear}
-      onKeyDown={onKeyDown}
-      onPaste={onPaste}
-      onValueChange={onValueChange}
-    />
-  )
-})
+    return (
+      <HeroUIInput
+        ref={ref}
+        className={cn(className)}
+        classNames={{
+          input: 'placeholder:text-default-400 placeholder:opacity-70',
+        }}
+        color={color}
+        defaultValue={defaultValue}
+        description={tooltip ? undefined : description}
+        endContent={endContent}
+        errorMessage={error || errorMessage}
+        fullWidth={fullWidth}
+        id={id}
+        inputMode={inputMode}
+        isClearable={isClearable}
+        isDisabled={isDisabled}
+        isInvalid={isInvalid || !!error}
+        isReadOnly={isReadOnly}
+        isRequired={false}
+        label={labelContent}
+        labelPlacement={labelPlacement}
+        maxLength={maxLength}
+        minLength={minLength}
+        name={name}
+        pattern={pattern}
+        placeholder={placeholder || (labelPlacement !== 'inside' ? ' ' : undefined)}
+        radius={radius}
+        size={size}
+        startContent={startContent}
+        type={type}
+        value={value}
+        variant={variant}
+        onBlur={onBlur}
+        onChange={onChange}
+        onClear={onClear}
+        onKeyDown={onKeyDown}
+        onPaste={onPaste}
+        onValueChange={onValueChange}
+      />
+    )
+  }
+)
 
 Input.displayName = 'Input'
 

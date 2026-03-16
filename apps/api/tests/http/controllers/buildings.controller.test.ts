@@ -92,7 +92,10 @@ describe('BuildingsController', function () {
     }
 
     // Create controller with mock repository
-    const controller = new BuildingsController(mockRepository as unknown as BuildingsRepository, {} as unknown as TDrizzleClient)
+    const controller = new BuildingsController(
+      mockRepository as unknown as BuildingsRepository,
+      {} as unknown as TDrizzleClient
+    )
 
     // Create Hono app with controller routes
     app = createTestApp()

@@ -7,4 +7,3 @@ export type TApiEndpointDefinition = {
   path: string
   router: Hono
 }
-

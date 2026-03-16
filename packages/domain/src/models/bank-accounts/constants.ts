@@ -1,8 +1,4 @@
-export const NATIONAL_PAYMENT_METHODS = [
-  'transfer',
-  'pago_movil',
-  'interbancario',
-] as const
+export const NATIONAL_PAYMENT_METHODS = ['transfer', 'pago_movil', 'interbancario'] as const
 
 export const INTERNATIONAL_PAYMENT_METHODS = [
   'wire_transfer',

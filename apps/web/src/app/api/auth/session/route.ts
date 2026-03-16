@@ -64,6 +64,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<SessionRes
 
   // Compute available roles and determine active role
   const availableRoles: TActiveRoleType[] = []
+
   if (isSuperadmin) availableRoles.push('superadmin')
   if (managementCompanies.length > 0) availableRoles.push('management_company')
   if (condominiums.length > 0) availableRoles.push('condominium')

@@ -1,15 +1,13 @@
 'use client'
 
-import { History, FileText, User, StickyNote } from 'lucide-react'
+import { History, StickyNote } from 'lucide-react'
+import { usePaymentConceptDetail, usePaymentConceptChangeHistory } from '@packages/http-client'
+
 import { Card, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
-import {
-  usePaymentConceptDetail,
-  usePaymentConceptChangeHistory,
-} from '@packages/http-client'
 
 interface ChangeHistoryPageClientProps {
   condominiumId: string
@@ -49,6 +47,7 @@ function formatValue(value: unknown): string {
   if (typeof value === 'number') return value.toLocaleString()
   if (typeof value === 'string') return value
   if (Array.isArray(value)) return value.length === 0 ? '-' : `${value.length} items`
+
   return JSON.stringify(value)
 }
 
@@ -124,7 +123,7 @@ export function ChangeHistoryPageClient({
                     {/* Date & meta */}
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-2">
-                        <Chip size="sm" variant="flat" color="default">
+                        <Chip color="default" size="sm" variant="flat">
                           {date.toLocaleDateString('es-ES', {
                             day: 'numeric',
                             month: 'long',
@@ -138,7 +137,7 @@ export function ChangeHistoryPageClient({
                           })}
                         </span>
                       </div>
-                      <Chip size="sm" variant="flat" color="primary">
+                      <Chip color="primary" size="sm" variant="flat">
                         {changedFields.length} {changedFields.length === 1 ? 'campo' : 'campos'}
                       </Chip>
                     </div>
@@ -146,7 +145,7 @@ export function ChangeHistoryPageClient({
                     {/* Notes */}
                     {change.notes && (
                       <div className="flex items-start gap-2 rounded-lg bg-default-50 p-2">
-                        <StickyNote size={14} className="mt-0.5 shrink-0 text-default-400" />
+                        <StickyNote className="mt-0.5 shrink-0 text-default-400" size={14} />
                         <p className="text-sm text-default-600 italic">{change.notes}</p>
                       </div>
                     )}
@@ -168,7 +167,7 @@ export function ChangeHistoryPageClient({
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-default-100">
-                          {changedFields.map((key) => (
+                          {changedFields.map(key => (
                             <tr key={key}>
                               <td className="px-3 py-2 font-medium text-default-700">
                                 {FIELD_LABELS[key] ?? key}

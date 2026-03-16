@@ -1,38 +1,52 @@
 import type { TQuota } from '@packages/domain'
-import { getHttpClient } from '@packages/http-client'
 import type { TApiDataResponse } from '@packages/http-client'
+
+import { getHttpClient } from '@packages/http-client'
+
+import { QuotasTable } from './components/QuotasTable'
 
 import { getTranslations } from '@/libs/i18n/server'
 import { getServerAuthToken, getFullSession } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
-import { QuotasTable } from './components/QuotasTable'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
-async function getQuotasForCondominium(token: string, condominiumId: string, managementCompanyId?: string): Promise<TQuota[]> {
+async function getQuotasForCondominium(
+  token: string,
+  condominiumId: string,
+  managementCompanyId?: string
+): Promise<TQuota[]> {
   const client = getHttpClient()
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
     'x-condominium-id': condominiumId,
   }
+
   if (managementCompanyId) {
     headers['x-management-company-id'] = managementCompanyId
   }
   const response = await client.get<TApiDataResponse<TQuota[]>>('/condominium/quotas', { headers })
+
   return response.data.data
 }
 
 export default async function CondominiumQuotasPage({ params }: PageProps) {
   const { id } = await params
-  const [{ t }, token, session] = await Promise.all([getTranslations(), getServerAuthToken(), getFullSession()])
+  const [{ t }, token, session] = await Promise.all([
+    getTranslations(),
+    getServerAuthToken(),
+    getFullSession(),
+  ])
 
-  const managementCompanyId = session?.activeRole === 'management_company'
-    ? session.managementCompanies?.[0]?.managementCompanyId ?? ''
-    : ''
+  const managementCompanyId =
+    session?.activeRole === 'management_company'
+      ? (session.managementCompanies?.[0]?.managementCompanyId ?? '')
+      : ''
 
   let quotas: TQuota[] = []
+
   try {
     quotas = await getQuotasForCondominium(token, id, managementCompanyId)
   } catch (error) {
@@ -55,9 +69,11 @@ export default async function CondominiumQuotasPage({ params }: PageProps) {
     },
     status: {
       pending: t('admin.condominiums.detail.quotas.status.pending'),
+      partial: t('admin.condominiums.detail.quotas.status.partial'),
       paid: t('admin.condominiums.detail.quotas.status.paid'),
       overdue: t('admin.condominiums.detail.quotas.status.overdue'),
       cancelled: t('admin.condominiums.detail.quotas.status.cancelled'),
+      exonerated: t('admin.condominiums.detail.quotas.status.exonerated'),
     },
     filters: {
       all: t('admin.condominiums.detail.quotas.filters.all'),
@@ -70,7 +86,7 @@ export default async function CondominiumQuotasPage({ params }: PageProps) {
     <div className="space-y-6">
       <div>
         <Typography variant="h3">{translations.title}</Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
+        <Typography className="mt-1" color="muted" variant="body2">
           {translations.subtitle}
         </Typography>
       </div>

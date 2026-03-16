@@ -1,12 +1,18 @@
 'use client'
 
 import { Input as HeroUIInput } from '@heroui/input'
-import { Select, type ISelectItem } from '@/ui/components/select'
-import { Tooltip } from '@/ui/components/tooltip'
 import { cn } from '@heroui/theme'
 import { Info } from 'lucide-react'
-import { PHONE_COUNTRY_CODES, DEFAULT_PHONE_COUNTRY_CODE, PHONE_PLACEHOLDERS, DEFAULT_PHONE_PLACEHOLDER } from '@packages/domain'
+import {
+  PHONE_COUNTRY_CODES,
+  DEFAULT_PHONE_COUNTRY_CODE,
+  PHONE_PLACEHOLDERS,
+  DEFAULT_PHONE_PLACEHOLDER,
+} from '@packages/domain'
 import { useMemo } from 'react'
+
+import { Tooltip } from '@/ui/components/tooltip'
+import { Select, type ISelectItem } from '@/ui/components/select'
 
 type TInputSize = 'sm' | 'md' | 'lg'
 type TInputVariant = 'flat' | 'bordered' | 'underlined' | 'faded'
@@ -52,12 +58,13 @@ export function PhoneInput({
   className,
 }: IPhoneInputProps) {
   const selectedCountryCode = countryCode || DEFAULT_PHONE_COUNTRY_CODE
-  const derivedPlaceholder = placeholder ?? PHONE_PLACEHOLDERS[selectedCountryCode] ?? DEFAULT_PHONE_PLACEHOLDER
+  const derivedPlaceholder =
+    placeholder ?? PHONE_PLACEHOLDERS[selectedCountryCode] ?? DEFAULT_PHONE_PLACEHOLDER
   const errorMessage = countryCodeError || phoneNumberError
 
   const countryCodeItems: ISelectItem[] = useMemo(
     () =>
-      PHONE_COUNTRY_CODES.map((item) => ({
+      PHONE_COUNTRY_CODES.map(item => ({
         key: item.code,
         label: `${item.flag} ${item.code}`,
       })),
@@ -72,12 +79,12 @@ export function PhoneInput({
           {label}
           {tooltip && (
             <Tooltip
-              content={tooltip}
-              placement="right"
               showArrow
               classNames={{
                 content: 'max-w-xs text-sm',
               }}
+              content={tooltip}
+              placement="right"
             >
               <Info className="h-4 w-4 text-default-400 cursor-help" />
             </Tooltip>
@@ -88,33 +95,33 @@ export function PhoneInput({
         <Select
           aria-label="Country code"
           className="w-[140px] shrink-0"
-          items={countryCodeItems}
-          value={selectedCountryCode}
-          onChange={(key) => onCountryCodeChange?.(key)}
-          variant={variant}
-          radius={radius}
-          size={size}
-          isDisabled={isDisabled || isReadOnly || isCountryCodeReadOnly}
-          isInvalid={!!countryCodeError}
           classNames={{
             trigger: 'min-h-unit-10',
           }}
+          isDisabled={isDisabled || isReadOnly || isCountryCodeReadOnly}
+          isInvalid={!!countryCodeError}
+          items={countryCodeItems}
+          radius={radius}
+          size={size}
+          value={selectedCountryCode}
+          variant={variant}
+          onChange={key => onCountryCodeChange?.(key)}
         />
         <HeroUIInput
           className="flex-1"
           classNames={{
             input: 'placeholder:text-default-400 placeholder:opacity-70',
           }}
-          type="tel"
+          isDisabled={isDisabled}
+          isInvalid={!!phoneNumberError}
+          isReadOnly={isReadOnly}
           placeholder={derivedPlaceholder}
-          value={phoneNumber || ''}
-          onValueChange={onPhoneNumberChange}
-          variant={variant}
           radius={radius}
           size={size}
-          isDisabled={isDisabled}
-          isReadOnly={isReadOnly}
-          isInvalid={!!phoneNumberError}
+          type="tel"
+          value={phoneNumber || ''}
+          variant={variant}
+          onValueChange={onPhoneNumberChange}
         />
       </div>
       {errorMessage && <p className="text-tiny text-danger">{errorMessage}</p>}

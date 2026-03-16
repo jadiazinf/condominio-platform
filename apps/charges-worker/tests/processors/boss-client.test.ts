@@ -49,8 +49,8 @@ describe('Queue Configuration', () => {
     expect(opts.retryBackoff).toBe(true)
   })
 
-  it('notify job expires in 5 minutes', () => {
+  it('notify job expires in 15 minutes', () => {
     const opts = JOB_OPTIONS[QUEUES.NOTIFY]
-    expect(opts.expireInMinutes).toBe(5)
+    expect(opts.expireInMinutes).toBe(15)
   })
 })

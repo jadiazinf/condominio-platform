@@ -19,6 +19,7 @@ export function configureServerLocale(): void {
   setGlobalLocale(async () => {
     try {
       const cookieStore = await cookies()
+
       return cookieStore.get(LOCALE_COOKIE)?.value || DEFAULT_LOCALE
     } catch {
       // If cookies() fails (e.g., outside of request context), return default

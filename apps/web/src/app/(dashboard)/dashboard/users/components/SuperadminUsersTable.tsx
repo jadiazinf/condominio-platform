@@ -1,23 +1,23 @@
 'use client'
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
+import { Users, Search, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import {
+  useSuperadminUsersPaginated,
+  type TSuperadminUserWithDetails,
+  type TSuperadminUsersQuery,
+} from '@packages/http-client/hooks'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Input } from '@/ui/components/input'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
 import { Spinner } from '@/ui/components/spinner'
-import { Users, Search, X, Eye } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-
 import { useTranslation, useAuth } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Pagination } from '@/ui/components/pagination'
-import {
-  useSuperadminUsersPaginated,
-  type TSuperadminUserWithDetails,
-  type TSuperadminUsersQuery,
-} from '@packages/http-client/hooks'
 import { Avatar } from '@/ui/components/avatar-base'
 
 type TStatusFilter = 'all' | 'active' | 'inactive'
@@ -114,6 +114,7 @@ export function SuperadminUsersTable() {
 
   const formatDate = useCallback((date: Date | null | undefined) => {
     if (!date) return '-'
+
     return new Date(date).toLocaleDateString('es', {
       day: '2-digit',
       month: 'short',
@@ -211,8 +212,8 @@ export function SuperadminUsersTable() {
           className="w-full sm:w-40"
           items={statusFilterItems}
           value={statusFilter}
-          onChange={handleStatusChange}
           variant="bordered"
+          onChange={handleStatusChange}
         />
         {(search || statusFilter !== 'active') && (
           <Button startContent={<X size={14} />} variant="flat" onPress={handleClearFilters}>
@@ -240,13 +241,13 @@ export function SuperadminUsersTable() {
         <>
           <Table<TSuperadminUserRow>
             aria-label={t('superadmin.users.title')}
-            columns={tableColumns}
-            rows={superadminUsers}
-            renderCell={renderCell}
-            onRowClick={superadminUser => handleViewDetails(superadminUser.id)}
             classNames={{
               tr: 'cursor-pointer transition-colors hover:bg-default-100',
             }}
+            columns={tableColumns}
+            renderCell={renderCell}
+            rows={superadminUsers}
+            onRowClick={superadminUser => handleViewDetails(superadminUser.id)}
           />
 
           {/* Pagination */}

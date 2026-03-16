@@ -27,7 +27,6 @@ import { QuotaFormulasController } from '@http/controllers/quota-formulas/quota-
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
- 
 type TJsonResponse = { data: any; error?: string; message?: string }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,35 +59,35 @@ beforeEach(async () => {
   `)
 
   // 2. Insert condominium
-  const condoResult = await db.execute(sql`
+  const condoResult = (await db.execute(sql`
     INSERT INTO condominiums (name, is_active, created_by)
     VALUES ('Test Condo', true, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   condominiumId = condoResult[0]!.id
 
   // 3. Insert currency
-  const currencyResult = await db.execute(sql`
+  const currencyResult = (await db.execute(sql`
     INSERT INTO currencies (name, code, symbol, is_active)
     VALUES ('US Dollar', 'USD', '$', true)
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   currencyId = currencyResult[0]!.id
 
   // 4. Insert building
-  const buildingResult = await db.execute(sql`
+  const buildingResult = (await db.execute(sql`
     INSERT INTO buildings (name, condominium_id, created_by)
     VALUES ('Building A', ${condominiumId}, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   buildingId = buildingResult[0]!.id
 
   // 5. Insert unit
-  const unitResult = await db.execute(sql`
+  const unitResult = (await db.execute(sql`
     INSERT INTO units (unit_number, building_id, aliquot_percentage, area_m2, floor, parking_spaces, created_by)
     VALUES ('A-101', ${buildingId}, 5.00, 80.00, 3, 1, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   unitId = unitResult[0]!.id
 
   // 6. Set up controllers + app
@@ -396,11 +395,11 @@ describe('Quota Formula Flow - Integration', () => {
       await createFormula(fixedFormulaBody())
 
       // Create a second condominium
-      const condo2Result = await db.execute(sql`
+      const condo2Result = (await db.execute(sql`
         INSERT INTO condominiums (name, is_active, created_by)
         VALUES ('Other Condo', true, ${MOCK_USER_ID})
         RETURNING id
-      `) as unknown as { id: string }[]
+      `)) as unknown as { id: string }[]
       const otherCondoId = condo2Result[0]!.id
 
       // Request list with different condominium header
@@ -612,9 +611,11 @@ describe('Quota Formula Flow - Integration', () => {
     })
 
     it('should calculate expression formula amount using unit data', async () => {
-      const createRes = await createFormula(expressionFormulaBody({
-        expression: 'base_rate * area_m2',
-      }))
+      const createRes = await createFormula(
+        expressionFormulaBody({
+          expression: 'base_rate * area_m2',
+        })
+      )
       const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
@@ -724,9 +725,11 @@ describe('Quota Formula Flow - Integration', () => {
     })
 
     it('should calculate expression with aliquot_percentage variable', async () => {
-      const createRes = await createFormula(expressionFormulaBody({
-        expression: 'base_rate * aliquot_percentage',
-      }))
+      const createRes = await createFormula(
+        expressionFormulaBody({
+          expression: 'base_rate * aliquot_percentage',
+        })
+      )
       const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
@@ -743,9 +746,11 @@ describe('Quota Formula Flow - Integration', () => {
     })
 
     it('should calculate expression with floor variable from unit', async () => {
-      const createRes = await createFormula(expressionFormulaBody({
-        expression: 'base_rate * floor',
-      }))
+      const createRes = await createFormula(
+        expressionFormulaBody({
+          expression: 'base_rate * floor',
+        })
+      )
       const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 
@@ -763,9 +768,11 @@ describe('Quota Formula Flow - Integration', () => {
     })
 
     it('should calculate expression with parking_spaces variable', async () => {
-      const createRes = await createFormula(expressionFormulaBody({
-        expression: 'base_rate + parking_spaces * base_rate',
-      }))
+      const createRes = await createFormula(
+        expressionFormulaBody({
+          expression: 'base_rate + parking_spaces * base_rate',
+        })
+      )
       const createJson = (await createRes.json()) as TJsonResponse
       const formulaId = createJson.data.id
 

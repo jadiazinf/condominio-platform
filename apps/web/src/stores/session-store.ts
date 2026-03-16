@@ -113,7 +113,12 @@ interface SessionActions {
   }) => void
 }
 
-export type SessionStore = UserSlice & CondominiumSlice & SuperadminSlice & ManagementCompanySlice & ActiveRoleSlice & SessionActions
+export type SessionStore = UserSlice &
+  CondominiumSlice &
+  SuperadminSlice &
+  ManagementCompanySlice &
+  ActiveRoleSlice &
+  SessionActions
 
 // ============================================================================
 // STORE
@@ -223,15 +228,18 @@ export const useSessionStore = create<SessionStore>()(
       availableRoles: () => {
         const state = get()
         const roles: TActiveRoleType[] = []
+
         if (state.superadmin?.isActive) roles.push('superadmin')
         if (state.managementCompanies.length > 0) roles.push('management_company')
         if (state.condominiums.length > 0) roles.push('condominium')
+
         return roles
       },
 
       needsRoleSelection: () => {
         const { activeRole, availableRoles } = get()
         const roles = availableRoles()
+
         return roles.length > 1 && !activeRole
       },
 

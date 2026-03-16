@@ -2,24 +2,25 @@
 
 import { useState, useCallback } from 'react'
 import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from '@/ui/components/modal'
-import { Button } from '@/ui/components/button'
-import { Typography } from '@/ui/components/typography'
-import { Stepper, type IStepItem } from '@/ui/components/stepper'
-import { useTranslation } from '@/contexts'
-import { useToast } from '@/ui/components/toast'
-import { useCreateBankAccount, bankAccountKeys, useQueryClient, HttpError, isApiValidationError } from '@packages/http-client'
+  useCreateBankAccount,
+  bankAccountKeys,
+  useQueryClient,
+  HttpError,
+  isApiValidationError,
+} from '@packages/http-client'
 
 import { SelectCategoryStep } from './steps/SelectCategoryStep'
 import { NationalDetailsStep } from './steps/NationalDetailsStep'
 import { InternationalDetailsStep } from './steps/InternationalDetailsStep'
 import { CondominiumAssignmentStep } from './steps/CondominiumAssignmentStep'
 import { ReviewStep } from './steps/ReviewStep'
+
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
+import { Button } from '@/ui/components/button'
+import { Typography } from '@/ui/components/typography'
+import { Stepper, type IStepItem } from '@/ui/components/stepper'
+import { useTranslation } from '@/contexts'
+import { useToast } from '@/ui/components/toast'
 
 export type TWizardCategory = 'national' | 'international' | null
 export type TInternationalSubType = 'wire_transfer' | 'zelle' | 'ach' | 'paypal_wise' | 'crypto'
@@ -110,6 +111,7 @@ export function CreateBankAccountWizard({
     setTimeout(() => {
       const body = document.querySelector('[data-slot="body"]')
       const firstInvalid = body?.querySelector('[data-invalid="true"], .text-danger')
+
       firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }, 150)
   }, [])
@@ -158,6 +160,7 @@ export function CreateBankAccountWizard({
         accountDetails.identityDocNumber = formData.identityDocNumber
         if (formData.phoneNumber) {
           const code = formData.phoneCountryCode || '+58'
+
           accountDetails.phoneNumber = `${code}${formData.phoneNumber}`
         }
       } else {
@@ -167,11 +170,13 @@ export function CreateBankAccountWizard({
         if (formData.intlAccountNumber) accountDetails.accountNumber = formData.intlAccountNumber
         if (formData.bankAddress) accountDetails.bankAddress = formData.bankAddress
         if (formData.bankCountry) accountDetails.bankCountry = formData.bankCountry
-        if (formData.beneficiaryAddress) accountDetails.beneficiaryAddress = formData.beneficiaryAddress
+        if (formData.beneficiaryAddress)
+          accountDetails.beneficiaryAddress = formData.beneficiaryAddress
         if (formData.zelleEmail) accountDetails.zelleEmail = formData.zelleEmail
         if (formData.zellePhone) accountDetails.zellePhone = formData.zellePhone
         if (formData.intlAccountType) accountDetails.accountType = formData.intlAccountType
-        if (formData.accountHolderType) accountDetails.accountHolderType = formData.accountHolderType
+        if (formData.accountHolderType)
+          accountDetails.accountHolderType = formData.accountHolderType
         if (formData.paypalEmail) accountDetails.paypalEmail = formData.paypalEmail
         if (formData.wiseEmail) accountDetails.wiseEmail = formData.wiseEmail
         if (formData.walletAddress) accountDetails.walletAddress = formData.walletAddress
@@ -200,10 +205,10 @@ export function CreateBankAccountWizard({
     } catch (error) {
       if (HttpError.isHttpError(error)) {
         const details = error.details
+
         if (isApiValidationError(details)) {
-          const fieldMessages = details.error.fields
-            .map(f => f.messages.join(', '))
-            .join('\n')
+          const fieldMessages = details.error.fields.map(f => f.messages.join(', ')).join('\n')
+
           toast.error(fieldMessages || error.message)
         } else {
           toast.error(error.message)
@@ -231,19 +236,23 @@ export function CreateBankAccountWizard({
         return formData.accountCategory === 'national' ? (
           <NationalDetailsStep
             formData={formData}
-            onUpdate={updateFormData}
             managementCompanyId={managementCompanyId}
             showErrors={showErrors}
+            onUpdate={updateFormData}
           />
         ) : (
-          <InternationalDetailsStep formData={formData} onUpdate={updateFormData} showErrors={showErrors} />
+          <InternationalDetailsStep
+            formData={formData}
+            showErrors={showErrors}
+            onUpdate={updateFormData}
+          />
         )
       case 2:
         return (
           <CondominiumAssignmentStep
             formData={formData}
-            onUpdate={updateFormData}
             managementCompanyId={managementCompanyId}
+            onUpdate={updateFormData}
           />
         )
       case 3:
@@ -262,6 +271,7 @@ export function CreateBankAccountWizard({
           const isPagoMovil = formData.acceptedPaymentMethods.includes('pago_movil')
           const phoneValid = !isPagoMovil || !!formData.phoneNumber
           const accountNumberValid = formData.accountNumber?.length === 16 && !!formData.bankCode
+
           return !!(
             formData.bankName &&
             accountNumberValid &&
@@ -275,6 +285,7 @@ export function CreateBankAccountWizard({
         }
         // International: validate each selected payment method
         const methods = formData.acceptedPaymentMethods
+
         if (methods.length === 0 || !formData.accountHolderName || !formData.bankName) return false
 
         const hasWire = methods.includes('wire_transfer')
@@ -287,10 +298,20 @@ export function CreateBankAccountWizard({
         if ((hasWire || hasAch) && !formData.intlAccountNumber) return false
         if (hasWire && !formData.swiftCode) return false
         if (hasZelle && !(formData.zelleEmail || formData.zellePhone)) return false
-        if (hasAch && (formData.routingNumber?.length !== 9 || !formData.accountHolderType || !formData.intlAccountType)) return false
+        if (
+          hasAch &&
+          (formData.routingNumber?.length !== 9 ||
+            !formData.accountHolderType ||
+            !formData.intlAccountType)
+        )
+          return false
         if (hasPaypal && !formData.paypalEmail) return false
         if (hasWise && !formData.wiseEmail) return false
-        if (hasCrypto && !(formData.walletAddress && formData.cryptoNetwork && formData.cryptoCurrency)) return false
+        if (
+          hasCrypto &&
+          !(formData.walletAddress && formData.cryptoNetwork && formData.cryptoCurrency)
+        )
+          return false
 
         return true
       case 2:
@@ -303,18 +324,19 @@ export function CreateBankAccountWizard({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="3xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="3xl" onClose={handleClose}>
       <ModalContent>
         <ModalHeader className="flex flex-col gap-2">
           <Typography variant="h4">
             {t('admin.company.myCompany.bankAccounts.wizard.title')}
           </Typography>
           <Stepper
-            steps={wizardSteps}
-            currentStep={STEPS[currentStep]!}
             color="success"
-            onStepChange={(stepKey) => {
+            currentStep={STEPS[currentStep]!}
+            steps={wizardSteps}
+            onStepChange={stepKey => {
               const stepIndex = STEPS.indexOf(stepKey)
+
               if (stepIndex >= 0 && stepIndex <= currentStep) {
                 setShowErrors(false)
                 setCurrentStep(stepIndex)

@@ -7,8 +7,12 @@ import { DomainLocaleDictionary } from '../../i18n/dictionary'
 const d = DomainLocaleDictionary.validation.models.quotaAdjustments
 
 export const EAdjustmentTypes = [
-  'discount', 'increase', 'correction', 'waiver',
-  'exoneration', 'credit_note',
+  'discount',
+  'increase',
+  'correction',
+  'waiver',
+  'exoneration',
+  'credit_note',
 ] as const
 
 // Note: quota_adjustments doesn't have updatedAt, so we don't extend baseModelSchema
@@ -19,6 +23,7 @@ export const quotaAdjustmentSchema = z.object({
   newAmount: z.string({ error: d.newAmount.required }),
   adjustmentType: z.enum(EAdjustmentTypes, { error: d.adjustmentType.invalid }),
   reason: z.string({ error: d.reason.required }).min(10, { error: d.reason.min }),
+  tag: z.string().nullish(),
   createdBy: z.uuid({ error: d.createdBy.invalid }),
   createdAt: timestampField,
   // Relations

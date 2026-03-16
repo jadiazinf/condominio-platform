@@ -24,7 +24,10 @@ export class MyAccessRequestsController {
   private readonly submitRequestService: SubmitAccessRequestService
   private readonly sendNotificationService: SendNotificationService
 
-  constructor(private readonly db: TDrizzleClient, sendNotificationService: SendNotificationService) {
+  constructor(
+    private readonly db: TDrizzleClient,
+    sendNotificationService: SendNotificationService
+  ) {
     this.validateCodeService = new ValidateAccessCodeService(db)
     this.submitRequestService = new SubmitAccessRequestService(db)
     this.sendNotificationService = sendNotificationService
@@ -85,10 +88,9 @@ export class MyAccessRequestsController {
     }
 
     // Notify admins of the condominium about the new request (fire-and-forget)
-    this.notifyCondominiumAdmins(
-      result.data.condominiumId,
-      user.displayName || user.email,
-    ).catch(() => {})
+    this.notifyCondominiumAdmins(result.data.condominiumId, user.displayName || user.email).catch(
+      () => {}
+    )
 
     return c.json({ data: result.data }, 201)
   }
@@ -115,7 +117,7 @@ export class MyAccessRequestsController {
    */
   private notifyCondominiumAdmins = async (
     condominiumId: string,
-    requesterName: string,
+    requesterName: string
   ): Promise<void> => {
     // 1. Find users with ADMIN role scoped to the condominium
     const condoAdmins = await this.db
@@ -145,7 +147,10 @@ export class MyAccessRequestsController {
         .innerJoin(roles, eq(userRoles.roleId, roles.id))
         .where(
           and(
-            inArray(userRoles.managementCompanyId, mcIds.map(mc => mc.managementCompanyId)),
+            inArray(
+              userRoles.managementCompanyId,
+              mcIds.map(mc => mc.managementCompanyId)
+            ),
             eq(roles.name, ESystemRole.ADMIN),
             eq(userRoles.isActive, true)
           )
@@ -153,28 +158,29 @@ export class MyAccessRequestsController {
     }
 
     // Deduplicate user IDs (a user could be both condo admin and MC admin)
-    const uniqueUserIds = [...new Set([
-      ...condoAdmins.map(a => a.userId),
-      ...mcAdmins.map(a => a.userId),
-    ])]
+    const uniqueUserIds = [
+      ...new Set([...condoAdmins.map(a => a.userId), ...mcAdmins.map(a => a.userId)]),
+    ]
 
     for (const userId of uniqueUserIds) {
-      this.sendNotificationService.execute({
-        userId,
-        category: 'system',
-        title: 'new_access_request',
-        body: requesterName,
-        channels: ['in_app', 'push'],
-        data: {
-          condominiumId,
-          action: 'new_access_request',
-          i18n: {
-            titleKey: 'notifications.content.newAccessRequest.title',
-            bodyKey: 'notifications.content.newAccessRequest.body',
-            params: { requesterName },
+      this.sendNotificationService
+        .execute({
+          userId,
+          category: 'system',
+          title: 'new_access_request',
+          body: requesterName,
+          channels: ['in_app', 'push'],
+          data: {
+            condominiumId,
+            action: 'new_access_request',
+            i18n: {
+              titleKey: 'notifications.content.newAccessRequest.title',
+              bodyKey: 'notifications.content.newAccessRequest.body',
+              params: { requesterName },
+            },
           },
-        },
-      }).catch(() => {})
+        })
+        .catch(() => {})
     }
   }
 }

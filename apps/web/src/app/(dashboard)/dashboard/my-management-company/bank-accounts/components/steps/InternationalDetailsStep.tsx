@@ -1,18 +1,17 @@
 'use client'
 
+import type { IWizardFormData } from '../CreateBankAccountWizard'
+
 import { useState, useMemo, useCallback } from 'react'
+import { useBanks, useActiveCurrencies } from '@packages/http-client'
+import { CRYPTO_NETWORKS, CRYPTO_CURRENCIES } from '@packages/domain'
+
 import { Input } from '@/ui/components/input'
 import { Autocomplete, type IAutocompleteItem } from '@/ui/components/autocomplete'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { PhoneInput } from '@/ui/components/phone-input'
 import { Checkbox } from '@/ui/components/checkbox'
 import { useTranslation } from '@/contexts'
-import { useBanks, useActiveCurrencies } from '@packages/http-client'
-import {
-  CRYPTO_NETWORKS,
-  CRYPTO_CURRENCIES,
-} from '@packages/domain'
-import type { IWizardFormData } from '../CreateBankAccountWizard'
 
 interface InternationalDetailsStepProps {
   formData: IWizardFormData
@@ -34,11 +33,17 @@ const INTL_METHODS = [
 
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
-export function InternationalDetailsStep({ formData, onUpdate, showErrors }: InternationalDetailsStepProps) {
+export function InternationalDetailsStep({
+  formData,
+  onUpdate,
+  showErrors,
+}: InternationalDetailsStepProps) {
   const { t } = useTranslation()
   const methods = formData.acceptedPaymentMethods
 
-  const [isCustomBank, setIsCustomBank] = useState(() => !formData.bankId && formData.bankName.length > 0)
+  const [isCustomBank, setIsCustomBank] = useState(
+    () => !formData.bankId && formData.bankName.length > 0
+  )
 
   const { data: banksData } = useBanks({ accountCategory: 'international' })
   const banks = banksData?.data ?? []
@@ -56,6 +61,7 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
   const availableMethods = useMemo(() => {
     if (isCustomBank || !selectedBank?.supportedPaymentMethods) return INTL_METHODS
     const supported = selectedBank.supportedPaymentMethods
+
     return INTL_METHODS.filter(m => supported.includes(m.key))
   }, [isCustomBank, selectedBank])
 
@@ -63,11 +69,13 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
     (key: React.Key | null) => {
       if (key) {
         const bank = banks.find(b => b.id === String(key))
+
         if (bank) {
           const supported = bank.supportedPaymentMethods
           const cleanedMethods = supported
             ? formData.acceptedPaymentMethods.filter(m => (supported as string[]).includes(m))
             : formData.acceptedPaymentMethods
+
           onUpdate({ bankId: bank.id, bankName: bank.name, acceptedPaymentMethods: cleanedMethods })
         }
       }
@@ -86,6 +94,7 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
   const handleMethodToggle = useCallback(
     (method: string, checked: boolean) => {
       const current = formData.acceptedPaymentMethods
+
       if (checked) {
         onUpdate({ acceptedPaymentMethods: [...current, method] })
       } else {
@@ -136,19 +145,21 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
       {!isCustomBank ? (
         <>
           <Autocomplete
+            isRequired
             aria-label={t(`${W_PREFIX}.bank`)}
-            label={t(`${W_PREFIX}.bank`)}
+            errorMessage={
+              showErrors && !formData.bankId ? t(`${V_PREFIX}.bankRequired`) : undefined
+            }
+            isInvalid={showErrors && !formData.bankId}
             items={bankItems}
+            label={t(`${W_PREFIX}.bank`)}
+            placeholder={t(`${W_PREFIX}.selectBank`)}
             value={formData.bankId ?? null}
             onSelectionChange={handleBankChange}
-            isRequired
-            placeholder={t(`${W_PREFIX}.selectBank`)}
-            isInvalid={showErrors && !formData.bankId}
-            errorMessage={showErrors && !formData.bankId ? t(`${V_PREFIX}.bankRequired`) : undefined}
           />
           <button
-            type="button"
             className="text-tiny text-default-500 hover:text-foreground cursor-pointer underline self-start -mt-3"
+            type="button"
             onClick={() => {
               setIsCustomBank(true)
               onUpdate({ bankId: undefined, bankName: '', acceptedPaymentMethods: [] })
@@ -160,17 +171,19 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
       ) : (
         <>
           <Input
+            isRequired
+            errorMessage={
+              showErrors && !formData.bankName ? t(`${V_PREFIX}.bankRequired`) : undefined
+            }
+            isInvalid={showErrors && !formData.bankName}
             label={t(`${W_PREFIX}.customBankName`)}
+            placeholder="Facebank, Zinli..."
             value={formData.bankName}
             onValueChange={v => onUpdate({ bankName: v })}
-            isRequired
-            isInvalid={showErrors && !formData.bankName}
-            errorMessage={showErrors && !formData.bankName ? t(`${V_PREFIX}.bankRequired`) : undefined}
-            placeholder="Facebank, Zinli..."
           />
           <button
-            type="button"
             className="text-tiny text-default-500 hover:text-foreground cursor-pointer underline self-start -mt-3"
+            type="button"
             onClick={() => {
               setIsCustomBank(false)
               onUpdate({ bankId: undefined, bankName: '', acceptedPaymentMethods: [] })
@@ -207,63 +220,80 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
       </div>
 
       <Input
+        isRequired
+        errorMessage={
+          showErrors && !formData.accountHolderName
+            ? t(`${V_PREFIX}.accountHolderRequired`)
+            : undefined
+        }
+        isInvalid={showErrors && !formData.accountHolderName}
         label={t(`${W_PREFIX}.accountHolderName`)}
+        placeholder="Condominio Los Pinos C.A."
         value={formData.accountHolderName}
         onValueChange={v => onUpdate({ accountHolderName: v })}
-        placeholder="Condominio Los Pinos C.A."
-        isRequired
-        isInvalid={showErrors && !formData.accountHolderName}
-        errorMessage={showErrors && !formData.accountHolderName ? t(`${V_PREFIX}.accountHolderRequired`) : undefined}
       />
 
       <Select
+        isRequired
         aria-label={t(`${W_PREFIX}.currency`)}
-        label={t(`${W_PREFIX}.currency`)}
+        errorMessage={
+          showErrors && !formData.currencyId ? t(`${V_PREFIX}.currencyRequired`) : undefined
+        }
+        isInvalid={showErrors && !formData.currencyId}
         items={currencyItems}
+        label={t(`${W_PREFIX}.currency`)}
+        placeholder={t(`${W_PREFIX}.selectOption`)}
         value={formData.currencyId ?? ''}
         onChange={v => {
           const selected = currencies.find(c => c.id === v)
+
           if (selected) {
             onUpdate({ currencyId: selected.id, currency: selected.code })
           }
         }}
-        placeholder={t(`${W_PREFIX}.selectOption`)}
-        isRequired
-        isInvalid={showErrors && !formData.currencyId}
-        errorMessage={showErrors && !formData.currencyId ? t(`${V_PREFIX}.currencyRequired`) : undefined}
       />
 
       {/* Account Number + Routing (shared by Wire & ACH) */}
       {hasAccountFields && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <Input
+            isRequired
+            errorMessage={
+              showErrors && !formData.intlAccountNumber
+                ? t(`${V_PREFIX}.intlAccountNumberRequired`)
+                : undefined
+            }
+            isInvalid={showErrors && !formData.intlAccountNumber}
             label={t(`${W_PREFIX}.accountNumber`)}
+            placeholder="123456789012"
             value={formData.intlAccountNumber ?? ''}
             onValueChange={v => onUpdate({ intlAccountNumber: v })}
-            isRequired
-            placeholder="123456789012"
-            isInvalid={showErrors && !formData.intlAccountNumber}
-            errorMessage={showErrors && !formData.intlAccountNumber ? t(`${V_PREFIX}.intlAccountNumberRequired`) : undefined}
           />
           <Input
-            label={t(`${W_PREFIX}.routingNumber`)}
-            placeholder="026009593"
-            value={formData.routingNumber ?? ''}
-            onValueChange={v => onUpdate({ routingNumber: v.replace(/\D/g, '') })}
-            maxLength={9}
-            inputMode="numeric"
-            isRequired={hasAch}
-            isInvalid={
-              (hasAch && !!formData.routingNumber && formData.routingNumber.length > 0 && formData.routingNumber.length !== 9) ||
-              (showErrors && hasAch && !formData.routingNumber)
-            }
             errorMessage={
-              hasAch && formData.routingNumber && formData.routingNumber.length > 0 && formData.routingNumber.length !== 9
+              hasAch &&
+              formData.routingNumber &&
+              formData.routingNumber.length > 0 &&
+              formData.routingNumber.length !== 9
                 ? t(`${V_PREFIX}.routingNumberLength`, { count: formData.routingNumber.length })
                 : showErrors && hasAch && !formData.routingNumber
                   ? t(`${V_PREFIX}.routingNumberRequired`)
                   : undefined
             }
+            inputMode="numeric"
+            isInvalid={
+              (hasAch &&
+                !!formData.routingNumber &&
+                formData.routingNumber.length > 0 &&
+                formData.routingNumber.length !== 9) ||
+              (showErrors && hasAch && !formData.routingNumber)
+            }
+            isRequired={hasAch}
+            label={t(`${W_PREFIX}.routingNumber`)}
+            maxLength={9}
+            placeholder="026009593"
+            value={formData.routingNumber ?? ''}
+            onValueChange={v => onUpdate({ routingNumber: v.replace(/\D/g, '') })}
           />
         </div>
       )}
@@ -273,34 +303,36 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <Input
+              isRequired
+              errorMessage={
+                showErrors && !formData.swiftCode ? t(`${V_PREFIX}.swiftCodeRequired`) : undefined
+              }
+              isInvalid={showErrors && !formData.swiftCode}
               label={t(`${W_PREFIX}.swiftCode`)}
+              maxLength={11}
+              placeholder="BOFAUS3N"
               value={formData.swiftCode ?? ''}
               onValueChange={v => onUpdate({ swiftCode: v.toUpperCase() })}
-              placeholder="BOFAUS3N"
-              maxLength={11}
-              isRequired
-              isInvalid={showErrors && !formData.swiftCode}
-              errorMessage={showErrors && !formData.swiftCode ? t(`${V_PREFIX}.swiftCodeRequired`) : undefined}
             />
             <Input
               label={t(`${W_PREFIX}.iban`)}
+              maxLength={34}
+              placeholder="GB29NWBK60161331926819"
               value={formData.iban ?? ''}
               onValueChange={v => onUpdate({ iban: v.toUpperCase() })}
-              placeholder="GB29NWBK60161331926819"
-              maxLength={34}
             />
           </div>
           <Input
             label={t(`${W_PREFIX}.bankAddress`)}
+            placeholder="100 N Tryon St, Charlotte, NC"
             value={formData.bankAddress ?? ''}
             onValueChange={v => onUpdate({ bankAddress: v })}
-            placeholder="100 N Tryon St, Charlotte, NC"
           />
           <Input
             label={t(`${W_PREFIX}.beneficiaryAddress`)}
+            placeholder="123 Main St, Miami, FL"
             value={formData.beneficiaryAddress ?? ''}
             onValueChange={v => onUpdate({ beneficiaryAddress: v })}
-            placeholder="123 Main St, Miami, FL"
           />
         </>
       )}
@@ -309,16 +341,6 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
       {hasZelle && (
         <>
           <Input
-            label={t(`${W_PREFIX}.zelleEmail`)}
-            value={formData.zelleEmail ?? ''}
-            onValueChange={v => onUpdate({ zelleEmail: v })}
-            placeholder="admin@company.com"
-            type="email"
-            isRequired={!formData.zellePhone}
-            isInvalid={
-              (!!formData.zelleEmail && !isValidEmail(formData.zelleEmail)) ||
-              (showErrors && !formData.zelleEmail && !formData.zellePhone)
-            }
             errorMessage={
               formData.zelleEmail && !isValidEmail(formData.zelleEmail)
                 ? t(`${V_PREFIX}.emailInvalid`)
@@ -326,19 +348,29 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
                   ? t(`${V_PREFIX}.zelleContactRequired`)
                   : undefined
             }
+            isInvalid={
+              (!!formData.zelleEmail && !isValidEmail(formData.zelleEmail)) ||
+              (showErrors && !formData.zelleEmail && !formData.zellePhone)
+            }
+            isRequired={!formData.zellePhone}
+            label={t(`${W_PREFIX}.zelleEmail`)}
+            placeholder="admin@company.com"
+            type="email"
+            value={formData.zelleEmail ?? ''}
+            onValueChange={v => onUpdate({ zelleEmail: v })}
           />
           <PhoneInput
-            label={t(`${W_PREFIX}.zellePhone`)}
-            countryCode="+1"
-            phoneNumber={formData.zellePhone ?? ''}
-            onPhoneNumberChange={v => onUpdate({ zellePhone: v })}
-            isRequired={!formData.zelleEmail}
             isCountryCodeReadOnly
+            countryCode="+1"
+            isRequired={!formData.zelleEmail}
+            label={t(`${W_PREFIX}.zellePhone`)}
+            phoneNumber={formData.zellePhone ?? ''}
             phoneNumberError={
               showErrors && !formData.zellePhone && !formData.zelleEmail
                 ? t(`${V_PREFIX}.zelleContactRequired`)
                 : undefined
             }
+            onPhoneNumberChange={v => onUpdate({ zellePhone: v })}
           />
         </>
       )}
@@ -347,26 +379,34 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
       {hasAch && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <Select
+            isRequired
             aria-label={t(`${W_PREFIX}.holderType`)}
-            label={t(`${W_PREFIX}.holderType`)}
+            errorMessage={
+              showErrors && !formData.accountHolderType
+                ? t(`${V_PREFIX}.holderTypeRequired`)
+                : undefined
+            }
+            isInvalid={showErrors && !formData.accountHolderType}
             items={holderTypeItems}
+            label={t(`${W_PREFIX}.holderType`)}
+            placeholder={t(`${W_PREFIX}.selectOption`)}
             value={formData.accountHolderType ?? ''}
             onChange={v => onUpdate({ accountHolderType: v ?? undefined })}
-            placeholder={t(`${W_PREFIX}.selectOption`)}
-            isRequired
-            isInvalid={showErrors && !formData.accountHolderType}
-            errorMessage={showErrors && !formData.accountHolderType ? t(`${V_PREFIX}.holderTypeRequired`) : undefined}
           />
           <Select
+            isRequired
             aria-label={t(`${W_PREFIX}.accountType`)}
-            label={t(`${W_PREFIX}.accountType`)}
+            errorMessage={
+              showErrors && !formData.intlAccountType
+                ? t(`${V_PREFIX}.accountTypeRequired`)
+                : undefined
+            }
+            isInvalid={showErrors && !formData.intlAccountType}
             items={accountTypeItems}
+            label={t(`${W_PREFIX}.accountType`)}
+            placeholder={t(`${W_PREFIX}.selectOption`)}
             value={formData.intlAccountType ?? ''}
             onChange={v => onUpdate({ intlAccountType: v ?? undefined })}
-            placeholder={t(`${W_PREFIX}.selectOption`)}
-            isRequired
-            isInvalid={showErrors && !formData.intlAccountType}
-            errorMessage={showErrors && !formData.intlAccountType ? t(`${V_PREFIX}.accountTypeRequired`) : undefined}
           />
         </div>
       )}
@@ -374,16 +414,7 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
       {/* PayPal specific */}
       {hasPaypal && (
         <Input
-          label={t(`${W_PREFIX}.paypalEmail`)}
-          value={formData.paypalEmail ?? ''}
-          onValueChange={v => onUpdate({ paypalEmail: v })}
-          type="email"
-          placeholder="admin@company.com"
           isRequired
-          isInvalid={
-            (!!formData.paypalEmail && !isValidEmail(formData.paypalEmail)) ||
-            (showErrors && !formData.paypalEmail)
-          }
           errorMessage={
             formData.paypalEmail && !isValidEmail(formData.paypalEmail)
               ? t(`${V_PREFIX}.emailInvalid`)
@@ -391,22 +422,22 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
                 ? t(`${V_PREFIX}.paypalWiseEmailRequired`)
                 : undefined
           }
+          isInvalid={
+            (!!formData.paypalEmail && !isValidEmail(formData.paypalEmail)) ||
+            (showErrors && !formData.paypalEmail)
+          }
+          label={t(`${W_PREFIX}.paypalEmail`)}
+          placeholder="admin@company.com"
+          type="email"
+          value={formData.paypalEmail ?? ''}
+          onValueChange={v => onUpdate({ paypalEmail: v })}
         />
       )}
 
       {/* Wise specific */}
       {hasWise && (
         <Input
-          label={t(`${W_PREFIX}.wiseEmail`)}
-          value={formData.wiseEmail ?? ''}
-          onValueChange={v => onUpdate({ wiseEmail: v })}
-          type="email"
-          placeholder="admin@company.com"
           isRequired
-          isInvalid={
-            (!!formData.wiseEmail && !isValidEmail(formData.wiseEmail)) ||
-            (showErrors && !formData.wiseEmail)
-          }
           errorMessage={
             formData.wiseEmail && !isValidEmail(formData.wiseEmail)
               ? t(`${V_PREFIX}.emailInvalid`)
@@ -414,6 +445,15 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
                 ? t(`${V_PREFIX}.paypalWiseEmailRequired`)
                 : undefined
           }
+          isInvalid={
+            (!!formData.wiseEmail && !isValidEmail(formData.wiseEmail)) ||
+            (showErrors && !formData.wiseEmail)
+          }
+          label={t(`${W_PREFIX}.wiseEmail`)}
+          placeholder="admin@company.com"
+          type="email"
+          value={formData.wiseEmail ?? ''}
+          onValueChange={v => onUpdate({ wiseEmail: v })}
         />
       )}
 
@@ -421,36 +461,48 @@ export function InternationalDetailsStep({ formData, onUpdate, showErrors }: Int
       {hasCrypto && (
         <>
           <Input
+            isRequired
+            errorMessage={
+              showErrors && !formData.walletAddress
+                ? t(`${V_PREFIX}.walletAddressRequired`)
+                : undefined
+            }
+            isInvalid={showErrors && !formData.walletAddress}
             label={t(`${W_PREFIX}.walletAddress`)}
+            placeholder="TN3W4H..."
             value={formData.walletAddress ?? ''}
             onValueChange={v => onUpdate({ walletAddress: v })}
-            isRequired
-            placeholder="TN3W4H..."
-            isInvalid={showErrors && !formData.walletAddress}
-            errorMessage={showErrors && !formData.walletAddress ? t(`${V_PREFIX}.walletAddressRequired`) : undefined}
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <Select
+              isRequired
               aria-label={t(`${W_PREFIX}.cryptoNetwork`)}
-              label={t(`${W_PREFIX}.cryptoNetwork`)}
+              errorMessage={
+                showErrors && !formData.cryptoNetwork
+                  ? t(`${V_PREFIX}.cryptoNetworkRequired`)
+                  : undefined
+              }
+              isInvalid={showErrors && !formData.cryptoNetwork}
               items={cryptoNetworkItems}
+              label={t(`${W_PREFIX}.cryptoNetwork`)}
+              placeholder={t(`${W_PREFIX}.selectOption`)}
               value={formData.cryptoNetwork ?? ''}
               onChange={v => onUpdate({ cryptoNetwork: v ?? undefined })}
-              placeholder={t(`${W_PREFIX}.selectOption`)}
-              isRequired
-              isInvalid={showErrors && !formData.cryptoNetwork}
-              errorMessage={showErrors && !formData.cryptoNetwork ? t(`${V_PREFIX}.cryptoNetworkRequired`) : undefined}
             />
             <Select
+              isRequired
               aria-label={t(`${W_PREFIX}.cryptoCurrency`)}
-              label={t(`${W_PREFIX}.cryptoCurrency`)}
+              errorMessage={
+                showErrors && !formData.cryptoCurrency
+                  ? t(`${V_PREFIX}.cryptoCurrencyRequired`)
+                  : undefined
+              }
+              isInvalid={showErrors && !formData.cryptoCurrency}
               items={cryptoCurrencyItems}
+              label={t(`${W_PREFIX}.cryptoCurrency`)}
+              placeholder={t(`${W_PREFIX}.selectOption`)}
               value={formData.cryptoCurrency ?? ''}
               onChange={v => onUpdate({ cryptoCurrency: v ?? undefined })}
-              placeholder={t(`${W_PREFIX}.selectOption`)}
-              isRequired
-              isInvalid={showErrors && !formData.cryptoCurrency}
-              errorMessage={showErrors && !formData.cryptoCurrency ? t(`${V_PREFIX}.cryptoCurrencyRequired`) : undefined}
             />
           </div>
         </>

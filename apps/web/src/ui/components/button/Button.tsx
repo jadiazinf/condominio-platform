@@ -92,9 +92,9 @@ export const Button = forwardRef<HTMLButtonElement, IButtonProps>(function Butto
     return (
       <button
         ref={ref}
-        type={type}
-        disabled={isDisabled}
         className={cn('inline underline cursor-pointer hover:opacity-80', colorClass, className)}
+        disabled={isDisabled}
+        type={type}
         onClick={rest.onClick ?? (onPress ? () => onPress() : undefined)}
       >
         {children}

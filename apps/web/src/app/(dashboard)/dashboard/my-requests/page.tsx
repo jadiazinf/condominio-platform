@@ -1,6 +1,7 @@
+import { MyRequestsClient } from './MyRequestsClient'
+
 import { getTranslations } from '@/libs/i18n/server'
 import { Typography } from '@/ui/components/typography'
-import { MyRequestsClient } from './MyRequestsClient'
 
 export default async function MyRequestsPage() {
   const { t } = await getTranslations()
@@ -58,7 +59,7 @@ export default async function MyRequestsPage() {
     <div className="space-y-6">
       <div>
         <Typography variant="h3">{translations.title}</Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
+        <Typography className="mt-1" color="muted" variant="body2">
           {translations.subtitle}
         </Typography>
       </div>

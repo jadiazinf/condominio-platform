@@ -22,8 +22,6 @@ import type {
   TUserNotificationPreferenceCreate,
   TUserNotificationPreferenceUpdate,
   TUserFcmToken,
-  TUserFcmTokenCreate,
-  TUserFcmTokenUpdate,
 } from '@packages/domain'
 import { EDevicePlatforms } from '@packages/domain'
 import type { TEndpointDefinition, TIdParam, TCodeParam } from './base'

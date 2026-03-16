@@ -1,5 +1,9 @@
 import type { TPaymentConceptService } from '@packages/domain'
-import type { PaymentConceptServicesRepository, PaymentConceptsRepository, CondominiumServicesRepository } from '@database/repositories'
+import type {
+  PaymentConceptServicesRepository,
+  PaymentConceptsRepository,
+  CondominiumServicesRepository,
+} from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 
 export interface ILinkServiceToConceptInput {
@@ -16,7 +20,9 @@ export class LinkServiceToConceptService {
     private readonly servicesRepo: CondominiumServicesRepository
   ) {}
 
-  async execute(input: ILinkServiceToConceptInput): Promise<TServiceResult<TPaymentConceptService>> {
+  async execute(
+    input: ILinkServiceToConceptInput
+  ): Promise<TServiceResult<TPaymentConceptService>> {
     // Validate concept exists
     const concept = await this.conceptsRepo.getById(input.paymentConceptId)
     if (!concept) {

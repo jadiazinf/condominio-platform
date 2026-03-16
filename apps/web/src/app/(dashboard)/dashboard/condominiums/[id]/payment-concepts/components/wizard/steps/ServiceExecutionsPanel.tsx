@@ -1,15 +1,21 @@
 'use client'
 
+import type { TServiceExecution } from '@packages/domain'
+
 import { useState } from 'react'
+import { Plus, Pencil, Trash2, Receipt } from 'lucide-react'
+import {
+  useServiceExecutionsPaginated,
+  useDeleteServiceExecution,
+} from '@packages/http-client/hooks/use-service-executions'
+
+import { ExecutionModal } from '../../../../services/components/ExecutionModal'
+
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Spinner } from '@/ui/components/spinner'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
-import { Plus, Pencil, Trash2, Receipt } from 'lucide-react'
-import { useServiceExecutionsPaginated, useDeleteServiceExecution } from '@packages/http-client/hooks/use-service-executions'
-import { ExecutionModal } from '../../../../services/components/ExecutionModal'
-import type { TServiceExecution } from '@packages/domain'
 import { useToast } from '@/ui/components/toast'
 
 interface ServiceExecutionsPanelProps {
@@ -49,22 +55,17 @@ export function ServiceExecutionsPanel({
 
   const executions: TServiceExecution[] = data?.data ?? []
 
-  const deleteExecution = useDeleteServiceExecution(
-    managementCompanyId,
-    serviceId,
-    condominiumId,
-    {
-      onSuccess: () => {
-        toast.success(t(`${d}.executionDeleted`))
-        setDeletingId(null)
-        refetch()
-      },
-      onError: () => {
-        toast.error(t(`${d}.executionDeleteError`))
-        setDeletingId(null)
-      },
-    }
-  )
+  const deleteExecution = useDeleteServiceExecution(managementCompanyId, serviceId, condominiumId, {
+    onSuccess: () => {
+      toast.success(t(`${d}.executionDeleted`))
+      setDeletingId(null)
+      refetch()
+    },
+    onError: () => {
+      toast.error(t(`${d}.executionDeleteError`))
+      setDeletingId(null)
+    },
+  })
 
   const handleNewExecution = () => {
     setExecutionToEdit(null)
@@ -89,23 +90,23 @@ export function ServiceExecutionsPanel({
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">
+      <Modal isOpen={isOpen} scrollBehavior="inside" size="xl" onClose={onClose}>
         <ModalContent>
           <ModalHeader className="flex items-center justify-between gap-3 pr-12">
             <div className="flex items-center gap-2 min-w-0">
-              <Receipt size={18} className="text-primary shrink-0" />
+              <Receipt className="text-primary shrink-0" size={18} />
               <div className="min-w-0">
                 <Typography variant="h4">{t(`${d}.executions`)}</Typography>
                 <p className="text-xs text-default-400 truncate">{serviceName}</p>
               </div>
             </div>
             <Button
-              size="sm"
-              color="primary"
-              variant="flat"
-              startContent={<Plus size={14} />}
-              onPress={handleNewExecution}
               className="shrink-0"
+              color="primary"
+              size="sm"
+              startContent={<Plus size={14} />}
+              variant="flat"
+              onPress={handleNewExecution}
             >
               {t(`${d}.newExecution`)}
             </Button>
@@ -118,13 +119,13 @@ export function ServiceExecutionsPanel({
               </div>
             ) : executions.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-10">
-                <Receipt size={40} className="text-default-300" />
+                <Receipt className="text-default-300" size={40} />
                 <p className="text-sm text-default-400">{t(`${d}.noExecutions`)}</p>
                 <Button
-                  size="sm"
                   color="primary"
-                  variant="flat"
+                  size="sm"
                   startContent={<Plus size={14} />}
+                  variant="flat"
                   onPress={handleNewExecution}
                 >
                   {t(`${d}.newExecution`)}
@@ -163,10 +164,10 @@ export function ServiceExecutionsPanel({
                       </Button>
                       <Button
                         isIconOnly
-                        size="sm"
-                        variant="light"
                         color="danger"
                         isLoading={deletingId === execution.id}
+                        size="sm"
+                        variant="light"
                         onPress={() => handleDeleteExecution(execution.id)}
                       >
                         <Trash2 size={14} />
@@ -182,16 +183,16 @@ export function ServiceExecutionsPanel({
 
       {executionModalOpen && (
         <ExecutionModal
+          condominiumId={condominiumId}
+          currencyId={currencyId}
+          execution={executionToEdit}
           isOpen={executionModalOpen}
+          managementCompanyId={managementCompanyId}
+          serviceId={serviceId}
           onClose={() => {
             setExecutionModalOpen(false)
             setExecutionToEdit(null)
           }}
-          managementCompanyId={managementCompanyId}
-          serviceId={serviceId}
-          condominiumId={condominiumId}
-          currencyId={currencyId}
-          execution={executionToEdit}
           onSuccess={handleExecutionSuccess}
         />
       )}

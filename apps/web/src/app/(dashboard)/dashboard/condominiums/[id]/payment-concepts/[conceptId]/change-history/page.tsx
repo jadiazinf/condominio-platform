@@ -2,10 +2,11 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 
+import { ChangeHistoryPageClient } from './ChangeHistoryPageClient'
+
 import { Button } from '@/ui/components/button'
 import { getFullSession } from '@/libs/session'
 import { getTranslations } from '@/libs/i18n/server'
-import { ChangeHistoryPageClient } from './ChangeHistoryPageClient'
 
 interface PageProps {
   params: Promise<{ id: string; conceptId: string }>
@@ -15,9 +16,10 @@ async function ChangeHistoryContent({ params }: PageProps) {
   const { id, conceptId } = await params
   const [session, { t }] = await Promise.all([getFullSession(), getTranslations()])
 
-  const managementCompanyId = session?.activeRole === 'management_company'
-    ? session.managementCompanies?.[0]?.managementCompanyId ?? ''
-    : ''
+  const managementCompanyId =
+    session?.activeRole === 'management_company'
+      ? (session.managementCompanies?.[0]?.managementCompanyId ?? '')
+      : ''
 
   if (!managementCompanyId) {
     redirect(`/dashboard/condominiums/${id}/payment-concepts`)
@@ -28,15 +30,15 @@ async function ChangeHistoryContent({ params }: PageProps) {
       <Button
         className="mb-2"
         href={`/dashboard/condominiums/${id}/payment-concepts/${conceptId}`}
-        variant="light"
         startContent={<ArrowLeft size={16} />}
+        variant="light"
       >
         {t('admin.condominiums.detail.paymentConcepts.detail.backToConcept')}
       </Button>
 
       <ChangeHistoryPageClient
-        condominiumId={id}
         conceptId={conceptId}
+        condominiumId={id}
         managementCompanyId={managementCompanyId}
       />
     </div>

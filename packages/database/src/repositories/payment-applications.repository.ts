@@ -1,10 +1,10 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 import type {
   TPaymentApplication,
   TPaymentApplicationCreate,
   TPaymentApplicationUpdate,
 } from '@packages/domain'
-import { paymentApplications } from '../drizzle/schema'
+import { paymentApplications, quotas, paymentConcepts } from '../drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -47,6 +47,24 @@ export class PaymentApplicationsRepository
   }
 
   /**
+   * Retrieves applications scoped to a condominium via quota → paymentConcept → condominium.
+   */
+  async listByCondominiumId(condominiumId: string): Promise<TPaymentApplication[]> {
+    const condominiumQuotaIds = this.db
+      .select({ id: quotas.id })
+      .from(quotas)
+      .innerJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
+      .where(eq(paymentConcepts.condominiumId, condominiumId))
+
+    const results = await this.db
+      .select()
+      .from(paymentApplications)
+      .where(inArray(paymentApplications.quotaId, condominiumQuotaIds))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
    * Override listAll since payment applications don't have isActive.
    */
   override async listAll(): Promise<TPaymentApplication[]> {
@@ -64,11 +82,23 @@ export class PaymentApplicationsRepository
   /**
    * Retrieves applications by payment.
    */
-  async getByPaymentId(paymentId: string): Promise<TPaymentApplication[]> {
+  async getByPaymentId(paymentId: string, condominiumId?: string): Promise<TPaymentApplication[]> {
+    const conditions = [eq(paymentApplications.paymentId, paymentId)]
+
+    if (condominiumId) {
+      const condominiumQuotaIds = this.db
+        .select({ id: quotas.id })
+        .from(quotas)
+        .innerJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
+        .where(eq(paymentConcepts.condominiumId, condominiumId))
+
+      conditions.push(inArray(paymentApplications.quotaId, condominiumQuotaIds))
+    }
+
     const results = await this.db
       .select()
       .from(paymentApplications)
-      .where(eq(paymentApplications.paymentId, paymentId))
+      .where(and(...conditions))
 
     return results.map(record => this.mapToEntity(record))
   }
@@ -76,11 +106,23 @@ export class PaymentApplicationsRepository
   /**
    * Retrieves applications by quota.
    */
-  async getByQuotaId(quotaId: string): Promise<TPaymentApplication[]> {
+  async getByQuotaId(quotaId: string, condominiumId?: string): Promise<TPaymentApplication[]> {
+    const conditions = [eq(paymentApplications.quotaId, quotaId)]
+
+    if (condominiumId) {
+      const condominiumQuotaIds = this.db
+        .select({ id: quotas.id })
+        .from(quotas)
+        .innerJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
+        .where(eq(paymentConcepts.condominiumId, condominiumId))
+
+      conditions.push(inArray(paymentApplications.quotaId, condominiumQuotaIds))
+    }
+
     const results = await this.db
       .select()
       .from(paymentApplications)
-      .where(eq(paymentApplications.quotaId, quotaId))
+      .where(and(...conditions))
 
     return results.map(record => this.mapToEntity(record))
   }

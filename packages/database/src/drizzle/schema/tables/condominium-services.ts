@@ -1,4 +1,14 @@
-import { pgTable, uuid, varchar, text, boolean, timestamp, jsonb, index, decimal } from 'drizzle-orm/pg-core'
+import {
+  pgTable,
+  uuid,
+  varchar,
+  text,
+  boolean,
+  timestamp,
+  jsonb,
+  index,
+  decimal,
+} from 'drizzle-orm/pg-core'
 import { condominiums } from './condominiums'
 import { locations } from './locations'
 import { users } from './users'
@@ -28,7 +38,9 @@ export const condominiumServices = pgTable(
     chargesIva: boolean('charges_iva').default(false).notNull(),
     ivaRate: decimal('iva_rate', { precision: 5, scale: 4 }).default('0.16').notNull(),
     subjectToIslarRetention: boolean('subject_to_islr_retention').default(false).notNull(),
-    islrRetentionRate: decimal('islr_retention_rate', { precision: 5, scale: 4 }).default('0.01').notNull(),
+    islrRetentionRate: decimal('islr_retention_rate', { precision: 5, scale: 4 })
+      .default('0.01')
+      .notNull(),
     isDefault: boolean('is_default').default(false),
     isActive: boolean('is_active').default(true),
     metadata: jsonb('metadata'),

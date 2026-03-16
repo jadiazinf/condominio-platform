@@ -150,7 +150,7 @@ export function useCreateExchangeRate(options?: ICreateExchangeRateOptions) {
 
 export function useDeleteExchangeRate(options?: IDeleteExchangeRateOptions) {
   return useApiMutation<TApiDataResponse<TExchangeRate>, { id: string }>({
-    path: (data) => `/platform/exchange-rates/${data.id}`,
+    path: data => `/platform/exchange-rates/${data.id}`,
     method: 'DELETE',
     config: {},
     onSuccess: options?.onSuccess,
@@ -191,7 +191,9 @@ export function useMyEffectiveExchangeRates(date: string, options?: { enabled?: 
 
 export async function getLatestExchangeRates(): Promise<TExchangeRate[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TExchangeRate[]>>('/platform/exchange-rates/latest')
+  const response = await client.get<TApiDataResponse<TExchangeRate[]>>(
+    '/platform/exchange-rates/latest'
+  )
   return response.data.data
 }
 

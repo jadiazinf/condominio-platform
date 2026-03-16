@@ -1,6 +1,16 @@
 'use client'
 
+import type { TPayment, TReserveFundPaymentsQuery } from '@packages/domain'
+import type { TPaymentsTranslations } from './types'
+
 import { useState, useMemo, useCallback } from 'react'
+import { CreditCard } from 'lucide-react'
+import {
+  useReserveFundPaymentsPaginated,
+  useCondominiumUnits,
+  useMyCompanyPaymentConceptsPaginated,
+} from '@packages/http-client/hooks'
+
 import { Input } from '@/ui/components/input'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Spinner } from '@/ui/components/spinner'
@@ -9,14 +19,6 @@ import { Typography } from '@/ui/components/typography'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
 import { Card, CardBody } from '@/ui/components/card'
-import { CreditCard } from 'lucide-react'
-import type { TPayment, TReserveFundPaymentsQuery } from '@packages/domain'
-import {
-  useReserveFundPaymentsPaginated,
-  useCondominiumUnits,
-  useMyCompanyPaymentConceptsPaginated,
-} from '@packages/http-client/hooks'
-import type { TPaymentsTranslations } from './types'
 
 const STATUS_COLORS: Record<string, 'warning' | 'success' | 'danger' | 'secondary' | 'default'> = {
   pending: 'warning',
@@ -110,19 +112,27 @@ export function ReserveFundPaymentsSection({
   const pagination = data?.pagination ?? { page: 1, limit: 10, total: 0, totalPages: 0 }
 
   const handleUnitChange = useCallback((key: string | null) => {
-    if (key) { setUnitFilter(key); setPage(1) }
+    if (key) {
+      setUnitFilter(key)
+      setPage(1)
+    }
   }, [])
 
   const handleConceptChange = useCallback((key: string | null) => {
-    if (key) { setConceptFilter(key); setPage(1) }
+    if (key) {
+      setConceptFilter(key)
+      setPage(1)
+    }
   }, [])
 
   const handleStartDateChange = useCallback((value: string) => {
-    setStartDate(value); setPage(1)
+    setStartDate(value)
+    setPage(1)
   }, [])
 
   const handleEndDateChange = useCallback((value: string) => {
-    setEndDate(value); setPage(1)
+    setEndDate(value)
+    setPage(1)
   }, [])
 
   const columns: ITableColumn<TPayment>[] = useMemo(
@@ -141,18 +151,11 @@ export function ReserveFundPaymentsSection({
     (payment: TPayment, columnKey: string) => {
       switch (columnKey) {
         case 'paymentNumber':
-          return (
-            <span className="font-medium text-sm">
-              {payment.paymentNumber || '-'}
-            </span>
-          )
+          return <span className="font-medium text-sm">{payment.paymentNumber || '-'}</span>
         case 'unit': {
           const unit = units.find(u => u.id === payment.unitId)
-          return (
-            <span className="text-sm text-default-600">
-              {unit?.unitNumber ?? '-'}
-            </span>
-          )
+
+          return <span className="text-sm text-default-600">{unit?.unitNumber ?? '-'}</span>
         }
         case 'amount':
           return (
@@ -167,7 +170,9 @@ export function ReserveFundPaymentsSection({
           return payment.paymentDate ? (
             <span className="text-sm text-default-600">
               {new Date(payment.paymentDate).toLocaleDateString('es-ES', {
-                day: '2-digit', month: 'short', year: 'numeric',
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
               })}
             </span>
           ) : (
@@ -175,11 +180,7 @@ export function ReserveFundPaymentsSection({
           )
         case 'status':
           return (
-            <Chip
-              color={STATUS_COLORS[payment.status] ?? 'default'}
-              variant="flat"
-              size="sm"
-            >
+            <Chip color={STATUS_COLORS[payment.status] ?? 'default'} size="sm" variant="flat">
               {t.status[payment.status] ?? payment.status}
             </Chip>
           )
@@ -203,40 +204,40 @@ export function ReserveFundPaymentsSection({
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:flex-wrap">
         <Select
-          label={t.filters.unit}
           className="w-full sm:w-48"
           items={unitFilterItems}
+          label={t.filters.unit}
           value={unitFilter}
-          onChange={handleUnitChange}
           variant="bordered"
+          onChange={handleUnitChange}
         />
         <Select
-          label={t.filters.concept}
           className="w-full sm:w-56"
           items={conceptFilterItems}
+          label={t.filters.concept}
           value={conceptFilter}
+          variant="bordered"
           onChange={handleConceptChange}
-          variant="bordered"
         />
         <Input
-          type="date"
+          isClearable
+          className="w-full sm:w-44"
           label={t.filters.startDate}
+          type="date"
           value={startDate}
-          onValueChange={handleStartDateChange}
-          className="w-full sm:w-44"
           variant="bordered"
-          isClearable
           onClear={() => handleStartDateChange('')}
+          onValueChange={handleStartDateChange}
         />
         <Input
-          type="date"
-          label={t.filters.endDate}
-          value={endDate}
-          onValueChange={handleEndDateChange}
-          className="w-full sm:w-44"
-          variant="bordered"
           isClearable
+          className="w-full sm:w-44"
+          label={t.filters.endDate}
+          type="date"
+          value={endDate}
+          variant="bordered"
           onClear={() => handleEndDateChange('')}
+          onValueChange={handleEndDateChange}
         />
       </div>
 
@@ -258,20 +259,19 @@ export function ReserveFundPaymentsSection({
           <div className="block space-y-3 md:hidden">
             {payments.map(payment => {
               const unit = units.find(u => u.id === payment.unitId)
+
               return (
                 <Card key={payment.id} className="w-full">
                   <CardBody className="space-y-2">
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="font-medium text-sm">{payment.paymentNumber || '-'}</p>
-                        <p className="text-xs text-default-500">
-                          {unit?.unitNumber ?? '-'}
-                        </p>
+                        <p className="text-xs text-default-500">{unit?.unitNumber ?? '-'}</p>
                       </div>
                       <Chip
                         color={STATUS_COLORS[payment.status] ?? 'default'}
-                        variant="flat"
                         size="sm"
+                        variant="flat"
                       >
                         {t.status[payment.status] ?? payment.status}
                       </Chip>
@@ -286,7 +286,9 @@ export function ReserveFundPaymentsSection({
                       {payment.paymentDate && (
                         <span className="text-xs text-default-400">
                           {new Date(payment.paymentDate).toLocaleDateString('es-ES', {
-                            day: '2-digit', month: 'short', year: 'numeric',
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
                           })}
                         </span>
                       )}
@@ -300,11 +302,11 @@ export function ReserveFundPaymentsSection({
           {/* Desktop Table */}
           <div className="hidden md:block">
             <Table<TPayment>
-              mobileCards={false}
               aria-label={t.title}
               columns={columns}
-              rows={payments}
+              mobileCards={false}
               renderCell={renderCell}
+              rows={payments}
             />
           </div>
 
@@ -315,7 +317,10 @@ export function ReserveFundPaymentsSection({
             page={pagination.page}
             total={pagination.total}
             totalPages={pagination.totalPages}
-            onLimitChange={newLimit => { setLimit(newLimit); setPage(1) }}
+            onLimitChange={newLimit => {
+              setLimit(newLimit)
+              setPage(1)
+            }}
             onPageChange={setPage}
           />
         </>

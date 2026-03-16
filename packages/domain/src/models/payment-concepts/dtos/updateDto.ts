@@ -1,5 +1,10 @@
 import { z } from 'zod'
-import { EConceptTypes, ERecurrencePeriods, EChargeAdjustmentTypes } from '../schema'
+import {
+  EConceptTypes,
+  ERecurrencePeriods,
+  EChargeAdjustmentTypes,
+  EChargeGenerationStrategies,
+} from '../schema'
 
 export const paymentConceptUpdateSchema = z.object({
   condominiumId: z.uuid().nullable().optional(),
@@ -21,6 +26,7 @@ export const paymentConceptUpdateSchema = z.object({
   dueDay: z.number().int().min(1).max(28).nullable().optional(),
   effectiveFrom: z.coerce.date().nullable().optional(),
   effectiveUntil: z.coerce.date().nullable().optional(),
+  chargeGenerationStrategy: z.enum(EChargeGenerationStrategies).optional(),
   isActive: z.boolean().optional(),
   metadata: z.record(z.string(), z.unknown()).nullable().optional(),
   createdBy: z.uuid().nullable().optional(),

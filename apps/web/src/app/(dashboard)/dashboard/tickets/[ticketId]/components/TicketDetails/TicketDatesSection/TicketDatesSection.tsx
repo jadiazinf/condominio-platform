@@ -1,8 +1,10 @@
 'use client'
 
-import { Typography } from '@/ui/components/typography'
 import { Calendar } from 'lucide-react'
+
 import { formatDate } from '../../ticket-helpers'
+
+import { Typography } from '@/ui/components/typography'
 
 interface ITicketDatesSectionProps {
   createdAt: Date

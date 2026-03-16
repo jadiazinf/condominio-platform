@@ -75,37 +75,37 @@ beforeEach(async () => {
   `)
 
   // Insert currency
-  const currencyResult = await db.execute(sql`
+  const currencyResult = (await db.execute(sql`
     INSERT INTO currencies (name, code, symbol, is_active)
     VALUES ('US Dollar', 'USD', '$', true)
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   currencyId = currencyResult[0]!.id
 
   // Insert condominium
-  const condoResult = await db.execute(sql`
+  const condoResult = (await db.execute(sql`
     INSERT INTO condominiums (name, default_currency_id, is_active, created_by)
     VALUES ('Test Condo', ${currencyId}, true, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   condominiumId = condoResult[0]!.id
 
   // Insert building
-  const buildingResult = await db.execute(sql`
+  const buildingResult = (await db.execute(sql`
     INSERT INTO buildings (name, condominium_id, created_by)
     VALUES ('Building A', ${condominiumId}, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   buildingId = buildingResult[0]!.id
 
   // Insert 3 units
   unitIds = []
   for (const [i, aliquot] of [['40.00'], ['35.00'], ['25.00']].entries()) {
-    const unitResult = await db.execute(sql`
+    const unitResult = (await db.execute(sql`
       INSERT INTO units (unit_number, building_id, aliquot_percentage, area_m2, floor, created_by)
       VALUES (${`A-${i + 1}0${i + 1}`}, ${buildingId}, ${aliquot[0]}, 80.00, ${i + 1}, ${MOCK_USER_ID})
       RETURNING id
-    `) as unknown as { id: string }[]
+    `)) as unknown as { id: string }[]
     unitIds.push(unitResult[0]!.id)
   }
 })
@@ -114,14 +114,16 @@ beforeEach(async () => {
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function createConceptWithAssignment(overrides: {
-  effectiveFrom?: string
-  effectiveUntil?: string
-  recurrencePeriod?: 'monthly' | 'quarterly' | 'yearly'
-  distributionMethod?: 'by_aliquot' | 'equal_split' | 'fixed_per_unit'
-  amount?: number
-  scopeType?: 'condominium' | 'building' | 'unit'
-} = {}) {
+async function createConceptWithAssignment(
+  overrides: {
+    effectiveFrom?: string
+    effectiveUntil?: string
+    recurrencePeriod?: 'monthly' | 'quarterly' | 'yearly'
+    distributionMethod?: 'by_aliquot' | 'equal_split' | 'fixed_per_unit'
+    amount?: number
+    scopeType?: 'condominium' | 'building' | 'unit'
+  } = {}
+) {
   const concept = await conceptsRepo.create({
     condominiumId,
     buildingId: null,
@@ -176,30 +178,49 @@ async function executeBulkGeneration(paymentConceptId: string, generatedBy: stri
   const untilDate = new Date(concept.effectiveUntil)
   if (untilDate <= fromDate) throw new Error('Until before from')
 
-  const periods = calculatePeriods(fromDate, untilDate, concept.recurrencePeriod as 'monthly' | 'quarterly' | 'yearly')
+  const periods = calculatePeriods(
+    fromDate,
+    untilDate,
+    concept.recurrencePeriod as 'monthly' | 'quarterly' | 'yearly'
+  )
   if (periods.length === 0) throw new Error('No periods')
   if (periods.length > 12) throw new Error('Too many periods')
 
   const assignments = await assignmentsRepo.listByConceptId(paymentConceptId)
   if (assignments.length === 0) throw new Error('No assignments')
 
-  const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const MONTH_NAMES = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ]
 
   // Pre-resolve unit amounts OUTSIDE transaction to avoid connection pool deadlock
   // (test container uses max: 1 connection)
   const unitAmounts = await resolveUnitAmounts(assignments, concept.condominiumId!, unitsRepo)
 
   // Check existing quotas per period OUTSIDE transaction too
+  // Uses the same method as the real processor
   const existingByPeriod = new Map<string, boolean>()
   for (const period of periods) {
-    const existing = await quotasRepo.getByPeriod(period.year, period.month)
-    const alreadyExists = existing.some(
-      q => q.paymentConceptId === paymentConceptId && q.status !== 'cancelled',
+    const alreadyExists = await quotasRepo.existsForConceptAndPeriod(
+      paymentConceptId,
+      period.year,
+      period.month
     )
     existingByPeriod.set(`${period.year}-${period.month}`, alreadyExists)
   }
 
-  const result = await db.transaction(async (tx) => {
+  const result = await db.transaction(async tx => {
     const txQuotasRepo = quotasRepo.withTx(tx)
     const txLogsRepo = logsRepo.withTx(tx)
 
@@ -236,6 +257,7 @@ async function executeBulkGeneration(paymentConceptId: string, generatedBy: stri
           issueDate,
           dueDate,
           status: 'pending',
+          adjustmentsTotal: '0',
           paidAmount: '0',
           balance: amount.toString(),
           notes: null,
@@ -261,7 +283,12 @@ async function executeBulkGeneration(paymentConceptId: string, generatedBy: stri
       totalAmount: totalAmount.toFixed(2),
       currencyId: concept.currencyId,
       unitsAffected: null,
-      parameters: { paymentConceptId, periodsCount: periods.length, periodsGenerated, periodsSkipped },
+      parameters: {
+        paymentConceptId,
+        periodsCount: periods.length,
+        periodsGenerated,
+        periodsSkipped,
+      },
       formulaSnapshot: null,
       status: 'completed',
       errorDetails: null,
@@ -295,19 +322,33 @@ function calculatePeriods(from: Date, until: Date, recurrence: 'monthly' | 'quar
 type TUnitAmount = { unitId: string; amount: number }
 
 async function resolveUnitAmounts(
-  assignments: Array<{ scopeType: string; buildingId: string | null; unitId: string | null; amount: number; distributionMethod: string }>,
+  assignments: Array<{
+    scopeType: string
+    buildingId: string | null
+    unitId: string | null
+    amount: number
+    distributionMethod: string
+  }>,
   condominiumId: string,
-  unitsRepo: UnitsRepository,
+  unitsRepo: UnitsRepository
 ): Promise<TUnitAmount[]> {
   const map = new Map<string, number>()
   for (const a of assignments.filter(a => a.scopeType === 'condominium')) {
     const units = await unitsRepo.getByCondominiumId(condominiumId)
-    distributeAmounts(a, units.filter((u: { isActive: boolean }) => u.isActive), map)
+    distributeAmounts(
+      a,
+      units.filter((u: { isActive: boolean }) => u.isActive),
+      map
+    )
   }
   for (const a of assignments.filter(a => a.scopeType === 'building')) {
     if (!a.buildingId) continue
     const units = await unitsRepo.getByBuildingId(a.buildingId)
-    distributeAmounts(a, units.filter((u: { isActive: boolean }) => u.isActive), map)
+    distributeAmounts(
+      a,
+      units.filter((u: { isActive: boolean }) => u.isActive),
+      map
+    )
   }
   for (const a of assignments.filter(a => a.scopeType === 'unit')) {
     if (!a.unitId) continue
@@ -319,13 +360,15 @@ async function resolveUnitAmounts(
 function distributeAmounts(
   assignment: { amount: number; distributionMethod: string },
   units: Array<{ id: string; aliquotPercentage: string | null }>,
-  map: Map<string, number>,
+  map: Map<string, number>
 ): void {
   if (units.length === 0) return
   const total = Number(assignment.amount)
   switch (assignment.distributionMethod) {
     case 'by_aliquot': {
-      const withAliquot = units.filter(u => u.aliquotPercentage != null && Number(u.aliquotPercentage) > 0)
+      const withAliquot = units.filter(
+        u => u.aliquotPercentage != null && Number(u.aliquotPercentage) > 0
+      )
       if (withAliquot.length === 0) return
       const totalAliquot = withAliquot.reduce((sum, u) => sum + Number(u.aliquotPercentage!), 0)
       let distributed = 0
@@ -362,14 +405,23 @@ function distributeAmounts(
   }
 }
 
-function roundCurrency(n: number) { return Math.round(n * 100) / 100 }
+function roundCurrency(n: number) {
+  return Math.round(n * 100) / 100
+}
 function buildDate(y: number, m: number, d: number) {
   const max = new Date(y, m, 0).getDate()
   return `${y}-${String(m).padStart(2, '0')}-${String(Math.min(d, max)).padStart(2, '0')}`
 }
 function buildDueDate(y: number, m: number, issueDay: number, dueDay: number) {
-  let dy = y, dm = m
-  if (dueDay < issueDay) { dm++; if (dm > 12) { dm = 1; dy++ } }
+  let dy = y,
+    dm = m
+  if (dueDay < issueDay) {
+    dm++
+    if (dm > 12) {
+      dm = 1
+      dy++
+    }
+  }
   return buildDate(dy, dm, dueDay)
 }
 
@@ -391,7 +443,7 @@ describe('Bulk Generation Flow', () => {
     expect(result.periodsSkipped).toBe(0)
 
     // Verify quotas exist in DB
-    for (const unitId of unitIds) {
+    for (const _unitId of unitIds) {
       for (let month = 1; month <= 6; month++) {
         const exists = await quotasRepo.existsForConceptAndPeriod(concept.id, 2025, month)
         expect(exists).toBe(true)
@@ -444,6 +496,7 @@ describe('Bulk Generation Flow', () => {
       issueDate: '2025-01-01',
       dueDate: '2025-01-15',
       status: 'pending',
+      adjustmentsTotal: '0',
       paidAmount: '0',
       balance: '100.00',
       notes: null,
@@ -547,6 +600,133 @@ describe('Bulk Generation Flow', () => {
     expect(params.periodsSkipped).toBe(0)
   })
 
+  it('should regenerate quotas for period when all existing quotas are cancelled', async () => {
+    const concept = await createConceptWithAssignment({
+      effectiveFrom: '2025-01-01T00:00:00.000Z',
+      effectiveUntil: '2025-01-31T00:00:00.000Z',
+    })
+
+    // Pre-create a cancelled quota for January
+    await quotasRepo.create({
+      unitId: unitIds[0]!,
+      paymentConceptId: concept.id,
+      periodYear: 2025,
+      periodMonth: 1,
+      periodDescription: 'January 2025',
+      baseAmount: '100.00',
+      currencyId,
+      interestAmount: '0',
+      amountInBaseCurrency: null,
+      exchangeRateUsed: null,
+      issueDate: '2025-01-01',
+      dueDate: '2025-01-15',
+      status: 'cancelled',
+      adjustmentsTotal: '0',
+      paidAmount: '0',
+      balance: '100.00',
+      notes: null,
+      metadata: null,
+      createdBy: MOCK_USER_ID,
+    })
+
+    // existsForConceptAndPeriod should return false for cancelled quotas
+    const exists = await quotasRepo.existsForConceptAndPeriod(concept.id, 2025, 1)
+    expect(exists).toBe(false)
+
+    // Bulk generation should NOT skip this period
+    const result = await executeBulkGeneration(concept.id, MOCK_USER_ID)
+    expect(result.periodsSkipped).toBe(0)
+    expect(result.periodsGenerated).toBe(1)
+    expect(result.totalQuotas).toBe(3)
+  })
+
+  it('should regenerate quotas for period when all existing quotas are exonerated', async () => {
+    const concept = await createConceptWithAssignment({
+      effectiveFrom: '2025-01-01T00:00:00.000Z',
+      effectiveUntil: '2025-01-31T00:00:00.000Z',
+    })
+
+    // Pre-create an exonerated quota for January
+    await quotasRepo.create({
+      unitId: unitIds[0]!,
+      paymentConceptId: concept.id,
+      periodYear: 2025,
+      periodMonth: 1,
+      periodDescription: 'January 2025',
+      baseAmount: '100.00',
+      currencyId,
+      interestAmount: '0',
+      amountInBaseCurrency: null,
+      exchangeRateUsed: null,
+      issueDate: '2025-01-01',
+      dueDate: '2025-01-15',
+      status: 'exonerated',
+      adjustmentsTotal: '0',
+      paidAmount: '0',
+      balance: '0.00',
+      notes: null,
+      metadata: null,
+      createdBy: MOCK_USER_ID,
+    })
+
+    const exists = await quotasRepo.existsForConceptAndPeriod(concept.id, 2025, 1)
+    expect(exists).toBe(false)
+  })
+
+  it('should still detect existing quotas when pending quota exists alongside cancelled ones', async () => {
+    const concept = await createConceptWithAssignment({
+      effectiveFrom: '2025-01-01T00:00:00.000Z',
+      effectiveUntil: '2025-01-31T00:00:00.000Z',
+    })
+
+    // One cancelled + one pending for same period
+    await quotasRepo.create({
+      unitId: unitIds[0]!,
+      paymentConceptId: concept.id,
+      periodYear: 2025,
+      periodMonth: 1,
+      periodDescription: 'January 2025',
+      baseAmount: '100.00',
+      currencyId,
+      interestAmount: '0',
+      amountInBaseCurrency: null,
+      exchangeRateUsed: null,
+      issueDate: '2025-01-01',
+      dueDate: '2025-01-15',
+      status: 'cancelled',
+      adjustmentsTotal: '0',
+      paidAmount: '0',
+      balance: '100.00',
+      notes: null,
+      metadata: null,
+      createdBy: MOCK_USER_ID,
+    })
+    await quotasRepo.create({
+      unitId: unitIds[1]!,
+      paymentConceptId: concept.id,
+      periodYear: 2025,
+      periodMonth: 1,
+      periodDescription: 'January 2025',
+      baseAmount: '100.00',
+      currencyId,
+      interestAmount: '0',
+      amountInBaseCurrency: null,
+      exchangeRateUsed: null,
+      issueDate: '2025-01-01',
+      dueDate: '2025-01-15',
+      status: 'pending',
+      adjustmentsTotal: '0',
+      paidAmount: '0',
+      balance: '100.00',
+      notes: null,
+      metadata: null,
+      createdBy: MOCK_USER_ID,
+    })
+
+    const exists = await quotasRepo.existsForConceptAndPeriod(concept.id, 2025, 1)
+    expect(exists).toBe(true)
+  })
+
   it('rolls back all quotas on transaction error (all-or-nothing)', async () => {
     const concept = await createConceptWithAssignment({
       effectiveFrom: '2025-01-01T00:00:00.000Z',
@@ -556,7 +736,7 @@ describe('Bulk Generation Flow', () => {
     // Simulate a transaction failure by directly using a transaction that throws
     let threw = false
     try {
-      await db.transaction(async (tx) => {
+      await db.transaction(async tx => {
         const txQuotasRepo = quotasRepo.withTx(tx)
         // Create one quota successfully
         await txQuotasRepo.create({
@@ -573,6 +753,7 @@ describe('Bulk Generation Flow', () => {
           issueDate: '2025-01-01',
           dueDate: '2025-01-15',
           status: 'pending',
+          adjustmentsTotal: '0',
           paidAmount: '0',
           balance: '1000.00',
           notes: null,

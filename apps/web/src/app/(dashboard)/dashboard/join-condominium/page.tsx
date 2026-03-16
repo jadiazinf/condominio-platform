@@ -1,6 +1,7 @@
+import { JoinCondominiumClient } from './JoinCondominiumClient'
+
 import { getTranslations } from '@/libs/i18n/server'
 import { Typography } from '@/ui/components/typography'
-import { JoinCondominiumClient } from './JoinCondominiumClient'
 
 export default async function JoinCondominiumPage() {
   const { t } = await getTranslations()
@@ -47,7 +48,7 @@ export default async function JoinCondominiumPage() {
     <div className="space-y-6">
       <div>
         <Typography variant="h3">{translations.title}</Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
+        <Typography className="mt-1" color="muted" variant="body2">
           {translations.subtitle}
         </Typography>
       </div>

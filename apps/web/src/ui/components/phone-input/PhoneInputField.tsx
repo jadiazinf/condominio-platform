@@ -1,13 +1,20 @@
 'use client'
 
 import { Controller, useFormContext } from 'react-hook-form'
+
 import { PhoneInput, type IPhoneInputProps } from './PhoneInput'
+
 import { getTranslatedError } from '@/utils/formErrors'
 
 interface IPhoneInputFieldProps
   extends Omit<
     IPhoneInputProps,
-    'countryCode' | 'phoneNumber' | 'onCountryCodeChange' | 'onPhoneNumberChange' | 'countryCodeError' | 'phoneNumberError'
+    | 'countryCode'
+    | 'phoneNumber'
+    | 'onCountryCodeChange'
+    | 'onPhoneNumberChange'
+    | 'countryCodeError'
+    | 'phoneNumberError'
   > {
   countryCodeFieldName: string
   phoneNumberFieldName: string
@@ -31,7 +38,10 @@ export function PhoneInputField({
   translateError,
   ...props
 }: IPhoneInputFieldProps) {
-  const { control, formState: { errors } } = useFormContext()
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext()
 
   return (
     <Controller
@@ -44,11 +54,11 @@ export function PhoneInputField({
           render={({ field: phoneNumberField }) => (
             <PhoneInput
               countryCode={countryCodeField.value || '+58'}
-              phoneNumber={phoneNumberField.value || ''}
-              onCountryCodeChange={(value) => countryCodeField.onChange(value)}
-              onPhoneNumberChange={(value) => phoneNumberField.onChange(value)}
               countryCodeError={getTranslatedError(errors, countryCodeFieldName, translateError)}
+              phoneNumber={phoneNumberField.value || ''}
               phoneNumberError={getTranslatedError(errors, phoneNumberFieldName, translateError)}
+              onCountryCodeChange={value => countryCodeField.onChange(value)}
+              onPhoneNumberChange={value => phoneNumberField.onChange(value)}
               {...props}
             />
           )}

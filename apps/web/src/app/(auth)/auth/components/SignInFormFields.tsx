@@ -46,13 +46,13 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn, isLoading }: SignIn
             {t('auth.signIn.email')}
           </Typography>
           <InputField
+            isRequired
             name="email"
-            type="email"
             placeholder={t('auth.signIn.emailPlaceholder')}
             size="lg"
             startContent={<Mail className="w-5 h-5 text-default-400" />}
-            isRequired
             translateError={translateError}
+            type="email"
           />
         </div>
 
@@ -61,11 +61,7 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn, isLoading }: SignIn
             {t('auth.signIn.password')}
           </Typography>
           <InputField
-            name="password"
-            type={showPassword ? 'text' : 'password'}
-            placeholder={t('auth.signIn.passwordPlaceholder')}
-            size="lg"
-            startContent={<Lock className="w-5 h-5 text-default-400" />}
+            isRequired
             endContent={
               <button
                 className="focus:outline-none"
@@ -79,8 +75,12 @@ export function SignInFormFields({ onSubmit, onGoogleSignIn, isLoading }: SignIn
                 )}
               </button>
             }
-            isRequired
+            name="password"
+            placeholder={t('auth.signIn.passwordPlaceholder')}
+            size="lg"
+            startContent={<Lock className="w-5 h-5 text-default-400" />}
             translateError={translateError}
+            type={showPassword ? 'text' : 'password'}
           />
         </div>
 

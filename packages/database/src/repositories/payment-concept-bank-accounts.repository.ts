@@ -58,6 +58,11 @@ export class PaymentConceptBankAccountsRepository {
     return result.length > 0
   }
 
+  withTx(tx: TDrizzleClient): PaymentConceptBankAccountsRepository {
+    const clone = new PaymentConceptBankAccountsRepository(tx)
+    return clone
+  }
+
   async getLink(
     conceptId: string,
     bankAccountId: string

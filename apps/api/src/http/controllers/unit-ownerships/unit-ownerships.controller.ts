@@ -8,8 +8,14 @@ import {
   ESystemRole,
   EOwnershipTypes,
 } from '@packages/domain'
-import type { UnitOwnershipsRepository, UsersRepository } from '@database/repositories'
+import type {
+  UnitOwnershipsRepository,
+  UsersRepository,
+  UnitsRepository,
+  BuildingsRepository,
+} from '@database/repositories'
 import type { AddUnitOwnerService } from '@services/unit-ownerships/add-unit-owner.service'
+import { AppError } from '@errors/index'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
@@ -76,7 +82,9 @@ export class UnitOwnershipsController extends BaseController<
   constructor(
     repository: UnitOwnershipsRepository,
     private readonly addUnitOwnerService?: AddUnitOwnerService,
-    private readonly usersRepository?: UsersRepository
+    private readonly usersRepository?: UsersRepository,
+    private readonly unitsRepo?: UnitsRepository,
+    private readonly buildingsRepo?: BuildingsRepository
   ) {
     super(repository)
   }
@@ -203,10 +211,29 @@ export class UnitOwnershipsController extends BaseController<
   // Overridden Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
+  protected override getById = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, { id: string }>(c)
+    const entity = await this.repository.getById(ctx.params.id)
+    if (!entity) throw AppError.notFound('Resource', ctx.params.id)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    if (condominiumId && this.unitsRepo && this.buildingsRepo) {
+      const unit = await this.unitsRepo.getById(entity.unitId)
+      if (!unit) throw AppError.notFound('Resource', ctx.params.id)
+      const building = await this.buildingsRepo.getById(unit.buildingId)
+      if (!building || building.condominiumId !== condominiumId) {
+        throw AppError.notFound('Resource', ctx.params.id)
+      }
+    }
+    return ctx.ok({ data: entity })
+  }
+
   protected override list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-    // TODO: Filter by condominiumId via JOIN through unit → building.condominiumId
-    const entities = await this.repository.listAll()
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const repo = this.repository as UnitOwnershipsRepository
+    const entities = condominiumId
+      ? await repo.listByCondominiumId(condominiumId)
+      : await this.repository.listAll()
     return ctx.ok({ data: entities })
   }
 
@@ -216,10 +243,11 @@ export class UnitOwnershipsController extends BaseController<
 
   private getByUnitId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     const repo = this.repository as UnitOwnershipsRepository
 
     try {
-      const ownerships = await repo.getByUnitId(ctx.params.unitId)
+      const ownerships = await repo.getByUnitId(ctx.params.unitId, false, condominiumId)
       return ctx.ok({ data: ownerships })
     } catch (error) {
       return this.handleError(ctx, error)
@@ -228,10 +256,11 @@ export class UnitOwnershipsController extends BaseController<
 
   private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     const repo = this.repository as UnitOwnershipsRepository
 
     try {
-      const ownerships = await repo.getByUserId(ctx.params.userId)
+      const ownerships = await repo.getByUserId(ctx.params.userId, false, condominiumId)
       return ctx.ok({ data: ownerships })
     } catch (error) {
       return this.handleError(ctx, error)
@@ -240,10 +269,15 @@ export class UnitOwnershipsController extends BaseController<
 
   private getByUnitAndUser = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitAndUserParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     const repo = this.repository as UnitOwnershipsRepository
 
     try {
-      const ownership = await repo.getByUnitAndUser(ctx.params.unitId, ctx.params.userId)
+      const ownership = await repo.getByUnitAndUser(
+        ctx.params.unitId,
+        ctx.params.userId,
+        condominiumId
+      )
 
       if (!ownership) {
         return ctx.notFound({ error: 'Unit ownership not found' })
@@ -257,10 +291,11 @@ export class UnitOwnershipsController extends BaseController<
 
   private getPrimaryResidenceByUser = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     const repo = this.repository as UnitOwnershipsRepository
 
     try {
-      const ownership = await repo.getPrimaryResidenceByUser(ctx.params.userId)
+      const ownership = await repo.getPrimaryResidenceByUser(ctx.params.userId, condominiumId)
 
       if (!ownership) {
         return ctx.notFound({ error: 'No primary residence found for user' })

@@ -1,8 +1,5 @@
 import { eq, desc } from 'drizzle-orm'
-import type {
-  TQuotaGenerationLog,
-  TQuotaGenerationLogCreate,
-} from '@packages/domain'
+import type { TQuotaGenerationLog, TQuotaGenerationLogCreate } from '@packages/domain'
 import { quotaGenerationLogs } from '../drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
 import { BaseRepository } from './base'

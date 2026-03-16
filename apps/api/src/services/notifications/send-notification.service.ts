@@ -17,15 +17,19 @@ export function createSendNotificationService(
   notificationsRepo: NotificationsRepository,
   deliveriesRepo: NotificationDeliveriesRepository,
   preferencesRepo: UserNotificationPreferencesRepository,
-  fcmTokensRepo?: UserFcmTokensRepository,
+  fcmTokensRepo?: UserFcmTokensRepository
 ): BaseSendNotificationService {
   const fcmService = fcmTokensRepo
-    ? new SendFcmNotificationService(fcmTokensRepo as any, admin.messaging())
+    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      new SendFcmNotificationService(fcmTokensRepo as any, admin.messaging())
     : undefined
 
   return new BaseSendNotificationService(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     notificationsRepo as any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     deliveriesRepo as any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     preferencesRepo as any,
     fcmService,
     async (notification, userId) => {
@@ -34,7 +38,7 @@ export function createSendNotificationService(
         notification,
         unreadCount,
       })
-    },
+    }
   )
 }
 

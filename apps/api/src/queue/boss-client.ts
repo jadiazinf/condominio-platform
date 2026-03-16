@@ -1,12 +1,7 @@
 import PgBoss from 'pg-boss'
 import { env } from '@config/environment'
 import logger from '@utils/logger'
-import {
-  QUEUES,
-  JOB_OPTIONS,
-  type IBulkGenerateJobData,
-  type INotifyJobData,
-} from './queues'
+import { QUEUES, JOB_OPTIONS, type IBulkGenerateJobData, type INotifyJobData } from './queues'
 
 let boss: PgBoss | null = null
 
@@ -24,7 +19,7 @@ async function getClient(): Promise<PgBoss> {
     supervise: false,
   })
 
-  boss.on('error', (error) => {
+  boss.on('error', error => {
     logger.error({ error }, '[pg-boss:api] Error')
   })
 
@@ -41,7 +36,10 @@ async function getClient(): Promise<PgBoss> {
 export async function enqueueBulkGeneration(data: IBulkGenerateJobData): Promise<string | null> {
   const client = await getClient()
   const jobId = await client.send(QUEUES.BULK_GENERATE, data, JOB_OPTIONS[QUEUES.BULK_GENERATE])
-  logger.info({ jobId, paymentConceptId: data.paymentConceptId }, '[pg-boss:api] Bulk generation job enqueued')
+  logger.info(
+    { jobId, paymentConceptId: data.paymentConceptId },
+    '[pg-boss:api] Bulk generation job enqueued'
+  )
   return jobId
 }
 

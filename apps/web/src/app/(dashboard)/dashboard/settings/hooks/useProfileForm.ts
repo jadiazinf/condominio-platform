@@ -88,6 +88,7 @@ export function useProfileForm(options: UseProfileFormOptions = {}) {
   const translateError = useCallback(
     (message: string | undefined): string | undefined => {
       if (!message) return undefined
+
       return t(message)
     },
     [t]

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { getHttpClient, HttpError, useActiveSubscriptionTerms } from '@packages/http-client'
+
 import { Card, CardBody, CardHeader, CardFooter } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
 import { Checkbox } from '@/ui/components/checkbox'
@@ -8,7 +10,6 @@ import { Spinner } from '@/ui/components/spinner'
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { useToast } from '@/ui/components/toast'
 import { useTranslation, useAuth } from '@/contexts'
-import { getHttpClient, HttpError, useActiveSubscriptionTerms } from '@packages/http-client'
 
 interface AcceptSubscriptionFormProps {
   token: string
@@ -34,6 +35,7 @@ export function AcceptSubscriptionForm({
   const handleAccept = async () => {
     if (!termsAccepted) {
       toast.error(t('subscription.accept.errors.mustAcceptTerms'))
+
       return
     }
 
@@ -41,6 +43,7 @@ export function AcceptSubscriptionForm({
 
     try {
       const client = getHttpClient()
+
       await client.post(`/subscription-accept/${token}`, {})
 
       toast.success(t('subscription.accept.success'))
@@ -64,14 +67,14 @@ export function AcceptSubscriptionForm({
             <svg
               className="w-8 h-8 text-success"
               fill="none"
-              viewBox="0 0 24 24"
               stroke="currentColor"
+              viewBox="0 0 24 24"
             >
               <path
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
           </div>
@@ -87,16 +90,13 @@ export function AcceptSubscriptionForm({
           </div>
 
           <div className="flex items-center gap-2">
-            <Checkbox
-              isSelected={termsAccepted}
-              onValueChange={setTermsAccepted}
-            />
+            <Checkbox isSelected={termsAccepted} onValueChange={setTermsAccepted} />
             <p className="text-sm text-default-600">
               {t('subscription.accept.termsCheckbox')}
               <Button
-                variant="text"
-                color="primary"
                 className="text-sm"
+                color="primary"
+                variant="text"
                 onPress={() => setIsTermsModalOpen(true)}
               >
                 {t('subscription.accept.termsCheckboxLink')}
@@ -108,9 +108,9 @@ export function AcceptSubscriptionForm({
         <CardFooter className="flex justify-center gap-4">
           <Button
             color="primary"
-            size="lg"
-            isLoading={isAccepting}
             isDisabled={!termsAccepted}
+            isLoading={isAccepting}
+            size="lg"
             onPress={handleAccept}
           >
             {t('subscription.accept.acceptButton')}
@@ -121,9 +121,9 @@ export function AcceptSubscriptionForm({
       {/* Terms & Conditions Modal */}
       <Modal
         isOpen={isTermsModalOpen}
-        onClose={() => setIsTermsModalOpen(false)}
-        size="3xl"
         scrollBehavior="inside"
+        size="3xl"
+        onClose={() => setIsTermsModalOpen(false)}
       >
         <ModalContent>
           <ModalHeader className="flex flex-col gap-1">

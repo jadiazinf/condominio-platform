@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { Card } from '@/ui/components/card'
-import { Progress } from '@/ui/components/progress'
 import { cn } from '@heroui/theme'
 import { ArrowRight } from 'lucide-react'
+
+import { Card } from '@/ui/components/card'
+import { Progress } from '@/ui/components/progress'
 
 interface MonthlyIncomeCardProps {
   title: string
@@ -89,7 +90,6 @@ export function MonthlyIncomeCard({
         color={color}
         value={percentage}
       />
-
     </Card>
   )
 }

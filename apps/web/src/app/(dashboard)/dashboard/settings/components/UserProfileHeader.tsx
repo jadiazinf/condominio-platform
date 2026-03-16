@@ -22,7 +22,7 @@ export function UserProfileHeader() {
   return (
     <header className="flex items-center gap-4 pb-6 border-b border-divider">
       <CurrentUserAvatar className="w-16 h-16" isBordered={false} />
-      <UserInfo name={displayName} email={user?.email} />
+      <UserInfo email={user?.email} name={displayName} />
     </header>
   )
 }

@@ -2,12 +2,13 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { Plus } from 'lucide-react'
 
+import { UsersTable } from './components/UsersTable'
+import { UsersTableSkeleton } from './components/UsersTableSkeleton'
+
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
-import { UsersTable } from './components/UsersTable'
-import { UsersTableSkeleton } from './components/UsersTableSkeleton'
 
 async function UsersContent() {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])

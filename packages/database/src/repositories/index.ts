@@ -51,6 +51,7 @@ export { QuotaGenerationSchedulesRepository } from './quota-generation-schedules
 export { QuotaGenerationLogsRepository } from './quota-generation-logs.repository'
 export { PaymentGatewaysRepository } from './payment-gateways.repository'
 export { EntityPaymentGatewaysRepository } from './entity-payment-gateways.repository'
+export { GatewayTransactionsRepository } from './gateway-transactions.repository'
 export { PaymentsRepository } from './payments.repository'
 export { PaymentApplicationsRepository } from './payment-applications.repository'
 export { ExpenseCategoriesRepository } from './expense-categories.repository'
@@ -86,10 +87,7 @@ export {
   type ITermsQuery,
 } from './subscription-terms-conditions.repository'
 export { SubscriptionAcceptancesRepository } from './subscription-acceptances.repository'
-export {
-  SubscriptionRatesRepository,
-  type IRatesQuery,
-} from './subscription-rates.repository'
+export { SubscriptionRatesRepository, type IRatesQuery } from './subscription-rates.repository'
 
 // Support Tickets
 export { SupportTicketsRepository } from './support-tickets.repository'
@@ -100,7 +98,10 @@ export { AmenitiesRepository } from './amenities.repository'
 export { AmenityReservationsRepository } from './amenity-reservations.repository'
 
 // Access Codes & Requests
-export { CondominiumAccessCodesRepository, type TCondominiumAccessCodeInsert } from './condominium-access-codes.repository'
+export {
+  CondominiumAccessCodesRepository,
+  type TCondominiumAccessCodeInsert,
+} from './condominium-access-codes.repository'
 export { AccessRequestsRepository, type TAccessRequestInsert } from './access-requests.repository'
 
 // Banks & Bank Accounts

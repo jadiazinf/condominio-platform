@@ -56,7 +56,6 @@ export interface IResendInvitationResult {
   invitation: TUserInvitation
 }
 
-
 /**
  * Service for adding a unit owner/resident with optional invitation flow.
  *
@@ -129,15 +128,19 @@ export class AddUnitOwnerService {
     }
 
     // Block if user already has an accepted invitation for this unit
-    const acceptedInvitation =
-      await this.userInvitationsRepository.getAcceptedByUserAndUnit(user.id, ownership.unitId)
+    const acceptedInvitation = await this.userInvitationsRepository.getAcceptedByUserAndUnit(
+      user.id,
+      ownership.unitId
+    )
     if (acceptedInvitation) {
       return failure(L.duplicateOwnership, 'CONFLICT')
     }
 
     // Look for any resendable invitation for this user+unit
-    const existingInvitation =
-      await this.userInvitationsRepository.getResendableByUserAndUnit(user.id, ownership.unitId)
+    const existingInvitation = await this.userInvitationsRepository.getResendableByUserAndUnit(
+      user.id,
+      ownership.unitId
+    )
 
     const newToken = generateSecureToken()
     const newTokenHash = hashToken(newToken)
@@ -212,7 +215,15 @@ export class AddUnitOwnerService {
     }
 
     // Send email (non-blocking)
-    this.sendInvitationEmail(user, condominiumId, userRole.id, newToken, newExpiresAt, inviterId, ownership.unitId)
+    this.sendInvitationEmail(
+      user,
+      condominiumId,
+      userRole.id,
+      newToken,
+      newExpiresAt,
+      inviterId,
+      ownership.unitId
+    )
 
     return success({ invitation })
   }
@@ -242,7 +253,10 @@ export class AddUnitOwnerService {
     if (existingOwnership && existingOwnership.isActive) {
       // Self-heal: if ownership exists but isRegistered is false and user has active role, fix it
       if (!existingOwnership.isRegistered) {
-        const roles = await this.userRolesRepository.getByUserAndCondominium(user.id, input.condominiumId)
+        const roles = await this.userRolesRepository.getByUserAndCondominium(
+          user.id,
+          input.condominiumId
+        )
         if (roles.some(r => r.isActive)) {
           await this.unitOwnershipsRepository.update(existingOwnership.id, { isRegistered: true })
           return success({
@@ -353,7 +367,15 @@ export class AddUnitOwnerService {
       })
 
       // Send email (outside transaction, non-blocking)
-      this.sendInvitationEmail(user, input.condominiumId, roleId, token, expiresAt, input.createdBy, input.unitId)
+      this.sendInvitationEmail(
+        user,
+        input.condominiumId,
+        roleId,
+        token,
+        expiresAt,
+        input.createdBy,
+        input.unitId
+      )
 
       return success({
         ownership,
@@ -572,8 +594,10 @@ export class AddUnitOwnerService {
     existingOwnership: TUnitOwnership,
     inviterId: string
   ): Promise<TServiceResult<IAddUnitOwnerResult> | null> {
-    const pendingInvitation =
-      await this.userInvitationsRepository.getResendableByUserAndUnit(user.id, existingOwnership.unitId)
+    const pendingInvitation = await this.userInvitationsRepository.getResendableByUserAndUnit(
+      user.id,
+      existingOwnership.unitId
+    )
 
     if (!pendingInvitation) {
       return null

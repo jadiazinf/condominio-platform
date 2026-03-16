@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
-import { Tabs, Tab } from '@/ui/components/tabs'
+
 import { ExistingUserSearch } from './ExistingUserSearch'
 import { CreateMemberUserForm } from './CreateMemberUserForm'
+
+import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
+import { Tabs, Tab } from '@/ui/components/tabs'
 
 interface AddMemberModalProps {
   isOpen: boolean
@@ -22,27 +24,27 @@ export function AddMemberModal({ isOpen, onClose, companyId, onSuccess }: AddMem
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl">
+    <Modal isOpen={isOpen} size="2xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader>Agregar Miembro</ModalHeader>
         <ModalBody className="pb-6">
           <Tabs
-            selectedKey={selectedTab}
-            onSelectionChange={(key) => setSelectedTab(key as string)}
             aria-label="Opciones para agregar miembro"
+            selectedKey={selectedTab}
+            onSelectionChange={key => setSelectedTab(key as string)}
           >
             <Tab key="existing" title="Usuario Existente">
               <ExistingUserSearch
                 companyId={companyId}
-                onSuccess={handleSuccess}
                 onClose={onClose}
+                onSuccess={handleSuccess}
               />
             </Tab>
             <Tab key="new" title="Crear Usuario">
               <CreateMemberUserForm
                 companyId={companyId}
-                onSuccess={handleSuccess}
                 onClose={onClose}
+                onSuccess={handleSuccess}
               />
             </Tab>
           </Tabs>

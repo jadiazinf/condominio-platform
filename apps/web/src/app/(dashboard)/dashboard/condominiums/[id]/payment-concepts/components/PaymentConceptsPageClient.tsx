@@ -1,19 +1,29 @@
 'use client'
 
+import type { TPaymentConcept, TPaymentConceptsQuery } from '@packages/domain'
+
 import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { Plus, X, Search, FileText } from 'lucide-react'
+import { useMyCompanyPaymentConceptsPaginated } from '@packages/http-client/hooks'
+
+import { PaymentConceptsTable } from './PaymentConceptsTable'
+
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Spinner } from '@/ui/components/spinner'
 import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
-import { Plus, X, Search, FileText } from 'lucide-react'
-import type { TPaymentConcept, TPaymentConceptsQuery } from '@packages/domain'
-import { useMyCompanyPaymentConceptsPaginated } from '@packages/http-client/hooks'
-import { PaymentConceptsTable } from './PaymentConceptsTable'
 
-type TTypeFilter = 'all' | 'maintenance' | 'condominium_fee' | 'extraordinary' | 'fine' | 'reserve_fund' | 'other'
+type TTypeFilter =
+  | 'all'
+  | 'maintenance'
+  | 'condominium_fee'
+  | 'extraordinary'
+  | 'fine'
+  | 'reserve_fund'
+  | 'other'
 type TStatusFilter = 'all' | 'active' | 'inactive'
 
 interface PaymentConceptsPageClientProps {
@@ -152,10 +162,12 @@ export function PaymentConceptsPageClient({
     setPage(1)
   }, [])
 
-  const handleRowClick = useCallback((concept: TPaymentConcept) => {
-    router.push(`/dashboard/condominiums/${condominiumId}/payment-concepts/${concept.id}`)
-  }, [condominiumId, router])
-
+  const handleRowClick = useCallback(
+    (concept: TPaymentConcept) => {
+      router.push(`/dashboard/condominiums/${condominiumId}/payment-concepts/${concept.id}`)
+    },
+    [condominiumId, router]
+  )
 
   const hasActiveFilters = typeFilter !== 'all' || statusFilter !== 'active' || search !== ''
 
@@ -165,7 +177,7 @@ export function PaymentConceptsPageClient({
         <div className="flex items-center justify-between">
           <div>
             <Typography variant="h3">{t.title}</Typography>
-            <Typography color="muted" variant="body2" className="mt-1">
+            <Typography className="mt-1" color="muted" variant="body2">
               {t.subtitle}
             </Typography>
           </div>
@@ -188,14 +200,14 @@ export function PaymentConceptsPageClient({
       <div className="flex items-center justify-between">
         <div>
           <Typography variant="h3">{t.title}</Typography>
-          <Typography color="muted" variant="body2" className="mt-1">
+          <Typography className="mt-1" color="muted" variant="body2">
             {t.subtitle}
           </Typography>
         </div>
         <Button
           color="primary"
-          startContent={<Plus size={16} />}
           href={`/dashboard/condominiums/${condominiumId}/payment-concepts/create`}
+          startContent={<Plus size={16} />}
         >
           {t.addConcept}
         </Button>
@@ -204,30 +216,30 @@ export function PaymentConceptsPageClient({
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:flex-wrap">
         <Input
-          placeholder={t.filters.searchPlaceholder}
-          value={search}
-          onValueChange={handleSearchChange}
-          startContent={<Search size={16} className="text-default-400" />}
-          className="w-full sm:w-64"
-          variant="bordered"
           isClearable
+          className="w-full sm:w-64"
+          placeholder={t.filters.searchPlaceholder}
+          startContent={<Search className="text-default-400" size={16} />}
+          value={search}
+          variant="bordered"
           onClear={() => handleSearchChange('')}
+          onValueChange={handleSearchChange}
         />
         <Select
           aria-label={t.table.type}
           className="w-full sm:w-44"
           items={typeFilterItems}
           value={typeFilter}
-          onChange={handleTypeChange}
           variant="bordered"
+          onChange={handleTypeChange}
         />
         <Select
           aria-label={t.table.status}
           className="w-full sm:w-36"
           items={statusFilterItems}
           value={statusFilter}
-          onChange={handleStatusChange}
           variant="bordered"
+          onChange={handleStatusChange}
         />
         {hasActiveFilters && (
           <Button startContent={<X size={14} />} variant="flat" onPress={handleClearFilters}>
@@ -255,8 +267,8 @@ export function PaymentConceptsPageClient({
         <>
           <PaymentConceptsTable
             paymentConcepts={paymentConcepts}
-            onRowClick={handleRowClick}
             translations={t}
+            onRowClick={handleRowClick}
           />
 
           <Pagination
@@ -274,7 +286,6 @@ export function PaymentConceptsPageClient({
           />
         </>
       )}
-
     </div>
   )
 }

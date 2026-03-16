@@ -16,11 +16,11 @@ export async function createBossClient(connectionString: string): Promise<PgBoss
     monitorStateIntervalMinutes: 5,
   })
 
-  boss.on('error', (error) => {
+  boss.on('error', error => {
     logger.error({ error }, '[pg-boss] Error')
   })
 
-  boss.on('monitor-states', (states) => {
+  boss.on('monitor-states', states => {
     logger.info({ states }, '[pg-boss] Queue states')
   })
 

@@ -96,7 +96,9 @@ describe('GetCondominiumsByManagementCompanyService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(2)
-        expect(result.data.every(c => c.managementCompanyIds.includes(managementCompanyId))).toBe(true)
+        expect(result.data.every(c => c.managementCompanyIds.includes(managementCompanyId))).toBe(
+          true
+        )
         expect(result.data.every(c => c.isActive)).toBe(true)
       }
     })
@@ -107,7 +109,9 @@ describe('GetCondominiumsByManagementCompanyService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data).toHaveLength(3)
-        expect(result.data.every(c => c.managementCompanyIds.includes(managementCompanyId))).toBe(true)
+        expect(result.data.every(c => c.managementCompanyIds.includes(managementCompanyId))).toBe(
+          true
+        )
       }
     })
 

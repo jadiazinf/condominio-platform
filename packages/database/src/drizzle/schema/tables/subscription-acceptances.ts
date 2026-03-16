@@ -36,7 +36,7 @@ export const subscriptionAcceptances = pgTable(
     userAgent: text('user_agent'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => [
+  table => [
     index('idx_acceptance_subscription').on(table.subscriptionId),
     index('idx_acceptance_status').on(table.status),
     index('idx_acceptance_expires_at').on(table.expiresAt),

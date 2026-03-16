@@ -13,19 +13,19 @@ export interface TSuperadminSession {
  * Checks if a user is a superadmin.
  * Returns true if the user has an active SUPERADMIN role with global scope.
  */
-export async function checkIsSuperadmin(
-  userId: string,
-  token: string
-): Promise<boolean> {
+export async function checkIsSuperadmin(userId: string, token: string): Promise<boolean> {
   try {
     const { apiBaseUrl } = getEnvConfig()
-    const response = await fetch(`${apiBaseUrl}/condominium/user-roles/superadmin/check/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    const response = await fetch(
+      `${apiBaseUrl}/condominium/user-roles/superadmin/check/${userId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
 
     if (!response.ok) {
       return false
@@ -51,13 +51,16 @@ export async function fetchSuperadminSession(
 ): Promise<TSuperadminSession | null> {
   try {
     const { apiBaseUrl } = getEnvConfig()
-    const response = await fetch(`${apiBaseUrl}/condominium/user-roles/superadmin/session/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    const response = await fetch(
+      `${apiBaseUrl}/condominium/user-roles/superadmin/session/${userId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
 
     if (!response.ok) {
       if (response.status === StatusCodes.NOT_FOUND) {
@@ -78,9 +81,7 @@ export async function fetchSuperadminSession(
  * Fetches all active superadmin users (TUser objects).
  * Useful for assignment dropdowns.
  */
-export async function fetchActiveSuperadminUsers(
-  token: string
-): Promise<TUser[]> {
+export async function fetchActiveSuperadminUsers(token: string): Promise<TUser[]> {
   try {
     const { apiBaseUrl } = getEnvConfig()
 

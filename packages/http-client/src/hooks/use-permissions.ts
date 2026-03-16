@@ -45,11 +45,8 @@ export const permissionsKeys = {
   all: ['permissions'] as const,
   lists: () => [...permissionsKeys.all, 'list'] as const,
   byModule: (module: string) => [...permissionsKeys.all, 'by-module', module] as const,
-  rolePermissions: (roleId: string) => [
-    ...permissionsKeys.all,
-    'role-permissions',
-    roleId,
-  ] as const,
+  rolePermissions: (roleId: string) =>
+    [...permissionsKeys.all, 'role-permissions', roleId] as const,
 }
 
 // =============================================================================

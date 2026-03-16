@@ -3,10 +3,7 @@
   "build": {
     "builder": "DOCKERFILE",
     "dockerfilePath": "apps/api/Dockerfile",
-    "watchPatterns": [
-      "apps/api/**",
-      "packages/**"
-    ]
+    "watchPatterns": ["apps/api/**", "packages/**"]
   },
   "deploy": {
     "numReplicas": 1,

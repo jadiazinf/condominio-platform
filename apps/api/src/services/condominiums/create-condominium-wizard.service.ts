@@ -1,5 +1,14 @@
-import type { TCondominium, TCondominiumCreate, TBuildingCreate, TUnitCreate } from '@packages/domain'
-import type { CondominiumsRepository, BuildingsRepository, UnitsRepository } from '@database/repositories'
+import type {
+  TCondominium,
+  TCondominiumCreate,
+  TBuildingCreate,
+  TUnitCreate,
+} from '@packages/domain'
+import type {
+  CondominiumsRepository,
+  BuildingsRepository,
+  UnitsRepository,
+} from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success } from '../base.service'
 
@@ -36,7 +45,7 @@ export class CreateCondominiumWizardService {
   async execute(
     input: TCreateCondominiumWizardInput
   ): Promise<TServiceResult<TCreateCondominiumWizardOutput>> {
-    return await this.db.transaction(async (tx) => {
+    return await this.db.transaction(async tx => {
       const txCondominiums = this.condominiumsRepository.withTx(tx)
       const txBuildings = this.buildingsRepository.withTx(tx)
       const txUnits = this.unitsRepository.withTx(tx)

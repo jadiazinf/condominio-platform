@@ -2,7 +2,13 @@ import logger from '@utils/logger'
 import type { IService, TServiceResult } from '../base.service'
 import { success, failure } from '../base.service'
 import { EmailService } from './email.service'
-import { buildEmailHtml, buildEmailText, formatCurrency, translateBillingCycle, p } from './email-template'
+import {
+  buildEmailHtml,
+  buildEmailText,
+  formatCurrency,
+  translateBillingCycle,
+  p,
+} from './email-template'
 
 export interface ISendSubscriptionCancellationEmailInput {
   to: string | string[]
@@ -20,21 +26,34 @@ export interface ISendSubscriptionCancellationEmailResult {
   emailId: string
 }
 
-export class SendSubscriptionCancellationEmailService
-  implements IService<ISendSubscriptionCancellationEmailInput, TServiceResult<ISendSubscriptionCancellationEmailResult>>
-{
+export class SendSubscriptionCancellationEmailService implements IService<
+  ISendSubscriptionCancellationEmailInput,
+  TServiceResult<ISendSubscriptionCancellationEmailResult>
+> {
   constructor(private readonly emailService: EmailService = EmailService.getInstance()) {}
 
   async execute(
     input: ISendSubscriptionCancellationEmailInput
   ): Promise<TServiceResult<ISendSubscriptionCancellationEmailResult>> {
     const {
-      to, recipientName, companyName, subscriptionName, basePrice,
-      billingCycle, cancelledByName, cancellationReason, cancelledAt,
+      to,
+      recipientName,
+      companyName,
+      subscriptionName,
+      basePrice,
+      billingCycle,
+      cancelledByName,
+      cancellationReason,
+      cancelledAt,
     } = input
 
     const cancelledAtFormatted = cancelledAt.toLocaleDateString('es-ES', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     })
     const billingCycleTranslated = translateBillingCycle(billingCycle)
     const subject = `Suscripción cancelada - ${companyName}`
@@ -71,16 +90,22 @@ export class SendSubscriptionCancellationEmailService
       headerTitle: 'Suscripción Cancelada',
       greeting: recipientName,
       bodyHtml: [
-        p(`Te informamos que la suscripción de <strong style="color: #ef4444;">${companyName}</strong> ha sido cancelada.`),
+        p(
+          `Te informamos que la suscripción de <strong style="color: #ef4444;">${companyName}</strong> ha sido cancelada.`
+        ),
         alertHtml,
         detailsHtml,
         `<p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #71717a;">Si tienes alguna pregunta sobre esta cancelación o necesitas reactivar la suscripción, por favor contacta al equipo de soporte.</p>`,
       ].join('\n'),
       bodyText: `Te informamos que la suscripción de ${companyName} ha sido cancelada.\n\nDETALLES DE LA SUSCRIPCIÓN CANCELADA\n------------------------------------\nPlan: ${subscriptionName || 'Plan personalizado'}\nPrecio: ${formatCurrency(basePrice)}\nCiclo de facturación: ${billingCycleTranslated}\nCancelada por: ${cancelledByName}\nFecha de cancelación: ${cancelledAtFormatted}\n${reasonText}\nSi tienes alguna pregunta sobre esta cancelación, contacta al equipo de soporte.`,
-      footerNote: 'Este es un correo automático de notificación. Por favor no respondas a este mensaje.',
+      footerNote:
+        'Este es un correo automático de notificación. Por favor no respondas a este mensaje.',
     }
 
-    logger.info({ to, companyName, cancelledAt: cancelledAtFormatted }, 'Sending subscription cancellation email')
+    logger.info(
+      { to, companyName, cancelledAt: cancelledAtFormatted },
+      'Sending subscription cancellation email'
+    )
 
     const result = await this.emailService.execute({
       to,

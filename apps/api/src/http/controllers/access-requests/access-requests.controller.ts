@@ -1,9 +1,19 @@
 import type { Context } from 'hono'
-import { accessRequestReviewSchema, ESystemRole, type TUser, type TAccessRequestReview } from '@packages/domain'
+import {
+  accessRequestReviewSchema,
+  ESystemRole,
+  type TUser,
+  type TAccessRequestReview,
+} from '@packages/domain'
 import type { AccessRequestsRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP, MANAGEMENT_COMPANY_ID_PROP } from '../../middlewares/auth'
+import {
+  authMiddleware,
+  requireRole,
+  CONDOMINIUM_ID_PROP,
+  MANAGEMENT_COMPANY_ID_PROP,
+} from '../../middlewares/auth'
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
 import { createRouter } from '../create-router'
 import type { TRouteDefinition } from '../types'
@@ -20,7 +30,7 @@ export class AccessRequestsController {
   constructor(
     private readonly repository: AccessRequestsRepository,
     db: TDrizzleClient,
-    sendNotificationService: SendNotificationService,
+    sendNotificationService: SendNotificationService
   ) {
     this.reviewService = new ReviewAccessRequestService(db, repository)
     this.sendApprovedEmailService = new SendAccessRequestApprovedEmailService()
@@ -107,58 +117,68 @@ export class AccessRequestsController {
     // Send notification to the requesting user (fire-and-forget)
     const request = result.data.request
     if (body.status === 'approved') {
-      this.sendNotificationService.execute({
-        userId: request.userId,
-        category: 'system',
-        title: 'Access Request Approved',
-        body: 'Your access request has been approved. You now have access to the condominium.',
-        channels: ['in_app', 'push'],
-        data: {
-          accessRequestId: id,
-          action: 'access_request_approved',
-          i18n: {
-            titleKey: 'notifications.content.accessRequestApproved.title',
-            bodyKey: 'notifications.content.accessRequestApproved.body',
+      this.sendNotificationService
+        .execute({
+          userId: request.userId,
+          category: 'system',
+          title: 'Access Request Approved',
+          body: 'Your access request has been approved. You now have access to the condominium.',
+          channels: ['in_app', 'push'],
+          data: {
+            accessRequestId: id,
+            action: 'access_request_approved',
+            i18n: {
+              titleKey: 'notifications.content.accessRequestApproved.title',
+              bodyKey: 'notifications.content.accessRequestApproved.body',
+            },
           },
-        },
-      }).catch(() => {})
+        })
+        .catch(() => {})
 
       // Send approval email (fire-and-forget)
-      this.repository.getByIdWithDetails(id).then(details => {
-        if (!details?.user?.email) return
-        const userName = details.user.displayName
-          || `${details.user.firstName ?? ''} ${details.user.lastName ?? ''}`.trim()
-          || details.user.email
-        this.sendApprovedEmailService.execute({
-          to: details.user.email,
-          recipientName: userName,
-          condominiumName: details.condominium?.name ?? '',
-          buildingName: details.building?.name ?? '',
-          unitNumber: details.unit?.unitNumber ?? '',
-        }).catch(() => {})
-      }).catch(() => {})
+      this.repository
+        .getByIdWithDetails(id)
+        .then(details => {
+          if (!details?.user?.email) return
+          const userName =
+            details.user.displayName ||
+            `${details.user.firstName ?? ''} ${details.user.lastName ?? ''}`.trim() ||
+            details.user.email
+          this.sendApprovedEmailService
+            .execute({
+              to: details.user.email,
+              recipientName: userName,
+              condominiumName: details.condominium?.name ?? '',
+              buildingName: details.building?.name ?? '',
+              unitNumber: details.unit?.unitNumber ?? '',
+            })
+            .catch(() => {})
+        })
+        .catch(() => {})
     } else if (body.status === 'rejected') {
-      this.sendNotificationService.execute({
-        userId: request.userId,
-        category: 'system',
-        title: 'Access Request Rejected',
-        body: body.adminNotes
-          ? `Your access request has been rejected. Reason: ${body.adminNotes}`
-          : 'Your access request has been rejected.',
-        channels: ['in_app', 'push'],
-        priority: 'high',
-        data: {
-          accessRequestId: id,
-          action: 'access_request_rejected',
-          i18n: {
-            titleKey: 'notifications.content.accessRequestRejected.title',
-            bodyKey: body.adminNotes
-              ? 'notifications.content.accessRequestRejected.bodyWithReason'
-              : 'notifications.content.accessRequestRejected.body',
-            params: body.adminNotes ? { reason: body.adminNotes } : undefined,
+      this.sendNotificationService
+        .execute({
+          userId: request.userId,
+          category: 'system',
+          title: 'Access Request Rejected',
+          body: body.adminNotes
+            ? `Your access request has been rejected. Reason: ${body.adminNotes}`
+            : 'Your access request has been rejected.',
+          channels: ['in_app', 'push'],
+          priority: 'high',
+          data: {
+            accessRequestId: id,
+            action: 'access_request_rejected',
+            i18n: {
+              titleKey: 'notifications.content.accessRequestRejected.title',
+              bodyKey: body.adminNotes
+                ? 'notifications.content.accessRequestRejected.bodyWithReason'
+                : 'notifications.content.accessRequestRejected.body',
+              params: body.adminNotes ? { reason: body.adminNotes } : undefined,
+            },
           },
-        },
-      }).catch(() => {})
+        })
+        .catch(() => {})
     }
 
     return c.json({ data: result.data })

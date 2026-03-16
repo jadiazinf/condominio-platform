@@ -17,9 +17,10 @@ export interface ISendAccessRequestApprovedEmailResult {
   emailId: string
 }
 
-export class SendAccessRequestApprovedEmailService
-  implements IService<ISendAccessRequestApprovedEmailInput, TServiceResult<ISendAccessRequestApprovedEmailResult>>
-{
+export class SendAccessRequestApprovedEmailService implements IService<
+  ISendAccessRequestApprovedEmailInput,
+  TServiceResult<ISendAccessRequestApprovedEmailResult>
+> {
   constructor(private readonly emailService: EmailService = EmailService.getInstance()) {}
 
   async execute(
@@ -64,7 +65,9 @@ export class SendAccessRequestApprovedEmailService
       headerTitle: 'Solicitud aprobada',
       greeting: recipientName,
       bodyHtml: [
-        p('Tu solicitud de acceso al condominio ha sido <strong style="color: #16a34a;">aprobada</strong>. Ya puedes acceder a tu unidad y a todas las funciones del condominio.'),
+        p(
+          'Tu solicitud de acceso al condominio ha sido <strong style="color: #16a34a;">aprobada</strong>. Ya puedes acceder a tu unidad y a todas las funciones del condominio.'
+        ),
         `<p style="margin: 0 0 20px; font-size: 14px; line-height: 1.6; color: #71717a;">Haz clic en el botón de abajo para acceder a tu dashboard con la información actualizada. Si ya tienes la app abierta, cierra sesión e inicia sesión nuevamente para ver los cambios.</p>`,
         infoCardHtml,
       ].join('\n'),

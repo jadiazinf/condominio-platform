@@ -1,22 +1,18 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import type { TBulkGenerationConfig } from '../components/BulkBuildingGeneratorModal'
+
+import { useState, useCallback } from 'react'
 import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { z } from 'zod'
+import { useGenerateCondominiumCode } from '@packages/http-client'
+import { createCondominiumWizard, type TWizardBuildingInput } from '@packages/http-client/hooks'
 
 import { useAuth, useTranslation } from '@/contexts'
-import type { TBulkGenerationConfig } from '../components/BulkBuildingGeneratorModal'
 import { useToast } from '@/ui/components/toast'
 import { translateApiError } from '@/utils/translateApiError'
-import {
-  useGenerateCondominiumCode,
-} from '@packages/http-client'
-import {
-  createCondominiumWizard,
-  type TWizardBuildingInput,
-} from '@packages/http-client/hooks'
 
 // ============================================================================
 // Types
@@ -148,7 +144,7 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
 
   // Generate code mutation
   const generateCodeMutation = useGenerateCondominiumCode({
-    onSuccess: (data) => {
+    onSuccess: data => {
       form.setValue('code', data.code, { shouldValidate: true })
       toast.success(t('superadmin.condominiums.form.codeGenerated'))
     },
@@ -174,36 +170,40 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
       ...building,
       tempId: crypto.randomUUID(),
     }
-    setBuildings((prev) => [...prev, newBuilding])
+
+    setBuildings(prev => [...prev, newBuilding])
+
     return newBuilding.tempId
   }, [])
 
-  const addBulkBuildings = useCallback((bulkBuildings: Omit<TLocalBuilding, 'tempId'>[]): TLocalBuilding[] => {
-    const newBuildings = bulkBuildings.map((b) => ({ ...b, tempId: crypto.randomUUID() }))
-    setBuildings((prev) => [...prev, ...newBuildings])
-    return newBuildings
-  }, [])
+  const addBulkBuildings = useCallback(
+    (bulkBuildings: Omit<TLocalBuilding, 'tempId'>[]): TLocalBuilding[] => {
+      const newBuildings = bulkBuildings.map(b => ({ ...b, tempId: crypto.randomUUID() }))
+
+      setBuildings(prev => [...prev, ...newBuildings])
+
+      return newBuildings
+    },
+    []
+  )
 
   const updateBuilding = useCallback(
     (tempId: string, data: Partial<Omit<TLocalBuilding, 'tempId'>>) => {
-      setBuildings((prev) =>
-        prev.map((b) => (b.tempId === tempId ? { ...b, ...data } : b))
-      )
+      setBuildings(prev => prev.map(b => (b.tempId === tempId ? { ...b, ...data } : b)))
     },
     []
   )
 
-  const removeBuilding = useCallback(
-    (tempId: string) => {
-      setBuildings((prev) => prev.filter((b) => b.tempId !== tempId))
-      setUnits((prev) => {
-        const next = new Map(prev)
-        next.delete(tempId)
-        return next
-      })
-    },
-    []
-  )
+  const removeBuilding = useCallback((tempId: string) => {
+    setBuildings(prev => prev.filter(b => b.tempId !== tempId))
+    setUnits(prev => {
+      const next = new Map(prev)
+
+      next.delete(tempId)
+
+      return next
+    })
+  }, [])
 
   const clearAllBuildings = useCallback(() => {
     setBuildings([])
@@ -220,36 +220,49 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
       ...unit,
       tempId: crypto.randomUUID(),
     }
-    setUnits((prev) => {
+
+    setUnits(prev => {
       const next = new Map(prev)
       const existing = next.get(unit.buildingTempId) || []
+
       next.set(unit.buildingTempId, [...existing, newUnit])
+
       return next
     })
+
     return newUnit.tempId
   }, [])
 
   const addBulkUnits = useCallback((bulkUnits: Omit<TLocalUnit, 'tempId'>[]) => {
-    setUnits((prev) => {
+    setUnits(prev => {
       const next = new Map(prev)
+
       for (const unit of bulkUnits) {
         const newUnit: TLocalUnit = { ...unit, tempId: crypto.randomUUID() }
         const existing = next.get(unit.buildingTempId) || []
+
         next.set(unit.buildingTempId, [...existing, newUnit])
       }
+
       return next
     })
   }, [])
 
   const updateUnit = useCallback(
-    (buildingTempId: string, unitTempId: string, data: Partial<Omit<TLocalUnit, 'tempId' | 'buildingTempId'>>) => {
-      setUnits((prev) => {
+    (
+      buildingTempId: string,
+      unitTempId: string,
+      data: Partial<Omit<TLocalUnit, 'tempId' | 'buildingTempId'>>
+    ) => {
+      setUnits(prev => {
         const next = new Map(prev)
         const existing = next.get(buildingTempId) || []
+
         next.set(
           buildingTempId,
-          existing.map((u) => (u.tempId === unitTempId ? { ...u, ...data } : u))
+          existing.map(u => (u.tempId === unitTempId ? { ...u, ...data } : u))
         )
+
         return next
       })
     },
@@ -257,21 +270,25 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
   )
 
   const removeUnit = useCallback((buildingTempId: string, unitTempId: string) => {
-    setUnits((prev) => {
+    setUnits(prev => {
       const next = new Map(prev)
       const existing = next.get(buildingTempId) || []
+
       next.set(
         buildingTempId,
-        existing.filter((u) => u.tempId !== unitTempId)
+        existing.filter(u => u.tempId !== unitTempId)
       )
+
       return next
     })
   }, [])
 
   const clearUnitsForBuilding = useCallback((buildingTempId: string) => {
-    setUnits((prev) => {
+    setUnits(prev => {
       const next = new Map(prev)
+
       next.set(buildingTempId, [])
+
       return next
     })
   }, [])
@@ -285,9 +302,11 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
 
   const getTotalUnitsCount = useCallback((): number => {
     let count = 0
-    units.forEach((unitList) => {
+
+    units.forEach(unitList => {
       count += unitList.length
     })
+
     return count
   }, [units])
 
@@ -296,24 +315,29 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
   // ============================================================================
 
   const validateCurrentStep = useCallback(async (): Promise<boolean> => {
-    setValidatedSteps((prev) => new Set(prev).add(currentStep))
+    setValidatedSteps(prev => new Set(prev).add(currentStep))
 
     if (currentStep === 'condominium') {
       const isValid = await form.trigger()
+
       return isValid
     }
 
     if (currentStep === 'buildings') {
       if (buildings.length === 0) {
         toast.error(t('superadmin.condominiums.wizard.buildings.emptyDescription'))
+
         return false
       }
       // Validate each building has a name
-      const invalidBuilding = buildings.find((b) => !b.name || b.name.trim() === '')
+      const invalidBuilding = buildings.find(b => !b.name || b.name.trim() === '')
+
       if (invalidBuilding) {
         toast.error(t('superadmin.condominiums.wizard.buildings.nameRequired'))
+
         return false
       }
+
       return true
     }
 
@@ -321,13 +345,16 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
       // Each building should have at least 1 unit
       for (const building of buildings) {
         const buildingUnits = units.get(building.tempId) || []
+
         if (buildingUnits.length === 0) {
           toast.error(
             `${building.name}: ${t('superadmin.condominiums.wizard.units.emptyDescription')}`
           )
+
           return false
         }
       }
+
       return true
     }
 
@@ -341,9 +368,11 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
 
   const goToNextStep = useCallback(async () => {
     const isValid = await validateCurrentStep()
+
     if (!isValid) return
 
     const nextIndex = currentStepIndex + 1
+
     if (nextIndex < STEPS.length) {
       setCurrentStep(STEPS[nextIndex])
     }
@@ -351,6 +380,7 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
 
   const goToPreviousStep = useCallback(() => {
     const prevIndex = currentStepIndex - 1
+
     if (prevIndex >= 0) {
       setCurrentStep(STEPS[prevIndex])
     }
@@ -359,6 +389,7 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
   const goToStep = useCallback(
     (step: TWizardStep) => {
       const targetIndex = STEPS.indexOf(step)
+
       // Allow going back freely, or going to current step
       if (targetIndex <= currentStepIndex) {
         setCurrentStep(step)
@@ -394,9 +425,18 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
       // Build wizard payload: condominium + buildings with nested units
       const wizardBuildings: TWizardBuildingInput[] = buildings.map(({ tempId, ...b }) => {
         const buildingUnits = units.get(tempId) || []
+
         return {
           ...b,
-          units: buildingUnits.map(({ tempId: _uid, buildingTempId: _btid, parkingIdentifiers: _pi, storageIdentifier: _si, ...unit }) => unit),
+          units: buildingUnits.map(
+            ({
+              tempId: _uid,
+              buildingTempId: _btid,
+              parkingIdentifiers: _pi,
+              storageIdentifier: _si,
+              ...unit
+            }) => unit
+          ),
         }
       })
 
@@ -434,7 +474,8 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
       toast.success(t('superadmin.condominiums.wizard.submission.complete'))
     } catch (err) {
       const errorMessage = translateApiError(err, t)
-      setSubmissionState((prev) => ({
+
+      setSubmissionState(prev => ({
         ...prev,
         status: 'error',
         currentAction: '',
@@ -442,15 +483,7 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
       }))
       toast.error(errorMessage)
     }
-  }, [
-    firebaseUser,
-    form,
-    buildings,
-    units,
-    getTotalUnitsCount,
-    toast,
-    t,
-  ])
+  }, [firebaseUser, form, buildings, units, getTotalUnitsCount, toast, t])
 
   const navigateToCondominium = useCallback(() => {
     if (submissionState.condominiumId) {
@@ -478,6 +511,7 @@ export function useCreateCondominiumWizard(options: UseCreateCondominiumWizardOp
   const translateError = useCallback(
     (message: string | undefined): string | undefined => {
       if (!message) return undefined
+
       return t(message)
     },
     [t]

@@ -17,7 +17,11 @@ const wsManager = WebSocketManager.getInstance()
 /**
  * Handle WebSocket upgrade directly from Bun server (bypasses Hono middleware)
  */
-export function handleWebSocketUpgrade(req: Request, server: Server<IWebSocketData>, url: URL): boolean {
+export function handleWebSocketUpgrade(
+  req: Request,
+  server: Server<IWebSocketData>,
+  url: URL
+): boolean {
   const token = url.searchParams.get('token') || ''
 
   // Route: /api/ws/tickets/:ticketId
@@ -41,7 +45,9 @@ export function handleWebSocketUpgrade(req: Request, server: Server<IWebSocketDa
 /**
  * Authenticate a WebSocket connection and return the user
  */
-async function authenticateWebSocket(ws: ServerWebSocket<IWebSocketData>): Promise<ReturnType<UsersRepository['getByFirebaseUid']>> {
+async function authenticateWebSocket(
+  ws: ServerWebSocket<IWebSocketData>
+): Promise<ReturnType<UsersRepository['getByFirebaseUid']>> {
   const { token } = ws.data
 
   if (!token) {
@@ -75,9 +81,17 @@ async function authenticateWebSocket(ws: ServerWebSocket<IWebSocketData>): Promi
     if (isExpired) {
       console.warn('[WebSocket] Token expired, closing connection')
     } else {
-      console.error('[WebSocket] Authentication error:', error instanceof Error ? error.message : error)
+      console.error(
+        '[WebSocket] Authentication error:',
+        error instanceof Error ? error.message : error
+      )
     }
-    ws.send(JSON.stringify({ event: 'error', data: isExpired ? 'Token expired' : 'Authentication failed' }))
+    ws.send(
+      JSON.stringify({
+        event: 'error',
+        data: isExpired ? 'Token expired' : 'Authentication failed',
+      })
+    )
     ws.close(1008, isExpired ? 'Token expired' : 'Invalid token')
     return null
   }

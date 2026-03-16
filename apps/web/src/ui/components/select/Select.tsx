@@ -99,12 +99,12 @@ export function Select({
         {label}
         {tooltip && (
           <Tooltip
-            content={tooltip}
-            placement="right"
             showArrow
             classNames={{
               content: 'max-w-xs text-sm',
             }}
+            content={tooltip}
+            placement="right"
           >
             <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
           </Tooltip>
@@ -118,13 +118,17 @@ export function Select({
   const handleSelectionChange = (keys: 'all' | Set<React.Key>) => {
     if (keys === 'all') return
     const selectedKey = Array.from(keys)[0] as string | undefined
+
     onChange?.(selectedKey || null)
   }
 
   // Merge default placeholder styling with user classNames
   const mergedClassNames = {
     ...classNames,
-    value: cn('group-data-[has-value=false]:text-default-400 group-data-[has-value=false]:opacity-70', classNames?.value),
+    value: cn(
+      'group-data-[has-value=false]:text-default-400 group-data-[has-value=false]:opacity-70',
+      classNames?.value
+    ),
   }
 
   // If children are provided, use them directly (HeroUI Select pattern)
@@ -183,19 +187,29 @@ export function Select({
       variant={variant}
       onSelectionChange={resolvedOnSelectionChange}
     >
-      {items?.map((item) => (
-        <HeroUISelectItem
-          key={item.key}
-          description={item.description}
-          endContent={item.endContent}
-          startContent={item.startContent}
-          textValue={item.label}
-        >
-          {item.label}
-        </HeroUISelectItem>
-      )) as any}
+      {
+        items?.map(item => (
+          <HeroUISelectItem
+            key={item.key}
+            description={item.description}
+            endContent={item.endContent}
+            startContent={item.startContent}
+            textValue={item.label}
+          >
+            {item.label}
+          </HeroUISelectItem>
+        )) as any
+      }
     </HeroUISelect>
   )
 }
 
-export type { TSelectSize, TSelectColor, TSelectVariant, TSelectRadius, TLabelPlacement, ISelectProps, ISelectItem }
+export type {
+  TSelectSize,
+  TSelectColor,
+  TSelectVariant,
+  TSelectRadius,
+  TLabelPlacement,
+  ISelectProps,
+  ISelectItem,
+}

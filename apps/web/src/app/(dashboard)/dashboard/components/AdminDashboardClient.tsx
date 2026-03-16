@@ -1,10 +1,18 @@
 'use client'
 
+import type { ICondominium, IAdminPayment } from './admin'
+import type { TPayment, TQuota } from '@packages/domain'
+
 import { useMemo } from 'react'
-import { useTranslation } from '@/contexts'
-import { Typography } from '@/ui/components/typography'
 import { Building2, Wallet, AlertTriangle } from 'lucide-react'
-import { Spinner } from '@/ui/components/spinner'
+import {
+  useCompanyCondominiumsPaginated,
+  usePaymentsPaginated,
+  useQuotasOverdue,
+  usePaymentsByDateRange,
+  useQuotasByPeriod,
+} from '@packages/http-client'
+import { formatShortDate } from '@packages/utils/dates'
 
 import {
   AdminKpiStat,
@@ -13,16 +21,10 @@ import {
   CondominiumsOverview,
   RecentAdminPayments,
 } from './admin'
-import type { ICondominium, IAdminPayment } from './admin'
-import {
-  useCompanyCondominiumsPaginated,
-  usePaymentsPaginated,
-  useQuotasOverdue,
-  usePaymentsByDateRange,
-  useQuotasByPeriod,
-} from '@packages/http-client'
-import type { TPayment, TQuota } from '@packages/domain'
-import { formatShortDate } from '@packages/utils/dates'
+
+import { useTranslation } from '@/contexts'
+import { Typography } from '@/ui/components/typography'
+import { Spinner } from '@/ui/components/spinner'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -41,6 +43,7 @@ function getMonthRange(): { startDate: string; endDate: string } {
   const now = new Date()
   const start = new Date(now.getFullYear(), now.getMonth(), 1)
   const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+
   return {
     startDate: start.toISOString().split('T')[0],
     endDate: end.toISOString().split('T')[0],
@@ -49,7 +52,8 @@ function getMonthRange(): { startDate: string; endDate: string } {
 
 function mapCondominiums(data: any[] | undefined): ICondominium[] {
   if (!data) return []
-  return data.map((c) => ({
+
+  return data.map(c => ({
     id: c.id,
     name: c.name,
     units: c._count?.units ?? c.unitsCount ?? 0,
@@ -59,15 +63,17 @@ function mapCondominiums(data: any[] | undefined): ICondominium[] {
 
 function mapPayments(payments: TPayment[] | undefined): IAdminPayment[] {
   if (!payments) return []
-  return payments.slice(0, 5).map((p) => ({
+
+  return payments.slice(0, 5).map(p => ({
     id: p.id,
     condominium: p.unit?.building?.condominium?.name ?? p.unit?.unitNumber ?? '-',
     unit: p.unit?.unitNumber ?? '-',
     amount: parseFloat(p.amount) || 0,
     currency: p.currency?.symbol ?? '$',
-    status: (p.status === 'completed' || p.status === 'pending_verification' || p.status === 'rejected')
-      ? p.status as 'completed' | 'pending_verification' | 'rejected'
-      : 'completed',
+    status:
+      p.status === 'completed' || p.status === 'pending_verification' || p.status === 'rejected'
+        ? (p.status as 'completed' | 'pending_verification' | 'rejected')
+        : 'completed',
     date: formatShortDate(p.paymentDate),
   }))
 }
@@ -76,7 +82,10 @@ function mapPayments(payments: TPayment[] | undefined): IAdminPayment[] {
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function AdminDashboardClient({ displayName, managementCompanyId }: AdminDashboardClientProps) {
+export function AdminDashboardClient({
+  displayName,
+  managementCompanyId,
+}: AdminDashboardClientProps) {
   const { t } = useTranslation()
 
   // ── Data fetching ─────────────────────────────────────────────────────────
@@ -115,7 +124,7 @@ export function AdminDashboardClient({ displayName, managementCompanyId }: Admin
   // Monthly income: sum of completed payments this month
   const monthlyCollected = useMemo(() => {
     return monthPayments
-      .filter((p) => p.status === 'completed')
+      .filter(p => p.status === 'completed')
       .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
   }, [monthPayments])
 
@@ -138,6 +147,7 @@ export function AdminDashboardClient({ displayName, managementCompanyId }: Admin
   const currencySymbol = useMemo(() => {
     const fromPayment = recentPayments.find((p: any) => p.currency)?.currency?.symbol
     const fromQuota = monthQuotas.find((q: TQuota) => q.currency)?.currency?.symbol
+
     return fromPayment ?? fromQuota ?? '$'
   }, [recentPayments, monthQuotas])
 
@@ -159,9 +169,7 @@ export function AdminDashboardClient({ displayName, managementCompanyId }: Admin
     <div className="space-y-6">
       {/* Welcome Header */}
       <div>
-        <Typography variant="h4">
-          {t('admin.dashboard.welcome', { name: displayName })}
-        </Typography>
+        <Typography variant="h4">{t('admin.dashboard.welcome', { name: displayName })}</Typography>
         <Typography className="mt-1" color="muted" variant="body2">
           {t('admin.dashboard.subtitle')}
         </Typography>
@@ -170,44 +178,44 @@ export function AdminDashboardClient({ displayName, managementCompanyId }: Admin
       {/* KPI Cards Row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <MonthlyIncomeCard
-          title={t('admin.dashboard.kpi.monthlyIncome')}
           collected={monthlyCollected}
-          expected={monthlyExpected}
-          currency={currencySymbol}
-          label={t('admin.dashboard.kpi.of')}
-          icon={<Wallet size={18} />}
           color="success"
-          viewAllLabel={t('admin.dashboard.kpi.viewPayments')}
+          currency={currencySymbol}
+          expected={monthlyExpected}
+          icon={<Wallet size={18} />}
+          label={t('admin.dashboard.kpi.of')}
+          title={t('admin.dashboard.kpi.monthlyIncome')}
           viewAllHref="/dashboard/payments"
+          viewAllLabel={t('admin.dashboard.kpi.viewPayments')}
         />
 
         <AdminKpiStat
-          title={t('admin.dashboard.kpi.delinquency')}
-          value={`${currencySymbol} ${totalDelinquency.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           change={`${overdueQuotas.length}`}
           changeType={totalDelinquency > 0 ? 'negative' : 'positive'}
           icon={<AlertTriangle className="text-danger" size={20} />}
           iconBg="bg-danger-50"
-          viewAllLabel={t('admin.dashboard.kpi.viewDelinquency')}
+          title={t('admin.dashboard.kpi.delinquency')}
+          value={`${currencySymbol} ${totalDelinquency.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           viewAllHref="/dashboard/quotas"
+          viewAllLabel={t('admin.dashboard.kpi.viewDelinquency')}
         />
 
         <AdminKpiStat
-          title={t('admin.dashboard.kpi.condominiums')}
-          value={String(activeCondoCount)}
           change={`${condominiums.length} ${t('admin.dashboard.condominiums.total')}`}
           changeType="positive"
           icon={<Building2 className="text-success" size={20} />}
           iconBg="bg-success-50"
-          viewAllLabel={t('admin.dashboard.kpi.viewCondominiums')}
+          title={t('admin.dashboard.kpi.condominiums')}
+          value={String(activeCondoCount)}
           viewAllHref="/dashboard/condominiums"
+          viewAllLabel={t('admin.dashboard.kpi.viewCondominiums')}
         />
       </div>
 
       {/* Income Chart */}
       <IncomeChart
-        managementCompanyId={managementCompanyId}
         currencySymbol={currencySymbol}
+        managementCompanyId={managementCompanyId}
         translations={{
           title: t('admin.dashboard.chart.title'),
           periods: {

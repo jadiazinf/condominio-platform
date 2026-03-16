@@ -1,12 +1,12 @@
 'use client'
 
 import { Info } from 'lucide-react'
+
 import { Accordion, AccordionItem } from '@/ui/components/accordion'
 import { Typography } from '@/ui/components/typography'
 import { Tooltip } from '@/ui/components/tooltip'
 import { Skeleton } from '@/ui/components/skeleton'
 import { Switch } from '@/ui/components/switch'
-
 import { useTranslation } from '@/contexts'
 
 interface IPermissionModule {
@@ -75,10 +75,12 @@ export function PermissionsStep({
   const getPermissionLabel = (permission: { name: string; action: string }) => {
     // Try to extract module from permission name (e.g., "admin.condominiums.read" -> "condominiums")
     const parts = permission.name.split('.')
+
     if (parts.length >= 2) {
       const module = parts[1] // e.g., "condominiums"
       const moduleLabel = getModuleLabel(module)
       const actionLabel = getActionLabel(permission.action)
+
       return `${actionLabel} ${moduleLabel.toLowerCase()}`
     }
 
@@ -106,21 +108,21 @@ export function PermissionsStep({
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-2">
-          <Typography variant="subtitle1" className="font-semibold">
+          <Typography className="font-semibold" variant="subtitle1">
             {t('superadmin.users.create.permissions')}
           </Typography>
           <Tooltip
-            content={t('superadmin.users.create.permissionsDescription')}
-            placement="right"
             showArrow
             classNames={{
               content: 'max-w-xs text-sm',
             }}
+            content={t('superadmin.users.create.permissionsDescription')}
+            placement="right"
           >
             <Info className="h-4 w-4 text-default-400 cursor-help" />
           </Tooltip>
         </div>
-        <Typography color="muted" variant="body2" className="text-center py-8">
+        <Typography className="text-center py-8" color="muted" variant="body2">
           {t('superadmin.users.create.noPermissions')}
         </Typography>
       </div>
@@ -131,16 +133,16 @@ export function PermissionsStep({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-2">
-        <Typography variant="subtitle1" className="font-semibold">
+        <Typography className="font-semibold" variant="subtitle1">
           {t('superadmin.users.create.permissions')}
         </Typography>
         <Tooltip
-          content={t('superadmin.users.create.permissionsDescription')}
-          placement="right"
           showArrow
           classNames={{
             content: 'max-w-xs text-sm',
           }}
+          content={t('superadmin.users.create.permissionsDescription')}
+          placement="right"
         >
           <Info className="h-4 w-4 text-default-400 cursor-help" />
         </Tooltip>
@@ -151,8 +153,8 @@ export function PermissionsStep({
       </Typography>
 
       {/* Permissions by module */}
-      <Accordion variant="splitted" defaultExpandedKeys={[rolePermissions[0]?.module]}>
-        {rolePermissions.map((module) => {
+      <Accordion defaultExpandedKeys={[rolePermissions[0]?.module]} variant="splitted">
+        {rolePermissions.map(module => {
           // Calculate if all permissions in this module are selected
           const allModulePermissionsSelected = module.permissions.every(
             p => customPermissions[p.id] ?? p.granted
@@ -168,16 +170,16 @@ export function PermissionsStep({
               aria-label={getModuleLabel(module.module)}
               title={
                 <div className="flex items-center justify-between w-full pr-2">
-                  <Typography variant="subtitle1" className="font-semibold">
+                  <Typography className="font-semibold" variant="subtitle1">
                     {getModuleLabel(module.module)}
                   </Typography>
                   {onToggleModule && (
-                    <div onClick={(e) => e.stopPropagation()}>
+                    <div onClick={e => e.stopPropagation()}>
                       <Switch
-                        isSelected={allModulePermissionsSelected}
-                        onValueChange={() => onToggleModule(modulePermissionIds)}
                         color="primary"
+                        isSelected={allModulePermissionsSelected}
                         size="sm"
+                        onValueChange={() => onToggleModule(modulePermissionIds)}
                       />
                     </div>
                   )}
@@ -185,7 +187,7 @@ export function PermissionsStep({
               }
             >
               <div className="space-y-3">
-                {module.permissions.map((permission) => {
+                {module.permissions.map(permission => {
                   const isGranted = customPermissions[permission.id] ?? permission.granted
 
                   return (
@@ -194,18 +196,18 @@ export function PermissionsStep({
                       className="flex items-start justify-between gap-4 rounded-lg border border-default-200 p-4 hover:bg-default-50 transition-colors"
                     >
                       <div className="flex-1 min-w-0">
-                        <Typography variant="subtitle2" className="font-medium">
+                        <Typography className="font-medium" variant="subtitle2">
                           {getActionLabel(permission.action)}
                         </Typography>
-                        <Typography color="muted" variant="body2" className="mt-1">
+                        <Typography className="mt-1" color="muted" variant="body2">
                           {permission.description || getPermissionLabel(permission)}
                         </Typography>
                       </div>
                       <Switch
+                        className="shrink-0"
+                        color="primary"
                         isSelected={isGranted}
                         onValueChange={() => onTogglePermission(permission.id)}
-                        color="primary"
-                        className="shrink-0"
                       />
                     </div>
                   )

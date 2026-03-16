@@ -53,19 +53,19 @@ beforeEach(async () => {
   `)
 
   // 2. Insert management company
-  const companyResult = await db.execute(sql`
+  const companyResult = (await db.execute(sql`
     INSERT INTO management_companies (name, created_by)
     VALUES ('Test Company', ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   _managementCompanyId = companyResult[0]!.id
 
   // 3. Insert condominium
-  const condoResult = await db.execute(sql`
+  const condoResult = (await db.execute(sql`
     INSERT INTO condominiums (name, is_active, created_by)
     VALUES ('Test Condo', true, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   condominiumId = condoResult[0]!.id
 
   // 4. Set up repositories and controllers
@@ -157,17 +157,16 @@ async function createRole(overrides: Record<string, unknown> = {}) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('Document & Role Flow -- Integration', function () {
-
   // ─── Documents CRUD ────────────────────────────────────────────────────────
 
   describe('DocumentsController', function () {
-
     describe('POST / (create)', function () {
-
       it('creates a document with condominiumId injected from context', async function () {
         const res = await createDocument()
         expect(res.status).toBe(201)
-        const json = await res.json() as { data: { id: string; title: string; condominiumId: string; documentType: string } }
+        const json = (await res.json()) as {
+          data: { id: string; title: string; condominiumId: string; documentType: string }
+        }
         expect(json.data.id).toBeDefined()
         expect(json.data.title).toBe('Test Invoice')
         expect(json.data.documentType).toBe('invoice')
@@ -186,14 +185,14 @@ describe('Document & Role Flow -- Integration', function () {
           metadata: null,
         })
         expect(res.status).toBe(201)
-        const json = await res.json() as { data: { id: string; description: string | null } }
+        const json = (await res.json()) as { data: { id: string; description: string | null } }
         expect(json.data.description).toBeNull()
       })
 
       it('creates a public document', async function () {
         const res = await createDocument({ isPublic: true, title: 'Public Regulations' })
         expect(res.status).toBe(201)
-        const json = await res.json() as { data: { isPublic: boolean; title: string } }
+        const json = (await res.json()) as { data: { isPublic: boolean; title: string } }
         expect(json.data.isPublic).toBe(true)
         expect(json.data.title).toBe('Public Regulations')
       })
@@ -207,7 +206,7 @@ describe('Document & Role Flow -- Integration', function () {
           body: JSON.stringify(body),
         })
         expect(res.status).toBe(422)
-        const json = await res.json() as { success: boolean }
+        const json = (await res.json()) as { success: boolean }
         expect(json.success).toBe(false)
       })
 
@@ -233,7 +232,6 @@ describe('Document & Role Flow -- Integration', function () {
     })
 
     describe('GET / (list)', function () {
-
       it('returns documents scoped by condominiumId from context', async function () {
         // Create two documents for this condominium
         await createDocument({ title: 'Doc 1' })
@@ -241,7 +239,7 @@ describe('Document & Role Flow -- Integration', function () {
 
         const res = await request('/condominium/documents', { headers: condoHeaders() })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: { condominiumId: string; title: string }[] }
+        const json = (await res.json()) as { data: { condominiumId: string; title: string }[] }
         expect(json.data).toHaveLength(2)
         for (const doc of json.data) {
           expect(doc.condominiumId).toBe(condominiumId)
@@ -251,26 +249,29 @@ describe('Document & Role Flow -- Integration', function () {
       it('returns empty array when no documents exist for condominium', async function () {
         const res = await request('/condominium/documents', { headers: condoHeaders() })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: unknown[] }
+        const json = (await res.json()) as { data: unknown[] }
         expect(json.data).toHaveLength(0)
       })
     })
 
     describe('GET /:id (getById)', function () {
-
       it('returns a document by ID', async function () {
         const createRes = await createDocument()
-        const createJson = await createRes.json() as { data: { id: string } }
+        const createJson = (await createRes.json()) as { data: { id: string } }
 
-        const res = await request(`/condominium/documents/${createJson.data.id}`, { headers: condoHeaders() })
+        const res = await request(`/condominium/documents/${createJson.data.id}`, {
+          headers: condoHeaders(),
+        })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: { id: string; title: string } }
+        const json = (await res.json()) as { data: { id: string; title: string } }
         expect(json.data.id).toBe(createJson.data.id)
         expect(json.data.title).toBe('Test Invoice')
       })
 
       it('returns 404 for non-existent document', async function () {
-        const res = await request('/condominium/documents/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', { headers: condoHeaders() })
+        const res = await request('/condominium/documents/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', {
+          headers: condoHeaders(),
+        })
         expect(res.status).toBe(404)
       })
 
@@ -281,10 +282,9 @@ describe('Document & Role Flow -- Integration', function () {
     })
 
     describe('PATCH /:id (update)', function () {
-
       it('updates document title', async function () {
         const createRes = await createDocument()
-        const createJson = await createRes.json() as { data: { id: string } }
+        const createJson = (await createRes.json()) as { data: { id: string } }
 
         const res = await request(`/condominium/documents/${createJson.data.id}`, {
           method: 'PATCH',
@@ -292,13 +292,13 @@ describe('Document & Role Flow -- Integration', function () {
           body: JSON.stringify({ title: 'Updated Title' }),
         })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: { title: string } }
+        const json = (await res.json()) as { data: { title: string } }
         expect(json.data.title).toBe('Updated Title')
       })
 
       it('updates document type', async function () {
         const createRes = await createDocument()
-        const createJson = await createRes.json() as { data: { id: string } }
+        const createJson = (await createRes.json()) as { data: { id: string } }
 
         const res = await request(`/condominium/documents/${createJson.data.id}`, {
           method: 'PATCH',
@@ -306,7 +306,7 @@ describe('Document & Role Flow -- Integration', function () {
           body: JSON.stringify({ documentType: 'receipt' }),
         })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: { documentType: string } }
+        const json = (await res.json()) as { data: { documentType: string } }
         expect(json.data.documentType).toBe('receipt')
       })
 
@@ -321,10 +321,9 @@ describe('Document & Role Flow -- Integration', function () {
     })
 
     describe('DELETE /:id (delete)', function () {
-
       it('hard-deletes a document', async function () {
         const createRes = await createDocument()
-        const createJson = await createRes.json() as { data: { id: string } }
+        const createJson = (await createRes.json()) as { data: { id: string } }
 
         const deleteRes = await request(`/condominium/documents/${createJson.data.id}`, {
           method: 'DELETE',
@@ -333,7 +332,9 @@ describe('Document & Role Flow -- Integration', function () {
         expect(deleteRes.status).toBe(204)
 
         // Verify it's gone
-        const getRes = await request(`/condominium/documents/${createJson.data.id}`, { headers: condoHeaders() })
+        const getRes = await request(`/condominium/documents/${createJson.data.id}`, {
+          headers: condoHeaders(),
+        })
         expect(getRes.status).toBe(404)
       })
 
@@ -349,14 +350,13 @@ describe('Document & Role Flow -- Integration', function () {
     // ─── Custom Document Endpoints ───────────────────────────────────────────
 
     describe('GET /public (getPublicDocuments)', function () {
-
       it('returns only public documents', async function () {
         await createDocument({ title: 'Private Doc', isPublic: false })
         await createDocument({ title: 'Public Doc', isPublic: true })
 
         const res = await request('/condominium/documents/public')
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: { isPublic: boolean; title: string }[] }
+        const json = (await res.json()) as { data: { isPublic: boolean; title: string }[] }
         expect(json.data).toHaveLength(1)
         expect(json.data[0]!.title).toBe('Public Doc')
         expect(json.data[0]!.isPublic).toBe(true)
@@ -367,21 +367,22 @@ describe('Document & Role Flow -- Integration', function () {
 
         const res = await request('/condominium/documents/public')
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: unknown[] }
+        const json = (await res.json()) as { data: unknown[] }
         expect(json.data).toHaveLength(0)
       })
     })
 
     describe('GET /type/:documentType (getByType)', function () {
-
       it('returns documents filtered by type', async function () {
         await createDocument({ title: 'Invoice 1', documentType: 'invoice' })
         await createDocument({ title: 'Receipt 1', documentType: 'receipt' })
         await createDocument({ title: 'Invoice 2', documentType: 'invoice' })
 
-        const res = await request('/condominium/documents/type/invoice', { headers: condoHeaders() })
+        const res = await request('/condominium/documents/type/invoice', {
+          headers: condoHeaders(),
+        })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: { documentType: string }[] }
+        const json = (await res.json()) as { data: { documentType: string }[] }
         expect(json.data).toHaveLength(2)
         for (const doc of json.data) {
           expect(doc.documentType).toBe('invoice')
@@ -391,22 +392,25 @@ describe('Document & Role Flow -- Integration', function () {
       it('returns empty array for type with no documents', async function () {
         await createDocument({ documentType: 'invoice' })
 
-        const res = await request('/condominium/documents/type/contract', { headers: condoHeaders() })
+        const res = await request('/condominium/documents/type/contract', {
+          headers: condoHeaders(),
+        })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: unknown[] }
+        const json = (await res.json()) as { data: unknown[] }
         expect(json.data).toHaveLength(0)
       })
     })
 
     describe('GET /user/:userId (getByUser)', function () {
-
       it('returns documents for a specific user', async function () {
         await createDocument({ title: 'User Doc', userId: MOCK_USER_ID })
         await createDocument({ title: 'Other Doc', userId: null })
 
-        const res = await request(`/condominium/documents/user/${MOCK_USER_ID}`, { headers: condoHeaders() })
+        const res = await request(`/condominium/documents/user/${MOCK_USER_ID}`, {
+          headers: condoHeaders(),
+        })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: { userId: string; title: string }[] }
+        const json = (await res.json()) as { data: { userId: string; title: string }[] }
         expect(json.data).toHaveLength(1)
         expect(json.data[0]!.title).toBe('User Doc')
         expect(json.data[0]!.userId).toBe(MOCK_USER_ID)
@@ -414,14 +418,25 @@ describe('Document & Role Flow -- Integration', function () {
     })
 
     describe('Document types (all valid types)', function () {
-
       it('creates documents with each valid document type', async function () {
-        const types = ['invoice', 'receipt', 'statement', 'contract', 'regulation', 'minutes', 'other']
+        const types = [
+          'invoice',
+          'receipt',
+          'statement',
+          'contract',
+          'regulation',
+          'minutes',
+          'other',
+        ]
 
         for (const docType of types) {
-          const res = await createDocument({ documentType: docType, title: `${docType} doc`, documentNumber: `${docType}-001` })
+          const res = await createDocument({
+            documentType: docType,
+            title: `${docType} doc`,
+            documentNumber: `${docType}-001`,
+          })
           expect(res.status).toBe(201)
-          const json = await res.json() as { data: { documentType: string } }
+          const json = (await res.json()) as { data: { documentType: string } }
           expect(json.data.documentType).toBe(docType)
         }
       })
@@ -431,13 +446,13 @@ describe('Document & Role Flow -- Integration', function () {
   // ─── RolesController ─────────────────────────────────────────────────────
 
   describe('RolesController', function () {
-
     describe('POST / (create)', function () {
-
       it('creates a new role', async function () {
         const res = await createRole()
         expect(res.status).toBe(201)
-        const json = await res.json() as { data: { id: string; name: string; description: string; isSystemRole: boolean } }
+        const json = (await res.json()) as {
+          data: { id: string; name: string; description: string; isSystemRole: boolean }
+        }
         expect(json.data.id).toBeDefined()
         expect(json.data.name).toBe('TEST_ROLE')
         expect(json.data.description).toBe('A test role')
@@ -447,7 +462,7 @@ describe('Document & Role Flow -- Integration', function () {
       it('creates a system role', async function () {
         const res = await createRole({ name: 'SYSTEM_ROLE', isSystemRole: true })
         expect(res.status).toBe(201)
-        const json = await res.json() as { data: { name: string; isSystemRole: boolean } }
+        const json = (await res.json()) as { data: { name: string; isSystemRole: boolean } }
         expect(json.data.name).toBe('SYSTEM_ROLE')
         expect(json.data.isSystemRole).toBe(true)
       })
@@ -461,7 +476,7 @@ describe('Document & Role Flow -- Integration', function () {
           body: JSON.stringify(body),
         })
         expect(res.status).toBe(422)
-        const json = await res.json() as { success: boolean }
+        const json = (await res.json()) as { success: boolean }
         expect(json.success).toBe(false)
       })
 
@@ -472,46 +487,48 @@ describe('Document & Role Flow -- Integration', function () {
         // whose message does not contain "duplicate key", so the global error handler
         // falls through to 500 (INTERNAL_ERROR). This tests that the server does not crash.
         expect(res.ok).toBe(false)
-        const json = await res.json() as { success: boolean }
+        const json = (await res.json()) as { success: boolean }
         expect(json.success).toBe(false)
       })
     })
 
     describe('GET / (list)', function () {
-
       it('returns all roles', async function () {
         await createRole({ name: 'ROLE_A' })
         await createRole({ name: 'ROLE_B' })
 
         const res = await request('/platform/roles', { headers: superadminHeaders() })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: { name: string }[] }
+        const json = (await res.json()) as { data: { name: string }[] }
         expect(json.data).toHaveLength(2)
       })
 
       it('returns empty array when no roles exist', async function () {
         const res = await request('/platform/roles', { headers: superadminHeaders() })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: unknown[] }
+        const json = (await res.json()) as { data: unknown[] }
         expect(json.data).toHaveLength(0)
       })
     })
 
     describe('GET /:id (getById)', function () {
-
       it('returns a role by ID', async function () {
         const createRes = await createRole()
-        const createJson = await createRes.json() as { data: { id: string } }
+        const createJson = (await createRes.json()) as { data: { id: string } }
 
-        const res = await request(`/platform/roles/${createJson.data.id}`, { headers: superadminHeaders() })
+        const res = await request(`/platform/roles/${createJson.data.id}`, {
+          headers: superadminHeaders(),
+        })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: { id: string; name: string } }
+        const json = (await res.json()) as { data: { id: string; name: string } }
         expect(json.data.id).toBe(createJson.data.id)
         expect(json.data.name).toBe('TEST_ROLE')
       })
 
       it('returns 404 for non-existent role', async function () {
-        const res = await request('/platform/roles/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', { headers: superadminHeaders() })
+        const res = await request('/platform/roles/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', {
+          headers: superadminHeaders(),
+        })
         expect(res.status).toBe(404)
       })
 
@@ -522,10 +539,9 @@ describe('Document & Role Flow -- Integration', function () {
     })
 
     describe('PATCH /:id (update)', function () {
-
       it('updates role name and description', async function () {
         const createRes = await createRole()
-        const createJson = await createRes.json() as { data: { id: string } }
+        const createJson = (await createRes.json()) as { data: { id: string } }
 
         const res = await request(`/platform/roles/${createJson.data.id}`, {
           method: 'PATCH',
@@ -533,7 +549,7 @@ describe('Document & Role Flow -- Integration', function () {
           body: JSON.stringify({ name: 'UPDATED_ROLE', description: 'Updated description' }),
         })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: { name: string; description: string } }
+        const json = (await res.json()) as { data: { name: string; description: string } }
         expect(json.data.name).toBe('UPDATED_ROLE')
         expect(json.data.description).toBe('Updated description')
       })
@@ -549,10 +565,9 @@ describe('Document & Role Flow -- Integration', function () {
     })
 
     describe('DELETE /:id (delete)', function () {
-
       it('hard-deletes a role', async function () {
         const createRes = await createRole()
-        const createJson = await createRes.json() as { data: { id: string } }
+        const createJson = (await createRes.json()) as { data: { id: string } }
 
         const deleteRes = await request(`/platform/roles/${createJson.data.id}`, {
           method: 'DELETE',
@@ -561,7 +576,9 @@ describe('Document & Role Flow -- Integration', function () {
         expect(deleteRes.status).toBe(204)
 
         // Verify it's gone
-        const getRes = await request(`/platform/roles/${createJson.data.id}`, { headers: superadminHeaders() })
+        const getRes = await request(`/platform/roles/${createJson.data.id}`, {
+          headers: superadminHeaders(),
+        })
         expect(getRes.status).toBe(404)
       })
 
@@ -577,14 +594,13 @@ describe('Document & Role Flow -- Integration', function () {
     // ─── Custom Role Endpoints ─────────────────────────────────────────────
 
     describe('GET /system (getSystemRoles)', function () {
-
       it('returns only system roles', async function () {
         await createRole({ name: ESystemRole.ADMIN, isSystemRole: true })
         await createRole({ name: 'CUSTOM_ROLE', isSystemRole: false })
 
         const res = await request('/platform/roles/system', { headers: superadminHeaders() })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: { name: string; isSystemRole: boolean }[] }
+        const json = (await res.json()) as { data: { name: string; isSystemRole: boolean }[] }
         expect(json.data).toHaveLength(1)
         expect(json.data[0]!.name).toBe('ADMIN')
         expect(json.data[0]!.isSystemRole).toBe(true)
@@ -595,13 +611,12 @@ describe('Document & Role Flow -- Integration', function () {
 
         const res = await request('/platform/roles/system', { headers: superadminHeaders() })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: unknown[] }
+        const json = (await res.json()) as { data: unknown[] }
         expect(json.data).toHaveLength(0)
       })
     })
 
     describe('GET /assignable (getAssignableRoles)', function () {
-
       it('returns all roles except SUPERADMIN', async function () {
         await createRole({ name: ESystemRole.SUPERADMIN, isSystemRole: true })
         await createRole({ name: ESystemRole.ADMIN, isSystemRole: true })
@@ -609,7 +624,7 @@ describe('Document & Role Flow -- Integration', function () {
 
         const res = await request('/platform/roles/assignable', { headers: superadminHeaders() })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: { name: string }[] }
+        const json = (await res.json()) as { data: { name: string }[] }
         expect(json.data).toHaveLength(2)
         const names = json.data.map(r => r.name)
         expect(names).toContain('ADMIN')
@@ -619,19 +634,20 @@ describe('Document & Role Flow -- Integration', function () {
     })
 
     describe('GET /name/:name (getByName)', function () {
-
       it('returns a role by name', async function () {
         await createRole({ name: ESystemRole.ADMIN, description: 'Administrator role' })
 
         const res = await request('/platform/roles/name/ADMIN', { headers: superadminHeaders() })
         expect(res.status).toBe(200)
-        const json = await res.json() as { data: { name: string; description: string } }
+        const json = (await res.json()) as { data: { name: string; description: string } }
         expect(json.data.name).toBe('ADMIN')
         expect(json.data.description).toBe('Administrator role')
       })
 
       it('returns 404 for non-existent role name', async function () {
-        const res = await request('/platform/roles/name/NONEXISTENT', { headers: superadminHeaders() })
+        const res = await request('/platform/roles/name/NONEXISTENT', {
+          headers: superadminHeaders(),
+        })
         expect(res.status).toBe(404)
       })
     })
@@ -640,12 +656,11 @@ describe('Document & Role Flow -- Integration', function () {
   // ─── Cross-controller / DB Consistency ──────────────────────────────────
 
   describe('Cross-controller DB consistency', function () {
-
     it('document create + delete lifecycle: DB state is consistent', async function () {
       // Create
       const createRes = await createDocument({ title: 'Lifecycle Doc' })
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as { data: { id: string } }
+      const createJson = (await createRes.json()) as { data: { id: string } }
       const docId = createJson.data.id
 
       // Verify in DB via repository
@@ -670,7 +685,7 @@ describe('Document & Role Flow -- Integration', function () {
       // Create
       const createRes = await createRole({ name: 'LIFECYCLE_ROLE', description: 'v1' })
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as { data: { id: string } }
+      const createJson = (await createRes.json()) as { data: { id: string } }
       const roleId = createJson.data.id
 
       // Update

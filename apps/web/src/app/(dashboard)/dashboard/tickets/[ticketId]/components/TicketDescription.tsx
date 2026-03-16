@@ -1,6 +1,5 @@
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Divider } from '@/ui/components/divider'
-
 import { Typography } from '@/ui/components/typography'
 
 export interface ITicketDescriptionProps {

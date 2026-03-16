@@ -1,14 +1,13 @@
 // Firebase
-export { admin, initializeFirebaseAdmin, isFirebaseInitialized, type IFirebaseConfig } from './firebase/config'
+export {
+  admin,
+  initializeFirebaseAdmin,
+  isFirebaseInitialized,
+  type IFirebaseConfig,
+} from './firebase/config'
 
 // Base
-export {
-  type IService,
-  type TServiceResult,
-  type TErrorCode,
-  success,
-  failure,
-} from './base'
+export { type IService, type TServiceResult, type TErrorCode, success, failure } from './base'
 
 // Quota services
 export {

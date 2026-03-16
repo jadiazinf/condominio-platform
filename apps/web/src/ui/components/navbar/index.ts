@@ -10,5 +10,5 @@ export {
   HeroUINavbar,
   NavbarBrand as NavbarBrandPrimitive,
   NavbarContent,
-  NavbarItem
+  NavbarItem,
 } from './NavbarPrimitives'

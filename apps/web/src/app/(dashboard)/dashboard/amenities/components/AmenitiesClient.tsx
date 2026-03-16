@@ -1,6 +1,16 @@
 'use client'
 
+import type { TAmenity } from '@packages/domain'
+
 import { useState, useCallback } from 'react'
+import { Building2, Plus, Pencil, Trash2, MapPin, Users, ShieldCheck } from 'lucide-react'
+import {
+  useAmenitiesByCondominium,
+  useCreateAmenity,
+  useUpdateAmenity,
+  useDeleteAmenity,
+} from '@packages/http-client'
+
 import { Card, CardBody, CardFooter, CardHeader } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
@@ -16,17 +26,8 @@ import {
   ModalFooter,
   useDisclosure,
 } from '@/ui/components/modal'
-import { Building2, Plus, Pencil, Trash2, MapPin, Users, ShieldCheck } from 'lucide-react'
-
 import { useTranslation, useCondominium } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
-import {
-  useAmenitiesByCondominium,
-  useCreateAmenity,
-  useUpdateAmenity,
-  useDeleteAmenity,
-} from '@packages/http-client'
-import type { TAmenity } from '@packages/domain'
 
 type TAmenityFormData = {
   name: string
@@ -214,16 +215,16 @@ export function AmenitiesClient() {
       ) : (
         /* Amenities Grid */
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {amenities.map((amenity) => (
+          {amenities.map(amenity => (
             <Card key={amenity.id} shadow="sm">
               <CardHeader className="flex flex-row items-start justify-between gap-2 pb-2">
                 <div className="min-w-0 flex-1">
-                  <Typography variant="h4" className="truncate">
+                  <Typography className="truncate" variant="h4">
                     {amenity.name}
                   </Typography>
                 </div>
                 {amenity.requiresApproval && (
-                  <Chip color="warning" variant="flat" size="sm">
+                  <Chip color="warning" size="sm" variant="flat">
                     <div className="flex items-center gap-1">
                       <ShieldCheck size={12} />
                       {t('admin.amenities.requiresApproval')}
@@ -233,7 +234,7 @@ export function AmenitiesClient() {
               </CardHeader>
               <CardBody className="gap-2 py-2">
                 {amenity.description && (
-                  <Typography color="muted" variant="body2" className="line-clamp-2">
+                  <Typography className="line-clamp-2" color="muted" variant="body2">
                     {amenity.description}
                   </Typography>
                 )}
@@ -255,19 +256,14 @@ export function AmenitiesClient() {
                 </div>
               </CardBody>
               <CardFooter className="justify-end gap-2 pt-2">
-                <Button
-                  size="sm"
-                  variant="light"
-                  isIconOnly
-                  onPress={() => handleEdit(amenity)}
-                >
+                <Button isIconOnly size="sm" variant="light" onPress={() => handleEdit(amenity)}>
                   <Pencil size={16} />
                 </Button>
                 <Button
+                  isIconOnly
+                  color="danger"
                   size="sm"
                   variant="light"
-                  color="danger"
-                  isIconOnly
                   onPress={() => handleDeleteConfirm(amenity)}
                 >
                   <Trash2 size={16} />
@@ -279,9 +275,9 @@ export function AmenitiesClient() {
       )}
 
       {/* Add/Edit Modal */}
-      <Modal isOpen={formModal.isOpen} onOpenChange={formModal.onOpenChange} size="lg">
+      <Modal isOpen={formModal.isOpen} size="lg" onOpenChange={formModal.onOpenChange}>
         <ModalContent>
-          {(onClose) => (
+          {onClose => (
             <>
               <ModalHeader>
                 {editingAmenity ? t('common.edit') : t('admin.amenities.add')}
@@ -289,53 +285,43 @@ export function AmenitiesClient() {
               <ModalBody>
                 <div className="flex flex-col gap-4">
                   <Input
+                    isRequired
                     label={t('admin.amenities.name')}
                     placeholder={t('admin.amenities.name')}
                     value={formData.name}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, name: value }))
-                    }
-                    isRequired
                     variant="bordered"
+                    onValueChange={value => setFormData(prev => ({ ...prev, name: value }))}
                   />
                   <Input
                     label={t('admin.amenities.description')}
                     placeholder={t('admin.amenities.description')}
                     value={formData.description}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, description: value }))
-                    }
                     variant="bordered"
+                    onValueChange={value => setFormData(prev => ({ ...prev, description: value }))}
                   />
                   <Input
                     label={t('admin.amenities.location')}
                     placeholder={t('admin.amenities.location')}
                     value={formData.location}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, location: value }))
-                    }
                     variant="bordered"
+                    onValueChange={value => setFormData(prev => ({ ...prev, location: value }))}
                   />
                   <Input
                     label={t('admin.amenities.capacity')}
                     placeholder={t('admin.amenities.capacity')}
                     type="number"
                     value={formData.capacity}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, capacity: value }))
-                    }
                     variant="bordered"
+                    onValueChange={value => setFormData(prev => ({ ...prev, capacity: value }))}
                   />
                   <div className="flex items-center gap-3">
                     <Switch
                       isSelected={formData.requiresApproval}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({ ...prev, requiresApproval: value }))
+                      onValueChange={value =>
+                        setFormData(prev => ({ ...prev, requiresApproval: value }))
                       }
                     />
-                    <Typography variant="body2">
-                      {t('admin.amenities.requiresApproval')}
-                    </Typography>
+                    <Typography variant="body2">{t('admin.amenities.requiresApproval')}</Typography>
                   </div>
                 </div>
               </ModalBody>
@@ -345,9 +331,9 @@ export function AmenitiesClient() {
                 </Button>
                 <Button
                   color="primary"
-                  onPress={handleSubmit}
-                  isLoading={isSaving}
                   isDisabled={!formData.name.trim()}
+                  isLoading={isSaving}
+                  onPress={handleSubmit}
                 >
                   {t('common.save')}
                 </Button>
@@ -358,9 +344,9 @@ export function AmenitiesClient() {
       </Modal>
 
       {/* Delete Confirmation Modal */}
-      <Modal isOpen={deleteModal.isOpen} onOpenChange={deleteModal.onOpenChange} size="sm">
+      <Modal isOpen={deleteModal.isOpen} size="sm" onOpenChange={deleteModal.onOpenChange}>
         <ModalContent>
-          {(onClose) => (
+          {onClose => (
             <>
               <ModalHeader>{t('common.confirm')}</ModalHeader>
               <ModalBody>
@@ -372,11 +358,7 @@ export function AmenitiesClient() {
                 <Button variant="light" onPress={onClose}>
                   {t('common.cancel')}
                 </Button>
-                <Button
-                  color="danger"
-                  onPress={handleDelete}
-                  isLoading={deleteMutation.isPending}
-                >
+                <Button color="danger" isLoading={deleteMutation.isPending} onPress={handleDelete}>
                   {t('common.delete')}
                 </Button>
               </ModalFooter>

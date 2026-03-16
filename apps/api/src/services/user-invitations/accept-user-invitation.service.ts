@@ -71,7 +71,9 @@ export class AcceptUserInvitationService {
     }
 
     // Check if another user already has this Firebase UID (read, outside transaction)
-    const existingUserWithFirebaseUid = await this.usersRepository.getByFirebaseUid(input.firebaseUid)
+    const existingUserWithFirebaseUid = await this.usersRepository.getByFirebaseUid(
+      input.firebaseUid
+    )
     if (existingUserWithFirebaseUid && existingUserWithFirebaseUid.id !== user.id) {
       return failure('This account is already linked to another user', 'CONFLICT')
     }
@@ -84,67 +86,69 @@ export class AcceptUserInvitationService {
     )
 
     // All writes inside a transaction (auto-rollback on failure)
-    const result: TServiceResult<IAcceptUserInvitationResult> = await this.db.transaction(async (tx) => {
-      const txUsersRepo = this.usersRepository.withTx(tx)
-      const txUserRolesRepo = this.userRolesRepository.withTx(tx)
-      const txInvitationsRepo = this.invitationsRepository.withTx(tx)
+    const result: TServiceResult<IAcceptUserInvitationResult> = await this.db.transaction(
+      async tx => {
+        const txUsersRepo = this.usersRepository.withTx(tx)
+        const txUserRolesRepo = this.userRolesRepository.withTx(tx)
+        const txInvitationsRepo = this.invitationsRepository.withTx(tx)
 
-      // Update user: set Firebase UID, activate, and verify email
-      const updatedUser = await txUsersRepo.update(user.id, {
-        firebaseUid: input.firebaseUid,
-        isActive: true,
-        isEmailVerified: true,
-      })
-
-      if (!updatedUser) {
-        return failure('Failed to update user', 'INTERNAL_ERROR')
-      }
-
-      // Activate the first matching user-role
-      let updatedUserRole: TUserRole | null = null
-      if (userRoles.length > 0) {
-        updatedUserRole = await txUserRolesRepo.update(userRoles[0]!.id, {
+        // Update user: set Firebase UID, activate, and verify email
+        const updatedUser = await txUsersRepo.update(user.id, {
+          firebaseUid: input.firebaseUid,
           isActive: true,
+          isEmailVerified: true,
         })
-      }
 
-      // Mark invitation as accepted
-      const acceptedInvitation = await txInvitationsRepo.markAsAccepted(invitation.id)
+        if (!updatedUser) {
+          return failure('Failed to update user', 'INTERNAL_ERROR')
+        }
 
-      if (!acceptedInvitation) {
-        return failure('Failed to accept invitation', 'INTERNAL_ERROR')
-      }
-
-      // Mark unit ownerships as registered (user confirmed via invitation)
-      if (this.unitOwnershipsRepository && invitation.condominiumId) {
-        const txOwnershipsRepo = this.unitOwnershipsRepository.withTx(tx)
-        await txOwnershipsRepo.markAsRegisteredByUserAndCondominium(
-          user.id,
-          invitation.condominiumId
-        )
-      }
-
-      // Activate management company member if this is an MC-scoped invitation
-      if (this.membersRepository && updatedUserRole?.managementCompanyId) {
-        const txMembersRepo = this.membersRepository.withTx(tx)
-        const member = await txMembersRepo.getByCompanyAndUser(
-          updatedUserRole.managementCompanyId,
-          user.id
-        )
-        if (member) {
-          await txMembersRepo.update(member.id, {
+        // Activate the first matching user-role
+        let updatedUserRole: TUserRole | null = null
+        if (userRoles.length > 0) {
+          updatedUserRole = await txUserRolesRepo.update(userRoles[0]!.id, {
             isActive: true,
-            joinedAt: new Date(),
           })
         }
-      }
 
-      return success({
-        invitation: acceptedInvitation,
-        user: updatedUser,
-        userRole: updatedUserRole,
-      })
-    })
+        // Mark invitation as accepted
+        const acceptedInvitation = await txInvitationsRepo.markAsAccepted(invitation.id)
+
+        if (!acceptedInvitation) {
+          return failure('Failed to accept invitation', 'INTERNAL_ERROR')
+        }
+
+        // Mark unit ownerships as registered (user confirmed via invitation)
+        if (this.unitOwnershipsRepository && invitation.condominiumId) {
+          const txOwnershipsRepo = this.unitOwnershipsRepository.withTx(tx)
+          await txOwnershipsRepo.markAsRegisteredByUserAndCondominium(
+            user.id,
+            invitation.condominiumId
+          )
+        }
+
+        // Activate management company member if this is an MC-scoped invitation
+        if (this.membersRepository && updatedUserRole?.managementCompanyId) {
+          const txMembersRepo = this.membersRepository.withTx(tx)
+          const member = await txMembersRepo.getByCompanyAndUser(
+            updatedUserRole.managementCompanyId,
+            user.id
+          )
+          if (member) {
+            await txMembersRepo.update(member.id, {
+              isActive: true,
+              joinedAt: new Date(),
+            })
+          }
+        }
+
+        return success({
+          invitation: acceptedInvitation,
+          user: updatedUser,
+          userRole: updatedUserRole,
+        })
+      }
+    )
 
     // Send company notification email after successful acceptance (non-blocking)
     if (result.success) {

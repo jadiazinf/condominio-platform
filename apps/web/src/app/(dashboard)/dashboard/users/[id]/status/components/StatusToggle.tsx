@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+
+import { updateUserStatusAction } from '../../actions'
+
 import { Switch } from '@/ui/components/switch'
 import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
 import { useToast } from '@/ui/components/toast'
-import { updateUserStatusAction } from '../../actions'
 
 interface StatusToggleProps {
   userId: string
@@ -54,7 +56,7 @@ export function StatusToggle({
     <div className="flex items-center justify-between">
       <div className="flex-1">
         <Typography variant="h4">{title}</Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
+        <Typography className="mt-1" color="muted" variant="body2">
           {description}
         </Typography>
       </div>
@@ -62,11 +64,7 @@ export function StatusToggle({
         <Chip color={isActive ? 'success' : 'default'} variant="flat">
           {isActive ? activeLabel : inactiveLabel}
         </Chip>
-        <Switch
-          isSelected={isActive}
-          isDisabled={isLoading}
-          onValueChange={handleToggle}
-        />
+        <Switch isDisabled={isLoading} isSelected={isActive} onValueChange={handleToggle} />
       </div>
     </div>
   )

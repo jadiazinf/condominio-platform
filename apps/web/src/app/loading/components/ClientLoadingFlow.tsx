@@ -8,11 +8,7 @@ import { LoadingView } from './LoadingView'
 
 import { useAuth, useUser, useCondominium, useTranslation } from '@/contexts'
 import { useSessionStore } from '@/stores/session-store'
-import {
-  setUserCookie,
-  setCondominiumsCookie,
-  setSelectedCondominiumCookie,
-} from '@/libs/cookies'
+import { setUserCookie, setCondominiumsCookie, setSelectedCondominiumCookie } from '@/libs/cookies'
 import { getPendingRegistration, clearPendingRegistration } from '@/libs/storage'
 import { useToast } from '@/ui/components/toast'
 
@@ -277,8 +273,8 @@ export function ClientLoadingFlow() {
   return (
     <LoadingView
       error={displayError}
-      step={loadingStep}
       isSigningOut={shouldSignOut}
+      step={loadingStep}
       onLogout={handleLogout}
       onRetry={handleRetry}
     />

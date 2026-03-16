@@ -1,6 +1,7 @@
 'use client'
 
 import { Controller, useFormContext } from 'react-hook-form'
+
 import { Checkbox, type ICheckboxProps } from './Checkbox'
 
 interface ICheckboxFieldProps extends Omit<ICheckboxProps, 'isSelected' | 'onValueChange'> {
@@ -9,7 +10,7 @@ interface ICheckboxFieldProps extends Omit<ICheckboxProps, 'isSelected' | 'onVal
 
 /**
  * Checkbox component integrated with react-hook-form
- * 
+ *
  * @example
  * <FormProvider {...methods}>
  *   <CheckboxField
@@ -19,10 +20,7 @@ interface ICheckboxFieldProps extends Omit<ICheckboxProps, 'isSelected' | 'onVal
  *   </CheckboxField>
  * </FormProvider>
  */
-export function CheckboxField({
-  name,
-  ...props
-}: ICheckboxFieldProps) {
+export function CheckboxField({ name, ...props }: ICheckboxFieldProps) {
   const { control } = useFormContext()
 
   return (
@@ -30,11 +28,7 @@ export function CheckboxField({
       control={control}
       name={name}
       render={({ field }) => (
-        <Checkbox
-          isSelected={field.value || false}
-          onValueChange={field.onChange}
-          {...props}
-        />
+        <Checkbox isSelected={field.value || false} onValueChange={field.onChange} {...props} />
       )}
     />
   )

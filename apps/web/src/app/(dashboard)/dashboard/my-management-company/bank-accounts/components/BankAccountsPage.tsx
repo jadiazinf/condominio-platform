@@ -1,6 +1,17 @@
 'use client'
 
+import type { TBankAccount, TBankAccountsQuery } from '@packages/domain'
+
 import { useState, useMemo, useCallback } from 'react'
+import { CreditCard, Plus, X } from 'lucide-react'
+import {
+  useMyCompanyBankAccountsPaginated,
+  useCompanyCondominiumsPaginated,
+} from '@packages/http-client'
+
+import { CreateBankAccountWizard } from './CreateBankAccountWizard'
+import { BankAccountDetailModal } from './BankAccountDetailModal'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
@@ -9,17 +20,7 @@ import { Spinner } from '@/ui/components/spinner'
 import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
 import { useDisclosure } from '@/ui/components/modal'
-import { CreditCard, Plus, X } from 'lucide-react'
 import { useTranslation } from '@/contexts'
-import type { TBankAccount, TBankAccountsQuery } from '@packages/domain'
-
-import {
-  useMyCompanyBankAccountsPaginated,
-  useCompanyCondominiumsPaginated,
-} from '@packages/http-client'
-
-import { CreateBankAccountWizard } from './CreateBankAccountWizard'
-import { BankAccountDetailModal } from './BankAccountDetailModal'
 
 type TCategoryFilter = 'all' | 'national' | 'international'
 type TStatusFilter = 'all' | 'active' | 'inactive'
@@ -101,10 +102,22 @@ export function BankAccountsPage({ managementCompanyId, memberRole }: BankAccoun
       { key: 'displayName', label: t('admin.company.myCompany.bankAccounts.columns.displayName') },
       { key: 'bankName', label: t('admin.company.myCompany.bankAccounts.columns.bankName') },
       { key: 'accountCategory', label: t('admin.company.myCompany.bankAccounts.columns.category') },
-      { key: 'currency', label: t('admin.company.myCompany.bankAccounts.columns.currency'), hideOnMobile: true },
-      { key: 'condominiums', label: t('admin.company.myCompany.bankAccounts.columns.condominiums'), hideOnMobile: true },
+      {
+        key: 'currency',
+        label: t('admin.company.myCompany.bankAccounts.columns.currency'),
+        hideOnMobile: true,
+      },
+      {
+        key: 'condominiums',
+        label: t('admin.company.myCompany.bankAccounts.columns.condominiums'),
+        hideOnMobile: true,
+      },
       { key: 'isActive', label: t('admin.company.myCompany.bankAccounts.columns.status') },
-      { key: 'createdAt', label: t('admin.company.myCompany.bankAccounts.columns.createdAt'), hideOnMobile: true },
+      {
+        key: 'createdAt',
+        label: t('admin.company.myCompany.bankAccounts.columns.createdAt'),
+        hideOnMobile: true,
+      },
     ],
     [t]
   )
@@ -196,7 +209,8 @@ export function BankAccountsPage({ managementCompanyId, memberRole }: BankAccoun
             </Chip>
           ) : (
             <p className="text-sm text-default-600">
-              {(account as TBankAccount & { condominiumIds?: string[] }).condominiumIds?.length ?? 0}
+              {(account as TBankAccount & { condominiumIds?: string[] }).condominiumIds?.length ??
+                0}
             </p>
           )
         case 'isActive':
@@ -241,15 +255,18 @@ export function BankAccountsPage({ managementCompanyId, memberRole }: BankAccoun
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Typography variant="h3">
-            {t('admin.company.myCompany.bankAccounts.title')}
-          </Typography>
-          <Typography color="muted" variant="body2" className="mt-1">
+          <Typography variant="h3">{t('admin.company.myCompany.bankAccounts.title')}</Typography>
+          <Typography className="mt-1" color="muted" variant="body2">
             {t('admin.company.myCompany.bankAccounts.subtitle')}
           </Typography>
         </div>
         {isAdmin && (
-          <Button color="primary" startContent={<Plus size={16} />} onPress={createModal.onOpen} className="w-full sm:w-auto">
+          <Button
+            className="w-full sm:w-auto"
+            color="primary"
+            startContent={<Plus size={16} />}
+            onPress={createModal.onOpen}
+          >
             {t('admin.company.myCompany.bankAccounts.addBankAccount')}
           </Button>
         )}
@@ -262,16 +279,16 @@ export function BankAccountsPage({ managementCompanyId, memberRole }: BankAccoun
           className="w-full sm:w-44"
           items={categoryFilterItems}
           value={categoryFilter}
-          onChange={handleCategoryChange}
           variant="bordered"
+          onChange={handleCategoryChange}
         />
         <Select
           aria-label={t('admin.company.myCompany.bankAccounts.filterStatus')}
           className="w-full sm:w-36"
           items={statusFilterItems}
           value={statusFilter}
-          onChange={handleStatusChange}
           variant="bordered"
+          onChange={handleStatusChange}
         />
         {condominiums.length > 0 && (
           <Select
@@ -279,8 +296,8 @@ export function BankAccountsPage({ managementCompanyId, memberRole }: BankAccoun
             className="w-full sm:w-56"
             items={condominiumFilterItems}
             value={condominiumFilter}
-            onChange={handleCondominiumChange}
             variant="bordered"
+            onChange={handleCondominiumChange}
           />
         )}
         {hasActiveFilters && (
@@ -313,13 +330,13 @@ export function BankAccountsPage({ managementCompanyId, memberRole }: BankAccoun
         <>
           <Table<TBankAccount>
             aria-label={t('admin.company.myCompany.bankAccounts.title')}
-            columns={tableColumns}
-            rows={bankAccounts}
-            renderCell={renderCell}
-            onRowClick={handleRowClick}
             classNames={{
               tr: 'cursor-pointer hover:bg-default-100 transition-colors',
             }}
+            columns={tableColumns}
+            renderCell={renderCell}
+            rows={bankAccounts}
+            onRowClick={handleRowClick}
           />
 
           <Pagination
@@ -329,7 +346,7 @@ export function BankAccountsPage({ managementCompanyId, memberRole }: BankAccoun
             page={pagination.page}
             total={pagination.total}
             totalPages={pagination.totalPages}
-            onLimitChange={(newLimit) => {
+            onLimitChange={newLimit => {
               setLimit(newLimit)
               setPage(1)
             }}
@@ -342,22 +359,22 @@ export function BankAccountsPage({ managementCompanyId, memberRole }: BankAccoun
       {isAdmin && (
         <CreateBankAccountWizard
           isOpen={createModal.isOpen}
-          onClose={createModal.onClose}
           managementCompanyId={managementCompanyId}
+          onClose={createModal.onClose}
         />
       )}
 
       {/* Detail Modal */}
       {selectedAccount && (
         <BankAccountDetailModal
+          bankAccount={selectedAccount}
+          isAdmin={isAdmin}
           isOpen={detailModal.isOpen}
+          managementCompanyId={managementCompanyId}
           onClose={() => {
             detailModal.onClose()
             setSelectedAccount(null)
           }}
-          bankAccount={selectedAccount}
-          managementCompanyId={managementCompanyId}
-          isAdmin={isAdmin}
         />
       )}
     </div>

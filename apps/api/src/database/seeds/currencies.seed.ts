@@ -36,5 +36,7 @@ export async function seedCurrencies(db: TDrizzleClient): Promise<void> {
     `)
   }
 
-  console.log(`[Seed] Upserted ${CURRENCIES.length} currencies (ON CONFLICT updates name, symbol, decimals)`)
+  console.log(
+    `[Seed] Upserted ${CURRENCIES.length} currencies (ON CONFLICT updates name, symbol, decimals)`
+  )
 }

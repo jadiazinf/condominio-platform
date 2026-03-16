@@ -1,14 +1,15 @@
 'use client'
 
+import type { TManagementCompanySubscription } from '@packages/domain'
+
 import { CreditCard, Calendar, Clock, RefreshCw, FileText, AlertTriangle } from 'lucide-react'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
 
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
-import type { TManagementCompanySubscription } from '@packages/domain'
-import { formatCurrency } from '@packages/utils/currency'
-import { formatFullDate } from '@packages/utils/dates'
 
 function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
@@ -57,7 +58,7 @@ export function SubscriptionDetailModal({
   if (!subscription) return null
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="lg" onClose={onClose}>
       <ModalContent>
         <ModalHeader className="flex items-center gap-2">
           <CreditCard className="text-primary" size={20} />
@@ -66,7 +67,7 @@ export function SubscriptionDetailModal({
         <ModalBody className="space-y-4 pb-6">
           {/* Plan Name + Status */}
           <div className="flex items-center justify-between">
-            <Typography variant="h3" className="text-xl">
+            <Typography className="text-xl" variant="h3">
               {subscription.subscriptionName || 'Plan'}
             </Typography>
             <Chip color={statusColorMap[subscription.status] || 'default'} variant="flat">
@@ -80,7 +81,7 @@ export function SubscriptionDetailModal({
               {t(`${tp}.price`)}
             </Typography>
             <div className="flex items-baseline gap-2">
-              <Typography variant="h2" className="text-2xl font-bold">
+              <Typography className="text-2xl font-bold" variant="h2">
                 {formatCurrency(subscription.basePrice)}
               </Typography>
               <Typography color="muted" variant="body2">
@@ -127,8 +128,8 @@ export function SubscriptionDetailModal({
           {/* Limits */}
           <div className="space-y-2">
             <Typography
-              variant="h4"
               className="text-sm font-semibold uppercase tracking-wide text-default-500"
+              variant="h4"
             >
               {t(`${tp}.limits`)}
             </Typography>
@@ -160,8 +161,8 @@ export function SubscriptionDetailModal({
           {subscription.customFeatures && typeof subscription.customFeatures === 'object' && (
             <div className="space-y-2">
               <Typography
-                variant="h4"
                 className="text-sm font-semibold uppercase tracking-wide text-default-500"
+                variant="h4"
               >
                 {t(`${tp}.features`)}
               </Typography>
@@ -193,15 +194,15 @@ export function SubscriptionDetailModal({
             <div className="rounded-lg bg-warning-50 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="text-warning" size={18} />
-                <Typography variant="body2" className="font-medium text-warning-700">
+                <Typography className="font-medium text-warning-700" variant="body2">
                   {t(`${tp}.cancelledInfo`)}
                 </Typography>
               </div>
-              <Typography variant="caption" color="muted">
+              <Typography color="muted" variant="caption">
                 {t(`${tp}.cancelledAt`)}: {formatFullDate(subscription.cancelledAt)}
               </Typography>
               {subscription.cancellationReason && (
-                <Typography variant="caption" color="muted" className="mt-1 block">
+                <Typography className="mt-1 block" color="muted" variant="caption">
                   {t(`${tp}.cancellationReason`)}: {subscription.cancellationReason}
                 </Typography>
               )}

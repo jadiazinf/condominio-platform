@@ -3,10 +3,11 @@
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 
+import { CreateUserForm } from './components'
+
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
-import { CreateUserForm } from './components'
 
 export default function CreateUserPage() {
   const { t } = useTranslation()
@@ -17,9 +18,9 @@ export default function CreateUserPage() {
       {/* Header */}
       <div className="flex items-start gap-4">
         <Button
+          isIconOnly
           className="mt-1"
           variant="light"
-          isIconOnly
           onPress={() => router.push('/dashboard/users')}
         >
           <ArrowLeft className="h-5 w-5" />

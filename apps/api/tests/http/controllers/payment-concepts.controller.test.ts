@@ -26,9 +26,9 @@ type TMockPaymentConceptsRepository = {
   update: (id: string, data: TPaymentConceptUpdate) => Promise<TPaymentConcept | null>
   delete: (id: string) => Promise<boolean>
   getByCondominiumId: (condominiumId: string) => Promise<TPaymentConcept[]>
-  getByBuildingId: (buildingId: string) => Promise<TPaymentConcept[]>
-  getRecurringConcepts: () => Promise<TPaymentConcept[]>
-  getByConceptType: (conceptType: string) => Promise<TPaymentConcept[]>
+  getByBuildingId: (buildingId: string, condominiumId?: string) => Promise<TPaymentConcept[]>
+  getRecurringConcepts: (condominiumId?: string) => Promise<TPaymentConcept[]>
+  getByConceptType: (conceptType: string, condominiumId?: string) => Promise<TPaymentConcept[]>
 }
 
 function createPaymentConcept(
@@ -275,6 +275,63 @@ describe('PaymentConceptsController', function () {
 
       const json = (await res.json()) as IApiResponse
       expect(json.data).toHaveLength(0)
+    })
+  })
+
+  describe('Tenant isolation', function () {
+    const tenantCondominiumId = '550e8400-e29b-41d4-a716-446655440090'
+
+    it('should pass condominiumId to getByBuildingId', async function () {
+      let calledWithCondoId: string | undefined
+      ;(mockRepository as any).getByBuildingId = async function (
+        _buildingId: string,
+        _includeInactive?: boolean,
+        condoId?: string
+      ) {
+        calledWithCondoId = condoId
+        return []
+      }
+
+      await request(`/payment-concepts/building/${buildingId}`, {
+        headers: { 'x-condominium-id': tenantCondominiumId },
+      })
+
+      expect(calledWithCondoId).toBe(tenantCondominiumId)
+    })
+
+    it('should pass condominiumId to getRecurringConcepts', async function () {
+      let calledWithCondoId: string | undefined
+      ;(mockRepository as any).getRecurringConcepts = async function (
+        _includeInactive?: boolean,
+        condoId?: string
+      ) {
+        calledWithCondoId = condoId
+        return []
+      }
+
+      await request('/payment-concepts/recurring', {
+        headers: { 'x-condominium-id': tenantCondominiumId },
+      })
+
+      expect(calledWithCondoId).toBe(tenantCondominiumId)
+    })
+
+    it('should pass condominiumId to getByConceptType', async function () {
+      let calledWithCondoId: string | undefined
+      ;(mockRepository as any).getByConceptType = async function (
+        _conceptType: string,
+        _includeInactive?: boolean,
+        condoId?: string
+      ) {
+        calledWithCondoId = condoId
+        return []
+      }
+
+      await request('/payment-concepts/type/maintenance', {
+        headers: { 'x-condominium-id': tenantCondominiumId },
+      })
+
+      expect(calledWithCondoId).toBe(tenantCondominiumId)
     })
   })
 

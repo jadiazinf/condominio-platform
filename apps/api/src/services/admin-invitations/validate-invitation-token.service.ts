@@ -73,7 +73,8 @@ export class ValidateInvitationTokenService {
 
     // Include inactive — company is inactive until invitation accepted
     const managementCompany = await this.managementCompaniesRepository.getById(
-      invitation.managementCompanyId, true
+      invitation.managementCompanyId,
+      true
     )
     if (!managementCompany) {
       return failure('Management company associated with invitation not found', 'NOT_FOUND')
@@ -84,8 +85,7 @@ export class ValidateInvitationTokenService {
     const isExpired = invitation.expiresAt < now
 
     // Check if already used or cancelled
-    const isValid =
-      invitation.status === 'pending' && !isExpired
+    const isValid = invitation.status === 'pending' && !isExpired
 
     return success({
       invitation,

@@ -5,6 +5,7 @@ import type {
   SubscriptionRatesRepository,
 } from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
+import { parseAmount } from '@packages/utils/money'
 
 export interface IGenerateInvoiceInput {
   subscriptionId: string
@@ -49,11 +50,11 @@ export class GenerateInvoiceService {
     if (input.taxAmount === undefined && subscription.rateId) {
       const rate = await this.ratesRepository.getById(subscription.rateId)
       if (rate?.taxRate) {
-        taxAmount = Number(amount) * Number(rate.taxRate)
+        taxAmount = parseAmount(amount) * parseAmount(rate.taxRate)
       }
     }
 
-    const totalAmount = Number(amount) + taxAmount
+    const totalAmount = parseAmount(amount) + taxAmount
 
     // Create invoice
     const invoiceData: TSubscriptionInvoiceCreate = {

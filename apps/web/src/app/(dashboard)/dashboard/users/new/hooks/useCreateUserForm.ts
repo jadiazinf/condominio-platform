@@ -207,12 +207,14 @@ export function useCreateUserForm() {
   // Extract role permissions (pure, no side effects)
   const rolePermissions: IRolePermission[] = useMemo(() => {
     if (!rolePermissionsData?.data) return []
+
     return rolePermissionsData.data as any
   }, [rolePermissionsData])
 
   // Extract superadmin permissions (pure, no side effects)
   const superadminPermissions: IRolePermission[] = useMemo(() => {
     if (!allPermissionsData?.data) return []
+
     return allPermissionsData.data.map((p: any) => ({
       id: p.id,
       permissionId: p.id,
@@ -231,6 +233,7 @@ export function useCreateUserForm() {
     // Initialize with all permissions enabled for condominium users
     if (selectedUserType === 'condominium' && rolePermissions.length > 0) {
       const permissionsMap = new Map<string, boolean>()
+
       rolePermissions.forEach((p: any) => {
         permissionsMap.set(p.permissionId, true)
       })
@@ -240,6 +243,7 @@ export function useCreateUserForm() {
     // Initialize with all permissions enabled for superadmin users
     if (selectedUserType === 'superadmin' && superadminPermissions.length > 0) {
       const permissionsMap = new Map<string, boolean>()
+
       superadminPermissions.forEach((p: any) => {
         permissionsMap.set(p.id, true)
       })
@@ -277,7 +281,6 @@ export function useCreateUserForm() {
           setIsLoadingCondominiums(false)
         })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUserType, token, condominiumPage, condominiumLimit, condominiumSearch])
 
   // Get current step index
@@ -292,11 +295,13 @@ export function useCreateUserForm() {
     try {
       if (currentStep === 'basic') {
         basicInfoSchema.parse(values)
+
         return true
       }
 
       if (currentStep === 'userType') {
         userTypeSchema.parse(values)
+
         return true
       }
 
@@ -306,8 +311,10 @@ export function useCreateUserForm() {
             type: 'manual',
             message: 'common.required',
           })
+
           return false
         }
+
         return true
       }
 
@@ -317,8 +324,10 @@ export function useCreateUserForm() {
             type: 'manual',
             message: 'common.required',
           })
+
           return false
         }
+
         return true
       }
 
@@ -341,6 +350,7 @@ export function useCreateUserForm() {
           })
         })
       }
+
       return false
     }
   }, [currentStep, form])
@@ -348,9 +358,11 @@ export function useCreateUserForm() {
   // Navigation functions
   const handleNext = useCallback(async () => {
     const isValid = await validateCurrentStep()
+
     if (!isValid) return
 
     const nextIndex = currentStepIndex + 1
+
     if (nextIndex < steps.length) {
       setCurrentStep(steps[nextIndex])
     }
@@ -365,6 +377,7 @@ export function useCreateUserForm() {
   const handleStepClick = useCallback(
     (step: TUserFormStep) => {
       const stepIndex = steps.indexOf(step)
+
       if (stepIndex !== -1 && stepIndex <= currentStepIndex) {
         setCurrentStep(step)
       }
@@ -375,6 +388,7 @@ export function useCreateUserForm() {
   const canGoToStep = useCallback(
     (step: TUserFormStep) => {
       const stepIndex = steps.indexOf(step)
+
       return stepIndex !== -1 && stepIndex <= currentStepIndex
     },
     [currentStepIndex, steps]
@@ -384,7 +398,9 @@ export function useCreateUserForm() {
   const togglePermission = useCallback((permissionId: string) => {
     setCustomPermissions(prev => {
       const newMap = new Map(prev)
+
       newMap.set(permissionId, !newMap.get(permissionId))
+
       return newMap
     })
   }, [])
@@ -394,6 +410,7 @@ export function useCreateUserForm() {
     const permissions = selectedUserType === 'superadmin' ? superadminPermissions : rolePermissions
 
     const grouped: Record<string, IRolePermission[]> = {}
+
     permissions.forEach(permission => {
       if (!grouped[permission.module]) {
         grouped[permission.module] = []
@@ -464,6 +481,7 @@ export function useCreateUserForm() {
       } else if (values.userType === 'general') {
         // For general users, assign the USER role
         const userRole = userRoleData?.data?.id
+
         if (!userRole) {
           throw new Error(t('superadmin.users.create.errors.userRoleNotFound'))
         }
@@ -473,6 +491,7 @@ export function useCreateUserForm() {
       } else {
         // Superadmin users - collect enabled custom permissions
         const userRole = userRoleData?.data?.id
+
         if (!userRole) {
           throw new Error(t('superadmin.users.create.errors.userRoleNotFound'))
         }
@@ -525,13 +544,16 @@ export function useCreateUserForm() {
     (message: string | undefined): string | undefined => {
       if (!message) return undefined
       const translated = t(message)
+
       // If translation key is returned as-is, it means translation doesn't exist
       // Return a fallback message
       if (translated === message) {
         if (message === 'common.required') return 'Este campo es requerido'
         if (message === 'common.invalidEmail') return 'Email inválido'
+
         return translated
       }
+
       return translated
     },
     [t]

@@ -4,6 +4,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
+import { useCreateSubscriptionTerms } from '@packages/http-client'
 
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
@@ -13,7 +14,6 @@ import { Switch } from '@/ui/components/switch'
 import { Card, CardBody } from '@/ui/components/card'
 import { useToast } from '@/ui/components/toast'
 import { useTranslation } from '@/contexts'
-import { useCreateSubscriptionTerms } from '@packages/http-client'
 
 const createTermsSchema = z.object({
   version: z.string().min(1).max(50),
@@ -76,71 +76,71 @@ export function CreateTermsForm() {
   return (
     <Card>
       <CardBody>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
           {/* Basic Information */}
           <div className="space-y-4 flex flex-col gap-2">
-            <Typography variant="h4" className="text-default-700">
+            <Typography className="text-default-700" variant="h4">
               {t('superadmin.terms.form.basicInfo')}
             </Typography>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <Controller
-                name="version"
                 control={control}
+                name="version"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    label={t('superadmin.terms.form.version')}
-                    placeholder={t('superadmin.terms.form.versionPlaceholder')}
+                    isRequired
                     errorMessage={errors.version?.message}
                     isInvalid={!!errors.version}
-                    isRequired
+                    label={t('superadmin.terms.form.version')}
+                    placeholder={t('superadmin.terms.form.versionPlaceholder')}
                   />
                 )}
               />
 
               <Controller
-                name="title"
                 control={control}
+                name="title"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    label={t('superadmin.terms.form.titleLabel')}
-                    placeholder={t('superadmin.terms.form.titlePlaceholder')}
+                    isRequired
                     errorMessage={errors.title?.message}
                     isInvalid={!!errors.title}
-                    isRequired
+                    label={t('superadmin.terms.form.titleLabel')}
+                    placeholder={t('superadmin.terms.form.titlePlaceholder')}
                   />
                 )}
               />
             </div>
 
             <Controller
-              name="content"
               control={control}
+              name="content"
               render={({ field }) => (
                 <Textarea
                   {...field}
-                  label={t('superadmin.terms.form.content')}
-                  placeholder={t('superadmin.terms.form.contentPlaceholder')}
+                  isRequired
                   errorMessage={errors.content?.message}
                   isInvalid={!!errors.content}
+                  label={t('superadmin.terms.form.content')}
                   minRows={10}
-                  isRequired
+                  placeholder={t('superadmin.terms.form.contentPlaceholder')}
                 />
               )}
             />
 
             <Controller
-              name="summary"
               control={control}
+              name="summary"
               render={({ field }) => (
                 <Textarea
                   {...field}
-                  value={field.value || ''}
                   label={t('superadmin.terms.form.summary')}
-                  placeholder={t('superadmin.terms.form.summaryPlaceholder')}
                   minRows={3}
+                  placeholder={t('superadmin.terms.form.summaryPlaceholder')}
+                  value={field.value || ''}
                 />
               )}
             />
@@ -148,35 +148,35 @@ export function CreateTermsForm() {
 
           {/* Dates */}
           <div className="space-y-4 flex flex-col gap-2">
-            <Typography variant="h4" className="text-default-700">
+            <Typography className="text-default-700" variant="h4">
               {t('superadmin.terms.form.dates')}
             </Typography>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <Controller
-                name="effectiveFrom"
                 control={control}
+                name="effectiveFrom"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    type="date"
-                    label={t('superadmin.terms.form.effectiveFrom')}
+                    isRequired
                     errorMessage={errors.effectiveFrom?.message}
                     isInvalid={!!errors.effectiveFrom}
-                    isRequired
+                    label={t('superadmin.terms.form.effectiveFrom')}
+                    type="date"
                   />
                 )}
               />
 
               <Controller
-                name="effectiveUntil"
                 control={control}
+                name="effectiveUntil"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    value={field.value || ''}
-                    type="date"
                     label={t('superadmin.terms.form.effectiveUntil')}
+                    type="date"
+                    value={field.value || ''}
                   />
                 )}
               />
@@ -186,31 +186,25 @@ export function CreateTermsForm() {
           {/* Active toggle */}
           <div className="flex items-center gap-3">
             <Controller
-              name="isActive"
               control={control}
+              name="isActive"
               render={({ field }) => (
                 <Switch isSelected={field.value} onValueChange={field.onChange} />
               )}
             />
-            <Typography variant="body2">
-              {t('superadmin.terms.form.isActive')}
-            </Typography>
+            <Typography variant="body2">{t('superadmin.terms.form.isActive')}</Typography>
           </div>
 
           {/* Submit */}
           <div className="flex justify-end gap-3">
             <Button
+              isDisabled={isPending}
               variant="flat"
               onPress={() => router.push('/dashboard/terms-conditions')}
-              isDisabled={isPending}
             >
               {t('superadmin.terms.form.cancel')}
             </Button>
-            <Button
-              color="primary"
-              type="submit"
-              isLoading={isPending}
-            >
+            <Button color="primary" isLoading={isPending} type="submit">
               {t('superadmin.terms.form.create')}
             </Button>
           </div>

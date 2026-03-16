@@ -1,7 +1,8 @@
 import Link from 'next/link'
+import { CreditCard, FileText, History, Bell, Zap } from 'lucide-react'
+
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
-import { CreditCard, FileText, History, Bell, Zap } from 'lucide-react'
 
 interface QuickActionsProps {
   translations: {

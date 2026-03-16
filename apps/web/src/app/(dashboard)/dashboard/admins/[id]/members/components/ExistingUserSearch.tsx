@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useUsersPaginated, useAddMember } from '@packages/http-client/hooks'
+
 import { Autocomplete, type IAutocompleteItem } from '@/ui/components/autocomplete'
 import { Button } from '@/ui/components/button'
 import { Avatar } from '@/ui/components/avatar-base'
 import { useAuth, useTranslation } from '@/contexts'
-import { useUsersPaginated, useAddMember } from '@packages/http-client/hooks'
 import { useToast } from '@/ui/components/toast'
 
 interface ExistingUserSearchProps {
@@ -45,13 +46,11 @@ export function ExistingUserSearch({ companyId, onSuccess, onClose }: ExistingUs
 
   // Transform users to autocomplete items
   const autocompleteItems: IAutocompleteItem[] = useMemo(() => {
-    return users.map((user) => ({
+    return users.map(user => ({
       key: user.id,
       label: user.displayName || user.email,
       description: user.email,
-      startContent: (
-        <Avatar name={user.displayName || user.email} size="sm" />
-      ),
+      startContent: <Avatar name={user.displayName || user.email} size="sm" />,
     }))
   }, [users])
 
@@ -60,7 +59,7 @@ export function ExistingUserSearch({ companyId, onSuccess, onClose }: ExistingUs
       toast.success(t('superadmin.companies.detail.members.success.added'))
       onSuccess()
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || t('superadmin.companies.detail.members.error.add'))
     },
   })
@@ -79,13 +78,17 @@ export function ExistingUserSearch({ companyId, onSuccess, onClose }: ExistingUs
   return (
     <div className="space-y-4 pt-4">
       <Autocomplete
-        label={t('superadmin.companies.detail.members.modal.searchLabel')}
-        placeholder={t('superadmin.companies.detail.members.modal.searchPlaceholder')}
+        emptyContent={
+          search.length < 2
+            ? t('superadmin.companies.detail.members.modal.searchMinChars')
+            : t('superadmin.companies.detail.members.modal.noResults')
+        }
         isLoading={isLoading}
         items={autocompleteItems}
+        label={t('superadmin.companies.detail.members.modal.searchLabel')}
+        placeholder={t('superadmin.companies.detail.members.modal.searchPlaceholder')}
         onInputChange={setSearch}
-        onSelectionChange={(key) => setSelectedUserId(key as string | null)}
-        emptyContent={search.length < 2 ? t('superadmin.companies.detail.members.modal.searchMinChars') : t('superadmin.companies.detail.members.modal.noResults')}
+        onSelectionChange={key => setSelectedUserId(key as string | null)}
       />
 
       <p className="text-sm text-default-500">

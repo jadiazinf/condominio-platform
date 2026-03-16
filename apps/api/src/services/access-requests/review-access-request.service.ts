@@ -41,8 +41,11 @@ export class ReviewAccessRequestService {
     this.unitsRepository = new UnitsRepository(db)
   }
 
-  async execute(input: IReviewAccessRequestInput): Promise<TServiceResult<IReviewAccessRequestResult>> {
-    const { accessRequestId, status, adminNotes, reviewedBy, condominiumId, managementCompanyId } = input
+  async execute(
+    input: IReviewAccessRequestInput
+  ): Promise<TServiceResult<IReviewAccessRequestResult>> {
+    const { accessRequestId, status, adminNotes, reviewedBy, condominiumId, managementCompanyId } =
+      input
 
     // 1. Fetch the request
     const request = await this.accessRequestsRepository.getById(accessRequestId)

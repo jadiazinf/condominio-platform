@@ -15,7 +15,13 @@ import { sql } from 'drizzle-orm'
 import { startTestContainer, cleanDatabase } from '../setup/test-container'
 import { createTestApp } from '../http/controllers/test-utils'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
-import { PaymentsRepository, PaymentApplicationsRepository, QuotasRepository } from '@database/repositories'
+import {
+  PaymentsRepository,
+  PaymentApplicationsRepository,
+  QuotasRepository,
+  UnitsRepository,
+  BuildingsRepository,
+} from '@database/repositories'
 import { PaymentsController } from '@http/controllers/payments/payments.controller'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -45,35 +51,35 @@ beforeEach(async () => {
   `)
 
   // 2. Insert currency
-  const currResult = await db.execute(sql`
+  const currResult = (await db.execute(sql`
     INSERT INTO currencies (code, name, symbol, is_base_currency, is_active, decimals, registered_by)
     VALUES ('USD', 'US Dollar', '$', true, true, 2, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   currencyId = currResult[0]!.id
 
   // 3. Insert condominium
-  const condoResult = await db.execute(sql`
+  const condoResult = (await db.execute(sql`
     INSERT INTO condominiums (name, is_active, created_by)
     VALUES ('Test Condominium', true, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   const condominiumId = condoResult[0]!.id
 
   // 4. Insert building
-  const buildingResult = await db.execute(sql`
+  const buildingResult = (await db.execute(sql`
     INSERT INTO buildings (condominium_id, name, code, floors_count, units_count, is_active)
     VALUES (${condominiumId}, 'Torre A', 'TA', 10, 40, true)
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   const buildingId = buildingResult[0]!.id
 
   // 5. Insert unit
-  const unitResult = await db.execute(sql`
+  const unitResult = (await db.execute(sql`
     INSERT INTO units (building_id, unit_number, floor, area_m2, aliquot_percentage, is_active)
     VALUES (${buildingId}, '101', 1, 85.50, 2.50, true)
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   unitId = unitResult[0]!.id
 
   // 6. Set up controller + app
@@ -81,7 +87,17 @@ beforeEach(async () => {
   const paymentApplicationsRepo = new PaymentApplicationsRepository(db)
   const quotasRepo = new QuotasRepository(db)
   const mockSendNotification = { execute: async () => ({ success: true }) } as any
-  const controller = new PaymentsController(repository, db, paymentApplicationsRepo, quotasRepo, mockSendNotification)
+  const unitsRepo = new UnitsRepository(db)
+  const buildingsRepo = new BuildingsRepository(db)
+  const controller = new PaymentsController(
+    repository,
+    db,
+    paymentApplicationsRepo,
+    quotasRepo,
+    mockSendNotification,
+    unitsRepo,
+    buildingsRepo
+  )
 
   app = createTestApp()
   app.route('/condominium/payments', controller.createRouter())
@@ -158,15 +174,15 @@ async function refundPayment(paymentId: string, refundReason: string) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('Payment Flow — Integration', function () {
-
   // ─── Report Payment ──────────────────────────────────────────────────────
 
   describe('Report Payment', function () {
-
     it('creates a payment with pending_verification status', async function () {
       const res = await reportPayment()
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: { id: string; status: string; registeredBy: string } }
+      const json = (await res.json()) as {
+        data: { id: string; status: string; registeredBy: string }
+      }
       expect(json.data.status).toBe('pending_verification')
       expect(json.data.registeredBy).toBe(MOCK_USER_ID)
     })
@@ -178,7 +194,9 @@ describe('Payment Flow — Integration', function () {
         paymentMethod: 'cash',
       })
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: { receiptNumber: string; notes: string; paymentMethod: string } }
+      const json = (await res.json()) as {
+        data: { receiptNumber: string; notes: string; paymentMethod: string }
+      }
       expect(json.data.receiptNumber).toBe('REC-001')
       expect(json.data.notes).toBe('Transfer from BNC')
       expect(json.data.paymentMethod).toBe('cash')
@@ -188,17 +206,19 @@ describe('Payment Flow — Integration', function () {
   // ─── Verify Payment ──────────────────────────────────────────────────────
 
   describe('Verify Payment', function () {
-
     it('transitions payment from pending_verification to completed', async function () {
       // Report
       const reportRes = await reportPayment()
-      const reportJson = await reportRes.json() as { data: { id: string } }
+      const reportJson = (await reportRes.json()) as { data: { id: string } }
       const paymentId = reportJson.data.id
 
       // Verify
       const verifyRes = await verifyPayment(paymentId, 'Checked bank transfer')
       expect(verifyRes.status).toBe(200)
-      const verifyJson = await verifyRes.json() as { data: { status: string; verifiedBy: string }; message: string }
+      const verifyJson = (await verifyRes.json()) as {
+        data: { status: string; verifiedBy: string }
+        message: string
+      }
       expect(verifyJson.data.status).toBe('completed')
       expect(verifyJson.data.verifiedBy).toBe(MOCK_USER_ID)
       expect(verifyJson.message).toBe('Payment verified successfully')
@@ -212,7 +232,7 @@ describe('Payment Flow — Integration', function () {
     it('returns 400 when payment is not pending_verification', async function () {
       // Report → Verify → try Verify again
       const reportRes = await reportPayment()
-      const reportJson = await reportRes.json() as { data: { id: string } }
+      const reportJson = (await reportRes.json()) as { data: { id: string } }
       const paymentId = reportJson.data.id
 
       await verifyPayment(paymentId)
@@ -225,15 +245,14 @@ describe('Payment Flow — Integration', function () {
   // ─── Reject Payment ──────────────────────────────────────────────────────
 
   describe('Reject Payment', function () {
-
     it('transitions payment from pending_verification to rejected', async function () {
       const reportRes = await reportPayment()
-      const reportJson = await reportRes.json() as { data: { id: string } }
+      const reportJson = (await reportRes.json()) as { data: { id: string } }
       const paymentId = reportJson.data.id
 
       const rejectRes = await rejectPayment(paymentId, 'Receipt does not match')
       expect(rejectRes.status).toBe(200)
-      const rejectJson = await rejectRes.json() as { data: { status: string }; message: string }
+      const rejectJson = (await rejectRes.json()) as { data: { status: string }; message: string }
       expect(rejectJson.data.status).toBe('rejected')
       expect(rejectJson.message).toBe('Payment rejected')
     })
@@ -245,7 +264,7 @@ describe('Payment Flow — Integration', function () {
 
     it('returns 400 when payment is already rejected', async function () {
       const reportRes = await reportPayment()
-      const reportJson = await reportRes.json() as { data: { id: string } }
+      const reportJson = (await reportRes.json()) as { data: { id: string } }
       const paymentId = reportJson.data.id
 
       await rejectPayment(paymentId)
@@ -256,7 +275,7 @@ describe('Payment Flow — Integration', function () {
 
     it('returns 400 when payment is completed (not pending_verification)', async function () {
       const reportRes = await reportPayment()
-      const reportJson = await reportRes.json() as { data: { id: string } }
+      const reportJson = (await reportRes.json()) as { data: { id: string } }
       const paymentId = reportJson.data.id
 
       await verifyPayment(paymentId) // completed
@@ -269,18 +288,21 @@ describe('Payment Flow — Integration', function () {
   // ─── Refund Payment ──────────────────────────────────────────────────────
 
   describe('Refund Payment', function () {
-
     it('transitions completed payment to refunded', async function () {
       // Report → Verify → Refund
       const reportRes = await reportPayment()
-      const reportJson = await reportRes.json() as { data: { id: string } }
+      const reportJson = (await reportRes.json()) as { data: { id: string } }
       const paymentId = reportJson.data.id
 
       await verifyPayment(paymentId)
 
       const refundRes = await refundPayment(paymentId, 'Duplicate payment')
       expect(refundRes.status).toBe(200)
-      const refundJson = await refundRes.json() as { data: { status: string }; reversedApplications: number; message: string }
+      const refundJson = (await refundRes.json()) as {
+        data: { status: string }
+        reversedApplications: number
+        message: string
+      }
       expect(refundJson.data.status).toBe('refunded')
       expect(refundJson.reversedApplications).toBe(0) // no quota applications in this test
       expect(refundJson.message).toContain('refunded')
@@ -293,7 +315,7 @@ describe('Payment Flow — Integration', function () {
 
     it('returns 400 when payment is pending_verification (not completed)', async function () {
       const reportRes = await reportPayment()
-      const reportJson = await reportRes.json() as { data: { id: string } }
+      const reportJson = (await reportRes.json()) as { data: { id: string } }
       const paymentId = reportJson.data.id
 
       const res = await refundPayment(paymentId, 'Should fail')
@@ -302,7 +324,7 @@ describe('Payment Flow — Integration', function () {
 
     it('returns 400 when payment is already refunded', async function () {
       const reportRes = await reportPayment()
-      const reportJson = await reportRes.json() as { data: { id: string } }
+      const reportJson = (await reportRes.json()) as { data: { id: string } }
       const paymentId = reportJson.data.id
 
       await verifyPayment(paymentId)
@@ -316,12 +338,11 @@ describe('Payment Flow — Integration', function () {
   // ─── Full Lifecycle ──────────────────────────────────────────────────────
 
   describe('Full Lifecycle', function () {
-
     it('report → verify → refund: DB state is consistent', async function () {
       // Report
       const reportRes = await reportPayment({ notes: 'Monthly quota' })
       expect(reportRes.status).toBe(201)
-      const reportJson = await reportRes.json() as { data: { id: string } }
+      const reportJson = (await reportRes.json()) as { data: { id: string } }
       const paymentId = reportJson.data.id
 
       // Verify
@@ -350,7 +371,7 @@ describe('Payment Flow — Integration', function () {
 
     it('report → reject: cannot verify after rejection', async function () {
       const reportRes = await reportPayment()
-      const reportJson = await reportRes.json() as { data: { id: string } }
+      const reportJson = (await reportRes.json()) as { data: { id: string } }
       const paymentId = reportJson.data.id
 
       // Reject
@@ -369,18 +390,17 @@ describe('Payment Flow — Integration', function () {
   // ─── Query Endpoints ─────────────────────────────────────────────────────
 
   describe('Query Endpoints', function () {
-
     it('GET /pending-verification returns only pending payments', async function () {
       // Create 3 payments: 2 pending, 1 verified
       await reportPayment({ notes: 'payment-1' })
       await reportPayment({ notes: 'payment-2' })
       const res3 = await reportPayment({ notes: 'payment-3' })
-      const json3 = await res3.json() as { data: { id: string } }
+      const json3 = (await res3.json()) as { data: { id: string } }
       await verifyPayment(json3.data.id)
 
       const res = await request('/condominium/payments/pending-verification')
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { status: string }[] }
+      const json = (await res.json()) as { data: { status: string }[] }
       expect(json.data).toHaveLength(2)
       for (const p of json.data) {
         expect(p.status).toBe('pending_verification')
@@ -393,7 +413,7 @@ describe('Payment Flow — Integration', function () {
 
       const res = await request(`/condominium/payments/user/${MOCK_USER_ID}`)
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { userId: string }[] }
+      const json = (await res.json()) as { data: { userId: string }[] }
       expect(json.data).toHaveLength(2)
       for (const p of json.data) {
         expect(p.userId).toBe(MOCK_USER_ID)
@@ -405,7 +425,7 @@ describe('Payment Flow — Integration', function () {
 
       const res = await request(`/condominium/payments/unit/${unitId}`)
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { unitId: string }[] }
+      const json = (await res.json()) as { data: { unitId: string }[] }
       expect(json.data).toHaveLength(1)
       expect(json.data[0]!.unitId).toBe(unitId)
     })
@@ -414,12 +434,12 @@ describe('Payment Flow — Integration', function () {
       // Create 2 payments: 1 pending_verification, 1 completed
       await reportPayment()
       const res2 = await reportPayment()
-      const json2 = await res2.json() as { data: { id: string } }
+      const json2 = (await res2.json()) as { data: { id: string } }
       await verifyPayment(json2.data.id)
 
       const res = await request('/condominium/payments/status/completed')
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { status: string }[] }
+      const json = (await res.json()) as { data: { status: string }[] }
       expect(json.data).toHaveLength(1)
       expect(json.data[0]!.status).toBe('completed')
     })
@@ -434,25 +454,29 @@ describe('Payment Flow — Integration', function () {
       await reportPayment({ paymentDate: '2026-02-01' })
       await reportPayment({ paymentDate: '2026-03-10' })
 
-      const res = await request('/condominium/payments/date-range?startDate=2026-01-01&endDate=2026-02-28')
+      const res = await request(
+        '/condominium/payments/date-range?startDate=2026-01-01&endDate=2026-02-28'
+      )
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[] }
+      const json = (await res.json()) as { data: unknown[] }
       expect(json.data).toHaveLength(2)
     })
 
     it('GET /date-range returns 400 for invalid date format', async function () {
-      const res = await request('/condominium/payments/date-range?startDate=invalid&endDate=2026-02-28')
+      const res = await request(
+        '/condominium/payments/date-range?startDate=invalid&endDate=2026-02-28'
+      )
       expect(res.status).toBe(400)
     })
 
     it('GET /:id returns a single payment', async function () {
       const reportRes = await reportPayment()
-      const reportJson = await reportRes.json() as { data: { id: string } }
+      const reportJson = (await reportRes.json()) as { data: { id: string } }
       const paymentId = reportJson.data.id
 
       const res = await request(`/condominium/payments/${paymentId}`)
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { id: string; amount: string } }
+      const json = (await res.json()) as { data: { id: string; amount: string } }
       expect(json.data.id).toBe(paymentId)
       expect(json.data.amount).toBe('150.00')
     })
@@ -468,7 +492,7 @@ describe('Payment Flow — Integration', function () {
 
       const res = await request('/condominium/payments')
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[] }
+      const json = (await res.json()) as { data: unknown[] }
       expect(json.data).toHaveLength(2)
     })
 
@@ -477,7 +501,7 @@ describe('Payment Flow — Integration', function () {
 
       const res = await request('/condominium/payments/number/PAY-2026-001')
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { paymentNumber: string } }
+      const json = (await res.json()) as { data: { paymentNumber: string } }
       expect(json.data.paymentNumber).toBe('PAY-2026-001')
     })
 
@@ -490,7 +514,6 @@ describe('Payment Flow — Integration', function () {
   // ─── CRUD Operations ─────────────────────────────────────────────────────
 
   describe('CRUD Operations', function () {
-
     it('POST / creates a payment directly (admin)', async function () {
       const res = await request('/condominium/payments', {
         method: 'POST',
@@ -498,13 +521,13 @@ describe('Payment Flow — Integration', function () {
         body: JSON.stringify(paymentBody({ status: 'completed' })),
       })
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: { id: string } }
+      const json = (await res.json()) as { data: { id: string } }
       expect(json.data.id).toBeTruthy()
     })
 
     it('PATCH /:id updates a payment', async function () {
       const reportRes = await reportPayment()
-      const reportJson = await reportRes.json() as { data: { id: string } }
+      const reportJson = (await reportRes.json()) as { data: { id: string } }
       const paymentId = reportJson.data.id
 
       const res = await request(`/condominium/payments/${paymentId}`, {
@@ -513,14 +536,14 @@ describe('Payment Flow — Integration', function () {
         body: JSON.stringify({ notes: 'Updated notes', amount: '175.00' }),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { notes: string; amount: string } }
+      const json = (await res.json()) as { data: { notes: string; amount: string } }
       expect(json.data.notes).toBe('Updated notes')
       expect(json.data.amount).toBe('175.00')
     })
 
     it('DELETE /:id hard-deletes a payment', async function () {
       const reportRes = await reportPayment()
-      const reportJson = await reportRes.json() as { data: { id: string } }
+      const reportJson = (await reportRes.json()) as { data: { id: string } }
       const paymentId = reportJson.data.id
 
       const deleteRes = await request(`/condominium/payments/${paymentId}`, {

@@ -1,11 +1,36 @@
 'use client'
 
+import type { TServiceExecution, TWizardExecutionData } from '@packages/domain'
+
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, Trash2, Upload, X, FileText, Image, AlertTriangle, ExternalLink, History, Clock, Calculator } from 'lucide-react'
-import type { TServiceExecution, TWizardExecutionData } from '@packages/domain'
+import {
+  Plus,
+  Trash2,
+  Upload,
+  X,
+  FileText,
+  Image,
+  AlertTriangle,
+  ExternalLink,
+  History,
+  Clock,
+  Calculator,
+} from 'lucide-react'
+import {
+  useCreateServiceExecution,
+  useUpdateServiceExecution,
+  useCurrency,
+  usePaymentConceptDetail,
+  useServiceExecutionsPaginated,
+} from '@packages/http-client/hooks'
+import { HttpError } from '@packages/http-client'
+
+import { useServiceExecutionAttachmentUpload } from '../hooks/useServiceExecutionAttachmentUpload'
+import { CurrencyCalculatorModal } from '../../payment-concepts/components/wizard/steps/CurrencyCalculatorModal'
+
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
@@ -18,16 +43,6 @@ import { Pagination } from '@/ui/components/pagination'
 import { Progress } from '@/ui/components/progress'
 import { useToast } from '@/ui/components/toast'
 import { useTranslation } from '@/contexts'
-import {
-  useCreateServiceExecution,
-  useUpdateServiceExecution,
-  useCurrency,
-  usePaymentConceptDetail,
-  useServiceExecutionsPaginated,
-} from '@packages/http-client/hooks'
-import { HttpError } from '@packages/http-client'
-import { useServiceExecutionAttachmentUpload } from '../hooks/useServiceExecutionAttachmentUpload'
-import { CurrencyCalculatorModal } from '../../payment-concepts/components/wizard/steps/CurrencyCalculatorModal'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Form schema
@@ -116,7 +131,9 @@ export function ExecutionModal({
   const showCalculator = !!currencies && currencies.length > 0 && !!currencyId
 
   // Existing attachments (from the execution being edited, minus removed ones)
-  const [existingAttachments, setExistingAttachments] = useState<TServiceExecution['attachments']>([])
+  const [existingAttachments, setExistingAttachments] = useState<TServiceExecution['attachments']>(
+    []
+  )
 
   // Currency info — prefer useCurrency hook, fallback to currencies prop (wizard mode)
   const { data: currencyData } = useCurrency(currencyId ?? '')
@@ -125,7 +142,12 @@ export function ExecutionModal({
     () => currencies?.find(c => c.id === currencyId),
     [currencies, currencyId]
   )
-  const currencySymbol = currency?.symbol ?? currency?.code ?? currencyFromProps?.symbol ?? currencyFromProps?.code ?? '$'
+  const currencySymbol =
+    currency?.symbol ??
+    currency?.code ??
+    currencyFromProps?.symbol ??
+    currencyFromProps?.code ??
+    '$'
   const currencyDecimals = currency?.decimals ?? 2
 
   // Payment concept info
@@ -136,14 +158,17 @@ export function ExecutionModal({
   })
   const concept = conceptData?.data
 
-  const conceptTypeLabels: Record<string, string> = useMemo(() => ({
-    maintenance: t('admin.paymentConcepts.types.maintenance'),
-    condominium_fee: t('admin.paymentConcepts.types.condominiumFee'),
-    extraordinary: t('admin.paymentConcepts.types.extraordinary'),
-    fine: t('admin.paymentConcepts.types.fine'),
-    reserve_fund: t('admin.paymentConcepts.types.reserveFund'),
-    other: t('admin.paymentConcepts.types.other'),
-  }), [t])
+  const conceptTypeLabels: Record<string, string> = useMemo(
+    () => ({
+      maintenance: t('admin.paymentConcepts.types.maintenance'),
+      condominium_fee: t('admin.paymentConcepts.types.condominiumFee'),
+      extraordinary: t('admin.paymentConcepts.types.extraordinary'),
+      fine: t('admin.paymentConcepts.types.fine'),
+      reserve_fund: t('admin.paymentConcepts.types.reserveFund'),
+      other: t('admin.paymentConcepts.types.other'),
+    }),
+    [t]
+  )
 
   // ─── Execution history (for "use as template") ────────────────────────────
   const [showHistory, setShowHistory] = useState(false)
@@ -162,7 +187,12 @@ export function ExecutionModal({
     () => (historyData?.data ?? []) as TServiceExecution[],
     [historyData]
   )
-  const historyPagination = historyData?.pagination ?? { page: 1, limit: HISTORY_LIMIT, total: 0, totalPages: 0 }
+  const historyPagination = historyData?.pagination ?? {
+    page: 1,
+    limit: HISTORY_LIMIT,
+    total: 0,
+    totalPages: 0,
+  }
 
   // ─── Upload hook ───────────────────────────────────────────────────────────
   const {
@@ -179,6 +209,7 @@ export function ExecutionModal({
     storageId: execution?.id ?? storageId.current,
     onValidationError: errors => {
       const firstError = errors[0]
+
       if (firstError?.reason === 'file_too_large') {
         toast.error(t(`${d}.fileTooLarge`))
       } else {
@@ -244,7 +275,9 @@ export function ExecutionModal({
             notes: item.notes ?? '',
           })),
         })
-        setExistingAttachments((wizardExecution.attachments ?? []) as TServiceExecution['attachments'])
+        setExistingAttachments(
+          (wizardExecution.attachments ?? []) as TServiceExecution['attachments']
+        )
       } else {
         methods.reset({
           title: '',
@@ -268,8 +301,10 @@ export function ExecutionModal({
   // Recalculate totalAmount from all item amounts
   const recalculateTotal = useCallback(() => {
     const allItems = methods.getValues('items')
+
     if (allItems.length > 0) {
       const total = allItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+
       methods.setValue('totalAmount', String(total.toFixed(currencyDecimals)))
     }
   }, [methods, currencyDecimals])
@@ -281,8 +316,10 @@ export function ExecutionModal({
         methods.setValue('totalAmount', convertedAmount)
       } else if (calculatorTarget && typeof calculatorTarget === 'object') {
         const newUnitPrice = parseFloat(convertedAmount) || 0
+
         methods.setValue(`items.${calculatorTarget.index}.unitPrice`, newUnitPrice)
         const quantity = Number(methods.getValues(`items.${calculatorTarget.index}.quantity`)) || 0
+
         methods.setValue(`items.${calculatorTarget.index}.amount`, quantity * newUnitPrice)
         recalculateTotal()
       }
@@ -296,6 +333,7 @@ export function ExecutionModal({
     (index: number) => {
       const quantity = Number(methods.getValues(`items.${index}.quantity`)) || 0
       const unitPrice = Number(methods.getValues(`items.${index}.unitPrice`)) || 0
+
       methods.setValue(`items.${index}.amount`, quantity * unitPrice)
       recalculateTotal()
     },
@@ -313,39 +351,31 @@ export function ExecutionModal({
   )
 
   // ─── Mutations (only used when NOT in wizard mode) ─────────────────────────
-  const createMutation = useCreateServiceExecution(
-    managementCompanyId,
-    serviceId,
-    condominiumId,
-    {
-      onSuccess: () => {
-        toast.success(t(`${d}.executionCreated`))
-        handleClose()
-        onSuccess?.()
-      },
-      onError: (error) => {
-        const msg = HttpError.isHttpError(error) ? error.message : t(`${d}.executionCreateError`)
-        toast.error(msg)
-      },
-    }
-  )
+  const createMutation = useCreateServiceExecution(managementCompanyId, serviceId, condominiumId, {
+    onSuccess: () => {
+      toast.success(t(`${d}.executionCreated`))
+      handleClose()
+      onSuccess?.()
+    },
+    onError: error => {
+      const msg = HttpError.isHttpError(error) ? error.message : t(`${d}.executionCreateError`)
 
-  const updateMutation = useUpdateServiceExecution(
-    managementCompanyId,
-    serviceId,
-    condominiumId,
-    {
-      onSuccess: () => {
-        toast.success(t(`${d}.executionUpdated`))
-        handleClose()
-        onSuccess?.()
-      },
-      onError: (error) => {
-        const msg = HttpError.isHttpError(error) ? error.message : t(`${d}.executionUpdateError`)
-        toast.error(msg)
-      },
-    }
-  )
+      toast.error(msg)
+    },
+  })
+
+  const updateMutation = useUpdateServiceExecution(managementCompanyId, serviceId, condominiumId, {
+    onSuccess: () => {
+      toast.success(t(`${d}.executionUpdated`))
+      handleClose()
+      onSuccess?.()
+    },
+    onError: error => {
+      const msg = HttpError.isHttpError(error) ? error.message : t(`${d}.executionUpdateError`)
+
+      toast.error(msg)
+    },
+  })
 
   const isPending = !isWizardMode && (createMutation.isPending || updateMutation.isPending)
 
@@ -404,10 +434,7 @@ export function ExecutionModal({
   }, [])
 
   const handleSubmit = methods.handleSubmit(data => {
-    const allAttachments = [
-      ...existingAttachments,
-      ...completedAttachments,
-    ]
+    const allAttachments = [...existingAttachments, ...completedAttachments]
 
     const payload = {
       title: data.title,
@@ -441,6 +468,7 @@ export function ExecutionModal({
         notes: payload.notes,
       })
       onClose()
+
       return
     }
 
@@ -474,25 +502,21 @@ export function ExecutionModal({
     }`
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="2xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="2xl" onClose={handleClose}>
       <ModalContent>
         <form onSubmit={handleSubmit}>
           <ModalHeader className="flex flex-col items-start">
-            <Typography variant="body2" color="muted">
+            <Typography color="muted" variant="body2">
               {isEditing ? t(`${d}.editExecution`) : t(`${d}.createExecution`)}
             </Typography>
-            {serviceName && (
-              <Typography variant="h4">
-                {serviceName}
-              </Typography>
-            )}
+            {serviceName && <Typography variant="h4">{serviceName}</Typography>}
           </ModalHeader>
 
           <ModalBody className="gap-0 p-0 overflow-y-auto max-h-[60vh]">
             {/* Payment concept info */}
             {concept && (
               <div className="mx-6 mt-4 mb-2 p-3 bg-default-100 rounded-lg">
-                <Typography variant="body2" className="text-default-500 mb-1">
+                <Typography className="text-default-500 mb-1" variant="body2">
                   {t(`${d}.linkedConcept`)}
                 </Typography>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -501,7 +525,7 @@ export function ExecutionModal({
                     {conceptTypeLabels[concept.conceptType] ?? concept.conceptType}
                   </Chip>
                   {concept.isRecurring && (
-                    <Chip size="sm" variant="flat" color="primary">
+                    <Chip color="primary" size="sm" variant="flat">
                       {t('admin.paymentConcepts.columns.recurring')}
                     </Chip>
                   )}
@@ -513,13 +537,13 @@ export function ExecutionModal({
             {!isEditing && (
               <div className="mx-6 mt-4">
                 <Button
-                  type="button"
-                  variant="flat"
+                  className="w-full"
                   color="default"
                   size="sm"
                   startContent={<History size={16} />}
+                  type="button"
+                  variant="flat"
                   onPress={() => setShowHistory(!showHistory)}
-                  className="w-full"
                 >
                   {t(`${d}.historyTemplate`)}
                 </Button>
@@ -531,7 +555,7 @@ export function ExecutionModal({
                         <Spinner size="sm" />
                       </div>
                     ) : historyExecutions.length === 0 ? (
-                      <Typography color="muted" variant="body2" className="text-center py-4">
+                      <Typography className="text-center py-4" color="muted" variant="body2">
                         {t(`${d}.noExecutions`)}
                       </Typography>
                     ) : (
@@ -540,18 +564,23 @@ export function ExecutionModal({
                           <div
                             key={exec.id}
                             className="flex items-center gap-3 rounded-lg border border-default-200 p-3 hover:border-primary-300 hover:bg-primary-50/50 cursor-pointer transition-colors"
-                            onClick={() => handleSelectFromHistory(exec)}
                             role="button"
                             tabIndex={0}
-                            onKeyDown={e => { if (e.key === 'Enter') handleSelectFromHistory(exec) }}
+                            onClick={() => handleSelectFromHistory(exec)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') handleSelectFromHistory(exec)
+                            }}
                           >
-                            <Clock size={14} className="shrink-0 text-default-400" />
+                            <Clock className="shrink-0 text-default-400" size={14} />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate">{exec.title}</p>
                               <p className="text-xs text-default-500">{exec.executionDate}</p>
                             </div>
                             <span className="text-sm font-semibold whitespace-nowrap">
-                              {currencySymbol} {Number(exec.totalAmount).toLocaleString('es-VE', { minimumFractionDigits: currencyDecimals })}
+                              {currencySymbol}{' '}
+                              {Number(exec.totalAmount).toLocaleString('es-VE', {
+                                minimumFractionDigits: currencyDecimals,
+                              })}
                             </span>
                           </div>
                         ))}
@@ -560,12 +589,12 @@ export function ExecutionModal({
 
                     {historyPagination.totalPages > 1 && (
                       <Pagination
+                        limit={historyPagination.limit}
                         page={historyPagination.page}
+                        showLimitSelector={false}
                         total={historyPagination.total}
                         totalPages={historyPagination.totalPages}
-                        limit={historyPagination.limit}
                         onPageChange={setHistoryPage}
-                        showLimitSelector={false}
                       />
                     )}
                   </div>
@@ -575,15 +604,27 @@ export function ExecutionModal({
 
             {/* Tabs */}
             <div className="flex border-b border-divider px-6">
-              <button type="button" className={tabClass('general')} onClick={() => setActiveTab('general')}>
+              <button
+                className={tabClass('general')}
+                type="button"
+                onClick={() => setActiveTab('general')}
+              >
                 {t(`${d}.title`)}
               </button>
-              <button type="button" className={tabClass('items')} onClick={() => setActiveTab('items')}>
+              <button
+                className={tabClass('items')}
+                type="button"
+                onClick={() => setActiveTab('items')}
+              >
                 {t(`${d}.items`)} {fields.length > 0 && `(${fields.length})`}
               </button>
-              <button type="button" className={tabClass('attachments')} onClick={() => setActiveTab('attachments')}>
+              <button
+                className={tabClass('attachments')}
+                type="button"
+                onClick={() => setActiveTab('attachments')}
+              >
                 {t(`${d}.attachments`)}{' '}
-                {(existingAttachments.length + completedAttachments.length) > 0 &&
+                {existingAttachments.length + completedAttachments.length > 0 &&
                   `(${existingAttachments.length + completedAttachments.length})`}
               </button>
             </div>
@@ -593,8 +634,8 @@ export function ExecutionModal({
               {activeTab === 'general' && (
                 <div className="flex flex-col gap-4">
                   <Input
-                    label={t(`${d}.title`)}
                     isRequired
+                    label={t(`${d}.title`)}
                     {...methods.register('title')}
                     errorMessage={methods.formState.errors.title?.message}
                     isInvalid={!!methods.formState.errors.title}
@@ -603,9 +644,9 @@ export function ExecutionModal({
 
                   <div className="grid grid-cols-2 gap-4">
                     <Input
+                      isRequired
                       label={t(`${d}.executionDate`)}
                       type="date"
-                      isRequired
                       {...methods.register('executionDate')}
                       errorMessage={methods.formState.errors.executionDate?.message}
                       isInvalid={!!methods.formState.errors.executionDate}
@@ -624,26 +665,28 @@ export function ExecutionModal({
                       name="totalAmount"
                       render={({ field }) => (
                         <CurrencyInput
-                          label={t(`${d}.totalAmount`)}
                           isRequired
-                          value={field.value}
-                          onValueChange={field.onChange}
                           currencySymbol={currencySymbol}
                           decimals={currencyDecimals}
+                          endContent={
+                            showCalculator && fields.length === 0 ? (
+                              <button
+                                className="text-default-400 hover:text-primary cursor-pointer"
+                                title={t(`${d}.currencyCalculator`)}
+                                type="button"
+                                onClick={() => setCalculatorTarget('totalAmount')}
+                              >
+                                <Calculator size={16} />
+                              </button>
+                            ) : undefined
+                          }
                           errorMessage={methods.formState.errors.totalAmount?.message}
                           isInvalid={!!methods.formState.errors.totalAmount}
                           isReadOnly={fields.length > 0}
+                          label={t(`${d}.totalAmount`)}
                           tooltip={t(`${d}.totalAmountTooltip`)}
-                          endContent={showCalculator && fields.length === 0 ? (
-                            <button
-                              type="button"
-                              className="text-default-400 hover:text-primary cursor-pointer"
-                              onClick={() => setCalculatorTarget('totalAmount')}
-                              title={t(`${d}.currencyCalculator`)}
-                            >
-                              <Calculator size={16} />
-                            </button>
-                          ) : undefined}
+                          value={field.value}
+                          onValueChange={field.onChange}
                         />
                       )}
                     />
@@ -652,17 +695,17 @@ export function ExecutionModal({
                   <Textarea
                     label={t(`${d}.description`)}
                     {...methods.register('description')}
-                    variant="bordered"
-                    minRows={2}
                     maxRows={4}
+                    minRows={2}
+                    variant="bordered"
                   />
 
                   <Textarea
                     label={t(`${d}.notes`)}
                     {...methods.register('notes')}
-                    variant="bordered"
-                    minRows={2}
                     maxRows={4}
+                    minRows={2}
+                    variant="bordered"
                   />
                 </div>
               )}
@@ -672,15 +715,15 @@ export function ExecutionModal({
                 <div className="space-y-3">
                   {/* Header */}
                   <div className="flex items-center justify-between">
-                    <Typography variant="body2" className="font-medium text-default-600">
+                    <Typography className="font-medium text-default-600" variant="body2">
                       {t(`${d}.items`)} {fields.length > 0 && `(${fields.length})`}
                     </Typography>
                     <Button
+                      size="sm"
+                      startContent={<Plus size={16} />}
                       type="button"
                       variant="bordered"
-                      startContent={<Plus size={16} />}
                       onPress={addItem}
-                      size="sm"
                     >
                       {t(`${d}.addItem`)}
                     </Button>
@@ -705,9 +748,9 @@ export function ExecutionModal({
                             </span>
                             <Button
                               isIconOnly
+                              color="danger"
                               size="sm"
                               variant="light"
-                              color="danger"
                               onPress={() => handleRemoveItem(index)}
                             >
                               <Trash2 size={14} />
@@ -717,10 +760,12 @@ export function ExecutionModal({
                           <Input
                             placeholder={t(`${d}.itemDescription`)}
                             {...methods.register(`items.${index}.description`)}
-                            errorMessage={methods.formState.errors.items?.[index]?.description?.message}
+                            errorMessage={
+                              methods.formState.errors.items?.[index]?.description?.message
+                            }
                             isInvalid={!!methods.formState.errors.items?.[index]?.description}
-                            variant="bordered"
                             size="sm"
+                            variant="bordered"
                           />
 
                           <div className="grid grid-cols-3 gap-2">
@@ -731,40 +776,54 @@ export function ExecutionModal({
                                 valueAsNumber: true,
                                 onChange: () => handleItemChange(index),
                               })}
-                              errorMessage={methods.formState.errors.items?.[index]?.quantity?.message}
+                              errorMessage={
+                                methods.formState.errors.items?.[index]?.quantity?.message
+                              }
                               isInvalid={!!methods.formState.errors.items?.[index]?.quantity}
-                              variant="bordered"
                               size="sm"
+                              variant="bordered"
                             />
                             <Controller
                               control={methods.control}
                               name={`items.${index}.unitPrice`}
                               render={({ field: f }) => (
                                 <CurrencyInput
+                                  currencySymbol={currencySymbol}
+                                  decimals={currencyDecimals}
+                                  endContent={
+                                    showCalculator ? (
+                                      <button
+                                        className="text-default-400 hover:text-primary cursor-pointer"
+                                        title={t(`${d}.currencyCalculator`)}
+                                        type="button"
+                                        onClick={() =>
+                                          setCalculatorTarget({ type: 'unitPrice', index })
+                                        }
+                                      >
+                                        <Calculator size={14} />
+                                      </button>
+                                    ) : undefined
+                                  }
+                                  errorMessage={
+                                    methods.formState.errors.items?.[index]?.unitPrice?.message
+                                  }
+                                  isInvalid={!!methods.formState.errors.items?.[index]?.unitPrice}
                                   label={t(`${d}.itemUnitPrice`)}
+                                  size="sm"
                                   value={String(f.value ?? 0)}
                                   onValueChange={v => {
                                     const newUnitPrice = parseFloat(v) || 0
+
                                     f.onChange(newUnitPrice)
-                                    const quantity = Number(methods.getValues(`items.${index}.quantity`)) || 0
-                                    methods.setValue(`items.${index}.amount`, quantity * newUnitPrice)
+                                    const quantity =
+                                      Number(methods.getValues(`items.${index}.quantity`)) || 0
+
+                                    methods.setValue(
+                                      `items.${index}.amount`,
+                                      quantity * newUnitPrice
+                                    )
                                     recalculateTotal()
                                   }}
-                                  currencySymbol={currencySymbol}
-                                  decimals={currencyDecimals}
-                                  errorMessage={methods.formState.errors.items?.[index]?.unitPrice?.message}
-                                  isInvalid={!!methods.formState.errors.items?.[index]?.unitPrice}
-                                  size="sm"
-                                  endContent={showCalculator ? (
-                                    <button
-                                      type="button"
-                                      className="text-default-400 hover:text-primary cursor-pointer"
-                                      onClick={() => setCalculatorTarget({ type: 'unitPrice', index })}
-                                      title={t(`${d}.currencyCalculator`)}
-                                    >
-                                      <Calculator size={14} />
-                                    </button>
-                                  ) : undefined}
                                 />
                               )}
                             />
@@ -773,13 +832,13 @@ export function ExecutionModal({
                               name={`items.${index}.amount`}
                               render={({ field: f }) => (
                                 <CurrencyInput
-                                  label={t(`${d}.itemAmount`)}
-                                  value={String(f.value ?? 0)}
-                                  onValueChange={f.onChange}
+                                  isReadOnly
                                   currencySymbol={currencySymbol}
                                   decimals={currencyDecimals}
-                                  isReadOnly
+                                  label={t(`${d}.itemAmount`)}
                                   size="sm"
+                                  value={String(f.value ?? 0)}
+                                  onValueChange={f.onChange}
                                 />
                               )}
                             />
@@ -788,8 +847,8 @@ export function ExecutionModal({
                           <Input
                             placeholder={t(`${d}.itemNotesPlaceholder`)}
                             {...methods.register(`items.${index}.notes`)}
-                            variant="bordered"
                             size="sm"
+                            variant="bordered"
                           />
                         </div>
                       ))}
@@ -804,25 +863,25 @@ export function ExecutionModal({
                   {/* Drop zone */}
                   <div
                     className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-default-300 p-8 cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-colors"
-                    onDrop={handleDrop}
-                    onDragOver={e => e.preventDefault()}
                     onClick={() => document.getElementById('exec-file-input')?.click()}
+                    onDragOver={e => e.preventDefault()}
+                    onDrop={handleDrop}
                   >
-                    <Upload size={24} className="text-default-400" />
-                    <Typography variant="body2" color="muted" className="text-center">
+                    <Upload className="text-default-400" size={24} />
+                    <Typography className="text-center" color="muted" variant="body2">
                       {t(`${d}.dropFilesHere`)}
                     </Typography>
-                    <Typography variant="caption" color="muted" className="text-center text-xs">
+                    <Typography className="text-center text-xs" color="muted" variant="caption">
                       {t(`${d}.allowedFiles`)}
                     </Typography>
                     <input
-                      id="exec-file-input"
-                      type="file"
                       multiple
                       accept="image/jpeg,image/png,image/webp,application/pdf"
-                      className="hidden"
-                      title="Seleccionar archivos"
                       aria-label="Seleccionar archivos"
+                      className="hidden"
+                      id="exec-file-input"
+                      title="Seleccionar archivos"
+                      type="file"
                       onChange={handleFileInput}
                     />
                   </div>
@@ -830,7 +889,7 @@ export function ExecutionModal({
                   {/* Uploading files */}
                   {uploadingFiles.length > 0 && (
                     <div className="space-y-2">
-                      <Typography variant="body2" className="font-medium text-sm">
+                      <Typography className="font-medium text-sm" variant="body2">
                         {t(`${d}.uploadFiles`)}
                       </Typography>
                       {uploadingFiles.map(uf => (
@@ -839,15 +898,22 @@ export function ExecutionModal({
                           className="flex items-center gap-3 rounded-lg border border-default-200 p-3"
                         >
                           {getFileTypeCategory(uf.file.type) === 'image' ? (
-                            <Image size={16} className="text-primary shrink-0" />
+                            <Image className="text-primary shrink-0" size={16} />
                           ) : (
-                            <FileText size={16} className="text-danger shrink-0" />
+                            <FileText className="text-danger shrink-0" size={16} />
                           )}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm truncate">{uf.file.name}</p>
-                            <p className="text-xs text-default-400">{formatFileSize(uf.file.size)}</p>
+                            <p className="text-xs text-default-400">
+                              {formatFileSize(uf.file.size)}
+                            </p>
                             {(uf.status === 'uploading' || uf.status === 'pending') && (
-                              <Progress value={uf.progress} size="sm" className="mt-1" color="success" />
+                              <Progress
+                                className="mt-1"
+                                color="success"
+                                size="sm"
+                                value={uf.progress}
+                              />
                             )}
                             {uf.status === 'error' && (
                               <p className="text-xs text-danger flex items-center gap-1 mt-1">
@@ -857,27 +923,27 @@ export function ExecutionModal({
                             )}
                           </div>
                           <Chip
-                            size="sm"
-                            variant="flat"
                             color={
                               uf.status === 'completed'
                                 ? 'success'
                                 : uf.status === 'error'
-                                ? 'danger'
-                                : 'default'
+                                  ? 'danger'
+                                  : 'default'
                             }
+                            size="sm"
+                            variant="flat"
                           >
                             {uf.status === 'completed'
                               ? '✓'
                               : uf.status === 'error'
-                              ? '✗'
-                              : `${uf.progress}%`}
+                                ? '✗'
+                                : `${uf.progress}%`}
                           </Chip>
                           <Button
                             isIconOnly
+                            color="danger"
                             size="sm"
                             variant="light"
-                            color="danger"
                             onPress={() => removeFile(uf.id)}
                           >
                             <X size={14} />
@@ -890,7 +956,7 @@ export function ExecutionModal({
                   {/* Existing attachments */}
                   {existingAttachments.length > 0 && (
                     <div className="space-y-2">
-                      <Typography variant="body2" className="font-medium text-sm">
+                      <Typography className="font-medium text-sm" variant="body2">
                         {t(`${d}.savedFiles`)}
                       </Typography>
                       {existingAttachments.map(attachment => (
@@ -899,9 +965,9 @@ export function ExecutionModal({
                           className="flex items-center gap-3 rounded-lg border border-default-200 p-3"
                         >
                           {getFileTypeCategory(attachment.mimeType) === 'image' ? (
-                            <Image size={16} className="text-primary shrink-0" />
+                            <Image className="text-primary shrink-0" size={16} />
                           ) : (
-                            <FileText size={16} className="text-danger shrink-0" />
+                            <FileText className="text-danger shrink-0" size={16} />
                           )}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm truncate">{attachment.name}</p>
@@ -912,20 +978,20 @@ export function ExecutionModal({
                             )}
                           </div>
                           <a
-                            href={attachment.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title={attachment.name}
                             aria-label={attachment.name}
                             className="text-default-400 hover:text-primary"
+                            href={attachment.url}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                            title={attachment.name}
                           >
                             <ExternalLink size={14} />
                           </a>
                           <Button
                             isIconOnly
+                            color="danger"
                             size="sm"
                             variant="light"
-                            color="danger"
                             onPress={() => removeExistingAttachment(attachment.url)}
                           >
                             <X size={14} />
@@ -936,7 +1002,7 @@ export function ExecutionModal({
                   )}
 
                   {existingAttachments.length === 0 && uploadingFiles.length === 0 && (
-                    <Typography color="muted" variant="body2" className="text-center">
+                    <Typography className="text-center" color="muted" variant="body2">
                       {t(`${d}.noAttachments`)}
                     </Typography>
                   )}
@@ -946,14 +1012,14 @@ export function ExecutionModal({
           </ModalBody>
 
           <ModalFooter>
-            <Button variant="bordered" onPress={handleClose} isDisabled={isPending || isUploading}>
+            <Button isDisabled={isPending || isUploading} variant="bordered" onPress={handleClose}>
               {t(`${d}.cancel`)}
             </Button>
             <Button
-              type="submit"
               color="primary"
-              isLoading={isPending}
               isDisabled={isUploading || hasUploadErrors}
+              isLoading={isPending}
+              type="submit"
             >
               {isPending ? t(`${d}.saving`) : t(`${d}.save`)}
             </Button>
@@ -964,11 +1030,11 @@ export function ExecutionModal({
       {/* Currency Calculator Modal */}
       {showCalculator && (
         <CurrencyCalculatorModal
+          currencies={currencies!}
           isOpen={calculatorTarget !== null}
+          targetCurrencyId={currencyId!}
           onClose={() => setCalculatorTarget(null)}
           onConfirm={handleCalculatorConfirm}
-          targetCurrencyId={currencyId!}
-          currencies={currencies!}
         />
       )}
     </Modal>

@@ -1,7 +1,20 @@
 'use client'
 
+import type { TManagementCompanyMembersQuery } from '@packages/domain'
+
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { User, Plus, Crown, Search, X, Info } from 'lucide-react'
+import {
+  useMyCompanyMembersPaginated,
+  useCompanyCondominiumsPaginated,
+  useMyCompanyCanCreateResource,
+  useQueryClient,
+  managementCompanyMemberKeys,
+} from '@packages/http-client'
+
+import { InviteMemberModal } from './InviteMemberModal'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
@@ -11,19 +24,8 @@ import { Spinner } from '@/ui/components/spinner'
 import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
 import { Tooltip } from '@/ui/components/tooltip'
-import { User, Plus, Crown, Search, X, Info } from 'lucide-react'
 import { Avatar } from '@/ui/components/avatar-base'
 import { useTranslation } from '@/contexts'
-import type { TManagementCompanyMembersQuery } from '@packages/domain'
-
-import {
-  useMyCompanyMembersPaginated,
-  useCompanyCondominiumsPaginated,
-  useMyCompanyCanCreateResource,
-  useQueryClient,
-  managementCompanyMemberKeys,
-} from '@packages/http-client'
-import { InviteMemberModal } from './InviteMemberModal'
 
 type TRoleFilter = 'all' | 'admin' | 'accountant' | 'support' | 'viewer'
 type TStatusFilter = 'all' | 'active' | 'inactive'
@@ -54,6 +56,7 @@ function getMemberDisplayName(user: TMemberRow['user']): string {
   if (user.firstName || user.lastName) {
     return [user.firstName, user.lastName].filter(Boolean).join(' ')
   }
+
   return 'Sin nombre'
 }
 
@@ -236,6 +239,7 @@ export function MyCompanyMembersPage({ managementCompanyId }: MyCompanyMembersPa
       support: t('common.roles.support'),
       viewer: t('common.roles.viewer'),
     }
+
     return labels[role.toLowerCase()] || role
   }
 
@@ -299,140 +303,145 @@ export function MyCompanyMembersPage({ managementCompanyId }: MyCompanyMembersPa
 
   return (
     <>
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <Typography variant="h3">{t('admin.company.myCompany.members.title')}</Typography>
-          <Typography color="muted" variant="body2" className="mt-1">
-            {t('admin.company.myCompany.members.subtitle')}
-          </Typography>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button color="primary" startContent={<Plus size={16} />} isDisabled={!canAddMember} onPress={() => setIsInviteModalOpen(true)}>
-            {t('admin.company.myCompany.members.addMember')}
-          </Button>
-          {!canAddMember && limitInfo?.limitReached && (
-            <Tooltip
-              content={
-                <div className="max-w-xs">
-                  {t('admin.company.myCompany.members.limitReached', {
-                    current: limitInfo.currentCount,
-                    max: limitInfo.maxAllowed ?? '∞',
-                  })}
-                </div>
-              }
-              placement="top"
-              showArrow
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <Typography variant="h3">{t('admin.company.myCompany.members.title')}</Typography>
+            <Typography className="mt-1" color="muted" variant="body2">
+              {t('admin.company.myCompany.members.subtitle')}
+            </Typography>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              color="primary"
+              isDisabled={!canAddMember}
+              startContent={<Plus size={16} />}
+              onPress={() => setIsInviteModalOpen(true)}
             >
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-default-100 hover:bg-default-200 transition-colors cursor-help">
-                <Info className="text-default-500" size={18} />
-              </div>
-            </Tooltip>
+              {t('admin.company.myCompany.members.addMember')}
+            </Button>
+            {!canAddMember && limitInfo?.limitReached && (
+              <Tooltip
+                showArrow
+                content={
+                  <div className="max-w-xs">
+                    {t('admin.company.myCompany.members.limitReached', {
+                      current: limitInfo.currentCount,
+                      max: limitInfo.maxAllowed ?? '∞',
+                    })}
+                  </div>
+                }
+                placement="top"
+              >
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-default-100 hover:bg-default-200 transition-colors cursor-help">
+                  <Info className="text-default-500" size={18} />
+                </div>
+              </Tooltip>
+            )}
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:flex-wrap">
+          <Input
+            className="w-full sm:max-w-xs"
+            placeholder={t('admin.company.myCompany.members.search')}
+            startContent={<Search className="text-default-400" size={16} />}
+            value={searchInput}
+            onValueChange={handleSearchChange}
+          />
+          <Select
+            aria-label={t('admin.company.myCompany.members.filterRole')}
+            className="w-full sm:w-52"
+            items={roleFilterItems}
+            value={roleFilter}
+            variant="bordered"
+            onChange={handleRoleChange}
+          />
+          <Select
+            aria-label={t('admin.company.myCompany.members.filterStatus')}
+            className="w-full sm:w-36"
+            items={statusFilterItems}
+            value={statusFilter}
+            variant="bordered"
+            onChange={handleStatusChange}
+          />
+          {condominiums.length > 0 && (
+            <Select
+              aria-label={t('admin.company.myCompany.members.filterCondominium')}
+              className="w-full sm:w-56"
+              items={condominiumFilterItems}
+              value={condominiumFilter}
+              variant="bordered"
+              onChange={handleCondominiumChange}
+            />
+          )}
+          {hasActiveFilters && (
+            <Button startContent={<X size={14} />} variant="flat" onPress={handleClearFilters}>
+              {t('admin.company.myCompany.members.clear')}
+            </Button>
           )}
         </div>
+
+        {/* Table */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Spinner size="lg" />
+          </div>
+        ) : members.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16">
+            <User className="mb-4 text-default-300" size={48} />
+            <Typography color="muted" variant="body1">
+              {hasActiveFilters
+                ? t('admin.company.myCompany.members.noResults')
+                : t('admin.company.myCompany.members.noMembers')}
+            </Typography>
+            <Typography className="mt-1" color="muted" variant="body2">
+              {hasActiveFilters
+                ? t('admin.company.myCompany.members.noResultsHint')
+                : t('admin.company.myCompany.members.noMembersHint')}
+            </Typography>
+          </div>
+        ) : (
+          <>
+            <Table<TMemberRow>
+              aria-label={t('admin.company.myCompany.members.title')}
+              classNames={{
+                tr: 'cursor-pointer hover:bg-default-100 transition-colors',
+              }}
+              columns={tableColumns}
+              renderCell={renderCell}
+              rows={members}
+              onRowClick={handleRowClick}
+            />
+
+            {/* Pagination */}
+            <Pagination
+              className="mt-4"
+              limit={pagination.limit}
+              limitOptions={[10, 20, 50]}
+              page={pagination.page}
+              total={pagination.total}
+              totalPages={pagination.totalPages}
+              onLimitChange={newLimit => {
+                setLimit(newLimit)
+                setPage(1)
+              }}
+              onPageChange={setPage}
+            />
+          </>
+        )}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:flex-wrap">
-        <Input
-          className="w-full sm:max-w-xs"
-          placeholder={t('admin.company.myCompany.members.search')}
-          startContent={<Search className="text-default-400" size={16} />}
-          value={searchInput}
-          onValueChange={handleSearchChange}
-        />
-        <Select
-          aria-label={t('admin.company.myCompany.members.filterRole')}
-          className="w-full sm:w-52"
-          items={roleFilterItems}
-          value={roleFilter}
-          onChange={handleRoleChange}
-          variant="bordered"
-        />
-        <Select
-          aria-label={t('admin.company.myCompany.members.filterStatus')}
-          className="w-full sm:w-36"
-          items={statusFilterItems}
-          value={statusFilter}
-          onChange={handleStatusChange}
-          variant="bordered"
-        />
-        {condominiums.length > 0 && (
-          <Select
-            aria-label={t('admin.company.myCompany.members.filterCondominium')}
-            className="w-full sm:w-56"
-            items={condominiumFilterItems}
-            value={condominiumFilter}
-            onChange={handleCondominiumChange}
-            variant="bordered"
-          />
-        )}
-        {hasActiveFilters && (
-          <Button startContent={<X size={14} />} variant="flat" onPress={handleClearFilters}>
-            {t('admin.company.myCompany.members.clear')}
-          </Button>
-        )}
-      </div>
-
-      {/* Table */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <Spinner size="lg" />
-        </div>
-      ) : members.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16">
-          <User className="mb-4 text-default-300" size={48} />
-          <Typography color="muted" variant="body1">
-            {hasActiveFilters
-              ? t('admin.company.myCompany.members.noResults')
-              : t('admin.company.myCompany.members.noMembers')}
-          </Typography>
-          <Typography className="mt-1" color="muted" variant="body2">
-            {hasActiveFilters
-              ? t('admin.company.myCompany.members.noResultsHint')
-              : t('admin.company.myCompany.members.noMembersHint')}
-          </Typography>
-        </div>
-      ) : (
-        <>
-          <Table<TMemberRow>
-            aria-label={t('admin.company.myCompany.members.title')}
-            columns={tableColumns}
-            rows={members}
-            renderCell={renderCell}
-            onRowClick={handleRowClick}
-            classNames={{
-              tr: 'cursor-pointer hover:bg-default-100 transition-colors',
-            }}
-          />
-
-          {/* Pagination */}
-          <Pagination
-            className="mt-4"
-            limit={pagination.limit}
-            limitOptions={[10, 20, 50]}
-            page={pagination.page}
-            total={pagination.total}
-            totalPages={pagination.totalPages}
-            onLimitChange={(newLimit) => {
-              setLimit(newLimit)
-              setPage(1)
-            }}
-            onPageChange={setPage}
-          />
-        </>
-      )}
-    </div>
-
-    <InviteMemberModal
-      isOpen={isInviteModalOpen}
-      onClose={() => setIsInviteModalOpen(false)}
-      managementCompanyId={managementCompanyId}
-      onSuccess={() => {
-        queryClient.invalidateQueries({ queryKey: managementCompanyMemberKeys.all })
-      }}
-    />
+      <InviteMemberModal
+        isOpen={isInviteModalOpen}
+        managementCompanyId={managementCompanyId}
+        onClose={() => setIsInviteModalOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: managementCompanyMemberKeys.all })
+        }}
+      />
     </>
   )
 }

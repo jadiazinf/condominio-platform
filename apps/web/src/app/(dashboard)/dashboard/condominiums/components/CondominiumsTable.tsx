@@ -1,14 +1,20 @@
 'use client'
 
+import type {
+  TCondominium,
+  TCondominiumsQuery,
+  TPaginationMeta,
+  TActiveRoleType,
+} from '@packages/domain'
+
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { Home, Search, MapPin, Plus, Building } from 'lucide-react'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
 import { Card, CardBody } from '@/ui/components/card'
-import { Home, Search, MapPin, Plus, Building } from 'lucide-react'
-import type { TCondominium, TCondominiumsQuery, TPaginationMeta, TActiveRoleType } from '@packages/domain'
-
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Pagination } from '@/ui/components/pagination'
@@ -74,17 +80,17 @@ export function CondominiumsTable({
 
   // Table columns — admin doesn't see "Company" column
   const tableColumns: ITableColumn<TCondominiumRow>[] = useMemo(() => {
-    const columns: ITableColumn<TCondominiumRow>[] = [
-      { key: 'name', label: t(`${tp}.table.name`) },
-    ]
+    const columns: ITableColumn<TCondominiumRow>[] = [{ key: 'name', label: t(`${tp}.table.name`) }]
+
     if (!isAdmin) {
       columns.push({ key: 'company', label: t(`${tp}.table.company`) })
     }
     columns.push(
       { key: 'address', label: t(`${tp}.table.address`) },
       { key: 'contact', label: t(`${tp}.table.contact`) },
-      { key: 'status', label: t(`${tp}.table.status`) },
+      { key: 'status', label: t(`${tp}.table.status`) }
     )
+
     return columns
   }, [t, tp, isAdmin])
 
@@ -135,6 +141,7 @@ export function CondominiumsTable({
 
       const queryString = params.toString()
       const newUrl = `/dashboard/condominiums${queryString ? `?${queryString}` : ''}`
+
       router.push(newUrl)
     },
     [router, searchParams]
@@ -144,6 +151,7 @@ export function CondominiumsTable({
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
+
       return
     }
 
@@ -168,6 +176,7 @@ export function CondominiumsTable({
       if (key) {
         setStatusFilter(key as TStatusFilter)
         const isActive = key === 'all' ? undefined : key === 'active'
+
         updateUrl({ isActive, page: 1 })
       }
     },
@@ -232,7 +241,7 @@ export function CondominiumsTable({
         case 'company':
           return condominium.managementCompanies && condominium.managementCompanies.length > 0 ? (
             <div className="flex flex-col gap-1">
-              {condominium.managementCompanies.map((company) => (
+              {condominium.managementCompanies.map(company => (
                 <div key={company.id} className="flex items-center gap-2">
                   <Building className="text-default-400" size={14} />
                   <span className="text-sm text-default-700">{company.name}</span>
@@ -251,9 +260,7 @@ export function CondominiumsTable({
               <span className="text-sm text-default-600 truncate">{condominium.address}</span>
             </div>
           ) : (
-            <span className="text-sm text-default-400">
-              {t(`${tp}.noAddress`)}
-            </span>
+            <span className="text-sm text-default-400">{t(`${tp}.noAddress`)}</span>
           )
         case 'contact':
           return (
@@ -265,25 +272,21 @@ export function CondominiumsTable({
                 <span className="text-xs text-default-500">{condominium.phone}</span>
               )}
               {!condominium.email && !condominium.phone && (
-                <span className="text-xs text-default-400">
-                  {t(`${tp}.noContact`)}
-                </span>
+                <span className="text-xs text-default-400">{t(`${tp}.noContact`)}</span>
               )}
             </div>
           )
         case 'status':
           return (
             <Chip color={condominium.isActive ? 'success' : 'default'} variant="flat">
-              {condominium.isActive
-                ? t(`${tp}.status.active`)
-                : t(`${tp}.status.inactive`)}
+              {condominium.isActive ? t(`${tp}.status.active`) : t(`${tp}.status.inactive`)}
             </Chip>
           )
         default:
           return null
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [t, tp]
   )
 
@@ -302,16 +305,14 @@ export function CondominiumsTable({
             />
             <Select
               aria-label={t(`${tp}.filters.status`)}
-              placeholder={t(`${tp}.filters.status`)}
               className="w-full sm:w-40"
               items={statusFilterItems}
+              placeholder={t(`${tp}.filters.status`)}
               value={statusFilter}
-              onChange={handleStatusChange}
               variant="bordered"
+              onChange={handleStatusChange}
             />
-            {hasActiveFilters && (
-              <ClearFiltersButton onClear={handleClearFilters} />
-            )}
+            {hasActiveFilters && <ClearFiltersButton onClear={handleClearFilters} />}
           </div>
           {!isAdmin && (
             <Button
@@ -325,8 +326,8 @@ export function CondominiumsTable({
           {isAdmin && (
             <Button
               color="primary"
-              startContent={<Plus size={16} />}
               isDisabled={canCreateCondominium === false}
+              startContent={<Plus size={16} />}
               onPress={() => router.push('/dashboard/condominiums/new')}
             >
               {canCreateCondominium === false
@@ -339,9 +340,9 @@ export function CondominiumsTable({
         {/* Location Filter — only for superadmin */}
         {!isAdmin && (
           <LocationSelector
+            label={t('superadmin.condominiums.filters.location')}
             value={locationFilter}
             onChange={handleLocationChange}
-            label={t('superadmin.condominiums.filters.location')}
           />
         )}
       </div>
@@ -361,9 +362,7 @@ export function CondominiumsTable({
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16">
           <Home className="mb-4 text-default-300" size={48} />
           <Typography color="muted" variant="body1">
-            {resolvedPagination.total === 0
-              ? t(`${tp}.empty`)
-              : t(`${tp}.noResults`)}
+            {resolvedPagination.total === 0 ? t(`${tp}.empty`) : t(`${tp}.noResults`)}
           </Typography>
           <Typography className="mt-1" color="muted" variant="body2">
             {resolvedPagination.total === 0
@@ -378,8 +377,8 @@ export function CondominiumsTable({
             {condominiums.map(condominium => (
               <Card
                 key={condominium.id}
-                className="w-full cursor-pointer transition-all hover:shadow-md"
                 isPressable
+                className="w-full cursor-pointer transition-all hover:shadow-md"
                 onPress={() => handleViewDetails(condominium.id)}
               >
                 <CardBody className="flex flex-col h-[160px]">
@@ -395,41 +394,46 @@ export function CondominiumsTable({
                         )}
                       </div>
                     </div>
-                    <Chip color={condominium.isActive ? 'success' : 'default'} variant="flat" size="sm">
-                      {condominium.isActive
-                        ? t(`${tp}.status.active`)
-                        : t(`${tp}.status.inactive`)}
+                    <Chip
+                      color={condominium.isActive ? 'success' : 'default'}
+                      size="sm"
+                      variant="flat"
+                    >
+                      {condominium.isActive ? t(`${tp}.status.active`) : t(`${tp}.status.inactive`)}
                     </Chip>
                   </div>
 
                   <div className="flex-1 space-y-2 overflow-hidden">
                     {/* Company info — only for superadmin */}
-                    {!isAdmin && (
-                      condominium.managementCompanies && condominium.managementCompanies.length > 0 ? (
+                    {!isAdmin &&
+                      (condominium.managementCompanies &&
+                      condominium.managementCompanies.length > 0 ? (
                         <div className="flex flex-col gap-1">
-                          {condominium.managementCompanies.map((company) => (
-                            <div key={company.id} className="flex items-center gap-2 text-xs text-default-500">
-                              <Building size={14} className="shrink-0" />
+                          {condominium.managementCompanies.map(company => (
+                            <div
+                              key={company.id}
+                              className="flex items-center gap-2 text-xs text-default-500"
+                            >
+                              <Building className="shrink-0" size={14} />
                               <span className="truncate">{company.name}</span>
                             </div>
                           ))}
                         </div>
                       ) : (
                         <div className="flex items-center gap-2 text-xs text-default-400">
-                          <Building size={14} className="shrink-0" />
+                          <Building className="shrink-0" size={14} />
                           <span>{t('superadmin.condominiums.noCompany')}</span>
                         </div>
-                      )
-                    )}
+                      ))}
 
                     {condominium.address ? (
                       <div className="flex items-center gap-2 text-xs text-default-500">
-                        <MapPin size={14} className="shrink-0" />
+                        <MapPin className="shrink-0" size={14} />
                         <span className="truncate">{condominium.address}</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 text-xs text-default-400">
-                        <MapPin size={14} className="shrink-0" />
+                        <MapPin className="shrink-0" size={14} />
                         <span>{t(`${tp}.noAddress`)}</span>
                       </div>
                     )}
@@ -442,15 +446,15 @@ export function CondominiumsTable({
           {/* Desktop Table View */}
           <div className="hidden md:block">
             <Table<TCondominiumRow>
-              mobileCards={false}
               aria-label={t(`${tp}.title`)}
-              columns={tableColumns}
-              rows={condominiums}
-              renderCell={renderCell}
-              onRowClick={condominium => handleViewDetails(condominium.id)}
               classNames={{
                 tr: 'cursor-pointer transition-colors hover:bg-default-100',
               }}
+              columns={tableColumns}
+              mobileCards={false}
+              renderCell={renderCell}
+              rows={condominiums}
+              onRowClick={condominium => handleViewDetails(condominium.id)}
             />
           </div>
 

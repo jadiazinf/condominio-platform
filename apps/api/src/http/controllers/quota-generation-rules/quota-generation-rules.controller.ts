@@ -127,7 +127,11 @@ export class QuotaGenerationRulesController {
         method: 'get',
         path: '/',
         handler: this.list,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), queryValidator(IncludeInactiveQuerySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          queryValidator(IncludeInactiveQuerySchema),
+        ],
       },
       {
         method: 'get',
@@ -153,13 +157,21 @@ export class QuotaGenerationRulesController {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(CreateQuotaGenerationRuleBodySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          bodyValidator(CreateQuotaGenerationRuleBodySchema),
+        ],
       },
       {
         method: 'put',
@@ -176,7 +188,11 @@ export class QuotaGenerationRulesController {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }

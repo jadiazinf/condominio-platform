@@ -26,6 +26,7 @@ function getValidRedirectUrl(redirectParam: string | null): string {
   // Ensure it's a valid internal path (no javascript:, data:, etc.)
   try {
     const url = new URL(redirectParam, 'http://localhost')
+
     // Only allow paths within the app
     if (url.pathname !== redirectParam.split('?')[0]) {
       return '/dashboard'

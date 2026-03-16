@@ -20,10 +20,7 @@ function interpolate(template: string, params: Record<string, unknown>): string 
  *
  * Supports {param} interpolation from error details.
  */
-export function translateApiError(
-  err: unknown,
-  t: (key: string) => string
-): string {
+export function translateApiError(err: unknown, t: (key: string) => string): string {
   if (!HttpError.isHttpError(err)) {
     return t('apiErrors.unknown')
   }
@@ -43,6 +40,7 @@ export function translateApiError(
     if (resource && field) {
       const specificKey = `apiErrors.${code}.${resource}.${field}`
       const specific = t(specificKey)
+
       if (specific !== specificKey) return details ? interpolate(specific, details) : specific
     }
 
@@ -50,12 +48,15 @@ export function translateApiError(
     if (resource) {
       const resourceKey = `apiErrors.${code}.${resource}`
       const resourceTranslation = t(resourceKey)
-      if (resourceTranslation !== resourceKey) return details ? interpolate(resourceTranslation, details) : resourceTranslation
+
+      if (resourceTranslation !== resourceKey)
+        return details ? interpolate(resourceTranslation, details) : resourceTranslation
     }
 
     // 3. Try generic code: apiErrors.ALREADY_EXISTS
     const genericKey = `apiErrors.${code}`
     const generic = t(genericKey)
+
     if (generic !== genericKey) return details ? interpolate(generic, details) : generic
   }
 

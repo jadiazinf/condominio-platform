@@ -1,6 +1,13 @@
 'use client'
 
+import type { TQuota, TPayment, TUnitOwnership } from '@packages/domain'
+
 import { useState } from 'react'
+import { Mail, User, Phone, FileText, Calendar } from 'lucide-react'
+import { useResendOwnerInvitation } from '@packages/http-client/hooks'
+import { formatAmount } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
@@ -8,11 +15,6 @@ import { Tooltip } from '@/ui/components/tooltip'
 import { useToast } from '@/ui/components/toast'
 import { Modal, ModalContent, ModalHeader, ModalBody, useDisclosure } from '@/ui/components/modal'
 import { Divider } from '@/ui/components/divider'
-import { Mail, User, Phone, FileText, Calendar } from 'lucide-react'
-import type { TQuota, TPayment, TUnitOwnership } from '@packages/domain'
-import { useResendOwnerInvitation } from '@packages/http-client/hooks'
-import { formatAmount } from '@packages/utils/currency'
-import { formatFullDate } from '@packages/utils/dates'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared helpers
@@ -72,8 +74,10 @@ export function QuotasTable({
             'es-VE',
             { month: 'short' }
           )
+
           return `${monthName} ${quota.periodYear}`
         }
+
         return quota.periodDescription || `${quota.periodYear}`
       }
       case 'amount':
@@ -93,8 +97,8 @@ export function QuotasTable({
               (statusColors[quota.status] as 'success' | 'warning' | 'danger' | 'default') ||
               'default'
             }
-            variant="flat"
             size="sm"
+            variant="flat"
           >
             {statusLabels[quota.status] || quota.status}
           </Chip>
@@ -107,10 +111,10 @@ export function QuotasTable({
   return (
     <Table<TQuotaRow>
       aria-label={ariaLabel}
-      columns={tableColumns}
-      rows={quotas}
-      renderCell={renderCell}
       classNames={tableClassNames}
+      columns={tableColumns}
+      renderCell={renderCell}
+      rows={quotas}
     />
   )
 }
@@ -173,8 +177,8 @@ export function PaymentsTable({
                 | 'default'
                 | 'primary') || 'default'
             }
-            variant="flat"
             size="sm"
+            variant="flat"
           >
             {statusLabels[payment.status] || payment.status}
           </Chip>
@@ -187,10 +191,10 @@ export function PaymentsTable({
   return (
     <Table<TPaymentRow>
       aria-label={ariaLabel}
-      columns={tableColumns}
-      rows={payments}
-      renderCell={renderCell}
       classNames={tableClassNames}
+      columns={tableColumns}
+      renderCell={renderCell}
+      rows={payments}
     />
   )
 }
@@ -277,7 +281,7 @@ export function OwnersTable({
         )
       case 'type':
         return (
-          <Chip variant="flat" size="sm">
+          <Chip size="sm" variant="flat">
             {ownershipTypeLabels[ownership.ownershipType] || ownership.ownershipType}
           </Chip>
         )
@@ -285,21 +289,22 @@ export function OwnersTable({
         return formatFullDate(ownership.startDate)
       case 'status':
         return (
-          <Chip color={ownership.isActive ? 'success' : 'default'} variant="flat" size="sm">
+          <Chip color={ownership.isActive ? 'success' : 'default'} size="sm" variant="flat">
             {ownership.isActive ? activeLabel : inactiveLabel}
           </Chip>
         )
       case 'verified':
         if (ownership.isRegistered) {
           return (
-            <Chip color="success" variant="flat" size="sm">
+            <Chip color="success" size="sm" variant="flat">
               {yesLabel}
             </Chip>
           )
         }
+
         return (
           <div className="flex items-center gap-2">
-            <Chip color="warning" variant="flat" size="sm">
+            <Chip color="warning" size="sm" variant="flat">
               {noLabel}
             </Chip>
             {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
@@ -307,9 +312,9 @@ export function OwnersTable({
               <Tooltip content={columns.resendTooltip}>
                 <Button
                   isIconOnly
+                  isLoading={resendingId === ownership.id}
                   size="sm"
                   variant="light"
-                  isLoading={resendingId === ownership.id}
                   onPress={() => {
                     setResendingId(ownership.id)
                     resendInvitation({ ownershipId: ownership.id })
@@ -339,10 +344,12 @@ export function OwnersTable({
   const ownerPhone = (() => {
     if (!selectedOwner) return null
     const phone = selectedOwner.phone || selectedOwner.user?.phoneNumber || null
+
     if (!phone) return null
     const countryCode =
       selectedOwner.phoneCountryCode || selectedOwner.user?.phoneCountryCode || null
     const code = countryCode?.startsWith('+') ? countryCode : countryCode ? `+${countryCode}` : null
+
     return code ? `${code} ${phone}` : phone
   })()
 
@@ -351,26 +358,28 @@ export function OwnersTable({
       ? `${selectedOwner.user.idDocumentType}-${selectedOwner.user.idDocumentNumber}`
       : null
 
-  const joinDate = selectedOwner?.user?.createdAt ? formatFullDate(selectedOwner.user.createdAt) : null
+  const joinDate = selectedOwner?.user?.createdAt
+    ? formatFullDate(selectedOwner.user.createdAt)
+    : null
 
   return (
     <>
       <Table<TOwnerRow>
         aria-label={ariaLabel}
-        columns={tableColumns}
-        rows={ownerships}
-        renderCell={renderCell}
         classNames={tableClassNames}
+        columns={tableColumns}
+        renderCell={renderCell}
+        rows={ownerships}
         onRowClick={row => {
           setSelectedOwner(row)
           onOpen()
         }}
       />
 
-      <Modal isOpen={isOpen} onClose={onClose} size="sm">
+      <Modal isOpen={isOpen} size="sm" onClose={onClose}>
         <ModalContent>
           <ModalHeader className="flex items-center gap-2">
-            <User size={18} className="text-default-500" />
+            <User className="text-default-500" size={18} />
             {detailLabels.title}
           </ModalHeader>
           <ModalBody className="pb-6">
@@ -383,11 +392,11 @@ export function OwnersTable({
             <div className="space-y-3">
               <p className="text-sm font-medium text-default-500">{detailLabels.contact}</p>
               <div className="flex items-center gap-2 text-sm">
-                <Mail size={14} className="text-default-400" />
+                <Mail className="text-default-400" size={14} />
                 <span>{ownerEmail || detailLabels.noData}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Phone size={14} className="text-default-400" />
+                <Phone className="text-default-400" size={14} />
                 <span>{ownerPhone || detailLabels.noData}</span>
               </div>
             </div>
@@ -398,7 +407,7 @@ export function OwnersTable({
             <div className="space-y-3">
               <p className="text-sm font-medium text-default-500">{detailLabels.idDocument}</p>
               <div className="flex items-center gap-2 text-sm">
-                <FileText size={14} className="text-default-400" />
+                <FileText className="text-default-400" size={14} />
                 <span>{idDoc || detailLabels.noData}</span>
               </div>
             </div>
@@ -410,7 +419,7 @@ export function OwnersTable({
                 <div className="space-y-3">
                   <p className="text-sm font-medium text-default-500">{detailLabels.joinDate}</p>
                   <div className="flex items-center gap-2 text-sm">
-                    <Calendar size={14} className="text-default-400" />
+                    <Calendar className="text-default-400" size={14} />
                     <span>{joinDate}</span>
                   </div>
                 </div>

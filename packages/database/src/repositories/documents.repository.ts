@@ -1,4 +1,4 @@
-import { eq, desc } from 'drizzle-orm'
+import { and, eq, desc } from 'drizzle-orm'
 import type { TDocument, TDocumentCreate, TDocumentUpdate } from '@packages/domain'
 import { documents } from '../drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
@@ -64,11 +64,17 @@ export class DocumentsRepository
   /**
    * Retrieves documents by type.
    */
-  async getByType(documentType: TDocument['documentType']): Promise<TDocument[]> {
+  async getByType(
+    documentType: TDocument['documentType'],
+    condominiumId?: string
+  ): Promise<TDocument[]> {
+    const conditions = [eq(documents.documentType, documentType)]
+    if (condominiumId) conditions.push(eq(documents.condominiumId, condominiumId))
+
     const results = await this.db
       .select()
       .from(documents)
-      .where(eq(documents.documentType, documentType))
+      .where(and(...conditions))
       .orderBy(desc(documents.createdAt))
 
     return results.map(record => this.mapToEntity(record))
@@ -90,11 +96,14 @@ export class DocumentsRepository
   /**
    * Retrieves documents by building.
    */
-  async getByBuildingId(buildingId: string): Promise<TDocument[]> {
+  async getByBuildingId(buildingId: string, condominiumId?: string): Promise<TDocument[]> {
+    const conditions = [eq(documents.buildingId, buildingId)]
+    if (condominiumId) conditions.push(eq(documents.condominiumId, condominiumId))
+
     const results = await this.db
       .select()
       .from(documents)
-      .where(eq(documents.buildingId, buildingId))
+      .where(and(...conditions))
       .orderBy(desc(documents.createdAt))
 
     return results.map(record => this.mapToEntity(record))
@@ -103,11 +112,14 @@ export class DocumentsRepository
   /**
    * Retrieves documents by unit.
    */
-  async getByUnitId(unitId: string): Promise<TDocument[]> {
+  async getByUnitId(unitId: string, condominiumId?: string): Promise<TDocument[]> {
+    const conditions = [eq(documents.unitId, unitId)]
+    if (condominiumId) conditions.push(eq(documents.condominiumId, condominiumId))
+
     const results = await this.db
       .select()
       .from(documents)
-      .where(eq(documents.unitId, unitId))
+      .where(and(...conditions))
       .orderBy(desc(documents.createdAt))
 
     return results.map(record => this.mapToEntity(record))
@@ -116,11 +128,14 @@ export class DocumentsRepository
   /**
    * Retrieves documents by user.
    */
-  async getByUserId(userId: string): Promise<TDocument[]> {
+  async getByUserId(userId: string, condominiumId?: string): Promise<TDocument[]> {
+    const conditions = [eq(documents.userId, userId)]
+    if (condominiumId) conditions.push(eq(documents.condominiumId, condominiumId))
+
     const results = await this.db
       .select()
       .from(documents)
-      .where(eq(documents.userId, userId))
+      .where(and(...conditions))
       .orderBy(desc(documents.createdAt))
 
     return results.map(record => this.mapToEntity(record))
@@ -129,11 +144,14 @@ export class DocumentsRepository
   /**
    * Retrieves public documents.
    */
-  async getPublicDocuments(): Promise<TDocument[]> {
+  async getPublicDocuments(condominiumId?: string): Promise<TDocument[]> {
+    const conditions = [eq(documents.isPublic, true)]
+    if (condominiumId) conditions.push(eq(documents.condominiumId, condominiumId))
+
     const results = await this.db
       .select()
       .from(documents)
-      .where(eq(documents.isPublic, true))
+      .where(and(...conditions))
       .orderBy(desc(documents.createdAt))
 
     return results.map(record => this.mapToEntity(record))
@@ -142,8 +160,14 @@ export class DocumentsRepository
   /**
    * Retrieves documents by payment.
    */
-  async getByPaymentId(paymentId: string): Promise<TDocument[]> {
-    const results = await this.db.select().from(documents).where(eq(documents.paymentId, paymentId))
+  async getByPaymentId(paymentId: string, condominiumId?: string): Promise<TDocument[]> {
+    const conditions = [eq(documents.paymentId, paymentId)]
+    if (condominiumId) conditions.push(eq(documents.condominiumId, condominiumId))
+
+    const results = await this.db
+      .select()
+      .from(documents)
+      .where(and(...conditions))
 
     return results.map(record => this.mapToEntity(record))
   }

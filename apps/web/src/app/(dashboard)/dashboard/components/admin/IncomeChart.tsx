@@ -1,14 +1,14 @@
 'use client'
 
+import type { TPayment } from '@packages/domain'
+
 import React, { useMemo } from 'react'
-import { Card } from '@/ui/components/card'
-import { Chip } from '@/ui/components/chip'
-import { Tabs, Tab } from '@/ui/components/tabs'
-import { Spinner } from '@/ui/components/spinner'
-import { TrendingUp, TrendingDown, ArrowRight } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
 import { usePaymentsByDateRange } from '@packages/http-client'
-import type { TPayment } from '@packages/domain'
+
+import { Card } from '@/ui/components/card'
+import { Tabs, Tab } from '@/ui/components/tabs'
+import { Spinner } from '@/ui/components/spinner'
 
 type TChartData = {
   month: string
@@ -55,20 +55,35 @@ function getDateRange(period: TPeriodKey): { startDate: string; endDate: string 
   return { startDate: start.toISOString().split('T')[0], endDate: end }
 }
 
-const MONTH_NAMES_SHORT = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+const MONTH_NAMES_SHORT = [
+  'Ene',
+  'Feb',
+  'Mar',
+  'Abr',
+  'May',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dic',
+]
 const DAY_NAMES_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 
 function groupPaymentsByPeriod(payments: TPayment[], period: TPeriodKey): TChartData[] {
-  const completed = payments.filter((p) => p.status === 'completed')
+  const completed = payments.filter(p => p.status === 'completed')
 
   if (period === '7-days') {
     // Group by day of the week
     const now = new Date()
     const days: Record<string, number> = {}
+
     for (let i = 6; i >= 0; i--) {
       const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
       const key = `${d.getDate()}/${d.getMonth() + 1}`
       const label = DAY_NAMES_SHORT[d.getDay()]
+
       days[`${label} ${key}`] = 0
     }
 
@@ -77,21 +92,27 @@ function groupPaymentsByPeriod(payments: TPayment[], period: TPeriodKey): TChart
       const key = `${d.getDate()}/${d.getMonth() + 1}`
       const label = DAY_NAMES_SHORT[d.getDay()]
       const dayKey = `${label} ${key}`
+
       if (dayKey in days) {
         days[dayKey] += parseFloat(p.amount) || 0
       }
     }
 
-    return Object.entries(days).map(([month, value]) => ({ month, value: Math.round(value * 100) / 100 }))
+    return Object.entries(days).map(([month, value]) => ({
+      month,
+      value: Math.round(value * 100) / 100,
+    }))
   }
 
   if (period === '30-days') {
     // Group by week
     const now = new Date()
     const weeks: { label: string; start: Date; end: Date; value: number }[] = []
+
     for (let i = 3; i >= 0; i--) {
       const weekEnd = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000)
       const weekStart = new Date(weekEnd.getTime() - 7 * 24 * 60 * 60 * 1000)
+
       weeks.push({
         label: `Sem ${4 - i}`,
         start: weekStart,
@@ -102,6 +123,7 @@ function groupPaymentsByPeriod(payments: TPayment[], period: TPeriodKey): TChart
 
     for (const p of completed) {
       const d = new Date(p.paymentDate)
+
       for (const week of weeks) {
         if (d >= week.start && d <= week.end) {
           week.value += parseFloat(p.amount) || 0
@@ -110,7 +132,7 @@ function groupPaymentsByPeriod(payments: TPayment[], period: TPeriodKey): TChart
       }
     }
 
-    return weeks.map((w) => ({ month: w.label, value: Math.round(w.value * 100) / 100 }))
+    return weeks.map(w => ({ month: w.label, value: Math.round(w.value * 100) / 100 }))
   }
 
   // Group by month (3-months or 6-months)
@@ -120,6 +142,7 @@ function groupPaymentsByPeriod(payments: TPayment[], period: TPeriodKey): TChart
 
   for (let i = monthsCount - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+
     months.push({
       key: `${d.getFullYear()}-${d.getMonth()}`,
       label: MONTH_NAMES_SHORT[d.getMonth()],
@@ -130,13 +153,14 @@ function groupPaymentsByPeriod(payments: TPayment[], period: TPeriodKey): TChart
   for (const p of completed) {
     const d = new Date(p.paymentDate)
     const key = `${d.getFullYear()}-${d.getMonth()}`
-    const month = months.find((m) => m.key === key)
+    const month = months.find(m => m.key === key)
+
     if (month) {
       month.value += parseFloat(p.amount) || 0
     }
   }
 
-  return months.map((m) => ({ month: m.label, value: Math.round(m.value * 100) / 100 }))
+  return months.map(m => ({ month: m.label, value: Math.round(m.value * 100) / 100 }))
 }
 
 export function IncomeChart({ currencySymbol, translations: t }: IncomeChartProps) {
@@ -147,7 +171,10 @@ export function IncomeChart({ currencySymbol, translations: t }: IncomeChartProp
   const { data: paymentsData, isLoading } = usePaymentsByDateRange(startDate, endDate)
   const payments: TPayment[] = paymentsData?.data ?? []
 
-  const chartData = useMemo(() => groupPaymentsByPeriod(payments, activePeriod), [payments, activePeriod])
+  const chartData = useMemo(
+    () => groupPaymentsByPeriod(payments, activePeriod),
+    [payments, activePeriod]
+  )
 
   const total = useMemo(() => chartData.reduce((sum, d) => sum + d.value, 0), [chartData])
 
@@ -162,8 +189,8 @@ export function IncomeChart({ currencySymbol, translations: t }: IncomeChartProp
 
             <div className="mt-2">
               <Tabs
-                size="sm"
                 selectedKey={activePeriod}
+                size="sm"
                 onSelectionChange={key => setActivePeriod(key as TPeriodKey)}
               >
                 <Tab key="6-months" title={t.periods.sixMonths} />
@@ -178,7 +205,11 @@ export function IncomeChart({ currencySymbol, translations: t }: IncomeChartProp
                 <Spinner size="sm" />
               ) : (
                 <span className="text-foreground text-3xl font-bold">
-                  {currencySymbol} {total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {currencySymbol}{' '}
+                  {total.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </span>
               )}
             </div>
@@ -229,7 +260,10 @@ export function IncomeChart({ currencySymbol, translations: t }: IncomeChartProp
                     {payload?.map((p, index) => (
                       <div key={`${index}-${p.name}`} className="flex w-full items-center gap-x-2">
                         <span className="text-small text-background flex w-full items-center gap-x-1">
-                          {currencySymbol} {(p.value as number).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          {currencySymbol}{' '}
+                          {(p.value as number).toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                          })}
                         </span>
                       </div>
                     ))}

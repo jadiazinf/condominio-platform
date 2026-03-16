@@ -1,11 +1,12 @@
 'use client'
 
-import { Link } from '@/ui/components/link'
+import type { TSettingsIconName } from '../config/sidebar-items'
+
 import { usePathname } from 'next/navigation'
-import { cn } from '@/ui/utils'
 import { User, Globe, Palette } from 'lucide-react'
 
-import type { TSettingsIconName } from '../config/sidebar-items'
+import { Link } from '@/ui/components/link'
+import { cn } from '@/ui/utils'
 
 const ICONS = {
   user: User,

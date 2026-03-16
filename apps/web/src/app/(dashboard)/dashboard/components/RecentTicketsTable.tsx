@@ -2,12 +2,12 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { MessageSquare, AlertCircle, Building } from 'lucide-react'
+import { useAllSupportTickets } from '@packages/http-client'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
-import { MessageSquare, AlertCircle, Building } from 'lucide-react'
-
-import { useAllSupportTickets } from '@packages/http-client'
 import { getTicketStatusColor, getTicketPriorityColor } from '@/utils/status-colors'
 import { useAuth } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
@@ -74,6 +74,7 @@ export function RecentTicketsTable() {
       in_progress: 'En Progreso',
       waiting_customer: 'Esperando',
     }
+
     return labels[status.toLowerCase()] || status
   }
 
@@ -84,6 +85,7 @@ export function RecentTicketsTable() {
       medium: 'Media',
       low: 'Baja',
     }
+
     return labels[priority.toLowerCase()] || priority
   }
 
@@ -183,15 +185,15 @@ export function RecentTicketsTable() {
           </div>
         ) : (
           <Table<TTicketRow>
-            aria-label="Tabla de tickets recientes"
             removeWrapper
-            columns={tableColumns}
-            rows={tickets}
-            renderCell={renderCell}
-            onRowClick={handleViewTicket}
+            aria-label="Tabla de tickets recientes"
             classNames={{
               tr: 'cursor-pointer transition-colors hover:bg-default-100',
             }}
+            columns={tableColumns}
+            renderCell={renderCell}
+            rows={tickets}
+            onRowClick={handleViewTicket}
           />
         )}
       </CardBody>

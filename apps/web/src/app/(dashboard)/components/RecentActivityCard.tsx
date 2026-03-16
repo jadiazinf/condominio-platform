@@ -1,8 +1,9 @@
 'use client'
 
+import { User, Building2, CreditCard, AlertTriangle } from 'lucide-react'
+
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
-import { User, Building2, CreditCard, AlertTriangle } from 'lucide-react'
 
 type ActivityType = 'user' | 'condominium' | 'payment' | 'alert'
 

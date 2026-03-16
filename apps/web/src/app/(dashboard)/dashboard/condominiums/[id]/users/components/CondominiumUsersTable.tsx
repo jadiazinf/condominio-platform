@@ -1,8 +1,11 @@
 'use client'
 
+import type { TCondominiumUser } from '@packages/http-client/hooks'
+
 import { useState, useCallback, useMemo } from 'react'
 import { Users, Trash2, Home, Shield } from 'lucide-react'
-import type { TCondominiumUser } from '@packages/http-client/hooks'
+
+import { RemoveUserModal } from './RemoveUserModal'
 
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Card, CardBody } from '@/ui/components/card'
@@ -10,8 +13,6 @@ import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
 import { useDisclosure } from '@/ui/components/modal'
-
-import { RemoveUserModal } from './RemoveUserModal'
 import { Avatar } from '@/ui/components/avatar-base'
 
 type TUserRow = TCondominiumUser & { id: string }
@@ -87,9 +88,9 @@ export function CondominiumUsersTable({
           return (
             <div className="flex items-center gap-3">
               <Avatar
-                src={user.photoUrl ?? undefined}
                 name={`${user.firstName} ${user.lastName}`}
                 size="sm"
+                src={user.photoUrl ?? undefined}
               />
               <div>
                 <p className="font-medium">
@@ -106,10 +107,10 @@ export function CondominiumUsersTable({
                 user.roles.map(role => (
                   <Chip
                     key={role.id}
-                    size="sm"
-                    variant="flat"
                     color={role.isActive ? 'primary' : 'default'}
+                    size="sm"
                     startContent={<Shield size={12} />}
+                    variant="flat"
                   >
                     {role.roleName}
                   </Chip>
@@ -126,10 +127,10 @@ export function CondominiumUsersTable({
                 user.units.map(unit => (
                   <Chip
                     key={unit.id}
-                    size="sm"
-                    variant="flat"
                     color={unit.isActive ? 'secondary' : 'default'}
+                    size="sm"
                     startContent={<Home size={12} />}
+                    variant="flat"
                   >
                     {unit.buildingName} - {unit.unitNumber}
                   </Chip>
@@ -141,7 +142,7 @@ export function CondominiumUsersTable({
           )
         case 'status':
           return (
-            <Chip color={isActive ? 'success' : 'default'} variant="flat" size="sm">
+            <Chip color={isActive ? 'success' : 'default'} size="sm" variant="flat">
               {isActive ? translations.status.active : translations.status.inactive}
             </Chip>
           )
@@ -150,9 +151,9 @@ export function CondominiumUsersTable({
             <div className="flex items-center justify-end gap-1">
               <Button
                 isIconOnly
+                color="danger"
                 size="sm"
                 variant="light"
-                color="danger"
                 onPress={() => handleRemove(user)}
               >
                 <Trash2 size={14} />
@@ -172,7 +173,7 @@ export function CondominiumUsersTable({
       <Card className="p-12">
         <div className="flex flex-col items-center justify-center text-center">
           <Users className="mb-4 text-default-300" size={48} />
-          <Typography variant="h4" className="mb-2">
+          <Typography className="mb-2" variant="h4">
             {translations.noUsers}
           </Typography>
         </div>
@@ -185,15 +186,15 @@ export function CondominiumUsersTable({
       {/* Desktop Table */}
       <div className="hidden md:block">
         <Table<TUserRow>
-          mobileCards={false}
           aria-label="Condominium Users"
-          columns={columns}
-          rows={users}
-          renderCell={renderCell}
           classNames={{
             wrapper: 'shadow-sm',
             tr: 'hover:bg-default-50',
           }}
+          columns={columns}
+          mobileCards={false}
+          renderCell={renderCell}
+          rows={users}
         />
       </div>
 
@@ -201,15 +202,16 @@ export function CondominiumUsersTable({
       <div className="block space-y-3 md:hidden">
         {users.map(user => {
           const isActive = user.isActive && user.roles.some(r => r.isActive)
+
           return (
             <Card key={user.id} className="w-full">
               <CardBody>
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <Avatar
-                      src={user.photoUrl ?? undefined}
                       name={`${user.firstName} ${user.lastName}`}
                       size="sm"
+                      src={user.photoUrl ?? undefined}
                     />
                     <div className="min-w-0 flex-1">
                       <p className="font-medium truncate">
@@ -218,7 +220,7 @@ export function CondominiumUsersTable({
                       <p className="text-xs text-default-500 truncate">{user.email}</p>
                     </div>
                   </div>
-                  <Chip color={isActive ? 'success' : 'default'} variant="flat" size="sm">
+                  <Chip color={isActive ? 'success' : 'default'} size="sm" variant="flat">
                     {isActive ? translations.status.active : translations.status.inactive}
                   </Chip>
                 </div>
@@ -229,10 +231,10 @@ export function CondominiumUsersTable({
                     {user.roles.map(role => (
                       <Chip
                         key={role.id}
-                        size="sm"
-                        variant="flat"
                         color={role.isActive ? 'primary' : 'default'}
+                        size="sm"
                         startContent={<Shield size={12} />}
+                        variant="flat"
                       >
                         {role.roleName}
                       </Chip>
@@ -246,10 +248,10 @@ export function CondominiumUsersTable({
                     {user.units.map(unit => (
                       <Chip
                         key={unit.id}
-                        size="sm"
-                        variant="flat"
                         color={unit.isActive ? 'secondary' : 'default'}
+                        size="sm"
                         startContent={<Home size={12} />}
+                        variant="flat"
                       >
                         {unit.buildingName} - {unit.unitNumber}
                       </Chip>
@@ -260,9 +262,9 @@ export function CondominiumUsersTable({
                 <div className="flex items-center justify-end border-t pt-3">
                   <Button
                     isIconOnly
+                    color="danger"
                     size="sm"
                     variant="light"
-                    color="danger"
                     onPress={() => handleRemove(user)}
                   >
                     <Trash2 size={14} />
@@ -277,15 +279,15 @@ export function CondominiumUsersTable({
       {/* Remove User Modal */}
       {userToRemove && (
         <RemoveUserModal
+          condominiumId={condominiumId}
           isOpen={isRemoveModalOpen}
+          translations={translations.removeModal}
+          userId={userToRemove.id}
+          userName={`${userToRemove.firstName} ${userToRemove.lastName}`}
           onClose={() => {
             onRemoveModalClose()
             setUserToRemove(null)
           }}
-          condominiumId={condominiumId}
-          userId={userToRemove.id}
-          userName={`${userToRemove.firstName} ${userToRemove.lastName}`}
-          translations={translations.removeModal}
         />
       )}
     </div>

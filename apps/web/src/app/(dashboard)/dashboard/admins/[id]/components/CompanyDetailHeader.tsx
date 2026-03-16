@@ -1,5 +1,6 @@
-import { Building2 } from 'lucide-react'
 import type { TManagementCompany } from '@packages/domain'
+
+import { Building2 } from 'lucide-react'
 
 import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
@@ -20,7 +21,7 @@ export async function CompanyDetailHeader({ company }: CompanyDetailHeaderProps)
         </div>
         <div className="flex-1 min-w-0 w-full">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
-            <Typography variant="h2" className="text-2xl sm:text-3xl truncate">
+            <Typography className="text-2xl sm:text-3xl truncate" variant="h2">
               {company.name}
             </Typography>
             <div className="flex items-center gap-2 flex-wrap">

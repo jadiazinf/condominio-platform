@@ -32,13 +32,16 @@ export function useProfilePhoto(options: UseProfilePhotoOptions = {}) {
         // Validate file type
         if (!file.type.startsWith('image/')) {
           toast.error(t('settings.profile.photoInvalidType'))
+
           return
         }
 
         // Validate file size (max 5MB)
         const maxSize = 5 * 1024 * 1024
+
         if (file.size > maxSize) {
           toast.error(t('settings.profile.photoTooLarge'))
+
           return
         }
 
@@ -88,6 +91,7 @@ export function useProfilePhoto(options: UseProfilePhotoOptions = {}) {
         try {
           const storage = getFirebaseStorage()
           const storageRef = ref(storage, `profile-photos/${user.id}`)
+
           await deleteObject(storageRef)
         } catch {
           // Ignore error if file doesn't exist
@@ -119,6 +123,7 @@ export function useProfilePhoto(options: UseProfilePhotoOptions = {}) {
   const handleFileSelect = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0]
+
       if (file) {
         uploadPhoto(file)
       }

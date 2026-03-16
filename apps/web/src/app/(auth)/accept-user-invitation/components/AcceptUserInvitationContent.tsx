@@ -2,23 +2,25 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardBody } from '@/ui/components/card'
-import { Spinner } from '@/ui/components/spinner'
 import { HttpError } from '@packages/http-client'
-
-import { InvalidTokenView } from '../../accept-invitation/components/InvalidTokenView'
-import { ExpiredTokenView } from '../../accept-invitation/components/ExpiredTokenView'
-import { AcceptUserInvitationForm } from './AcceptUserInvitationForm'
-import { useTranslation } from '@/contexts'
-import { useAuth } from '@/contexts'
-import { useToast } from '@/ui/components/toast'
-import { setSessionCookie, setUserCookie, setActiveRoleCookie } from '@/libs/cookies'
-import { useUser } from '@/contexts'
 import {
   acceptUserInvitation,
   TValidateUserInvitationResult,
   validateUserInvitationToken,
 } from '@packages/http-client/hooks'
+
+import { InvalidTokenView } from '../../accept-invitation/components/InvalidTokenView'
+import { ExpiredTokenView } from '../../accept-invitation/components/ExpiredTokenView'
+
+import { AcceptUserInvitationForm } from './AcceptUserInvitationForm'
+
+import { Card, CardBody } from '@/ui/components/card'
+import { Spinner } from '@/ui/components/spinner'
+import { useTranslation } from '@/contexts'
+import { useAuth } from '@/contexts'
+import { useToast } from '@/ui/components/toast'
+import { setSessionCookie, setUserCookie, setActiveRoleCookie } from '@/libs/cookies'
+import { useUser } from '@/contexts'
 
 interface AcceptUserInvitationContentProps {
   token?: string
@@ -47,6 +49,7 @@ export function AcceptUserInvitationContent({ token }: AcceptUserInvitationConte
   useEffect(() => {
     if (!token) {
       setViewState({ type: 'no-token' })
+
       return
     }
 
@@ -60,6 +63,7 @@ export function AcceptUserInvitationContent({ token }: AcceptUserInvitationConte
           } else {
             setViewState({ type: 'invalid' })
           }
+
           return
         }
 
@@ -94,7 +98,9 @@ export function AcceptUserInvitationContent({ token }: AcceptUserInvitationConte
     if (!firebaseUser) {
       // Not authenticated — redirect to login with return URL
       const returnUrl = encodeURIComponent(`/accept-user-invitation?token=${token}`)
+
       router.replace(`/auth?redirect=${returnUrl}`)
+
       return
     }
 
@@ -181,8 +187,8 @@ export function AcceptUserInvitationContent({ token }: AcceptUserInvitationConte
   // Valid token, new user - show the password form
   return (
     <AcceptUserInvitationForm
-      token={token!}
       invitationData={viewState.data}
+      token={token!}
       onSuccess={() => {
         window.location.href = '/dashboard'
       }}

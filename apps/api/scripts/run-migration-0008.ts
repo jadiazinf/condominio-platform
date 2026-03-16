@@ -18,7 +18,10 @@ async function runMigration() {
   try {
     console.log('Reading migration file...')
     const migrationSQL = readFileSync(
-      join(import.meta.dir, '../src/database/drizzle/migrations/0008_backfill_created_by_superadmin.sql'),
+      join(
+        import.meta.dir,
+        '../src/database/drizzle/migrations/0008_backfill_created_by_superadmin.sql'
+      ),
       'utf-8'
     )
 

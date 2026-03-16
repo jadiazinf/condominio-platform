@@ -1,9 +1,11 @@
-import { cookies } from 'next/headers'
-import { getAllSupportTickets } from '@packages/http-client'
 import type { TTicketStatus, TTicketPriority } from '@packages/domain'
 
-import { SESSION_COOKIE_NAME } from '@/libs/cookies'
+import { cookies } from 'next/headers'
+import { getAllSupportTickets } from '@packages/http-client'
+
 import { TicketsPageClient } from './TicketsPageClient'
+
+import { SESSION_COOKIE_NAME } from '@/libs/cookies'
 
 interface PageProps {
   searchParams: Promise<{
@@ -34,5 +36,5 @@ export default async function TicketsPage({ searchParams }: PageProps) {
   // Fetch tickets on the server
   const data = await getAllSupportTickets(filters, token)
 
-  return <TicketsPageClient tickets={data.data} pagination={data.pagination} />
+  return <TicketsPageClient pagination={data.pagination} tickets={data.data} />
 }

@@ -75,7 +75,10 @@ export function hasSuperadminPermission(options: ISuperadminPermissionOptions) {
  * Middleware that checks if superadmin has a specific permission by module and action.
  * Shorthand for hasSuperadminPermission with a single permission.
  */
-export function requireSuperadminPermission(module: TAllPermissionModule, action: TPermissionAction) {
+export function requireSuperadminPermission(
+  module: TAllPermissionModule,
+  action: TPermissionAction
+) {
   return hasSuperadminPermission({
     permissions: [{ module, action }],
     requireAll: true,

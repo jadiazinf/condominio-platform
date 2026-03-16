@@ -7,11 +7,11 @@ export interface IGetActiveAccessCodeInput {
 }
 
 export class GetActiveAccessCodeService {
-  constructor(
-    private readonly accessCodesRepository: CondominiumAccessCodesRepository
-  ) {}
+  constructor(private readonly accessCodesRepository: CondominiumAccessCodesRepository) {}
 
-  async execute(input: IGetActiveAccessCodeInput): Promise<TServiceResult<TCondominiumAccessCode | null>> {
+  async execute(
+    input: IGetActiveAccessCodeInput
+  ): Promise<TServiceResult<TCondominiumAccessCode | null>> {
     const code = await this.accessCodesRepository.getActiveByCondominiumId(input.condominiumId)
 
     // If code exists but expired, deactivate it

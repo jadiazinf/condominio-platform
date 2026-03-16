@@ -1,10 +1,11 @@
 'use client'
 
 import { useFormContext, Controller } from 'react-hook-form'
+import { Info, Search } from 'lucide-react'
+
 import { Typography } from '@/ui/components/typography'
 import { Tooltip } from '@/ui/components/tooltip'
 import { Input } from '@/ui/components/input'
-import { Info, Search } from 'lucide-react'
 import { useTranslation } from '@/contexts'
 import { Spinner } from '@/ui/components/spinner'
 import { Table } from '@/ui/components/table'
@@ -34,16 +35,16 @@ interface CondominiumSelectionStepProps {
 function SectionHeader({ title, tooltip }: { title: string; tooltip: string }) {
   return (
     <div className="flex items-center gap-2">
-      <Typography variant="subtitle1" className="font-semibold">
+      <Typography className="font-semibold" variant="subtitle1">
         {title}
       </Typography>
       <Tooltip
-        content={tooltip}
-        placement="right"
         showArrow
         classNames={{
           content: 'max-w-xs text-sm',
         }}
+        content={tooltip}
+        placement="right"
       >
         <Info className="h-4 w-4 text-default-400 cursor-help" />
       </Tooltip>
@@ -80,7 +81,7 @@ export function CondominiumSelectionStep({
     switch (columnKey) {
       case 'name':
         return (
-          <Typography variant="body2" className="font-medium">
+          <Typography className="font-medium" variant="body2">
             {row.name}
           </Typography>
         )
@@ -118,11 +119,11 @@ export function CondominiumSelectionStep({
 
       {/* Search Filter */}
       <Input
+        className="max-w-md"
         placeholder={t('superadmin.users.create.condominium.searchPlaceholder')}
         startContent={<Search className="h-4 w-4 text-default-400" />}
         value={search}
         onValueChange={onSearchChange}
-        className="max-w-md"
       />
 
       {/* Condominiums Table */}
@@ -132,18 +133,19 @@ export function CondominiumSelectionStep({
         render={({ field }) => (
           <div className="rounded-lg border border-default-200">
             <Table
+              removeWrapper
               aria-label="Condominiums table"
               columns={columns}
-              rows={condominiums}
+              emptyContent={t('superadmin.users.create.condominium.empty')}
               renderCell={renderCell}
-              selectionMode="single"
+              rows={condominiums}
               selectedKeys={field.value ? new Set([field.value]) : new Set()}
+              selectionMode="single"
               onSelectionChange={keys => {
                 const selectedKey = Array.from(keys)[0]
+
                 field.onChange(selectedKey || '')
               }}
-              emptyContent={t('superadmin.users.create.condominium.empty')}
-              removeWrapper
             />
           </div>
         )}
@@ -152,12 +154,12 @@ export function CondominiumSelectionStep({
       {/* Pagination */}
       {!isLoading && condominiums.length > 0 && (
         <Pagination
-          page={page}
-          totalPages={totalPages || 1}
-          total={total || condominiums.length}
           limit={limit}
-          onPageChange={onPageChange}
+          page={page}
+          total={total || condominiums.length}
+          totalPages={totalPages || 1}
           onLimitChange={onLimitChange}
+          onPageChange={onPageChange}
         />
       )}
 

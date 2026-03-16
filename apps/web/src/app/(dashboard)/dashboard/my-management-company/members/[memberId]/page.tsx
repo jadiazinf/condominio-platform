@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
-import { getFullSession } from '@/libs/session'
+
 import { MemberDetailPage } from '../components/MemberDetailPage'
+
+import { getFullSession } from '@/libs/session'
 
 interface MemberDetailRouteProps {
   params: Promise<{ memberId: string }>
@@ -22,10 +24,5 @@ export default async function MemberDetailRoute({ params }: MemberDetailRoutePro
 
   const { memberId } = await params
 
-  return (
-    <MemberDetailPage
-      managementCompanyId={managementCompanyId}
-      memberId={memberId}
-    />
-  )
+  return <MemberDetailPage managementCompanyId={managementCompanyId} memberId={memberId} />
 }

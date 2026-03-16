@@ -15,7 +15,11 @@ import type {
   RolesRepository,
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
+import {
+  bodyValidator,
+  paramsValidator,
+  queryValidator,
+} from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -100,31 +104,55 @@ export class ManagementCompanyMembersController extends BaseController<
         method: 'post',
         path: '/platform/management-companies/:companyId/members',
         handler: this.addMember,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(CompanyIdParamSchema), bodyValidator(AddMemberBodySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(CompanyIdParamSchema),
+          bodyValidator(AddMemberBodySchema),
+        ],
       },
       {
         method: 'get',
         path: '/platform/management-companies/:companyId/primary-admin',
         handler: this.getPrimaryAdmin,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(CompanyIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(CompanyIdParamSchema),
+        ],
       },
       {
         method: 'patch',
         path: '/platform/management-company-members/:id',
         handler: this.update,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(managementCompanyMemberUpdateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+          bodyValidator(managementCompanyMemberUpdateSchema),
+        ],
       },
       {
         method: 'patch',
         path: '/platform/management-company-members/:id/permissions',
         handler: this.updatePermissions,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(UpdatePermissionsBodySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+          bodyValidator(UpdatePermissionsBodySchema),
+        ],
       },
       {
         method: 'delete',
         path: '/platform/management-company-members/:id',
         handler: this.removeMember,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(RemoveMemberBodySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+          bodyValidator(RemoveMemberBodySchema),
+        ],
       },
     ]
   }

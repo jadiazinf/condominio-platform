@@ -24,29 +24,41 @@ import type { TRouteDefinition } from '../types'
  * - PATCH  /:id     Update amenity
  * - DELETE /:id     Delete amenity (soft)
  */
-export class AmenitiesController extends BaseController<
-  TAmenity,
-  TAmenityCreate,
-  TAmenityUpdate
-> {
+export class AmenitiesController extends BaseController<TAmenity, TAmenityCreate, TAmenityUpdate> {
   constructor(repository: AmenitiesRepository) {
     super(repository)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER)] },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.list,
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER),
+        ],
+      },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(amenityCreateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          bodyValidator(amenityCreateSchema),
+        ],
       },
       {
         method: 'patch',
@@ -63,7 +75,11 @@ export class AmenitiesController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }

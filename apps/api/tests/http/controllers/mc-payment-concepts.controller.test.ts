@@ -69,7 +69,9 @@ function createPaymentConcept(overrides: Partial<TPaymentConcept> = {}): TPaymen
   }
 }
 
-function createAssignment(overrides: Partial<TPaymentConceptAssignment> = {}): TPaymentConceptAssignment {
+function createAssignment(
+  overrides: Partial<TPaymentConceptAssignment> = {}
+): TPaymentConceptAssignment {
   return {
     id: ASSIGNMENT_ID,
     paymentConceptId: CONCEPT_ID,
@@ -87,7 +89,9 @@ function createAssignment(overrides: Partial<TPaymentConceptAssignment> = {}): T
   }
 }
 
-function createBankAccountLink(overrides: Partial<TPaymentConceptBankAccount> = {}): TPaymentConceptBankAccount {
+function createBankAccountLink(
+  overrides: Partial<TPaymentConceptBankAccount> = {}
+): TPaymentConceptBankAccount {
   return {
     id: '550e8400-e29b-41d4-a716-446655440070',
     paymentConceptId: CONCEPT_ID,
@@ -104,7 +108,13 @@ function createBankAccountLink(overrides: Partial<TPaymentConceptBankAccount> = 
 
 type TMockConceptsRepo = {
   listAll: () => Promise<TPaymentConcept[]>
-  listByManagementCompanyPaginated: (mcId: string, query: unknown) => Promise<{ data: (TPaymentConcept & { condominiumName: string | null })[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>
+  listByManagementCompanyPaginated: (
+    mcId: string,
+    query: unknown
+  ) => Promise<{
+    data: (TPaymentConcept & { condominiumName: string | null })[]
+    pagination: { page: number; limit: number; total: number; totalPages: number }
+  }>
   getById: (id: string) => Promise<TPaymentConcept | null>
   withTx: (tx?: unknown) => TMockConceptsRepo
   create: (data: TPaymentConceptCreate) => Promise<TPaymentConcept>
@@ -114,7 +124,12 @@ type TMockConceptsRepo = {
 
 type TMockAssignmentsRepo = {
   listByConceptId: (conceptId: string) => Promise<TPaymentConceptAssignment[]>
-  getByConceptAndScope: (conceptId: string, scope: string, buildingId: string | null, unitId: string | null) => Promise<TPaymentConceptAssignment | null>
+  getByConceptAndScope: (
+    conceptId: string,
+    scope: string,
+    buildingId: string | null,
+    unitId: string | null
+  ) => Promise<TPaymentConceptAssignment | null>
   create: (data: unknown) => Promise<TPaymentConceptAssignment>
   update: (id: string, data: unknown) => Promise<TPaymentConceptAssignment | null>
   deactivateAllByConceptId: (conceptId: string) => Promise<number>
@@ -123,7 +138,11 @@ type TMockAssignmentsRepo = {
 
 type TMockConceptBankAccountsRepo = {
   listByConceptId: (conceptId: string) => Promise<TPaymentConceptBankAccount[]>
-  linkBankAccount: (conceptId: string, bankAccountId: string, assignedBy: string | null) => Promise<TPaymentConceptBankAccount>
+  linkBankAccount: (
+    conceptId: string,
+    bankAccountId: string,
+    assignedBy: string | null
+  ) => Promise<TPaymentConceptBankAccount>
   unlinkBankAccount: (conceptId: string, bankAccountId: string) => Promise<boolean>
   getLink: (conceptId: string, bankAccountId: string) => Promise<TPaymentConceptBankAccount | null>
 }
@@ -166,24 +185,30 @@ describe('McPaymentConceptsController', function () {
         data: testConcepts.map(c => ({ ...c, condominiumName: 'Test Condo' })),
         pagination: { page: 1, limit: 20, total: testConcepts.length, totalPages: 1 },
       }),
-      getById: async (id) => testConcepts.find(c => c.id === id) ?? null,
-      create: async (data) => createPaymentConcept({ ...data as Partial<TPaymentConcept>, id: crypto.randomUUID() }),
+      getById: async id => testConcepts.find(c => c.id === id) ?? null,
+      create: async data =>
+        createPaymentConcept({ ...(data as Partial<TPaymentConcept>), id: crypto.randomUUID() }),
       update: async (id, data) => {
         const concept = testConcepts.find(c => c.id === id)
         if (!concept) return null
         return { ...concept, ...(data as Partial<TPaymentConcept>) }
       },
       delete: async () => true,
-      withTx: function () { return this },
+      withTx: function () {
+        return this
+      },
     }
 
     mockAssignmentsRepo = {
       listByConceptId: async () => [createAssignment()],
       getByConceptAndScope: async () => null,
-      create: async (data) => createAssignment(data as Partial<TPaymentConceptAssignment>),
-      update: async (id, data) => createAssignment({ id, ...(data as Partial<TPaymentConceptAssignment>) }),
+      create: async data => createAssignment(data as Partial<TPaymentConceptAssignment>),
+      update: async (id, data) =>
+        createAssignment({ id, ...(data as Partial<TPaymentConceptAssignment>) }),
       deactivateAllByConceptId: async () => 1,
-      withTx: function () { return this },
+      withTx: function () {
+        return this
+      },
     }
 
     mockConceptBankAccountsRepo = {
@@ -195,14 +220,14 @@ describe('McPaymentConceptsController', function () {
     }
 
     mockCondominiumsRepo = {
-      getById: async (id) => {
+      getById: async id => {
         if (id === CONDO_ID) return { id: CONDO_ID, name: 'Test Condo' }
         return null
       },
     }
 
     mockCurrenciesRepo = {
-      getById: async (id) => {
+      getById: async id => {
         if (id === CURRENCY_ID) return { id: CURRENCY_ID, code: 'VES' }
         return null
       },
@@ -243,9 +268,7 @@ describe('McPaymentConceptsController', function () {
       getById: async () => null,
       getByCondominiumId: async (condoId: string) => {
         if (condoId === CONDO_ID) {
-          return [
-            { id: 'bld-1', condominiumId: CONDO_ID, name: 'Torre A', isActive: true },
-          ]
+          return [{ id: 'bld-1', condominiumId: CONDO_ID, name: 'Torre A', isActive: true }]
         }
         return []
       },
@@ -257,8 +280,20 @@ describe('McPaymentConceptsController', function () {
       getByCondominiumId: async (condoId: string) => {
         if (condoId === CONDO_ID) {
           return [
-            { id: 'unit-1', buildingId: 'bld-1', unitNumber: '1A', aliquotPercentage: '50.000000', isActive: true },
-            { id: 'unit-2', buildingId: 'bld-1', unitNumber: '1B', aliquotPercentage: '50.000000', isActive: true },
+            {
+              id: 'unit-1',
+              buildingId: 'bld-1',
+              unitNumber: '1A',
+              aliquotPercentage: '50.000000',
+              isActive: true,
+            },
+            {
+              id: 'unit-2',
+              buildingId: 'bld-1',
+              unitNumber: '1B',
+              aliquotPercentage: '50.000000',
+              isActive: true,
+            },
           ]
         }
         return []
@@ -280,7 +315,15 @@ describe('McPaymentConceptsController', function () {
 
     const mockConceptServicesRepo = {
       listByConceptId: async () => [],
-      linkService: async () => ({ id: 'link-1', paymentConceptId: '', serviceId: '', amount: 0, useDefaultAmount: true, createdAt: new Date(), updatedAt: new Date() }),
+      linkService: async () => ({
+        id: 'link-1',
+        paymentConceptId: '',
+        serviceId: '',
+        amount: 0,
+        useDefaultAmount: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
       unlinkById: async () => true,
     }
 
@@ -292,7 +335,8 @@ describe('McPaymentConceptsController', function () {
       db: mockDb as never,
       conceptsRepo: mockConceptsRepo as unknown as PaymentConceptsRepository,
       assignmentsRepo: mockAssignmentsRepo as unknown as PaymentConceptAssignmentsRepository,
-      conceptBankAccountsRepo: mockConceptBankAccountsRepo as unknown as PaymentConceptBankAccountsRepository,
+      conceptBankAccountsRepo:
+        mockConceptBankAccountsRepo as unknown as PaymentConceptBankAccountsRepository,
       condominiumsRepo: mockCondominiumsRepo as unknown as CondominiumsRepository,
       currenciesRepo: mockCurrenciesRepo as unknown as CurrenciesRepository,
       condominiumMCRepo: mockCondominiumMCRepo,
@@ -302,9 +346,13 @@ describe('McPaymentConceptsController', function () {
       unitsRepo: mockUnitsRepo,
       quotasRepo: mockQuotasRepo,
       conceptServicesRepo: mockConceptServicesRepo as unknown as PaymentConceptServicesRepository,
-      condominiumServicesRepo: mockCondominiumServicesRepo as unknown as CondominiumServicesRepository,
+      condominiumServicesRepo:
+        mockCondominiumServicesRepo as unknown as CondominiumServicesRepository,
       executionsRepo: { create: async () => ({}) } as unknown as ServiceExecutionsRepository,
-      changesRepo: { create: async () => ({}), listByConceptId: async () => [] } as unknown as PaymentConceptChangesRepository,
+      changesRepo: {
+        create: async () => ({}),
+        listByConceptId: async () => [],
+      } as unknown as PaymentConceptChangesRepository,
     })
 
     app = createTestApp()
@@ -323,19 +371,49 @@ describe('McPaymentConceptsController', function () {
         db: {} as never,
         conceptsRepo: mockConceptsRepo as unknown as PaymentConceptsRepository,
         assignmentsRepo: mockAssignmentsRepo as unknown as PaymentConceptAssignmentsRepository,
-        conceptBankAccountsRepo: mockConceptBankAccountsRepo as unknown as PaymentConceptBankAccountsRepository,
+        conceptBankAccountsRepo:
+          mockConceptBankAccountsRepo as unknown as PaymentConceptBankAccountsRepository,
         condominiumsRepo: mockCondominiumsRepo as unknown as CondominiumsRepository,
         currenciesRepo: mockCurrenciesRepo as unknown as CurrenciesRepository,
         condominiumMCRepo: { getByCondominiumAndMC: async () => null },
         bankAccountsRepo: { getById: async () => null },
         bankAccountCondominiumsRepo: { getByBankAccountAndCondominium: async () => null },
         buildingsRepo: { getById: async () => null, getByCondominiumId: async () => [] },
-        unitsRepo: { getById: async () => null, getByBuildingId: async () => [], getByCondominiumId: async () => [] },
-        quotasRepo: { existsForConceptAndPeriod: async () => false, createMany: async () => [], getDelinquentByConcept: async () => [], cancelAllNonPaidByConceptId: async () => 0, withTx: function() { return this } },
-        conceptServicesRepo: { listByConceptId: async () => [], linkService: async () => ({ id: 'link-1', paymentConceptId: '', serviceId: '', amount: 0, useDefaultAmount: true, createdAt: new Date(), updatedAt: new Date() }), unlinkById: async () => true } as unknown as PaymentConceptServicesRepository,
-        condominiumServicesRepo: { getById: async () => null } as unknown as CondominiumServicesRepository,
+        unitsRepo: {
+          getById: async () => null,
+          getByBuildingId: async () => [],
+          getByCondominiumId: async () => [],
+        },
+        quotasRepo: {
+          existsForConceptAndPeriod: async () => false,
+          createMany: async () => [],
+          getDelinquentByConcept: async () => [],
+          cancelAllNonPaidByConceptId: async () => 0,
+          withTx: function () {
+            return this
+          },
+        },
+        conceptServicesRepo: {
+          listByConceptId: async () => [],
+          linkService: async () => ({
+            id: 'link-1',
+            paymentConceptId: '',
+            serviceId: '',
+            amount: 0,
+            useDefaultAmount: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }),
+          unlinkById: async () => true,
+        } as unknown as PaymentConceptServicesRepository,
+        condominiumServicesRepo: {
+          getById: async () => null,
+        } as unknown as CondominiumServicesRepository,
         executionsRepo: { create: async () => ({}) } as unknown as ServiceExecutionsRepository,
-        changesRepo: { create: async () => ({}), listByConceptId: async () => [] } as unknown as PaymentConceptChangesRepository,
+        changesRepo: {
+          create: async () => ({}),
+          listByConceptId: async () => [],
+        } as unknown as PaymentConceptChangesRepository,
       })
 
       const routes = controller.routes
@@ -440,7 +518,6 @@ describe('McPaymentConceptsController', function () {
       const res = await request(`/${MC_ID}/me/payment-concepts`)
       expect(res.status).toBe(StatusCodes.OK)
 
-       
       const json = (await res.json()) as any
       expect(json.data).toHaveLength(2)
       expect(json.pagination).toBeDefined()
@@ -461,7 +538,9 @@ describe('McPaymentConceptsController', function () {
     })
 
     it('should return 404 for non-existent concept', async function () {
-      const res = await request(`/${MC_ID}/me/payment-concepts/550e8400-e29b-41d4-a716-446655440099`)
+      const res = await request(
+        `/${MC_ID}/me/payment-concepts/550e8400-e29b-41d4-a716-446655440099`
+      )
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
     })
   })
@@ -523,11 +602,14 @@ describe('McPaymentConceptsController', function () {
     })
 
     it('should return 404 for non-existent concept', async function () {
-      const res = await request(`/${MC_ID}/me/payment-concepts/550e8400-e29b-41d4-a716-446655440099`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'Updated' }),
-      })
+      const res = await request(
+        `/${MC_ID}/me/payment-concepts/550e8400-e29b-41d4-a716-446655440099`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'Updated' }),
+        }
+      )
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
     })
   })
@@ -545,10 +627,13 @@ describe('McPaymentConceptsController', function () {
     })
 
     it('should return 404 for non-existent concept', async function () {
-      const res = await request(`/${MC_ID}/me/payment-concepts/550e8400-e29b-41d4-a716-446655440099/deactivate`, {
-        method: 'PATCH',
-        headers: { 'x-condominium-id': CONDO_ID },
-      })
+      const res = await request(
+        `/${MC_ID}/me/payment-concepts/550e8400-e29b-41d4-a716-446655440099/deactivate`,
+        {
+          method: 'PATCH',
+          headers: { 'x-condominium-id': CONDO_ID },
+        }
+      )
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
     })
   })
@@ -706,19 +791,49 @@ describe('McPaymentConceptsController', function () {
         db: { transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn({}) } as never,
         conceptsRepo: mockConceptsRepo as unknown as PaymentConceptsRepository,
         assignmentsRepo: mockAssignmentsRepo as unknown as PaymentConceptAssignmentsRepository,
-        conceptBankAccountsRepo: mockConceptBankAccountsRepo as unknown as PaymentConceptBankAccountsRepository,
+        conceptBankAccountsRepo:
+          mockConceptBankAccountsRepo as unknown as PaymentConceptBankAccountsRepository,
         condominiumsRepo: mockCondominiumsRepo as unknown as CondominiumsRepository,
         currenciesRepo: mockCurrenciesRepo as unknown as CurrenciesRepository,
         condominiumMCRepo: { getByCondominiumAndMC: async () => ({ id: CONDO_ID }) },
         bankAccountsRepo: { getById: async () => null },
         bankAccountCondominiumsRepo: { getByBankAccountAndCondominium: async () => null },
         buildingsRepo: { getById: async () => null, getByCondominiumId: async () => [] },
-        unitsRepo: { getById: async () => null, getByBuildingId: async () => [], getByCondominiumId: async () => [] },
-        quotasRepo: { existsForConceptAndPeriod: async () => true, createMany: async () => [], getDelinquentByConcept: async () => [], cancelAllNonPaidByConceptId: async () => 0, withTx: function() { return this } },
-        conceptServicesRepo: { listByConceptId: async () => [], linkService: async () => ({ id: 'link-1', paymentConceptId: '', serviceId: '', amount: 0, useDefaultAmount: true, createdAt: new Date(), updatedAt: new Date() }), unlinkById: async () => true } as unknown as PaymentConceptServicesRepository,
-        condominiumServicesRepo: { getById: async () => null } as unknown as CondominiumServicesRepository,
+        unitsRepo: {
+          getById: async () => null,
+          getByBuildingId: async () => [],
+          getByCondominiumId: async () => [],
+        },
+        quotasRepo: {
+          existsForConceptAndPeriod: async () => true,
+          createMany: async () => [],
+          getDelinquentByConcept: async () => [],
+          cancelAllNonPaidByConceptId: async () => 0,
+          withTx: function () {
+            return this
+          },
+        },
+        conceptServicesRepo: {
+          listByConceptId: async () => [],
+          linkService: async () => ({
+            id: 'link-1',
+            paymentConceptId: '',
+            serviceId: '',
+            amount: 0,
+            useDefaultAmount: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }),
+          unlinkById: async () => true,
+        } as unknown as PaymentConceptServicesRepository,
+        condominiumServicesRepo: {
+          getById: async () => null,
+        } as unknown as CondominiumServicesRepository,
         executionsRepo: { create: async () => ({}) } as unknown as ServiceExecutionsRepository,
-        changesRepo: { create: async () => ({}), listByConceptId: async () => [] } as unknown as PaymentConceptChangesRepository,
+        changesRepo: {
+          create: async () => ({}),
+          listByConceptId: async () => [],
+        } as unknown as PaymentConceptChangesRepository,
       })
 
       const app2 = createTestApp()
@@ -733,11 +848,14 @@ describe('McPaymentConceptsController', function () {
     })
 
     it('should return 404 for non-existent concept', async function () {
-      const res = await request(`/${MC_ID}/me/payment-concepts/550e8400-e29b-41d4-a716-446655440099/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ periodYear: 2026, periodMonth: 3 }),
-      })
+      const res = await request(
+        `/${MC_ID}/me/payment-concepts/550e8400-e29b-41d4-a716-446655440099/generate`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ periodYear: 2026, periodMonth: 3 }),
+        }
+      )
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
     })
   })
@@ -751,7 +869,6 @@ describe('McPaymentConceptsController', function () {
       const res = await request(`/${MC_ID}/me/payment-concepts/${CONCEPT_ID}/affected-units`)
       expect(res.status).toBe(StatusCodes.OK)
 
-       
       const json = (await res.json()) as any
       expect(json.data.isRecurring).toBe(true)
       expect(json.data.recurrencePeriod).toBe('monthly')
@@ -768,7 +885,9 @@ describe('McPaymentConceptsController', function () {
     })
 
     it('should return 404 for non-existent concept', async function () {
-      const res = await request(`/${MC_ID}/me/payment-concepts/550e8400-e29b-41d4-a716-446655440099/affected-units`)
+      const res = await request(
+        `/${MC_ID}/me/payment-concepts/550e8400-e29b-41d4-a716-446655440099/affected-units`
+      )
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
     })
 
@@ -778,7 +897,6 @@ describe('McPaymentConceptsController', function () {
       const res = await request(`/${MC_ID}/me/payment-concepts/${CONCEPT_ID}/affected-units`)
       expect(res.status).toBe(StatusCodes.OK)
 
-       
       const json = (await res.json()) as any
       expect(json.data.totalUnits).toBe(0)
       expect(json.data.units).toHaveLength(0)

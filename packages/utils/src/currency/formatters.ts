@@ -33,10 +33,7 @@ export function formatCurrency(
  * Formats a number with locale-aware decimal separators, without a currency symbol.
  * e.g., formatAmount(1234.5) → "1.234,50" (es-VE)
  */
-export function formatAmount(
-  amount: TCurrencyInput,
-  options: FormatAmountOptions = {}
-): string {
+export function formatAmount(amount: TCurrencyInput, options: FormatAmountOptions = {}): string {
   const { locale = 'es-VE', minimumFractionDigits = 2, maximumFractionDigits = 2 } = options
 
   if (amount === null || amount === undefined) return formatAmount(0, options)

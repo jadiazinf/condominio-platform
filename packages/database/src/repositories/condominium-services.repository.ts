@@ -13,7 +13,12 @@ import { BaseRepository } from './base'
 type TCondominiumServiceRecord = typeof condominiumServices.$inferSelect
 
 export class CondominiumServicesRepository
-  extends BaseRepository<typeof condominiumServices, TCondominiumService, TCondominiumServiceCreate, TCondominiumServiceUpdate>
+  extends BaseRepository<
+    typeof condominiumServices,
+    TCondominiumService,
+    TCondominiumServiceCreate,
+    TCondominiumServiceUpdate
+  >
   implements IRepository<TCondominiumService, TCondominiumServiceCreate, TCondominiumServiceUpdate>
 {
   constructor(db: TDrizzleClient) {
@@ -85,8 +90,10 @@ export class CondominiumServicesRepository
     if (dto.locationId !== undefined) values.locationId = dto.locationId
     if (dto.chargesIva !== undefined) values.chargesIva = dto.chargesIva
     if (dto.ivaRate !== undefined) values.ivaRate = String(dto.ivaRate)
-    if (dto.subjectToIslarRetention !== undefined) values.subjectToIslarRetention = dto.subjectToIslarRetention
-    if (dto.islrRetentionRate !== undefined) values.islrRetentionRate = String(dto.islrRetentionRate)
+    if (dto.subjectToIslarRetention !== undefined)
+      values.subjectToIslarRetention = dto.subjectToIslarRetention
+    if (dto.islrRetentionRate !== undefined)
+      values.islrRetentionRate = String(dto.islrRetentionRate)
     if (dto.isActive !== undefined) values.isActive = dto.isActive
     values.updatedAt = new Date()
     return values
@@ -109,7 +116,9 @@ export class CondominiumServicesRepository
     }
 
     if (providerType) {
-      conditions.push(eq(condominiumServices.providerType, providerType as TCondominiumService['providerType']))
+      conditions.push(
+        eq(condominiumServices.providerType, providerType as TCondominiumService['providerType'])
+      )
     }
 
     if (search && search.trim()) {
@@ -151,7 +160,10 @@ export class CondominiumServicesRepository
   /**
    * Get all active services for a condominium.
    */
-  async getByCondominiumId(condominiumId: string, includeInactive = false): Promise<TCondominiumService[]> {
+  async getByCondominiumId(
+    condominiumId: string,
+    includeInactive = false
+  ): Promise<TCondominiumService[]> {
     const conditions: SQL[] = [eq(condominiumServices.condominiumId, condominiumId)]
     if (!includeInactive) {
       conditions.push(eq(condominiumServices.isActive, true))

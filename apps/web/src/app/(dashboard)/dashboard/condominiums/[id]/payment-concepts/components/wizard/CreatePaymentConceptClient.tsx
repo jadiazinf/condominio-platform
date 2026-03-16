@@ -1,12 +1,9 @@
 'use client'
 
+import type { IWizardFormData } from './CreatePaymentConceptWizard'
+
 import { useState, useCallback, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Button } from '@/ui/components/button'
-import { Card, CardBody } from '@/ui/components/card'
-import { Stepper, type IStepItem } from '@/ui/components/stepper'
-import { useTranslation } from '@/contexts'
-import { useToast } from '@/ui/components/toast'
 import {
   useCreatePaymentConceptFull,
   useCreateAssignment,
@@ -24,7 +21,12 @@ import { ServicesStep } from './steps/ServicesStep'
 import { AssignmentsStep } from './steps/AssignmentsStep'
 import { BankAccountsStep } from './steps/BankAccountsStep'
 import { ReviewStep } from './steps/ReviewStep'
-import type { IWizardFormData } from './CreatePaymentConceptWizard'
+
+import { useToast } from '@/ui/components/toast'
+import { useTranslation } from '@/contexts'
+import { Stepper, type IStepItem } from '@/ui/components/stepper'
+import { Card, CardBody } from '@/ui/components/card'
+import { Button } from '@/ui/components/button'
 
 const INITIAL_FORM_DATA: IWizardFormData = {
   name: '',
@@ -60,7 +62,14 @@ const INITIAL_FORM_DATA: IWizardFormData = {
 
 const SERVICES_REQUIRED_TYPES = ['maintenance'] as const
 
-const STEPS = ['basicInfo', 'chargeConfig', 'services', 'assignments', 'bankAccounts', 'review'] as const
+const STEPS = [
+  'basicInfo',
+  'chargeConfig',
+  'services',
+  'assignments',
+  'bankAccounts',
+  'review',
+] as const
 
 interface CreatePaymentConceptClientProps {
   condominiumId: string
@@ -101,11 +110,12 @@ export function CreatePaymentConceptClient({
   useEffect(() => {
     if (!formData.currencyId && currencies.length > 0) {
       const ves = currencies.find(c => c.code === 'VES')
+
       if (ves) {
         setFormData(prev => ({ ...prev, currencyId: ves.id }))
       }
     }
-  }, [currencies]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currencies])
 
   const updateFormData = useCallback((updates: Partial<IWizardFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }))
@@ -117,27 +127,40 @@ export function CreatePaymentConceptClient({
   }, [])
 
   // Compute total amount from services or fixed amount
-  const servicesTotalAmount = formData.services.length > 0
-    ? formData.services.reduce((sum, s) => sum + s.amount, 0)
-    : formData.fixedAmount
+  const servicesTotalAmount =
+    formData.services.length > 0
+      ? formData.services.reduce((sum, s) => sum + s.amount, 0)
+      : formData.fixedAmount
 
   const canProceed = () => {
     switch (currentStep) {
       case 0: // Basic Info
-        return !!(formData.name && formData.conceptType && formData.currencyId &&
-          (!formData.isRecurring || formData.recurrencePeriod))
+        return !!(
+          formData.name &&
+          formData.conceptType &&
+          formData.currencyId &&
+          (!formData.isRecurring || formData.recurrencePeriod)
+        )
       case 1: // Charge Config
         if (formData.issueDay == null || formData.dueDay == null) return false
         if (formData.latePaymentType !== 'none' && !formData.latePaymentValue) return false
-        if (formData.earlyPaymentType !== 'none' && (!formData.earlyPaymentValue || !formData.earlyPaymentDaysBeforeDue)) return false
+        if (
+          formData.earlyPaymentType !== 'none' &&
+          (!formData.earlyPaymentValue || !formData.earlyPaymentDaysBeforeDue)
+        )
+          return false
         if (formData.interestEnabled && !formData.interestRate) return false
+
         return true
       case 2: // Services
         if (SERVICES_REQUIRED_TYPES.includes(formData.conceptType as any)) {
           return formData.services.length > 0 && formData.services.every(s => !!s.execution)
         }
-        return (formData.services.length > 0 && formData.services.every(s => !!s.execution))
-          || formData.fixedAmount > 0
+
+        return (
+          (formData.services.length > 0 && formData.services.every(s => !!s.execution)) ||
+          formData.fixedAmount > 0
+        )
       case 3: // Assignments
         return formData.assignments.length > 0
       case 4: // Bank Accounts
@@ -234,10 +257,12 @@ export function CreatePaymentConceptClient({
     } catch (error) {
       if (HttpError.isHttpError(error)) {
         const details = error.details
+
         if (isApiValidationError(details)) {
           const fieldMessages = details.error.fields
             .map((f: any) => f.messages.join(', '))
             .join('\n')
+
           toast.error(fieldMessages || error.message)
         } else {
           toast.error(error.message)
@@ -248,7 +273,18 @@ export function CreatePaymentConceptClient({
     } finally {
       setIsSubmitting(false)
     }
-  }, [formData, condominiumId, createConceptFull, createAssignment, linkBankAccount, createInterestConfig, queryClient, router, toast, t])
+  }, [
+    formData,
+    condominiumId,
+    createConceptFull,
+    createAssignment,
+    linkBankAccount,
+    createInterestConfig,
+    queryClient,
+    router,
+    toast,
+    t,
+  ])
 
   const wizardSteps: IStepItem<(typeof STEPS)[number]>[] = [
     { key: 'basicInfo', title: t(`${w}.steps.basicInfo`) },
@@ -264,64 +300,64 @@ export function CreatePaymentConceptClient({
       case 0:
         return (
           <BasicInfoStep
-            formData={formData}
-            onUpdate={updateFormData}
             currencies={currencies}
+            formData={formData}
             showErrors={showErrors}
+            onUpdate={updateFormData}
           />
         )
       case 1:
         return (
           <ChargeConfigStep
-            formData={formData}
-            onUpdate={updateFormData}
-            showErrors={showErrors}
             currencies={currencies}
+            formData={formData}
+            showErrors={showErrors}
+            onUpdate={updateFormData}
           />
         )
       case 2:
         return (
           <ServicesStep
-            formData={formData}
-            onUpdate={updateFormData}
             condominiumId={condominiumId}
-            managementCompanyId={managementCompanyId}
             currencies={currencies}
-            showErrors={showErrors}
+            formData={formData}
+            managementCompanyId={managementCompanyId}
             servicesRequired={SERVICES_REQUIRED_TYPES.includes(formData.conceptType as any)}
+            showErrors={showErrors}
+            onUpdate={updateFormData}
           />
         )
       case 3:
         return (
           <AssignmentsStep
-            formData={formData}
-            onUpdate={updateFormData}
             buildings={buildings}
-            showErrors={showErrors}
-            currencies={currencies}
             condominiumId={condominiumId}
+            currencies={currencies}
+            formData={formData}
             managementCompanyId={managementCompanyId}
             servicesTotalAmount={servicesTotalAmount}
+            showErrors={showErrors}
+            onUpdate={updateFormData}
           />
         )
       case 4:
         return (
           <BankAccountsStep
-            formData={formData}
-            onUpdate={updateFormData}
-            managementCompanyId={managementCompanyId}
             currencies={currencies}
+            formData={formData}
+            managementCompanyId={managementCompanyId}
             showErrors={showErrors}
+            onUpdate={updateFormData}
           />
         )
       case 5:
         return (
           <ReviewStep
-            formData={formData}
-            onUpdate={updateFormData}
-            currencies={currencies}
             buildings={buildings}
+            currencies={currencies}
+            formData={formData}
             managementCompanyId={managementCompanyId}
+            onUpdate={updateFormData}
           />
         )
       default:
@@ -333,11 +369,12 @@ export function CreatePaymentConceptClient({
     <div className="flex flex-col gap-6">
       {/* Stepper */}
       <Stepper
-        steps={wizardSteps}
-        currentStep={STEPS[currentStep]!}
         color="primary"
-        onStepChange={(stepKey) => {
+        currentStep={STEPS[currentStep]!}
+        steps={wizardSteps}
+        onStepChange={stepKey => {
           const stepIndex = STEPS.indexOf(stepKey)
+
           if (stepIndex >= 0 && stepIndex <= currentStep) {
             setShowErrors(false)
             setCurrentStep(stepIndex)
@@ -347,9 +384,7 @@ export function CreatePaymentConceptClient({
 
       {/* Step Content */}
       <Card>
-        <CardBody className="p-6">
-          {renderStepContent()}
-        </CardBody>
+        <CardBody className="p-6">{renderStepContent()}</CardBody>
       </Card>
 
       {/* Navigation */}

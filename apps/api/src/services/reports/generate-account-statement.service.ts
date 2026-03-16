@@ -67,7 +67,7 @@ export class GenerateAccountStatementService {
   constructor(
     private readonly quotasRepo: QuotasRepository,
     private readonly paymentsRepo: PaymentsRepository,
-    private readonly unitsRepo: UnitsRepository,
+    private readonly unitsRepo: UnitsRepository
   ) {}
 
   async execute(input: IAccountStatementInput): Promise<TServiceResult<IAccountStatementOutput>> {
@@ -139,7 +139,9 @@ export class GenerateAccountStatementService {
       rows.push({
         date: quota.issueDate,
         type: 'Cuota',
-        description: quota.periodDescription ?? `${quota.periodYear}-${String(quota.periodMonth).padStart(2, '0')}`,
+        description:
+          quota.periodDescription ??
+          `${quota.periodYear}-${String(quota.periodMonth).padStart(2, '0')}`,
         amount: quota.baseAmount,
         status: this.translateQuotaStatus(quota.status),
         balance: quota.balance,

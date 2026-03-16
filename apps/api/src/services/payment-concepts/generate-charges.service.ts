@@ -5,6 +5,22 @@ import type {
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
+import { parseAmount, roundCurrency } from '@packages/utils/money'
+
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
 
 type TUnitInfo = {
   id: string
@@ -22,6 +38,7 @@ type TUnitsRepo = {
 type TQuotasRepo = {
   existsForConceptAndPeriod: (conceptId: string, year: number, month: number) => Promise<boolean>
   createMany: (quotas: Record<string, unknown>[]) => Promise<{ id: string }[]>
+  withTx: (tx: TDrizzleClient) => TQuotasRepo
 }
 
 export interface IGenerateChargesInput {
@@ -63,13 +80,14 @@ export class GenerateChargesService {
       return failure('Cannot generate charges for an inactive concept', 'BAD_REQUEST')
     }
 
-    // Check for existing quotas
-    const exists = await this.quotasRepo.existsForConceptAndPeriod(
+    // Quick pre-check for existing quotas (fast-path for user-facing errors).
+    // The authoritative check is inside the transaction below.
+    const existsPreCheck = await this.quotasRepo.existsForConceptAndPeriod(
       input.paymentConceptId,
       input.periodYear,
       input.periodMonth
     )
-    if (exists) {
+    if (existsPreCheck) {
       return failure('Charges already exist for this period', 'CONFLICT')
     }
 
@@ -79,7 +97,7 @@ export class GenerateChargesService {
       return failure('No active assignments for this concept', 'BAD_REQUEST')
     }
 
-    // Resolve unit amounts
+    // Resolve unit amounts (read-only, safe outside transaction)
     const unitAmounts = await this.resolveUnitAmounts(assignments, concept.condominiumId!)
 
     if (unitAmounts.length === 0) {
@@ -103,31 +121,50 @@ export class GenerateChargesService {
     }
     const dueDate = this.formatDate(dueYear, dueMonth, dueDay)
 
-    // Create quotas in transaction
-    const quotaRecords = unitAmounts.map(ua => ({
-      unitId: ua.unitId,
-      paymentConceptId: input.paymentConceptId,
-      periodYear: input.periodYear,
-      periodMonth: input.periodMonth,
-      baseAmount: ua.amount.toString(),
-      currencyId: concept.currencyId,
-      issueDate,
-      dueDate,
-      status: 'pending',
-      balance: ua.amount.toString(),
-      createdBy: input.generatedBy,
-    }))
+    // Period description
+    const periodDescription = `${MONTH_NAMES[input.periodMonth - 1]} ${input.periodYear}`
 
-    await this.quotasRepo.createMany(quotaRecords)
+    // Duplicate check + insert inside transaction to prevent race conditions.
+    // The unique index on (unit_id, payment_concept_id, period_year, period_month)
+    // is the ultimate safety net, but checking first gives a cleaner error message.
+    return await this.db.transaction(async tx => {
+      const txQuotasRepo = this.quotasRepo.withTx(tx)
 
-    const totalAmount = unitAmounts.reduce((sum, ua) => sum + ua.amount, 0)
+      const exists = await txQuotasRepo.existsForConceptAndPeriod(
+        input.paymentConceptId,
+        input.periodYear,
+        input.periodMonth
+      )
+      if (exists) {
+        return failure('Charges already exist for this period', 'CONFLICT')
+      }
 
-    return success({
-      quotasCreated: unitAmounts.length,
-      totalAmount,
-      issueDate,
-      dueDate,
-      unitDetails: unitAmounts,
+      const quotaRecords = unitAmounts.map(ua => ({
+        unitId: ua.unitId,
+        paymentConceptId: input.paymentConceptId,
+        periodYear: input.periodYear,
+        periodMonth: input.periodMonth,
+        periodDescription,
+        baseAmount: ua.amount.toString(),
+        currencyId: concept.currencyId,
+        issueDate,
+        dueDate,
+        status: 'pending',
+        balance: ua.amount.toString(),
+        createdBy: input.generatedBy,
+      }))
+
+      await txQuotasRepo.createMany(quotaRecords)
+
+      const totalAmount = unitAmounts.reduce((sum, ua) => sum + ua.amount, 0)
+
+      return success({
+        quotasCreated: unitAmounts.length,
+        totalAmount,
+        issueDate,
+        dueDate,
+        unitDetails: unitAmounts,
+      })
     })
   }
 
@@ -170,7 +207,7 @@ export class GenerateChargesService {
     // Process unit-specific (override everything)
     for (const assignment of unitAssignments) {
       if (!assignment.unitId) continue
-      unitAmountMap.set(assignment.unitId, Number(assignment.amount))
+      unitAmountMap.set(assignment.unitId, parseAmount(assignment.amount))
     }
 
     return Array.from(unitAmountMap.entries()).map(([unitId, amount]) => ({ unitId, amount }))
@@ -187,31 +224,30 @@ export class GenerateChargesService {
 
     if (units.length === 0) return result
 
-    const total = Number(assignment.amount)
+    const total = parseAmount(assignment.amount)
 
     switch (assignment.distributionMethod) {
       case 'by_aliquot': {
         const unitsWithAliquot = units.filter(
-          u => u.aliquotPercentage != null && Number(u.aliquotPercentage) > 0
+          u => u.aliquotPercentage != null && parseAmount(u.aliquotPercentage) > 0
         )
         if (unitsWithAliquot.length === 0) return result
 
         const totalAliquot = unitsWithAliquot.reduce(
-          (sum, u) => sum + Number(u.aliquotPercentage!),
+          (sum, u) => sum + parseAmount(u.aliquotPercentage),
           0
         )
 
         let distributed = 0
         for (let i = 0; i < unitsWithAliquot.length; i++) {
           const unit = unitsWithAliquot[i]!
-          const proportion = Number(unit.aliquotPercentage!) / totalAliquot
+          const proportion = parseAmount(unit.aliquotPercentage) / totalAliquot
 
           if (i === unitsWithAliquot.length - 1) {
-            // Last unit gets remainder (penny adjustment)
-            const amount = this.roundCurrency(total - distributed)
+            const amount = roundCurrency(total - distributed)
             result.set(unit.id, amount)
           } else {
-            const amount = this.roundCurrency(total * proportion)
+            const amount = roundCurrency(total * proportion)
             result.set(unit.id, amount)
             distributed += amount
           }
@@ -226,11 +262,10 @@ export class GenerateChargesService {
         for (let i = 0; i < units.length; i++) {
           const unit = units[i]!
           if (i === units.length - 1) {
-            // Last unit gets remainder
-            const amount = this.roundCurrency(total - distributed)
+            const amount = roundCurrency(total - distributed)
             result.set(unit.id, amount)
           } else {
-            const amount = this.roundCurrency(perUnit)
+            const amount = roundCurrency(perUnit)
             result.set(unit.id, amount)
             distributed += amount
           }
@@ -249,10 +284,6 @@ export class GenerateChargesService {
     return result
   }
 
-  private roundCurrency(amount: number): number {
-    return Math.round(amount * 100) / 100
-  }
-
   private formatDate(year: number, month: number, day: number): string {
     return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
   }
@@ -264,15 +295,19 @@ export class GenerateChargesService {
   async executeBulk(input: {
     paymentConceptId: string
     generatedBy: string
-  }): Promise<TServiceResult<{ periodsGenerated: number; totalQuotas: number; totalAmount: number }>> {
+  }): Promise<
+    TServiceResult<{ periodsGenerated: number; totalQuotas: number; totalAmount: number }>
+  > {
     const concept = await this.conceptsRepo.getById(input.paymentConceptId)
     if (!concept) return failure('Payment concept not found', 'NOT_FOUND')
-    if (!concept.isActive) return failure('Cannot generate charges for an inactive concept', 'BAD_REQUEST')
+    if (!concept.isActive)
+      return failure('Cannot generate charges for an inactive concept', 'BAD_REQUEST')
     if (!concept.isRecurring || !concept.recurrencePeriod) {
       return failure('Bulk generation is only available for recurring concepts', 'BAD_REQUEST')
     }
     if (!concept.effectiveFrom) return failure('Effective from date is required', 'BAD_REQUEST')
-    if (!concept.effectiveUntil) return failure('Effective until date is required for bulk generation', 'BAD_REQUEST')
+    if (!concept.effectiveUntil)
+      return failure('Effective until date is required for bulk generation', 'BAD_REQUEST')
 
     const periods = this.calculatePeriods(
       concept.effectiveFrom.toISOString(),

@@ -1,13 +1,15 @@
 'use client'
 
+import type { IWizardFormData } from '../CreatePaymentConceptWizard'
+
+import { useMyCompanyBankAccountsPaginated } from '@packages/http-client'
+
 import { Typography } from '@/ui/components/typography'
 import { Checkbox } from '@/ui/components/checkbox'
 import { Card, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { useTranslation } from '@/contexts'
-import { useMyCompanyBankAccountsPaginated } from '@packages/http-client'
-import type { IWizardFormData } from '../CreatePaymentConceptWizard'
 
 export interface BankAccountsStepProps {
   formData: IWizardFormData
@@ -40,12 +42,14 @@ export function BankAccountsStep({
     const updated = current.includes(bankAccountId)
       ? current.filter(id => id !== bankAccountId)
       : [...current, bankAccountId]
+
     onUpdate({ bankAccountIds: updated })
   }
 
   const handleToggleAll = () => {
     const allIds = bankAccounts.map(a => a.id)
     const allSelected = allIds.every(id => formData.bankAccountIds.includes(id))
+
     if (allSelected) {
       // Deselect all visible
       onUpdate({ bankAccountIds: formData.bankAccountIds.filter(id => !allIds.includes(id)) })
@@ -55,7 +59,8 @@ export function BankAccountsStep({
     }
   }
 
-  const allSelected = bankAccounts.length > 0 && bankAccounts.every(a => formData.bankAccountIds.includes(a.id))
+  const allSelected =
+    bankAccounts.length > 0 && bankAccounts.every(a => formData.bankAccountIds.includes(a.id))
   const someSelected = bankAccounts.some(a => formData.bankAccountIds.includes(a.id))
 
   if (isLoading) {
@@ -68,7 +73,7 @@ export function BankAccountsStep({
 
   return (
     <div className="flex flex-col gap-5">
-      <Typography variant="body2" color="muted">
+      <Typography color="muted" variant="body2">
         {t(`${w}.description`)}
       </Typography>
 
@@ -77,7 +82,7 @@ export function BankAccountsStep({
           <Typography color="muted" variant="body1">
             {t(`${w}.empty`)}
           </Typography>
-          <Typography color="muted" variant="caption" className="mt-1">
+          <Typography className="mt-1" color="muted" variant="caption">
             {t(`${w}.emptyHint`)}
           </Typography>
         </div>
@@ -86,13 +91,13 @@ export function BankAccountsStep({
           {/* Select all */}
           <div className="px-1">
             <Checkbox
-              isSelected={allSelected}
-              isIndeterminate={someSelected && !allSelected}
-              onValueChange={handleToggleAll}
-              size="sm"
               color="primary"
+              isIndeterminate={someSelected && !allSelected}
+              isSelected={allSelected}
+              size="sm"
+              onValueChange={handleToggleAll}
             >
-              <Typography variant="caption" className="font-semibold">
+              <Typography className="font-semibold" variant="caption">
                 {t(`${w}.selectAll`)} ({bankAccounts.length})
               </Typography>
             </Checkbox>
@@ -102,8 +107,10 @@ export function BankAccountsStep({
             <Card
               key={account.id}
               isPressable
+              className={
+                formData.bankAccountIds.includes(account.id) ? 'border-primary border-2' : ''
+              }
               onPress={() => handleToggle(account.id)}
-              className={formData.bankAccountIds.includes(account.id) ? 'border-primary border-2' : ''}
             >
               <CardBody className="flex flex-row items-center gap-3 py-3">
                 <Checkbox
@@ -111,21 +118,21 @@ export function BankAccountsStep({
                   onValueChange={() => handleToggle(account.id)}
                 />
                 <div className="flex-1">
-                  <Typography variant="body2" className="font-medium">
+                  <Typography className="font-medium" variant="body2">
                     {account.displayName || account.bankName}
                   </Typography>
-                  <Typography variant="caption" color="muted">
+                  <Typography color="muted" variant="caption">
                     {account.bankName}
                   </Typography>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Chip size="sm" variant="flat" color="default">
+                  <Chip color="default" size="sm" variant="flat">
                     {account.currency}
                   </Chip>
                   <Chip
+                    color={account.accountCategory === 'national' ? 'primary' : 'secondary'}
                     size="sm"
                     variant="flat"
-                    color={account.accountCategory === 'national' ? 'primary' : 'secondary'}
                   >
                     {account.accountCategory === 'national'
                       ? t(`${w}.national`)
@@ -139,7 +146,7 @@ export function BankAccountsStep({
       )}
 
       {showErrors && formData.bankAccountIds.length === 0 && (
-        <Typography variant="caption" color="danger">
+        <Typography color="danger" variant="caption">
           {t(`${w}.required`)}
         </Typography>
       )}

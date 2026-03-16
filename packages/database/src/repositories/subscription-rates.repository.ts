@@ -1,4 +1,4 @@
-import { eq, desc, and, lte, gte, or, isNull, sql, ne } from 'drizzle-orm'
+import { eq, desc, and, lte, gte, or, isNull, sql } from 'drizzle-orm'
 import type {
   TSubscriptionRate,
   TSubscriptionRateCreate,
@@ -28,12 +28,7 @@ export class SubscriptionRatesRepository
     TSubscriptionRateCreate,
     TSubscriptionRateUpdate
   >
-  implements
-    IRepository<
-      TSubscriptionRate,
-      TSubscriptionRateCreate,
-      TSubscriptionRateUpdate
-    >
+  implements IRepository<TSubscriptionRate, TSubscriptionRateCreate, TSubscriptionRateUpdate>
 {
   constructor(db: TDrizzleClient) {
     super(db, subscriptionRates)
@@ -91,8 +86,10 @@ export class SubscriptionRatesRepository
     if (dto.condominiumRate !== undefined) values.condominiumRate = dto.condominiumRate.toString()
     if (dto.unitRate !== undefined) values.unitRate = dto.unitRate.toString()
     if (dto.userRate !== undefined) values.userRate = dto.userRate.toString()
-    if (dto.annualDiscountPercentage !== undefined) values.annualDiscountPercentage = dto.annualDiscountPercentage
-    if (dto.taxRate !== undefined) values.taxRate = dto.taxRate != null ? dto.taxRate.toString() : null
+    if (dto.annualDiscountPercentage !== undefined)
+      values.annualDiscountPercentage = dto.annualDiscountPercentage
+    if (dto.taxRate !== undefined)
+      values.taxRate = dto.taxRate != null ? dto.taxRate.toString() : null
     if (dto.minCondominiums !== undefined) values.minCondominiums = dto.minCondominiums
     if (dto.maxCondominiums !== undefined) values.maxCondominiums = dto.maxCondominiums
     if (dto.isActive !== undefined) values.isActive = dto.isActive
@@ -111,12 +108,7 @@ export class SubscriptionRatesRepository
     const results = await this.db
       .select()
       .from(subscriptionRates)
-      .where(
-        and(
-          eq(subscriptionRates.isActive, true),
-          lte(subscriptionRates.effectiveFrom, now)
-        )
-      )
+      .where(and(eq(subscriptionRates.isActive, true), lte(subscriptionRates.effectiveFrom, now)))
       .orderBy(desc(subscriptionRates.effectiveFrom))
       .limit(1)
 
@@ -135,12 +127,7 @@ export class SubscriptionRatesRepository
     const results = await this.db
       .select()
       .from(subscriptionRates)
-      .where(
-        and(
-          eq(subscriptionRates.isActive, true),
-          lte(subscriptionRates.effectiveFrom, now)
-        )
-      )
+      .where(and(eq(subscriptionRates.isActive, true), lte(subscriptionRates.effectiveFrom, now)))
       .orderBy(subscriptionRates.minCondominiums)
 
     return results.map(record => this.mapToEntity(record))

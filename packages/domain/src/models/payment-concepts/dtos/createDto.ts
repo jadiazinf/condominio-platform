@@ -79,7 +79,8 @@ export const paymentConceptCreateSchema = paymentConceptSchema
           })
         }
         // Max 12 months for bulk generation (fiscal period limit)
-        const monthsDiff = (until.getFullYear() - from.getFullYear()) * 12 + (until.getMonth() - from.getMonth())
+        const monthsDiff =
+          (until.getFullYear() - from.getFullYear()) * 12 + (until.getMonth() - from.getMonth())
         if (monthsDiff > 12) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
@@ -99,7 +100,11 @@ export const paymentConceptCreateSchema = paymentConceptSchema
           path: ['latePaymentValue'],
         })
       }
-      if (data.latePaymentType === 'percentage' && data.latePaymentValue != null && data.latePaymentValue > 100) {
+      if (
+        data.latePaymentType === 'percentage' &&
+        data.latePaymentValue != null &&
+        data.latePaymentValue > 100
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'Late payment percentage cannot exceed 100%',
@@ -124,7 +129,11 @@ export const paymentConceptCreateSchema = paymentConceptSchema
           path: ['earlyPaymentDaysBeforeDue'],
         })
       }
-      if (data.earlyPaymentType === 'percentage' && data.earlyPaymentValue != null && data.earlyPaymentValue > 100) {
+      if (
+        data.earlyPaymentType === 'percentage' &&
+        data.earlyPaymentValue != null &&
+        data.earlyPaymentValue > 100
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'Early payment percentage cannot exceed 100%',

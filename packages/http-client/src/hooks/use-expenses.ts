@@ -197,7 +197,7 @@ export function useUpdateExpense(id: string, options?: IUpdateExpenseOptions) {
 
 export function useDeleteExpense(options?: IDeleteExpenseOptions) {
   return useApiMutation<TApiDataResponse<TExpense>, { id: string }>({
-    path: (data) => `/condominium/expenses/${data.id}`,
+    path: data => `/condominium/expenses/${data.id}`,
     method: 'DELETE',
     config: {},
     onSuccess: options?.onSuccess,
@@ -218,7 +218,9 @@ export async function getExpenses(): Promise<TExpense[]> {
 
 export async function getExpensesPendingApproval(): Promise<TExpense[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TExpense[]>>('/condominium/expenses/pending-approval')
+  const response = await client.get<TApiDataResponse<TExpense[]>>(
+    '/condominium/expenses/pending-approval'
+  )
   return response.data.data
 }
 
@@ -248,7 +250,9 @@ export async function getExpensesByCategory(categoryId: string): Promise<TExpens
 
 export async function getExpensesByStatus(status: string): Promise<TExpense[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TExpense[]>>(`/condominium/expenses/status/${status}`)
+  const response = await client.get<TApiDataResponse<TExpense[]>>(
+    `/condominium/expenses/status/${status}`
+  )
   return response.data.data
 }
 
@@ -280,7 +284,10 @@ export async function createExpense(data: TExpenseCreate): Promise<TExpense> {
 
 export async function updateExpense(id: string, data: TExpenseUpdate): Promise<TExpense> {
   const client = getHttpClient()
-  const response = await client.patch<TApiDataResponse<TExpense>>(`/condominium/expenses/${id}`, data)
+  const response = await client.patch<TApiDataResponse<TExpense>>(
+    `/condominium/expenses/${id}`,
+    data
+  )
   return response.data.data
 }
 

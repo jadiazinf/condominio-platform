@@ -20,9 +20,6 @@ export const paymentConceptServices = pgTable(
   table => [
     index('idx_pcs_concept').on(table.paymentConceptId),
     index('idx_pcs_service').on(table.serviceId),
-    uniqueIndex('idx_pcs_unique_concept_service').on(
-      table.paymentConceptId,
-      table.serviceId
-    ),
+    uniqueIndex('idx_pcs_unique_concept_service').on(table.paymentConceptId, table.serviceId),
   ]
 )

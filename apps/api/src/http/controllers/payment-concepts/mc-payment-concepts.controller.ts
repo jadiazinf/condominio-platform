@@ -52,6 +52,7 @@ import type {
   PaymentConceptServicesRepository,
   CondominiumServicesRepository,
   ServiceExecutionsRepository,
+  InterestConfigurationsRepository,
 } from '@database/repositories'
 import { PaymentConceptChangesRepository } from '@database/repositories/payment-concept-changes.repository'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
@@ -319,6 +320,7 @@ export interface IMcPaymentConceptsDeps {
   changesRepo: PaymentConceptChangesRepository
   condominiumServicesRepo: CondominiumServicesRepository
   executionsRepo: ServiceExecutionsRepository
+  interestConfigsRepo?: InterestConfigurationsRepository
 }
 
 export class McPaymentConceptsController extends BaseController<
@@ -389,7 +391,9 @@ export class McPaymentConceptsController extends BaseController<
       deps.changesRepo,
       deps.condominiumsRepo,
       deps.currenciesRepo,
-      deps.condominiumMCRepo
+      deps.condominiumMCRepo,
+      deps.condominiumServicesRepo,
+      deps.interestConfigsRepo
     )
 
     this.assignService = new AssignPaymentConceptService(
@@ -1043,7 +1047,7 @@ export class McPaymentConceptsController extends BaseController<
         dueDay: conceptData.dueDay ?? null,
         effectiveFrom: conceptData.effectiveFrom ?? null,
         effectiveUntil: conceptData.effectiveUntil ?? null,
-        chargeGenerationStrategy: 'auto',
+        chargeGenerationStrategy: conceptData.chargeGenerationStrategy ?? 'auto',
         isActive: conceptData.isActive ?? true,
         metadata: conceptData.metadata ?? null,
         assignments,

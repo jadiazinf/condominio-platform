@@ -79,7 +79,6 @@ export class CancelSubscriptionService {
   private async getMainSuperadmin(): Promise<ISuperadminUser | null> {
     if (!this.db) return null
 
-
     try {
       const results = await this.db
         .select({
@@ -110,7 +109,9 @@ export class CancelSubscriptionService {
     }
   }
 
-  async execute(input: ICancelSubscriptionInput): Promise<TServiceResult<TManagementCompanySubscription>> {
+  async execute(
+    input: ICancelSubscriptionInput
+  ): Promise<TServiceResult<TManagementCompanySubscription>> {
     // Check if subscription exists
     const existing = await this.subscriptionsRepository.getById(input.subscriptionId)
 
@@ -140,7 +141,12 @@ export class CancelSubscriptionService {
 
     // Send notification emails if dependencies are available
     if (this.hasEmailDependencies()) {
-      await this.sendCancellationEmails(cancelled, input.cancelledBy, cancelledAt, input.cancellationReason)
+      await this.sendCancellationEmails(
+        cancelled,
+        input.cancelledBy,
+        cancelledAt,
+        input.cancellationReason
+      )
     }
 
     return success(cancelled)
@@ -156,7 +162,10 @@ export class CancelSubscriptionService {
       // Get company details
       const company = await this.companiesRepository!.getById(subscription.managementCompanyId)
       if (!company) {
-        logger.warn({ companyId: subscription.managementCompanyId }, 'Company not found for cancellation email')
+        logger.warn(
+          { companyId: subscription.managementCompanyId },
+          'Company not found for cancellation email'
+        )
         return
       }
 
@@ -214,7 +223,9 @@ export class CancelSubscriptionService {
       }
 
       // 3. Send to primary admin
-      const primaryAdmin = await this.membersRepository!.getPrimaryAdmin(subscription.managementCompanyId)
+      const primaryAdmin = await this.membersRepository!.getPrimaryAdmin(
+        subscription.managementCompanyId
+      )
       if (primaryAdmin) {
         const primaryAdminUser = await this.usersRepository!.getById(primaryAdmin.userId)
         if (primaryAdminUser) {

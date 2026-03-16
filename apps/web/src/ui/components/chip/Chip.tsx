@@ -66,10 +66,4 @@ export function Chip({
   )
 }
 
-export type {
-  TChipSize,
-  TChipColor,
-  TChipVariant,
-  TChipRadius,
-  IChipProps,
-}
+export type { TChipSize, TChipColor, TChipVariant, TChipRadius, IChipProps }

@@ -58,9 +58,7 @@ import {
   UserRolesRepository,
   UsersRepository,
 } from '@database/repositories'
-import {
-  GatewayTransactionsRepository,
-} from '@database/repositories/gateway-transactions.repository'
+import { GatewayTransactionsRepository } from '@database/repositories/gateway-transactions.repository'
 import { PaymentConceptChangesRepository } from '@database/repositories/payment-concept-changes.repository'
 
 import {
@@ -248,7 +246,10 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
   const gatewayManager = new PaymentGatewayManager()
 
   const sendNotificationService = createSendNotificationService(
-    r.notifications, r.notificationDeliveries, r.userNotificationPreferences, r.userFcmTokens
+    r.notifications,
+    r.notificationDeliveries,
+    r.userNotificationPreferences,
+    r.userFcmTokens
   )
 
   const addUnitOwnerService = new AddUnitOwnerService(
@@ -259,7 +260,7 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
     r.userInvitations,
     r.roles,
     r.units,
-    r.condominiums,
+    r.condominiums
   )
 
   return [
@@ -269,44 +270,184 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
     // Core entities
     { path: '/platform/currencies', router: new CurrenciesController(r.currencies).createRouter() },
     { path: '/me/currencies', router: new MyCurrenciesController(r.currencies).createRouter() },
-    { path: '/me/exchange-rates', router: new MyExchangeRatesController(r.exchangeRates).createRouter() },
+    {
+      path: '/me/exchange-rates',
+      router: new MyExchangeRatesController(r.exchangeRates).createRouter(),
+    },
     { path: '/platform/locations', router: new LocationsController(r.locations).createRouter() },
 
     // Users and permissions
-    { path: '/platform/users', router: new UsersController(r.users, db, r.userPermissions, r.userRoles, r.managementCompanyMembers).createRouter() },
+    {
+      path: '/platform/users',
+      router: new UsersController(
+        r.users,
+        db,
+        r.userPermissions,
+        r.userRoles,
+        r.managementCompanyMembers
+      ).createRouter(),
+    },
     { path: '/platform/roles', router: new RolesController(r.roles).createRouter() },
-    { path: '/platform/permissions', router: new PermissionsController(r.permissions).createRouter() },
-    { path: '/platform/role-permissions', router: new RolePermissionsController(r.rolePermissions).createRouter() },
-    { path: '/condominium/user-roles', router: new UserRolesController(r.userRoles).createRouter() },
+    {
+      path: '/platform/permissions',
+      router: new PermissionsController(r.permissions).createRouter(),
+    },
+    {
+      path: '/platform/role-permissions',
+      router: new RolePermissionsController(r.rolePermissions).createRouter(),
+    },
+    {
+      path: '/condominium/user-roles',
+      router: new UserRolesController(r.userRoles).createRouter(),
+    },
 
     // Organization structure
-    { path: '/platform/management-companies', router: new ManagementCompaniesController(r.managementCompanies, r.managementCompanySubscriptions, r.locations, r.users, r.managementCompanyMembers, r.paymentConcepts).createRouter() },
-    { path: '/platform/condominiums', router: new PlatformCondominiumsController(r.condominiums).createRouter() },
-    { path: '/condominium/condominiums', router: new CondominiumsController(r.condominiums, r.managementCompanySubscriptions, r.managementCompanies, r.locations, r.currencies, r.users, r.buildings, r.units, db).createRouter() },
-    { path: '/condominium/buildings', router: new BuildingsController(r.buildings, db).createRouter() },
-    { path: '/condominium/units', router: new UnitsController(r.units, db).createRouter() },
-    { path: '/condominium/unit-ownerships', router: new UnitOwnershipsController(r.unitOwnerships, addUnitOwnerService, r.users).createRouter() },
+    {
+      path: '/platform/management-companies',
+      router: new ManagementCompaniesController(
+        r.managementCompanies,
+        r.managementCompanySubscriptions,
+        r.locations,
+        r.users,
+        r.managementCompanyMembers,
+        r.paymentConcepts
+      ).createRouter(),
+    },
+    {
+      path: '/platform/condominiums',
+      router: new PlatformCondominiumsController(r.condominiums).createRouter(),
+    },
+    {
+      path: '/condominium/condominiums',
+      router: new CondominiumsController(
+        r.condominiums,
+        r.managementCompanySubscriptions,
+        r.managementCompanies,
+        r.locations,
+        r.currencies,
+        r.users,
+        r.buildings,
+        r.units,
+        db
+      ).createRouter(),
+    },
+    {
+      path: '/condominium/buildings',
+      router: new BuildingsController(r.buildings, db).createRouter(),
+    },
+    {
+      path: '/condominium/units',
+      router: new UnitsController(r.units, db, r.buildings).createRouter(),
+    },
+    {
+      path: '/condominium/unit-ownerships',
+      router: new UnitOwnershipsController(
+        r.unitOwnerships,
+        addUnitOwnerService,
+        r.users,
+        r.units,
+        r.buildings
+      ).createRouter(),
+    },
 
     // Financial configuration
-    { path: '/platform/exchange-rates', router: new ExchangeRatesController(r.exchangeRates).createRouter() },
-    { path: '/condominium/payment-concepts', router: new PaymentConceptsController(r.paymentConcepts).createRouter() },
-    { path: '/condominium/interest-configurations', router: new InterestConfigurationsController(r.interestConfigurations).createRouter() },
+    {
+      path: '/platform/exchange-rates',
+      router: new ExchangeRatesController(r.exchangeRates).createRouter(),
+    },
+    {
+      path: '/condominium/payment-concepts',
+      router: new PaymentConceptsController(r.paymentConcepts).createRouter(),
+    },
+    {
+      path: '/condominium/interest-configurations',
+      router: new InterestConfigurationsController(r.interestConfigurations).createRouter(),
+    },
 
     // Billing
-    { path: '/condominium/quotas', router: new QuotasController(r.quotas).createRouter() },
-    { path: '/condominium/quota-adjustments', router: new QuotaAdjustmentsController(db, r.quotas, r.quotaAdjustments).createRouter() },
-    { path: '/condominium/quota-formulas', router: new QuotaFormulasController(r.quotaFormulas, r.condominiums, r.units).createRouter() },
-    { path: '/condominium/quota-generation-rules', router: new QuotaGenerationRulesController(r.quotaGenerationRules, r.condominiums, r.buildings, r.paymentConcepts, r.quotaFormulas).createRouter() },
+    {
+      path: '/condominium/quotas',
+      router: new QuotasController(r.quotas, r.paymentConcepts).createRouter(),
+    },
+    {
+      path: '/condominium/quota-adjustments',
+      router: new QuotaAdjustmentsController(db, r.quotas, r.quotaAdjustments).createRouter(),
+    },
+    {
+      path: '/condominium/quota-formulas',
+      router: new QuotaFormulasController(r.quotaFormulas, r.condominiums, r.units).createRouter(),
+    },
+    {
+      path: '/condominium/quota-generation-rules',
+      router: new QuotaGenerationRulesController(
+        r.quotaGenerationRules,
+        r.condominiums,
+        r.buildings,
+        r.paymentConcepts,
+        r.quotaFormulas
+      ).createRouter(),
+    },
 
     // Payments
-    { path: '/platform/payment-gateways', router: new PaymentGatewaysController(r.paymentGateways).createRouter() },
-    { path: '/condominium/entity-payment-gateways', router: new EntityPaymentGatewaysController(r.entityPaymentGateways).createRouter() },
-    { path: '/condominium/payments', router: new PaymentsController(r.payments, db, r.paymentApplications, r.quotas, sendNotificationService, r.paymentGateways, r.entityPaymentGateways, r.gatewayTransactions, gatewayManager, r.bankAccounts).createRouter() },
-    { path: '/condominium/payment-applications', router: new PaymentApplicationsController(r.paymentApplications, db, r.payments, r.quotas, r.quotaAdjustments, r.interestConfigurations, r.paymentPendingAllocations).createRouter() },
-    { path: '/condominium/payment-pending-allocations', router: new PaymentPendingAllocationsController(r.paymentPendingAllocations, r.quotas, r.payments, r.paymentGateways, r.entityPaymentGateways, r.gatewayTransactions, gatewayManager).createRouter() },
+    {
+      path: '/platform/payment-gateways',
+      router: new PaymentGatewaysController(r.paymentGateways).createRouter(),
+    },
+    {
+      path: '/condominium/entity-payment-gateways',
+      router: new EntityPaymentGatewaysController(r.entityPaymentGateways).createRouter(),
+    },
+    {
+      path: '/condominium/payments',
+      router: new PaymentsController(
+        r.payments,
+        db,
+        r.paymentApplications,
+        r.quotas,
+        sendNotificationService,
+        r.units,
+        r.buildings,
+        r.paymentGateways,
+        r.entityPaymentGateways,
+        r.gatewayTransactions,
+        gatewayManager,
+        r.bankAccounts,
+        r.quotaAdjustments,
+        r.paymentPendingAllocations
+      ).createRouter(),
+    },
+    {
+      path: '/condominium/payment-applications',
+      router: new PaymentApplicationsController(
+        r.paymentApplications,
+        db,
+        r.payments,
+        r.quotas,
+        r.quotaAdjustments,
+        r.interestConfigurations,
+        r.paymentConcepts,
+        r.paymentPendingAllocations
+      ).createRouter(),
+    },
+    {
+      path: '/condominium/payment-pending-allocations',
+      router: new PaymentPendingAllocationsController(
+        r.paymentPendingAllocations,
+        r.quotas,
+        db,
+        r.payments,
+        r.paymentGateways,
+        r.entityPaymentGateways,
+        r.gatewayTransactions,
+        gatewayManager
+      ).createRouter(),
+    },
 
     // Expenses
-    { path: '/condominium/expense-categories', router: new ExpenseCategoriesController(r.expenseCategories).createRouter() },
+    {
+      path: '/condominium/expense-categories',
+      router: new ExpenseCategoriesController(r.expenseCategories).createRouter(),
+    },
     { path: '/condominium/expenses', router: new ExpensesController(r.expenses).createRouter() },
 
     // Documents and messaging
@@ -314,23 +455,78 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
     { path: '/condominium/messages', router: new MessagesController(r.messages).createRouter() },
 
     // Notifications
-    { path: '/condominium/notifications', router: new NotificationsController(r.notifications, r.notificationDeliveries, r.userNotificationPreferences).createRouter() },
-    { path: '/platform/notification-templates', router: new NotificationTemplatesController(r.notificationTemplates).createRouter() },
-    { path: '/me/notification-preferences', router: new UserNotificationPreferencesController(r.userNotificationPreferences).createRouter() },
+    {
+      path: '/condominium/notifications',
+      router: new NotificationsController(
+        r.notifications,
+        r.notificationDeliveries,
+        r.userNotificationPreferences
+      ).createRouter(),
+    },
+    {
+      path: '/platform/notification-templates',
+      router: new NotificationTemplatesController(r.notificationTemplates).createRouter(),
+    },
+    {
+      path: '/me/notification-preferences',
+      router: new UserNotificationPreferencesController(
+        r.userNotificationPreferences
+      ).createRouter(),
+    },
     { path: '/me/fcm-tokens', router: new UserFcmTokensController(r.userFcmTokens).createRouter() },
-    { path: '/me/notifications', router: new MyNotificationsController(r.notifications).createRouter() },
+    {
+      path: '/me/notifications',
+      router: new MyNotificationsController(r.notifications).createRouter(),
+    },
 
     // Audit
     { path: '/platform/audit-logs', router: new AuditLogsController(r.auditLogs).createRouter() },
 
     // Invitations
-    { path: '/platform/admin-invitations', router: new AdminInvitationsController(db, r.adminInvitations, r.users, r.managementCompanies, r.managementCompanyMembers, r.userRoles, r.roles).createRouter() },
-    { path: '/condominium/user-invitations', router: new UserInvitationsController(db, r.userInvitations, r.users, r.userRoles, r.userPermissions, r.roles, r.condominiums, r.permissions, r.unitOwnerships).createRouter() },
+    {
+      path: '/platform/admin-invitations',
+      router: new AdminInvitationsController(
+        db,
+        r.adminInvitations,
+        r.users,
+        r.managementCompanies,
+        r.managementCompanyMembers,
+        r.userRoles,
+        r.roles
+      ).createRouter(),
+    },
+    {
+      path: '/condominium/user-invitations',
+      router: new UserInvitationsController(
+        db,
+        r.userInvitations,
+        r.users,
+        r.userRoles,
+        r.userPermissions,
+        r.roles,
+        r.condominiums,
+        r.permissions,
+        r.unitOwnerships
+      ).createRouter(),
+    },
 
     // Access Codes & Requests
-    { path: '/condominium/access-codes', router: new AccessCodesController(r.condominiumAccessCodes, db).createRouter() },
-    { path: '/condominium/access-requests', router: new AccessRequestsController(r.accessRequests, db, sendNotificationService).createRouter() },
-    { path: '/me/access-requests', router: new MyAccessRequestsController(db, sendNotificationService).createRouter() },
+    {
+      path: '/condominium/access-codes',
+      router: new AccessCodesController(r.condominiumAccessCodes, db).createRouter(),
+    },
+    {
+      path: '/condominium/access-requests',
+      router: new AccessRequestsController(
+        r.accessRequests,
+        db,
+        sendNotificationService
+      ).createRouter(),
+    },
+    {
+      path: '/me/access-requests',
+      router: new MyAccessRequestsController(db, sendNotificationService).createRouter(),
+    },
 
     // Banks & Bank Accounts
     { path: '/banks', router: new BanksController(r.banks).createRouter() },
@@ -356,6 +552,7 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         changesRepo: r.paymentConceptChanges,
         condominiumServicesRepo: r.condominiumServices,
         executionsRepo: r.serviceExecutions,
+        interestConfigsRepo: r.interestConfigurations,
       }).createRouter(),
     },
 
@@ -392,11 +589,18 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         r.users,
         r.subscriptionAcceptances,
         r.subscriptionTermsConditions,
-        r.subscriptionAuditHistory,
+        r.subscriptionAuditHistory
       ).createRouter(),
     },
     { path: '', router: new SubscriptionInvoicesController(r.subscriptionInvoices).createRouter() },
-    { path: '', router: new ManagementCompanyMembersController(r.managementCompanyMembers, r.userRoles, r.roles).createRouter() },
+    {
+      path: '',
+      router: new ManagementCompanyMembersController(
+        r.managementCompanyMembers,
+        r.userRoles,
+        r.roles
+      ).createRouter(),
+    },
     { path: '', router: new SubscriptionRatesController(r.subscriptionRates).createRouter() },
     {
       path: '',
@@ -404,27 +608,55 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         r.subscriptionAcceptances,
         r.managementCompanySubscriptions,
         r.subscriptionAuditHistory,
-        r.managementCompanyMembers,
+        r.managementCompanyMembers
       ).createRouter(),
     },
-    { path: '/platform/subscription-terms', router: new SubscriptionTermsConditionsController(r.subscriptionTermsConditions).createRouter() },
+    {
+      path: '/platform/subscription-terms',
+      router: new SubscriptionTermsConditionsController(
+        r.subscriptionTermsConditions
+      ).createRouter(),
+    },
 
     // Support Tickets
-    { path: '', router: new SupportTicketsController(r.supportTickets, db, sendNotificationService).createRouter() },
-    { path: '', router: new SupportTicketMessagesController(db, r.supportTicketMessages, r.supportTickets).createRouter() },
+    {
+      path: '',
+      router: new SupportTicketsController(
+        r.supportTickets,
+        db,
+        sendNotificationService
+      ).createRouter(),
+    },
+    {
+      path: '',
+      router: new SupportTicketMessagesController(
+        db,
+        r.supportTicketMessages,
+        r.supportTickets
+      ).createRouter(),
+    },
 
     // Amenities & Reservations
     { path: '/condominium/amenities', router: new AmenitiesController(r.amenities).createRouter() },
-    { path: '/condominium/amenity-reservations', router: new AmenityReservationsController(r.amenityReservations, r.amenities).createRouter() },
+    {
+      path: '/condominium/amenity-reservations',
+      router: new AmenityReservationsController(r.amenityReservations, r.amenities).createRouter(),
+    },
 
     // Reports
-    { path: '/condominium/reports', router: new ReportsController(r.quotas, r.payments, r.units, r.buildings).createRouter() },
+    {
+      path: '/condominium/reports',
+      router: new ReportsController(r.quotas, r.payments, r.units, r.buildings).createRouter(),
+    },
 
     // Health check
     { path: '/health', router: createHealthRouter() },
 
     // Webhooks (no auth — authenticated by gateway signature)
-    { path: '/webhooks', router: createWebhookRouter(db, r, sendNotificationService, gatewayManager) },
+    {
+      path: '/webhooks',
+      router: createWebhookRouter(db, r, sendNotificationService, gatewayManager),
+    },
 
     // WebSocket fallback (main upgrade handled in main.ts via Bun server)
     { path: '/ws', router: createWebSocketFallbackRouter() },
@@ -433,7 +665,7 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
 
 function createHealthRouter(): Hono {
   const router = new Hono()
-  router.get('/', (c) => {
+  router.get('/', c => {
     return c.json({
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -447,7 +679,7 @@ function createWebhookRouter(
   db: TDrizzleClient,
   r: TRepositories,
   sendNotificationService: ReturnType<typeof createSendNotificationService>,
-  gatewayManager: PaymentGatewayManager,
+  gatewayManager: PaymentGatewayManager
 ): Hono {
   const processWebhookService = new ProcessWebhookService(
     db,
@@ -456,12 +688,12 @@ function createWebhookRouter(
     r.gatewayTransactions,
     r.payments,
     sendNotificationService,
-    r.paymentPendingAllocations,
+    r.paymentPendingAllocations
   )
 
   const router = new Hono()
 
-  router.post('/:gatewayType', async (c) => {
+  router.post('/:gatewayType', async c => {
     const gatewayType = c.req.param('gatewayType') as TGatewayType
 
     try {
@@ -486,9 +718,8 @@ function createWebhookRouter(
       })
 
       if (!result.success) {
-        const statusCode = result.code === 'NOT_FOUND' ? 404
-          : result.code === 'FORBIDDEN' ? 403
-          : 400
+        const statusCode =
+          result.code === 'NOT_FOUND' ? 404 : result.code === 'FORBIDDEN' ? 403 : 400
         return c.json({ error: result.error }, statusCode)
       }
 
@@ -505,11 +736,11 @@ function createWebhookRouter(
 function createWebSocketFallbackRouter(): Hono {
   const router = new Hono()
 
-  router.get('/tickets/:ticketId', (c) => {
+  router.get('/tickets/:ticketId', c => {
     return c.text('WebSocket upgrade must be handled by Bun server directly', 426)
   })
 
-  router.get('/notifications', (c) => {
+  router.get('/notifications', c => {
     return c.text('WebSocket upgrade must be handled by Bun server directly', 426)
   })
 

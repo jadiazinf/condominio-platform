@@ -2,10 +2,10 @@
 
 import type { TUser } from '@packages/domain'
 
-import { useDisclosure } from '@/ui/components/modal'
-
 import { DashboardNavbar } from './DashboardNavbar'
 import { DashboardSidebar } from './DashboardSidebar'
+
+import { useDisclosure } from '@/ui/components/modal'
 import { AppDrawer } from '@/ui/components/app-drawer'
 
 interface IDashboardShellProps {
@@ -23,7 +23,7 @@ export function DashboardShell({ children, initialUser }: IDashboardShellProps) 
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden">
-      <DashboardNavbar onToggleSidebar={onOpen} initialUser={initialUser} />
+      <DashboardNavbar initialUser={initialUser} onToggleSidebar={onOpen} />
 
       <main className="flex-1 overflow-y-auto p-6">{children}</main>
 

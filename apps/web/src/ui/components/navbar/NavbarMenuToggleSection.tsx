@@ -3,6 +3,7 @@
 import { NavbarContent, NavbarMenuToggle } from '@heroui/navbar'
 
 import { NavbarBrand } from './NavbarBrand'
+
 import { useTranslation } from '@/contexts'
 
 interface NavbarMenuToggleSectionProps {

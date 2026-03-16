@@ -1,5 +1,7 @@
 'use client'
 
+import type { TServiceExecution, TCurrency } from '@packages/domain'
+
 import { useState, useCallback, useMemo } from 'react'
 import { useQueryClient } from '@packages/http-client/hooks'
 import {
@@ -22,15 +24,6 @@ import {
   Hash,
   ArrowLeftRight,
 } from 'lucide-react'
-import { Chip } from '@/ui/components/chip'
-import { Button } from '@/ui/components/button'
-import { Spinner } from '@/ui/components/spinner'
-import { Typography } from '@/ui/components/typography'
-import { Card, CardBody } from '@/ui/components/card'
-import { useDisclosure } from '@/ui/components/modal'
-import { useToast } from '@/ui/components/toast'
-import { useTranslation } from '@/contexts'
-import type { TServiceExecution, TCurrency } from '@packages/domain'
 import {
   useCondominiumServiceDetail,
   useDeactivateCondominiumService,
@@ -40,8 +33,19 @@ import {
   serviceExecutionKeys,
   condominiumServiceKeys,
 } from '@packages/http-client/hooks'
+
 import { ExecutionModal } from '../../components/ExecutionModal'
+
 import { ExchangeRateModal } from './ExchangeRateModal'
+
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
+import { Spinner } from '@/ui/components/spinner'
+import { Typography } from '@/ui/components/typography'
+import { Card, CardBody } from '@/ui/components/card'
+import { useDisclosure } from '@/ui/components/modal'
+import { useToast } from '@/ui/components/toast'
+import { useTranslation } from '@/contexts'
 
 const PROVIDER_TYPE_COLORS = {
   individual: 'primary',
@@ -96,6 +100,7 @@ export function ServiceDetailPageClient({
   const getCurrencySymbol = useCallback(
     (cId: string) => {
       const cur = currencies.find(c => c.id === cId)
+
       return cur?.symbol || cur?.code || ''
     },
     [currencies]
@@ -104,21 +109,16 @@ export function ServiceDetailPageClient({
   // ─── Mutations ─────────────────────────────────────────────────────────────
   const deactivateMutation = useDeactivateCondominiumService(managementCompanyId, condominiumId)
 
-  const deleteMutation = useDeleteServiceExecution(
-    managementCompanyId,
-    serviceId,
-    condominiumId,
-    {
-      onSuccess: () => {
-        toast.success(t(`${d}.executionDeleted`))
-        queryClient.invalidateQueries({
-          queryKey: serviceExecutionKeys.all,
-        })
-        setConfirmDeleteId(null)
-      },
-      onError: () => toast.error(t(`${d}.executionDeleteError`)),
-    }
-  )
+  const deleteMutation = useDeleteServiceExecution(managementCompanyId, serviceId, condominiumId, {
+    onSuccess: () => {
+      toast.success(t(`${d}.executionDeleted`))
+      queryClient.invalidateQueries({
+        queryKey: serviceExecutionKeys.all,
+      })
+      setConfirmDeleteId(null)
+    },
+    onError: () => toast.error(t(`${d}.executionDeleteError`)),
+  })
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
   const handleOpenCreate = useCallback(() => {
@@ -153,8 +153,9 @@ export function ServiceDetailPageClient({
     })
 
   const getFileTypeIcon = (mimeType: string) => {
-    if (mimeType.startsWith('image/')) return <Image size={14} className="text-primary shrink-0" />
-    return <FileText size={14} className="text-danger shrink-0" />
+    if (mimeType.startsWith('image/')) return <Image className="text-primary shrink-0" size={14} />
+
+    return <FileText className="text-danger shrink-0" size={14} />
   }
 
   return (
@@ -164,18 +165,10 @@ export function ServiceDetailPageClient({
         <div className="flex items-center gap-3 flex-wrap">
           <Wrench className="text-primary shrink-0" size={22} />
           <Typography variant="h3">{service.name}</Typography>
-          <Chip
-            color={providerTypeColor}
-            variant="flat"
-            size="sm"
-          >
+          <Chip color={providerTypeColor} size="sm" variant="flat">
             {t(`admin.condominiums.detail.services.providerTypes.${service.providerType}`)}
           </Chip>
-          <Chip
-            color={service.isActive ? 'success' : 'default'}
-            variant="dot"
-            size="sm"
-          >
+          <Chip color={service.isActive ? 'success' : 'default'} size="sm" variant="dot">
             {service.isActive ? t('common.status.active') : t('common.status.inactive')}
           </Chip>
         </div>
@@ -189,12 +182,12 @@ export function ServiceDetailPageClient({
         {service.isActive && (
           <div className="flex justify-end">
             <Button
-              size="sm"
               color="danger"
-              variant="bordered"
-              startContent={<Ban size={14} />}
-              onPress={() => setConfirmDeactivate(true)}
               isDisabled={confirmDeactivate}
+              size="sm"
+              startContent={<Ban size={14} />}
+              variant="bordered"
+              onPress={() => setConfirmDeactivate(true)}
             >
               {t(`${d}.deactivate`)}
             </Button>
@@ -207,7 +200,7 @@ export function ServiceDetailPageClient({
         <div className="rounded-lg bg-danger-50 p-4 space-y-3">
           <div className="flex items-center gap-2">
             <AlertTriangle className="text-danger" size={18} />
-            <Typography variant="body2" className="font-semibold text-danger">
+            <Typography className="font-semibold text-danger" variant="body2">
               {t(`${d}.confirmDeactivateService`)}
             </Typography>
           </div>
@@ -216,9 +209,9 @@ export function ServiceDetailPageClient({
               {t('common.cancel')}
             </Button>
             <Button
-              size="sm"
               color="danger"
               isLoading={deactivateMutation.isPending}
+              size="sm"
               onPress={() =>
                 deactivateMutation.mutate(
                   { serviceId },
@@ -242,14 +235,14 @@ export function ServiceDetailPageClient({
       {/* ── Provider Info ────────────────────────────────────────────────────── */}
       <Card>
         <CardBody className="space-y-3">
-          <Typography variant="body2" className="font-semibold flex items-center gap-2">
+          <Typography className="font-semibold flex items-center gap-2" variant="body2">
             <Building2 size={16} />
             {t(`${d}.provider`)}
           </Typography>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {service.legalName && (
               <div className="flex items-start gap-2">
-                <User size={14} className="text-default-400 mt-0.5 shrink-0" />
+                <User className="text-default-400 mt-0.5 shrink-0" size={14} />
                 <div>
                   <p className="text-xs text-default-400">{t(`${d}.legalName`)}</p>
                   <p className="text-sm">{service.legalName}</p>
@@ -258,18 +251,19 @@ export function ServiceDetailPageClient({
             )}
             {(service.taxIdType || service.taxIdNumber) && (
               <div className="flex items-start gap-2">
-                <Hash size={14} className="text-default-400 mt-0.5 shrink-0" />
+                <Hash className="text-default-400 mt-0.5 shrink-0" size={14} />
                 <div>
                   <p className="text-xs text-default-400">{t(`${d}.taxId`)}</p>
                   <p className="text-sm">
-                    {service.taxIdType && `${service.taxIdType}-`}{service.taxIdNumber}
+                    {service.taxIdType && `${service.taxIdType}-`}
+                    {service.taxIdNumber}
                   </p>
                 </div>
               </div>
             )}
             {service.email && (
               <div className="flex items-start gap-2">
-                <Mail size={14} className="text-default-400 mt-0.5 shrink-0" />
+                <Mail className="text-default-400 mt-0.5 shrink-0" size={14} />
                 <div>
                   <p className="text-xs text-default-400">{t(`${d}.email`)}</p>
                   <p className="text-sm">{service.email}</p>
@@ -278,18 +272,19 @@ export function ServiceDetailPageClient({
             )}
             {service.phone && (
               <div className="flex items-start gap-2">
-                <Phone size={14} className="text-default-400 mt-0.5 shrink-0" />
+                <Phone className="text-default-400 mt-0.5 shrink-0" size={14} />
                 <div>
                   <p className="text-xs text-default-400">{t(`${d}.phone`)}</p>
                   <p className="text-sm">
-                    {service.phoneCountryCode}{service.phone}
+                    {service.phoneCountryCode}
+                    {service.phone}
                   </p>
                 </div>
               </div>
             )}
             {service.address && (
               <div className="flex items-start gap-2 sm:col-span-2">
-                <MapPin size={14} className="text-default-400 mt-0.5 shrink-0" />
+                <MapPin className="text-default-400 mt-0.5 shrink-0" size={14} />
                 <div>
                   <p className="text-xs text-default-400">{t(`${d}.address`)}</p>
                   <p className="text-sm">{service.address}</p>
@@ -301,9 +296,7 @@ export function ServiceDetailPageClient({
               !service.email &&
               !service.phone &&
               !service.address && (
-                <p className="text-sm text-default-400 col-span-2">
-                  {t(`${d}.notSpecified`)}
-                </p>
+                <p className="text-sm text-default-400 col-span-2">{t(`${d}.notSpecified`)}</p>
               )}
           </div>
         </CardBody>
@@ -312,7 +305,7 @@ export function ServiceDetailPageClient({
       {/* ── Fiscal Config ────────────────────────────────────────────────────── */}
       <Card>
         <CardBody className="space-y-3">
-          <Typography variant="body2" className="font-semibold flex items-center gap-2">
+          <Typography className="font-semibold flex items-center gap-2" variant="body2">
             <DollarSign size={16} />
             {t(`${d}.fiscalConfig`)}
           </Typography>
@@ -321,7 +314,7 @@ export function ServiceDetailPageClient({
               <div>
                 <p className="text-xs text-default-400">{t(`${d}.ivaRate`)}</p>
                 <div className="flex items-center gap-1 mt-0.5">
-                  <Percent size={12} className="text-default-500" />
+                  <Percent className="text-default-500" size={12} />
                   <p className="text-sm">{((service.ivaRate ?? 0) * 100).toFixed(0)}%</p>
                 </div>
               </div>
@@ -330,7 +323,7 @@ export function ServiceDetailPageClient({
               <div>
                 <p className="text-xs text-default-400">{t(`${d}.islrRetentionRate`)}</p>
                 <div className="flex items-center gap-1 mt-0.5">
-                  <Percent size={12} className="text-default-500" />
+                  <Percent className="text-default-500" size={12} />
                   <p className="text-sm">{((service.islrRetentionRate ?? 0) * 100).toFixed(0)}%</p>
                 </div>
               </div>
@@ -345,17 +338,17 @@ export function ServiceDetailPageClient({
       {/* ── Executions ──────────────────────────────────────────────────────── */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Typography variant="h4" className="flex items-center gap-2">
+          <Typography className="flex items-center gap-2" variant="h4">
             {t(`${d}.executions`)}
             {executions.length > 0 && (
-              <Chip size="sm" variant="flat" color="default">
+              <Chip color="default" size="sm" variant="flat">
                 {executions.length}
               </Chip>
             )}
           </Typography>
           <Button
-            size="sm"
             color="primary"
+            size="sm"
             startContent={<Plus size={16} />}
             onPress={handleOpenCreate}
           >
@@ -379,17 +372,17 @@ export function ServiceDetailPageClient({
             {executions.map(execution => (
               <ExecutionCard
                 key={execution.id}
-                execution={execution}
-                d={d}
-                t={t}
-                formatDate={formatDate}
-                getFileTypeIcon={getFileTypeIcon}
                 confirmDeleteId={confirmDeleteId}
-                setConfirmDeleteId={setConfirmDeleteId}
-                onDelete={id => deleteMutation.mutate({ executionId: id })}
-                isDeleting={deleteMutation.isPending && confirmDeleteId === execution.id}
-                getCurrencySymbol={getCurrencySymbol}
                 currencies={currencies}
+                d={d}
+                execution={execution}
+                formatDate={formatDate}
+                getCurrencySymbol={getCurrencySymbol}
+                getFileTypeIcon={getFileTypeIcon}
+                isDeleting={deleteMutation.isPending && confirmDeleteId === execution.id}
+                setConfirmDeleteId={setConfirmDeleteId}
+                t={t}
+                onDelete={id => deleteMutation.mutate({ executionId: id })}
               />
             ))}
           </div>
@@ -398,12 +391,12 @@ export function ServiceDetailPageClient({
 
       {/* ── Execution Modal ──────────────────────────────────────────────────── */}
       <ExecutionModal
-        isOpen={executionModal.isOpen}
-        onClose={executionModal.onClose}
-        managementCompanyId={managementCompanyId}
-        serviceId={serviceId}
         condominiumId={condominiumId}
         execution={null}
+        isOpen={executionModal.isOpen}
+        managementCompanyId={managementCompanyId}
+        serviceId={serviceId}
+        onClose={executionModal.onClose}
         onSuccess={handleExecutionSuccess}
       />
     </div>
@@ -478,24 +471,25 @@ function ExecutionCard({
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <p className="text-sm font-mono font-semibold">
-              {currencySymbol} {Number(execution.totalAmount).toLocaleString('es-VE', {
+              {currencySymbol}{' '}
+              {Number(execution.totalAmount).toLocaleString('es-VE', {
                 minimumFractionDigits: 2,
               })}
             </p>
             <Button
               isIconOnly
               size="sm"
-              variant="light"
               title={t(`${d}.viewExchangeRates`)}
+              variant="light"
               onPress={rateModal.onOpen}
             >
               <ArrowLeftRight size={14} />
             </Button>
             <Button
               isIconOnly
+              color="danger"
               size="sm"
               variant="light"
-              color="danger"
               onPress={() => setConfirmDeleteId(execution.id)}
             >
               <Trash2 size={14} />
@@ -511,17 +505,13 @@ function ExecutionCard({
               {t(`${d}.confirmDeleteExecution`)}
             </p>
             <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="flat"
-                onPress={() => setConfirmDeleteId(null)}
-              >
+              <Button size="sm" variant="flat" onPress={() => setConfirmDeleteId(null)}>
                 {t(`${d}.cancel`)}
               </Button>
               <Button
-                size="sm"
                 color="danger"
                 isLoading={isDeleting}
+                size="sm"
                 onPress={() => onDelete(execution.id)}
               >
                 {t(`${d}.deleteExecution`)}
@@ -549,8 +539,12 @@ function ExecutionCard({
                     <thead>
                       <tr className="border-b border-default-200 text-xs text-default-500">
                         <th className="pb-1 text-left font-medium">{t(`${d}.itemDescription`)}</th>
-                        <th className="pb-1 text-right font-medium w-16">{t(`${d}.itemQuantity`)}</th>
-                        <th className="pb-1 text-right font-medium w-24">{t(`${d}.itemUnitPrice`)}</th>
+                        <th className="pb-1 text-right font-medium w-16">
+                          {t(`${d}.itemQuantity`)}
+                        </th>
+                        <th className="pb-1 text-right font-medium w-24">
+                          {t(`${d}.itemUnitPrice`)}
+                        </th>
                         <th className="pb-1 text-right font-medium w-24">{t(`${d}.itemAmount`)}</th>
                       </tr>
                     </thead>
@@ -559,18 +553,18 @@ function ExecutionCard({
                         <tr key={item.id} className="border-b border-default-100">
                           <td className="py-1.5 pr-2">
                             <p>{item.description}</p>
-                            {item.notes && (
-                              <p className="text-xs text-default-400">{item.notes}</p>
-                            )}
+                            {item.notes && <p className="text-xs text-default-400">{item.notes}</p>}
                           </td>
                           <td className="py-1.5 text-right">{item.quantity}</td>
                           <td className="py-1.5 text-right font-mono">
-                            {currencySymbol} {Number(item.unitPrice).toLocaleString('es-VE', {
+                            {currencySymbol}{' '}
+                            {Number(item.unitPrice).toLocaleString('es-VE', {
                               minimumFractionDigits: 2,
                             })}
                           </td>
                           <td className="py-1.5 text-right font-mono">
-                            {currencySymbol} {Number(item.amount).toLocaleString('es-VE', {
+                            {currencySymbol}{' '}
+                            {Number(item.amount).toLocaleString('es-VE', {
                               minimumFractionDigits: 2,
                             })}
                           </td>
@@ -590,14 +584,14 @@ function ExecutionCard({
                   {execution.attachments.map(attachment => (
                     <a
                       key={attachment.url}
-                      href={attachment.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       className="flex items-center gap-2 rounded-lg border border-default-200 p-2 hover:bg-default-50 transition-colors"
+                      href={attachment.url}
+                      rel="noopener noreferrer"
+                      target="_blank"
                     >
                       {getFileTypeIcon(attachment.mimeType)}
                       <span className="text-sm flex-1 truncate">{attachment.name}</span>
-                      <ExternalLink size={12} className="text-default-400 shrink-0" />
+                      <ExternalLink className="text-default-400 shrink-0" size={12} />
                     </a>
                   ))}
                 </div>
@@ -614,12 +608,12 @@ function ExecutionCard({
         )}
 
         <ExchangeRateModal
-          isOpen={rateModal.isOpen}
-          onClose={rateModal.onClose}
-          totalAmount={execution.totalAmount}
+          currencies={currencies}
           currencyId={execution.currencyId}
           executionDate={execution.executionDate}
-          currencies={currencies}
+          isOpen={rateModal.isOpen}
+          totalAmount={execution.totalAmount}
+          onClose={rateModal.onClose}
         />
       </CardBody>
     </Card>

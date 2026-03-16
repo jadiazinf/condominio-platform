@@ -1,7 +1,13 @@
 'use client'
 
+import type { TPaymentConcept, TPaymentConceptsQuery } from '@packages/domain'
+import type { TConceptsTranslations } from './types'
+
 import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { Search, FileText } from 'lucide-react'
+import { useMyCompanyPaymentConceptsPaginated } from '@packages/http-client/hooks'
+
 import { Input } from '@/ui/components/input'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Spinner } from '@/ui/components/spinner'
@@ -10,10 +16,6 @@ import { Typography } from '@/ui/components/typography'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
 import { Card, CardBody } from '@/ui/components/card'
-import { Search, FileText } from 'lucide-react'
-import type { TPaymentConcept, TPaymentConceptsQuery } from '@packages/domain'
-import { useMyCompanyPaymentConceptsPaginated } from '@packages/http-client/hooks'
-import type { TConceptsTranslations } from './types'
 
 type TStatusFilter = 'all' | 'active' | 'inactive'
 
@@ -27,6 +29,7 @@ function formatMonthYear(dateStr: string | Date | null | undefined): string {
   if (!dateStr) return ''
   const date = new Date(dateStr)
   const monthYear = date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+
   return monthYear.charAt(0).toUpperCase() + monthYear.slice(1)
 }
 
@@ -72,16 +75,23 @@ export function ReserveFundConceptsSection({
   const pagination = data?.pagination ?? { page: 1, limit: 10, total: 0, totalPages: 0 }
 
   const handleStatusChange = useCallback((key: string | null) => {
-    if (key) { setStatusFilter(key as TStatusFilter); setPage(1) }
+    if (key) {
+      setStatusFilter(key as TStatusFilter)
+      setPage(1)
+    }
   }, [])
 
   const handleSearchChange = useCallback((value: string) => {
-    setSearch(value); setPage(1)
+    setSearch(value)
+    setPage(1)
   }, [])
 
-  const handleRowClick = useCallback((concept: TPaymentConcept) => {
-    router.push(`/dashboard/condominiums/${condominiumId}/payment-concepts/${concept.id}`)
-  }, [condominiumId, router])
+  const handleRowClick = useCallback(
+    (concept: TPaymentConcept) => {
+      router.push(`/dashboard/condominiums/${condominiumId}/payment-concepts/${concept.id}`)
+    },
+    [condominiumId, router]
+  )
 
   const columns: ITableColumn<TPaymentConcept>[] = useMemo(
     () => [
@@ -99,10 +109,12 @@ export function ReserveFundConceptsSection({
       switch (columnKey) {
         case 'name': {
           const monthYear = formatMonthYear(concept.createdAt)
+
           return (
             <div className="flex flex-col gap-0.5">
               <span className="font-medium text-sm">
-                {concept.name}{monthYear ? ` — ${monthYear}` : ''}
+                {concept.name}
+                {monthYear ? ` — ${monthYear}` : ''}
               </span>
               {concept.description && (
                 <span className="text-xs text-default-500 line-clamp-1">{concept.description}</span>
@@ -112,14 +124,15 @@ export function ReserveFundConceptsSection({
         }
         case 'recurring':
           return (
-            <Chip color={concept.isRecurring ? 'success' : 'default'} variant="flat" size="sm">
+            <Chip color={concept.isRecurring ? 'success' : 'default'} size="sm" variant="flat">
               {concept.isRecurring ? t.yes : t.no}
             </Chip>
           )
         case 'recurrence':
           return concept.recurrencePeriod ? (
             <span className="text-sm text-default-600">
-              {t.recurrence[concept.recurrencePeriod as keyof typeof t.recurrence] || concept.recurrencePeriod}
+              {t.recurrence[concept.recurrencePeriod as keyof typeof t.recurrence] ||
+                concept.recurrencePeriod}
             </span>
           ) : (
             <span className="text-sm text-default-400">-</span>
@@ -128,7 +141,9 @@ export function ReserveFundConceptsSection({
           return concept.createdAt ? (
             <span className="text-sm text-default-600">
               {new Date(concept.createdAt).toLocaleDateString('es-ES', {
-                day: '2-digit', month: 'short', year: 'numeric',
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
               })}
             </span>
           ) : (
@@ -136,7 +151,7 @@ export function ReserveFundConceptsSection({
           )
         case 'status':
           return (
-            <Chip color={concept.isActive ? 'success' : 'default'} variant="flat" size="sm">
+            <Chip color={concept.isActive ? 'success' : 'default'} size="sm" variant="flat">
               {concept.isActive ? t.status.active : t.status.inactive}
             </Chip>
           )
@@ -154,22 +169,22 @@ export function ReserveFundConceptsSection({
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <Input
-          placeholder={t.filters.searchPlaceholder}
-          value={search}
-          onValueChange={handleSearchChange}
-          startContent={<Search size={16} className="text-default-400" />}
-          className="w-full sm:w-64"
-          variant="bordered"
           isClearable
+          className="w-full sm:w-64"
+          placeholder={t.filters.searchPlaceholder}
+          startContent={<Search className="text-default-400" size={16} />}
+          value={search}
+          variant="bordered"
           onClear={() => handleSearchChange('')}
+          onValueChange={handleSearchChange}
         />
         <Select
           aria-label={t.table.status}
           className="w-full sm:w-36"
           items={statusFilterItems}
           value={statusFilter}
-          onChange={handleStatusChange}
           variant="bordered"
+          onChange={handleStatusChange}
         />
       </div>
 
@@ -194,19 +209,25 @@ export function ReserveFundConceptsSection({
           <div className="block space-y-3 md:hidden">
             {concepts.map(concept => {
               const monthYear = formatMonthYear(concept.createdAt)
+
               return (
                 <Card
                   key={concept.id}
-                  className="w-full cursor-pointer hover:bg-default-100 transition-colors"
                   isPressable
+                  className="w-full cursor-pointer hover:bg-default-100 transition-colors"
                   onPress={() => handleRowClick(concept)}
                 >
                   <CardBody className="space-y-2">
                     <div className="flex items-start justify-between">
                       <p className="font-medium text-sm">
-                        {concept.name}{monthYear ? ` — ${monthYear}` : ''}
+                        {concept.name}
+                        {monthYear ? ` — ${monthYear}` : ''}
                       </p>
-                      <Chip color={concept.isActive ? 'success' : 'default'} variant="flat" size="sm">
+                      <Chip
+                        color={concept.isActive ? 'success' : 'default'}
+                        size="sm"
+                        variant="flat"
+                      >
                         {concept.isActive ? t.status.active : t.status.inactive}
                       </Chip>
                     </div>
@@ -226,13 +247,13 @@ export function ReserveFundConceptsSection({
           {/* Desktop Table */}
           <div className="hidden md:block">
             <Table<TPaymentConcept>
-              mobileCards={false}
               aria-label={t.title}
-              columns={columns}
-              rows={concepts}
-              renderCell={renderCell}
-              onRowClick={handleRowClick}
               classNames={{ tr: 'cursor-pointer hover:bg-default-100 transition-colors' }}
+              columns={columns}
+              mobileCards={false}
+              renderCell={renderCell}
+              rows={concepts}
+              onRowClick={handleRowClick}
             />
           </div>
 
@@ -243,7 +264,10 @@ export function ReserveFundConceptsSection({
             page={pagination.page}
             total={pagination.total}
             totalPages={pagination.totalPages}
-            onLimitChange={newLimit => { setLimit(newLimit); setPage(1) }}
+            onLimitChange={newLimit => {
+              setLimit(newLimit)
+              setPage(1)
+            }}
             onPageChange={setPage}
           />
         </>

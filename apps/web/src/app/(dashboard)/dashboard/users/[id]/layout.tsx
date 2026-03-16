@@ -23,7 +23,7 @@ function UserDetailLayoutContent({
       <UserDetailHeader user={user} />
 
       <div className="flex flex-col md:flex-row gap-8 mt-6">
-        <UserDetailSidebar userId={userId} isSuperadmin={user.isSuperadmin} />
+        <UserDetailSidebar isSuperadmin={user.isSuperadmin} userId={userId} />
         <main className="flex-1 min-w-0">{children}</main>
       </div>
     </div>

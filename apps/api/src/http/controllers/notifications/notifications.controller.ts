@@ -87,60 +87,102 @@ export class NotificationsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT)] },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.list,
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT)],
+      },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(UserIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER),
+          paramsValidator(UserIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/user/:userId/unread-count',
         handler: this.getUnreadCount,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(UserIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER),
+          paramsValidator(UserIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
         path: '/send',
         handler: this.sendNotification,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT), bodyValidator(SendNotificationBodySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT),
+          bodyValidator(SendNotificationBodySchema),
+        ],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT), bodyValidator(notificationCreateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT),
+          bodyValidator(notificationCreateSchema),
+        ],
       },
       {
         method: 'post',
         path: '/:id/read',
         handler: this.markAsRead,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
         path: '/user/:userId/read-all',
         handler: this.markAllAsRead,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(UserIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER),
+          paramsValidator(UserIdParamSchema),
+        ],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT), paramsValidator(IdParamSchema), bodyValidator(notificationUpdateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT),
+          paramsValidator(IdParamSchema),
+          bodyValidator(notificationUpdateSchema),
+        ],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }
@@ -168,18 +210,42 @@ export class NotificationsController extends BaseController<
 
   private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
+    const user = c.get('user') as { id: string; systemRole?: string }
+
+    // Non-admin users can only access their own notifications
+    if (user.systemRole === 'user' && ctx.params.userId !== user.id) {
+      return ctx.notFound({ error: 'Notifications not found' })
+    }
+
     const notifications = await this.notificationsRepository.getByUserId(ctx.params.userId)
     return ctx.ok({ data: notifications })
   }
 
   private getUnreadCount = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
+    const user = c.get('user') as { id: string; systemRole?: string }
+
+    // Non-admin users can only check their own unread count
+    if (user.systemRole === 'user' && ctx.params.userId !== user.id) {
+      return ctx.notFound({ error: 'Notifications not found' })
+    }
+
     const count = await this.notificationsRepository.getUnreadCount(ctx.params.userId)
     return ctx.ok({ data: { count } })
   }
 
   private markAsRead = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TIdParam>(c)
+    const user = c.get('user') as { id: string; systemRole?: string }
+
+    // Non-admin users can only mark their own notifications as read
+    if (user.systemRole === 'user') {
+      const existing = await this.notificationsRepository.getById(ctx.params.id)
+      if (!existing || existing.userId !== user.id) {
+        throw AppError.notFound('Notification', ctx.params.id)
+      }
+    }
+
     const notification = await this.notificationsRepository.markAsRead(ctx.params.id)
 
     if (!notification) {
@@ -191,6 +257,13 @@ export class NotificationsController extends BaseController<
 
   private markAllAsRead = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
+    const user = c.get('user') as { id: string; systemRole?: string }
+
+    // Non-admin users can only mark their own notifications as read
+    if (user.systemRole === 'user' && ctx.params.userId !== user.id) {
+      return ctx.notFound({ error: 'Notifications not found' })
+    }
+
     const count = await this.notificationsRepository.markAllAsRead(ctx.params.userId)
     return ctx.ok({ data: { count } })
   }

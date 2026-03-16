@@ -1,6 +1,10 @@
 'use client'
 
+import type { TUser } from '@packages/domain'
+
 import { useState, useMemo } from 'react'
+import { UserPlus, Search, Check } from 'lucide-react'
+
 import { Button } from '@/ui/components/button'
 import {
   Modal,
@@ -13,8 +17,6 @@ import {
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Pagination } from '@/ui/components/pagination'
 import { Input } from '@/ui/components/input'
-import { UserPlus, Search, Check } from 'lucide-react'
-import type { TUser } from '@packages/domain'
 
 export interface ITicketAssignActionTranslations {
   assignUser: string
@@ -67,7 +69,8 @@ export function TicketAssignAction({
     if (!searchQuery.trim()) return availableUsers
 
     const query = searchQuery.toLowerCase().trim()
-    return availableUsers.filter((user) => {
+
+    return availableUsers.filter(user => {
       const firstName = user.firstName?.toLowerCase() || ''
       const lastName = user.lastName?.toLowerCase() || ''
       const email = user.email?.toLowerCase() || ''
@@ -87,6 +90,7 @@ export function TicketAssignAction({
   // Paginate filtered users
   const paginatedUsers = useMemo(() => {
     const startIndex = (page - 1) * ITEMS_PER_PAGE
+
     return filteredUsers.slice(startIndex, startIndex + ITEMS_PER_PAGE)
   }, [filteredUsers, page])
 
@@ -141,11 +145,7 @@ export function TicketAssignAction({
       case 'email':
         return <span className="text-sm">{user.email}</span>
       case 'document':
-        return (
-          <span className="text-sm text-default-500">
-            {user.idDocumentNumber || '-'}
-          </span>
-        )
+        return <span className="text-sm text-default-500">{user.idDocumentNumber || '-'}</span>
       case 'actions':
         return (
           <Button
@@ -174,8 +174,9 @@ export function TicketAssignAction({
     if (iconOnly) {
       return null
     }
+
     return (
-      <Button color="default" isDisabled size="sm" variant="flat">
+      <Button isDisabled color="default" size="sm" variant="flat">
         {translations.noUsersAvailable}
       </Button>
     )
@@ -184,12 +185,12 @@ export function TicketAssignAction({
   return (
     <>
       <Button
+        aria-label={label}
         color="primary"
         isDisabled={isLoading}
         isIconOnly={iconOnly}
         size="sm"
         variant="light"
-        aria-label={label}
         onPress={handleOpen}
       >
         <UserPlus size={18} />
@@ -204,38 +205,38 @@ export function TicketAssignAction({
                 <div className="space-y-4">
                   {/* Search input */}
                   <Input
-                    type="search"
-                    placeholder={translations.searchPlaceholder}
-                    value={searchQuery}
-                    onValueChange={handleSearchChange}
-                    startContent={<Search size={16} className="text-default-400" />}
                     isClearable
+                    placeholder={translations.searchPlaceholder}
+                    startContent={<Search className="text-default-400" size={16} />}
+                    type="search"
+                    value={searchQuery}
                     onClear={() => handleSearchChange('')}
+                    onValueChange={handleSearchChange}
                   />
 
                   {/* Users table */}
                   <Table
-                    aria-label={label}
-                    columns={columns}
-                    rows={paginatedUsers}
-                    renderCell={renderCell}
                     isCompact
                     removeWrapper
+                    aria-label={label}
+                    color="success"
+                    columns={columns}
                     emptyContent={translations.noUsersAvailable}
+                    renderCell={renderCell}
+                    rows={paginatedUsers}
                     selectedKeys={selectedUserId ? new Set([selectedUserId]) : new Set()}
                     selectionMode="single"
-                    color="success"
                   />
 
                   {/* Pagination */}
                   {filteredUsers.length > ITEMS_PER_PAGE && (
                     <Pagination
-                      page={page}
-                      totalPages={totalPages}
-                      total={filteredUsers.length}
                       limit={ITEMS_PER_PAGE}
-                      onPageChange={setPage}
+                      page={page}
                       showLimitSelector={false}
+                      total={filteredUsers.length}
+                      totalPages={totalPages}
+                      onPageChange={setPage}
                     />
                   )}
                 </div>
@@ -247,9 +248,7 @@ export function TicketAssignAction({
                 <Button
                   color="primary"
                   isDisabled={
-                    !selectedUserId ||
-                    selectedUserId === currentAssignedUser?.id ||
-                    isLoading
+                    !selectedUserId || selectedUserId === currentAssignedUser?.id || isLoading
                   }
                   isLoading={isLoading}
                   onPress={handleConfirm}

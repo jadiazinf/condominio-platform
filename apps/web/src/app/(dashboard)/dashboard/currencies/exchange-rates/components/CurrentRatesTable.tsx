@@ -1,19 +1,17 @@
 'use client'
 
+import type { TExchangeRate, TCurrency } from '@packages/domain'
+
 import { useMemo, useCallback } from 'react'
+import { ArrowRightLeft, Plus } from 'lucide-react'
+import { useLatestExchangeRates, useCurrencies } from '@packages/http-client'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { Button } from '@/ui/components/button'
-import { ArrowRightLeft, Plus } from 'lucide-react'
-import type { TExchangeRate, TCurrency } from '@packages/domain'
-
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
-import {
-  useLatestExchangeRates,
-  useCurrencies,
-} from '@packages/http-client'
 
 type TRateRow = TExchangeRate & { id: string }
 
@@ -29,15 +27,18 @@ export function CurrentRatesTable() {
   // Build currency lookup map
   const currencyMap = useMemo(() => {
     const map = new Map<string, TCurrency>()
+
     for (const c of currenciesData?.data ?? []) {
       map.set(c.id, c)
     }
+
     return map
   }, [currenciesData])
 
   const getCurrencyCode = useCallback(
     (id: string) => {
       const c = currencyMap.get(id)
+
       return c?.code ?? id
     },
     [currencyMap]
@@ -45,6 +46,7 @@ export function CurrentRatesTable() {
 
   const formatDate = (date: Date | string) => {
     const d = typeof date === 'string' ? new Date(`${date}T12:00:00`) : date
+
     return d.toLocaleDateString('es-VE', {
       day: '2-digit',
       month: 'short',
@@ -54,6 +56,7 @@ export function CurrentRatesTable() {
 
   const formatTime = (date: Date | string) => {
     const d = typeof date === 'string' ? new Date(date) : date
+
     return d.toLocaleTimeString('es-VE', {
       hour: '2-digit',
       minute: '2-digit',
@@ -77,7 +80,9 @@ export function CurrentRatesTable() {
         case 'fromCurrency':
           return (
             <div className="flex flex-col">
-              <span className="font-mono font-semibold">{getCurrencyCode(rate.fromCurrencyId)}</span>
+              <span className="font-mono font-semibold">
+                {getCurrencyCode(rate.fromCurrencyId)}
+              </span>
               <span className="text-xs text-default-500">
                 {currencyMap.get(rate.fromCurrencyId)?.name ?? ''}
               </span>
@@ -95,9 +100,7 @@ export function CurrentRatesTable() {
         case 'rate':
           return (
             <span className="text-sm font-medium">
-              {parseFloat(rate.rate).toFixed(
-                currencyMap.get(rate.toCurrencyId)?.decimals ?? 2
-              )}
+              {parseFloat(rate.rate).toFixed(currencyMap.get(rate.toCurrencyId)?.decimals ?? 2)}
             </span>
           )
         case 'effectiveDate':
@@ -109,7 +112,7 @@ export function CurrentRatesTable() {
           )
         case 'source':
           return rate.source ? (
-            <Chip variant="flat" size="sm">
+            <Chip size="sm" variant="flat">
               {rate.source}
             </Chip>
           ) : (
@@ -166,8 +169,8 @@ export function CurrentRatesTable() {
         <Table<TRateRow>
           aria-label={t('superadmin.currencies.exchangeRates.title')}
           columns={tableColumns}
-          rows={rates}
           renderCell={renderCell}
+          rows={rates}
         />
       )}
     </div>

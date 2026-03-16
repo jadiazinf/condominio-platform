@@ -1,6 +1,11 @@
 'use client'
 
+import type { TTaxIdType } from '@packages/domain'
+
 import { useState, useMemo, useCallback } from 'react'
+import { useQueryClient, HttpError, isApiValidationError } from '@packages/http-client'
+import { condominiumServiceKeys, useCreateCondominiumService } from '@packages/http-client/hooks'
+
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
@@ -13,13 +18,6 @@ import { TaxIdInput } from '@/ui/components/tax-id-input'
 import { Switch } from '@/ui/components/switch'
 import { useTranslation } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
-import {
-  useQueryClient,
-  HttpError,
-  isApiValidationError,
-} from '@packages/http-client'
-import type { TTaxIdType } from '@packages/domain'
-import { condominiumServiceKeys, useCreateCondominiumService } from '@packages/http-client/hooks'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -97,7 +95,10 @@ export function CreateServiceModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showErrors, setShowErrors] = useState(false)
 
-  const { mutateAsync: createService } = useCreateCondominiumService(managementCompanyId, condominiumId)
+  const { mutateAsync: createService } = useCreateCondominiumService(
+    managementCompanyId,
+    condominiumId
+  )
 
   const providerTypeItems: ISelectItem[] = useMemo(
     () => [
@@ -168,7 +169,9 @@ export function CreateServiceModal({
         chargesIva: formData.chargesIva,
         ivaRate: formData.chargesIva ? Number(formData.ivaRate) / 100 : 0.16,
         subjectToIslarRetention: formData.subjectToIslarRetention,
-        islrRetentionRate: formData.subjectToIslarRetention ? Number(formData.islrRetentionRate) / 100 : 0.01,
+        islrRetentionRate: formData.subjectToIslarRetention
+          ? Number(formData.islrRetentionRate) / 100
+          : 0.01,
       } as any)
 
       await queryClient.invalidateQueries({ queryKey: condominiumServiceKeys.all })
@@ -178,10 +181,12 @@ export function CreateServiceModal({
     } catch (error) {
       if (HttpError.isHttpError(error)) {
         const details = error.details
+
         if (isApiValidationError(details)) {
           const fieldMessages = details.error.fields
             .map((f: any) => f.messages.join(', '))
             .join('\n')
+
           toast.error(fieldMessages || error.message)
         } else {
           toast.error(error.message)
@@ -206,47 +211,47 @@ export function CreateServiceModal({
       case 0:
         return (
           <div className="flex flex-col gap-5">
-            <Typography variant="body2" color="muted">
+            <Typography color="muted" variant="body2">
               {t(`${w}.basicInfo.description`)}
             </Typography>
 
             <Input
-              label={t(`${w}.basicInfo.name`)}
-              placeholder={t(`${w}.basicInfo.namePlaceholder`)}
-              value={formData.name}
-              onValueChange={v => updateFormData({ name: v })}
-              variant="bordered"
               isRequired
-              isInvalid={showErrors && !formData.name}
               errorMessage={
                 showErrors && !formData.name ? t(`${w}.basicInfo.errors.nameRequired`) : undefined
               }
+              isInvalid={showErrors && !formData.name}
+              label={t(`${w}.basicInfo.name`)}
+              placeholder={t(`${w}.basicInfo.namePlaceholder`)}
+              value={formData.name}
+              variant="bordered"
+              onValueChange={v => updateFormData({ name: v })}
             />
 
             <Textarea
               label={t(`${w}.basicInfo.descriptionLabel`)}
+              maxRows={4}
+              minRows={2}
               placeholder={t(`${w}.basicInfo.descriptionPlaceholder`)}
               value={formData.description}
-              onValueChange={v => updateFormData({ description: v })}
               variant="bordered"
-              minRows={2}
-              maxRows={4}
+              onValueChange={v => updateFormData({ description: v })}
             />
 
             <Select
-              label={t(`${w}.basicInfo.providerType`)}
-              placeholder={t(`${w}.basicInfo.providerTypePlaceholder`)}
-              items={providerTypeItems}
-              value={formData.providerType}
-              onChange={key => key && updateFormData({ providerType: key })}
-              variant="bordered"
               isRequired
-              isInvalid={showErrors && !formData.providerType}
               errorMessage={
                 showErrors && !formData.providerType
                   ? t(`${w}.basicInfo.errors.providerTypeRequired`)
                   : undefined
               }
+              isInvalid={showErrors && !formData.providerType}
+              items={providerTypeItems}
+              label={t(`${w}.basicInfo.providerType`)}
+              placeholder={t(`${w}.basicInfo.providerTypePlaceholder`)}
+              value={formData.providerType}
+              variant="bordered"
+              onChange={key => key && updateFormData({ providerType: key })}
             />
           </div>
         )
@@ -254,7 +259,7 @@ export function CreateServiceModal({
       case 1:
         return (
           <div className="flex flex-col gap-5">
-            <Typography variant="body2" color="muted">
+            <Typography color="muted" variant="body2">
               {t(`${w}.provider.description`)}
             </Typography>
 
@@ -262,30 +267,30 @@ export function CreateServiceModal({
               label={t(`${w}.provider.legalName`)}
               placeholder={t(`${w}.provider.legalNamePlaceholder`)}
               value={formData.legalName}
-              onValueChange={v => updateFormData({ legalName: v })}
               variant="bordered"
+              onValueChange={v => updateFormData({ legalName: v })}
             />
 
             <TaxIdInput
               label={t(`${w}.provider.taxId`)}
-              taxIdType={formData.taxIdType}
               taxIdNumber={formData.taxIdNumber}
-              onTaxIdTypeChange={type => updateFormData({ taxIdType: type })}
+              taxIdType={formData.taxIdType}
               onTaxIdNumberChange={v => updateFormData({ taxIdNumber: v })}
+              onTaxIdTypeChange={type => updateFormData({ taxIdType: type })}
             />
 
             <Input
               label={t(`${w}.provider.email`)}
               placeholder={t(`${w}.provider.emailPlaceholder`)}
-              value={formData.email}
-              onValueChange={v => updateFormData({ email: v })}
-              variant="bordered"
               type="email"
+              value={formData.email}
+              variant="bordered"
+              onValueChange={v => updateFormData({ email: v })}
             />
 
             <PhoneInput
-              label={t(`${w}.provider.phone`)}
               countryCode={formData.phoneCountryCode}
+              label={t(`${w}.provider.phone`)}
               phoneNumber={formData.phone}
               onCountryCodeChange={code => updateFormData({ phoneCountryCode: code ?? '+58' })}
               onPhoneNumberChange={v => updateFormData({ phone: v })}
@@ -295,8 +300,8 @@ export function CreateServiceModal({
               label={t(`${w}.provider.address`)}
               placeholder={t(`${w}.provider.addressPlaceholder`)}
               value={formData.address}
-              onValueChange={v => updateFormData({ address: v })}
               variant="bordered"
+              onValueChange={v => updateFormData({ address: v })}
             />
           </div>
         )
@@ -304,7 +309,7 @@ export function CreateServiceModal({
       case 2:
         return (
           <div className="flex flex-col gap-5">
-            <Typography variant="body2" color="muted">
+            <Typography color="muted" variant="body2">
               Configura los impuestos aplicables a este proveedor. Todos los campos son opcionales.
             </Typography>
 
@@ -312,30 +317,30 @@ export function CreateServiceModal({
             <div className="rounded-lg border border-default-200 p-4 flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="body2" className="font-medium">
+                  <Typography className="font-medium" variant="body2">
                     ¿El proveedor cobra IVA?
                   </Typography>
-                  <Typography variant="caption" color="muted">
+                  <Typography color="muted" variant="caption">
                     Aplica cuando el proveedor emite facturas con IVA
                   </Typography>
                 </div>
                 <Switch
+                  color="primary"
                   isSelected={formData.chargesIva}
                   onValueChange={v => updateFormData({ chargesIva: v })}
-                  color="primary"
                 />
               </div>
 
               {formData.chargesIva && (
                 <Input
+                  description="Tasa general en Venezuela: 16%"
+                  endContent={<span className="text-default-400 text-sm">%</span>}
                   label="Alícuota IVA"
                   placeholder="16"
-                  value={formData.ivaRate}
-                  onValueChange={v => updateFormData({ ivaRate: v })}
-                  variant="bordered"
                   type="number"
-                  endContent={<span className="text-default-400 text-sm">%</span>}
-                  description="Tasa general en Venezuela: 16%"
+                  value={formData.ivaRate}
+                  variant="bordered"
+                  onValueChange={v => updateFormData({ ivaRate: v })}
                 />
               )}
             </div>
@@ -344,30 +349,30 @@ export function CreateServiceModal({
             <div className="rounded-lg border border-default-200 p-4 flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Typography variant="body2" className="font-medium">
+                  <Typography className="font-medium" variant="body2">
                     ¿Aplica retención de ISLR?
                   </Typography>
-                  <Typography variant="caption" color="muted">
+                  <Typography color="muted" variant="caption">
                     Para contratistas y profesionales según Decreto 1808
                   </Typography>
                 </div>
                 <Switch
+                  color="primary"
                   isSelected={formData.subjectToIslarRetention}
                   onValueChange={v => updateFormData({ subjectToIslarRetention: v })}
-                  color="primary"
                 />
               </div>
 
               {formData.subjectToIslarRetention && (
                 <Input
+                  description="Contratistas de servicios: 1%. Profesionales: según tabla ISLR"
+                  endContent={<span className="text-default-400 text-sm">%</span>}
                   label="Porcentaje de retención ISLR"
                   placeholder="1"
-                  value={formData.islrRetentionRate}
-                  onValueChange={v => updateFormData({ islrRetentionRate: v })}
-                  variant="bordered"
                   type="number"
-                  endContent={<span className="text-default-400 text-sm">%</span>}
-                  description="Contratistas de servicios: 1%. Profesionales: según tabla ISLR"
+                  value={formData.islrRetentionRate}
+                  variant="bordered"
+                  onValueChange={v => updateFormData({ islrRetentionRate: v })}
                 />
               )}
             </div>
@@ -377,13 +382,13 @@ export function CreateServiceModal({
       case 3:
         return (
           <div className="flex flex-col gap-5">
-            <Typography variant="body2" color="muted">
+            <Typography color="muted" variant="body2">
               {t(`${w}.review.description`)}
             </Typography>
 
             {/* Basic Info Card */}
             <div className="rounded-lg border border-default-200 p-4 space-y-2">
-              <Typography variant="body2" className="font-semibold">
+              <Typography className="font-semibold" variant="body2">
                 {t(`${w}.review.basicInfo`)}
               </Typography>
               <div className="grid grid-cols-2 gap-2 text-sm">
@@ -410,7 +415,7 @@ export function CreateServiceModal({
               formData.phone ||
               formData.address) && (
               <div className="rounded-lg border border-default-200 p-4 space-y-2">
-                <Typography variant="body2" className="font-semibold">
+                <Typography className="font-semibold" variant="body2">
                   {t(`${w}.review.providerInfo`)}
                 </Typography>
                 <div className="grid grid-cols-2 gap-2 text-sm">
@@ -456,7 +461,7 @@ export function CreateServiceModal({
             {/* Fiscal Config Card (only if any tax config is set) */}
             {(formData.chargesIva || formData.subjectToIslarRetention) && (
               <div className="rounded-lg border border-default-200 p-4 space-y-2">
-                <Typography variant="body2" className="font-semibold">
+                <Typography className="font-semibold" variant="body2">
                   Configuración Fiscal
                 </Typography>
                 <div className="grid grid-cols-2 gap-2 text-sm">
@@ -484,16 +489,17 @@ export function CreateServiceModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="2xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="2xl" onClose={handleClose}>
       <ModalContent>
         <ModalHeader className="flex flex-col gap-2">
           <Typography variant="h4">{t(`${w}.title`)}</Typography>
           <Stepper
-            steps={wizardSteps}
-            currentStep={STEPS[currentStep]!}
             color="primary"
+            currentStep={STEPS[currentStep]!}
+            steps={wizardSteps}
             onStepChange={stepKey => {
               const stepIndex = STEPS.indexOf(stepKey)
+
               if (stepIndex >= 0 && stepIndex <= currentStep) {
                 setShowErrors(false)
                 setCurrentStep(stepIndex)

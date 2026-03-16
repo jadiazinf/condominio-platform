@@ -21,7 +21,11 @@ import type {
   ServiceExecutionsRepository,
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
+import {
+  bodyValidator,
+  paramsValidator,
+  queryValidator,
+} from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { ManagementCompanyIdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
@@ -59,7 +63,12 @@ const ExecutionsQuerySchema = z.object({
 // Roles
 // ─────────────────────────────────────────────────────────────────────────────
 
-const allMcRoles = [ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER] as const
+const allMcRoles = [
+  ESystemRole.ADMIN,
+  ESystemRole.ACCOUNTANT,
+  ESystemRole.SUPPORT,
+  ESystemRole.VIEWER,
+] as const
 const adminOnly = [ESystemRole.ADMIN] as const
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -98,9 +107,7 @@ export class McCondominiumServicesController extends BaseController<
       deps.condominiumMCRepo
     )
 
-    this.createDefaultsService = new CreateDefaultServicesService(
-      deps.servicesRepo
-    )
+    this.createDefaultsService = new CreateDefaultServicesService(deps.servicesRepo)
   }
 
   get routes(): TRouteDefinition[] {
@@ -206,7 +213,9 @@ export class McCondominiumServicesController extends BaseController<
           authMiddleware,
           paramsValidator(ServiceIdParamSchema),
           requireRole(...adminOnly),
-          bodyValidator(serviceExecutionCreateSchema.omit({ serviceId: true, condominiumId: true })),
+          bodyValidator(
+            serviceExecutionCreateSchema.omit({ serviceId: true, condominiumId: true })
+          ),
         ],
       },
       // ── Executions: Update ──────────────────────────────────────────
@@ -240,7 +249,9 @@ export class McCondominiumServicesController extends BaseController<
   // ─────────────────────────────────────────────────────────────────────────
 
   private listServices = async (c: Context): Promise<Response> => {
-    const ctx = this.ctx<unknown, TCondominiumServicesQuerySchema, { managementCompanyId: string }>(c)
+    const ctx = this.ctx<unknown, TCondominiumServicesQuerySchema, { managementCompanyId: string }>(
+      c
+    )
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
@@ -313,7 +324,9 @@ export class McCondominiumServicesController extends BaseController<
     const ctx = this.ctx<unknown, unknown, TServiceIdParam>(c)
 
     try {
-      const service = await this.servicesRepo.update(ctx.params.serviceId, { isActive: false } as TCondominiumServiceUpdate)
+      const service = await this.servicesRepo.update(ctx.params.serviceId, {
+        isActive: false,
+      } as TCondominiumServiceUpdate)
       if (!service) {
         return ctx.notFound({ error: 'Service not found' })
       }
@@ -333,10 +346,7 @@ export class McCondominiumServicesController extends BaseController<
         return ctx.badRequest({ error: 'Condominium ID is required (x-condominium-id header)' })
       }
 
-      const result = await this.createDefaultsService.execute(
-        condominiumId,
-        user.id
-      )
+      const result = await this.createDefaultsService.execute(condominiumId, user.id)
 
       if (!result.success) {
         return ctx.badRequest({ error: result.error })
@@ -421,11 +431,16 @@ export class McCondominiumServicesController extends BaseController<
     try {
       const existing = await this.executionsRepo.getById(ctx.params.executionId)
       if (!existing || existing.serviceId !== ctx.params.serviceId) {
-        return ctx.notFound({ error: t(LocaleDictionary.http.controllers.serviceExecutions.executionNotFound) })
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.controllers.serviceExecutions.executionNotFound),
+        })
       }
 
       const execution = await this.executionsRepo.update(ctx.params.executionId, ctx.body)
-      if (!execution) return ctx.notFound({ error: t(LocaleDictionary.http.controllers.serviceExecutions.executionNotFound) })
+      if (!execution)
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.controllers.serviceExecutions.executionNotFound),
+        })
 
       return ctx.ok({ data: execution })
     } catch (error) {

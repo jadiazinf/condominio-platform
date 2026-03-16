@@ -1,7 +1,15 @@
 'use client'
 
+import type { TApiPaginationMeta } from '@packages/http-client'
+import type { TManagementCompanySubscription } from '@packages/domain'
+
 import { useState, useMemo, useCallback } from 'react'
 import { CreditCard, Search, X } from 'lucide-react'
+import { getMyCompanySubscriptionsPaginated, useQuery } from '@packages/http-client'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
+
+import { SubscriptionDetailModal } from '../../components/SubscriptionDetailModal'
 
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
@@ -12,12 +20,6 @@ import { Input } from '@/ui/components/input'
 import { Spinner } from '@/ui/components/spinner'
 import { useTranslation } from '@/contexts'
 import { useAuth } from '@/contexts'
-import { getMyCompanySubscriptionsPaginated, useQuery } from '@packages/http-client'
-import type { TApiPaginationMeta } from '@packages/http-client'
-import type { TManagementCompanySubscription } from '@packages/domain'
-import { formatCurrency } from '@packages/utils/currency'
-import { formatFullDate } from '@packages/utils/dates'
-import { SubscriptionDetailModal } from '../../components/SubscriptionDetailModal'
 
 const statusColorMap: Record<string, 'success' | 'primary' | 'default' | 'warning' | 'danger'> = {
   active: 'success',
@@ -56,7 +58,9 @@ export function SubscriptionHistoryPage({ companyId }: SubscriptionHistoryPagePr
     queryKey: ['myCompanySubscriptions', companyId, page, limit, search, dateFrom, dateTo],
     queryFn: async () => {
       const token = await user?.getIdToken()
+
       if (!token) throw new Error('No token')
+
       return getMyCompanySubscriptionsPaginated(token, companyId, {
         page,
         limit,
@@ -82,12 +86,12 @@ export function SubscriptionHistoryPage({ companyId }: SubscriptionHistoryPagePr
   }, [])
 
   const handleDateFromChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setDateFrom(typeof e === 'string' ? e : (e?.target as HTMLInputElement)?.value ?? '')
+    setDateFrom(typeof e === 'string' ? e : ((e?.target as HTMLInputElement)?.value ?? ''))
     setPage(1)
   }, [])
 
   const handleDateToChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setDateTo(typeof e === 'string' ? e : (e?.target as HTMLInputElement)?.value ?? '')
+    setDateTo(typeof e === 'string' ? e : ((e?.target as HTMLInputElement)?.value ?? ''))
     setPage(1)
   }, [])
 
@@ -116,41 +120,31 @@ export function SubscriptionHistoryPage({ companyId }: SubscriptionHistoryPagePr
   )
 
   const renderCell = useCallback(
-    (sub: TManagementCompanySubscription, columnKey: keyof TManagementCompanySubscription | string) => {
+    (
+      sub: TManagementCompanySubscription,
+      columnKey: keyof TManagementCompanySubscription | string
+    ) => {
       switch (columnKey) {
         case 'subscriptionName':
-          return (
-            <p className="text-sm font-medium">
-              {sub.subscriptionName || 'Plan'}
-            </p>
-          )
+          return <p className="text-sm font-medium">{sub.subscriptionName || 'Plan'}</p>
         case 'status':
           return (
-            <Chip
-              color={statusColorMap[sub.status] || 'default'}
-              variant="flat"
-              size="sm"
-            >
+            <Chip color={statusColorMap[sub.status] || 'default'} size="sm" variant="flat">
               {t(`admin.subscription.status.${sub.status}`)}
             </Chip>
           )
         case 'basePrice':
           return (
             <p className="text-sm text-default-600">
-              {formatCurrency(sub.basePrice)} / {billingCycleLabels[sub.billingCycle] || sub.billingCycle}
+              {formatCurrency(sub.basePrice)} /{' '}
+              {billingCycleLabels[sub.billingCycle] || sub.billingCycle}
             </p>
           )
         case 'startDate':
-          return (
-            <p className="text-sm text-default-600">
-              {formatFullDate(sub.startDate)}
-            </p>
-          )
+          return <p className="text-sm text-default-600">{formatFullDate(sub.startDate)}</p>
         case 'cancelledAt':
           return sub.cancelledAt ? (
-            <p className="text-sm text-warning">
-              {formatFullDate(sub.cancelledAt)}
-            </p>
+            <p className="text-sm text-warning">{formatFullDate(sub.cancelledAt)}</p>
           ) : (
             <p className="text-sm text-default-400">-</p>
           )
@@ -166,7 +160,7 @@ export function SubscriptionHistoryPage({ companyId }: SubscriptionHistoryPagePr
       {/* Header */}
       <div>
         <Typography variant="h3">{t(`${tp}.title`)}</Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
+        <Typography className="mt-1" color="muted" variant="body2">
           {t(`${tp}.subtitle`)}
         </Typography>
       </div>
@@ -181,16 +175,16 @@ export function SubscriptionHistoryPage({ companyId }: SubscriptionHistoryPagePr
           onValueChange={handleSearchChange}
         />
         <Input
-          type="date"
-          label={t(`${tp}.dateFrom`)}
           className="w-full sm:w-44"
+          label={t(`${tp}.dateFrom`)}
+          type="date"
           value={dateFrom}
           onChange={handleDateFromChange}
         />
         <Input
-          type="date"
-          label={t(`${tp}.dateTo`)}
           className="w-full sm:w-44"
+          label={t(`${tp}.dateTo`)}
+          type="date"
           value={dateTo}
           onChange={handleDateToChange}
         />
@@ -212,7 +206,7 @@ export function SubscriptionHistoryPage({ companyId }: SubscriptionHistoryPagePr
           <Typography color="muted" variant="body1">
             {t(`${tp}.empty`)}
           </Typography>
-          <Typography color="muted" variant="body2" className="mt-1">
+          <Typography className="mt-1" color="muted" variant="body2">
             {t(`${tp}.emptyDescription`)}
           </Typography>
         </div>
@@ -220,13 +214,13 @@ export function SubscriptionHistoryPage({ companyId }: SubscriptionHistoryPagePr
         <>
           <Table<TManagementCompanySubscription>
             aria-label={t(`${tp}.title`)}
-            columns={tableColumns}
-            rows={subscriptions}
-            renderCell={renderCell}
-            onRowClick={handleRowClick}
             classNames={{
               tr: 'cursor-pointer hover:bg-default-100 transition-colors',
             }}
+            columns={tableColumns}
+            renderCell={renderCell}
+            rows={subscriptions}
+            onRowClick={handleRowClick}
           />
 
           <Pagination
@@ -236,7 +230,7 @@ export function SubscriptionHistoryPage({ companyId }: SubscriptionHistoryPagePr
             page={pagination.page}
             total={pagination.total}
             totalPages={pagination.totalPages}
-            onLimitChange={(newLimit) => {
+            onLimitChange={newLimit => {
               setLimit(newLimit)
               setPage(1)
             }}
@@ -247,8 +241,8 @@ export function SubscriptionHistoryPage({ companyId }: SubscriptionHistoryPagePr
 
       {/* Detail Modal */}
       <SubscriptionDetailModal
-        subscription={selectedSubscription}
         isOpen={!!selectedSubscription}
+        subscription={selectedSubscription}
         onClose={() => setSelectedSubscription(null)}
       />
     </div>

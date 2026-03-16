@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, ilike, sql, desc } from 'drizzle-orm'
+import { and, eq, ilike, sql, desc } from 'drizzle-orm'
 import type { SQL } from 'drizzle-orm'
 import type {
   TPaymentConcept,
@@ -53,7 +53,8 @@ export class PaymentConceptsRepository
       dueDay: r.dueDay,
       effectiveFrom: r.effectiveFrom,
       effectiveUntil: r.effectiveUntil,
-      chargeGenerationStrategy: r.chargeGenerationStrategy as TPaymentConcept['chargeGenerationStrategy'] ?? 'auto',
+      chargeGenerationStrategy:
+        (r.chargeGenerationStrategy as TPaymentConcept['chargeGenerationStrategy']) ?? 'auto',
       isActive: r.isActive ?? true,
       metadata: r.metadata as Record<string, unknown> | null,
       createdBy: r.createdBy,
@@ -71,6 +72,7 @@ export class PaymentConceptsRepository
       conceptType: dto.conceptType,
       isRecurring: dto.isRecurring,
       recurrencePeriod: dto.recurrencePeriod,
+      chargeGenerationStrategy: dto.chargeGenerationStrategy,
       currencyId: dto.currencyId,
       allowsPartialPayment: dto.allowsPartialPayment,
       latePaymentType: dto.latePaymentType,
@@ -99,14 +101,21 @@ export class PaymentConceptsRepository
     if (dto.conceptType !== undefined) values.conceptType = dto.conceptType
     if (dto.isRecurring !== undefined) values.isRecurring = dto.isRecurring
     if (dto.recurrencePeriod !== undefined) values.recurrencePeriod = dto.recurrencePeriod
+    if (dto.chargeGenerationStrategy !== undefined)
+      values.chargeGenerationStrategy = dto.chargeGenerationStrategy
     if (dto.currencyId !== undefined) values.currencyId = dto.currencyId
-    if (dto.allowsPartialPayment !== undefined) values.allowsPartialPayment = dto.allowsPartialPayment
+    if (dto.allowsPartialPayment !== undefined)
+      values.allowsPartialPayment = dto.allowsPartialPayment
     if (dto.latePaymentType !== undefined) values.latePaymentType = dto.latePaymentType
-    if (dto.latePaymentValue !== undefined) values.latePaymentValue = dto.latePaymentValue?.toString()
-    if (dto.latePaymentGraceDays !== undefined) values.latePaymentGraceDays = dto.latePaymentGraceDays
+    if (dto.latePaymentValue !== undefined)
+      values.latePaymentValue = dto.latePaymentValue?.toString()
+    if (dto.latePaymentGraceDays !== undefined)
+      values.latePaymentGraceDays = dto.latePaymentGraceDays
     if (dto.earlyPaymentType !== undefined) values.earlyPaymentType = dto.earlyPaymentType
-    if (dto.earlyPaymentValue !== undefined) values.earlyPaymentValue = dto.earlyPaymentValue?.toString()
-    if (dto.earlyPaymentDaysBeforeDue !== undefined) values.earlyPaymentDaysBeforeDue = dto.earlyPaymentDaysBeforeDue
+    if (dto.earlyPaymentValue !== undefined)
+      values.earlyPaymentValue = dto.earlyPaymentValue?.toString()
+    if (dto.earlyPaymentDaysBeforeDue !== undefined)
+      values.earlyPaymentDaysBeforeDue = dto.earlyPaymentDaysBeforeDue
     if (dto.issueDay !== undefined) values.issueDay = dto.issueDay
     if (dto.dueDay !== undefined) values.dueDay = dto.dueDay
     if (dto.effectiveFrom !== undefined) values.effectiveFrom = dto.effectiveFrom
@@ -142,11 +151,21 @@ export class PaymentConceptsRepository
   /**
    * Retrieves payment concepts by building.
    */
-  async getByBuildingId(buildingId: string, includeInactive = false): Promise<TPaymentConcept[]> {
+  async getByBuildingId(
+    buildingId: string,
+    includeInactive = false,
+    condominiumId?: string
+  ): Promise<TPaymentConcept[]> {
+    const conditions = [eq(paymentConcepts.buildingId, buildingId)]
+
+    if (condominiumId) {
+      conditions.push(eq(paymentConcepts.condominiumId, condominiumId))
+    }
+
     const results = await this.db
       .select()
       .from(paymentConcepts)
-      .where(eq(paymentConcepts.buildingId, buildingId))
+      .where(and(...conditions))
 
     const mapped = results.map(record => this.mapToEntity(record))
 
@@ -160,11 +179,20 @@ export class PaymentConceptsRepository
   /**
    * Retrieves recurring payment concepts.
    */
-  async getRecurringConcepts(includeInactive = false): Promise<TPaymentConcept[]> {
+  async getRecurringConcepts(
+    includeInactive = false,
+    condominiumId?: string
+  ): Promise<TPaymentConcept[]> {
+    const conditions = [eq(paymentConcepts.isRecurring, true)]
+
+    if (condominiumId) {
+      conditions.push(eq(paymentConcepts.condominiumId, condominiumId))
+    }
+
     const results = await this.db
       .select()
       .from(paymentConcepts)
-      .where(eq(paymentConcepts.isRecurring, true))
+      .where(and(...conditions))
 
     const mapped = results.map(record => this.mapToEntity(record))
 
@@ -180,13 +208,20 @@ export class PaymentConceptsRepository
    */
   async getByConceptType(
     conceptType: TPaymentConcept['conceptType'],
-    includeInactive = false
+    includeInactive = false,
+    condominiumId?: string
   ): Promise<TPaymentConcept[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Drizzle schema column type differs from domain union type
+    const conditions = [eq(paymentConcepts.conceptType, conceptType as any)]
+
+    if (condominiumId) {
+      conditions.push(eq(paymentConcepts.condominiumId, condominiumId))
+    }
+
     const results = await this.db
       .select()
       .from(paymentConcepts)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Drizzle schema column type differs from domain union type
-      .where(eq(paymentConcepts.conceptType, conceptType as any))
+      .where(and(...conditions))
 
     const mapped = results.map(record => this.mapToEntity(record))
 

@@ -3,7 +3,15 @@ export { getEnvConfig, setEnvConfig, resetEnvConfig } from './config/index'
 export type { EnvConfig } from './config/index'
 
 // Client
-export { createHttpClient, getHttpClient, setHttpClient, setGlobalLocale, setGlobalAuthToken, setGlobalCondominiumId, setGlobalManagementCompanyId } from './client/index'
+export {
+  createHttpClient,
+  getHttpClient,
+  setHttpClient,
+  setGlobalLocale,
+  setGlobalAuthToken,
+  setGlobalCondominiumId,
+  setGlobalManagementCompanyId,
+} from './client/index'
 export type { HttpClient, HttpClientConfig } from './client/index'
 
 // Hooks
@@ -155,6 +163,7 @@ export {
   useGenerateCharges,
   useGenerateChargesBulk,
   // Interest Configurations
+  useInterestConfigsByPaymentConcept,
   useCreateInterestConfiguration,
   interestConfigurationKeys,
   // Units (by condominium)

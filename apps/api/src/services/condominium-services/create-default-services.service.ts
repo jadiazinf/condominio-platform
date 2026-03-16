@@ -3,15 +3,16 @@ import type { CondominiumServicesRepository } from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 
 export class CreateDefaultServicesService {
-  constructor(
-    private readonly servicesRepo: CondominiumServicesRepository
-  ) {}
+  constructor(private readonly servicesRepo: CondominiumServicesRepository) {}
 
   /**
    * Creates default services (Gastos Comunes, Fondo de Reserva) for a condominium.
    * Skips creation if they already exist.
    */
-  async execute(condominiumId: string, createdBy: string): Promise<TServiceResult<TCondominiumService[]>> {
+  async execute(
+    condominiumId: string,
+    createdBy: string
+  ): Promise<TServiceResult<TCondominiumService[]>> {
     // Check if defaults already exist
     const existing = await this.servicesRepo.getDefaultsByCondominiumId(condominiumId)
     if (existing.length > 0) {

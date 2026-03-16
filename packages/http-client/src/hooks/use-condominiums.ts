@@ -1,4 +1,9 @@
-import type { TCondominium, TCondominiumCreate, TCondominiumUpdate, TCondominiumsQuery } from '@packages/domain'
+import type {
+  TCondominium,
+  TCondominiumCreate,
+  TCondominiumUpdate,
+  TCondominiumsQuery,
+} from '@packages/domain'
 import type { TApiDataResponse, TApiPaginatedResponse, ApiResponse } from '../types'
 
 import { useApiQuery, useApiMutation } from './use-api-query'
@@ -78,7 +83,9 @@ export async function getAllCondominiums(token?: string): Promise<TCondominium[]
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  const response = await client.get<TApiDataResponse<TCondominium[]>>('/condominium/condominiums', { headers })
+  const response = await client.get<TApiDataResponse<TCondominium[]>>('/condominium/condominiums', {
+    headers,
+  })
 
   return response.data.data
 }
@@ -181,11 +188,15 @@ export async function createCondominium(
 ): Promise<TCondominium> {
   const client = getHttpClient()
 
-  const response = await client.post<TApiDataResponse<TCondominium>>('/condominium/condominiums', data, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
+  const response = await client.post<TApiDataResponse<TCondominium>>(
+    '/condominium/condominiums',
+    data,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
 
   return response.data.data
 }
@@ -258,7 +269,7 @@ export function useUpdateCondominium(options: UseUpdateCondominiumOptions) {
   const { token, onSuccess, onError } = options
 
   return useApiMutation<TApiDataResponse<TCondominium>, TCondominiumUpdate & { id: string }>({
-    path: (variables) => `/condominium/condominiums/${variables.id}`,
+    path: variables => `/condominium/condominiums/${variables.id}`,
     method: 'PATCH',
     config: {
       headers: {
@@ -283,7 +294,10 @@ export async function updateCondominium(
 ): Promise<TCondominium> {
   const client = getHttpClient()
 
-  const response = await client.patch<TApiDataResponse<TCondominium>>(`/condominium/condominiums/${id}`, data)
+  const response = await client.patch<TApiDataResponse<TCondominium>>(
+    `/condominium/condominiums/${id}`,
+    data
+  )
 
   return response.data.data
 }
@@ -326,9 +340,7 @@ export type TWizardResult = {
 /**
  * Creates a condominium with all buildings and units in a single transaction.
  */
-export async function createCondominiumWizard(
-  data: TWizardInput
-): Promise<TWizardResult> {
+export async function createCondominiumWizard(data: TWizardInput): Promise<TWizardResult> {
   const client = getHttpClient()
 
   const response = await client.post<TApiDataResponse<TWizardResult>>(

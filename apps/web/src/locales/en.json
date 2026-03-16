@@ -535,8 +535,10 @@
       "dueDate": "Due",
       "status": {
         "pending": "Pending",
+        "partial": "Partial",
         "overdue": "Overdue",
-        "paid": "Paid"
+        "paid": "Paid",
+        "exonerated": "Exonerated"
       },
       "recentPayments": "Recent payments",
       "noRecentPayments": "No recent payments",
@@ -578,6 +580,7 @@
       "filter": {
         "all": "All",
         "pending": "Pending",
+        "partial": "Partial",
         "overdue": "Overdue",
         "paid": "Paid",
         "cancelled": "Cancelled",
@@ -585,6 +588,7 @@
       },
       "status": {
         "pending": "Pending",
+        "partial": "Partial",
         "overdue": "Overdue",
         "paid": "Paid",
         "cancelled": "Cancelled",
@@ -621,6 +625,7 @@
         "interestPaid": "Interest",
         "status": {
           "pending": "Pending",
+          "partial": "Partial",
           "overdue": "Overdue",
           "paid": "Paid",
           "cancelled": "Cancelled",
@@ -1816,9 +1821,11 @@
           },
           "quotaStatuses": {
             "pending": "Pending",
+            "partial": "Partial",
             "paid": "Paid",
             "overdue": "Overdue",
-            "cancelled": "Cancelled"
+            "cancelled": "Cancelled",
+            "exonerated": "Exonerated"
           },
           "paymentStatuses": {
             "pending": "Pending",
@@ -4079,9 +4086,11 @@
           },
           "status": {
             "pending": "Pending",
+            "partial": "Partial",
             "paid": "Paid",
             "overdue": "Overdue",
-            "cancelled": "Cancelled"
+            "cancelled": "Cancelled",
+            "exonerated": "Exonerated"
           },
           "filters": {
             "all": "All",
@@ -4704,9 +4713,11 @@
       "status": {
         "all": "All",
         "pending": "Pending",
+        "partial": "Partial",
         "paid": "Paid",
         "overdue": "Overdue",
-        "cancelled": "Cancelled"
+        "cancelled": "Cancelled",
+        "exonerated": "Exonerated"
       },
       "filters": {
         "searchPlaceholder": "Search by unit or concept...",

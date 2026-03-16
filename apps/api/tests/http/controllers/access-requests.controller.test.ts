@@ -48,7 +48,10 @@ describe('AccessRequestsController', function () {
 
   beforeEach(function () {
     mockRepository = {
-      listByCondominiumPaginated: async function (condominiumId: string, options?: { page?: number; limit?: number; status?: string; search?: string }) {
+      listByCondominiumPaginated: async function (
+        condominiumId: string,
+        options?: { page?: number; limit?: number; status?: string; search?: string }
+      ) {
         let result = testRequests.filter(function (r) {
           return r.condominiumId === condominiumId
         })
@@ -61,7 +64,12 @@ describe('AccessRequestsController', function () {
         const limit = options?.limit ?? 20
         return {
           data: result,
-          pagination: { page, limit, total: result.length, totalPages: Math.ceil(result.length / limit) },
+          pagination: {
+            page,
+            limit,
+            total: result.length,
+            totalPages: Math.ceil(result.length / limit),
+          },
         }
       },
       countPending: async function (condominiumId: string) {

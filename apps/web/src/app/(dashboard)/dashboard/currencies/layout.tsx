@@ -1,10 +1,11 @@
 import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
+
+import { CurrencyTabs } from './components/CurrencyTabs'
 
 import { Typography } from '@/ui/components/typography'
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
-import { redirect } from 'next/navigation'
-import { CurrencyTabs } from './components/CurrencyTabs'
 
 async function CurrenciesLayoutContent({ children }: { children: React.ReactNode }) {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])

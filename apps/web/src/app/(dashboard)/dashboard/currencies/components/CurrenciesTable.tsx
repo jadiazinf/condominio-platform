@@ -1,6 +1,16 @@
 'use client'
 
+import type { TCurrency } from '@packages/domain'
+
 import { useState, useCallback, useMemo } from 'react'
+import { Coins, MoreVertical, Plus, Power, Star } from 'lucide-react'
+import {
+  useCurrencies,
+  useDeleteCurrency,
+  currencyKeys,
+  useQueryClient,
+} from '@packages/http-client'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
@@ -8,17 +18,8 @@ import { Button } from '@/ui/components/button'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
 import { Spinner } from '@/ui/components/spinner'
 import { ClearFiltersButton } from '@/ui/components/filters'
-import { Coins, MoreVertical, Plus, Power, Star } from 'lucide-react'
-import type { TCurrency } from '@packages/domain'
-
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
-import {
-  useCurrencies,
-  useDeleteCurrency,
-  currencyKeys,
-  useQueryClient,
-} from '@packages/http-client'
 import { useToast } from '@/ui/components/toast'
 
 type TStatusFilter = 'all' | 'active' | 'inactive'
@@ -39,9 +40,8 @@ export function CurrenciesTable() {
   // Client-side filtering since the list is small
   const currencies = useMemo(() => {
     if (statusFilter === 'all') return allCurrencies
-    return allCurrencies.filter((c) =>
-      statusFilter === 'active' ? c.isActive : !c.isActive
-    )
+
+    return allCurrencies.filter(c => (statusFilter === 'active' ? c.isActive : !c.isActive))
   }, [allCurrencies, statusFilter])
 
   const deleteMutation = useDeleteCurrency({
@@ -104,7 +104,7 @@ export function CurrenciesTable() {
           return <span className="text-lg">{currency.symbol || '—'}</span>
         case 'baseCurrency':
           return currency.isBaseCurrency ? (
-            <Chip color="warning" variant="flat" startContent={<Star size={12} />}>
+            <Chip color="warning" startContent={<Star size={12} />} variant="flat">
               Base
             </Chip>
           ) : null
@@ -120,7 +120,7 @@ export function CurrenciesTable() {
           )
         case 'actions':
           return (
-            <div onClick={(e) => e.stopPropagation()}>
+            <div onClick={e => e.stopPropagation()}>
               <Dropdown>
                 <DropdownTrigger>
                   <Button isIconOnly variant="light">
@@ -141,8 +141,8 @@ export function CurrenciesTable() {
                   ) : (
                     <DropdownItem
                       key="activate"
-                      color="success"
                       isDisabled
+                      color="success"
                       startContent={<Power size={16} />}
                     >
                       {t('superadmin.currencies.actions.activate')}
@@ -182,12 +182,10 @@ export function CurrenciesTable() {
             className="w-full sm:w-40"
             items={statusFilterItems}
             value={statusFilter}
-            onChange={handleStatusChange}
             variant="bordered"
+            onChange={handleStatusChange}
           />
-          {statusFilter !== 'active' && (
-            <ClearFiltersButton onClear={handleClearFilters} />
-          )}
+          {statusFilter !== 'active' && <ClearFiltersButton onClear={handleClearFilters} />}
         </div>
         <Button
           color="primary"
@@ -217,8 +215,8 @@ export function CurrenciesTable() {
         <Table<TCurrencyRow>
           aria-label={t('superadmin.currencies.title')}
           columns={tableColumns}
-          rows={currencies}
           renderCell={renderCell}
+          rows={currencies}
         />
       )}
     </div>

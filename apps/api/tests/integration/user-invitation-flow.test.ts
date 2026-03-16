@@ -69,19 +69,19 @@ beforeEach(async () => {
   `)
 
   // Insert a role (required for user invitations)
-  const roleResult = await db.execute(sql`
+  const roleResult = (await db.execute(sql`
     INSERT INTO roles (name, description, is_system_role)
     VALUES ('RESIDENT', 'Resident role', false)
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   testRoleId = roleResult[0]!.id
 
   // Insert a condominium (optional for user invitations)
-  const condoResult = await db.execute(sql`
+  const condoResult = (await db.execute(sql`
     INSERT INTO condominiums (name, is_active)
     VALUES ('Test Condominium', true)
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   testCondominiumId = condoResult[0]!.id
 
   // Create repositories
@@ -120,14 +120,12 @@ afterAll(async () => {
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function createInvitation(
-  overrides: Record<string, unknown> = {}
-) {
+async function createInvitation(overrides: Record<string, unknown> = {}) {
   return request('/condominium/user-invitations', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer placeholder-token:firebase-uid-superadmin',
+      Authorization: 'Bearer placeholder-token:firebase-uid-superadmin',
     },
     body: JSON.stringify({
       email: 'invited-user@test.com',
@@ -145,7 +143,7 @@ async function acceptInvitation(invitationToken: string) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer test-firebase-token',
+      Authorization: 'Bearer test-firebase-token',
     },
   })
 }
@@ -159,7 +157,6 @@ async function validateToken(token: string) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('User Invitation Flow — Integration Tests', function () {
-
   // ─────────────────────────────────────────────────────────────────────────
   // 1. Happy path: Full lifecycle
   // ─────────────────────────────────────────────────────────────────────────
@@ -169,7 +166,7 @@ describe('User Invitation Flow — Integration Tests', function () {
       // Step 1: Create invitation
       const createRes = await createInvitation()
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: {
           user: { id: string; email: string; isActive: boolean }
           invitation: { id: string; status: string }
@@ -195,7 +192,7 @@ describe('User Invitation Flow — Integration Tests', function () {
       // Step 2: Validate token
       const validateRes = await validateToken(invitationToken)
       expect(validateRes.status).toBe(200)
-      const validateJson = await validateRes.json() as {
+      const validateJson = (await validateRes.json()) as {
         data: {
           isValid: boolean
           isExpired: boolean
@@ -215,7 +212,7 @@ describe('User Invitation Flow — Integration Tests', function () {
       // Step 3: Accept invitation
       const acceptRes = await acceptInvitation(invitationToken)
       expect(acceptRes.status).toBe(200)
-      const acceptJson = await acceptRes.json() as {
+      const acceptJson = (await acceptRes.json()) as {
         data: {
           user: { id: string; isActive: boolean }
           invitation: { status: string; acceptedAt: string }
@@ -254,7 +251,7 @@ describe('User Invitation Flow — Integration Tests', function () {
       // Create and accept
       const createRes = await createInvitation()
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: { invitationToken: string }
       }
 
@@ -270,7 +267,7 @@ describe('User Invitation Flow — Integration Tests', function () {
       // Create and accept
       const createRes = await createInvitation()
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: { invitationToken: string }
       }
 
@@ -279,7 +276,7 @@ describe('User Invitation Flow — Integration Tests', function () {
       // Validate the token — should return isValid=false
       const validateRes = await validateToken(createJson.data.invitationToken)
       expect(validateRes.status).toBe(200)
-      const validateJson = await validateRes.json() as {
+      const validateJson = (await validateRes.json()) as {
         data: { isValid: boolean }
       }
       expect(validateJson.data.isValid).toBe(false)
@@ -311,7 +308,7 @@ describe('User Invitation Flow — Integration Tests', function () {
       // Create invitation
       const createRes = await createInvitation()
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: { invitation: { id: string }; invitationToken: string }
       }
 
@@ -324,7 +321,7 @@ describe('User Invitation Flow — Integration Tests', function () {
       // Validate should show expired
       const validateRes = await validateToken(createJson.data.invitationToken)
       expect(validateRes.status).toBe(200)
-      const validateJson = await validateRes.json() as {
+      const validateJson = (await validateRes.json()) as {
         data: { isValid: boolean; isExpired: boolean }
       }
       expect(validateJson.data.isValid).toBe(false)
@@ -345,7 +342,7 @@ describe('User Invitation Flow — Integration Tests', function () {
       // Create invitation
       const createRes = await createInvitation()
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: { invitation: { id: string }; invitationToken: string }
       }
 
@@ -364,7 +361,7 @@ describe('User Invitation Flow — Integration Tests', function () {
     it('cancel returns the cancelled invitation', async function () {
       const createRes = await createInvitation()
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: { invitation: { id: string } }
       }
 
@@ -373,7 +370,7 @@ describe('User Invitation Flow — Integration Tests', function () {
         { method: 'DELETE', headers: { 'Content-Type': 'application/json' } }
       )
       expect(cancelRes.status).toBe(200)
-      const cancelJson = await cancelRes.json() as {
+      const cancelJson = (await cancelRes.json()) as {
         data: { id: string; status: string }
       }
       expect(cancelJson.data.status).toBe('cancelled')
@@ -389,7 +386,7 @@ describe('User Invitation Flow — Integration Tests', function () {
       // Create and accept a first invitation to make the user active
       const firstRes = await createInvitation({ email: 'dupe@test.com' })
       expect(firstRes.status).toBe(201)
-      const firstJson = await firstRes.json() as {
+      const firstJson = (await firstRes.json()) as {
         data: { invitationToken: string }
       }
       await acceptInvitation(firstJson.data.invitationToken)
@@ -426,7 +423,7 @@ describe('User Invitation Flow — Integration Tests', function () {
     it('regenerates token and keeps invitation pending', async function () {
       const createRes = await createInvitation({ email: 'resend-user@test.com' })
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: { invitation: { id: string }; invitationToken: string }
       }
       const originalToken = createJson.data.invitationToken
@@ -463,7 +460,7 @@ describe('User Invitation Flow — Integration Tests', function () {
         condominiumId: null,
       })
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: {
           user: { id: string }
           invitation: { condominiumId: string | null }
@@ -476,7 +473,7 @@ describe('User Invitation Flow — Integration Tests', function () {
       // Validate — condominium should be null
       const validateRes = await validateToken(createJson.data.invitationToken)
       expect(validateRes.status).toBe(200)
-      const validateJson = await validateRes.json() as {
+      const validateJson = (await validateRes.json()) as {
         data: { isValid: boolean; condominium: unknown }
       }
       expect(validateJson.data.isValid).toBe(true)
@@ -485,7 +482,7 @@ describe('User Invitation Flow — Integration Tests', function () {
       // Accept
       const acceptRes = await acceptInvitation(createJson.data.invitationToken)
       expect(acceptRes.status).toBe(200)
-      const acceptJson = await acceptRes.json() as {
+      const acceptJson = (await acceptRes.json()) as {
         data: { user: { isActive: boolean } }
       }
       expect(acceptJson.data.user.isActive).toBe(true)
@@ -549,7 +546,7 @@ describe('User Invitation Flow — Integration Tests', function () {
     it('rejects accept without Authorization header', async function () {
       const createRes = await createInvitation({ email: 'noauth@test.com' })
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: { invitationToken: string }
       }
 

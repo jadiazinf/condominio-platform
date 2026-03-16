@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Power } from 'lucide-react'
+import { useToggleCondominiumStatus } from '@packages/http-client/hooks'
+
 import { Typography } from '@/ui/components/typography'
 import { Switch } from '@/ui/components/switch'
 import { useToast } from '@/ui/components/toast'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
-import { useToggleCondominiumStatus } from '@packages/http-client/hooks'
 
 interface IStatusToggleProps {
   condominiumId: string
@@ -43,7 +44,7 @@ export function StatusToggle({
       setPendingStatus(null)
       router.refresh()
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || errorMessage)
       setPendingStatus(null)
     },
@@ -75,7 +76,7 @@ export function StatusToggle({
             <Power className="h-5 w-5 text-primary-600" />
           </div>
           <div>
-            <Typography variant="h4" className="mb-1">
+            <Typography className="mb-1" variant="h4">
               {title}
             </Typography>
             <Typography color="muted" variant="body2">
@@ -84,20 +85,18 @@ export function StatusToggle({
           </div>
         </div>
         <Switch
-          isSelected={initialStatus}
-          onValueChange={handleToggleClick}
           color="success"
           isDisabled={toggleMutation.isPending}
+          isSelected={initialStatus}
+          onValueChange={handleToggleClick}
         />
       </div>
 
       {/* Confirmation Modal */}
-      <Modal isOpen={isConfirmModalOpen} onClose={handleCancel} size="md">
+      <Modal isOpen={isConfirmModalOpen} size="md" onClose={handleCancel}>
         <ModalContent>
           <ModalHeader>
-            <Typography variant="h4">
-              {pendingStatus ? activeLabel : inactiveLabel}
-            </Typography>
+            <Typography variant="h4">{pendingStatus ? activeLabel : inactiveLabel}</Typography>
           </ModalHeader>
           <ModalBody>
             <Typography color="muted" variant="body2">
@@ -107,17 +106,13 @@ export function StatusToggle({
             </Typography>
           </ModalBody>
           <ModalFooter>
-            <Button
-              variant="bordered"
-              onPress={handleCancel}
-              isDisabled={toggleMutation.isPending}
-            >
+            <Button isDisabled={toggleMutation.isPending} variant="bordered" onPress={handleCancel}>
               Cancelar
             </Button>
             <Button
               color={pendingStatus ? 'success' : 'warning'}
-              onPress={handleConfirm}
               isLoading={toggleMutation.isPending}
+              onPress={handleConfirm}
             >
               Confirmar
             </Button>

@@ -1,10 +1,7 @@
-import { Suspense } from 'react'
-
 import type { TAccessRequest } from '@packages/domain'
-import { getFullSession, type FullSession } from '@/libs/session'
-import { getServerAuthToken } from '@/libs/session/getServerAuthToken'
+
+import { Suspense } from 'react'
 import { getMyAccessRequests } from '@packages/http-client/hooks'
-import { getTranslations } from '@/libs/i18n/server'
 
 import {
   DashboardSkeleton,
@@ -15,6 +12,10 @@ import { SuperadminDashboardClient } from './components/SuperadminDashboardClien
 import { AdminDashboardClient } from './components/AdminDashboardClient'
 import { ResidentDashboardClient } from './components/ResidentDashboardClient'
 import { NewUserDashboardClient } from './components/NewUserDashboardClient'
+
+import { getTranslations } from '@/libs/i18n/server'
+import { getFullSession, type FullSession } from '@/libs/session'
+import { getServerAuthToken } from '@/libs/session/getServerAuthToken'
 
 // Regular user dashboard content
 function RegularDashboardContent({ session }: { session: FullSession }) {
@@ -63,6 +64,7 @@ async function NewUserDashboardContent({ session }: { session: FullSession }) {
   try {
     const token = await getServerAuthToken()
     const response = await getMyAccessRequests(token)
+
     initialRequests = response.data
   } catch {
     // If fetch fails, show empty requests — user can refresh

@@ -8,9 +8,10 @@
  */
 
 import Link from 'next/link'
+import { Building2, ArrowRight } from 'lucide-react'
+
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
-import { Building2, ArrowRight } from 'lucide-react'
 
 interface ICondominium {
   id: string
@@ -70,11 +71,7 @@ export function CondominiumsOverview({ condominiums, translations: t }: Condomin
                     </p>
                   </div>
                 </div>
-                <Chip
-                  color={condo.isActive ? 'success' : 'default'}
-                  size="sm"
-                  variant="flat"
-                >
+                <Chip color={condo.isActive ? 'success' : 'default'} size="sm" variant="flat">
                   {condo.isActive ? t.active : t.inactive}
                 </Chip>
               </div>

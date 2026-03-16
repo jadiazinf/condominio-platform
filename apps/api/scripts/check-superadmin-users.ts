@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { users, userRoles, roles } from '../src/database/drizzle/schema'
+import { users, userRoles, roles } from '@database/drizzle/schema'
 import { eq, and, isNull } from 'drizzle-orm'
 
 const DATABASE_URL = process.env.DATABASE_URL
@@ -65,7 +65,7 @@ async function checkSuperadminUsers() {
 
       const allUsers = await db.select().from(users).limit(10)
 
-      allUsers.forEach((user) => {
+      allUsers.forEach(user => {
         console.log(`\n  ID: ${user.id}`)
         console.log(`  Email: ${user.email}`)
         console.log(`  Display Name: ${user.displayName}`)
@@ -73,7 +73,7 @@ async function checkSuperadminUsers() {
       })
     } else {
       console.log('✅ Found SUPERADMIN users:\n')
-      superadminUsersResult.forEach((user) => {
+      superadminUsersResult.forEach(user => {
         console.log(`  User ID: ${user.userId}`)
         console.log(`  Email: ${user.email}`)
         console.log(`  Display Name: ${user.displayName}`)

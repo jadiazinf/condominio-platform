@@ -4,11 +4,12 @@ import { useCallback } from 'react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useMyCompanyInviteMember } from '@packages/http-client'
+
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { useTranslation } from '@/contexts'
-import { useMyCompanyInviteMember } from '@packages/http-client'
 import { useToast } from '@/ui/components/toast'
 import { UserBasicInfoFields } from '@/ui/components/forms'
 
@@ -96,6 +97,7 @@ export function InviteMemberModal({
   const translateError = useCallback(
     (message: string | undefined): string | undefined => {
       if (!message) return undefined
+
       return t(message)
     },
     [t]
@@ -109,14 +111,13 @@ export function InviteMemberModal({
   ]
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl">
+    <Modal isOpen={isOpen} size="2xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader>{t('admin.company.myCompany.members.invite.title')}</ModalHeader>
         <ModalBody className="pb-6">
           <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col gap-6">
+            <form className="flex flex-col gap-6" onSubmit={form.handleSubmit(handleSubmit)}>
               <UserBasicInfoFields
-                translateError={translateError}
                 labels={{
                   email: t('admin.company.myCompany.members.invite.fields.email'),
                   emailPlaceholder: t(
@@ -140,18 +141,19 @@ export function InviteMemberModal({
                   ),
                 }}
                 showDocumentFields={true}
+                translateError={translateError}
               />
 
               <Select
                 aria-label={t('admin.company.myCompany.members.invite.fields.role')}
                 className="w-full mt-10"
                 items={roleItems}
+                label={t('admin.company.myCompany.members.invite.fields.role')}
                 value={form.watch('memberRole')}
+                variant="bordered"
                 onChange={key => {
                   if (key) form.setValue('memberRole', key as TFormData['memberRole'])
                 }}
-                label={t('admin.company.myCompany.members.invite.fields.role')}
-                variant="bordered"
               />
 
               <p className="text-sm text-default-500">
@@ -159,10 +161,10 @@ export function InviteMemberModal({
               </p>
 
               <div className="flex justify-end gap-2 pt-4">
-                <Button variant="flat" type="button" onPress={onClose}>
+                <Button type="button" variant="flat" onPress={onClose}>
                   {t('common.cancel')}
                 </Button>
-                <Button color="primary" type="submit" isLoading={isPending}>
+                <Button color="primary" isLoading={isPending} type="submit">
                   {t('admin.company.myCompany.members.invite.submit')}
                 </Button>
               </div>

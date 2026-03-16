@@ -1,15 +1,17 @@
 'use client'
 
 import { FormProvider } from 'react-hook-form'
+
+import { useSubscriptionForm } from '../hooks'
+
+import { BasicStepForm, LimitsStepForm, PricingStepForm, ConfirmationStep } from './steps'
+import { ReplaceSubscriptionModal } from './ReplaceSubscriptionModal'
+
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Progress } from '@/ui/components/progress'
 import { useTranslation } from '@/contexts'
-
-import { useSubscriptionForm } from '../hooks'
 import { Stepper } from '@/ui/components/stepper'
-import { BasicStepForm, LimitsStepForm, PricingStepForm, ConfirmationStep } from './steps'
-import { ReplaceSubscriptionModal } from './ReplaceSubscriptionModal'
 
 interface SubscriptionFormModalProps {
   isOpen: boolean
@@ -61,19 +63,9 @@ export function SubscriptionFormModal({
   const renderStepContent = () => {
     switch (currentStep) {
       case 'basic':
-        return (
-          <BasicStepForm
-            shouldShowError={shouldShowError}
-            translateError={translateError}
-          />
-        )
+        return <BasicStepForm shouldShowError={shouldShowError} translateError={translateError} />
       case 'limits':
-        return (
-          <LimitsStepForm
-            shouldShowError={shouldShowError}
-            translateError={translateError}
-          />
-        )
+        return <LimitsStepForm shouldShowError={shouldShowError} translateError={translateError} />
       case 'pricing':
         return (
           <PricingStepForm
@@ -91,12 +83,10 @@ export function SubscriptionFormModal({
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} size="4xl" scrollBehavior="inside">
+      <Modal isOpen={isOpen} scrollBehavior="inside" size="4xl" onClose={onClose}>
         <ModalContent className="max-h-[95vh] min-h-[80vh]">
           <FormProvider {...form}>
-            <ModalHeader>
-              {t('superadmin.companies.subscription.form.createTitle')}
-            </ModalHeader>
+            <ModalHeader>{t('superadmin.companies.subscription.form.createTitle')}</ModalHeader>
 
             <ModalBody className="space-y-6">
               {/* Progress and Step Indicator */}
@@ -109,9 +99,9 @@ export function SubscriptionFormModal({
                   value={progressValue}
                 />
                 <Stepper
+                  color="success"
                   currentStep={currentStep}
                   steps={steps}
-                  color="success"
                   onStepChange={goToStep}
                 />
               </div>
@@ -123,21 +113,13 @@ export function SubscriptionFormModal({
             <ModalFooter className="border-t border-default-200">
               <div className="flex w-full justify-end gap-3">
                 {!isFirstStep && (
-                  <Button
-                    variant="bordered"
-                    onPress={goToPreviousStep}
-                    isDisabled={isSubmitting}
-                  >
+                  <Button isDisabled={isSubmitting} variant="bordered" onPress={goToPreviousStep}>
                     {t('common.previous')}
                   </Button>
                 )}
 
                 {isLastStep ? (
-                  <Button
-                    color="success"
-                    onPress={handleSubmit}
-                    isLoading={isSubmitting}
-                  >
+                  <Button color="success" isLoading={isSubmitting} onPress={handleSubmit}>
                     {t('superadmin.companies.subscription.form.submit')}
                   </Button>
                 ) : (
@@ -154,11 +136,11 @@ export function SubscriptionFormModal({
       {/* Replace Subscription Modal */}
       {activeSubscription && (
         <ReplaceSubscriptionModal
+          currentSubscription={activeSubscription}
           isOpen={showReplaceModal}
+          isProcessing={isReplacing}
           onClose={handleCloseReplaceModal}
           onConfirm={handleConfirmReplacement}
-          currentSubscription={activeSubscription}
-          isProcessing={isReplacing}
         />
       )}
     </>

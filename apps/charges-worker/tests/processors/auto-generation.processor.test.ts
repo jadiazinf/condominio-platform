@@ -20,7 +20,10 @@
 import { describe, it, expect } from 'bun:test'
 
 // Replicate the pure functions from the processor for testing
-function calculateTargetPeriod(periodsInAdvance: number): { periodYear: number; periodMonth: number } {
+function calculateTargetPeriod(periodsInAdvance: number): {
+  periodYear: number
+  periodMonth: number
+} {
   const now = new Date()
   const target = new Date(now.getFullYear(), now.getMonth() + periodsInAdvance, 1)
   return {

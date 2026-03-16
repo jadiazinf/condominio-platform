@@ -86,7 +86,9 @@ export class ManagementCompanySubscriptionsRepository
     }
   }
 
-  protected override mapToInsertValues(dto: TManagementCompanySubscriptionCreate): Record<string, unknown> {
+  protected override mapToInsertValues(
+    dto: TManagementCompanySubscriptionCreate
+  ): Record<string, unknown> {
     return {
       managementCompanyId: dto.managementCompanyId,
       subscriptionName: dto.subscriptionName,
@@ -126,7 +128,9 @@ export class ManagementCompanySubscriptionsRepository
     }
   }
 
-  protected override mapToUpdateValues(dto: TManagementCompanySubscriptionUpdate): Record<string, unknown> {
+  protected override mapToUpdateValues(
+    dto: TManagementCompanySubscriptionUpdate
+  ): Record<string, unknown> {
     const values: Record<string, unknown> = {}
 
     if (dto.managementCompanyId !== undefined) values.managementCompanyId = dto.managementCompanyId
@@ -135,7 +139,8 @@ export class ManagementCompanySubscriptionsRepository
     if (dto.basePrice !== undefined) values.basePrice = dto.basePrice.toString()
     if (dto.currencyId !== undefined) values.currencyId = dto.currencyId
     // Pricing calculation data
-    if (dto.pricingCondominiumCount !== undefined) values.pricingCondominiumCount = dto.pricingCondominiumCount
+    if (dto.pricingCondominiumCount !== undefined)
+      values.pricingCondominiumCount = dto.pricingCondominiumCount
     if (dto.pricingUnitCount !== undefined) values.pricingUnitCount = dto.pricingUnitCount
     if (dto.pricingCondominiumRate !== undefined)
       values.pricingCondominiumRate = dto.pricingCondominiumRate?.toString()
@@ -266,7 +271,10 @@ export class ManagementCompanySubscriptionsRepository
   /**
    * Update subscription status
    */
-  async updateStatus(id: string, status: TSubscriptionStatus): Promise<TManagementCompanySubscription | null> {
+  async updateStatus(
+    id: string,
+    status: TSubscriptionStatus
+  ): Promise<TManagementCompanySubscription | null> {
     const results = await this.db
       .update(managementCompanySubscriptions)
       .set({ status, updatedAt: new Date() })

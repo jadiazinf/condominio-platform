@@ -1,12 +1,13 @@
 'use client'
 
+import type { TManagementCompany } from '@packages/domain'
+
 import { useMemo, useState, useCallback, useRef } from 'react'
 import { Building2 } from 'lucide-react'
-import type { TManagementCompany } from '@packages/domain'
+import { useManagementCompaniesPaginated } from '@packages/http-client'
 
 import { useAuth, useTranslation } from '@/contexts'
 import { AutocompleteMulti, type IAutocompleteMultiItem } from '@/ui/components/autocomplete'
-import { useManagementCompaniesPaginated } from '@packages/http-client'
 
 interface IManagementCompanyMultiSelectProps {
   value?: string[]
@@ -61,8 +62,9 @@ export function ManagementCompanyMultiSelect({
   // Update selected companies ref when data changes and we have selected values
   useMemo(() => {
     if (value.length > 0 && companiesData?.data) {
-      value.forEach((id) => {
-        const company = companiesData.data.find((c) => c.id === id)
+      value.forEach(id => {
+        const company = companiesData.data.find(c => c.id === id)
+
         if (company) {
           selectedCompaniesRef.current.set(company.id, company)
         }
@@ -75,7 +77,7 @@ export function ManagementCompanyMultiSelect({
     const itemsMap = new Map<string, IAutocompleteMultiItem>()
 
     // Add fetched companies
-    companies.forEach((company) => {
+    companies.forEach(company => {
       itemsMap.set(company.id, {
         key: company.id,
         label: company.name,
@@ -85,7 +87,7 @@ export function ManagementCompanyMultiSelect({
     })
 
     // Ensure selected companies are always in the list
-    selectedCompaniesRef.current.forEach((company) => {
+    selectedCompaniesRef.current.forEach(company => {
       if (!itemsMap.has(company.id)) {
         itemsMap.set(company.id, {
           key: company.id,
@@ -103,14 +105,16 @@ export function ManagementCompanyMultiSelect({
     (selectedIds: string[]) => {
       // Update the ref to keep track of selected companies
       const selectedSet = new Set(selectedIds)
-      items.forEach((item) => {
-        const company = companiesData?.data?.find((c) => c.id === item.key)
+
+      items.forEach(item => {
+        const company = companiesData?.data?.find(c => c.id === item.key)
+
         if (company && selectedSet.has(company.id)) {
           selectedCompaniesRef.current.set(company.id, company)
         }
       })
       // Remove deselected
-      Array.from(selectedCompaniesRef.current.keys()).forEach((key) => {
+      Array.from(selectedCompaniesRef.current.keys()).forEach(key => {
         if (!selectedSet.has(key)) {
           selectedCompaniesRef.current.delete(key)
         }
@@ -130,18 +134,23 @@ export function ManagementCompanyMultiSelect({
       aria-label={label || t('common.managementCompanies')}
       className={className}
       description={description}
-      emptyContent={t('superadmin.condominiums.form.fields.noCompaniesFound') || 'No se encontraron administradoras'}
+      emptyContent={
+        t('superadmin.condominiums.form.fields.noCompaniesFound') ||
+        'No se encontraron administradoras'
+      }
       errorMessage={errorMessage}
       isDisabled={isDisabled || isAuthLoading}
       isLoading={isLoadingCompanies}
       isRequired={isRequired}
       items={items}
       label={label}
-      onInputChange={handleInputChange}
-      onSelectionChange={handleSelectionChange}
-      placeholder={placeholder || t('superadmin.condominiums.form.fields.managementCompanyPlaceholder')}
+      placeholder={
+        placeholder || t('superadmin.condominiums.form.fields.managementCompanyPlaceholder')
+      }
       selectedKeys={value}
       tooltip={tooltip}
+      onInputChange={handleInputChange}
+      onSelectionChange={handleSelectionChange}
     />
   )
 }

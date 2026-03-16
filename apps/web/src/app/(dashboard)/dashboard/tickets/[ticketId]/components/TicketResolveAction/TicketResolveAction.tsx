@@ -1,7 +1,8 @@
 'use client'
 
-import { Button } from '@/ui/components/button'
 import { CheckCircle } from 'lucide-react'
+
+import { Button } from '@/ui/components/button'
 
 interface ITicketResolveActionProps {
   label: string

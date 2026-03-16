@@ -1,14 +1,8 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
-import { Button } from '@/ui/components/button'
-import { Spinner } from '@/ui/components/spinner'
-import { Typography } from '@/ui/components/typography'
-import { Stepper, type IStepItem } from '@/ui/components/stepper'
-import { useTranslation } from '@/contexts'
-import { useToast } from '@/ui/components/toast'
 import type { TWizardExecutionData } from '@packages/domain'
+
+import { useState, useCallback, useEffect } from 'react'
 import {
   useCreatePaymentConceptFull,
   useUpdatePaymentConceptFull,
@@ -18,6 +12,7 @@ import {
   useGenerateChargesBulk,
   usePaymentConceptDetail,
   usePaymentConceptServices,
+  useInterestConfigsByPaymentConcept,
   paymentConceptKeys,
   useQueryClient,
   HttpError,
@@ -30,6 +25,14 @@ import { ServicesStep } from './steps/ServicesStep'
 import { AssignmentsStep } from './steps/AssignmentsStep'
 import { BankAccountsStep } from './steps/BankAccountsStep'
 import { ReviewStep } from './steps/ReviewStep'
+
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
+import { Button } from '@/ui/components/button'
+import { Spinner } from '@/ui/components/spinner'
+import { Typography } from '@/ui/components/typography'
+import { Stepper, type IStepItem } from '@/ui/components/stepper'
+import { useTranslation } from '@/contexts'
+import { useToast } from '@/ui/components/toast'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -197,18 +200,37 @@ export function CreatePaymentConceptWizard({
     enabled: isEditMode && isOpen,
   })
 
-  // Pre-populate form when editing — wait for both concept and services to load
+  // Load interest configurations for edit mode
+  const { data: editInterestData, isFetched: editInterestFetched } =
+    useInterestConfigsByPaymentConcept({
+      paymentConceptId: editConceptId ?? '',
+      enabled: isEditMode && isOpen,
+    })
+
+  // Pre-populate form when editing — wait for concept, services, and interest configs to load
   useEffect(() => {
-    if (!isEditMode || !editConceptData?.data || !editServicesFetched || editDataLoaded) return
+    if (
+      !isEditMode ||
+      !editConceptData?.data ||
+      !editServicesFetched ||
+      !editInterestFetched ||
+      editDataLoaded
+    )
+      return
     const c = editConceptData.data
     const svcs = editServicesData?.data ?? []
+    const interestConfigs = editInterestData?.data ?? []
+    const activeInterest = interestConfigs.find((ic: any) => ic.isActive) ?? interestConfigs[0]
+
     setFormData({
       name: c.name,
       description: c.description ?? '',
       conceptType: c.conceptType,
       currencyId: c.currencyId,
       effectiveFrom: c.effectiveFrom ? new Date(c.effectiveFrom).toISOString().split('T')[0]! : '',
-      effectiveUntil: c.effectiveUntil ? new Date(c.effectiveUntil).toISOString().split('T')[0]! : '',
+      effectiveUntil: c.effectiveUntil
+        ? new Date(c.effectiveUntil).toISOString().split('T')[0]!
+        : '',
       isRecurring: c.isRecurring,
       recurrencePeriod: c.recurrencePeriod ?? 'monthly',
       chargeGenerationStrategy: 'auto',
@@ -221,14 +243,17 @@ export function CreatePaymentConceptWizard({
       earlyPaymentType: (c.earlyPaymentType as IWizardFormData['earlyPaymentType']) ?? 'none',
       earlyPaymentValue: c.earlyPaymentValue ?? undefined,
       earlyPaymentDaysBeforeDue: c.earlyPaymentDaysBeforeDue ?? 0,
-      interestEnabled: false,
-      interestType: 'simple',
-      interestRate: undefined,
-      interestCalculationPeriod: 'monthly',
-      interestGracePeriodDays: 0,
-      fixedAmount: svcs.length > 0
-        ? 0
-        : Number((c.assignments ?? []).find((a: any) => a.isActive)?.amount ?? 0),
+      interestEnabled: !!activeInterest,
+      interestType: (activeInterest?.interestType as IWizardFormData['interestType']) ?? 'simple',
+      interestRate: activeInterest?.interestRate ? Number(activeInterest.interestRate) : undefined,
+      interestCalculationPeriod:
+        (activeInterest?.calculationPeriod as IWizardFormData['interestCalculationPeriod']) ??
+        'monthly',
+      interestGracePeriodDays: activeInterest?.gracePeriodDays ?? 0,
+      fixedAmount:
+        svcs.length > 0
+          ? 0
+          : Number((c.assignments ?? []).find((a: any) => a.isActive)?.amount ?? 0),
       services: svcs.map((s: any) => ({
         serviceId: s.serviceId,
         serviceName: s.serviceName ?? s.serviceId,
@@ -248,7 +273,15 @@ export function CreatePaymentConceptWizard({
       changeReason: '',
     })
     setEditDataLoaded(true)
-  }, [isEditMode, editConceptData, editServicesFetched, editServicesData, editDataLoaded])
+  }, [
+    isEditMode,
+    editConceptData,
+    editServicesFetched,
+    editServicesData,
+    editInterestFetched,
+    editInterestData,
+    editDataLoaded,
+  ])
 
   // Reset editDataLoaded when modal closes or editConceptId changes
   useEffect(() => {
@@ -262,11 +295,12 @@ export function CreatePaymentConceptWizard({
     if (isEditMode) return
     if (!formData.currencyId && currencies.length > 0) {
       const ves = currencies.find(c => c.code === 'VES')
+
       if (ves) {
         setFormData(prev => ({ ...prev, currencyId: ves.id }))
       }
     }
-  }, [currencies, isEditMode]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currencies, isEditMode])
 
   const updateFormData = useCallback((updates: Partial<IWizardFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }))
@@ -285,22 +319,29 @@ export function CreatePaymentConceptWizard({
   }, [onClose])
 
   // Compute total amount from services or fixed amount
-  const servicesTotalAmount = formData.services.length > 0
-    ? formData.services.reduce((sum, s) => sum + s.amount, 0)
-    : formData.fixedAmount
+  const servicesTotalAmount =
+    formData.services.length > 0
+      ? formData.services.reduce((sum, s) => sum + s.amount, 0)
+      : formData.fixedAmount
 
   const canProceed = () => {
     switch (currentStep) {
       case 0: // Basic Info
-        if (!(formData.name && formData.conceptType && formData.currencyId && formData.effectiveFrom))
+        if (
+          !(formData.name && formData.conceptType && formData.currencyId && formData.effectiveFrom)
+        )
           return false
         if (formData.isRecurring && !formData.recurrencePeriod) return false
-        if (formData.isRecurring && formData.chargeGenerationStrategy === 'bulk' && !formData.effectiveUntil)
+        if (
+          formData.isRecurring &&
+          formData.chargeGenerationStrategy === 'bulk' &&
+          !formData.effectiveUntil
+        )
           return false
+
         return true
       case 1: // Charge Config
-        if (formData.issueDay == null || formData.dueDay == null)
-          return false
+        if (formData.issueDay == null || formData.dueDay == null) return false
         if (formData.latePaymentType !== 'none' && !formData.latePaymentValue) return false
         if (
           formData.earlyPaymentType !== 'none' &&
@@ -308,13 +349,17 @@ export function CreatePaymentConceptWizard({
         )
           return false
         if (formData.interestEnabled && !formData.interestRate) return false
+
         return true
       case 2: // Services
         if (SERVICES_REQUIRED_TYPES.includes(formData.conceptType as any)) {
           return formData.services.length > 0 && formData.services.every(s => !!s.execution)
         }
-        return (formData.services.length > 0 && formData.services.every(s => !!s.execution))
-          || formData.fixedAmount > 0
+
+        return (
+          (formData.services.length > 0 && formData.services.every(s => !!s.execution)) ||
+          formData.fixedAmount > 0
+        )
       case 3: // Assignments
         return formData.assignments.length > 0
       case 4: // Bank Accounts (required)
@@ -331,8 +376,16 @@ export function CreatePaymentConceptWizard({
     setIsSubmitting(true)
     try {
       // Build assignments array for the update
-      type TAssignmentInput = { scopeType: string; condominiumId: string; buildingId?: string; unitId?: string; distributionMethod: string; amount: number }
+      type TAssignmentInput = {
+        scopeType: string
+        condominiumId: string
+        buildingId?: string
+        unitId?: string
+        distributionMethod: string
+        amount: number
+      }
       const assignments: TAssignmentInput[] = []
+
       for (const a of formData.assignments) {
         if (a.scopeType === 'unit' && a.unitIds?.length) {
           for (const unitId of a.unitIds) {
@@ -390,10 +443,12 @@ export function CreatePaymentConceptWizard({
     } catch (error) {
       if (HttpError.isHttpError(error)) {
         const details = error.details
+
         if (isApiValidationError(details)) {
           const fieldMessages = details.error.fields
             .map((f: any) => f.messages.join(', '))
             .join('\n')
+
           toast.error(fieldMessages || error.message)
         } else {
           toast.error(error.message)
@@ -404,7 +459,16 @@ export function CreatePaymentConceptWizard({
     } finally {
       setIsSubmitting(false)
     }
-  }, [formData, editConceptId, condominiumId, updateConceptFull, queryClient, handleClose, toast, t])
+  }, [
+    formData,
+    editConceptId,
+    condominiumId,
+    updateConceptFull,
+    queryClient,
+    handleClose,
+    toast,
+    t,
+  ])
 
   const handleSubmitCreate = useCallback(async () => {
     setIsSubmitting(true)
@@ -496,10 +560,12 @@ export function CreatePaymentConceptWizard({
     } catch (error) {
       if (HttpError.isHttpError(error)) {
         const details = error.details
+
         if (isApiValidationError(details)) {
           const fieldMessages = details.error.fields
             .map((f: any) => f.messages.join(', '))
             .join('\n')
+
           toast.error(fieldMessages || error.message)
         } else {
           toast.error(error.message)
@@ -539,65 +605,65 @@ export function CreatePaymentConceptWizard({
       case 0:
         return (
           <BasicInfoStep
-            formData={formData}
-            onUpdate={updateFormData}
             currencies={currencies}
+            formData={formData}
             showErrors={showErrors}
+            onUpdate={updateFormData}
           />
         )
       case 1:
         return (
           <ChargeConfigStep
-            formData={formData}
-            onUpdate={updateFormData}
-            showErrors={showErrors}
             currencies={currencies}
+            formData={formData}
+            showErrors={showErrors}
+            onUpdate={updateFormData}
           />
         )
       case 2:
         return (
           <ServicesStep
-            formData={formData}
-            onUpdate={updateFormData}
             condominiumId={condominiumId}
-            managementCompanyId={managementCompanyId}
             currencies={currencies}
-            showErrors={showErrors}
+            formData={formData}
+            managementCompanyId={managementCompanyId}
             servicesRequired={SERVICES_REQUIRED_TYPES.includes(formData.conceptType as any)}
+            showErrors={showErrors}
+            onUpdate={updateFormData}
           />
         )
       case 3:
         return (
           <AssignmentsStep
-            formData={formData}
-            onUpdate={updateFormData}
             buildings={buildings}
-            currencies={currencies}
             condominiumId={condominiumId}
+            currencies={currencies}
+            formData={formData}
             managementCompanyId={managementCompanyId}
-            showErrors={showErrors}
             servicesTotalAmount={servicesTotalAmount}
+            showErrors={showErrors}
+            onUpdate={updateFormData}
           />
         )
       case 4:
         return (
           <BankAccountsStep
-            formData={formData}
-            onUpdate={updateFormData}
-            managementCompanyId={managementCompanyId}
             currencies={currencies}
+            formData={formData}
+            managementCompanyId={managementCompanyId}
             showErrors={showErrors}
+            onUpdate={updateFormData}
           />
         )
       case 5:
         return (
           <ReviewStep
-            formData={formData}
-            onUpdate={updateFormData}
-            currencies={currencies}
             buildings={buildings}
-            managementCompanyId={managementCompanyId}
+            currencies={currencies}
+            formData={formData}
             isEditMode={isEditMode}
+            managementCompanyId={managementCompanyId}
+            onUpdate={updateFormData}
           />
         )
       default:
@@ -606,18 +672,17 @@ export function CreatePaymentConceptWizard({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="3xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="3xl" onClose={handleClose}>
       <ModalContent>
         <ModalHeader className="flex flex-col gap-2">
-          <Typography variant="h4">
-            {isEditMode ? t(`${w}.editTitle`) : t(`${w}.title`)}
-          </Typography>
+          <Typography variant="h4">{isEditMode ? t(`${w}.editTitle`) : t(`${w}.title`)}</Typography>
           <Stepper
-            steps={wizardSteps}
-            currentStep={STEPS[currentStep]!}
             color="primary"
+            currentStep={STEPS[currentStep]!}
+            steps={wizardSteps}
             onStepChange={stepKey => {
               const stepIndex = STEPS.indexOf(stepKey)
+
               if (stepIndex >= 0 && stepIndex <= currentStep) {
                 setShowErrors(false)
                 setCurrentStep(stepIndex)

@@ -70,9 +70,7 @@ describe('calculateUnitCharges', function () {
         makeUnit({ id: 'u1', unitNumber: '1A' }),
         makeUnit({ id: 'u2', unitNumber: '1B' }),
       ]
-      const assignments = [
-        makeAssignment({ distributionMethod: 'equal_split', amount: 1000 }),
-      ]
+      const assignments = [makeAssignment({ distributionMethod: 'equal_split', amount: 1000 })]
       const unitsByBuilding = new Map([['bld-1', units]])
 
       const result = calculateUnitCharges(assignments, units, unitsByBuilding)
@@ -88,9 +86,7 @@ describe('calculateUnitCharges', function () {
         makeUnit({ id: 'u2', unitNumber: '1B' }),
         makeUnit({ id: 'u3', unitNumber: '1C' }),
       ]
-      const assignments = [
-        makeAssignment({ distributionMethod: 'equal_split', amount: 100 }),
-      ]
+      const assignments = [makeAssignment({ distributionMethod: 'equal_split', amount: 100 })]
       const unitsByBuilding = new Map([['bld-1', units]])
 
       const result = calculateUnitCharges(assignments, units, unitsByBuilding)
@@ -112,9 +108,7 @@ describe('calculateUnitCharges', function () {
         makeUnit({ id: 'u1', unitNumber: '1A', aliquotPercentage: '30.000000' }),
         makeUnit({ id: 'u2', unitNumber: '1B', aliquotPercentage: '70.000000' }),
       ]
-      const assignments = [
-        makeAssignment({ distributionMethod: 'by_aliquot', amount: 1000 }),
-      ]
+      const assignments = [makeAssignment({ distributionMethod: 'by_aliquot', amount: 1000 })]
       const unitsByBuilding = new Map([['bld-1', units]])
 
       const result = calculateUnitCharges(assignments, units, unitsByBuilding)
@@ -130,9 +124,7 @@ describe('calculateUnitCharges', function () {
         makeUnit({ id: 'u2', unitNumber: '1B', aliquotPercentage: '33.333333' }),
         makeUnit({ id: 'u3', unitNumber: '1C', aliquotPercentage: '33.333334' }),
       ]
-      const assignments = [
-        makeAssignment({ distributionMethod: 'by_aliquot', amount: 1000 }),
-      ]
+      const assignments = [makeAssignment({ distributionMethod: 'by_aliquot', amount: 1000 })]
       const unitsByBuilding = new Map([['bld-1', units]])
 
       const result = calculateUnitCharges(assignments, units, unitsByBuilding)
@@ -148,9 +140,7 @@ describe('calculateUnitCharges', function () {
         makeUnit({ id: 'u2', unitNumber: '1B', aliquotPercentage: null }),
         makeUnit({ id: 'u3', unitNumber: '1C', aliquotPercentage: '50.000000' }),
       ]
-      const assignments = [
-        makeAssignment({ distributionMethod: 'by_aliquot', amount: 1000 }),
-      ]
+      const assignments = [makeAssignment({ distributionMethod: 'by_aliquot', amount: 1000 })]
       const unitsByBuilding = new Map([['bld-1', units]])
 
       const result = calculateUnitCharges(assignments, units, unitsByBuilding)
@@ -241,9 +231,7 @@ describe('calculateUnitCharges', function () {
       ]
       const unitsByBuilding = new Map([['bld-1', units]])
 
-      const assignments = [
-        makeAssignment({ distributionMethod: 'fixed_per_unit', amount: 100 }),
-      ]
+      const assignments = [makeAssignment({ distributionMethod: 'fixed_per_unit', amount: 100 })]
 
       const result = calculateUnitCharges(assignments, units, unitsByBuilding)
 
@@ -254,14 +242,10 @@ describe('calculateUnitCharges', function () {
 
   describe('inactive assignments', function () {
     it('should exclude inactive assignments', function () {
-      const units: TUnitInfo[] = [
-        makeUnit({ id: 'u1', unitNumber: '1A' }),
-      ]
+      const units: TUnitInfo[] = [makeUnit({ id: 'u1', unitNumber: '1A' })]
       const unitsByBuilding = new Map([['bld-1', units]])
 
-      const assignments = [
-        makeAssignment({ isActive: false, amount: 500 }),
-      ]
+      const assignments = [makeAssignment({ isActive: false, amount: 500 })]
 
       const result = calculateUnitCharges(assignments, units, unitsByBuilding)
 
@@ -291,9 +275,7 @@ describe('calculateUnitCharges', function () {
     })
 
     it('should return null aliquotPercentage when not set', function () {
-      const units: TUnitInfo[] = [
-        makeUnit({ id: 'u1', aliquotPercentage: null }),
-      ]
+      const units: TUnitInfo[] = [makeUnit({ id: 'u1', aliquotPercentage: null })]
       const unitsByBuilding = new Map([['bld-1', units]])
       const assignments = [makeAssignment({ amount: 100 })]
 
@@ -311,12 +293,7 @@ describe('calculateUnitCharges', function () {
 describe('calculateElapsedPeriods', function () {
   describe('non-recurring concept', function () {
     it('should return single period with base amount', function () {
-      const result = calculateElapsedPeriods(
-        new Date('2025-12-01'),
-        1,
-        null,
-        500
-      )
+      const result = calculateElapsedPeriods(new Date('2025-12-01'), 1, null, 500)
 
       expect(result.periodsCount).toBe(1)
       expect(result.accumulatedAmount).toBe(500)

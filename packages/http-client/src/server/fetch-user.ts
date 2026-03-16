@@ -35,19 +35,14 @@ export async function fetchUserByFirebaseUid(
         return null
       }
       // Rate limiting or server errors - throw retryable error
-      if (response.status === StatusCodes.TOO_MANY_REQUESTS || response.status >= StatusCodes.INTERNAL_SERVER_ERROR) {
-        throw new FetchUserError(
-          `Failed to fetch user: ${response.status}`,
-          response.status,
-          true
-        )
+      if (
+        response.status === StatusCodes.TOO_MANY_REQUESTS ||
+        response.status >= StatusCodes.INTERNAL_SERVER_ERROR
+      ) {
+        throw new FetchUserError(`Failed to fetch user: ${response.status}`, response.status, true)
       }
       // Other errors - throw non-retryable error
-      throw new FetchUserError(
-        `Failed to fetch user: ${response.status}`,
-        response.status,
-        false
-      )
+      throw new FetchUserError(`Failed to fetch user: ${response.status}`, response.status, false)
     }
 
     const data = (await response.json()) as TApiDataResponse<TUser>
@@ -88,7 +83,10 @@ export async function syncUserFirebaseUid(
         return null
       }
       // Rate limiting or server errors - throw retryable error
-      if (response.status === StatusCodes.TOO_MANY_REQUESTS || response.status >= StatusCodes.INTERNAL_SERVER_ERROR) {
+      if (
+        response.status === StatusCodes.TOO_MANY_REQUESTS ||
+        response.status >= StatusCodes.INTERNAL_SERVER_ERROR
+      ) {
         throw new FetchUserError(
           `Failed to sync Firebase UID: ${response.status}`,
           response.status,

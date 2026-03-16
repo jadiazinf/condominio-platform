@@ -4,20 +4,30 @@ import { useState, useEffect, useCallback } from 'react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { createUserWithInvitation, useRoleByName, useAddMember } from '@packages/http-client/hooks'
+
 import { Button } from '@/ui/components/button'
 import { useAuth, useTranslation } from '@/contexts'
-import { createUserWithInvitation, useRoleByName, useAddMember } from '@packages/http-client/hooks'
 import { useToast } from '@/ui/components/toast'
 import { UserBasicInfoFields } from '@/ui/components/forms'
 
 const formSchema = z.object({
-  email: z.string().min(1, 'superadmin.users.create.validation.email.required').email('superadmin.users.create.validation.email.invalid'),
+  email: z
+    .string()
+    .min(1, 'superadmin.users.create.validation.email.required')
+    .email('superadmin.users.create.validation.email.invalid'),
   firstName: z.string().min(1, 'superadmin.users.create.validation.firstName.required'),
   lastName: z.string().min(1, 'superadmin.users.create.validation.lastName.required'),
-  phoneCountryCode: z.string().min(1, 'superadmin.users.create.validation.phoneCountryCode.required'),
+  phoneCountryCode: z
+    .string()
+    .min(1, 'superadmin.users.create.validation.phoneCountryCode.required'),
   phoneNumber: z.string().min(1, 'superadmin.users.create.validation.phoneNumber.required'),
-  idDocumentType: z.enum(['J', 'G', 'V', 'E', 'P'], { message: 'superadmin.users.create.validation.idDocumentType.required' }),
-  idDocumentNumber: z.string().min(1, 'superadmin.users.create.validation.idDocumentNumber.required'),
+  idDocumentType: z.enum(['J', 'G', 'V', 'E', 'P'], {
+    message: 'superadmin.users.create.validation.idDocumentType.required',
+  }),
+  idDocumentNumber: z
+    .string()
+    .min(1, 'superadmin.users.create.validation.idDocumentNumber.required'),
 })
 
 type TFormData = z.infer<typeof formSchema>
@@ -73,6 +83,7 @@ export function CreateMemberUserForm({ companyId, onSuccess, onClose }: CreateMe
   const handleSubmit = async (data: TFormData) => {
     if (!token || !userRoleData?.data?.id) {
       toast.error(t('superadmin.companies.detail.members.error.config'))
+
       return
     }
 
@@ -106,7 +117,11 @@ export function CreateMemberUserForm({ companyId, onSuccess, onClose }: CreateMe
       onSuccess()
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: string } }; message?: string }
-      const errorMessage = err?.response?.data?.error || err.message || t('superadmin.companies.detail.members.error.create')
+      const errorMessage =
+        err?.response?.data?.error ||
+        err.message ||
+        t('superadmin.companies.detail.members.error.create')
+
       toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
@@ -116,6 +131,7 @@ export function CreateMemberUserForm({ companyId, onSuccess, onClose }: CreateMe
   const translateError = useCallback(
     (message: string | undefined): string | undefined => {
       if (!message) return undefined
+
       return t(message)
     },
     [t]
@@ -123,9 +139,8 @@ export function CreateMemberUserForm({ companyId, onSuccess, onClose }: CreateMe
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 pt-4">
+      <form className="space-y-6 pt-4" onSubmit={form.handleSubmit(handleSubmit)}>
         <UserBasicInfoFields
-          translateError={translateError}
           labels={{
             email: t('superadmin.users.create.fields.email'),
             emailPlaceholder: t('superadmin.users.create.fields.emailPlaceholder'),
@@ -139,11 +154,16 @@ export function CreateMemberUserForm({ companyId, onSuccess, onClose }: CreateMe
             phone: t('superadmin.users.create.fields.phone'),
             phoneTooltip: t('superadmin.users.create.fields.phoneDescription'),
             idDocument: t('superadmin.users.create.fields.idDocument'),
-            idDocumentTypePlaceholder: t('superadmin.users.create.fields.idDocumentTypePlaceholder'),
-            idDocumentNumberPlaceholder: t('superadmin.users.create.fields.idDocumentNumberPlaceholder'),
+            idDocumentTypePlaceholder: t(
+              'superadmin.users.create.fields.idDocumentTypePlaceholder'
+            ),
+            idDocumentNumberPlaceholder: t(
+              'superadmin.users.create.fields.idDocumentNumberPlaceholder'
+            ),
             idDocumentTooltip: t('superadmin.users.create.fields.idDocumentDescription'),
           }}
           showDocumentFields={true}
+          translateError={translateError}
         />
 
         <p className="text-sm text-default-500">
@@ -151,14 +171,10 @@ export function CreateMemberUserForm({ companyId, onSuccess, onClose }: CreateMe
         </p>
 
         <div className="flex justify-end gap-2 pt-4">
-          <Button variant="flat" type="button" onPress={onClose}>
+          <Button type="button" variant="flat" onPress={onClose}>
             {t('common.cancel')}
           </Button>
-          <Button
-            color="primary"
-            type="submit"
-            isLoading={isSubmitting}
-          >
+          <Button color="primary" isLoading={isSubmitting} type="submit">
             {t('superadmin.companies.detail.members.modal.createAndAdd')}
           </Button>
         </div>

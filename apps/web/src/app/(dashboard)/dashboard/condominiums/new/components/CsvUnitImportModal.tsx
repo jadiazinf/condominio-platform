@@ -1,5 +1,7 @@
 'use client'
 
+import type { TLocalUnit } from '../hooks/useCreateCondominiumWizard'
+
 import { useState, useCallback, useRef } from 'react'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/modal'
 import { Button } from '@heroui/button'
@@ -8,7 +10,6 @@ import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle2 } from 'lu
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
-import type { TLocalUnit } from '../hooks/useCreateCondominiumWizard'
 
 interface CsvUnitImportModalProps {
   isOpen: boolean
@@ -57,11 +58,12 @@ function parseCsvContent(content: string): ParseResult {
 
   const lines = content
     .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
 
   if (lines.length === 0) {
     errors.push('csv.empty')
+
     return { rows, errors, warnings }
   }
 
@@ -70,24 +72,29 @@ function parseCsvContent(content: string): ParseResult {
   const separator = firstLine.includes(';') ? ';' : ','
 
   // Check if first line is header
-  const firstFields = firstLine.split(separator).map((f) => f.trim().toLowerCase())
-  const hasHeader = firstFields.includes('unitnumber') || firstFields.includes('unit_number') || firstFields.includes('unidad')
+  const firstFields = firstLine.split(separator).map(f => f.trim().toLowerCase())
+  const hasHeader =
+    firstFields.includes('unitnumber') ||
+    firstFields.includes('unit_number') ||
+    firstFields.includes('unidad')
 
   const dataLines = hasHeader ? lines.slice(1) : lines
 
   for (let i = 0; i < dataLines.length; i++) {
     const lineNum = hasHeader ? i + 2 : i + 1
-    const fields = dataLines[i].split(separator).map((f) => f.trim())
+    const fields = dataLines[i].split(separator).map(f => f.trim())
 
     if (fields.length === 0 || (fields.length === 1 && fields[0] === '')) continue
 
     const unitNumber = fields[0]
+
     if (!unitNumber) {
       errors.push(`line_${lineNum}_missing_unit_number`)
       continue
     }
 
     const floor = fields[1] ? Number(fields[1]) : null
+
     if (fields[1] && isNaN(floor!)) {
       warnings.push(`line_${lineNum}_invalid_floor`)
     }
@@ -104,7 +111,8 @@ function parseCsvContent(content: string): ParseResult {
       areaM2,
       bedrooms: bedrooms !== null && !isNaN(bedrooms) ? bedrooms : null,
       bathrooms: bathrooms !== null && !isNaN(bathrooms) ? bathrooms : null,
-      parkingSpaces: parkingSpaces !== undefined && !isNaN(parkingSpaces) ? parkingSpaces : undefined,
+      parkingSpaces:
+        parkingSpaces !== undefined && !isNaN(parkingSpaces) ? parkingSpaces : undefined,
       aliquotPercentage,
     })
   }
@@ -120,6 +128,7 @@ function downloadCsvTemplate() {
   const blob = new Blob([CSV_TEMPLATE], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
+
   link.href = url
   link.download = 'units_template.csv'
   link.click()
@@ -139,31 +148,31 @@ export function CsvUnitImportModal({
   const [parseResult, setParseResult] = useState<ParseResult | null>(null)
   const [fileName, setFileName] = useState<string>('')
 
-  const handleFileChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (!file) return
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
 
-      setFileName(file.name)
+    if (!file) return
 
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        const content = event.target?.result as string
-        const result = parseCsvContent(content)
-        setParseResult(result)
-      }
-      reader.readAsText(file)
+    setFileName(file.name)
 
-      // Reset input so same file can be re-selected
-      e.target.value = ''
-    },
-    []
-  )
+    const reader = new FileReader()
+
+    reader.onload = event => {
+      const content = event.target?.result as string
+      const result = parseCsvContent(content)
+
+      setParseResult(result)
+    }
+    reader.readAsText(file)
+
+    // Reset input so same file can be re-selected
+    e.target.value = ''
+  }, [])
 
   const handleImport = useCallback(() => {
     if (!parseResult || parseResult.rows.length === 0) return
 
-    const units: Omit<TLocalUnit, 'tempId'>[] = parseResult.rows.map((row) => ({
+    const units: Omit<TLocalUnit, 'tempId'>[] = parseResult.rows.map(row => ({
       buildingTempId,
       unitNumber: row.unitNumber,
       floor: row.floor,
@@ -189,7 +198,7 @@ export function CsvUnitImportModal({
   }, [onClose])
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="2xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="2xl" onClose={handleClose}>
       <ModalContent>
         <ModalHeader>
           <div className="flex flex-col">
@@ -201,43 +210,64 @@ export function CsvUnitImportModal({
           <div className="flex flex-col gap-5">
             {/* Instructions */}
             <div className="rounded-lg border border-default-200 p-4">
-              <Typography variant="subtitle2" className="font-medium mb-2">
+              <Typography className="font-medium mb-2" variant="subtitle2">
                 {t('superadmin.condominiums.wizard.csv.instructions')}
               </Typography>
               <div className="flex flex-col gap-2 text-sm text-default-600">
                 <p>{t('superadmin.condominiums.wizard.csv.instructionsDesc')}</p>
                 <div className="mt-1">
-                  <Typography variant="caption" className="font-medium text-default-700 block mb-1">
+                  <Typography className="font-medium text-default-700 block mb-1" variant="caption">
                     {t('superadmin.condominiums.wizard.csv.columns')}
                   </Typography>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                     <div>
                       <span className="font-mono font-medium text-success">unitNumber</span>
-                      <span className="text-default-400"> — {t('superadmin.condominiums.wizard.csv.colUnitNumber')}</span>
+                      <span className="text-default-400">
+                        {' '}
+                        — {t('superadmin.condominiums.wizard.csv.colUnitNumber')}
+                      </span>
                     </div>
                     <div>
                       <span className="font-mono font-medium">floor</span>
-                      <span className="text-default-400"> — {t('superadmin.condominiums.wizard.csv.colFloor')}</span>
+                      <span className="text-default-400">
+                        {' '}
+                        — {t('superadmin.condominiums.wizard.csv.colFloor')}
+                      </span>
                     </div>
                     <div>
                       <span className="font-mono font-medium">areaM2</span>
-                      <span className="text-default-400"> — {t('superadmin.condominiums.wizard.csv.colArea')}</span>
+                      <span className="text-default-400">
+                        {' '}
+                        — {t('superadmin.condominiums.wizard.csv.colArea')}
+                      </span>
                     </div>
                     <div>
                       <span className="font-mono font-medium">bedrooms</span>
-                      <span className="text-default-400"> — {t('superadmin.condominiums.wizard.csv.colBedrooms')}</span>
+                      <span className="text-default-400">
+                        {' '}
+                        — {t('superadmin.condominiums.wizard.csv.colBedrooms')}
+                      </span>
                     </div>
                     <div>
                       <span className="font-mono font-medium">bathrooms</span>
-                      <span className="text-default-400"> — {t('superadmin.condominiums.wizard.csv.colBathrooms')}</span>
+                      <span className="text-default-400">
+                        {' '}
+                        — {t('superadmin.condominiums.wizard.csv.colBathrooms')}
+                      </span>
                     </div>
                     <div>
                       <span className="font-mono font-medium">parkingSpaces</span>
-                      <span className="text-default-400"> — {t('superadmin.condominiums.wizard.csv.colParking')}</span>
+                      <span className="text-default-400">
+                        {' '}
+                        — {t('superadmin.condominiums.wizard.csv.colParking')}
+                      </span>
                     </div>
                     <div>
                       <span className="font-mono font-medium">aliquotPercentage</span>
-                      <span className="text-default-400"> — {t('superadmin.condominiums.wizard.csv.colAliquot')}</span>
+                      <span className="text-default-400">
+                        {' '}
+                        — {t('superadmin.condominiums.wizard.csv.colAliquot')}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -249,11 +279,11 @@ export function CsvUnitImportModal({
 
             {/* Download Template */}
             <Button
-              variant="flat"
+              className="self-start"
               color="default"
               startContent={<Download size={16} />}
+              variant="flat"
               onPress={downloadCsvTemplate}
-              className="self-start"
             >
               {t('superadmin.condominiums.wizard.csv.downloadTemplate')}
             </Button>
@@ -264,17 +294,17 @@ export function CsvUnitImportModal({
             <div>
               <input
                 ref={fileInputRef}
-                type="file"
                 accept=".csv,.txt"
-                onChange={handleFileChange}
                 className="hidden"
+                type="file"
+                onChange={handleFileChange}
               />
               <Button
-                variant="bordered"
-                startContent={<Upload size={16} />}
-                onPress={() => fileInputRef.current?.click()}
                 className="w-full"
                 size="lg"
+                startContent={<Upload size={16} />}
+                variant="bordered"
+                onPress={() => fileInputRef.current?.click()}
               >
                 {fileName || t('superadmin.condominiums.wizard.csv.selectFile')}
               </Button>
@@ -287,8 +317,8 @@ export function CsvUnitImportModal({
                 {parseResult.errors.length > 0 && (
                   <div className="rounded-lg border border-danger-200 bg-danger-50/50 p-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <AlertCircle size={14} className="text-danger" />
-                      <Typography variant="caption" className="font-medium text-danger">
+                      <AlertCircle className="text-danger" size={14} />
+                      <Typography className="font-medium text-danger" variant="caption">
                         {t('superadmin.condominiums.wizard.csv.errors')}
                       </Typography>
                     </div>
@@ -304,8 +334,8 @@ export function CsvUnitImportModal({
                 {parseResult.warnings.length > 0 && (
                   <div className="rounded-lg border border-warning-200 bg-warning-50/50 p-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <AlertCircle size={14} className="text-warning" />
-                      <Typography variant="caption" className="font-medium text-warning">
+                      <AlertCircle className="text-warning" size={14} />
+                      <Typography className="font-medium text-warning" variant="caption">
                         {t('superadmin.condominiums.wizard.csv.warnings')}
                       </Typography>
                     </div>
@@ -321,20 +351,31 @@ export function CsvUnitImportModal({
                 {parseResult.rows.length > 0 && (
                   <div className="rounded-lg border border-success-200 bg-success-50/50 p-3">
                     <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle2 size={14} className="text-success" />
-                      <Typography variant="caption" className="font-medium text-success">
-                        {parseResult.rows.length} {t('superadmin.condominiums.wizard.csv.unitsFound')}
+                      <CheckCircle2 className="text-success" size={14} />
+                      <Typography className="font-medium text-success" variant="caption">
+                        {parseResult.rows.length}{' '}
+                        {t('superadmin.condominiums.wizard.csv.unitsFound')}
                       </Typography>
                     </div>
                     <div className="max-h-40 overflow-auto">
                       <table className="w-full text-xs">
                         <thead>
                           <tr className="border-b border-success-200">
-                            <th className="text-left py-1 px-1 font-medium">{t('superadmin.condominiums.detail.units.form.unitNumber')}</th>
-                            <th className="text-left py-1 px-1 font-medium">{t('superadmin.condominiums.detail.units.form.floor')}</th>
-                            <th className="text-left py-1 px-1 font-medium">{t('superadmin.condominiums.detail.units.form.area')}</th>
-                            <th className="text-left py-1 px-1 font-medium">{t('superadmin.condominiums.detail.units.form.bedrooms')}</th>
-                            <th className="text-left py-1 px-1 font-medium">{t('superadmin.condominiums.detail.units.form.bathrooms')}</th>
+                            <th className="text-left py-1 px-1 font-medium">
+                              {t('superadmin.condominiums.detail.units.form.unitNumber')}
+                            </th>
+                            <th className="text-left py-1 px-1 font-medium">
+                              {t('superadmin.condominiums.detail.units.form.floor')}
+                            </th>
+                            <th className="text-left py-1 px-1 font-medium">
+                              {t('superadmin.condominiums.detail.units.form.area')}
+                            </th>
+                            <th className="text-left py-1 px-1 font-medium">
+                              {t('superadmin.condominiums.detail.units.form.bedrooms')}
+                            </th>
+                            <th className="text-left py-1 px-1 font-medium">
+                              {t('superadmin.condominiums.detail.units.form.bathrooms')}
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
@@ -350,8 +391,9 @@ export function CsvUnitImportModal({
                         </tbody>
                       </table>
                       {parseResult.rows.length > 10 && (
-                        <Typography variant="caption" className="text-default-400 mt-1 block">
-                          +{parseResult.rows.length - 10} {t('superadmin.condominiums.wizard.bulk.more')}
+                        <Typography className="text-default-400 mt-1 block" variant="caption">
+                          +{parseResult.rows.length - 10}{' '}
+                          {t('superadmin.condominiums.wizard.bulk.more')}
                         </Typography>
                       )}
                     </div>
@@ -367,11 +409,15 @@ export function CsvUnitImportModal({
           </Button>
           <Button
             color="success"
-            onPress={handleImport}
-            isDisabled={!parseResult || parseResult.rows.length === 0 || parseResult.errors.length > 0}
+            isDisabled={
+              !parseResult || parseResult.rows.length === 0 || parseResult.errors.length > 0
+            }
             startContent={<FileSpreadsheet size={16} />}
+            onPress={handleImport}
           >
-            {t('superadmin.condominiums.wizard.csv.import', { count: parseResult?.rows.length ?? 0 })}
+            {t('superadmin.condominiums.wizard.csv.import', {
+              count: parseResult?.rows.length ?? 0,
+            })}
           </Button>
         </ModalFooter>
       </ModalContent>

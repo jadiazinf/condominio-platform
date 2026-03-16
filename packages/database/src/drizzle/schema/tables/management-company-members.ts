@@ -1,19 +1,8 @@
-import {
-  pgTable,
-  uuid,
-  varchar,
-  jsonb,
-  timestamp,
-  boolean,
-  index,
-  uniqueIndex,
-  check,
-} from 'drizzle-orm/pg-core'
+import { pgTable, uuid, jsonb, timestamp, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core'
 import { managementCompanies } from './management-companies'
 import { users } from './users'
 import { userRoles } from './user-roles'
 import { memberRoleEnum } from '../enums'
-import { sql } from 'drizzle-orm'
 
 export const managementCompanyMembers = pgTable(
   'management_company_members',

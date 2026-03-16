@@ -41,7 +41,8 @@ export class ValidateSubscriptionLimitsService {
     const { managementCompanyId, resourceType, requestedCount = 1 } = input
 
     // 1. Get active subscription
-    const subscription = await this.subscriptionsRepository.getActiveByCompanyId(managementCompanyId)
+    const subscription =
+      await this.subscriptionsRepository.getActiveByCompanyId(managementCompanyId)
 
     if (!subscription) {
       return failure('No active subscription found for this management company', 'NOT_FOUND')

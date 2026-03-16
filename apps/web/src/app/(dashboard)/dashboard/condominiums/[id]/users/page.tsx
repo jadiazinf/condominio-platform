@@ -1,12 +1,14 @@
 import type { TCondominiumAccessCode } from '@packages/domain'
 
+import { getCondominiumUsers, getActiveAccessCode } from '@packages/http-client/hooks'
+
+import { AccessCodeSection } from '../buildings/components'
+
+import { CondominiumUsersTable } from './components'
+
 import { getTranslations } from '@/libs/i18n/server'
 import { getServerAuthToken, getFullSession } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
-
-import { CondominiumUsersTable } from './components'
-import { AccessCodeSection } from '../buildings/components'
-import { getCondominiumUsers, getActiveAccessCode } from '@packages/http-client/hooks'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -14,22 +16,29 @@ interface PageProps {
 
 export default async function CondominiumUsersPage({ params }: PageProps) {
   const { id } = await params
-  const [{ t }, token, session] = await Promise.all([getTranslations(), getServerAuthToken(), getFullSession()])
+  const [{ t }, token, session] = await Promise.all([
+    getTranslations(),
+    getServerAuthToken(),
+    getFullSession(),
+  ])
 
-  const managementCompanyId = session?.activeRole === 'management_company'
-    ? session.managementCompanies?.[0]?.managementCompanyId
-    : undefined
+  const managementCompanyId =
+    session?.activeRole === 'management_company'
+      ? session.managementCompanies?.[0]?.managementCompanyId
+      : undefined
 
   const isAdmin = session?.activeRole === 'management_company'
 
   // Fetch users and access code server-side
   let users: Awaited<ReturnType<typeof getCondominiumUsers>> = []
   let activeAccessCode: TCondominiumAccessCode | null = null
+
   try {
     const [usersResult, codeResult] = await Promise.all([
       getCondominiumUsers(token, id),
       getActiveAccessCode(token, id, managementCompanyId).catch(() => null),
     ])
+
     users = usersResult
     activeAccessCode = codeResult
   } catch (error) {
@@ -95,7 +104,7 @@ export default async function CondominiumUsersPage({ params }: PageProps) {
       <div className="flex items-center justify-between">
         <div>
           <Typography variant="h3">{translations.title}</Typography>
-          <Typography color="muted" variant="body2" className="mt-1">
+          <Typography className="mt-1" color="muted" variant="body2">
             {translations.subtitle}
           </Typography>
         </div>
@@ -109,11 +118,7 @@ export default async function CondominiumUsersPage({ params }: PageProps) {
         />
       )}
 
-      <CondominiumUsersTable
-        users={users}
-        condominiumId={id}
-        translations={translations}
-      />
+      <CondominiumUsersTable condominiumId={id} translations={translations} users={users} />
     </div>
   )
 }

@@ -1,9 +1,12 @@
 'use client'
 
+import type {
+  TManagementCompanySubscriptionCreate,
+  TManagementCompanySubscription,
+} from '@packages/domain'
+
 import { useState, useCallback, useMemo, useRef } from 'react'
 import { useForm } from 'react-hook-form'
-import { useToast } from '@/ui/components/toast'
-import { useTranslation } from '@/contexts'
 import {
   useCreateSubscription,
   useCancelSubscription,
@@ -11,7 +14,9 @@ import {
   managementCompanySubscriptionKeys,
   useQueryClient,
 } from '@packages/http-client'
-import type { TManagementCompanySubscriptionCreate, TManagementCompanySubscription } from '@packages/domain'
+
+import { useToast } from '@/ui/components/toast'
+import { useTranslation } from '@/contexts'
 
 type TBillingCycle = 'monthly' | 'quarterly' | 'semi_annual' | 'annual' | 'custom'
 type TSubscriptionStatus = 'trial' | 'active' | 'inactive' | 'cancelled' | 'suspended'
@@ -89,18 +94,22 @@ export function useSubscriptionForm({
 
   const activeSubscription: TManagementCompanySubscription | null = useMemo(() => {
     const sub = activeSubscriptionData?.data
+
     if (!sub) return null
     // Only consider active or trial subscriptions as "active"
     if (sub.status === 'active' || sub.status === 'trial') {
       return sub
     }
+
     return null
   }, [activeSubscriptionData])
 
   const form = useForm<ISubscriptionFormData>({
     mode: 'onBlur',
     defaultValues: {
-      subscriptionName: t('superadmin.companies.subscription.form.fields.subscriptionNameOptions.basic'),
+      subscriptionName: t(
+        'superadmin.companies.subscription.form.fields.subscriptionNameOptions.basic'
+      ),
       billingCycle: 'monthly',
       basePrice: '',
       status: 'inactive',
@@ -154,7 +163,7 @@ export function useSubscriptionForm({
       pendingSubscriptionDataRef.current = null
       onClose()
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || t('superadmin.companies.subscription.createError'))
       setIsReplacing(false)
     },
@@ -167,7 +176,7 @@ export function useSubscriptionForm({
         createSubscription(pendingSubscriptionDataRef.current)
       }
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || t('superadmin.companies.subscription.cancelError'))
       setIsReplacing(false)
       pendingSubscriptionDataRef.current = null
@@ -197,12 +206,14 @@ export function useSubscriptionForm({
     // Block advancement from pricing step if there's a pricing error (e.g., no rates configured)
     if (currentStep === 'pricing') {
       const hasPricingError = getValues('pricingError')
+
       if (hasPricingError) {
         return false
       }
     }
 
     if (fields.length === 0) return true
+
     return await trigger(fields)
   }, [currentStep, trigger, getValues])
 
@@ -210,17 +221,21 @@ export function useSubscriptionForm({
     // Check for pricing error before validation to show appropriate toast
     if (currentStep === 'pricing') {
       const hasPricingError = getValues('pricingError')
+
       if (hasPricingError) {
         toast.error(t('superadmin.companies.subscription.form.pricing.resetNoRates'))
+
         return
       }
     }
 
     const isValid = await validateCurrentStep()
+
     if (isValid && currentStepIndex < STEPS.length - 1) {
       const nextIndex = currentStepIndex + 1
+
       setCurrentStepIndex(nextIndex)
-      setTouchedSteps((prev) => new Set([...Array.from(prev), nextIndex]))
+      setTouchedSteps(prev => new Set([...Array.from(prev), nextIndex]))
     }
   }, [currentStepIndex, currentStep, validateCurrentStep, getValues, toast, t])
 
@@ -233,11 +248,13 @@ export function useSubscriptionForm({
   const goToStep = useCallback(
     async (step: TSubscriptionStep) => {
       const targetIndex = STEPS.indexOf(step)
+
       if (targetIndex < 0) return
 
       // Can always go back
       if (targetIndex < currentStepIndex) {
         setCurrentStepIndex(targetIndex)
+
         return
       }
 
@@ -245,69 +262,75 @@ export function useSubscriptionForm({
       for (let i = currentStepIndex; i < targetIndex; i++) {
         const stepToValidate = STEPS[i]
         const fields = stepFields[stepToValidate]
+
         if (fields.length > 0) {
           const isValid = await trigger(fields)
+
           if (!isValid) {
             setCurrentStepIndex(i)
+
             return
           }
         }
       }
 
       setCurrentStepIndex(targetIndex)
-      setTouchedSteps((prev) => new Set([...Array.from(prev), targetIndex]))
+      setTouchedSteps(prev => new Set([...Array.from(prev), targetIndex]))
     },
     [currentStepIndex, trigger]
   )
 
   // Build subscription data from form values
-  const buildSubscriptionData = useCallback((data: ISubscriptionFormData): TManagementCompanySubscriptionCreate => {
-    return {
-      managementCompanyId: companyId,
-      subscriptionName: data.subscriptionName || null,
-      billingCycle: data.billingCycle,
-      basePrice: parseFloat(data.basePrice),
-      currencyId: null,
-      maxCondominiums: parseInt(data.maxCondominiums),
-      maxUnits: parseInt(data.maxUnits),
-      maxUsers: parseInt(data.maxUsers),
-      maxStorageGb: parseInt(data.maxStorageGb),
-      customFeatures:
-        Object.keys(data.customFeatures).length > 0 ? data.customFeatures : null,
-      customRules: null,
-      status: data.status,
-      startDate: new Date(data.startDate),
-      endDate: data.endDate ? new Date(data.endDate) : null,
-      nextBillingDate: null,
-      trialEndsAt: data.trialEndsAt ? new Date(data.trialEndsAt) : null,
-      autoRenew: data.autoRenew,
-      notes: data.notes || null,
-      createdBy,
-      cancelledAt: null,
-      cancelledBy: null,
-      cancellationReason: null,
-      // Pricing details for historical record
-      pricingCondominiumCount: data.pricingCondominiumCount,
-      pricingUnitCount: data.pricingUnitCount,
-      pricingCondominiumRate: data.pricingCondominiumRate,
-      pricingUnitRate: data.pricingUnitRate,
-      calculatedPrice: data.calculatedPrice,
-      discountType: data.discountType === 'none' ? null : data.discountType,
-      discountValue: data.discountValue ? parseFloat(data.discountValue) : null,
-      discountAmount: data.discountAmount,
-      pricingNotes: data.pricingNotes || null,
-      rateId: data.rateId,
-    }
-  }, [companyId, createdBy])
+  const buildSubscriptionData = useCallback(
+    (data: ISubscriptionFormData): TManagementCompanySubscriptionCreate => {
+      return {
+        managementCompanyId: companyId,
+        subscriptionName: data.subscriptionName || null,
+        billingCycle: data.billingCycle,
+        basePrice: parseFloat(data.basePrice),
+        currencyId: null,
+        maxCondominiums: parseInt(data.maxCondominiums),
+        maxUnits: parseInt(data.maxUnits),
+        maxUsers: parseInt(data.maxUsers),
+        maxStorageGb: parseInt(data.maxStorageGb),
+        customFeatures: Object.keys(data.customFeatures).length > 0 ? data.customFeatures : null,
+        customRules: null,
+        status: data.status,
+        startDate: new Date(data.startDate),
+        endDate: data.endDate ? new Date(data.endDate) : null,
+        nextBillingDate: null,
+        trialEndsAt: data.trialEndsAt ? new Date(data.trialEndsAt) : null,
+        autoRenew: data.autoRenew,
+        notes: data.notes || null,
+        createdBy,
+        cancelledAt: null,
+        cancelledBy: null,
+        cancellationReason: null,
+        // Pricing details for historical record
+        pricingCondominiumCount: data.pricingCondominiumCount,
+        pricingUnitCount: data.pricingUnitCount,
+        pricingCondominiumRate: data.pricingCondominiumRate,
+        pricingUnitRate: data.pricingUnitRate,
+        calculatedPrice: data.calculatedPrice,
+        discountType: data.discountType === 'none' ? null : data.discountType,
+        discountValue: data.discountValue ? parseFloat(data.discountValue) : null,
+        discountAmount: data.discountAmount,
+        pricingNotes: data.pricingNotes || null,
+        rateId: data.rateId,
+      }
+    },
+    [companyId, createdBy]
+  )
 
   const handleSubmit = useCallback(() => {
-    rhfHandleSubmit((data) => {
+    rhfHandleSubmit(data => {
       const subscriptionData = buildSubscriptionData(data)
 
       // If there's an active subscription, show replacement modal
       if (activeSubscription) {
         pendingSubscriptionDataRef.current = subscriptionData
         setShowReplaceModal(true)
+
         return
       }
 
@@ -346,14 +369,20 @@ export function useSubscriptionForm({
   const translateError = useCallback(
     (field: keyof ISubscriptionFormData): string | undefined => {
       const error = errors[field]
+
       if (!error?.message) return undefined
+
       return error.message as string
     },
     [errors]
   )
 
   const steps = useMemo(
-    () => STEPS.map((step) => ({ key: step, title: t(`superadmin.companies.subscription.form.steps.${step}`) })),
+    () =>
+      STEPS.map(step => ({
+        key: step,
+        title: t(`superadmin.companies.subscription.form.steps.${step}`),
+      })),
     [t]
   )
 

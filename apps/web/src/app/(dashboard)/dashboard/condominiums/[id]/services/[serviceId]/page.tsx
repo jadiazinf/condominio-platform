@@ -2,10 +2,11 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 
+import { ServiceDetailPageClient } from './components/ServiceDetailPageClient'
+
 import { Button } from '@/ui/components/button'
 import { getFullSession } from '@/libs/session'
 import { getTranslations } from '@/libs/i18n/server'
-import { ServiceDetailPageClient } from './components/ServiceDetailPageClient'
 
 interface PageProps {
   params: Promise<{ id: string; serviceId: string }>
@@ -17,7 +18,7 @@ async function ServiceDetailContent({ params }: PageProps) {
 
   const managementCompanyId =
     session?.activeRole === 'management_company'
-      ? session.managementCompanies?.[0]?.managementCompanyId ?? ''
+      ? (session.managementCompanies?.[0]?.managementCompanyId ?? '')
       : ''
 
   if (!managementCompanyId) {
@@ -31,16 +32,16 @@ async function ServiceDetailContent({ params }: PageProps) {
       <Button
         className="mb-2"
         href={`/dashboard/condominiums/${id}/services`}
-        variant="light"
         startContent={<ArrowLeft size={16} />}
+        variant="light"
       >
         {t(`${w}.title`)}
       </Button>
 
       <ServiceDetailPageClient
         condominiumId={id}
-        serviceId={serviceId}
         managementCompanyId={managementCompanyId}
+        serviceId={serviceId}
       />
     </div>
   )

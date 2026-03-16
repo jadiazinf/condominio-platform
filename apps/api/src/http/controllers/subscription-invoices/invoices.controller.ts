@@ -8,13 +8,15 @@ import {
 import type { SubscriptionInvoicesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
-import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
+import {
+  bodyValidator,
+  paramsValidator,
+  queryValidator,
+} from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
-import {
-  MarkInvoicePaidService,
-} from '../../../services/subscription-invoices'
+import { MarkInvoicePaidService } from '../../../services/subscription-invoices'
 
 const CompanyIdParamSchema = z.object({
   companyId: z.string().uuid('Invalid company ID format'),
@@ -23,7 +25,9 @@ const CompanyIdParamSchema = z.object({
 type TCompanyIdParam = z.infer<typeof CompanyIdParamSchema>
 
 const InvoicesQuerySchema = z.object({
-  status: z.enum(['draft', 'sent', 'pending', 'paid', 'overdue', 'cancelled', 'refunded']).optional(),
+  status: z
+    .enum(['draft', 'sent', 'pending', 'paid', 'overdue', 'cancelled', 'refunded'])
+    .optional(),
   dateFrom: z.coerce.date().optional(),
   dateTo: z.coerce.date().optional(),
 })
@@ -55,7 +59,6 @@ export class SubscriptionInvoicesController extends BaseController<
   constructor(repository: SubscriptionInvoicesRepository) {
     super(repository)
     this.markPaidService = new MarkInvoicePaidService(repository)
-
   }
 
   get routes(): TRouteDefinition[] {
@@ -64,19 +67,33 @@ export class SubscriptionInvoicesController extends BaseController<
         method: 'get',
         path: '/platform/management-companies/:companyId/invoices',
         handler: this.getInvoicesByCompany,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(CompanyIdParamSchema), queryValidator(InvoicesQuerySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(CompanyIdParamSchema),
+          queryValidator(InvoicesQuerySchema),
+        ],
       },
       {
         method: 'get',
         path: '/platform/subscription-invoices/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'patch',
         path: '/platform/subscription-invoices/:id/mark-paid',
         handler: this.markInvoicePaid,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(MarkPaidBodySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+          bodyValidator(MarkPaidBodySchema),
+        ],
       },
     ]
   }

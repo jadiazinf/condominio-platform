@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
-import { getTranslations } from '@/libs/i18n/server'
 import { Building2 } from 'lucide-react'
-
 import { getUserFullDetails } from '@packages/http-client/hooks'
+
+import { getTranslations } from '@/libs/i18n/server'
 import { getServerAuthToken } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
 import { Card } from '@/ui/components/card'
@@ -32,7 +32,7 @@ export default async function UserCondominiumsPage({ params }: PageProps) {
     <div className="space-y-6">
       <div>
         <Typography variant="h3">{t('superadmin.users.detail.condominiums.title')}</Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
+        <Typography className="mt-1" color="muted" variant="body2">
           {t('superadmin.users.detail.condominiums.subtitle')}
         </Typography>
       </div>
@@ -53,22 +53,22 @@ export default async function UserCondominiumsPage({ params }: PageProps) {
                   <div className="flex items-center gap-2">
                     <Typography variant="h4">{condominium.name}</Typography>
                     {condominium.code && (
-                      <Chip size="sm" variant="flat" color="default">
+                      <Chip color="default" size="sm" variant="flat">
                         {condominium.code}
                       </Chip>
                     )}
                   </div>
 
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <Typography color="muted" variant="body2" className="mr-2">
+                    <Typography className="mr-2" color="muted" variant="body2">
                       {t('superadmin.users.detail.condominiums.roles')}:
                     </Typography>
                     {condominium.roles.map((role, index) => (
                       <Chip
                         key={index}
+                        color={role.isActive ? 'primary' : 'default'}
                         size="sm"
                         variant="flat"
-                        color={role.isActive ? 'primary' : 'default'}
                       >
                         {role.roleName}
                         {!role.isActive && ' (Inactivo)'}
@@ -78,7 +78,7 @@ export default async function UserCondominiumsPage({ params }: PageProps) {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button size="sm" variant="flat" color="primary">
+                  <Button color="primary" size="sm" variant="flat">
                     {t('superadmin.users.detail.condominiums.viewPermissions')}
                   </Button>
                 </div>

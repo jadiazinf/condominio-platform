@@ -1,6 +1,10 @@
 'use client'
 
+import type { IWizardFormData } from '../CreatePaymentConceptWizard'
+
 import { useMemo } from 'react'
+import { useMyCompanyBankAccountsPaginated } from '@packages/http-client'
+
 import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
 import { Card, CardBody } from '@/ui/components/card'
@@ -8,8 +12,6 @@ import { Divider } from '@/ui/components/divider'
 import { Switch } from '@/ui/components/switch'
 import { Textarea } from '@/ui/components/textarea'
 import { useTranslation } from '@/contexts'
-import { useMyCompanyBankAccountsPaginated } from '@packages/http-client'
-import type { IWizardFormData } from '../CreatePaymentConceptWizard'
 
 interface ReviewStepProps {
   formData: IWizardFormData
@@ -20,7 +22,14 @@ interface ReviewStepProps {
   isEditMode?: boolean
 }
 
-export function ReviewStep({ formData, onUpdate, currencies, buildings, managementCompanyId, isEditMode }: ReviewStepProps) {
+export function ReviewStep({
+  formData,
+  onUpdate,
+  currencies,
+  buildings,
+  managementCompanyId,
+  isEditMode,
+}: ReviewStepProps) {
   const { t } = useTranslation()
   const w = 'admin.condominiums.detail.paymentConcepts.wizard.review'
 
@@ -35,6 +44,7 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
 
   const selectedBankAccounts = useMemo(() => {
     const all = bankAccountsData?.data ?? []
+
     return all.filter(a => formData.bankAccountIds.includes(a.id))
   }, [bankAccountsData, formData.bankAccountIds])
 
@@ -47,6 +57,7 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
       reserve_fund: t('admin.paymentConcepts.types.reserveFund'),
       other: t('admin.paymentConcepts.types.other'),
     }
+
     return labels[type] || type
   }
 
@@ -57,19 +68,20 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
       equal_split: t(`${aw}.methodEqualSplit`),
       fixed_per_unit: t(`${aw}.methodFixed`),
     }
+
     return labels[method] || method
   }
 
   return (
     <div className="flex flex-col gap-5">
-      <Typography variant="body2" color="muted">
+      <Typography color="muted" variant="body2">
         {t(`${w}.description`)}
       </Typography>
 
       {/* Basic Info */}
       <Card>
         <CardBody className="space-y-2">
-          <Typography variant="body2" className="font-semibold">
+          <Typography className="font-semibold" variant="body2">
             {t(`${w}.basicInfo`)}
           </Typography>
           <div className="grid grid-cols-2 gap-2 text-sm">
@@ -126,7 +138,7 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
       {/* Charge Config */}
       <Card>
         <CardBody className="space-y-2">
-          <Typography variant="body2" className="font-semibold">
+          <Typography className="font-semibold" variant="body2">
             {t(`${w}.chargeConfig`)}
           </Typography>
           <div className="grid grid-cols-2 gap-2 text-sm">
@@ -173,10 +185,14 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
               <>
                 <span className="text-default-500">{t(`${w}.interest`)}</span>
                 <span>
-                  {formData.interestType === 'simple' ? t(`${w}.interestSimple`) : t(`${w}.interestCompound`)}
+                  {formData.interestType === 'simple'
+                    ? t(`${w}.interestSimple`)
+                    : t(`${w}.interestCompound`)}
                   {' — '}
                   {formData.interestRate}%{' '}
-                  {formData.interestCalculationPeriod === 'monthly' ? t(`${w}.interestMonthly`) : t(`${w}.interestDaily`)}
+                  {formData.interestCalculationPeriod === 'monthly'
+                    ? t(`${w}.interestMonthly`)
+                    : t(`${w}.interestDaily`)}
                   {formData.interestGracePeriodDays > 0 &&
                     ` (${formData.interestGracePeriodDays} ${t(`${w}.graceDays`)})`}
                 </span>
@@ -190,43 +206,53 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
       {formData.services.length > 0 && (
         <Card>
           <CardBody className="space-y-2">
-            <Typography variant="body2" className="font-semibold">
-              {t('admin.condominiums.detail.services.conceptServices.title')} ({formData.services.length})
+            <Typography className="font-semibold" variant="body2">
+              {t('admin.condominiums.detail.services.conceptServices.title')} (
+              {formData.services.length})
             </Typography>
             <Divider />
             {formData.services.map((service, i) => (
               <div key={i} className="flex flex-col gap-1 py-1">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Typography variant="body2" className="font-medium">
+                    <Typography className="font-medium" variant="body2">
                       {service.serviceName}
                     </Typography>
                     {service.execution && (
-                      <Chip size="sm" variant="flat" color="success">
-                        {t('admin.condominiums.detail.services.conceptServices.executionRegistered')}
+                      <Chip color="success" size="sm" variant="flat">
+                        {t(
+                          'admin.condominiums.detail.services.conceptServices.executionRegistered'
+                        )}
                       </Chip>
                     )}
                   </div>
-                  <Typography variant="body2" className="font-semibold">
-                    {currencyCode} {service.amount.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
+                  <Typography className="font-semibold" variant="body2">
+                    {currencyCode}{' '}
+                    {service.amount.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
                   </Typography>
                 </div>
                 {service.execution && (
                   <div className="pl-4 text-xs text-default-500">
                     {service.execution.title}
                     {' — '}
-                    {currencyCode} {Number(service.execution.totalAmount).toLocaleString('es-VE', { minimumFractionDigits: 2 })}
+                    {currencyCode}{' '}
+                    {Number(service.execution.totalAmount).toLocaleString('es-VE', {
+                      minimumFractionDigits: 2,
+                    })}
                   </div>
                 )}
               </div>
             ))}
             <Divider />
             <div className="flex items-center justify-between">
-              <Typography variant="body2" className="font-semibold">
+              <Typography className="font-semibold" variant="body2">
                 {t('admin.condominiums.detail.services.conceptServices.total')}
               </Typography>
-              <Typography variant="body1" className="font-bold">
-                {currencyCode} {formData.services.reduce((sum, s) => sum + s.amount, 0).toLocaleString('es-VE', { minimumFractionDigits: 2 })}
+              <Typography className="font-bold" variant="body1">
+                {currencyCode}{' '}
+                {formData.services
+                  .reduce((sum, s) => sum + s.amount, 0)
+                  .toLocaleString('es-VE', { minimumFractionDigits: 2 })}
               </Typography>
             </div>
           </CardBody>
@@ -237,13 +263,14 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
       {formData.assignments.length > 0 && (
         <Card>
           <CardBody className="space-y-2">
-            <Typography variant="body2" className="font-semibold">
+            <Typography className="font-semibold" variant="body2">
               {t(`${w}.assignments`)} ({formData.assignments.length})
             </Typography>
             <Divider />
             {formData.assignments.map((a, i) => {
               const aw = 'admin.condominiums.detail.paymentConcepts.wizard.assignments'
               let scopeLabel: string
+
               if (a.scopeType === 'unit') {
                 scopeLabel = t(`${aw}.unitsSelected`, { count: String(a.unitIds?.length ?? 0) })
               } else if (a.scopeType === 'building') {
@@ -255,14 +282,14 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
               return (
                 <div key={i} className="flex items-center justify-between py-1">
                   <div className="flex items-center gap-2">
-                    <Chip size="sm" variant="flat" color="primary">
+                    <Chip color="primary" size="sm" variant="flat">
                       {scopeLabel}
                     </Chip>
-                    <Chip size="sm" variant="flat" color="secondary">
+                    <Chip color="secondary" size="sm" variant="flat">
                       {getMethodLabel(a.distributionMethod)}
                     </Chip>
                   </div>
-                  <Typography variant="body2" className="font-semibold">
+                  <Typography className="font-semibold" variant="body2">
                     {currencyCode} {a.amount.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
                   </Typography>
                 </div>
@@ -276,27 +303,27 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
       {formData.bankAccountIds.length > 0 && (
         <Card>
           <CardBody className="space-y-2">
-            <Typography variant="body2" className="font-semibold">
+            <Typography className="font-semibold" variant="body2">
               {t(`${w}.bankAccounts`)} ({formData.bankAccountIds.length})
             </Typography>
             <Divider />
             {selectedBankAccounts.map(account => (
               <div key={account.id} className="flex items-center justify-between py-1">
                 <div className="flex flex-col">
-                  <Typography variant="body2" className="font-medium">
+                  <Typography className="font-medium" variant="body2">
                     {account.displayName || account.bankName}
                   </Typography>
-                  <Typography variant="caption" color="muted">
+                  <Typography color="muted" variant="caption">
                     {account.bankName}
                   </Typography>
                 </div>
-                <Chip size="sm" variant="flat" color="default">
+                <Chip color="default" size="sm" variant="flat">
                   {account.currency}
                 </Chip>
               </div>
             ))}
             {selectedBankAccounts.length === 0 && formData.bankAccountIds.length > 0 && (
-              <Typography variant="caption" color="muted">
+              <Typography color="muted" variant="caption">
                 {t(`${w}.bankAccountsSelected`)}
               </Typography>
             )}
@@ -308,19 +335,19 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
       {isEditMode && (
         <Card>
           <CardBody className="space-y-2">
-            <Typography variant="body2" className="font-semibold">
+            <Typography className="font-semibold" variant="body2">
               {t(`${w}.changeReasonTitle`)}
             </Typography>
-            <Typography variant="caption" color="muted">
+            <Typography color="muted" variant="caption">
               {t(`${w}.changeReasonHint`)}
             </Typography>
             <Textarea
+              maxLength={5000}
+              maxRows={4}
+              minRows={2}
               placeholder={t(`${w}.changeReasonPlaceholder`)}
               value={formData.changeReason}
-              onValueChange={(value) => onUpdate({ changeReason: value })}
-              minRows={2}
-              maxRows={4}
-              maxLength={5000}
+              onValueChange={value => onUpdate({ changeReason: value })}
             />
           </CardBody>
         </Card>
@@ -330,19 +357,19 @@ export function ReviewStep({ formData, onUpdate, currencies, buildings, manageme
       <Card>
         <CardBody className="flex flex-row items-center justify-between gap-4">
           <div>
-            <Typography variant="body2" className="font-semibold">
+            <Typography className="font-semibold" variant="body2">
               {t(`${w}.notifyTitle`)}
             </Typography>
-            <Typography variant="caption" color="muted">
+            <Typography color="muted" variant="caption">
               {formData.notifyImmediately
                 ? t(`${w}.notifyDescriptionOn`)
                 : t(`${w}.notifyDescriptionOff`)}
             </Typography>
           </div>
           <Switch
-            isSelected={formData.notifyImmediately}
-            onValueChange={(value) => onUpdate({ notifyImmediately: value })}
             color="primary"
+            isSelected={formData.notifyImmediately}
+            onValueChange={value => onUpdate({ notifyImmediately: value })}
           />
         </CardBody>
       </Card>

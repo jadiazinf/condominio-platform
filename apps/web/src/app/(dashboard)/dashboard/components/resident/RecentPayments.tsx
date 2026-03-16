@@ -1,6 +1,7 @@
+import { Receipt, CheckCircle2, Clock, XCircle } from 'lucide-react'
+
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
-import { Receipt, CheckCircle2, Clock, XCircle } from 'lucide-react'
 
 type TPaymentStatus = 'completed' | 'pending_verification' | 'rejected'
 

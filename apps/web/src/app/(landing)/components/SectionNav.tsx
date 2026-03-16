@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
+
 import { useTranslation } from '@/contexts'
 
 const SECTIONS = [
@@ -20,6 +21,7 @@ export function SectionNav() {
 
   const handleScroll = useCallback(() => {
     const container = document.querySelector('.snap-container')
+
     if (!container) return
 
     const scrollTop = container.scrollTop
@@ -31,6 +33,7 @@ export function SectionNav() {
 
     for (const { id } of SECTIONS) {
       const el = document.getElementById(id)
+
       if (!el) continue
 
       const elTop = el.offsetTop - scrollTop
@@ -52,6 +55,7 @@ export function SectionNav() {
 
   useEffect(() => {
     const container = document.querySelector('.snap-container')
+
     if (!container) return
 
     container.addEventListener('scroll', handleScroll, { passive: true })
@@ -62,6 +66,7 @@ export function SectionNav() {
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id)
+
     el?.scrollIntoView({ behavior: 'smooth' })
   }
 
@@ -69,33 +74,32 @@ export function SectionNav() {
     <nav className="fixed right-8 top-1/2 -translate-y-1/2 z-50 hidden lg:flex flex-col gap-4">
       {SECTIONS.map(({ id, labelKey }) => {
         const isActive = activeSection === id
+
         return (
           <button
             key={id}
-            onClick={() => scrollToSection(id)}
             className="flex items-center gap-3 cursor-pointer"
+            onClick={() => scrollToSection(id)}
           >
             {/* Label */}
             <motion.span
-              className="text-[11px] font-light tracking-widest uppercase whitespace-nowrap text-right"
               animate={{
                 opacity: isActive ? 1 : 0.3,
               }}
-              transition={{ duration: 0.3 }}
+              className="text-[11px] font-light tracking-widest uppercase whitespace-nowrap text-right"
               style={{ minWidth: 80 }}
+              transition={{ duration: 0.3 }}
             >
-              <span className={isActive ? 'text-brick' : 'text-foreground/60'}>
-                {t(labelKey)}
-              </span>
+              <span className={isActive ? 'text-brick' : 'text-foreground/60'}>{t(labelKey)}</span>
             </motion.span>
 
             {/* Vertical line */}
             <motion.span
-              className="block w-[2px] rounded-full"
               animate={{
                 height: isActive ? 20 : 12,
                 backgroundColor: isActive ? '#B5451B' : 'rgba(128,128,128,0.3)',
               }}
+              className="block w-[2px] rounded-full"
               transition={{ duration: 0.3 }}
             />
           </button>

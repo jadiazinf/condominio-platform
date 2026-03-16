@@ -1,9 +1,10 @@
 'use client'
 
 import { Pagination as HeroUIPagination } from '@heroui/pagination'
-import { Select, type ISelectItem } from '@/ui/components/select'
 import { cn } from '@heroui/theme'
 import { useMemo } from 'react'
+
+import { Select, type ISelectItem } from '@/ui/components/select'
 
 export interface PaginationProps {
   page: number
@@ -47,10 +48,10 @@ export function Pagination({
               className="w-20"
               items={limitItems}
               value={String(limit)}
+              variant="bordered"
               onChange={key => {
                 if (key) onLimitChange(Number(key))
               }}
-              variant="bordered"
             />
           </div>
         )}
@@ -60,10 +61,10 @@ export function Pagination({
       </div>
 
       <HeroUIPagination
+        showControls
         color="primary"
         isDisabled={totalPages <= 1}
         page={page}
-        showControls
         total={totalPages || 1}
         onChange={onPageChange}
       />

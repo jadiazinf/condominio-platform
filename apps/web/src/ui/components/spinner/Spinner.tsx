@@ -5,7 +5,14 @@ import { cn } from '@heroui/theme'
 
 type TSpinnerSize = 'sm' | 'md' | 'lg'
 
-type TSpinnerColor = 'current' | 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
+type TSpinnerColor =
+  | 'current'
+  | 'default'
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'warning'
+  | 'danger'
 
 type TSpinnerLabelColor = 'foreground' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
 
@@ -35,9 +42,4 @@ export function Spinner({
   )
 }
 
-export type {
-  TSpinnerSize,
-  TSpinnerColor,
-  TSpinnerLabelColor,
-  ISpinnerProps,
-}
+export type { TSpinnerSize, TSpinnerColor, TSpinnerLabelColor, ISpinnerProps }

@@ -27,6 +27,7 @@ function getValidRedirectUrl(redirectParam: string | null): string {
   // Ensure it's a valid internal path
   try {
     const url = new URL(redirectParam, 'http://localhost')
+
     if (url.pathname !== redirectParam.split('?')[0]) {
       return '/dashboard'
     }
@@ -60,9 +61,11 @@ export default function SelectCondominiumPage() {
       // If no Firebase user, redirect to signin (preserving the redirect parameter)
       if (!firebaseUser) {
         hasRedirected.current = true
-        const signinUrl = redirectUrl !== '/dashboard'
-          ? `/auth?redirect=${encodeURIComponent(redirectUrl)}`
-          : '/auth'
+        const signinUrl =
+          redirectUrl !== '/dashboard'
+            ? `/auth?redirect=${encodeURIComponent(redirectUrl)}`
+            : '/auth'
+
         router.replace(signinUrl)
 
         return
@@ -103,7 +106,15 @@ export default function SelectCondominiumPage() {
         router.replace(redirectUrl)
       }
     },
-    [condominiums, hasMultipleCondominiums, selectCondominium, router, authLoading, user, redirectUrl]
+    [
+      condominiums,
+      hasMultipleCondominiums,
+      selectCondominium,
+      router,
+      authLoading,
+      user,
+      redirectUrl,
+    ]
   )
 
   const handleSelectCondominium = (condominium: TUserCondominiumAccess) => {

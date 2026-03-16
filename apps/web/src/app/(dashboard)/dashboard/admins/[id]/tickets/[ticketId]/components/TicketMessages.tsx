@@ -1,12 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { Card, CardHeader, CardBody, CardFooter } from '@/ui/components/card'
-import { Button } from '@/ui/components/button'
-import { Textarea } from '@/ui/components/textarea'
-import { Avatar } from '@/ui/components/avatar-base'
 import { Send, MessageSquare } from 'lucide-react'
-
 import {
   useTicketMessages,
   useMutation,
@@ -15,6 +10,11 @@ import {
   supportTicketMessageKeys,
   supportTicketKeys,
 } from '@packages/http-client'
+
+import { Card, CardHeader, CardBody, CardFooter } from '@/ui/components/card'
+import { Button } from '@/ui/components/button'
+import { Textarea } from '@/ui/components/textarea'
+import { Avatar } from '@/ui/components/avatar-base'
 import { useAuth } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 

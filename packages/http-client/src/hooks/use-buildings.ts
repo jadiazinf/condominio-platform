@@ -213,7 +213,8 @@ export function useToggleBuildingStatus(options: UseToggleBuildingStatusOptions 
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiMessageResponse, TToggleBuildingStatusVariables>({
-    path: (variables: TToggleBuildingStatusVariables) => `/condominium/buildings/${variables.buildingId}/status`,
+    path: (variables: TToggleBuildingStatusVariables) =>
+      `/condominium/buildings/${variables.buildingId}/status`,
     method: 'PATCH',
     invalidateKeys: [buildingsKeys.all],
     onSuccess: (response: ApiResponse<TApiMessageResponse>) => {
@@ -294,10 +295,9 @@ export async function getCondominiumBuildings(
     headers['x-management-company-id'] = managementCompanyId
   }
 
-  const response = await client.get<TApiDataResponse<TBuilding[]>>(
-    '/condominium/buildings',
-    { headers }
-  )
+  const response = await client.get<TApiDataResponse<TBuilding[]>>('/condominium/buildings', {
+    headers,
+  })
 
   return response.data.data
 }
@@ -323,9 +323,12 @@ export async function getBuildingDetail(
     headers['x-management-company-id'] = managementCompanyId
   }
 
-  const response = await client.get<TApiDataResponse<TBuilding>>(`/condominium/buildings/${buildingId}`, {
-    headers,
-  })
+  const response = await client.get<TApiDataResponse<TBuilding>>(
+    `/condominium/buildings/${buildingId}`,
+    {
+      headers,
+    }
+  )
 
   return response.data.data
 }

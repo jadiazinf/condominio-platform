@@ -13,12 +13,8 @@ interface ILabelProps {
 export function Label({ htmlFor, children, required = false, className }: ILabelProps) {
   return (
     <label
+      className={cn('text-sm font-medium text-foreground', 'flex items-center gap-1', className)}
       htmlFor={htmlFor}
-      className={cn(
-        'text-sm font-medium text-foreground',
-        'flex items-center gap-1',
-        className
-      )}
     >
       {required && <span className="text-danger">*</span>}
       {children}

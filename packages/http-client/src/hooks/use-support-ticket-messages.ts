@@ -82,9 +82,9 @@ export function useCreateTicketMessage(ticketId: string, options?: ICreateTicket
     path: `/platform/support-tickets/${ticketId}/messages`,
     method: 'POST',
     config: {},
-    onSuccess: (response) => {
+    onSuccess: response => {
       // Optimistically update the cache with the new message
-      const newMessage = response.data.data
+      const _newMessage = response.data.data
 
       // This will be handled by WebSocket, but we update cache as backup
       // The WebSocket handler will check for duplicates

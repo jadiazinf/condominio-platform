@@ -16,9 +16,10 @@ export interface ISendManagementCompanyMemberNotificationResult {
   emailId: string
 }
 
-export class SendManagementCompanyMemberNotificationService
-  implements IService<ISendManagementCompanyMemberNotificationInput, TServiceResult<ISendManagementCompanyMemberNotificationResult>>
-{
+export class SendManagementCompanyMemberNotificationService implements IService<
+  ISendManagementCompanyMemberNotificationInput,
+  TServiceResult<ISendManagementCompanyMemberNotificationResult>
+> {
   constructor(private readonly emailService: EmailService = EmailService.getInstance()) {}
 
   async execute(
@@ -43,7 +44,9 @@ export class SendManagementCompanyMemberNotificationService
       headerTitle: 'Nuevo miembro agregado',
       greeting: companyName,
       bodyHtml: [
-        p(`Se ha agregado un nuevo miembro al equipo de <strong style="color: #006FEE;">${companyName}</strong>.`),
+        p(
+          `Se ha agregado un nuevo miembro al equipo de <strong style="color: #006FEE;">${companyName}</strong>.`
+        ),
         memberCardHtml,
         `<p style="margin: 0; font-size: 14px; line-height: 1.6; color: #71717a;">El nuevo miembro recibirá un correo de invitación para completar su registro en la plataforma.</p>`,
       ].join('\n'),
@@ -51,7 +54,10 @@ export class SendManagementCompanyMemberNotificationService
       footerNote: '',
     }
 
-    logger.info({ to, companyName, newMemberEmail, memberRole }, 'Sending management company member notification email')
+    logger.info(
+      { to, companyName, newMemberEmail, memberRole },
+      'Sending management company member notification email'
+    )
 
     const result = await this.emailService.execute({
       to,

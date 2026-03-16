@@ -1,11 +1,11 @@
 import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
+
+import { ReportPaymentClient } from './components/ReportPaymentClient'
 
 import { Typography } from '@/ui/components/typography'
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
-import { redirect } from 'next/navigation'
-
-import { ReportPaymentClient } from './components/ReportPaymentClient'
 
 interface IUnitOption {
   unitId: string
@@ -23,10 +23,10 @@ async function ReportPaymentContent() {
   }
 
   // Extract unit options from session condominiums
-  const unitOptions: IUnitOption[] = session.condominiums.flatMap((condo) =>
+  const unitOptions: IUnitOption[] = session.condominiums.flatMap(condo =>
     condo.units
-      .filter((u) => u.ownership.isActive)
-      .map((u) => ({
+      .filter(u => u.ownership.isActive)
+      .map(u => ({
         unitId: u.unit.id,
         unitNumber: u.unit.unitNumber,
         buildingName: u.building.name,
@@ -47,10 +47,7 @@ async function ReportPaymentContent() {
       </div>
 
       {/* Report Payment Form */}
-      <ReportPaymentClient
-        userId={session.user.id}
-        unitOptions={unitOptions}
-      />
+      <ReportPaymentClient unitOptions={unitOptions} userId={session.user.id} />
     </div>
   )
 }

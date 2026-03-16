@@ -1,14 +1,15 @@
 'use client'
 
+import type { TCondominiumAccessCode, TAccessCodeValidity } from '@packages/domain'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { TCondominiumAccessCode, TAccessCodeValidity } from '@packages/domain'
+import { useGenerateAccessCode } from '@packages/http-client/hooks'
 
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { RadioGroup, Radio } from '@/ui/components/radio'
 import { useToast } from '@/ui/components/toast'
-import { useGenerateAccessCode } from '@packages/http-client/hooks'
 
 interface IGenerateCodeModalProps {
   isOpen: boolean
@@ -66,7 +67,7 @@ export function GenerateCodeModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="md">
+    <Modal isOpen={isOpen} size="md" onClose={onClose}>
       <ModalContent>
         <ModalHeader>{translations.title}</ModalHeader>
         <ModalBody>
@@ -77,13 +78,13 @@ export function GenerateCodeModal({
           )}
 
           <RadioGroup
+            color="success"
             label={translations.validity}
             value={validity}
             onValueChange={val => setValidity(val as TAccessCodeValidity)}
-            color="success"
           >
             {VALIDITY_OPTIONS.map(opt => (
-              <Radio key={opt} value={opt} color="success">
+              <Radio key={opt} color="success" value={opt}>
                 {translations.validityOptions[opt]}
               </Radio>
             ))}
@@ -93,7 +94,7 @@ export function GenerateCodeModal({
           <Button variant="light" onPress={onClose}>
             {translations.cancel}
           </Button>
-          <Button color="success" onPress={handleGenerate} isLoading={generateMutation.isPending}>
+          <Button color="success" isLoading={generateMutation.isPending} onPress={handleGenerate}>
             {generateMutation.isPending ? translations.generating : translations.generate}
           </Button>
         </ModalFooter>

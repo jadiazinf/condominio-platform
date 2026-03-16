@@ -1,10 +1,11 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { Tabs, Tab } from '@/ui/components/tabs'
-import { useTranslation } from '@/contexts'
 import { useRouter } from 'next/navigation'
 import { Key } from 'react'
+
+import { Tabs, Tab } from '@/ui/components/tabs'
+import { useTranslation } from '@/contexts'
 
 const tabRoutes = [
   { key: 'currencies', href: '/dashboard/currencies' },
@@ -18,7 +19,7 @@ export function CurrencyTabs() {
   const router = useRouter()
 
   const selectedKey =
-    tabRoutes.find((tab) => pathname === tab.href)?.key ??
+    tabRoutes.find(tab => pathname === tab.href)?.key ??
     (pathname.startsWith('/dashboard/currencies/exchange-rates/history')
       ? 'rateHistory'
       : pathname.startsWith('/dashboard/currencies/exchange-rates')
@@ -26,7 +27,8 @@ export function CurrencyTabs() {
         : 'currencies')
 
   function handleSelectionChange(key: Key) {
-    const tab = tabRoutes.find((t) => t.key === key)
+    const tab = tabRoutes.find(t => t.key === key)
+
     if (tab) {
       router.push(tab.href)
     }
@@ -35,10 +37,10 @@ export function CurrencyTabs() {
   return (
     <Tabs
       aria-label={t('superadmin.currencies.title')}
-      selectedKey={selectedKey}
-      onSelectionChange={handleSelectionChange}
-      variant="underlined"
       color="primary"
+      selectedKey={selectedKey}
+      variant="underlined"
+      onSelectionChange={handleSelectionChange}
     >
       <Tab key="currencies" title={t('superadmin.currencies.tabs.currencies')} />
       <Tab key="currentRates" title={t('superadmin.currencies.tabs.currentRates')} />

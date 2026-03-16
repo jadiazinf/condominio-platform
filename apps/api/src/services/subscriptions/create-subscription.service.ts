@@ -29,7 +29,10 @@ const DEFAULT_FEATURES = {
   facturacion_electronica: true,
 }
 
-export interface ICreateSubscriptionInput extends Omit<TManagementCompanySubscriptionCreate, 'status'> {
+export interface ICreateSubscriptionInput extends Omit<
+  TManagementCompanySubscriptionCreate,
+  'status'
+> {
   status?: TManagementCompanySubscriptionCreate['status']
 }
 
@@ -139,20 +142,14 @@ export class CreateSubscriptionService {
     const members = await this.membersRepository!.listByCompanyId(companyId, false)
 
     if (members.length === 0) {
-      return failure(
-        LocaleDictionary.http.services.subscriptions.noActiveMembers,
-        'BAD_REQUEST'
-      )
+      return failure(LocaleDictionary.http.services.subscriptions.noActiveMembers, 'BAD_REQUEST')
     }
 
     // 4. Get primary admin
     const primaryAdmin = await this.membersRepository!.getPrimaryAdmin(companyId)
 
     if (!primaryAdmin) {
-      return failure(
-        LocaleDictionary.http.services.subscriptions.noPrimaryAdmin,
-        'BAD_REQUEST'
-      )
+      return failure(LocaleDictionary.http.services.subscriptions.noPrimaryAdmin, 'BAD_REQUEST')
     }
 
     // Get primary admin user details
@@ -166,10 +163,7 @@ export class CreateSubscriptionService {
     const activeTerms = await this.termsRepository!.getActiveTerms()
 
     if (!activeTerms) {
-      return failure(
-        LocaleDictionary.http.services.subscriptions.noActiveTerms,
-        'BAD_REQUEST'
-      )
+      return failure(LocaleDictionary.http.services.subscriptions.noActiveTerms, 'BAD_REQUEST')
     }
 
     // 6. Create subscription with 'inactive' status (always starts inactive)
@@ -222,18 +216,19 @@ export class CreateSubscriptionService {
       basePrice: subscription.basePrice,
       billingCycle: subscription.billingCycle,
       startDate: subscription.startDate,
-      pricingDetails: subscription.pricingCondominiumCount || subscription.pricingUnitCount
-        ? {
-            condominiumCount: subscription.pricingCondominiumCount,
-            unitCount: subscription.pricingUnitCount,
-            condominiumRate: subscription.pricingCondominiumRate,
-            unitRate: subscription.pricingUnitRate,
-            calculatedPrice: subscription.calculatedPrice,
-            discountType: subscription.discountType,
-            discountValue: subscription.discountValue,
-            discountAmount: subscription.discountAmount,
-          }
-        : undefined,
+      pricingDetails:
+        subscription.pricingCondominiumCount || subscription.pricingUnitCount
+          ? {
+              condominiumCount: subscription.pricingCondominiumCount,
+              unitCount: subscription.pricingUnitCount,
+              condominiumRate: subscription.pricingCondominiumRate,
+              unitRate: subscription.pricingUnitRate,
+              calculatedPrice: subscription.calculatedPrice,
+              discountType: subscription.discountType,
+              discountValue: subscription.discountValue,
+              discountAmount: subscription.discountAmount,
+            }
+          : undefined,
       termsContent: activeTerms.content,
       termsVersion: activeTerms.version,
       acceptanceToken: token,
@@ -255,7 +250,8 @@ export class CreateSubscriptionService {
     }
 
     // Send to primary admin email
-    const adminName = primaryAdminUser.displayName ||
+    const adminName =
+      primaryAdminUser.displayName ||
       [primaryAdminUser.firstName, primaryAdminUser.lastName].filter(Boolean).join(' ') ||
       'Administrador'
 

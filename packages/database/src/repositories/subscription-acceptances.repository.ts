@@ -1,4 +1,4 @@
-import { eq, desc, lt, and, sql } from 'drizzle-orm'
+import { eq, desc, lt, and } from 'drizzle-orm'
 import type {
   TSubscriptionAcceptance,
   TSubscriptionAcceptanceCreate,
@@ -101,7 +101,9 @@ export class SubscriptionAcceptancesRepository {
   /**
    * Get pending acceptance by subscription ID
    */
-  async getPendingBySubscriptionId(subscriptionId: string): Promise<TSubscriptionAcceptance | null> {
+  async getPendingBySubscriptionId(
+    subscriptionId: string
+  ): Promise<TSubscriptionAcceptance | null> {
     const results = await this.db
       .select()
       .from(subscriptionAcceptances)
@@ -225,7 +227,10 @@ export class SubscriptionAcceptancesRepository {
   /**
    * Update acceptance status
    */
-  async updateStatus(id: string, status: TAcceptanceStatus): Promise<TSubscriptionAcceptance | null> {
+  async updateStatus(
+    id: string,
+    status: TAcceptanceStatus
+  ): Promise<TSubscriptionAcceptance | null> {
     const results = await this.db
       .update(subscriptionAcceptances)
       .set({ status })

@@ -37,7 +37,12 @@ type TMockMembersRepository = {
 type TMockUserRolesRepository = {
   create: (data: any) => Promise<TUserRole>
   update: (id: string, data: any) => Promise<TUserRole>
-  createManagementCompanyRole: (userId: string, roleId: string, managementCompanyId: string, assignedBy?: string) => Promise<TUserRole>
+  createManagementCompanyRole: (
+    userId: string,
+    roleId: string,
+    managementCompanyId: string,
+    assignedBy?: string
+  ) => Promise<TUserRole>
   withTx: (tx: unknown) => TMockUserRolesRepository
 }
 
@@ -110,7 +115,9 @@ describe('CreateCompanyWithAdminService', function () {
           updatedAt: new Date(),
         }
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     mockCompaniesRepository = {
@@ -125,7 +132,9 @@ describe('CreateCompanyWithAdminService', function () {
       getByEmail: async function () {
         return null
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     mockInvitationsRepository = {
@@ -147,7 +156,9 @@ describe('CreateCompanyWithAdminService', function () {
           updatedAt: new Date(),
         } as TAdminInvitation
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     mockMembersRepository = {
@@ -170,7 +181,9 @@ describe('CreateCompanyWithAdminService', function () {
           updatedAt: new Date(),
         } as TManagementCompanyMember
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     const mcRoleId = '550e8400-e29b-41d4-a716-446655440050'
@@ -207,7 +220,12 @@ describe('CreateCompanyWithAdminService', function () {
           expiresAt: null,
         }
       },
-      createManagementCompanyRole: async function (userId: string, roleId: string, managementCompanyId: string, assignedBy?: string) {
+      createManagementCompanyRole: async function (
+        userId: string,
+        roleId: string,
+        managementCompanyId: string,
+        assignedBy?: string
+      ) {
         return {
           id: mcRoleId,
           userId,
@@ -223,20 +241,23 @@ describe('CreateCompanyWithAdminService', function () {
           expiresAt: null,
         }
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     mockRolesRepository = {
       getByName: async function (name: string) {
-        if (name === ESystemRole.ADMIN) return {
-          id: '550e8400-e29b-41d4-a716-446655440060',
-          name: ESystemRole.ADMIN,
-          description: 'Admin role',
-          isSystemRole: true,
-          registeredBy: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }
+        if (name === ESystemRole.ADMIN)
+          return {
+            id: '550e8400-e29b-41d4-a716-446655440060',
+            name: ESystemRole.ADMIN,
+            description: 'Admin role',
+            isSystemRole: true,
+            registeredBy: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }
         return null
       },
     }

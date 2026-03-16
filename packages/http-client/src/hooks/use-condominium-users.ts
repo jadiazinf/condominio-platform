@@ -154,7 +154,8 @@ export function useUpdateUserCondominiumRole(options: UseUpdateUserRoleOptions =
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiDataResponse<TUserRole>, TUpdateUserRoleVariables>({
-    path: (variables: TUpdateUserRoleVariables) => `/condominium/user-roles/${variables.userRoleId}`,
+    path: (variables: TUpdateUserRoleVariables) =>
+      `/condominium/user-roles/${variables.userRoleId}`,
     method: 'PATCH',
     invalidateKeys: [condominiumUsersKeys.all],
     onSuccess: (response: ApiResponse<TApiDataResponse<TUserRole>>) => {

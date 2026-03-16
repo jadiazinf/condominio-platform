@@ -1,7 +1,8 @@
 'use client'
 
-import { Avatar as HeroUIAvatar } from '@heroui/avatar'
 import type { AvatarProps as HeroUIAvatarProps } from '@heroui/avatar'
+
+import { Avatar as HeroUIAvatar } from '@heroui/avatar'
 import { cn } from '@heroui/theme'
 
 type TAvatarSize = 'sm' | 'md' | 'lg'

@@ -18,7 +18,9 @@ export class CreateCondominiumServiceService {
     private readonly condominiumMCRepo: TCondominiumMCRepo
   ) {}
 
-  async execute(input: ICreateCondominiumServiceInput): Promise<TServiceResult<TCondominiumService>> {
+  async execute(
+    input: ICreateCondominiumServiceInput
+  ): Promise<TServiceResult<TCondominiumService>> {
     if (!input.name || input.name.trim().length === 0) {
       return failure('Name is required', 'BAD_REQUEST')
     }

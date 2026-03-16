@@ -1,8 +1,8 @@
 'use client'
 
 import { NavbarContent, NavbarItem } from '@heroui/navbar'
-import { Link } from '@/ui/components/link'
 
+import { Link } from '@/ui/components/link'
 import { useTranslation } from '@/contexts'
 
 const NAV_ITEMS = [

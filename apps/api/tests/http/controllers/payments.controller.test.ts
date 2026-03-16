@@ -23,11 +23,16 @@ type TMockPaymentsRepository = {
   update: (id: string, data: TPaymentUpdate) => Promise<TPayment | null>
   delete: (id: string) => Promise<boolean>
   getByPaymentNumber: (paymentNumber: string) => Promise<TPayment | null>
-  getByUserId: (userId: string) => Promise<TPayment[]>
-  getByUnitId: (unitId: string) => Promise<TPayment[]>
-  getByStatus: (status: string) => Promise<TPayment[]>
-  getByDateRange: (startDate: string, endDate: string) => Promise<TPayment[]>
-  getPendingVerification: () => Promise<TPayment[]>
+  getByUserId: (userId: string, condominiumId?: string) => Promise<TPayment[]>
+  getByUnitId: (unitId: string, condominiumId?: string) => Promise<TPayment[]>
+  getByStatus: (status: string, condominiumId?: string) => Promise<TPayment[]>
+  getByDateRange: (
+    startDate: string,
+    endDate: string,
+    condominiumId?: string
+  ) => Promise<TPayment[]>
+  getPendingVerification: (condominiumId?: string) => Promise<TPayment[]>
+  listByCondominiumId: (condominiumId: string) => Promise<TPayment[]>
   verifyPayment: (id: string, verifiedBy: string, notes?: string) => Promise<TPayment | null>
   rejectPayment: (id: string, verifiedBy: string, notes?: string) => Promise<TPayment | null>
 }
@@ -173,6 +178,9 @@ describe('PaymentsController', function () {
           verificationNotes: notes ?? null,
         }
       },
+      listByCondominiumId: async function (_condominiumId: string) {
+        return testPayments
+      },
       rejectPayment: async function (id: string, verifiedBy: string, notes?: string) {
         const payment = testPayments.find(function (p) {
           return p.id === id
@@ -191,7 +199,15 @@ describe('PaymentsController', function () {
     // Create controller with mock repository
     const mockDb = {} as unknown as TDrizzleClient
     const mockSendNotification = { execute: async () => ({ success: true }) } as any
-    const controller = new PaymentsController(mockRepository as unknown as PaymentsRepository, mockDb, {} as any, {} as any, mockSendNotification)
+    const controller = new PaymentsController(
+      mockRepository as unknown as PaymentsRepository,
+      mockDb,
+      {} as any,
+      {} as any,
+      mockSendNotification,
+      {} as any,
+      {} as any
+    )
 
     // Create Hono app with controller routes
     app = createTestApp()
@@ -729,6 +745,89 @@ describe('PaymentsController', function () {
 
       const json = (await res.json()) as IApiResponse
       expect(getErrorMessage(json)).toContain('unexpected')
+    })
+  })
+
+  describe('Tenant isolation', function () {
+    const condominiumId = '550e8400-e29b-41d4-a716-446655440099'
+
+    it('GET /pending-verification should pass condominiumId', async function () {
+      let calledWithCondoId: string | undefined
+      mockRepository.getPendingVerification = async function (cId?: string) {
+        calledWithCondoId = cId
+        return testPayments.filter(function (p) {
+          return p.status === 'pending_verification'
+        })
+      }
+
+      await request('/payments/pending-verification', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+      expect(calledWithCondoId).toBe(condominiumId)
+    })
+
+    it('GET /user/:userId should pass condominiumId', async function () {
+      let calledWithCondoId: string | undefined
+      mockRepository.getByUserId = async function (_userId: string, cId?: string) {
+        calledWithCondoId = cId
+        return testPayments.filter(function (p) {
+          return p.userId === _userId
+        })
+      }
+
+      await request(`/payments/user/${userId1}`, {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+      expect(calledWithCondoId).toBe(condominiumId)
+    })
+
+    it('GET /unit/:unitId should pass condominiumId', async function () {
+      let calledWithCondoId: string | undefined
+      mockRepository.getByUnitId = async function (_unitId: string, cId?: string) {
+        calledWithCondoId = cId
+        return testPayments.filter(function (p) {
+          return p.unitId === _unitId
+        })
+      }
+
+      await request(`/payments/unit/${unitId1}`, {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+      expect(calledWithCondoId).toBe(condominiumId)
+    })
+
+    it('GET /status/:status should pass condominiumId', async function () {
+      let calledWithCondoId: string | undefined
+      mockRepository.getByStatus = async function (_status: string, cId?: string) {
+        calledWithCondoId = cId
+        return testPayments.filter(function (p) {
+          return p.status === _status
+        })
+      }
+
+      await request('/payments/status/pending', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+      expect(calledWithCondoId).toBe(condominiumId)
+    })
+
+    it('GET /date-range should pass condominiumId', async function () {
+      let calledWithCondoId: string | undefined
+      mockRepository.getByDateRange = async function (
+        _startDate: string,
+        _endDate: string,
+        cId?: string
+      ) {
+        calledWithCondoId = cId
+        return testPayments.filter(function (p) {
+          return p.paymentDate >= _startDate && p.paymentDate <= _endDate
+        })
+      }
+
+      await request('/payments/date-range?startDate=2024-01-01&endDate=2024-12-31', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+      expect(calledWithCondoId).toBe(condominiumId)
     })
   })
 })

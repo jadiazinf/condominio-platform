@@ -1,6 +1,10 @@
 'use client'
 
+import type { TTicketPriority } from '@packages/domain'
+
 import { useState } from 'react'
+import { AlertCircle, Check } from 'lucide-react'
+
 import { Button } from '@/ui/components/button'
 import {
   Modal,
@@ -11,8 +15,6 @@ import {
   useDisclosure,
 } from '@/ui/components/modal'
 import { Chip } from '@/ui/components/chip'
-import { AlertCircle, Check } from 'lucide-react'
-import type { TTicketPriority } from '@packages/domain'
 import { getTicketPriorityColor } from '@/utils/status-colors'
 
 export interface ITicketPriorityActionTranslations {
@@ -60,12 +62,12 @@ export function TicketPriorityAction({
   return (
     <>
       <Button
+        aria-label={translations.changePriority}
         color="default"
         isDisabled={isLoading}
         isIconOnly={iconOnly}
         size="sm"
         variant="light"
-        aria-label={translations.changePriority}
         onPress={handleOpen}
       >
         <AlertCircle size={18} />
@@ -78,16 +80,16 @@ export function TicketPriorityAction({
               <ModalHeader>{translations.changePriority}</ModalHeader>
               <ModalBody>
                 <div className="flex flex-col gap-2">
-                  {priorities.map((priority) => (
+                  {priorities.map(priority => (
                     <button
                       key={priority}
-                      type="button"
                       className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
                         selectedPriority === priority
                           ? 'border-primary bg-primary/10'
                           : 'border-default-200 hover:bg-default-100'
                       } ${priority === currentPriority ? 'opacity-50' : ''}`}
                       disabled={priority === currentPriority}
+                      type="button"
                       onClick={() => setSelectedPriority(priority)}
                     >
                       <Chip color={getTicketPriorityColor(priority)} size="sm" variant="flat">

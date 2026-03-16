@@ -1,12 +1,14 @@
 'use client'
 
+import type { TQuotaStatus } from '@packages/domain'
+
 import { useParams, useRouter } from 'next/navigation'
 import { useMemo } from 'react'
 import { ArrowLeft, Clock, AlertCircle, CheckCircle2, XCircle } from 'lucide-react'
 import Link from 'next/link'
-import type { TQuotaStatus } from '@packages/domain'
 import { formatAmount } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
+import { useQuotaDetail, usePaymentApplicationsByQuota } from '@packages/http-client'
 
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
@@ -14,11 +16,6 @@ import { Chip } from '@/ui/components/chip'
 import { Skeleton } from '@/ui/components/skeleton'
 import { Spinner } from '@/ui/components/spinner'
 import { useTranslation } from '@/contexts'
-import {
-  useQuotaDetail,
-  usePaymentApplicationsByQuota,
-} from '@packages/http-client'
-import { getPaymentStatusColor } from '@/utils/status-colors'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -26,11 +23,13 @@ import { getPaymentStatusColor } from '@/utils/status-colors'
 
 function fmtDate(date: Date | string | null | undefined): string {
   if (!date) return '-'
+
   return formatShortDate(date)
 }
 
 function fmtAmount(amount: string | null | undefined): string {
   if (!amount) return '-'
+
   return formatAmount(amount)
 }
 
@@ -38,25 +37,32 @@ function fmtPeriod(year: number, month: number | null, description: string | nul
   if (description) return description
   if (month !== null) {
     const date = new Date(year, month - 1)
+
     return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long' })
   }
+
   return String(year)
 }
 
-const QUOTA_STATUS_CHIP_COLOR: Record<TQuotaStatus, 'warning' | 'danger' | 'success' | 'default'> = {
+const QUOTA_STATUS_CHIP_COLOR: Record<
+  TQuotaStatus,
+  'warning' | 'danger' | 'success' | 'default' | 'secondary' | 'primary'
+> = {
   pending: 'warning',
+  partial: 'primary',
   overdue: 'danger',
   paid: 'success',
   cancelled: 'default',
-  exonerated: 'default',
+  exonerated: 'secondary',
 }
 
 const QUOTA_STATUS_ICON: Record<TQuotaStatus, typeof Clock> = {
   pending: Clock,
+  partial: Clock,
   overdue: AlertCircle,
   paid: CheckCircle2,
   cancelled: XCircle,
-  exonerated: XCircle,
+  exonerated: CheckCircle2,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -83,6 +89,7 @@ export default function MyQuotaDetailPage() {
     const interest = parseFloat(quota.interestAmount) || 0
     const paid = parseFloat(quota.paidAmount) || 0
     const balance = parseFloat(quota.balance) || 0
+
     return { base, interest, total: base + interest, paid, balance }
   }, [quota])
 
@@ -118,25 +125,17 @@ export default function MyQuotaDetailPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button
-          isIconOnly
-          variant="light"
-          onPress={() => router.push('/dashboard/my-quotas')}
-        >
+        <Button isIconOnly variant="light" onPress={() => router.push('/dashboard/my-quotas')}>
           <ArrowLeft size={20} />
         </Button>
         <div className="flex-1">
           <Typography variant="h2">{t('resident.myQuotas.detail.title')}</Typography>
           <Typography className="mt-1" color="muted" variant="body2">
-            {quota.paymentConcept?.name ?? fmtPeriod(quota.periodYear, quota.periodMonth, quota.periodDescription)}
+            {quota.paymentConcept?.name ??
+              fmtPeriod(quota.periodYear, quota.periodMonth, quota.periodDescription)}
           </Typography>
         </div>
-        <Chip
-          color={chipColor}
-          variant="flat"
-          size="lg"
-          startContent={<StatusIcon size={14} />}
-        >
+        <Chip color={chipColor} size="lg" startContent={<StatusIcon size={14} />} variant="flat">
           {t(`resident.myQuotas.detail.status.${status}`)}
         </Chip>
       </div>
@@ -146,23 +145,23 @@ export default function MyQuotaDetailPage() {
         <div className="rounded-lg border border-default-200 p-5">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <AmountCard
-              label={t('resident.myQuotas.detail.baseAmount')}
               amount={`${currencySymbol}${fmtAmount(quota.baseAmount)}`}
+              label={t('resident.myQuotas.detail.baseAmount')}
             />
             <AmountCard
-              label={t('resident.myQuotas.detail.interest')}
               amount={`${currencySymbol}${fmtAmount(quota.interestAmount)}`}
               highlight={amountBreakdown.interest > 0 ? 'danger' : undefined}
+              label={t('resident.myQuotas.detail.interest')}
             />
             <AmountCard
-              label={t('resident.myQuotas.detail.paid')}
               amount={`${currencySymbol}${fmtAmount(quota.paidAmount)}`}
               highlight={amountBreakdown.paid > 0 ? 'success' : undefined}
+              label={t('resident.myQuotas.detail.paid')}
             />
             <AmountCard
-              label={t('resident.myQuotas.detail.balance')}
               amount={`${currencySymbol}${fmtAmount(quota.balance)}`}
               highlight={amountBreakdown.balance > 0 ? 'warning' : undefined}
+              label={t('resident.myQuotas.detail.balance')}
             />
           </div>
         </div>
@@ -188,19 +187,13 @@ export default function MyQuotaDetailPage() {
         {/* Dates & unit */}
         <DetailSection title={t('resident.myQuotas.detail.datesAndUnit')}>
           {quota.unit?.unitNumber && (
-            <DetailRow
-              label={t('resident.myQuotas.detail.unit')}
-              value={quota.unit.unitNumber}
-            />
+            <DetailRow label={t('resident.myQuotas.detail.unit')} value={quota.unit.unitNumber} />
           )}
           <DetailRow
             label={t('resident.myQuotas.detail.issueDate')}
             value={fmtDate(quota.issueDate)}
           />
-          <DetailRow
-            label={t('resident.myQuotas.detail.dueDate')}
-            value={fmtDate(quota.dueDate)}
-          />
+          <DetailRow label={t('resident.myQuotas.detail.dueDate')} value={fmtDate(quota.dueDate)} />
         </DetailSection>
       </div>
 
@@ -214,12 +207,7 @@ export default function MyQuotaDetailPage() {
       {/* Payment action */}
       {isPending && (
         <div className="flex justify-center">
-          <Button
-            as={Link}
-            color="primary"
-            size="lg"
-            href="/dashboard/report-payment"
-          >
+          <Button as={Link} color="primary" href="/dashboard/report-payment" size="lg">
             {t('resident.myQuotas.detail.reportPayment')}
           </Button>
         </div>
@@ -237,27 +225,32 @@ export default function MyQuotaDetailPage() {
           </Typography>
         ) : (
           <div className="space-y-2">
-            {applications.map((app) => (
+            {applications.map(app => (
               <Link
                 key={app.id}
-                href={`/dashboard/my-payments/${app.paymentId}`}
                 className="block rounded-md bg-default-50 p-3 transition-colors hover:bg-default-100"
+                href={`/dashboard/my-payments/${app.paymentId}`}
               >
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-sm font-medium">
-                      {currencySymbol}{fmtAmount(app.appliedAmount)} {currencyCode}
+                      {currencySymbol}
+                      {fmtAmount(app.appliedAmount)} {currencyCode}
                     </span>
-                    <span className="text-xs text-default-500">
-                      {fmtDate(app.appliedAt)}
-                    </span>
+                    <span className="text-xs text-default-500">{fmtDate(app.appliedAt)}</span>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-default-500">
                     {parseFloat(app.appliedToPrincipal ?? '0') > 0 && (
-                      <span>{t('resident.myQuotas.detail.principal')}: {fmtAmount(app.appliedToPrincipal)}</span>
+                      <span>
+                        {t('resident.myQuotas.detail.principal')}:{' '}
+                        {fmtAmount(app.appliedToPrincipal)}
+                      </span>
                     )}
                     {parseFloat(app.appliedToInterest ?? '0') > 0 && (
-                      <span>{t('resident.myQuotas.detail.interestPaid')}: {fmtAmount(app.appliedToInterest)}</span>
+                      <span>
+                        {t('resident.myQuotas.detail.interestPaid')}:{' '}
+                        {fmtAmount(app.appliedToInterest)}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -284,6 +277,7 @@ function AmountCard({
   highlight?: 'danger' | 'success' | 'warning'
 }) {
   const textColor = highlight ? `text-${highlight}` : ''
+
   return (
     <div className="text-center">
       <Typography color="muted" variant="caption">
@@ -296,13 +290,7 @@ function AmountCard({
   )
 }
 
-function DetailSection({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
+function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border border-default-200 p-4">
       <Typography className="mb-3" variant="h4">
@@ -313,13 +301,7 @@ function DetailSection({
   )
 }
 
-function DetailRow({
-  label,
-  value,
-}: {
-  label: string
-  value?: string
-}) {
+function DetailRow({ label, value }: { label: string; value?: string }) {
   return (
     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
       <span className="text-sm text-default-500">{label}</span>
@@ -340,11 +322,11 @@ function QuotaDetailSkeleton() {
       </div>
       <Skeleton className="h-24 w-full rounded-lg" />
       <div className="grid gap-6 sm:grid-cols-2">
-        {[1, 2].map((i) => (
+        {[1, 2].map(i => (
           <div key={i} className="rounded-lg border border-default-200 p-4">
             <Skeleton className="mb-3 h-6 w-40 rounded" />
             <div className="space-y-3">
-              {[1, 2, 3].map((j) => (
+              {[1, 2, 3].map(j => (
                 <div key={j} className="flex justify-between">
                   <Skeleton className="h-4 w-28 rounded" />
                   <Skeleton className="h-4 w-32 rounded" />

@@ -1,15 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-
-import { useAuth } from '@/contexts'
 import { useUserFullDetails, type TUserFullDetails } from '@packages/http-client/hooks'
-import { Spinner } from '@/ui/components/spinner'
-import { Typography } from '@/ui/components/typography'
-import { Button } from '@/ui/components/button'
 
 import { UserDetailHeader } from './UserDetailHeader'
 import { UserDetailSidebar } from './UserDetailSidebar'
+
+import { useAuth } from '@/contexts'
+import { Spinner } from '@/ui/components/spinner'
+import { Typography } from '@/ui/components/typography'
+import { Button } from '@/ui/components/button'
 
 interface IUserDetailLayoutProps {
   userId: string
@@ -60,7 +60,7 @@ export function UserDetailLayout({ userId, children }: IUserDetailLayoutProps) {
       <UserDetailHeader user={user} />
 
       <div className="flex flex-col md:flex-row gap-8 mt-6">
-        <UserDetailSidebar userId={userId} isSuperadmin={user.isSuperadmin} />
+        <UserDetailSidebar isSuperadmin={user.isSuperadmin} userId={userId} />
         <main className="flex-1 min-w-0">
           {/* Pass user data to children through context or clone */}
           {children}

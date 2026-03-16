@@ -66,12 +66,11 @@ export class CreateCompanyWithExistingAdminService {
 
     // Check if a management company with this email already exists
     if (input.company.email) {
-      const existingCompany = await this.managementCompaniesRepository.getByEmail(input.company.email)
+      const existingCompany = await this.managementCompaniesRepository.getByEmail(
+        input.company.email
+      )
       if (existingCompany) {
-        return failure(
-          'A management company with this email already exists',
-          'CONFLICT'
-        )
+        return failure('A management company with this email already exists', 'CONFLICT')
       }
     }
 
@@ -88,7 +87,7 @@ export class CreateCompanyWithExistingAdminService {
     }
 
     // All writes inside a transaction for atomicity
-    return await this.db.transaction(async (tx) => {
+    return await this.db.transaction(async tx => {
       const txCompaniesRepo = this.managementCompaniesRepository.withTx(tx)
       const txMembersRepo = this.membersRepository.withTx(tx)
       const txUserRolesRepo = this.userRolesRepository.withTx(tx)

@@ -1,11 +1,13 @@
 'use client'
 
+import type { TPaymentStatus } from '@packages/domain'
+
 import { useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
-import type { TPaymentStatus } from '@packages/domain'
 import { formatAmount } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
+import { usePaymentDetail, usePaymentApplicationsByPayment } from '@packages/http-client'
 
 import { getPaymentStatusColor } from '@/utils/status-colors'
 import { Typography } from '@/ui/components/typography'
@@ -13,10 +15,6 @@ import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
 import { Skeleton } from '@/ui/components/skeleton'
 import { useTranslation } from '@/contexts'
-import {
-  usePaymentDetail,
-  usePaymentApplicationsByPayment,
-} from '@packages/http-client'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -24,11 +22,13 @@ import {
 
 function fmtDate(date: Date | string | null | undefined): string {
   if (!date) return '-'
+
   return formatShortDate(date)
 }
 
 function fmtAmount(amount: string | null | undefined): string {
   if (!amount) return '-'
+
   return formatAmount(amount)
 }
 
@@ -52,10 +52,8 @@ export default function MyPaymentDetailPage() {
   // Progress: how much of the payment has been applied to quotas
   const totalApplied = useMemo(() => {
     return (
-      applications.reduce(
-        (sum, app) => sum + Math.round(parseFloat(app.appliedAmount) * 100),
-        0
-      ) / 100
+      applications.reduce((sum, app) => sum + Math.round(parseFloat(app.appliedAmount) * 100), 0) /
+      100
     )
   }, [applications])
 
@@ -87,11 +85,7 @@ export default function MyPaymentDetailPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button
-          isIconOnly
-          variant="light"
-          onPress={() => router.push('/dashboard/my-payments')}
-        >
+        <Button isIconOnly variant="light" onPress={() => router.push('/dashboard/my-payments')}>
           <ArrowLeft size={20} />
         </Button>
         <div className="flex-1">
@@ -100,13 +94,17 @@ export default function MyPaymentDetailPage() {
             {payment.paymentNumber || payment.id.slice(0, 8)}
           </Typography>
         </div>
-        <Chip color={getPaymentStatusColor(payment.status)} variant="flat" size="lg">
+        <Chip color={getPaymentStatusColor(payment.status)} size="lg" variant="flat">
           {t(`resident.myPayments.detail.status.${payment.status}`)}
         </Chip>
       </div>
 
       {/* Status message */}
-      <StatusMessage status={payment.status as TPaymentStatus} t={t} verificationNotes={payment.verificationNotes} />
+      <StatusMessage
+        status={payment.status as TPaymentStatus}
+        t={t}
+        verificationNotes={payment.verificationNotes}
+      />
 
       <div className="grid gap-6 sm:grid-cols-2">
         {/* Payment info */}
@@ -170,8 +168,8 @@ export default function MyPaymentDetailPage() {
           <a
             className="inline-flex items-center gap-1 text-primary hover:underline"
             href={payment.receiptUrl}
-            target="_blank"
             rel="noopener noreferrer"
+            target="_blank"
           >
             {t('resident.myPayments.detail.viewReceipt')}
             <ExternalLink size={14} />
@@ -190,25 +188,29 @@ export default function MyPaymentDetailPage() {
       {applications.length > 0 && (
         <DetailSection title={t('resident.myPayments.detail.appliedQuotas')}>
           <div className="space-y-2">
-            {applications.map((app) => (
+            {applications.map(app => (
               <div
                 key={app.id}
                 className="flex flex-col gap-1 rounded-md bg-default-50 p-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex flex-col gap-0.5">
                   <span className="text-sm font-medium">
-                    {currencySymbol}{fmtAmount(app.appliedAmount)} {currencyCode}
+                    {currencySymbol}
+                    {fmtAmount(app.appliedAmount)} {currencyCode}
                   </span>
-                  <span className="text-xs text-default-500">
-                    {fmtDate(app.appliedAt)}
-                  </span>
+                  <span className="text-xs text-default-500">{fmtDate(app.appliedAt)}</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-default-500">
                   {parseFloat(app.appliedToPrincipal ?? '0') > 0 && (
-                    <span>{t('resident.myPayments.detail.principal')}: {fmtAmount(app.appliedToPrincipal)}</span>
+                    <span>
+                      {t('resident.myPayments.detail.principal')}:{' '}
+                      {fmtAmount(app.appliedToPrincipal)}
+                    </span>
                   )}
                   {parseFloat(app.appliedToInterest ?? '0') > 0 && (
-                    <span>{t('resident.myPayments.detail.interest')}: {fmtAmount(app.appliedToInterest)}</span>
+                    <span>
+                      {t('resident.myPayments.detail.interest')}: {fmtAmount(app.appliedToInterest)}
+                    </span>
                   )}
                 </div>
               </div>
@@ -219,7 +221,8 @@ export default function MyPaymentDetailPage() {
               {t('resident.myPayments.detail.totalApplied')}
             </Typography>
             <Typography variant="body2" weight="semibold">
-              {currencySymbol}{fmtAmount(totalApplied.toFixed(2))} {currencyCode}
+              {currencySymbol}
+              {fmtAmount(totalApplied.toFixed(2))} {currencyCode}
             </Typography>
           </div>
         </DetailSection>
@@ -265,6 +268,7 @@ function StatusMessage({
   }
 
   const c = config[status]
+
   if (!c) return null
 
   return (
@@ -285,13 +289,7 @@ function StatusMessage({
 // Sub-components
 // ─────────────────────────────────────────────────────────────────────────────
 
-function DetailSection({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
+function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border border-default-200 p-4">
       <Typography className="mb-3" variant="h4">
@@ -331,11 +329,11 @@ function PaymentDetailSkeleton() {
       </div>
       <Skeleton className="h-16 w-full rounded-lg" />
       <div className="grid gap-6 sm:grid-cols-2">
-        {[1, 2].map((i) => (
+        {[1, 2].map(i => (
           <div key={i} className="rounded-lg border border-default-200 p-4">
             <Skeleton className="mb-3 h-6 w-40 rounded" />
             <div className="space-y-3">
-              {[1, 2, 3].map((j) => (
+              {[1, 2, 3].map(j => (
                 <div key={j} className="flex justify-between">
                   <Skeleton className="h-4 w-28 rounded" />
                   <Skeleton className="h-4 w-32 rounded" />

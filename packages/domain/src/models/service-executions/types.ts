@@ -22,6 +22,12 @@ export type TWizardExecutionData = {
   currencyId: string
   invoiceNumber?: string
   items: TServiceExecutionItem[]
-  attachments: Array<{ name: string; url: string; mimeType: string; size: number; storagePath: string }>
+  attachments: Array<{
+    name: string
+    url: string
+    mimeType: string
+    size: number
+    storagePath: string
+  }>
   notes?: string
 }

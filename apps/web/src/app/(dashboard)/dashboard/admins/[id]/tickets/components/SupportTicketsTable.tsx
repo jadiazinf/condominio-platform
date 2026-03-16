@@ -1,16 +1,17 @@
 'use client'
 
+import type { TSupportTicket, TPaginationMeta } from '@packages/domain'
+
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { Plus, MessageSquare, AlertCircle, Search } from 'lucide-react'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
 import { Card, CardBody } from '@/ui/components/card'
-import { Plus, MessageSquare, AlertCircle, Search } from 'lucide-react'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Input } from '@/ui/components/input'
-import type { TSupportTicket, TPaginationMeta } from '@packages/domain'
-
 import { Pagination } from '@/ui/components/pagination'
 import { getTicketStatusColor, getTicketPriorityColor } from '@/utils/status-colors'
 import { useI18n } from '@/contexts'
@@ -84,6 +85,7 @@ export function SupportTicketsTable({ companyId, tickets, pagination }: SupportT
     // Skip first render to avoid initial fetch
     if (isFirstRender.current) {
       isFirstRender.current = false
+
       return
     }
 
@@ -92,7 +94,6 @@ export function SupportTicketsTable({ companyId, tickets, pagination }: SupportT
     }, 500) // 500ms debounce
 
     return () => clearTimeout(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchInput])
 
   const updateFilters = useCallback(
@@ -130,12 +131,14 @@ export function SupportTicketsTable({ companyId, tickets, pagination }: SupportT
   const getStatusLabel = (status: string) => {
     const key = `tickets.status.${status.toLowerCase()}`
     const translation = t(key)
+
     return translation !== key ? translation : status
   }
 
   const getPriorityLabel = (priority: string) => {
     const key = `tickets.priority.${priority.toLowerCase()}`
     const translation = t(key)
+
     return translation !== key ? translation : priority
   }
 
@@ -143,6 +146,7 @@ export function SupportTicketsTable({ companyId, tickets, pagination }: SupportT
     if (!category) return t('tickets.category.general')
     const key = `tickets.category.${category.toLowerCase()}`
     const translation = t(key)
+
     return translation !== key ? translation : category
   }
 
@@ -201,7 +205,7 @@ export function SupportTicketsTable({ companyId, tickets, pagination }: SupportT
           return null
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [t]
   )
 
@@ -219,18 +223,18 @@ export function SupportTicketsTable({ companyId, tickets, pagination }: SupportT
           <div className="flex gap-2">
             <Select
               className="w-48"
+              items={statusFilterItems}
               label={t('tickets.filters.status')}
               placeholder={t('tickets.filters.status')}
-              items={statusFilterItems}
               value={statusFilter}
               onChange={key => updateFilters({ status: key || 'all' })}
             />
 
             <Select
               className="w-48"
+              items={priorityFilterItems}
               label={t('tickets.filters.priority')}
               placeholder={t('tickets.filters.priority')}
-              items={priorityFilterItems}
               value={priorityFilter}
               onChange={key => updateFilters({ priority: key || 'all' })}
             />
@@ -262,8 +266,8 @@ export function SupportTicketsTable({ companyId, tickets, pagination }: SupportT
             {tickets.map(ticket => (
               <Card
                 key={ticket.id}
-                className="cursor-pointer transition-all hover:shadow-md"
                 isPressable
+                className="cursor-pointer transition-all hover:shadow-md"
                 onPress={() => handleViewTicket(ticket.id)}
               >
                 <CardBody className="h-44 space-y-3">
@@ -312,15 +316,15 @@ export function SupportTicketsTable({ companyId, tickets, pagination }: SupportT
           {/* Desktop Table View */}
           <div className="hidden md:block">
             <Table<TTicketRow>
-              mobileCards={false}
               aria-label="Tabla de tickets de soporte"
-              columns={tableColumns}
-              rows={tickets}
-              renderCell={renderCell}
-              onRowClick={ticket => handleViewTicket(ticket.id)}
               classNames={{
                 tr: 'cursor-pointer transition-colors hover:bg-default-100',
               }}
+              columns={tableColumns}
+              mobileCards={false}
+              renderCell={renderCell}
+              rows={tickets}
+              onRowClick={ticket => handleViewTicket(ticket.id)}
             />
           </div>
 

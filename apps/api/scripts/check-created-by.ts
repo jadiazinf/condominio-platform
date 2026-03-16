@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { managementCompanies, users } from '../src/database/drizzle/schema'
+import { managementCompanies, users } from '@database/drizzle/schema'
 import { eq } from 'drizzle-orm'
 
 const DATABASE_URL = process.env.DATABASE_URL
@@ -30,7 +30,7 @@ async function checkData() {
       .leftJoin(users, eq(managementCompanies.createdBy, users.id))
       .limit(5)
 
-    companies.forEach((company) => {
+    companies.forEach(company => {
       console.log(`Company: ${company.name}`)
       console.log(`  Created By ID: ${company.createdBy}`)
       console.log(`  User Name: ${company.userName || 'NULL'}`)

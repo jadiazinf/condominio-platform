@@ -4,6 +4,13 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
+import {
+  useSubscriptionTermsDetail,
+  useUpdateSubscriptionTerms,
+  useDeactivateSubscriptionTerms,
+  subscriptionTermsKeys,
+  useQueryClient,
+} from '@packages/http-client'
 
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
@@ -14,13 +21,6 @@ import { Card, CardBody } from '@/ui/components/card'
 import { Spinner } from '@/ui/components/spinner'
 import { useToast } from '@/ui/components/toast'
 import { useTranslation } from '@/contexts'
-import {
-  useSubscriptionTermsDetail,
-  useUpdateSubscriptionTerms,
-  useDeactivateSubscriptionTerms,
-  subscriptionTermsKeys,
-  useQueryClient,
-} from '@packages/http-client'
 
 const editTermsSchema = z.object({
   title: z.string().min(1).max(255),
@@ -36,6 +36,7 @@ type TEditTermsForm = z.infer<typeof editTermsSchema>
 function formatDateForInput(date: Date | string | null): string {
   if (!date) return ''
   const d = new Date(date)
+
   return d.toISOString().split('T')[0]
 }
 
@@ -119,7 +120,11 @@ export function EditTermsForm({ id }: EditTermsFormProps) {
           <Typography color="danger" variant="body1">
             {t('common.loadError')}
           </Typography>
-          <Button className="mt-4" color="primary" onPress={() => router.push('/dashboard/terms-conditions')}>
+          <Button
+            className="mt-4"
+            color="primary"
+            onPress={() => router.push('/dashboard/terms-conditions')}
+          >
             {t('common.back')}
           </Button>
         </CardBody>
@@ -132,62 +137,58 @@ export function EditTermsForm({ id }: EditTermsFormProps) {
   return (
     <Card>
       <CardBody>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
           {/* Version (read-only) */}
           <div className="space-y-4 flex flex-col gap-2">
-            <Typography variant="h4" className="text-default-700">
+            <Typography className="text-default-700" variant="h4">
               {t('superadmin.terms.form.basicInfo')}
             </Typography>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <Input
-                label={t('superadmin.terms.form.version')}
-                value={terms.version}
-                isDisabled
-              />
+              <Input isDisabled label={t('superadmin.terms.form.version')} value={terms.version} />
 
               <Controller
-                name="title"
                 control={control}
+                name="title"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    label={t('superadmin.terms.form.titleLabel')}
-                    placeholder={t('superadmin.terms.form.titlePlaceholder')}
+                    isRequired
                     errorMessage={errors.title?.message}
                     isInvalid={!!errors.title}
-                    isRequired
+                    label={t('superadmin.terms.form.titleLabel')}
+                    placeholder={t('superadmin.terms.form.titlePlaceholder')}
                   />
                 )}
               />
             </div>
 
             <Controller
-              name="content"
               control={control}
+              name="content"
               render={({ field }) => (
                 <Textarea
                   {...field}
-                  label={t('superadmin.terms.form.content')}
-                  placeholder={t('superadmin.terms.form.contentPlaceholder')}
+                  isRequired
                   errorMessage={errors.content?.message}
                   isInvalid={!!errors.content}
+                  label={t('superadmin.terms.form.content')}
                   minRows={10}
-                  isRequired
+                  placeholder={t('superadmin.terms.form.contentPlaceholder')}
                 />
               )}
             />
 
             <Controller
-              name="summary"
               control={control}
+              name="summary"
               render={({ field }) => (
                 <Textarea
                   {...field}
-                  value={field.value || ''}
                   label={t('superadmin.terms.form.summary')}
-                  placeholder={t('superadmin.terms.form.summaryPlaceholder')}
                   minRows={3}
+                  placeholder={t('superadmin.terms.form.summaryPlaceholder')}
+                  value={field.value || ''}
                 />
               )}
             />
@@ -195,35 +196,35 @@ export function EditTermsForm({ id }: EditTermsFormProps) {
 
           {/* Dates */}
           <div className="space-y-4 flex flex-col gap-2">
-            <Typography variant="h4" className="text-default-700">
+            <Typography className="text-default-700" variant="h4">
               {t('superadmin.terms.form.dates')}
             </Typography>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <Controller
-                name="effectiveFrom"
                 control={control}
+                name="effectiveFrom"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    type="date"
-                    label={t('superadmin.terms.form.effectiveFrom')}
+                    isRequired
                     errorMessage={errors.effectiveFrom?.message}
                     isInvalid={!!errors.effectiveFrom}
-                    isRequired
+                    label={t('superadmin.terms.form.effectiveFrom')}
+                    type="date"
                   />
                 )}
               />
 
               <Controller
-                name="effectiveUntil"
                 control={control}
+                name="effectiveUntil"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    value={field.value || ''}
-                    type="date"
                     label={t('superadmin.terms.form.effectiveUntil')}
+                    type="date"
+                    value={field.value || ''}
                   />
                 )}
               />
@@ -233,15 +234,13 @@ export function EditTermsForm({ id }: EditTermsFormProps) {
           {/* Active toggle */}
           <div className="flex items-center gap-3">
             <Controller
-              name="isActive"
               control={control}
+              name="isActive"
               render={({ field }) => (
                 <Switch isSelected={field.value} onValueChange={field.onChange} />
               )}
             />
-            <Typography variant="body2">
-              {t('superadmin.terms.form.isActive')}
-            </Typography>
+            <Typography variant="body2">{t('superadmin.terms.form.isActive')}</Typography>
           </div>
 
           {/* Actions */}
@@ -249,9 +248,9 @@ export function EditTermsForm({ id }: EditTermsFormProps) {
             {terms.isActive && (
               <Button
                 color="warning"
-                variant="flat"
-                isLoading={deactivateMutation.isPending}
                 isDisabled={isPending}
+                isLoading={deactivateMutation.isPending}
+                variant="flat"
                 onPress={() => deactivateMutation.mutate({ id: terms.id })}
               >
                 {t('superadmin.terms.deactivate.title')}
@@ -259,17 +258,13 @@ export function EditTermsForm({ id }: EditTermsFormProps) {
             )}
             <div className="flex gap-3 ml-auto">
               <Button
+                isDisabled={isPending}
                 variant="flat"
                 onPress={() => router.push('/dashboard/terms-conditions')}
-                isDisabled={isPending}
               >
                 {t('superadmin.terms.form.cancel')}
               </Button>
-              <Button
-                color="primary"
-                type="submit"
-                isLoading={isPending}
-              >
+              <Button color="primary" isLoading={isPending} type="submit">
                 {t('superadmin.terms.form.save')}
               </Button>
             </div>

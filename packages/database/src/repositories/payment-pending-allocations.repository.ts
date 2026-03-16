@@ -1,11 +1,11 @@
-import { and, eq, desc } from 'drizzle-orm'
+import { and, eq, desc, inArray } from 'drizzle-orm'
 import type {
   TPaymentPendingAllocation,
   TPaymentPendingAllocationCreate,
   TPaymentPendingAllocationUpdate,
   TAllocationStatus,
 } from '@packages/domain'
-import { paymentPendingAllocations } from '../drizzle/schema'
+import { paymentPendingAllocations, payments, units, buildings } from '../drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -51,7 +51,9 @@ export class PaymentPendingAllocationsRepository
     }
   }
 
-  protected override mapToUpdateValues(dto: TPaymentPendingAllocationUpdate): Record<string, unknown> {
+  protected override mapToUpdateValues(
+    dto: TPaymentPendingAllocationUpdate
+  ): Record<string, unknown> {
     const values: Record<string, unknown> = {}
 
     if (dto.status !== undefined) values.status = dto.status
@@ -69,13 +71,57 @@ export class PaymentPendingAllocationsRepository
   }
 
   /**
-   * Retrieves pending allocations by payment.
+   * Retrieves allocations scoped to a condominium via payment → unit → building → condominium.
    */
-  async getByPaymentId(paymentId: string): Promise<TPaymentPendingAllocation[]> {
+  async listByCondominiumId(condominiumId: string): Promise<TPaymentPendingAllocation[]> {
+    const condominiumUnitIds = this.db
+      .select({ id: units.id })
+      .from(units)
+      .innerJoin(buildings, eq(units.buildingId, buildings.id))
+      .where(eq(buildings.condominiumId, condominiumId))
+
+    const condominiumPaymentIds = this.db
+      .select({ id: payments.id })
+      .from(payments)
+      .where(inArray(payments.unitId, condominiumUnitIds))
+
     const results = await this.db
       .select()
       .from(paymentPendingAllocations)
-      .where(eq(paymentPendingAllocations.paymentId, paymentId))
+      .where(inArray(paymentPendingAllocations.paymentId, condominiumPaymentIds))
+      .orderBy(desc(paymentPendingAllocations.createdAt))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Retrieves pending allocations by payment.
+   */
+  async getByPaymentId(
+    paymentId: string,
+    condominiumId?: string
+  ): Promise<TPaymentPendingAllocation[]> {
+    const conditions = [eq(paymentPendingAllocations.paymentId, paymentId)]
+
+    if (condominiumId) {
+      const condominiumUnitIds = this.db
+        .select({ id: units.id })
+        .from(units)
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(eq(buildings.condominiumId, condominiumId))
+
+      const condominiumPaymentIds = this.db
+        .select({ id: payments.id })
+        .from(payments)
+        .where(inArray(payments.unitId, condominiumUnitIds))
+
+      conditions.push(inArray(paymentPendingAllocations.paymentId, condominiumPaymentIds))
+    }
+
+    const results = await this.db
+      .select()
+      .from(paymentPendingAllocations)
+      .where(and(...conditions))
       .orderBy(desc(paymentPendingAllocations.createdAt))
 
     return results.map(record => this.mapToEntity(record))

@@ -1,12 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
-import { Table, type ITableColumn } from '@/ui/components/table'
-import { Chip } from '@/ui/components/chip'
-import { Button } from '@/ui/components/button'
 import { Download, FileText, CheckCircle } from 'lucide-react'
-import { Select, type ISelectItem } from '@/ui/components/select'
-
 import {
   useSubscriptionInvoices,
   markInvoicePaid,
@@ -15,9 +10,14 @@ import {
   useMutation,
   useQueryClient,
 } from '@packages/http-client'
-import { useAuth } from '@/contexts'
 import { formatCurrency } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
+
+import { Table, type ITableColumn } from '@/ui/components/table'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { useAuth } from '@/contexts'
 import { getInvoiceStatusColor } from '@/utils/status-colors'
 
 type TInvoiceStatus = 'pending' | 'paid' | 'overdue' | 'cancelled' | 'refunded' | 'sent' | 'draft'
@@ -123,6 +123,7 @@ export function CompanyInvoicesTable({ companyId }: CompanyInvoicesTableProps) {
       cancelled: 'Cancelada',
       refunded: 'Reembolsada',
     }
+
     return labels[status.toLowerCase()] || status
   }
 
@@ -181,8 +182,8 @@ export function CompanyInvoicesTable({ companyId }: CompanyInvoicesTableProps) {
               </Button>
               {invoice.status === 'pending' && (
                 <Button
-                  color="success"
                   isIconOnly
+                  color="success"
                   isLoading={markPaidMutation.isPending}
                   variant="flat"
                   onPress={() => handleMarkAsPaid(invoice.id)}
@@ -196,7 +197,7 @@ export function CompanyInvoicesTable({ companyId }: CompanyInvoicesTableProps) {
           return null
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     [markPaidMutation.isPending]
   )
 
@@ -225,9 +226,9 @@ export function CompanyInvoicesTable({ companyId }: CompanyInvoicesTableProps) {
       <div className="flex justify-end">
         <Select
           className="max-w-xs"
+          items={statusFilterItems}
           label="Filtrar por estado"
           placeholder="Seleccionar estado"
-          items={statusFilterItems}
           value={statusFilter}
           onChange={key => setStatusFilter(key || 'all')}
         />
@@ -236,8 +237,8 @@ export function CompanyInvoicesTable({ companyId }: CompanyInvoicesTableProps) {
       <Table<TInvoiceRow>
         aria-label="Tabla de facturas"
         columns={tableColumns}
-        rows={invoices}
         renderCell={renderCell}
+        rows={invoices}
       />
     </div>
   )

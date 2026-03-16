@@ -13,9 +13,7 @@ import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
-import {
-  InitializeUserPreferencesService,
-} from '@src/services/user-notification-preferences'
+import { InitializeUserPreferencesService } from '@src/services/user-notification-preferences'
 
 const UserIdParamSchema = z.object({
   userId: z.string().uuid('Invalid user ID format'),
@@ -56,7 +54,9 @@ export class UserNotificationPreferencesController extends BaseController<
   constructor(private readonly preferencesRepository: UserNotificationPreferencesRepository) {
     super(preferencesRepository)
 
-    this.initializeUserPreferencesService = new InitializeUserPreferencesService(preferencesRepository)
+    this.initializeUserPreferencesService = new InitializeUserPreferencesService(
+      preferencesRepository
+    )
   }
 
   get routes(): TRouteDefinition[] {

@@ -2,13 +2,6 @@
 
 import { useState } from 'react'
 import { Bell, CheckCheck } from 'lucide-react'
-
-import { Button } from '@/ui/components/button'
-import { Select, type ISelectItem } from '@/ui/components/select'
-import { Spinner } from '@/ui/components/spinner'
-import { Pagination } from '@/ui/components/pagination'
-import { NotificationItem } from '@/ui/components/notifications/NotificationItem'
-import { useUser } from '@/contexts'
 import {
   useMyNotificationsPaginated,
   useMarkNotificationAsRead,
@@ -16,7 +9,21 @@ import {
   useDeleteNotification,
 } from '@packages/http-client/hooks'
 
-type TCategoryFilter = 'all' | 'payment' | 'quota' | 'announcement' | 'reminder' | 'alert' | 'system'
+import { Button } from '@/ui/components/button'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Spinner } from '@/ui/components/spinner'
+import { Pagination } from '@/ui/components/pagination'
+import { NotificationItem } from '@/ui/components/notifications/NotificationItem'
+import { useUser } from '@/contexts'
+
+type TCategoryFilter =
+  | 'all'
+  | 'payment'
+  | 'quota'
+  | 'announcement'
+  | 'reminder'
+  | 'alert'
+  | 'system'
 type TReadFilter = 'all' | 'read' | 'unread'
 
 interface INotificationsPageClientProps {
@@ -110,24 +117,24 @@ export function NotificationsPageClient({ translations }: INotificationsPageClie
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
         <Select
           aria-label={translations.filters.category}
+          className="sm:max-w-[200px]"
           items={categoryItems}
           value={categoryFilter}
           onChange={handleCategoryChange}
-          className="sm:max-w-[200px]"
         />
         <Select
           aria-label={translations.filters.readStatus}
+          className="sm:max-w-[200px]"
           items={readItems}
           value={readFilter}
           onChange={handleReadChange}
-          className="sm:max-w-[200px]"
         />
         <div className="sm:ml-auto">
           <Button
-            size="sm"
-            variant="light"
             color="success"
+            size="sm"
             startContent={<CheckCheck size={16} />}
+            variant="light"
             onPress={handleMarkAllAsRead}
           >
             {translations.markAllAsRead}
@@ -142,7 +149,7 @@ export function NotificationsPageClient({ translations }: INotificationsPageClie
         </div>
       ) : notifications.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-default-300 py-16">
-          <Bell size={48} className="text-default-300" />
+          <Bell className="text-default-300" size={48} />
           <p className="text-default-400">{translations.noNotifications}</p>
           <p className="text-small text-default-300">{translations.noNotificationsDescription}</p>
         </div>
@@ -153,22 +160,22 @@ export function NotificationsPageClient({ translations }: INotificationsPageClie
               <NotificationItem
                 key={notification.id}
                 notification={notification}
-                onMarkAsRead={handleMarkAsRead}
                 onDelete={handleDelete}
+                onMarkAsRead={handleMarkAsRead}
               />
             ))}
           </div>
 
           <Pagination
-            page={pagination.page}
-            totalPages={pagination.totalPages}
-            total={pagination.total}
             limit={pagination.limit}
-            onPageChange={setPage}
-            onLimitChange={(newLimit) => {
+            page={pagination.page}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            onLimitChange={newLimit => {
               setLimit(newLimit)
               setPage(1)
             }}
+            onPageChange={setPage}
           />
         </>
       )}

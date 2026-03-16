@@ -1,6 +1,9 @@
 'use client'
 
-import { Autocomplete as HeroUIAutocomplete, AutocompleteItem as HeroUIAutocompleteItem } from '@heroui/autocomplete'
+import {
+  Autocomplete as HeroUIAutocomplete,
+  AutocompleteItem as HeroUIAutocompleteItem,
+} from '@heroui/autocomplete'
 import { Tooltip } from '@heroui/tooltip'
 import { cn } from '@heroui/theme'
 import { ReactNode, Key } from 'react'
@@ -100,12 +103,12 @@ export function Autocomplete({
         {label}
         {tooltip && (
           <Tooltip
-            content={tooltip}
-            placement="right"
             showArrow
             classNames={{
               content: 'max-w-xs text-sm',
             }}
+            content={tooltip}
+            placement="right"
           >
             <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
           </Tooltip>
@@ -146,7 +149,7 @@ export function Autocomplete({
       onInputChange={onInputChange}
       onSelectionChange={onSelectionChange}
     >
-      {items.map((item) => (
+      {items.map(item => (
         <HeroUIAutocompleteItem
           key={item.key}
           description={item.description}

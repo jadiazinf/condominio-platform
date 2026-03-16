@@ -76,43 +76,43 @@ beforeEach(async () => {
   `)
 
   // Currency
-  const currencyResult = await db.execute(sql`
+  const currencyResult = (await db.execute(sql`
     INSERT INTO currencies (name, code, symbol, is_active)
     VALUES ('US Dollar', 'USD', '$', true)
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   currencyId = currencyResult[0]!.id
 
   // Condominium
-  const condoResult = await db.execute(sql`
+  const condoResult = (await db.execute(sql`
     INSERT INTO condominiums (name, default_currency_id, is_active, created_by)
     VALUES ('Test Condo', ${currencyId}, true, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   condominiumId = condoResult[0]!.id
 
   // Building
-  const buildingResult = await db.execute(sql`
+  const buildingResult = (await db.execute(sql`
     INSERT INTO buildings (name, condominium_id, created_by)
     VALUES ('Building A', ${condominiumId}, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   buildingId = buildingResult[0]!.id
 
   // Unit
-  const unitResult = await db.execute(sql`
+  const unitResult = (await db.execute(sql`
     INSERT INTO units (unit_number, building_id, aliquot_percentage, created_by)
     VALUES ('A-101', ${buildingId}, 100.00, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   unitId = unitResult[0]!.id
 
   // Payment concept
-  const conceptResult = await db.execute(sql`
+  const conceptResult = (await db.execute(sql`
     INSERT INTO payment_concepts (name, condominium_id, concept_type, is_recurring, recurrence_period, currency_id, issue_day, due_day, is_active, created_by)
     VALUES ('Mantenimiento', ${condominiumId}, 'maintenance', true, 'monthly', ${currencyId}, 1, 15, true, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   conceptId = conceptResult[0]!.id
 })
 
@@ -120,13 +120,15 @@ beforeEach(async () => {
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function createOverdueQuota(overrides: {
-  dueDate?: string
-  baseAmount?: string
-  balance?: string
-  interestAmount?: string
-  paidAmount?: string
-} = {}) {
+async function createOverdueQuota(
+  overrides: {
+    dueDate?: string
+    baseAmount?: string
+    balance?: string
+    interestAmount?: string
+    paidAmount?: string
+  } = {}
+) {
   return quotasRepo.create({
     unitId,
     paymentConceptId: conceptId,
@@ -141,6 +143,7 @@ async function createOverdueQuota(overrides: {
     issueDate: '2025-06-01',
     dueDate: overrides.dueDate ?? '2025-06-15',
     status: 'pending', // getOverdue checks status='pending' AND dueDate <= today
+    adjustmentsTotal: '0',
     paidAmount: overrides.paidAmount ?? '0',
     balance: overrides.balance ?? overrides.baseAmount ?? '1000.00',
     notes: null,
@@ -149,13 +152,15 @@ async function createOverdueQuota(overrides: {
   })
 }
 
-async function createInterestConfig(overrides: {
-  interestType?: 'simple' | 'compound' | 'fixed_amount'
-  interestRate?: string
-  fixedAmount?: string
-  gracePeriodDays?: number
-  calculationPeriod?: 'monthly' | 'daily' | 'per_overdue_quota'
-} = {}) {
+async function createInterestConfig(
+  overrides: {
+    interestType?: 'simple' | 'compound' | 'fixed_amount'
+    interestRate?: string
+    fixedAmount?: string
+    gracePeriodDays?: number
+    calculationPeriod?: 'monthly' | 'daily' | 'per_overdue_quota'
+  } = {}
+) {
   return interestConfigsRepo.create({
     condominiumId,
     buildingId: null,
@@ -206,7 +211,7 @@ async function executeInterestCalculation(asOfDate: Date) {
       continue
     }
 
-    await db.transaction(async (tx) => {
+    await db.transaction(async tx => {
       const txQuotasRepo = quotasRepo.withTx(tx)
       const txAdjustmentsRepo = adjustmentsRepo.withTx(tx)
 
@@ -239,7 +244,11 @@ async function executeInterestCalculation(asOfDate: Date) {
 describe('Interest Calculation Flow', () => {
   it('applies simple interest and creates audit adjustment', async () => {
     await createOverdueQuota({ dueDate: '2025-06-15', baseAmount: '1000.00' })
-    await createInterestConfig({ interestType: 'simple', interestRate: '0.05', calculationPeriod: 'monthly' })
+    await createInterestConfig({
+      interestType: 'simple',
+      interestRate: '0.05',
+      calculationPeriod: 'monthly',
+    })
 
     // 30 days overdue: 1000 * 0.05 * 30/30 = 50.00
     const result = await executeInterestCalculation(new Date('2025-07-15'))
@@ -251,7 +260,7 @@ describe('Interest Calculation Flow', () => {
     const quotas = await quotasRepo.getByPeriod(2025, 6)
     const quota = quotas.find(q => q.paymentConceptId === conceptId)!
     expect(quota.interestAmount).toBe('50.00')
-    expect(parseFloat(quota.balance)).toBe(1050.00) // 1000 + 50
+    expect(parseFloat(quota.balance)).toBe(1050.0) // 1000 + 50
 
     // Verify adjustment audit record
     const adjustments = await adjustmentsRepo.getByQuotaId(quota.id)
@@ -277,8 +286,8 @@ describe('Interest Calculation Flow', () => {
 
     const quotas = await quotasRepo.getByPeriod(2025, 6)
     const quota = quotas.find(q => q.paymentConceptId === conceptId)!
-    expect(parseFloat(quota.interestAmount)).toBeCloseTo(102.50, 1)
-    expect(parseFloat(quota.balance)).toBeCloseTo(1102.50, 1)
+    expect(parseFloat(quota.interestAmount)).toBeCloseTo(102.5, 1)
+    expect(parseFloat(quota.balance)).toBeCloseTo(1102.5, 1)
   })
 
   it('does not apply interest within grace period', async () => {
@@ -299,7 +308,7 @@ describe('Interest Calculation Flow', () => {
     const quotas = await quotasRepo.getByPeriod(2025, 6)
     const quota = quotas.find(q => q.paymentConceptId === conceptId)!
     expect(quota.interestAmount).toBe('0.00')
-    expect(parseFloat(quota.balance)).toBe(1000.00)
+    expect(parseFloat(quota.balance)).toBe(1000.0)
   })
 
   it('skips quotas with zero balance', async () => {
@@ -352,7 +361,7 @@ describe('Interest Calculation Flow', () => {
     expect(updated!.interestAmount).toBe('50.00')
 
     // newBalance = baseAmount + newInterest - paidAmount = 1000 + 50 - 0 = 1050
-    expect(parseFloat(updated!.balance)).toBe(1050.00)
+    expect(parseFloat(updated!.balance)).toBe(1050.0)
 
     // Adjustment shows previous=30, new=50
     const adjustments = await adjustmentsRepo.getByQuotaId(quota.id)
@@ -383,6 +392,6 @@ describe('Interest Calculation Flow', () => {
     const quota = quotas.find(q => q.paymentConceptId === conceptId)!
     expect(quota.interestAmount).toBe('30.00')
     // Balance was 600 + interest 30 = 630
-    expect(parseFloat(quota.balance)).toBe(630.00)
+    expect(parseFloat(quota.balance)).toBe(630.0)
   })
 })

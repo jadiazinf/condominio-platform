@@ -43,8 +43,25 @@ export class UnitsRepository
   /**
    * Retrieves units by building.
    */
-  async getByBuildingId(buildingId: string, includeInactive = false): Promise<TUnit[]> {
-    const results = await this.db.select().from(units).where(eq(units.buildingId, buildingId))
+  async getByBuildingId(
+    buildingId: string,
+    includeInactive = false,
+    condominiumId?: string
+  ): Promise<TUnit[]> {
+    const conditions = [eq(units.buildingId, buildingId)]
+
+    if (condominiumId) {
+      conditions.push(eq(buildings.condominiumId, condominiumId))
+    }
+
+    const results = condominiumId
+      ? await this.db
+          .select({ units })
+          .from(units)
+          .innerJoin(buildings, eq(units.buildingId, buildings.id))
+          .where(and(...conditions))
+          .then(rows => rows.map(r => r.units))
+      : await this.db.select().from(units).where(eq(units.buildingId, buildingId))
 
     const mapped = results.map(record => this.mapToEntity(record))
 
@@ -58,12 +75,30 @@ export class UnitsRepository
   /**
    * Retrieves a unit by building and unit number.
    */
-  async getByBuildingAndNumber(buildingId: string, unitNumber: string): Promise<TUnit | null> {
-    const results = await this.db
-      .select()
-      .from(units)
-      .where(and(eq(units.buildingId, buildingId), eq(units.unitNumber, unitNumber)))
-      .limit(1)
+  async getByBuildingAndNumber(
+    buildingId: string,
+    unitNumber: string,
+    condominiumId?: string
+  ): Promise<TUnit | null> {
+    const conditions = [eq(units.buildingId, buildingId), eq(units.unitNumber, unitNumber)]
+
+    if (condominiumId) {
+      conditions.push(eq(buildings.condominiumId, condominiumId))
+    }
+
+    const results = condominiumId
+      ? await this.db
+          .select({ units })
+          .from(units)
+          .innerJoin(buildings, eq(units.buildingId, buildings.id))
+          .where(and(...conditions))
+          .limit(1)
+          .then(rows => rows.map(r => r.units))
+      : await this.db
+          .select()
+          .from(units)
+          .where(and(eq(units.buildingId, buildingId), eq(units.unitNumber, unitNumber)))
+          .limit(1)
 
     if (results.length === 0) {
       return null
@@ -84,10 +119,7 @@ export class UnitsRepository
     if (buildingIds.length === 0) return []
 
     const ids = buildingIds.map(b => b.id)
-    const results = await this.db
-      .select()
-      .from(units)
-      .where(inArray(units.buildingId, ids))
+    const results = await this.db.select().from(units).where(inArray(units.buildingId, ids))
 
     return results.map(record => this.mapToEntity(record))
   }
@@ -95,11 +127,24 @@ export class UnitsRepository
   /**
    * Retrieves units by floor.
    */
-  async getByFloor(buildingId: string, floor: number): Promise<TUnit[]> {
-    const results = await this.db
-      .select()
-      .from(units)
-      .where(and(eq(units.buildingId, buildingId), eq(units.floor, floor)))
+  async getByFloor(buildingId: string, floor: number, condominiumId?: string): Promise<TUnit[]> {
+    const conditions = [eq(units.buildingId, buildingId), eq(units.floor, floor)]
+
+    if (condominiumId) {
+      conditions.push(eq(buildings.condominiumId, condominiumId))
+    }
+
+    const results = condominiumId
+      ? await this.db
+          .select({ units })
+          .from(units)
+          .innerJoin(buildings, eq(units.buildingId, buildings.id))
+          .where(and(...conditions))
+          .then(rows => rows.map(r => r.units))
+      : await this.db
+          .select()
+          .from(units)
+          .where(and(eq(units.buildingId, buildingId), eq(units.floor, floor)))
 
     return results.map(record => this.mapToEntity(record))
   }

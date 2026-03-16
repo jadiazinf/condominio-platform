@@ -1,12 +1,14 @@
 'use client'
 
-import { Typography } from '@/ui/components/typography'
-import { Tabs, Tab } from '@/ui/components/tabs'
+import type { TReserveFundTranslations } from './types'
+
 import { ReserveFundSummaryCards } from './ReserveFundSummaryCards'
 import { ReserveFundConceptsSection } from './ReserveFundConceptsSection'
 import { ReserveFundPaymentsSection } from './ReserveFundPaymentsSection'
 import { ReserveFundExpensesSection } from './ReserveFundExpensesSection'
-import type { TReserveFundTranslations } from './types'
+
+import { Tabs, Tab } from '@/ui/components/tabs'
+import { Typography } from '@/ui/components/typography'
 
 interface ReserveFundPageClientProps {
   condominiumId: string
@@ -24,18 +26,18 @@ export function ReserveFundPageClient({
       {/* Header */}
       <div>
         <Typography variant="h3">{t.title}</Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
+        <Typography className="mt-1" color="muted" variant="body2">
           {t.subtitle}
         </Typography>
       </div>
 
       {/* Tabs */}
       <Tabs
-        size="lg"
-        color="primary"
-        variant="underlined"
-        defaultSelectedKey="summary"
         classNames={{ tabList: 'overflow-x-auto flex-nowrap' }}
+        color="primary"
+        defaultSelectedKey="summary"
+        size="lg"
+        variant="underlined"
       >
         <Tab key="summary" title={t.tabs.summary}>
           <div className="pt-4">

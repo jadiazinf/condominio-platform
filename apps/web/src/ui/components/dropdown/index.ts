@@ -1,10 +1,4 @@
-export {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-  DropdownSection,
-} from './Dropdown'
+export { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, DropdownSection } from './Dropdown'
 export type {
   TDropdownPlacement,
   IDropdownProps,

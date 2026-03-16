@@ -1,8 +1,9 @@
-import { Card, CardHeader, CardBody } from '@/ui/components/card'
-import { Chip } from '@/ui/components/chip'
 import { Calendar, AlertCircle, CheckCircle2, Clock } from 'lucide-react'
 
-type TQuotaStatus = 'pending' | 'overdue' | 'paid'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
+
+type TQuotaStatus = 'pending' | 'partial' | 'overdue' | 'paid' | 'exonerated'
 
 export interface IQuota {
   id: string
@@ -21,19 +22,23 @@ interface UpcomingQuotasProps {
     dueDate: string
     status: {
       pending: string
+      partial: string
       overdue: string
       paid: string
+      exonerated: string
     }
   }
 }
 
 const statusConfig: Record<
   TQuotaStatus,
-  { color: 'warning' | 'danger' | 'success'; icon: typeof Clock }
+  { color: 'warning' | 'danger' | 'success' | 'secondary' | 'primary'; icon: typeof Clock }
 > = {
   pending: { color: 'warning', icon: Clock },
+  partial: { color: 'primary', icon: Clock },
   overdue: { color: 'danger', icon: AlertCircle },
   paid: { color: 'success', icon: CheckCircle2 },
+  exonerated: { color: 'secondary', icon: CheckCircle2 },
 }
 
 export function UpcomingQuotas({ quotas, translations: t }: UpcomingQuotasProps) {

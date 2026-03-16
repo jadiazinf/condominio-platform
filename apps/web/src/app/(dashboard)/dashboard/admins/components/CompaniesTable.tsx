@@ -1,6 +1,16 @@
 'use client'
 
+import type { TManagementCompany, TManagementCompaniesQuery } from '@packages/domain'
+
 import { useState, useCallback, useMemo, useEffect } from 'react'
+import { Building2, Search, MoreVertical, Eye, Power } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import {
+  useManagementCompaniesPaginated,
+  toggleManagementCompanyActive,
+  useQueryClient,
+} from '@packages/http-client'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Input } from '@/ui/components/input'
 import { Select, type ISelectItem } from '@/ui/components/select'
@@ -9,18 +19,9 @@ import { Button } from '@/ui/components/button'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
 import { Spinner } from '@/ui/components/spinner'
 import { ClearFiltersButton } from '@/ui/components/filters'
-import { Building2, Search, MoreVertical, Eye, Power } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import type { TManagementCompany, TManagementCompaniesQuery } from '@packages/domain'
-
 import { useTranslation, useAuth } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Pagination } from '@/ui/components/pagination'
-import {
-  useManagementCompaniesPaginated,
-  toggleManagementCompanyActive,
-  useQueryClient,
-} from '@packages/http-client'
 import { useToast } from '@/ui/components/toast'
 
 type TStatusFilter = 'all' | 'active' | 'inactive'
@@ -237,8 +238,8 @@ export function CompaniesTable() {
           className="w-full sm:w-40"
           items={statusFilterItems}
           value={statusFilter}
-          onChange={handleStatusChange}
           variant="bordered"
+          onChange={handleStatusChange}
         />
         {(search || statusFilter !== 'active') && (
           <ClearFiltersButton onClear={handleClearFilters} />
@@ -264,13 +265,13 @@ export function CompaniesTable() {
         <>
           <Table<TCompanyRow>
             aria-label={t('superadmin.companies.title')}
-            columns={tableColumns}
-            rows={companies}
-            renderCell={renderCell}
-            onRowClick={company => handleViewDetails(company.id)}
             classNames={{
               tr: 'cursor-pointer transition-colors hover:bg-default-100',
             }}
+            columns={tableColumns}
+            renderCell={renderCell}
+            rows={companies}
+            onRowClick={company => handleViewDetails(company.id)}
           />
 
           {/* Pagination */}

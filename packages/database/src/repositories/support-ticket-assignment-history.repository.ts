@@ -13,9 +13,7 @@ export class SupportTicketAssignmentHistoryRepository {
   /**
    * Get the current active assignment for a ticket
    */
-  async getCurrentAssignment(
-    ticketId: string
-  ): Promise<TSupportTicketAssignmentHistory | null> {
+  async getCurrentAssignment(ticketId: string): Promise<TSupportTicketAssignmentHistory | null> {
     const result = await this.db
       .select({
         id: supportTicketAssignmentHistory.id,

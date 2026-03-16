@@ -1,9 +1,21 @@
 'use client'
 
+import type { TPaymentCreate } from '@packages/domain'
+
 import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, CreditCard, Search, Check } from 'lucide-react'
+import {
+  useCompanyCondominiumsPaginated,
+  useCondominiumUnits,
+  useActiveCurrencies,
+  useBanks,
+  useMyCompanyBankAccountsPaginated,
+  useQuotasPendingByUnit,
+  useCreatePayment,
+  verifyPaymentReference,
+} from '@packages/http-client'
 
 import { useTranslation } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
@@ -16,17 +28,6 @@ import { Textarea } from '@/ui/components/textarea'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { useUser, useSessionStore } from '@/stores'
-import {
-  useCompanyCondominiumsPaginated,
-  useCondominiumUnits,
-  useActiveCurrencies,
-  useBanks,
-  useMyCompanyBankAccountsPaginated,
-  useQuotasPendingByUnit,
-  useCreatePayment,
-  verifyPaymentReference,
-} from '@packages/http-client'
-import type { TPaymentCreate } from '@packages/domain'
 
 type TPaymentMethodOption = 'transfer' | 'cash' | 'card' | 'mobile_payment' | 'other'
 
@@ -37,7 +38,7 @@ export default function RegisterPaymentPage() {
   const router = useRouter()
   const toast = useToast()
   const { user } = useUser()
-  const managementCompanies = useSessionStore((s) => s.managementCompanies)
+  const managementCompanies = useSessionStore(s => s.managementCompanies)
 
   const managementCompanyId = managementCompanies?.[0]?.managementCompanyId ?? ''
 
@@ -150,6 +151,7 @@ export default function RegisterPaymentPage() {
       bankAccounts.map((ba: any) => {
         const accNum = ba.accountDetails?.accountNumber ?? ba.accountNumber
         const lastFour = accNum ? `****${accNum.slice(-4)}` : ''
+
         return {
           key: ba.id,
           label: `${ba.bankName}${lastFour ? ` - ${lastFour}` : ''}`,
@@ -162,9 +164,8 @@ export default function RegisterPaymentPage() {
     () =>
       pendingQuotas.map((q: any) => {
         const conceptName = q.paymentConcept?.name ?? ''
-        const period = q.periodMonth
-          ? `${q.periodMonth}/${q.periodYear}`
-          : `${q.periodYear}`
+        const period = q.periodMonth ? `${q.periodMonth}/${q.periodYear}` : `${q.periodYear}`
+
         return {
           key: q.id,
           label: `${conceptName} - ${period} (${q.balance})`,
@@ -217,6 +218,7 @@ export default function RegisterPaymentPage() {
       setUnitId(key ?? '')
       setQuotaId('')
       const unit = units.find((u: any) => u.id === key)
+
       if (unit && (unit as any).ownerships?.length > 0) {
         setUserId((unit as any).ownerships[0].userId)
       } else {
@@ -230,6 +232,7 @@ export default function RegisterPaymentPage() {
     (key: string | null) => {
       setDestinationBankAccountId(key ?? '')
       const ba = bankAccounts.find((b: any) => b.id === key)
+
       if (ba?.currencyId) {
         setCurrencyId(ba.currencyId)
       } else {
@@ -253,6 +256,7 @@ export default function RegisterPaymentPage() {
         senderBankCode: selectedBank?.code ?? undefined,
         transactionDate: paymentDate || undefined,
       })
+
       setVerificationResult({ found: result.found, verifiedAmount: result.verifiedAmount })
 
       if (result.found) {
@@ -267,14 +271,23 @@ export default function RegisterPaymentPage() {
     } finally {
       setVerifying(false)
     }
-  }, [canVerify, externalReference, destinationBankAccountId, senderBankId, paymentDate, banks, t, toast])
+  }, [
+    canVerify,
+    externalReference,
+    destinationBankAccountId,
+    senderBankId,
+    paymentDate,
+    banks,
+    t,
+    toast,
+  ])
 
   const handleNext = useCallback(() => {
-    if (currentStep < TOTAL_STEPS - 1) setCurrentStep((s) => s + 1)
+    if (currentStep < TOTAL_STEPS - 1) setCurrentStep(s => s + 1)
   }, [currentStep])
 
   const handlePrevious = useCallback(() => {
-    if (currentStep > 0) setCurrentStep((s) => s - 1)
+    if (currentStep > 0) setCurrentStep(s => s - 1)
   }, [currentStep])
 
   // Submit
@@ -333,9 +346,18 @@ export default function RegisterPaymentPage() {
 
   // Step definitions
   const steps = [
-    { title: t('admin.payments.register.steps.unit'), description: t('admin.payments.register.steps.unitDescription') },
-    { title: t('admin.payments.register.steps.bank'), description: t('admin.payments.register.steps.bankDescription') },
-    { title: t('admin.payments.register.steps.payment'), description: t('admin.payments.register.steps.paymentDescription') },
+    {
+      title: t('admin.payments.register.steps.unit'),
+      description: t('admin.payments.register.steps.unitDescription'),
+    },
+    {
+      title: t('admin.payments.register.steps.bank'),
+      description: t('admin.payments.register.steps.bankDescription'),
+    },
+    {
+      title: t('admin.payments.register.steps.payment'),
+      description: t('admin.payments.register.steps.paymentDescription'),
+    },
   ]
 
   return (
@@ -354,7 +376,7 @@ export default function RegisterPaymentPage() {
       <Card>
         <CardHeader className="px-6 pt-6">
           <div className="flex items-center gap-3">
-            <CreditCard size={24} className="text-primary" />
+            <CreditCard className="text-primary" size={24} />
             <div>
               <Typography variant="h3">{t('admin.payments.register.title')}</Typography>
               <Typography color="muted" variant="body2">
@@ -370,11 +392,6 @@ export default function RegisterPaymentPage() {
               <div key={index} className="flex flex-1 items-center gap-2">
                 <div className="flex flex-col items-center gap-1">
                   <button
-                    type="button"
-                    onClick={() => {
-                      // Only allow going to completed steps or current
-                      if (index < currentStep) setCurrentStep(index)
-                    }}
                     className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors ${
                       index < currentStep
                         ? 'cursor-pointer bg-success text-success-foreground'
@@ -382,26 +399,35 @@ export default function RegisterPaymentPage() {
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-default-200 text-default-500'
                     }`}
+                    type="button"
+                    onClick={() => {
+                      // Only allow going to completed steps or current
+                      if (index < currentStep) setCurrentStep(index)
+                    }}
                   >
                     {index < currentStep ? <Check size={14} /> : index + 1}
                   </button>
-                  <span className={`text-center text-xs ${
-                    index === currentStep ? 'font-medium text-foreground' : 'text-default-400'
-                  }`}>
+                  <span
+                    className={`text-center text-xs ${
+                      index === currentStep ? 'font-medium text-foreground' : 'text-default-400'
+                    }`}
+                  >
                     {step.title}
                   </span>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={`mb-5 h-px flex-1 ${
-                    index < currentStep ? 'bg-success' : 'bg-default-200'
-                  }`} />
+                  <div
+                    className={`mb-5 h-px flex-1 ${
+                      index < currentStep ? 'bg-success' : 'bg-default-200'
+                    }`}
+                  />
                 )}
               </div>
             ))}
           </div>
 
           {/* Step description */}
-          <Typography color="muted" variant="body2" className="mb-5">
+          <Typography className="mb-5" color="muted" variant="body2">
             {steps[currentStep].description}
           </Typography>
 
@@ -480,7 +506,7 @@ export default function RegisterPaymentPage() {
                           label={t('admin.payments.register.fields.quota')}
                           placeholder={t('admin.payments.register.fields.quotaPlaceholder')}
                           value={quotaId}
-                          onChange={(key) => setQuotaId(key ?? '')}
+                          onChange={key => setQuotaId(key ?? '')}
                         />
                       ) : (
                         <Select
@@ -517,7 +543,7 @@ export default function RegisterPaymentPage() {
                   label={t('admin.payments.register.fields.senderBank')}
                   placeholder={t('admin.payments.register.fields.senderBankPlaceholder')}
                   value={senderBankId}
-                  onChange={(key) => setSenderBankId(key ?? '')}
+                  onChange={key => setSenderBankId(key ?? '')}
                 />
 
                 {/* Destination Bank */}
@@ -550,7 +576,7 @@ export default function RegisterPaymentPage() {
                       placeholder={t('admin.payments.register.fields.externalReferencePlaceholder')}
                       tooltip={t('admin.payments.register.verification.tooltip')}
                       value={externalReference}
-                      onValueChange={(v) => {
+                      onValueChange={v => {
                         setExternalReference(v)
                         setVerificationResult(null)
                       }}
@@ -562,9 +588,9 @@ export default function RegisterPaymentPage() {
                       color={verificationResult?.found ? 'success' : 'primary'}
                       isDisabled={!canVerify}
                       isLoading={verifying}
+                      title={t('admin.payments.register.verification.button')}
                       variant="flat"
                       onPress={handleVerifyReference}
-                      title={t('admin.payments.register.verification.button')}
                     >
                       <Search size={16} />
                     </Button>
@@ -573,9 +599,11 @@ export default function RegisterPaymentPage() {
 
                 {/* Verification result */}
                 {verificationResult && (
-                  <div className={`flex items-center gap-2 rounded-md p-2 ${
-                    verificationResult.found ? 'bg-success-50' : 'bg-warning-50'
-                  }`}>
+                  <div
+                    className={`flex items-center gap-2 rounded-md p-2 ${
+                      verificationResult.found ? 'bg-success-50' : 'bg-warning-50'
+                    }`}
+                  >
                     <Chip
                       color={verificationResult.found ? 'success' : 'warning'}
                       size="sm"
@@ -586,8 +614,9 @@ export default function RegisterPaymentPage() {
                         : t('admin.payments.register.verification.notFound')}
                     </Chip>
                     {verificationResult.found && verificationResult.verifiedAmount && (
-                      <Typography variant="body2" className="text-success-700 text-xs">
-                        {t('admin.payments.register.verification.amount')}: {verificationResult.verifiedAmount}
+                      <Typography className="text-success-700 text-xs" variant="body2">
+                        {t('admin.payments.register.verification.amount')}:{' '}
+                        {verificationResult.verifiedAmount}
                       </Typography>
                     )}
                   </div>
@@ -601,14 +630,14 @@ export default function RegisterPaymentPage() {
                 {/* Amount */}
                 <CurrencyInput
                   isRequired
-                  label={t('admin.payments.register.fields.amount')}
-                  value={amount}
-                  onValueChange={setAmount}
                   currencySymbol={
                     selectedCurrency?.symbol ? (
                       <span className="text-default-400 text-sm">{selectedCurrency.symbol}</span>
                     ) : undefined
                   }
+                  label={t('admin.payments.register.fields.amount')}
+                  value={amount}
+                  onValueChange={setAmount}
                 />
 
                 {/* Payment Method + Payment Date */}
@@ -620,7 +649,7 @@ export default function RegisterPaymentPage() {
                       label={t('admin.payments.register.fields.paymentMethod')}
                       placeholder={t('admin.payments.register.fields.paymentMethodPlaceholder')}
                       value={paymentMethod}
-                      onChange={(key) => setPaymentMethod((key ?? '') as TPaymentMethodOption | '')}
+                      onChange={key => setPaymentMethod((key ?? '') as TPaymentMethodOption | '')}
                     />
                   </div>
                   <div className="flex-1">
@@ -637,11 +666,11 @@ export default function RegisterPaymentPage() {
                 {/* Notes */}
                 <Textarea
                   label={t('admin.payments.register.fields.notes')}
+                  maxRows={6}
+                  minRows={3}
                   placeholder={t('admin.payments.register.fields.notesPlaceholder')}
                   value={notes}
                   onValueChange={setNotes}
-                  minRows={3}
-                  maxRows={6}
                 />
               </div>
             )}
@@ -660,11 +689,7 @@ export default function RegisterPaymentPage() {
                   {t('common.cancel')}
                 </Button>
                 {currentStep < TOTAL_STEPS - 1 ? (
-                  <Button
-                    color="primary"
-                    isDisabled={!isCurrentStepValid}
-                    onPress={handleNext}
-                  >
+                  <Button color="primary" isDisabled={!isCurrentStepValid} onPress={handleNext}>
                     {t('admin.payments.register.next')}
                   </Button>
                 ) : (

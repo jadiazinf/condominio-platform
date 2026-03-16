@@ -1,11 +1,14 @@
 'use client'
 
-import { CloseTicketModal, type ICloseTicketModalTranslations } from '../../CloseTicketModal'
-import { Typography } from '@/ui/components/typography'
+import type { TUser } from '@packages/domain'
+
 import { Calendar } from 'lucide-react'
+
+import { CloseTicketModal, type ICloseTicketModalTranslations } from '../../CloseTicketModal'
 import { UserInfo } from '../../UserInfo'
 import { formatDate } from '../../ticket-helpers'
-import type { TUser } from '@packages/domain'
+
+import { Typography } from '@/ui/components/typography'
 
 interface ITicketActionsSectionProps {
   closedAt: Date | null
@@ -54,8 +57,8 @@ export function TicketActionsSection({
           </Typography>
           <div className="mt-1">
             <UserInfo
-              user={closedByUser}
               showViewProfile
+              user={closedByUser}
               viewProfileLabel={translations.viewProfile}
             />
           </div>

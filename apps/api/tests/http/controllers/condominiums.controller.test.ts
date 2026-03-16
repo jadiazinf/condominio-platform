@@ -4,7 +4,16 @@ import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
 import type { TCondominium, TCondominiumCreate, TCondominiumUpdate } from '@packages/domain'
 import { CondominiumsController } from '@http/controllers/condominiums'
-import type { CondominiumsRepository, ManagementCompanySubscriptionsRepository, ManagementCompaniesRepository, LocationsRepository, CurrenciesRepository, UsersRepository, BuildingsRepository, UnitsRepository } from '@database/repositories'
+import type {
+  CondominiumsRepository,
+  ManagementCompanySubscriptionsRepository,
+  ManagementCompaniesRepository,
+  LocationsRepository,
+  CurrenciesRepository,
+  UsersRepository,
+  BuildingsRepository,
+  UnitsRepository,
+} from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { CondominiumFactory } from '../../setup/factories'
 import {
@@ -19,7 +28,10 @@ import { ErrorCodes } from '@http/responses/types'
 // Mock repository type with custom methods
 type TMockCondominiumsRepository = {
   listAll: () => Promise<TCondominium[]>
-  listPaginated: (query: unknown) => Promise<{ data: TCondominium[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>
+  listPaginated: (query: unknown) => Promise<{
+    data: TCondominium[]
+    pagination: { page: number; limit: number; total: number; totalPages: number }
+  }>
   getById: (id: string) => Promise<TCondominium | null>
   create: (data: TCondominiumCreate) => Promise<TCondominium>
   update: (id: string, data: TCondominiumUpdate) => Promise<TCondominium | null>

@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
-import { getFullSession } from '@/libs/session'
+
 import { AuditLogDetailPage } from '../../../components/AuditLogDetailPage'
+
+import { getFullSession } from '@/libs/session'
 
 interface AuditLogDetailRouteProps {
   params: Promise<{ memberId: string; logId: string }>
@@ -24,9 +26,9 @@ export default async function AuditLogDetailRoute({ params }: AuditLogDetailRout
 
   return (
     <AuditLogDetailPage
+      logId={logId}
       managementCompanyId={managementCompanyId}
       memberId={memberId}
-      logId={logId}
     />
   )
 }

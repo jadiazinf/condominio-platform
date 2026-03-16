@@ -33,19 +33,19 @@ export function UserAvatar({
   const avatarElement = (
     <Avatar
       key={src}
-      name={name || undefined}
-      src={src || undefined}
-      size={size}
-      className={className}
       isBordered
-      color="default"
+      className={className}
       classNames={{
         base: isClickable ? 'cursor-pointer transition-transform hover:scale-105' : '',
       }}
+      color="default"
       imgProps={{
         loading: 'eager',
         fetchPriority: 'high',
       }}
+      name={name || undefined}
+      size={size}
+      src={src || undefined}
     />
   )
 

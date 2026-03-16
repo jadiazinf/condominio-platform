@@ -48,7 +48,7 @@ export class ProcessWebhookService {
     private readonly gatewayTransactionsRepository: GatewayTransactionsRepository,
     private readonly paymentsRepository: PaymentsRepository,
     private readonly sendNotificationService?: SendNotificationService,
-    private readonly pendingAllocationsRepository?: PaymentPendingAllocationsRepository,
+    private readonly pendingAllocationsRepository?: PaymentPendingAllocationsRepository
   ) {}
 
   async execute(input: IProcessWebhookInput): Promise<TServiceResult<IProcessWebhookOutput>> {
@@ -107,7 +107,11 @@ export class ProcessWebhookService {
       const age = Date.now() - webhookTimestamp.getTime()
       if (age > MAX_WEBHOOK_AGE_MS) {
         logger.warn(
-          { gatewayType, webhookAge: Math.round(age / 1000), maxAgeSeconds: MAX_WEBHOOK_AGE_MS / 1000 },
+          {
+            gatewayType,
+            webhookAge: Math.round(age / 1000),
+            maxAgeSeconds: MAX_WEBHOOK_AGE_MS / 1000,
+          },
           '[Webhook] Rejected stale webhook'
         )
         return failure('Webhook is too old, rejecting to prevent replay', 'FORBIDDEN')
@@ -148,7 +152,7 @@ export class ProcessWebhookService {
     // All DB writes inside a transaction for atomicity
     let autoVerified = false
 
-    await this.db.transaction(async (tx) => {
+    await this.db.transaction(async tx => {
       const txGatewayTxRepo = this.gatewayTransactionsRepository.withTx(tx)
       const txPaymentsRepo = this.paymentsRepository.withTx(tx)
 
@@ -160,15 +164,9 @@ export class ProcessWebhookService {
 
         if (existingTx) {
           if (result.status === 'completed') {
-            await txGatewayTxRepo.markVerified(
-              existingTx.id,
-              result.externalTransactionId
-            )
+            await txGatewayTxRepo.markVerified(existingTx.id, result.externalTransactionId)
           } else if (result.status === 'failed') {
-            await txGatewayTxRepo.markFailed(
-              existingTx.id,
-              'Webhook reported failure'
-            )
+            await txGatewayTxRepo.markFailed(existingTx.id, 'Webhook reported failure')
           }
         }
       }
@@ -233,7 +231,7 @@ export class ProcessWebhookService {
    */
   private async resolveGatewayConfig(
     gatewayType: TGatewayType,
-    body: unknown,
+    body: unknown
   ): Promise<Record<string, unknown> | null> {
     // Try to resolve from payment's gateway (multi-tenant safe)
     const webhookBody = body as Record<string, unknown> | null
@@ -263,7 +261,7 @@ export class ProcessWebhookService {
    */
   private extractPaymentIdFromBody(
     body: Record<string, unknown> | null,
-    gatewayType: TGatewayType,
+    gatewayType: TGatewayType
   ): string | null {
     if (!body) return null
 
@@ -311,35 +309,41 @@ export class ProcessWebhookService {
   private notifyPayer(paymentId: string, gatewayType: TGatewayType): void {
     if (!this.sendNotificationService) return
 
-    this.paymentsRepository.getById(paymentId).then(payment => {
-      if (!payment) return
+    this.paymentsRepository
+      .getById(paymentId)
+      .then(payment => {
+        if (!payment) return
 
-      this.sendNotificationService!.execute({
-        userId: payment.userId,
-        category: 'payment',
-        title: 'Pago Verificado',
-        body: `Tu pago ha sido verificado automáticamente por ${gatewayType}.`,
-        channels: ['in_app', 'push'],
-        data: { paymentId, action: 'payment_verified_webhook' },
-      }).catch(() => {})
-    }).catch(() => {})
+        this.sendNotificationService!.execute({
+          userId: payment.userId,
+          category: 'payment',
+          title: 'Pago Verificado',
+          body: `Tu pago ha sido verificado automáticamente por ${gatewayType}.`,
+          channels: ['in_app', 'push'],
+          data: { paymentId, action: 'payment_verified_webhook' },
+        }).catch(() => {})
+      })
+      .catch(() => {})
   }
 
   private notifyPayerFailure(paymentId: string, gatewayType: TGatewayType): void {
     if (!this.sendNotificationService) return
 
-    this.paymentsRepository.getById(paymentId).then(payment => {
-      if (!payment) return
+    this.paymentsRepository
+      .getById(paymentId)
+      .then(payment => {
+        if (!payment) return
 
-      this.sendNotificationService!.execute({
-        userId: payment.userId,
-        category: 'payment',
-        title: 'Pago Fallido',
-        body: `Tu pago a través de ${gatewayType} no pudo ser procesado. Por favor intenta nuevamente.`,
-        channels: ['in_app', 'push'],
-        priority: 'high',
-        data: { paymentId, action: 'payment_failed_webhook' },
-      }).catch(() => {})
-    }).catch(() => {})
+        this.sendNotificationService!.execute({
+          userId: payment.userId,
+          category: 'payment',
+          title: 'Pago Fallido',
+          body: `Tu pago a través de ${gatewayType} no pudo ser procesado. Por favor intenta nuevamente.`,
+          channels: ['in_app', 'push'],
+          priority: 'high',
+          data: { paymentId, action: 'payment_failed_webhook' },
+        }).catch(() => {})
+      })
+      .catch(() => {})
   }
 }

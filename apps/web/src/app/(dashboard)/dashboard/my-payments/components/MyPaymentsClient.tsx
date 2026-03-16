@@ -1,19 +1,21 @@
 'use client'
 
+import type { TPayment } from '@packages/domain'
+
 import { useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { CreditCard, Plus } from 'lucide-react'
+import { usePaymentsByUser } from '@packages/http-client'
+import { formatAmount } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
+
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Card, CardBody } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
-import { CreditCard, Plus } from 'lucide-react'
-import { usePaymentsByUser } from '@packages/http-client'
-import { formatAmount } from '@packages/utils/currency'
-import { formatShortDate } from '@packages/utils/dates'
-import type { TPayment, TPaymentStatus } from '@packages/domain'
 import { getPaymentStatusColor } from '@/utils/status-colors'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -28,11 +30,13 @@ interface IMyPaymentsClientProps {
 
 function formatDate(date: Date | string | null): string {
   if (!date) return '-'
+
   return formatShortDate(date)
 }
 
 function formatPaymentAmount(amount: string | null): string {
   if (!amount) return '-'
+
   return formatAmount(amount)
 }
 
@@ -52,7 +56,8 @@ export function MyPaymentsClient({ userId }: IMyPaymentsClientProps) {
   // Filter payments by status
   const filteredPayments = useMemo(() => {
     if (statusFilter === 'all') return payments
-    return payments.filter((p) => p.status === statusFilter)
+
+    return payments.filter(p => p.status === statusFilter)
   }, [payments, statusFilter])
 
   // Status filter tabs
@@ -101,7 +106,7 @@ export function MyPaymentsClient({ userId }: IMyPaymentsClientProps) {
 
       {/* Status filter tabs */}
       <div className="flex flex-wrap gap-2">
-        {statusTabs.map((tab) => (
+        {statusTabs.map(tab => (
           <Button
             key={tab.key}
             color={statusFilter === tab.key ? 'primary' : 'default'}
@@ -133,13 +138,13 @@ export function MyPaymentsClient({ userId }: IMyPaymentsClientProps) {
       ) : (
         /* Payment cards list */
         <div className="space-y-3">
-          {filteredPayments.map((payment) => (
+          {filteredPayments.map(payment => (
             <Card
               key={payment.id}
               isHoverable
               isPressable
-              onPress={() => router.push(`/dashboard/my-payments/${payment.id}`)}
               className="cursor-pointer"
+              onPress={() => router.push(`/dashboard/my-payments/${payment.id}`)}
             >
               <CardBody className="p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -147,7 +152,8 @@ export function MyPaymentsClient({ userId }: IMyPaymentsClientProps) {
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                       <Typography variant="subtitle1" weight="semibold">
-                        {payment.currency?.symbol ?? ''}{formatPaymentAmount(payment.amount)}
+                        {payment.currency?.symbol ?? ''}
+                        {formatPaymentAmount(payment.amount)}
                       </Typography>
                       {payment.currency && (
                         <Typography color="muted" variant="caption">

@@ -1,17 +1,19 @@
 'use client'
 
-import { FormProvider } from 'react-hook-form'
-import { MultiStepFormShell } from '@/ui/components/forms'
+import type { TFormStep } from '../../hooks'
 
-import { useTranslation } from '@/contexts'
+import { FormProvider } from 'react-hook-form'
+import { Building2, User, CheckCircle } from 'lucide-react'
 
 import { useCreateCompanyForm } from '../../hooks'
+
 import { CompanyStepForm } from './CompanyStepForm'
 import { AdminStepForm } from './AdminStepForm'
 import { ConfirmationStep } from './ConfirmationStep'
-import { Building2, User, CheckCircle } from 'lucide-react'
+
+import { useTranslation } from '@/contexts'
+import { MultiStepFormShell } from '@/ui/components/forms'
 import { Stepper, type IStepItem } from '@/ui/components/stepper'
-import type { TFormStep } from '../../hooks'
 
 export function CreateCompanyForm() {
   const { t } = useTranslation()
@@ -37,19 +39,9 @@ export function CreateCompanyForm() {
   const renderStepContent = () => {
     switch (currentStep) {
       case 'company':
-        return (
-          <CompanyStepForm
-            translateError={translateError}
-            shouldShowError={shouldShowError}
-          />
-        )
+        return <CompanyStepForm shouldShowError={shouldShowError} translateError={translateError} />
       case 'admin':
-        return (
-          <AdminStepForm
-            translateError={translateError}
-            shouldShowError={shouldShowError}
-          />
-        )
+        return <AdminStepForm shouldShowError={shouldShowError} translateError={translateError} />
       case 'confirmation':
         return <ConfirmationStep data={getValues()} />
       default:
@@ -61,29 +53,38 @@ export function CreateCompanyForm() {
     <FormProvider {...form}>
       <MultiStepFormShell
         currentStepIndex={currentStepIndex}
-        totalSteps={totalSteps}
         isFirstStep={isFirstStep}
         isLastStep={isLastStep}
-        isSubmitting={isSubmitting}
         isLoading={isValidatingAdmin}
-        onSubmit={handleSubmit}
-        onPrevious={goToPreviousStep}
-        onNext={goToNextStep}
-        previousButtonText={t('common.previous')}
+        isSubmitting={isSubmitting}
         nextButtonText={t('common.next')}
-        submitButtonText={t('superadmin.companies.form.submit')}
-        submittingButtonText={t('superadmin.companies.form.submitting')}
+        previousButtonText={t('common.previous')}
         stepIndicator={
           <Stepper
             currentStep={currentStep}
-            steps={steps.map((step): IStepItem<TFormStep> => ({
-              key: step,
-              title: t(`superadmin.companies.form.steps.${step}`),
-              icon: step === 'company' ? <Building2 size={14} /> : step === 'admin' ? <User size={14} /> : <CheckCircle size={14} />,
-            }))}
+            steps={steps.map(
+              (step): IStepItem<TFormStep> => ({
+                key: step,
+                title: t(`superadmin.companies.form.steps.${step}`),
+                icon:
+                  step === 'company' ? (
+                    <Building2 size={14} />
+                  ) : step === 'admin' ? (
+                    <User size={14} />
+                  ) : (
+                    <CheckCircle size={14} />
+                  ),
+              })
+            )}
             onStepChange={goToStep}
           />
         }
+        submitButtonText={t('superadmin.companies.form.submit')}
+        submittingButtonText={t('superadmin.companies.form.submitting')}
+        totalSteps={totalSteps}
+        onNext={goToNextStep}
+        onPrevious={goToPreviousStep}
+        onSubmit={handleSubmit}
       >
         {renderStepContent()}
       </MultiStepFormShell>

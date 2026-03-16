@@ -18,10 +18,10 @@ export function Navbar({ isAuthenticated = false, showNavLinks = true }: NavbarP
 
   return (
     <HeroUINavbar
+      isBordered={false}
       maxWidth="xl"
       position="sticky"
       onMenuOpenChange={setIsMenuOpen}
-      isBordered={false}
     >
       <NavbarMenuToggleSection isMenuOpen={isMenuOpen} />
       {showNavLinks && <NavbarLinks />}

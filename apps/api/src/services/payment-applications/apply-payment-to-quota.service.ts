@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import type { TPaymentApplication, TPaymentApplicationCreate } from '@packages/domain'
 import type {
   PaymentApplicationsRepository,
@@ -6,9 +7,11 @@ import type {
   QuotaAdjustmentsRepository,
   InterestConfigurationsRepository,
   PaymentPendingAllocationsRepository,
+  PaymentConceptsRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
+import { parseAmount, roundCurrency, toDecimal, toCents } from '@packages/utils/money'
 
 export interface IApplyPaymentToQuotaInput {
   paymentId: string
@@ -21,6 +24,8 @@ export interface IApplyPaymentToQuotaOutput {
   application: TPaymentApplication
   quotaUpdated: boolean
   interestReversed: boolean
+  earlyPaymentDiscountApplied: boolean
+  latePaymentSurchargeApplied: boolean
   excessAmount: string | null
   message: string
 }
@@ -28,11 +33,13 @@ export interface IApplyPaymentToQuotaOutput {
 /**
  * Applies a payment to a quota transactionally:
  * 1. Creates the payment_application record
- * 2. Updates the quota's paidAmount and balance
- * 3. If paymentDate <= dueDate, reverses wrongly-applied interest
- * 4. If paymentDate > dueDate, recalculates interest only up to payment date
- * 5. Updates quota status to 'paid' if fully covered
- * 6. Creates audit trail via quota_adjustments
+ * 2. Applies early payment discount if payment is before the cutoff date (one-shot)
+ * 3. Applies late payment surcharge if payment is after due + grace days (one-shot)
+ * 4. If paymentDate <= dueDate, reverses wrongly-applied interest
+ * 5. If paymentDate > dueDate, recalculates interest only up to payment date
+ * 6. Updates the quota's paidAmount and balance
+ * 7. Updates quota status to 'paid' if fully covered
+ * 8. Creates audit trail via quota_adjustments
  */
 export class ApplyPaymentToQuotaService {
   constructor(
@@ -42,10 +49,13 @@ export class ApplyPaymentToQuotaService {
     private readonly quotasRepo: QuotasRepository,
     private readonly adjustmentsRepo: QuotaAdjustmentsRepository,
     private readonly interestConfigsRepo: InterestConfigurationsRepository,
-    private readonly pendingAllocationsRepo?: PaymentPendingAllocationsRepository,
+    private readonly paymentConceptsRepo: PaymentConceptsRepository,
+    private readonly pendingAllocationsRepo?: PaymentPendingAllocationsRepository
   ) {}
 
-  async execute(input: IApplyPaymentToQuotaInput): Promise<TServiceResult<IApplyPaymentToQuotaOutput>> {
+  async execute(
+    input: IApplyPaymentToQuotaInput
+  ): Promise<TServiceResult<IApplyPaymentToQuotaOutput>> {
     const { paymentId, quotaId, appliedAmount, registeredByUserId } = input
 
     // Validate payment exists and is completed
@@ -54,7 +64,10 @@ export class ApplyPaymentToQuotaService {
       return failure('Payment not found', 'NOT_FOUND')
     }
     if (payment.status !== 'completed') {
-      return failure(`Payment must be completed before applying. Current status: ${payment.status}`, 'BAD_REQUEST')
+      return failure(
+        `Payment must be completed before applying. Current status: ${payment.status}`,
+        'BAD_REQUEST'
+      )
     }
 
     // Validate quota exists
@@ -68,14 +81,26 @@ export class ApplyPaymentToQuotaService {
     if (quota.status === 'cancelled') {
       return failure('Cannot apply payment to a cancelled quota', 'BAD_REQUEST')
     }
+    if (quota.status === 'exonerated') {
+      return failure('Cannot apply payment to an exonerated quota', 'BAD_REQUEST')
+    }
+
+    // Validate currency match
+    if (payment.currencyId !== quota.currencyId) {
+      return failure(
+        `Currency mismatch: payment currency (${payment.currencyId}) does not match quota currency (${quota.currencyId}). ` +
+          `Convert the payment to the quota's currency before applying.`,
+        'BAD_REQUEST'
+      )
+    }
 
     // Enforce chronological payment order — oldest unpaid quotas first (per concept)
     const unpaidQuotas = await this.quotasRepo.getUnpaidByConceptAndUnit(
       quota.paymentConceptId,
       quota.unitId
     )
-    const olderUnpaid = unpaidQuotas.filter(q =>
-      q.id !== quotaId && new Date(q.dueDate) < new Date(quota.dueDate)
+    const olderUnpaid = unpaidQuotas.filter(
+      q => q.id !== quotaId && new Date(q.dueDate) < new Date(quota.dueDate)
     )
     if (olderUnpaid.length > 0) {
       const oldestDue = olderUnpaid[0]!
@@ -84,14 +109,14 @@ export class ApplyPaymentToQuotaService {
         : `${oldestDue.periodYear}`
       return failure(
         `No se puede aplicar pago a esta cuota porque existen ${olderUnpaid.length} cuota(s) anteriores pendientes del mismo concepto. ` +
-        `La cuota más antigua pendiente es del período ${periodLabel} (vence: ${oldestDue.dueDate}). ` +
-        `Debe pagar las cuotas más antiguas primero.`,
+          `La cuota más antigua pendiente es del período ${periodLabel} (vence: ${oldestDue.dueDate}). ` +
+          `Debe pagar las cuotas más antiguas primero.`,
         'BAD_REQUEST'
       )
     }
 
-    const applied = parseFloat(appliedAmount)
-    if (isNaN(applied) || applied <= 0) {
+    const applied = parseAmount(appliedAmount)
+    if (applied <= 0) {
       return failure('Applied amount must be a positive number', 'BAD_REQUEST')
     }
 
@@ -99,10 +124,11 @@ export class ApplyPaymentToQuotaService {
     // Use integer cents to avoid floating-point accumulation errors
     const existingApplications = await this.paymentApplicationsRepo.getByPaymentId(paymentId)
     const totalAlreadyAppliedCents = existingApplications.reduce(
-      (sum, app) => sum + Math.round(parseFloat(app.appliedAmount) * 100), 0
+      (sum, app) => sum + toCents(app.appliedAmount),
+      0
     )
-    const paymentTotalCents = Math.round(parseFloat(payment.amount) * 100)
-    const appliedCents = Math.round(applied * 100)
+    const paymentTotalCents = toCents(payment.amount)
+    const appliedCents = toCents(applied)
     const remainingUnappliedCents = paymentTotalCents - totalAlreadyAppliedCents
 
     const paymentTotal = paymentTotalCents / 100
@@ -111,22 +137,87 @@ export class ApplyPaymentToQuotaService {
 
     if (appliedCents > remainingUnappliedCents) {
       return failure(
-        `El monto a aplicar (${applied.toFixed(2)}) excede el saldo disponible del pago (${remainingUnapplied.toFixed(2)}). ` +
-        `Pago total: ${paymentTotal.toFixed(2)}, ya aplicado: ${totalAlreadyApplied.toFixed(2)}.`,
+        `El monto a aplicar (${toDecimal(applied)}) excede el saldo disponible del pago (${toDecimal(remainingUnapplied)}). ` +
+          `Pago total: ${toDecimal(paymentTotal)}, ya aplicado: ${toDecimal(totalAlreadyApplied)}.`,
         'BAD_REQUEST'
       )
     }
 
-    const baseAmount = parseFloat(quota.baseAmount)
-    const currentInterest = parseFloat(quota.interestAmount ?? '0')
-    const currentPaid = parseFloat(quota.paidAmount ?? '0')
+    // Load payment concept for early/late payment configuration
+    const concept = await this.paymentConceptsRepo.getById(quota.paymentConceptId)
+
+    // Check existing adjustments to determine if discount/surcharge already applied (idempotency)
+    const existingAdjustments = await this.adjustmentsRepo.getByQuotaId(quotaId)
+    const hasEarlyDiscount = existingAdjustments.some(a => a.tag === 'early_discount')
+    const hasLateSurcharge = existingAdjustments.some(a => a.tag === 'late_surcharge')
+
+    const baseAmount = parseAmount(quota.baseAmount)
+    const currentAdjTotal = parseAmount(quota.adjustmentsTotal)
+    let currentEffective = baseAmount + currentAdjTotal
+    const currentInterest = parseAmount(quota.interestAmount)
+    const currentPaid = parseAmount(quota.paidAmount)
     const paymentDate = new Date(payment.paymentDate)
     const dueDate = new Date(quota.dueDate)
+    const paymentOnTime = paymentDate <= dueDate
+
+    // Calculate early payment discount or late payment surcharge
+    let earlyPaymentDiscountApplied = false
+    let latePaymentSurchargeApplied = false
+    let earlyDiscountAmount = 0
+    let lateSurchargeAmount = 0
+
+    if (concept) {
+      // Early payment discount (one-shot, only on first payment application)
+      if (
+        !hasEarlyDiscount &&
+        concept.earlyPaymentType !== 'none' &&
+        concept.earlyPaymentValue != null &&
+        concept.earlyPaymentValue > 0 &&
+        concept.earlyPaymentDaysBeforeDue > 0 &&
+        existingApplications.length === 0 // Only apply on first payment to this quota
+      ) {
+        const discountCutoffDate = new Date(dueDate)
+        discountCutoffDate.setDate(discountCutoffDate.getDate() - concept.earlyPaymentDaysBeforeDue)
+
+        if (paymentDate <= discountCutoffDate) {
+          earlyDiscountAmount = this.calculateAdjustmentAmount(
+            concept.earlyPaymentType,
+            concept.earlyPaymentValue,
+            baseAmount
+          )
+          earlyPaymentDiscountApplied = true
+        }
+      }
+
+      // Late payment surcharge (one-shot, only when payment is late)
+      if (
+        !hasLateSurcharge &&
+        !paymentOnTime &&
+        concept.latePaymentType !== 'none' &&
+        concept.latePaymentValue != null &&
+        concept.latePaymentValue > 0
+      ) {
+        const graceDays = concept.latePaymentGraceDays ?? 0
+        const surchargeStartDate = new Date(dueDate)
+        surchargeStartDate.setDate(surchargeStartDate.getDate() + graceDays)
+
+        if (paymentDate > surchargeStartDate) {
+          lateSurchargeAmount = this.calculateAdjustmentAmount(
+            concept.latePaymentType,
+            concept.latePaymentValue,
+            baseAmount
+          )
+          latePaymentSurchargeApplied = true
+        }
+      }
+    }
+
+    // Effective amount for balance calculation (original base + existing adjustments + new adjustments)
+    const effectiveBaseAmount = currentEffective - earlyDiscountAmount + lateSurchargeAmount
 
     // Determine if interest should be recalculated
     let interestReversed = false
     let newInterest = currentInterest
-    const paymentOnTime = paymentDate <= dueDate
 
     if (paymentOnTime && currentInterest > 0) {
       // Payment was on time but reported late — reverse all interest
@@ -136,11 +227,14 @@ export class ApplyPaymentToQuotaService {
       // Payment was late — recalculate interest only up to payment date
       const config = await this.interestConfigsRepo.getActiveForDate(
         quota.paymentConceptId,
-        payment.paymentDate,
+        payment.paymentDate
       )
       if (config) {
         const recalculated = this.calculateInterestUpToDate(
-          baseAmount, dueDate, paymentDate, config,
+          baseAmount,
+          dueDate,
+          paymentDate,
+          config
         )
         if (recalculated < currentInterest) {
           newInterest = recalculated
@@ -159,54 +253,96 @@ export class ApplyPaymentToQuotaService {
     }
     const appliedToPrincipal = remaining
 
-    // New totals
-    const newPaid = Math.round((currentPaid + applied) * 100) / 100
-    const newBalance = Math.round((baseAmount + newInterest - newPaid) * 100) / 100
-    const newStatus = newBalance <= 0 ? 'paid' as const : quota.status
+    // New totals — use effectiveBaseAmount which includes discount/surcharge adjustments
+    const newPaid = roundCurrency(currentPaid + applied)
+    const newBalance = roundCurrency(effectiveBaseAmount + newInterest - newPaid)
+    const newStatus =
+      newBalance <= 0 ? ('paid' as const) : newPaid > 0 ? ('partial' as const) : quota.status
 
     // Execute everything in a transaction
-    return await this.db.transaction(async (tx) => {
+    return await this.db.transaction(async tx => {
+      // Lock the quota row to prevent race with interest calculation worker
+      await tx.execute(sql`SELECT id FROM quotas WHERE id = ${quotaId} FOR UPDATE`)
+
       const txAppsRepo = this.paymentApplicationsRepo.withTx(tx)
       const txQuotasRepo = this.quotasRepo.withTx(tx)
       const txAdjRepo = this.adjustmentsRepo.withTx(tx)
 
-      // 1. Create payment application
+      // 1. Apply early payment discount (one-shot adjustment)
+      // NOTE: baseAmount is IMMUTABLE — adjustments are tracked via adjustmentsTotal
+      if (earlyPaymentDiscountApplied) {
+        await txAdjRepo.create({
+          quotaId,
+          previousAmount: toDecimal(currentEffective),
+          newAmount: toDecimal(currentEffective - earlyDiscountAmount),
+          adjustmentType: 'discount',
+          reason:
+            `Descuento por pronto pago: ${concept!.earlyPaymentType === 'percentage' ? `${concept!.earlyPaymentValue}%` : toDecimal(concept!.earlyPaymentValue!)} aplicado. ` +
+            `Pago recibido el ${payment.paymentDate}, antes del corte (${concept!.earlyPaymentDaysBeforeDue} días antes del vencimiento ${quota.dueDate}).`,
+          tag: 'early_discount',
+          createdBy: registeredByUserId,
+        })
+        currentEffective -= earlyDiscountAmount
+      }
+
+      // 2. Apply late payment surcharge (one-shot adjustment)
+      if (latePaymentSurchargeApplied) {
+        await txAdjRepo.create({
+          quotaId,
+          previousAmount: toDecimal(currentEffective),
+          newAmount: toDecimal(currentEffective + lateSurchargeAmount),
+          adjustmentType: 'increase',
+          reason:
+            `Recargo por mora: ${concept!.latePaymentType === 'percentage' ? `${concept!.latePaymentValue}%` : toDecimal(concept!.latePaymentValue!)} aplicado. ` +
+            `Pago recibido el ${payment.paymentDate}, después del período de gracia (${concept!.latePaymentGraceDays} días después del vencimiento ${quota.dueDate}).`,
+          tag: 'late_surcharge',
+          createdBy: registeredByUserId,
+        })
+        currentEffective += lateSurchargeAmount
+      }
+
+      // 3. Create payment application
       const appData: TPaymentApplicationCreate = {
         paymentId,
         quotaId,
         appliedAmount,
-        appliedToPrincipal: appliedToPrincipal.toFixed(2),
-        appliedToInterest: appliedToInterest.toFixed(2),
+        appliedToPrincipal: toDecimal(appliedToPrincipal),
+        appliedToInterest: toDecimal(appliedToInterest),
         registeredBy: registeredByUserId,
       }
       const application = await txAppsRepo.create(appData)
 
-      // 2. Update quota
-      await txQuotasRepo.update(quotaId, {
-        paidAmount: newPaid.toFixed(2),
-        interestAmount: newInterest.toFixed(2),
-        balance: newBalance.toFixed(2),
+      // 4. Update quota (baseAmount is NEVER mutated)
+      const quotaUpdate: Record<string, string> = {
+        paidAmount: toDecimal(newPaid),
+        interestAmount: toDecimal(newInterest),
+        balance: toDecimal(newBalance),
         status: newStatus,
-      })
+      }
+      if (earlyPaymentDiscountApplied || latePaymentSurchargeApplied) {
+        const newAdjTotal = currentAdjTotal - earlyDiscountAmount + lateSurchargeAmount
+        quotaUpdate.adjustmentsTotal = toDecimal(newAdjTotal)
+      }
+      await txQuotasRepo.update(quotaId, quotaUpdate)
 
-      // 3. Audit trail for interest changes
+      // 5. Audit trail for interest changes
       if (interestReversed) {
         await txAdjRepo.create({
           quotaId,
-          previousAmount: currentInterest.toFixed(2),
-          newAmount: newInterest.toFixed(2),
+          previousAmount: toDecimal(currentInterest),
+          newAmount: toDecimal(newInterest),
           adjustmentType: 'correction',
           reason: paymentOnTime
-            ? `Interest reversed: payment date (${payment.paymentDate}) was on or before due date (${quota.dueDate}). Interest of ${currentInterest.toFixed(2)} fully reversed.`
-            : `Interest recalculated to payment date (${payment.paymentDate}): reduced from ${currentInterest.toFixed(2)} to ${newInterest.toFixed(2)}.`,
+            ? `Interest reversed: payment date (${payment.paymentDate}) was on or before due date (${quota.dueDate}). Interest of ${toDecimal(currentInterest)} fully reversed.`
+            : `Interest recalculated to payment date (${payment.paymentDate}): reduced from ${toDecimal(currentInterest)} to ${toDecimal(newInterest)}.`,
           createdBy: registeredByUserId,
         })
       }
 
-      // 4. Detect excess payment (overpayment) and create pending allocation
+      // 6. Detect excess payment (overpayment) and create pending allocation
       let excessAmount: string | null = null
       if (newBalance < 0 && this.pendingAllocationsRepo) {
-        excessAmount = Math.abs(newBalance).toFixed(2)
+        excessAmount = toDecimal(Math.abs(newBalance))
         const txPendingRepo = this.pendingAllocationsRepo.withTx(tx)
         await txPendingRepo.create({
           paymentId,
@@ -220,14 +356,36 @@ export class ApplyPaymentToQuotaService {
         application,
         quotaUpdated: true,
         interestReversed,
+        earlyPaymentDiscountApplied,
+        latePaymentSurchargeApplied,
         excessAmount,
-        message: newBalance < 0
-          ? `Payment applied. Quota is now fully paid. Excess of ${Math.abs(newBalance).toFixed(2)} pending resolution.`
-          : newStatus === 'paid'
-            ? 'Payment applied. Quota is now fully paid.'
-            : `Payment applied. Remaining balance: ${newBalance.toFixed(2)}`,
+        message:
+          newBalance < 0
+            ? `Payment applied. Quota is now fully paid. Excess of ${toDecimal(Math.abs(newBalance))} pending resolution.`
+            : newStatus === 'paid'
+              ? 'Payment applied. Quota is now fully paid.'
+              : `Payment applied. Remaining balance: ${toDecimal(newBalance)}`,
       })
     })
+  }
+
+  /**
+   * Calculates the adjustment amount based on type (percentage or fixed).
+   * Returns the absolute amount to add/subtract.
+   */
+  private calculateAdjustmentAmount(
+    type: 'percentage' | 'fixed' | 'none',
+    value: number,
+    baseAmount: number
+  ): number {
+    switch (type) {
+      case 'percentage':
+        return roundCurrency((baseAmount * value) / 100)
+      case 'fixed':
+        return roundCurrency(value)
+      default:
+        return 0
+    }
   }
 
   /**
@@ -239,7 +397,13 @@ export class ApplyPaymentToQuotaService {
     baseAmount: number,
     dueDate: Date,
     paymentDate: Date,
-    config: { interestType: string; interestRate: string | null; fixedAmount: string | null; gracePeriodDays: number | null; calculationPeriod: string | null },
+    config: {
+      interestType: string
+      interestRate: string | null
+      fixedAmount: string | null
+      gracePeriodDays: number | null
+      calculationPeriod: string | null
+    }
   ): number {
     const msPerDay = 24 * 60 * 60 * 1000
     const daysOverdue = Math.floor((paymentDate.getTime() - dueDate.getTime()) / msPerDay)
@@ -253,21 +417,21 @@ export class ApplyPaymentToQuotaService {
 
     switch (config.interestType) {
       case 'simple': {
-        const rate = parseFloat(config.interestRate ?? '0')
+        const rate = parseAmount(config.interestRate)
         if (rate <= 0) return 0
-        return Math.round(baseAmount * rate * effectiveDays / daysInPeriod * 100) / 100
+        return roundCurrency((baseAmount * rate * effectiveDays) / daysInPeriod)
       }
       case 'compound': {
-        const rate = parseFloat(config.interestRate ?? '0')
+        const rate = parseAmount(config.interestRate)
         if (rate <= 0) return 0
         const periods = effectiveDays / daysInPeriod
-        return Math.round(baseAmount * (Math.pow(1 + rate, periods) - 1) * 100) / 100
+        return roundCurrency(baseAmount * (Math.pow(1 + rate, periods) - 1))
       }
       case 'fixed_amount': {
-        const fixedAmount = parseFloat(config.fixedAmount ?? '0')
-        if (fixedAmount <= 0) return 0
+        const fixedAmt = parseAmount(config.fixedAmount)
+        if (fixedAmt <= 0) return 0
         const periods = Math.floor(effectiveDays / daysInPeriod)
-        return periods > 0 ? Math.round(fixedAmount * periods * 100) / 100 : 0
+        return periods > 0 ? roundCurrency(fixedAmt * periods) : 0
       }
       default:
         return 0
@@ -276,14 +440,22 @@ export class ApplyPaymentToQuotaService {
 
   private getDaysInPeriod(period: string | null): number {
     switch (period) {
-      case 'daily': return 1
-      case 'weekly': return 7
-      case 'biweekly': return 14
-      case 'monthly': return 30
-      case 'quarterly': return 90
-      case 'semi_annual': return 180
-      case 'annual': return 360
-      default: return 30
+      case 'daily':
+        return 1
+      case 'weekly':
+        return 7
+      case 'biweekly':
+        return 14
+      case 'monthly':
+        return 30
+      case 'quarterly':
+        return 90
+      case 'semi_annual':
+        return 180
+      case 'annual':
+        return 360
+      default:
+        return 30
     }
   }
 }

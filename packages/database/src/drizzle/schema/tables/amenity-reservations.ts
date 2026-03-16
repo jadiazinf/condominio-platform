@@ -1,11 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  timestamp,
-  jsonb,
-  index,
-} from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, jsonb, index } from 'drizzle-orm/pg-core'
 import { amenities } from './amenities'
 import { users } from './users'
 import { reservationStatusEnum } from '../enums'

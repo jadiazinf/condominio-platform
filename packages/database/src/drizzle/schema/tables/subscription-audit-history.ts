@@ -1,12 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  jsonb,
-  timestamp,
-  inet,
-  index,
-} from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, jsonb, timestamp, inet, index } from 'drizzle-orm/pg-core'
 import { managementCompanySubscriptions } from './management-company-subscriptions'
 import { users } from './users'
 import { subscriptionAuditActionEnum } from '../enums'
@@ -30,7 +22,7 @@ export const subscriptionAuditHistory = pgTable(
     ipAddress: inet('ip_address'),
     userAgent: text('user_agent'),
   },
-  (table) => [
+  table => [
     index('idx_subscription_audit_subscription').on(table.subscriptionId),
     index('idx_subscription_audit_action').on(table.action),
     index('idx_subscription_audit_performed_by').on(table.performedBy),

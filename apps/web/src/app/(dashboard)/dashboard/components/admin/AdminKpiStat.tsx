@@ -11,10 +11,11 @@
 'use client'
 
 import Link from 'next/link'
-import { Card } from '@/ui/components/card'
-import { Chip } from '@/ui/components/chip'
 import { cn } from '@heroui/theme'
 import { TrendingUp, TrendingDown, ArrowRight } from 'lucide-react'
+
+import { Card } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
 
 type TChangeType = 'positive' | 'negative' | 'neutral'
 
@@ -42,9 +43,7 @@ export function AdminKpiStat({
   return (
     <Card className="dark:border-default-100 flex flex-col justify-between border border-transparent">
       <div className="flex p-4">
-        <div
-          className={cn('mt-1 flex h-8 w-8 items-center justify-center rounded-md', iconBg)}
-        >
+        <div className={cn('mt-1 flex h-8 w-8 items-center justify-center rounded-md', iconBg)}>
           {icon}
         </div>
 
@@ -68,11 +67,7 @@ export function AdminKpiStat({
             content: 'font-semibold text-[0.65rem]',
           }}
           color={
-            changeType === 'positive'
-              ? 'success'
-              : changeType === 'neutral'
-                ? 'warning'
-                : 'danger'
+            changeType === 'positive' ? 'success' : changeType === 'neutral' ? 'warning' : 'danger'
           }
           radius="sm"
           size="sm"

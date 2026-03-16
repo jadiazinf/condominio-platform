@@ -1,18 +1,14 @@
 'use client'
 
+import type { TApiDataResponse } from '@packages/http-client'
+import type { TQuota, TQuotaStatus } from '@packages/domain'
+import type { TReportFormat } from '@packages/http-client'
+
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useTranslation } from '@/contexts'
-import { Typography } from '@/ui/components/typography'
-import { Spinner } from '@/ui/components/spinner'
-import { Card, CardHeader, CardBody } from '@/ui/components/card'
-import { Chip } from '@/ui/components/chip'
-import { Button } from '@/ui/components/button'
 import { useQuery, getHttpClient, quotaKeys } from '@packages/http-client'
-import type { TApiDataResponse } from '@packages/http-client'
 import { formatAmount } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
-import type { TQuota, TQuotaStatus } from '@packages/domain'
 import {
   AlertCircle,
   CheckCircle2,
@@ -24,7 +20,13 @@ import {
   Download,
 } from 'lucide-react'
 import { downloadAccountStatement } from '@packages/http-client'
-import type { TReportFormat } from '@packages/http-client'
+
+import { useTranslation } from '@/contexts'
+import { Typography } from '@/ui/components/typography'
+import { Spinner } from '@/ui/components/spinner'
+import { Card, CardBody } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
 import { useToast } from '@/ui/components/toast'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -42,22 +44,35 @@ type TStatusFilter = 'all' | TQuotaStatus
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const STATUS_FILTERS: TStatusFilter[] = ['all', 'pending', 'overdue', 'paid', 'cancelled']
+const STATUS_FILTERS: TStatusFilter[] = [
+  'all',
+  'pending',
+  'partial',
+  'overdue',
+  'paid',
+  'cancelled',
+  'exonerated',
+]
 
-const STATUS_CHIP_COLOR: Record<TQuotaStatus, 'warning' | 'danger' | 'success' | 'default'> = {
+const STATUS_CHIP_COLOR: Record<
+  TQuotaStatus,
+  'warning' | 'danger' | 'success' | 'default' | 'secondary' | 'primary'
+> = {
   pending: 'warning',
+  partial: 'primary',
   overdue: 'danger',
   paid: 'success',
   cancelled: 'default',
-  exonerated: 'default',
+  exonerated: 'secondary',
 }
 
 const STATUS_ICON: Record<TQuotaStatus, typeof Clock> = {
   pending: Clock,
+  partial: TrendingUp,
   overdue: AlertCircle,
   paid: CheckCircle2,
   cancelled: XCircle,
-  exonerated: XCircle,
+  exonerated: CheckCircle2,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -70,13 +85,13 @@ function useQuotasByMultipleUnits(unitIds: string[]) {
     queryFn: async () => {
       const client = getHttpClient()
       const results = await Promise.all(
-        unitIds.map(async (unitId) => {
-          const response = await client.get<TApiDataResponse<TQuota[]>>(
-            `/quotas/unit/${unitId}`,
-          )
+        unitIds.map(async unitId => {
+          const response = await client.get<TApiDataResponse<TQuota[]>>(`/quotas/unit/${unitId}`)
+
           return response.data.data
-        }),
+        })
       )
+
       return results.flat()
     },
     enabled: unitIds.length > 0,
@@ -89,7 +104,9 @@ function useQuotasByMultipleUnits(unitIds: string[]) {
 
 function formatQuotaAmount(amount: string, currencySymbol: string): string {
   const num = parseFloat(amount)
+
   if (isNaN(num)) return `${currencySymbol} 0.00`
+
   return `${currencySymbol} ${formatAmount(amount)}`
 }
 
@@ -101,8 +118,10 @@ function formatPeriod(year: number, month: number | null, description: string | 
   if (description) return description
   if (month !== null) {
     const date = new Date(year, month - 1)
+
     return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long' })
   }
+
   return String(year)
 }
 
@@ -137,15 +156,17 @@ export function MyQuotasClient({ unitIds, userId: _userId }: IMyQuotasClientProp
   // Sort quotas by dueDate descending
   const sortedQuotas = useMemo(() => {
     if (!allQuotas) return []
+
     return [...allQuotas].sort(
-      (a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime(),
+      (a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()
     )
   }, [allQuotas])
 
   // Apply status filter
   const filteredQuotas = useMemo(() => {
     if (statusFilter === 'all') return sortedQuotas
-    return sortedQuotas.filter((q) => q.status === statusFilter)
+
+    return sortedQuotas.filter(q => q.status === statusFilter)
   }, [sortedQuotas, statusFilter])
 
   // Summary stats
@@ -176,6 +197,7 @@ export function MyQuotasClient({ unitIds, userId: _userId }: IMyQuotasClientProp
 
       if (quota.status === 'paid') {
         const dueDate = new Date(quota.dueDate)
+
         if (dueDate.getMonth() === currentMonth && dueDate.getFullYear() === currentYear) {
           paidThisMonth++
         }
@@ -183,7 +205,7 @@ export function MyQuotasClient({ unitIds, userId: _userId }: IMyQuotasClientProp
     }
 
     // Use the currency from the first quota that has one
-    const currency = sortedQuotas.find((q) => q.currency)?.currency?.symbol ?? '$'
+    const currency = sortedQuotas.find(q => q.currency)?.currency?.symbol ?? '$'
 
     return { totalPending, overdueCount, paidThisMonth, currency }
   }, [sortedQuotas])
@@ -216,21 +238,21 @@ export function MyQuotasClient({ unitIds, userId: _userId }: IMyQuotasClientProp
         </div>
         <div className="flex gap-2">
           <Button
-            size="sm"
-            variant="bordered"
-            startContent={<Download size={16} />}
-            isLoading={exporting === 'csv'}
             isDisabled={exporting !== null}
+            isLoading={exporting === 'csv'}
+            size="sm"
+            startContent={<Download size={16} />}
+            variant="bordered"
             onPress={() => handleExport('csv')}
           >
             {t('resident.myQuotas.export.csv')}
           </Button>
           <Button
-            size="sm"
-            variant="bordered"
-            startContent={<Download size={16} />}
-            isLoading={exporting === 'pdf'}
             isDisabled={exporting !== null}
+            isLoading={exporting === 'pdf'}
+            size="sm"
+            startContent={<Download size={16} />}
+            variant="bordered"
             onPress={() => handleExport('pdf')}
           >
             {t('resident.myQuotas.export.pdf')}
@@ -290,7 +312,7 @@ export function MyQuotasClient({ unitIds, userId: _userId }: IMyQuotasClientProp
 
       {/* Status Filter Tabs */}
       <div className="flex flex-wrap gap-2">
-        {STATUS_FILTERS.map((filter) => (
+        {STATUS_FILTERS.map(filter => (
           <Button
             key={filter}
             color={statusFilter === filter ? 'primary' : 'default'}
@@ -315,7 +337,7 @@ export function MyQuotasClient({ unitIds, userId: _userId }: IMyQuotasClientProp
         </Card>
       ) : (
         <div className="space-y-3">
-          {filteredQuotas.map((quota) => {
+          {filteredQuotas.map(quota => {
             const StatusIcon = STATUS_ICON[quota.status as TQuotaStatus] ?? Clock
             const chipColor = STATUS_CHIP_COLOR[quota.status as TQuotaStatus] ?? 'default'
             const currencySymbol = quota.currency?.symbol ?? '$'
@@ -323,8 +345,8 @@ export function MyQuotasClient({ unitIds, userId: _userId }: IMyQuotasClientProp
             return (
               <Card
                 key={quota.id}
-                className="cursor-pointer transition-shadow hover:shadow-md"
                 isPressable
+                className="cursor-pointer transition-shadow hover:shadow-md"
                 onPress={() => router.push(`/dashboard/my-quotas/${quota.id}`)}
               >
                 <CardBody className="p-4">
@@ -345,7 +367,7 @@ export function MyQuotasClient({ unitIds, userId: _userId }: IMyQuotasClientProp
                             {formatPeriod(
                               quota.periodYear,
                               quota.periodMonth,
-                              quota.periodDescription,
+                              quota.periodDescription
                             )}
                           </Typography>
                           <Typography color="muted" variant="caption">

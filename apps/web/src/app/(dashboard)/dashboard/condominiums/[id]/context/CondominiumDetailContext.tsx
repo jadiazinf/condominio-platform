@@ -1,7 +1,8 @@
 'use client'
 
-import { createContext, useContext, type ReactNode } from 'react'
 import type { TCondominium, TActiveRoleType } from '@packages/domain'
+
+import { createContext, useContext, type ReactNode } from 'react'
 
 interface ICondominiumDetailContext {
   condominium: TCondominium
@@ -31,8 +32,10 @@ export function CondominiumDetailProvider({
 
 export function useCondominiumDetail() {
   const context = useContext(CondominiumDetailContext)
+
   if (context === undefined) {
     throw new Error('useCondominiumDetail must be used within a CondominiumDetailProvider')
   }
+
   return context
 }

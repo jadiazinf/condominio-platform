@@ -443,10 +443,7 @@ export class UserRolesRepository
       .select()
       .from(userRoles)
       .where(
-        and(
-          eq(userRoles.userId, userId),
-          eq(userRoles.managementCompanyId, managementCompanyId)
-        )
+        and(eq(userRoles.userId, userId), eq(userRoles.managementCompanyId, managementCompanyId))
       )
 
     return results.map(record => this.mapToEntity(record))

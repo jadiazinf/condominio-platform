@@ -32,15 +32,26 @@ type TMockCompaniesRepository = {
 
 type TMockMembersRepository = {
   create: (data: any) => Promise<TManagementCompanyMember>
-  getByCompanyAndUser: (companyId: string, userId: string) => Promise<TManagementCompanyMember | null>
+  getByCompanyAndUser: (
+    companyId: string,
+    userId: string
+  ) => Promise<TManagementCompanyMember | null>
   update: (id: string, data: any) => Promise<TManagementCompanyMember | null>
   withTx: (tx: unknown) => TMockMembersRepository
 }
 
 type TMockUserRolesRepository = {
   create: (data: any) => Promise<TUserRole>
-  createManagementCompanyRole: (userId: string, roleId: string, managementCompanyId: string, assignedBy?: string) => Promise<TUserRole>
-  getByUserAndManagementCompany: (userId: string, managementCompanyId: string) => Promise<TUserRole[]>
+  createManagementCompanyRole: (
+    userId: string,
+    roleId: string,
+    managementCompanyId: string,
+    assignedBy?: string
+  ) => Promise<TUserRole>
+  getByUserAndManagementCompany: (
+    userId: string,
+    managementCompanyId: string
+  ) => Promise<TUserRole[]>
   update: (id: string, data: any) => Promise<TUserRole | null>
   withTx: (tx: unknown) => TMockUserRolesRepository
 }
@@ -178,7 +189,9 @@ describe('AcceptInvitationService', function () {
         }
         return null
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     mockCompaniesRepository = {
@@ -195,7 +208,9 @@ describe('AcceptInvitationService', function () {
         }
         return null
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     mockInvitationsRepository = {
@@ -222,7 +237,9 @@ describe('AcceptInvitationService', function () {
         }
         return null
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     mockMembersRepository = {
@@ -294,7 +311,9 @@ describe('AcceptInvitationService', function () {
           updatedAt: new Date(),
         } as TManagementCompanyMember
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     const mcRoleId = '550e8400-e29b-41d4-a716-446655440050'
@@ -325,7 +344,12 @@ describe('AcceptInvitationService', function () {
           expiresAt: data.expiresAt,
         }
       },
-      createManagementCompanyRole: async function (userId: string, roleId: string, managementCompanyId: string, assignedBy?: string) {
+      createManagementCompanyRole: async function (
+        userId: string,
+        roleId: string,
+        managementCompanyId: string,
+        assignedBy?: string
+      ) {
         return {
           id: mcRoleId,
           userId,
@@ -360,7 +384,9 @@ describe('AcceptInvitationService', function () {
           expiresAt: null,
         }
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     mockRolesRepository = {

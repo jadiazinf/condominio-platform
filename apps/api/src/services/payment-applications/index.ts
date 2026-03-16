@@ -5,4 +5,7 @@ export { GetApplicationsByQuotaService } from './get-applications-by-quota.servi
 export type { IGetApplicationsByQuotaInput } from './get-applications-by-quota.service'
 
 export { ApplyPaymentToQuotaService } from './apply-payment-to-quota.service'
-export type { IApplyPaymentToQuotaInput, IApplyPaymentToQuotaOutput } from './apply-payment-to-quota.service'
+export type {
+  IApplyPaymentToQuotaInput,
+  IApplyPaymentToQuotaOutput,
+} from './apply-payment-to-quota.service'

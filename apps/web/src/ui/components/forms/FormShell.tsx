@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
+
 import { Card, CardBody } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
 import { cn } from '@/ui/utils'
@@ -67,20 +68,15 @@ export function FormShell({
             {additionalActions}
 
             {cancelButtonText && onCancel && (
-              <Button
-                isDisabled={isSubmitting}
-                variant="bordered"
-                onPress={onCancel}
-                type="button"
-              >
+              <Button isDisabled={isSubmitting} type="button" variant="bordered" onPress={onCancel}>
                 {cancelButtonText}
               </Button>
             )}
 
             <Button
               color="primary"
-              isLoading={isSubmitting}
               isDisabled={isSubmitDisabled || isSubmitting}
+              isLoading={isSubmitting}
               type="submit"
             >
               {isSubmitting && submittingButtonText ? submittingButtonText : submitButtonText}

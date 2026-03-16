@@ -27,6 +27,7 @@ export async function getProfilePhotoUrl(userId: string): Promise<string | null>
 
     // Get fresh download URL
     const url = await getDownloadURL(userPhotoRef)
+
     return url
   } catch {
     // Photo doesn't exist or other error
@@ -52,6 +53,7 @@ export function extractStoragePathFromUrl(url: string): string | null {
     }
 
     const pathMatch = urlObj.pathname.match(/\/o\/(.+)$/)
+
     if (!pathMatch) {
       return null
     }

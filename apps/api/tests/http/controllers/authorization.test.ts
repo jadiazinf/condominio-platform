@@ -137,7 +137,10 @@ describe('Authorization Tests', function () {
         },
       }
 
-      const controller = new BuildingsController(mockRepository as unknown as BuildingsRepository, {} as unknown as TDrizzleClient)
+      const controller = new BuildingsController(
+        mockRepository as unknown as BuildingsRepository,
+        {} as unknown as TDrizzleClient
+      )
 
       app = createTestApp()
       app.route('/buildings', controller.createRouter())
@@ -240,7 +243,10 @@ describe('Authorization Tests', function () {
       create: (data: TManagementCompanyCreate) => Promise<TManagementCompany>
       update: (id: string, data: TManagementCompanyUpdate) => Promise<TManagementCompany | null>
       delete: (id: string) => Promise<boolean>
-      listPaginated: (query: unknown) => Promise<{ data: TManagementCompany[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>
+      listPaginated: (query: unknown) => Promise<{
+        data: TManagementCompany[]
+        pagination: { total: number; page: number; limit: number; totalPages: number }
+      }>
       toggleActive: (id: string, isActive: boolean) => Promise<TManagementCompany | null>
       getByTaxIdNumber: (taxIdNumber: string) => Promise<TManagementCompany | null>
       getByLocationId: (locationId: string) => Promise<TManagementCompany[]>
@@ -249,7 +255,10 @@ describe('Authorization Tests', function () {
     }
     let mockSubscriptionsRepository: { getActiveByCompanyId: (...args: unknown[]) => Promise<null> }
     let mockLocationsRepository: { getByIdWithHierarchy: (...args: unknown[]) => Promise<null> }
-    let mockUsersRepository: { getById: (...args: unknown[]) => Promise<null>; checkIsSuperadmin: (...args: unknown[]) => Promise<boolean> }
+    let mockUsersRepository: {
+      getById: (...args: unknown[]) => Promise<null>
+      checkIsSuperadmin: (...args: unknown[]) => Promise<boolean>
+    }
     let testCompanies: TManagementCompany[]
     let request: (path: string, options?: RequestInit) => Promise<Response>
 
@@ -303,7 +312,10 @@ describe('Authorization Tests', function () {
           })
         },
         listPaginated: async function () {
-          return { data: testCompanies, pagination: { total: 1, page: 1, limit: 10, totalPages: 1 } }
+          return {
+            data: testCompanies,
+            pagination: { total: 1, page: 1, limit: 10, totalPages: 1 },
+          }
         },
         toggleActive: async function (id: string, isActive: boolean) {
           const company = testCompanies.find(function (c) {
@@ -441,6 +453,7 @@ describe('Authorization Tests', function () {
     let app: Hono
     let mockRepository: {
       listAll: () => Promise<TPayment[]>
+      listByCondominiumId: (condominiumId: string) => Promise<TPayment[]>
       getById: (id: string) => Promise<TPayment | null>
       create: (data: TPaymentCreate) => Promise<TPayment>
       update: (id: string, data: TPaymentUpdate) => Promise<TPayment | null>
@@ -485,6 +498,9 @@ describe('Authorization Tests', function () {
         listAll: async function () {
           return testPayments
         },
+        listByCondominiumId: async function () {
+          return testPayments
+        },
         getById: async function (id: string) {
           return (
             testPayments.find(function (p) {
@@ -512,12 +528,27 @@ describe('Authorization Tests', function () {
       mockDb = {} as TDrizzleClient
 
       const mockSendNotification = { execute: async () => ({ success: true }) } as any
+      const mockUnitsRepo = {
+        getById: async function () {
+          return {
+            id: '550e8400-e29b-41d4-a716-446655440030',
+            buildingId: '550e8400-e29b-41d4-a716-446655440060',
+          }
+        },
+      }
+      const mockBuildingsRepo = {
+        getById: async function () {
+          return { id: '550e8400-e29b-41d4-a716-446655440060', condominiumId: CONDO_ID }
+        },
+      }
       const controller = new PaymentsController(
         mockRepository as unknown as PaymentsRepository,
         mockDb,
         {} as any,
         {} as any,
-        mockSendNotification
+        mockSendNotification,
+        mockUnitsRepo as any,
+        mockBuildingsRepo as any
       )
 
       app = createTestApp()
@@ -636,7 +667,11 @@ describe('Authorization Tests', function () {
 
         // This route only has authMiddleware, not requireRole
         // So it should succeed for any authenticated user (or fail validation, but not authorization)
-        expect([StatusCodes.CREATED, StatusCodes.UNPROCESSABLE_ENTITY, StatusCodes.INTERNAL_SERVER_ERROR]).toContain(res.status)
+        expect([
+          StatusCodes.CREATED,
+          StatusCodes.UNPROCESSABLE_ENTITY,
+          StatusCodes.INTERNAL_SERVER_ERROR,
+        ]).toContain(res.status)
       })
     })
 
@@ -657,6 +692,7 @@ describe('Authorization Tests', function () {
     let app: Hono
     let mockRepository: {
       listAll: () => Promise<TQuota[]>
+      listByCondominiumId: (condominiumId: string) => Promise<TQuota[]>
       getById: (id: string) => Promise<TQuota | null>
       create: (data: TQuotaCreate) => Promise<TQuota>
       update: (id: string, data: TQuotaUpdate) => Promise<TQuota | null>
@@ -681,6 +717,7 @@ describe('Authorization Tests', function () {
         issueDate: '2024-01-01',
         dueDate: new Date().toISOString(),
         status: 'pending',
+        adjustmentsTotal: '0',
         paidAmount: '0',
         balance: '500.00',
         notes: null,
@@ -694,6 +731,9 @@ describe('Authorization Tests', function () {
 
       mockRepository = {
         listAll: async function () {
+          return testQuotas
+        },
+        listByCondominiumId: async function () {
           return testQuotas
         },
         getById: async function (id: string) {
@@ -720,7 +760,15 @@ describe('Authorization Tests', function () {
         },
       }
 
-      const controller = new QuotasController(mockRepository as unknown as QuotasRepository)
+      const mockPaymentConceptsRepo = {
+        getById: async function () {
+          return { id: '550e8400-e29b-41d4-a716-446655440050', condominiumId: CONDO_ID }
+        },
+      }
+      const controller = new QuotasController(
+        mockRepository as unknown as QuotasRepository,
+        mockPaymentConceptsRepo as any
+      )
 
       app = createTestApp()
       app.route('/quotas', controller.createRouter())

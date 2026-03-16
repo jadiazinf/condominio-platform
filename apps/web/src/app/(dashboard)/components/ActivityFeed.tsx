@@ -63,6 +63,7 @@ export function ActivityFeed({
             {activities.map(activity => (
               <div key={activity.id} className="flex items-start gap-3">
                 <Avatar
+                  showFallback
                   classNames={{
                     base: cn(
                       'flex-shrink-0',
@@ -71,7 +72,6 @@ export function ActivityFeed({
                     ),
                   }}
                   name={activity.avatar || activityIcons[activity.type]}
-                  showFallback
                   src={activity.avatar}
                 />
                 <div className="flex-1 min-w-0">

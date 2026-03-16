@@ -1,13 +1,6 @@
 import { eq, and } from 'drizzle-orm'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
-import {
-  users,
-  userRoles,
-  roles,
-  unitOwnerships,
-  units,
-  buildings,
-} from '@database/drizzle/schema'
+import { users, userRoles, roles, unitOwnerships, units, buildings } from '@database/drizzle/schema'
 import { type TServiceResult, success, failure } from '../base.service'
 
 export interface IGetCondominiumUsersInput {
@@ -98,12 +91,7 @@ export class GetCondominiumUsersService {
         .from(users)
         .innerJoin(userRoles, eq(userRoles.userId, users.id))
         .innerJoin(roles, eq(roles.id, userRoles.roleId))
-        .where(
-          and(
-            eq(userRoles.condominiumId, condominiumId),
-            eq(users.isActive, true)
-          )
-        )
+        .where(and(eq(userRoles.condominiumId, condominiumId), eq(users.isActive, true)))
 
       // Get all unit ownerships for these users in this condominium
       const userIds = [...new Set(usersWithRoles.map(u => u.userId))]
@@ -134,12 +122,7 @@ export class GetCondominiumUsersService {
           .from(unitOwnerships)
           .innerJoin(units, eq(units.id, unitOwnerships.unitId))
           .innerJoin(buildings, eq(buildings.id, units.buildingId))
-          .where(
-            and(
-              eq(buildings.condominiumId, condominiumId),
-              eq(unitOwnerships.isActive, true)
-            )
-          )
+          .where(and(eq(buildings.condominiumId, condominiumId), eq(unitOwnerships.isActive, true)))
 
         // Map to ensure isActive is always boolean
         unitOwnershipsData = rawOwnerships.map(o => ({

@@ -94,6 +94,7 @@ export function getMenuItemsForRole(role?: TActiveRoleType | null): ICondominium
   return CONDOMINIUM_DETAIL_MENU_ITEMS.filter(item => {
     if (!item.roles) return true
     if (!role) return false
+
     return item.roles.includes(role)
   })
 }

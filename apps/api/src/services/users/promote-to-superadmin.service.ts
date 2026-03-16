@@ -78,7 +78,8 @@ export class PromoteToSuperadminService {
         permissionsAssigned,
       })
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to promote user to superadmin'
+      const message =
+        error instanceof Error ? error.message : 'Failed to promote user to superadmin'
       return failure(message, 'INTERNAL_ERROR')
     }
   }

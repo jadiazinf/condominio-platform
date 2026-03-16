@@ -23,9 +23,10 @@ type TMockQuotasRepository = {
   delete: (id: string) => Promise<boolean>
   getByUnitId: (unitId: string) => Promise<TQuota[]>
   getPendingByUnit: (unitId: string) => Promise<TQuota[]>
-  getByStatus: (status: string) => Promise<TQuota[]>
-  getOverdue: (date: string) => Promise<TQuota[]>
-  getByPeriod: (year: number, month?: number) => Promise<TQuota[]>
+  getByStatus: (status: string, condominiumId?: string) => Promise<TQuota[]>
+  getOverdue: (date: string, condominiumId?: string) => Promise<TQuota[]>
+  getByPeriod: (year: number, month?: number, condominiumId?: string) => Promise<TQuota[]>
+  listByCondominiumId: (condominiumId: string) => Promise<TQuota[]>
 }
 
 function createQuota(
@@ -47,6 +48,7 @@ function createQuota(
     periodYear: 2024,
     periodMonth: 1,
     periodDescription: 'Monthly maintenance quota',
+    adjustmentsTotal: '0',
     paidAmount: '0',
     balance: '100.00',
     notes: null,
@@ -137,10 +139,16 @@ describe('QuotasController', function () {
           return true
         })
       },
+      listByCondominiumId: async function () {
+        return testQuotas
+      },
     }
 
     // Create controller with mock repository
-    const controller = new QuotasController(mockRepository as unknown as QuotasRepository)
+    const controller = new QuotasController(
+      mockRepository as unknown as QuotasRepository,
+      {} as any
+    )
 
     // Create Hono app with controller routes
     app = createTestApp()
@@ -441,6 +449,69 @@ describe('QuotasController', function () {
 
       const json = (await res.json()) as IApiResponse
       expect(getErrorMessage(json)).toContain('unexpected')
+    })
+  })
+
+  describe('Tenant isolation', function () {
+    const condominiumId = '550e8400-e29b-41d4-a716-446655440099'
+
+    it('GET / should use listByCondominiumId when x-condominium-id header is present', async function () {
+      let calledWithCondoId: string | undefined
+      mockRepository.listByCondominiumId = async function (cId: string) {
+        calledWithCondoId = cId
+        return [testQuotas[0]!]
+      }
+
+      const res = await request('/quotas', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+      expect(res.status).toBe(StatusCodes.OK)
+      const json = (await res.json()) as IApiResponse
+      expect(json.data).toHaveLength(1)
+      expect(calledWithCondoId).toBe(condominiumId)
+    })
+
+    it('GET /status/:status should filter by condominiumId when header present', async function () {
+      let calledWithCondoId: string | undefined
+      mockRepository.getByStatus = async function (status: string, cId?: string) {
+        calledWithCondoId = cId
+        return testQuotas.filter(q => q.status === status)
+      }
+
+      await request('/quotas/status/pending', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+      expect(calledWithCondoId).toBe(condominiumId)
+    })
+
+    it('GET /overdue/:date should filter by condominiumId when header present', async function () {
+      let calledWithCondoId: string | undefined
+      mockRepository.getOverdue = async function (_date: string, cId?: string) {
+        calledWithCondoId = cId
+        return testQuotas.filter(q => q.status === 'overdue')
+      }
+
+      await request('/quotas/overdue/2024-01-01', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+      expect(calledWithCondoId).toBe(condominiumId)
+    })
+
+    it('GET /period should filter by condominiumId when header present', async function () {
+      let calledWithCondoId: string | undefined
+      mockRepository.getByPeriod = async function (year: number, month?: number, cId?: string) {
+        calledWithCondoId = cId
+        return testQuotas.filter(q => {
+          if (q.periodYear !== year) return false
+          if (month !== undefined && q.periodMonth !== month) return false
+          return true
+        })
+      }
+
+      await request('/quotas/period?year=2024', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+      expect(calledWithCondoId).toBe(condominiumId)
     })
   })
 })

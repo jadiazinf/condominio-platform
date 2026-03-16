@@ -1,7 +1,8 @@
-import { getTranslations } from '@/libs/i18n/server'
-
 import { SETTINGS_MENU_ITEMS } from '../config/sidebar-items'
+
 import { SidebarLink } from './SidebarLink'
+
+import { getTranslations } from '@/libs/i18n/server'
 
 export async function SettingsSidebar() {
   const { t } = await getTranslations()

@@ -1,9 +1,13 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
 import type { TUnit } from '@packages/domain'
+
+import { useCallback, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { Home, Plus, Power } from 'lucide-react'
+import { useToggleUnitStatus } from '@packages/http-client/hooks'
+
+import { UnitModal } from './UnitModal'
 
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Button } from '@/ui/components/button'
@@ -11,9 +15,6 @@ import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
 import { useDisclosure } from '@/ui/components/modal'
 import { useToast } from '@/ui/components/toast'
-
-import { UnitModal } from './UnitModal'
-import { useToggleUnitStatus } from '@packages/http-client/hooks'
 
 type TUnitRow = TUnit & { id: string }
 
@@ -72,7 +73,13 @@ interface IUnitsTableProps {
   translateError?: (message: string | undefined) => string | undefined
 }
 
-export function UnitsTable({ units, buildingId, condominiumId, translations, translateError }: IUnitsTableProps) {
+export function UnitsTable({
+  units,
+  buildingId,
+  condominiumId,
+  translations,
+  translateError,
+}: IUnitsTableProps) {
   const router = useRouter()
   const toast = useToast()
 
@@ -104,7 +111,9 @@ export function UnitsTable({ units, buildingId, condominiumId, translations, tra
 
   const handleRowClick = useCallback(
     (unit: TUnit) => {
-      router.push(`/dashboard/condominiums/${condominiumId}/buildings/${buildingId}/units/${unit.id}`)
+      router.push(
+        `/dashboard/condominiums/${condominiumId}/buildings/${buildingId}/units/${unit.id}`
+      )
     },
     [router, condominiumId, buildingId]
   )
@@ -145,7 +154,7 @@ export function UnitsTable({ units, buildingId, condominiumId, translations, tra
           return unit.parkingSpaces ?? 0
         case 'status':
           return (
-            <Chip color={unit.isActive ? 'success' : 'default'} variant="flat" size="sm">
+            <Chip color={unit.isActive ? 'success' : 'default'} size="sm" variant="flat">
               {unit.isActive ? translations.status.active : translations.status.inactive}
             </Chip>
           )
@@ -154,15 +163,12 @@ export function UnitsTable({ units, buildingId, condominiumId, translations, tra
             <div className="flex items-center justify-end gap-1">
               <Button
                 isIconOnly
+                isDisabled={toggleStatusMutation.isPending}
                 size="sm"
                 variant="light"
                 onPress={() => handleToggleStatus(unit)}
-                isDisabled={toggleStatusMutation.isPending}
               >
-                <Power
-                  size={14}
-                  className={unit.isActive ? 'text-success' : 'text-default-400'}
-                />
+                <Power className={unit.isActive ? 'text-success' : 'text-default-400'} size={14} />
               </Button>
             </div>
           )
@@ -190,11 +196,11 @@ export function UnitsTable({ units, buildingId, condominiumId, translations, tra
         </Button>
 
         <UnitModal
-          isOpen={isCreateModalOpen}
-          onClose={onCreateModalClose}
           buildingId={buildingId}
-          translations={translations.modal}
+          isOpen={isCreateModalOpen}
           translateError={translateError}
+          translations={translations.modal}
+          onClose={onCreateModalClose}
         />
       </div>
     )
@@ -203,14 +209,14 @@ export function UnitsTable({ units, buildingId, condominiumId, translations, tra
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Typography variant="body2" color="muted">
+        <Typography color="muted" variant="body2">
           {translations.title} ({units.length})
         </Typography>
         <Button
-          size="sm"
           color="primary"
-          variant="flat"
+          size="sm"
           startContent={<Plus size={14} />}
+          variant="flat"
           onPress={onCreateModalOpen}
         >
           {translations.addUnit}
@@ -219,23 +225,23 @@ export function UnitsTable({ units, buildingId, condominiumId, translations, tra
 
       <Table<TUnitRow>
         aria-label={translations.title}
-        columns={columns}
-        rows={units}
-        renderCell={renderCell}
-        onRowClick={handleRowClick}
         classNames={{
           wrapper: 'shadow-none border',
           tr: 'hover:bg-default-50',
         }}
+        columns={columns}
+        renderCell={renderCell}
+        rows={units}
+        onRowClick={handleRowClick}
       />
 
       {/* Create Modal */}
       <UnitModal
-        isOpen={isCreateModalOpen}
-        onClose={onCreateModalClose}
         buildingId={buildingId}
-        translations={translations.modal}
+        isOpen={isCreateModalOpen}
         translateError={translateError}
+        translations={translations.modal}
+        onClose={onCreateModalClose}
       />
     </div>
   )

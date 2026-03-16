@@ -1,15 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardBody, CardHeader } from '@/ui/components/card'
-import { Divider } from '@/ui/components/divider'
-import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Eye, EyeOff, Lock, Home, Mail, User } from 'lucide-react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
+import {
+  acceptUserInvitation,
+  TValidateUserInvitationResult,
+  useActiveSubscriptionTerms,
+} from '@packages/http-client/hooks'
+import { HttpError } from '@packages/http-client'
 
+import { Card, CardBody, CardHeader } from '@/ui/components/card'
+import { Divider } from '@/ui/components/divider'
+import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { useTranslation, useUser, getFirebaseErrorKey } from '@/contexts'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
@@ -20,8 +26,6 @@ import { useToast } from '@/ui/components/toast'
 import { Spinner } from '@/ui/components/spinner'
 import { setUserCookie, setSessionCookie, setActiveRoleCookie } from '@/libs/cookies'
 import { getErrorMessage } from '@/utils/formErrors'
-import { acceptUserInvitation, TValidateUserInvitationResult, useActiveSubscriptionTerms } from '@packages/http-client/hooks'
-import { HttpError } from '@packages/http-client'
 
 interface AcceptUserInvitationFormProps {
   token: string
@@ -73,6 +77,7 @@ export function AcceptUserInvitationForm({ token, invitationData }: AcceptUserIn
 
   function translateError(message: string | undefined): string | undefined {
     if (!message) return undefined
+
     return t(message)
   }
 
@@ -86,10 +91,12 @@ export function AcceptUserInvitationForm({ token, invitationData }: AcceptUserIn
 
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, user.email, data.password)
+
         firebaseUser = userCredential.user
       } catch (firebaseErr) {
         if ((firebaseErr as any).code === 'auth/email-already-in-use') {
           const userCredential = await signInWithEmailAndPassword(auth, user.email, data.password)
+
           firebaseUser = userCredential.user
         } else {
           throw firebaseErr
@@ -113,10 +120,12 @@ export function AcceptUserInvitationForm({ token, invitationData }: AcceptUserIn
     } catch (err) {
       if (HttpError.isHttpError(err)) {
         toast.error(err.message)
+
         return
       }
 
       const errorKey = getFirebaseErrorKey(err)
+
       toast.error(t(errorKey))
     } finally {
       setIsSubmitting(false)
@@ -125,230 +134,226 @@ export function AcceptUserInvitationForm({ token, invitationData }: AcceptUserIn
 
   return (
     <>
-    <Card className="w-full max-w-lg">
-      <CardHeader className="flex flex-col items-center gap-2 pt-8 pb-4">
-        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-          <Home className="w-8 h-8 text-primary" />
-        </div>
-        <h1 className="text-2xl font-bold text-center">{t('auth.acceptInvitation.title')}</h1>
-        {condominium && (
-          <p className="text-default-500 text-center text-sm">
-            {t('auth.acceptUserInvitation.subtitle', { condominiumName: condominium.name })}
-          </p>
-        )}
-      </CardHeader>
-
-      <Divider />
-
-      <CardBody className="px-8 py-6">
-        {/* User Info (Read-only) */}
-        <div className="space-y-4 mb-6">
-          <div>
-            <Typography className="mb-2 text-default-500" variant="body2">
-              {t('auth.acceptInvitation.yourEmail')}
-            </Typography>
-            <Input
-              isDisabled
-              size="lg"
-              startContent={<Mail className="w-5 h-5 text-default-400" />}
-              value={user.email}
-            />
+      <Card className="w-full max-w-lg">
+        <CardHeader className="flex flex-col items-center gap-2 pt-8 pb-4">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+            <Home className="w-8 h-8 text-primary" />
           </div>
+          <h1 className="text-2xl font-bold text-center">{t('auth.acceptInvitation.title')}</h1>
+          {condominium && (
+            <p className="text-default-500 text-center text-sm">
+              {t('auth.acceptUserInvitation.subtitle', { condominiumName: condominium.name })}
+            </p>
+          )}
+        </CardHeader>
 
-          <div className="grid grid-cols-2 gap-4">
+        <Divider />
+
+        <CardBody className="px-8 py-6">
+          {/* User Info (Read-only) */}
+          <div className="space-y-4 mb-6">
             <div>
               <Typography className="mb-2 text-default-500" variant="body2">
-                {t('auth.signUp.firstName')}
+                {t('auth.acceptInvitation.yourEmail')}
               </Typography>
               <Input
-                isReadOnly
+                isDisabled
                 size="lg"
-                startContent={<User className="w-5 h-5 text-default-400" />}
-                value={user.firstName ?? ''}
-              />
-            </div>
-            <div>
-              <Typography className="mb-2 text-default-500" variant="body2">
-                {t('auth.signUp.lastName')}
-              </Typography>
-              <Input
-                isReadOnly
-                size="lg"
-                startContent={<User className="w-5 h-5 text-default-400" />}
-                value={user.lastName ?? ''}
-              />
-            </div>
-          </div>
-        </div>
-
-        <Divider className="my-6" />
-
-        {/* Password Form */}
-        <FormProvider {...methods}>
-          <form className="space-y-4" onSubmit={methods.handleSubmit(onSubmit)}>
-            <Typography className="text-default-500" variant="body2">
-              {t('auth.acceptInvitation.setPassword')}
-            </Typography>
-
-            <div>
-              <Typography className="mb-2" variant="body2">
-                {t('auth.signUp.password')}
-              </Typography>
-              <InputField
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder={t('auth.signUp.passwordPlaceholder')}
-                size="lg"
-                startContent={<Lock className="w-5 h-5 text-default-400" />}
-                endContent={
-                  <button
-                    className="focus:outline-none"
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5 text-default-400" />
-                    ) : (
-                      <Eye className="w-5 h-5 text-default-400" />
-                    )}
-                  </button>
-                }
-                isRequired
-                translateError={translateError}
+                startContent={<Mail className="w-5 h-5 text-default-400" />}
+                value={user.email}
               />
             </div>
 
-            <div>
-              <Typography className="mb-2" variant="body2">
-                {t('auth.signUp.confirmPassword')}
-              </Typography>
-              <InputField
-                name="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                placeholder={t('auth.signUp.confirmPasswordPlaceholder')}
-                size="lg"
-                startContent={<Lock className="w-5 h-5 text-default-400" />}
-                endContent={
-                  <button
-                    className="focus:outline-none"
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-5 h-5 text-default-400" />
-                    ) : (
-                      <Eye className="w-5 h-5 text-default-400" />
-                    )}
-                  </button>
-                }
-                isRequired
-                translateError={translateError}
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <CheckboxField name="acceptTerms" />
-                <Typography variant="body2">
-                  {t('auth.signUp.acceptTerms')}{' '}
-                  <span
-                    className="text-sm text-primary cursor-pointer hover:underline"
-                    role="button"
-                    onClick={() => setIsTermsModalOpen(true)}
-                  >
-                    {t('auth.signUp.termsAndConditions')}
-                  </span>{' '}
-                  {t('auth.signUp.and')}{' '}
-                  <span
-                    className="text-sm text-primary cursor-pointer hover:underline"
-                    role="button"
-                    onClick={() => setIsPrivacyModalOpen(true)}
-                  >
-                    {t('auth.signUp.privacyPolicy')}
-                  </span>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Typography className="mb-2 text-default-500" variant="body2">
+                  {t('auth.signUp.firstName')}
                 </Typography>
+                <Input
+                  isReadOnly
+                  size="lg"
+                  startContent={<User className="w-5 h-5 text-default-400" />}
+                  value={user.firstName ?? ''}
+                />
               </div>
-              {getErrorMessage(methods.formState.errors, 'acceptTerms') && (
-                <Typography className="mt-1 text-danger text-xs" variant="body2">
-                  {translateError(getErrorMessage(methods.formState.errors, 'acceptTerms'))}
+              <div>
+                <Typography className="mb-2 text-default-500" variant="body2">
+                  {t('auth.signUp.lastName')}
                 </Typography>
-              )}
+                <Input
+                  isReadOnly
+                  size="lg"
+                  startContent={<User className="w-5 h-5 text-default-400" />}
+                  value={user.lastName ?? ''}
+                />
+              </div>
             </div>
+          </div>
 
-            <div className="pt-4">
-              <Button
-                fullWidth
-                className="w-full font-semibold"
-                color="primary"
-                isDisabled={isSubmitting}
-                isLoading={isSubmitting}
-                size="lg"
-                type="submit"
-              >
-                {t('auth.acceptInvitation.submit')}
-              </Button>
-            </div>
-          </form>
-        </FormProvider>
-      </CardBody>
-    </Card>
+          <Divider className="my-6" />
 
-    {/* Terms & Conditions Modal */}
-    <Modal
-      isOpen={isTermsModalOpen}
-      onClose={() => setIsTermsModalOpen(false)}
-      size="3xl"
-      scrollBehavior="inside"
-    >
-      <ModalContent>
-        <ModalHeader className="flex flex-col gap-1">
-          <span>{t('auth.signUp.termsAndConditions')}</span>
-          {terms && (
-            <span className="text-xs font-normal text-default-400">
-              {terms.title} &middot; v{terms.version}
-            </span>
-          )}
-        </ModalHeader>
-        <ModalBody className="pb-6">
-          {isLoadingTerms ? (
-            <div className="flex justify-center py-8">
-              <Spinner size="md" />
-            </div>
-          ) : terms ? (
-            <div className="text-sm text-default-600 whitespace-pre-wrap">{terms.content}</div>
-          ) : (
-            <p className="text-default-400 text-center py-8">
-              {t('common.noDataAvailable')}
-            </p>
-          )}
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+          {/* Password Form */}
+          <FormProvider {...methods}>
+            <form className="space-y-4" onSubmit={methods.handleSubmit(onSubmit)}>
+              <Typography className="text-default-500" variant="body2">
+                {t('auth.acceptInvitation.setPassword')}
+              </Typography>
 
-    {/* Privacy Policy Modal */}
-    <Modal
-      isOpen={isPrivacyModalOpen}
-      onClose={() => setIsPrivacyModalOpen(false)}
-      size="3xl"
-      scrollBehavior="inside"
-    >
-      <ModalContent>
-        <ModalHeader>{t('auth.signUp.privacyPolicy')}</ModalHeader>
-        <ModalBody className="pb-6">
-          {isLoadingTerms ? (
-            <div className="flex justify-center py-8">
-              <Spinner size="md" />
-            </div>
-          ) : terms ? (
-            <div className="text-sm text-default-600 whitespace-pre-wrap">{terms.content}</div>
-          ) : (
-            <p className="text-default-400 text-center py-8">
-              {t('common.noDataAvailable')}
-            </p>
-          )}
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+              <div>
+                <Typography className="mb-2" variant="body2">
+                  {t('auth.signUp.password')}
+                </Typography>
+                <InputField
+                  isRequired
+                  endContent={
+                    <button
+                      className="focus:outline-none"
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5 text-default-400" />
+                      ) : (
+                        <Eye className="w-5 h-5 text-default-400" />
+                      )}
+                    </button>
+                  }
+                  name="password"
+                  placeholder={t('auth.signUp.passwordPlaceholder')}
+                  size="lg"
+                  startContent={<Lock className="w-5 h-5 text-default-400" />}
+                  translateError={translateError}
+                  type={showPassword ? 'text' : 'password'}
+                />
+              </div>
+
+              <div>
+                <Typography className="mb-2" variant="body2">
+                  {t('auth.signUp.confirmPassword')}
+                </Typography>
+                <InputField
+                  isRequired
+                  endContent={
+                    <button
+                      className="focus:outline-none"
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="w-5 h-5 text-default-400" />
+                      ) : (
+                        <Eye className="w-5 h-5 text-default-400" />
+                      )}
+                    </button>
+                  }
+                  name="confirmPassword"
+                  placeholder={t('auth.signUp.confirmPasswordPlaceholder')}
+                  size="lg"
+                  startContent={<Lock className="w-5 h-5 text-default-400" />}
+                  translateError={translateError}
+                  type={showConfirmPassword ? 'text' : 'password'}
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2">
+                  <CheckboxField name="acceptTerms" />
+                  <Typography variant="body2">
+                    {t('auth.signUp.acceptTerms')}{' '}
+                    <span
+                      className="text-sm text-primary cursor-pointer hover:underline"
+                      role="button"
+                      onClick={() => setIsTermsModalOpen(true)}
+                    >
+                      {t('auth.signUp.termsAndConditions')}
+                    </span>{' '}
+                    {t('auth.signUp.and')}{' '}
+                    <span
+                      className="text-sm text-primary cursor-pointer hover:underline"
+                      role="button"
+                      onClick={() => setIsPrivacyModalOpen(true)}
+                    >
+                      {t('auth.signUp.privacyPolicy')}
+                    </span>
+                  </Typography>
+                </div>
+                {getErrorMessage(methods.formState.errors, 'acceptTerms') && (
+                  <Typography className="mt-1 text-danger text-xs" variant="body2">
+                    {translateError(getErrorMessage(methods.formState.errors, 'acceptTerms'))}
+                  </Typography>
+                )}
+              </div>
+
+              <div className="pt-4">
+                <Button
+                  fullWidth
+                  className="w-full font-semibold"
+                  color="primary"
+                  isDisabled={isSubmitting}
+                  isLoading={isSubmitting}
+                  size="lg"
+                  type="submit"
+                >
+                  {t('auth.acceptInvitation.submit')}
+                </Button>
+              </div>
+            </form>
+          </FormProvider>
+        </CardBody>
+      </Card>
+
+      {/* Terms & Conditions Modal */}
+      <Modal
+        isOpen={isTermsModalOpen}
+        scrollBehavior="inside"
+        size="3xl"
+        onClose={() => setIsTermsModalOpen(false)}
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            <span>{t('auth.signUp.termsAndConditions')}</span>
+            {terms && (
+              <span className="text-xs font-normal text-default-400">
+                {terms.title} &middot; v{terms.version}
+              </span>
+            )}
+          </ModalHeader>
+          <ModalBody className="pb-6">
+            {isLoadingTerms ? (
+              <div className="flex justify-center py-8">
+                <Spinner size="md" />
+              </div>
+            ) : terms ? (
+              <div className="text-sm text-default-600 whitespace-pre-wrap">{terms.content}</div>
+            ) : (
+              <p className="text-default-400 text-center py-8">{t('common.noDataAvailable')}</p>
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Privacy Policy Modal */}
+      <Modal
+        isOpen={isPrivacyModalOpen}
+        scrollBehavior="inside"
+        size="3xl"
+        onClose={() => setIsPrivacyModalOpen(false)}
+      >
+        <ModalContent>
+          <ModalHeader>{t('auth.signUp.privacyPolicy')}</ModalHeader>
+          <ModalBody className="pb-6">
+            {isLoadingTerms ? (
+              <div className="flex justify-center py-8">
+                <Spinner size="md" />
+              </div>
+            ) : terms ? (
+              <div className="text-sm text-default-600 whitespace-pre-wrap">{terms.content}</div>
+            ) : (
+              <p className="text-default-400 text-center py-8">{t('common.noDataAvailable')}</p>
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </>
   )
 }

@@ -35,11 +35,13 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(function Side
   function toggleSection(key: string) {
     setExpandedSections(prev => {
       const next = new Set(prev)
+
       if (next.has(key)) {
         next.delete(key)
       } else {
         next.add(key)
       }
+
       return next
     })
   }
@@ -60,10 +62,10 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(function Side
                 {item.items.map(child => (
                   <SidebarItem
                     key={child.key}
-                    item={child}
-                    isSelected={selected === child.key}
-                    isCompact={isCompact}
                     hideEndContent={hideEndContent}
+                    isCompact={isCompact}
+                    isSelected={selected === child.key}
+                    item={child}
                     onSelect={handleSelect}
                   />
                 ))}
@@ -75,6 +77,7 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(function Side
         // Nest type (accordion)
         if (item.items && item.items.length > 0 && item.type === SidebarItemType.Nest) {
           const isExpanded = expandedSections.has(item.key)
+
           return (
             <div key={item.key}>
               <button
@@ -95,11 +98,11 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(function Side
                         isExpanded && 'rotate-180'
                       )}
                       fill="none"
-                      viewBox="0 0 24 24"
                       stroke="currentColor"
                       strokeWidth={2}
+                      viewBox="0 0 24 24"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </>
                 )}
@@ -109,10 +112,10 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(function Side
                   {item.items.map(child => (
                     <SidebarItem
                       key={child.key}
-                      item={child}
-                      isSelected={selected === child.key}
-                      isCompact={isCompact}
                       hideEndContent={hideEndContent}
+                      isCompact={isCompact}
+                      isSelected={selected === child.key}
+                      item={child}
                       onSelect={handleSelect}
                     />
                   ))}
@@ -126,10 +129,10 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(function Side
         return (
           <SidebarItem
             key={item.key}
-            item={item}
-            isSelected={selected === item.key}
-            isCompact={isCompact}
             hideEndContent={hideEndContent}
+            isCompact={isCompact}
+            isSelected={selected === item.key}
+            item={item}
             onSelect={handleSelect}
           />
         )
@@ -158,8 +161,8 @@ function SidebarItem({ item, isSelected, isCompact, hideEndContent, onSelect }: 
             ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'
             : 'text-default-400 hover:text-default-600 hover:bg-default-100'
         )}
-        onClick={() => onSelect(item.key)}
         title={item.title}
+        onClick={() => onSelect(item.key)}
       >
         {item.icon}
       </button>
@@ -180,7 +183,9 @@ function SidebarItem({ item, isSelected, isCompact, hideEndContent, onSelect }: 
         <span
           className={cn(
             'transition-colors',
-            isSelected ? 'text-emerald-600 dark:text-emerald-400' : 'text-default-400 group-hover:text-default-500'
+            isSelected
+              ? 'text-emerald-600 dark:text-emerald-400'
+              : 'text-default-400 group-hover:text-default-500'
           )}
         >
           {item.icon}

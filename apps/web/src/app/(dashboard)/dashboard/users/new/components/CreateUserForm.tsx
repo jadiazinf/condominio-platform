@@ -1,19 +1,22 @@
 'use client'
 
-import { FormProvider } from 'react-hook-form'
-import { MultiStepFormShell } from '@/ui/components/forms'
-
-import { useTranslation } from '@/contexts'
-import { useCreateUserForm } from '../hooks'
-import { User, UserCog, Building, Shield, CheckCircle, FileCheck } from 'lucide-react'
-import { Stepper, type IStepItem } from '@/ui/components/stepper'
 import type { TUserFormStep } from '../hooks/useCreateUserForm'
+
+import { User, UserCog, Building, Shield, CheckCircle, FileCheck } from 'lucide-react'
+import { FormProvider } from 'react-hook-form'
+
+import { useCreateUserForm } from '../hooks'
+
 import { BasicInfoStep } from './BasicInfoStep'
 import { UserTypeSelectionStep } from './UserTypeSelectionStep'
 import { CondominiumSelectionStep } from './CondominiumSelectionStep'
 import { RoleAssignmentStep } from './RoleAssignmentStep'
 import { PermissionsStep } from './PermissionsStep'
 import { ConfirmationStep } from './ConfirmationStep'
+
+import { Stepper, type IStepItem } from '@/ui/components/stepper'
+import { useTranslation } from '@/contexts'
+import { MultiStepFormShell } from '@/ui/components/forms'
 
 export function CreateUserForm() {
   const { t } = useTranslation()
@@ -64,14 +67,14 @@ export function CreateUserForm() {
           <CondominiumSelectionStep
             condominiums={condominiums}
             isLoading={isLoadingCondominiums}
-            translateError={translateError}
-            page={condominiumPage}
             limit={condominiumLimit}
+            page={condominiumPage}
+            search={condominiumSearch}
             total={condominiumTotal}
             totalPages={condominiumTotalPages}
-            search={condominiumSearch}
-            onPageChange={onCondominiumPageChange}
+            translateError={translateError}
             onLimitChange={onCondominiumLimitChange}
+            onPageChange={onCondominiumPageChange}
             onSearchChange={onCondominiumSearchChange}
           />
         )
@@ -79,8 +82,8 @@ export function CreateUserForm() {
       case 'role':
         return (
           <RoleAssignmentStep
-            roles={roles}
             isLoadingRoles={isLoadingRoles}
+            roles={roles}
             translateError={translateError}
           />
         )
@@ -88,10 +91,10 @@ export function CreateUserForm() {
       case 'permissions':
         return (
           <PermissionsStep
-            rolePermissions={rolePermissions}
             customPermissions={customPermissions}
-            onTogglePermission={togglePermission}
             isLoading={isLoadingPermissions}
+            rolePermissions={rolePermissions}
+            onTogglePermission={togglePermission}
           />
         )
 
@@ -119,10 +122,10 @@ export function CreateUserForm() {
               idDocumentType: formValues.idDocumentType,
               idDocumentNumber: formValues.idDocumentNumber,
             }}
-            userType={formValues.userType}
             condominium={selectedCondominium}
-            role={selectedRole}
             permissions={rolePermissions}
+            role={selectedRole}
+            userType={formValues.userType}
           />
         )
       }
@@ -143,7 +146,7 @@ export function CreateUserForm() {
     confirmation: <FileCheck size={14} />,
   }
 
-  const stepItems: IStepItem<TUserFormStep>[] = steps.map((step) => ({
+  const stepItems: IStepItem<TUserFormStep>[] = steps.map(step => ({
     key: step,
     title: t(`superadmin.users.create.steps.${step}`),
     icon: STEP_ICONS[step],
@@ -153,25 +156,21 @@ export function CreateUserForm() {
     <FormProvider {...form}>
       <MultiStepFormShell
         currentStepIndex={currentStepIndex}
-        totalSteps={steps.length}
         isFirstStep={isFirstStep}
         isLastStep={isLastStep}
-        isSubmitting={isSubmitting}
         isNextDisabled={!canGoNext}
         isSubmitDisabled={!canSubmit}
-        onSubmit={handleSubmit}
-        onPrevious={handlePrevious}
-        onNext={handleNext}
-        previousButtonText={t('common.previous')}
+        isSubmitting={isSubmitting}
         nextButtonText={t('common.next')}
-        submitButtonText={t('superadmin.users.create.submit')}
+        previousButtonText={t('common.previous')}
         stepIndicator={
-          <Stepper
-            currentStep={currentStep}
-            steps={stepItems}
-            onStepChange={goToStep}
-          />
+          <Stepper currentStep={currentStep} steps={stepItems} onStepChange={goToStep} />
         }
+        submitButtonText={t('superadmin.users.create.submit')}
+        totalSteps={steps.length}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
+        onSubmit={handleSubmit}
       >
         {renderStepContent()}
       </MultiStepFormShell>

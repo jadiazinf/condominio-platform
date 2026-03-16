@@ -1,5 +1,10 @@
 import type { Context } from 'hono'
-import type { TCondominium, TCondominiumCreate, TCondominiumUpdate, TCondominiumsQuerySchema } from '@packages/domain'
+import type {
+  TCondominium,
+  TCondominiumCreate,
+  TCondominiumUpdate,
+  TCondominiumsQuerySchema,
+} from '@packages/domain'
 import type { CondominiumsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
@@ -26,7 +31,11 @@ export class PlatformCondominiumsController extends BaseController<
         method: 'get',
         path: '/',
         handler: this.listPaginated,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), queryValidator(condominiumsQuerySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          queryValidator(condominiumsQuerySchema),
+        ],
       },
       {
         method: 'get',
@@ -35,7 +44,13 @@ export class PlatformCondominiumsController extends BaseController<
         middlewares: [
           authMiddleware,
           paramsValidator(ManagementCompanyIdParamSchema),
-          requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER),
+          requireRole(
+            ESystemRole.SUPERADMIN,
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.VIEWER
+          ),
           queryValidator(condominiumsQuerySchema),
         ],
       },
@@ -52,7 +67,10 @@ export class PlatformCondominiumsController extends BaseController<
   private listByManagementCompany = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TCondominiumsQuerySchema, { managementCompanyId: string }>(c)
     const repo = this.repository as CondominiumsRepository
-    const result = await repo.listByManagementCompanyPaginated(ctx.params.managementCompanyId, ctx.query)
+    const result = await repo.listByManagementCompanyPaginated(
+      ctx.params.managementCompanyId,
+      ctx.query
+    )
     return ctx.ok(result)
   }
 }

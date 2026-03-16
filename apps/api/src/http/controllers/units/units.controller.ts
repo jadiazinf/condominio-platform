@@ -7,8 +7,9 @@ import {
   type TUnitUpdate,
   ESystemRole,
 } from '@packages/domain'
-import type { UnitsRepository } from '@database/repositories'
+import type { UnitsRepository, BuildingsRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
+import { AppError } from '@errors/index'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
@@ -58,7 +59,11 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
   private readonly unitsRepository: UnitsRepository
   private readonly bulkCreateService: BulkCreateUnitsService
 
-  constructor(repository: UnitsRepository, db: TDrizzleClient) {
+  constructor(
+    repository: UnitsRepository,
+    db: TDrizzleClient,
+    private readonly buildingsRepo: BuildingsRepository
+  ) {
     super(repository)
 
     this.unitsRepository = repository
@@ -67,48 +72,88 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT)] },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.list,
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT),
+        ],
+      },
       {
         method: 'get',
         path: '/by-condominium',
         handler: this.getByCondominiumId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT),
+        ],
       },
       {
         method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT), paramsValidator(BuildingIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT),
+          paramsValidator(BuildingIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/building/:buildingId/number/:unitNumber',
         handler: this.getByBuildingAndNumber,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT), paramsValidator(BuildingAndNumberParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT),
+          paramsValidator(BuildingAndNumberParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/building/:buildingId/floor/:floor',
         handler: this.getByFloor,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT), paramsValidator(BuildingAndFloorParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT),
+          paramsValidator(BuildingAndFloorParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.USER
+          ),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
         path: '/bulk',
         handler: this.bulkCreate,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN), bodyValidator(unitBulkCreateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN),
+          bodyValidator(unitBulkCreateSchema),
+        ],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN), bodyValidator(unitCreateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN),
+          bodyValidator(unitCreateSchema),
+        ],
       },
       {
         method: 'patch',
@@ -125,7 +170,11 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }
@@ -134,10 +183,26 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
   // Overridden Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
+  protected override getById = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, { id: string }>(c)
+    const entity = await this.repository.getById(ctx.params.id)
+    if (!entity) throw AppError.notFound('Resource', ctx.params.id)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    if (condominiumId) {
+      const building = await this.buildingsRepo.getById(entity.buildingId)
+      if (!building || building.condominiumId !== condominiumId) {
+        throw AppError.notFound('Resource', ctx.params.id)
+      }
+    }
+    return ctx.ok({ data: entity })
+  }
+
   protected override list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-    // TODO: Filter by condominiumId via JOIN through building.condominiumId
-    const entities = await this.repository.listAll()
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const entities = condominiumId
+      ? await this.unitsRepository.getByCondominiumId(condominiumId)
+      : await this.repository.listAll()
     return ctx.ok({ data: entities })
   }
 
@@ -168,13 +233,23 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
 
   private getByBuildingId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)
-    const units = await this.unitsRepository.getByBuildingId(ctx.params.buildingId)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const units = await this.unitsRepository.getByBuildingId(
+      ctx.params.buildingId,
+      false,
+      condominiumId
+    )
     return ctx.ok({ data: units })
   }
 
   private getByBuildingAndNumber = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingAndNumberParam>(c)
-    const unit = await this.unitsRepository.getByBuildingAndNumber(ctx.params.buildingId, ctx.params.unitNumber)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const unit = await this.unitsRepository.getByBuildingAndNumber(
+      ctx.params.buildingId,
+      ctx.params.unitNumber,
+      condominiumId
+    )
 
     if (!unit) {
       return ctx.notFound({ error: 'Unit not found' })
@@ -185,7 +260,12 @@ export class UnitsController extends BaseController<TUnit, TUnitCreate, TUnitUpd
 
   private getByFloor = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingAndFloorParam>(c)
-    const units = await this.unitsRepository.getByFloor(ctx.params.buildingId, ctx.params.floor)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const units = await this.unitsRepository.getByFloor(
+      ctx.params.buildingId,
+      ctx.params.floor,
+      condominiumId
+    )
     return ctx.ok({ data: units })
   }
 }

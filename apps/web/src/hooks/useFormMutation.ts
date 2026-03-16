@@ -1,5 +1,7 @@
 'use client'
 
+import type { z } from 'zod'
+
 import { useCallback } from 'react'
 import {
   useForm,
@@ -11,7 +13,6 @@ import {
 } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, HttpError } from '@packages/http-client'
-import type { z } from 'zod'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/ui/components/toast'
@@ -145,6 +146,7 @@ export function useFormMutation<TSchema extends z.ZodObject<z.ZodRawShape>, TRes
         throw new Error('Not authenticated')
       }
       const token = await firebaseUser.getIdToken()
+
       return mutationFn(token, data)
     },
     onSuccess: (data: TResponse) => {
@@ -189,6 +191,7 @@ export function useFormMutation<TSchema extends z.ZodObject<z.ZodRawShape>, TRes
   const translateError = useCallback(
     (message: string | undefined): string | undefined => {
       if (!message) return undefined
+
       return t(message)
     },
     [t]
@@ -237,6 +240,7 @@ export function useAuthMutation<TData, TResponse>(
         throw new Error('Not authenticated')
       }
       const token = await firebaseUser.getIdToken()
+
       return mutationFn(token, data)
     },
     onSuccess: (data: TResponse) => {

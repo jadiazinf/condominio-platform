@@ -1,9 +1,11 @@
 'use client'
 
+import type { ICondominiumFormData } from '../../hooks/useCondominiumForm'
+
 import { useFormContext, Controller } from 'react-hook-form'
+
 import { Label, Textarea, LocationSelector } from '@/ui/components'
 import { useTranslation } from '@/contexts'
-import type { ICondominiumFormData } from '../../hooks/useCondominiumForm'
 
 export function LocationStepForm() {
   const { t } = useTranslation()
@@ -16,25 +18,25 @@ export function LocationStepForm() {
   return (
     <div className="space-y-6">
       <Controller
-        name="locationId"
         control={control}
-        rules={{
-          required: t('condominiums.form.fields.location.error'),
-        }}
+        name="locationId"
         render={({ field }) => (
           <LocationSelector
+            isRequired
+            errorMessage={errors.locationId?.message}
             label={t('condominiums.form.fields.location.label')}
             tooltip={t('condominiums.form.fields.location.description')}
             value={field.value}
             onChange={field.onChange}
-            errorMessage={errors.locationId?.message}
-            isRequired
           />
         )}
+        rules={{
+          required: t('condominiums.form.fields.location.error'),
+        }}
       />
 
       <div className="space-y-2">
-        <Label htmlFor="address" required>
+        <Label required htmlFor="address">
           {t('condominiums.form.fields.address.label')}
         </Label>
         <Textarea
@@ -46,8 +48,8 @@ export function LocationStepForm() {
               message: t('condominiums.form.fields.address.maxLengthError'),
             },
           })}
-          placeholder={t('condominiums.form.fields.address.placeholder')}
           error={errors.address?.message}
+          placeholder={t('condominiums.form.fields.address.placeholder')}
           rows={3}
         />
       </div>

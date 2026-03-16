@@ -10,11 +10,7 @@ import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import { QueryProvider } from '@packages/http-client'
 import { Analytics } from '@vercel/analytics/next'
 
-import {
-  AuthProvider,
-  I18nProvider,
-  HttpClientProvider,
-} from '@/contexts'
+import { AuthProvider, I18nProvider, HttpClientProvider } from '@/contexts'
 import { SessionInitializer } from '@/contexts/SessionInitializer'
 import { ToastProvider } from '@/ui/components/toast'
 import { NetworkStatusMonitor } from '@/ui/components/network-status'
@@ -50,9 +46,9 @@ export function Providers({
             <AuthProvider>
               <HttpClientProvider>
                 <SessionInitializer
-                  initialUser={initialUser}
                   initialCondominiums={initialCondominiums}
                   initialSelectedCondominium={initialSelectedCondominium}
+                  initialUser={initialUser}
                 >
                   {children}
                   <ToastProvider position="top-center" />

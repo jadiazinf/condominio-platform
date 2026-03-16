@@ -10,9 +10,7 @@ export interface IGetGatewayTransactionsByPaymentInput {
  * Retrieves all gateway transactions for a given payment.
  */
 export class GetGatewayTransactionsByPaymentService {
-  constructor(
-    private readonly gatewayTransactionsRepository: GatewayTransactionsRepository
-  ) {}
+  constructor(private readonly gatewayTransactionsRepository: GatewayTransactionsRepository) {}
 
   async execute(
     input: IGetGatewayTransactionsByPaymentInput

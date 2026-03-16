@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { sendPasswordResetEmail } from 'firebase/auth'
-import { Card, CardBody } from '@/ui/components/card'
 
 import { ForgotPasswordFormFields } from './ForgotPasswordFormFields'
 import { ForgotPasswordHeader } from './ForgotPasswordHeader'
 
+import { Card, CardBody } from '@/ui/components/card'
 import { useTranslation, getFirebaseErrorKey } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
 import { getFirebaseAuth } from '@/libs/firebase'

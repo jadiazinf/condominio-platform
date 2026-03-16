@@ -1,14 +1,10 @@
 'use client'
 
+import type { TOwnershipType } from '@packages/domain'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import type { TOwnershipType } from '@packages/domain'
-
-import { Button } from '@/ui/components/button'
-import { Input } from '@/ui/components/input'
-import { Card, CardBody } from '@/ui/components/card'
-import { useToast } from '@/ui/components/toast'
 import {
   useValidateAccessCode,
   useSubmitAccessRequest,
@@ -17,6 +13,11 @@ import {
 
 import { UnitSelectionForm } from './components/UnitSelectionForm'
 import { SubmissionSuccess } from './components/SubmissionSuccess'
+
+import { Button } from '@/ui/components/button'
+import { Input } from '@/ui/components/input'
+import { Card, CardBody } from '@/ui/components/card'
+import { useToast } from '@/ui/components/toast'
 
 interface IJoinCondominiumClientProps {
   translations: {
@@ -62,7 +63,7 @@ export function JoinCondominiumClient({ translations }: IJoinCondominiumClientPr
   const [validationResult, setValidationResult] = useState<TValidateAccessCodeResponse | null>(null)
 
   const validateMutation = useValidateAccessCode({
-    onSuccess: (response) => {
+    onSuccess: response => {
       setValidationResult(response.data)
       setStep(2)
     },
@@ -99,18 +100,18 @@ export function JoinCondominiumClient({ translations }: IJoinCondominiumClientPr
           <p className="text-sm font-medium">{translations.step1.label}</p>
           <div className="flex gap-2">
             <Input
-              value={code}
-              onValueChange={(val) => setCode(val.toUpperCase())}
-              placeholder={translations.step1.placeholder}
-              maxLength={8}
               className="font-mono text-lg tracking-widest"
-              onKeyDown={(e) => e.key === 'Enter' && handleValidate()}
+              maxLength={8}
+              placeholder={translations.step1.placeholder}
+              value={code}
+              onKeyDown={e => e.key === 'Enter' && handleValidate()}
+              onValueChange={val => setCode(val.toUpperCase())}
             />
             <Button
               color="primary"
-              onPress={handleValidate}
-              isLoading={validateMutation.isPending}
               isDisabled={code.length < 6}
+              isLoading={validateMutation.isPending}
+              onPress={handleValidate}
             >
               {validateMutation.isPending
                 ? translations.step1.validating
@@ -127,7 +128,16 @@ export function JoinCondominiumClient({ translations }: IJoinCondominiumClientPr
     return (
       <div className="max-w-2xl">
         <UnitSelectionForm
-          validationResult={validationResult}
+          isSubmitting={submitMutation.isPending}
+          renderExtraActions={() => (
+            <Button
+              startContent={<ArrowLeft size={14} />}
+              variant="flat"
+              onPress={() => setStep(1)}
+            >
+              {translations.step2.back}
+            </Button>
+          )}
           translations={{
             condominiumInfo: translations.step2.condominiumInfo,
             selectUnit: translations.step2.selectUnit,
@@ -136,7 +146,7 @@ export function JoinCondominiumClient({ translations }: IJoinCondominiumClientPr
             submitting: translations.step2.submitting,
             ownershipTypes: translations.ownershipTypes,
           }}
-          isSubmitting={submitMutation.isPending}
+          validationResult={validationResult}
           onSubmit={(unitId: string, ownershipType: TOwnershipType) => {
             submitMutation.mutate({
               accessCodeId: validationResult.accessCodeId,
@@ -144,15 +154,6 @@ export function JoinCondominiumClient({ translations }: IJoinCondominiumClientPr
               ownershipType,
             })
           }}
-          renderExtraActions={() => (
-            <Button
-              variant="flat"
-              startContent={<ArrowLeft size={14} />}
-              onPress={() => setStep(1)}
-            >
-              {translations.step2.back}
-            </Button>
-          )}
         />
       </div>
     )

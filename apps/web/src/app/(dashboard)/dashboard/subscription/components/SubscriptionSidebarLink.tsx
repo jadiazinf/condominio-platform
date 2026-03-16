@@ -1,11 +1,12 @@
 'use client'
 
-import { Link } from '@/ui/components/link'
+import type { TSubscriptionIconName } from '../config/sidebar-items'
+
 import { usePathname } from 'next/navigation'
-import { cn } from '@/ui/utils'
 import { CreditCard, History } from 'lucide-react'
 
-import type { TSubscriptionIconName } from '../config/sidebar-items'
+import { Link } from '@/ui/components/link'
+import { cn } from '@/ui/utils'
 
 const ICONS = {
   creditCard: CreditCard,
@@ -48,5 +49,6 @@ function checkIfActive(currentPath: string, linkPath: string, basePath: string):
   if (linkPath === basePath) {
     return currentPath === basePath
   }
+
   return currentPath.startsWith(linkPath)
 }

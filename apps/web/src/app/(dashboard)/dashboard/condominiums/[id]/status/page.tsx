@@ -1,9 +1,11 @@
-import { getTranslations } from '@/libs/i18n/server'
 import { getCondominiumDetail } from '@packages/http-client/hooks'
+
+import { StatusToggle } from './components/StatusToggle'
+
+import { getTranslations } from '@/libs/i18n/server'
 import { getServerAuthToken } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
 import { Card } from '@/ui/components/card'
-import { StatusToggle } from './components/StatusToggle'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -18,8 +20,10 @@ export default async function CondominiumStatusPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <Typography variant="h3">{t('superadmin.condominiums.detail.statusSection.title')}</Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
+        <Typography variant="h3">
+          {t('superadmin.condominiums.detail.statusSection.title')}
+        </Typography>
+        <Typography className="mt-1" color="muted" variant="body2">
           {t('superadmin.condominiums.detail.statusSection.subtitle')}
         </Typography>
       </div>
@@ -27,14 +31,16 @@ export default async function CondominiumStatusPage({ params }: PageProps) {
       {/* Condominium Status */}
       <Card className="p-6">
         <StatusToggle
-          condominiumId={condominium.id}
-          initialStatus={condominium.isActive}
           activeLabel={t('superadmin.condominiums.status.active')}
-          inactiveLabel={t('superadmin.condominiums.status.inactive')}
-          title={t('superadmin.condominiums.detail.statusSection.condominiumStatus')}
-          description={t('superadmin.condominiums.detail.statusSection.condominiumStatusDescription')}
-          successMessage={t('superadmin.condominiums.detail.statusSection.success')}
+          condominiumId={condominium.id}
+          description={t(
+            'superadmin.condominiums.detail.statusSection.condominiumStatusDescription'
+          )}
           errorMessage={t('superadmin.condominiums.detail.statusSection.error')}
+          inactiveLabel={t('superadmin.condominiums.status.inactive')}
+          initialStatus={condominium.isActive}
+          successMessage={t('superadmin.condominiums.detail.statusSection.success')}
+          title={t('superadmin.condominiums.detail.statusSection.condominiumStatus')}
         />
       </Card>
     </div>

@@ -120,8 +120,13 @@ export class CalculateFormulaAmountService {
         }
       }
 
-      const calculate = new Function(`return (${evaluableExpression})`)
-      const result = calculate()
+      const tokens = this.tokenize(evaluableExpression)
+      const parser = { tokens, pos: 0 }
+      const result = this.parseAddSub(parser)
+
+      if (parser.pos < parser.tokens.length) {
+        return { success: false, error: 'Unexpected token after end of expression' }
+      }
 
       if (typeof result !== 'number') {
         return { success: false, error: 'Expression did not evaluate to a number' }
@@ -131,5 +136,107 @@ export class CalculateFormulaAmountService {
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
     }
+  }
+
+  private tokenize(expr: string): string[] {
+    const tokens: string[] = []
+    let i = 0
+    while (i < expr.length) {
+      const ch = expr[i]!
+      if (ch === ' ') {
+        i++
+        continue
+      }
+      if ('+-*/()'.includes(ch)) {
+        tokens.push(ch)
+        i++
+        continue
+      }
+      if (ch === '.' || (ch >= '0' && ch <= '9')) {
+        let num = ''
+        while (i < expr.length) {
+          const c = expr[i]!
+          if (c === '.' || (c >= '0' && c <= '9')) {
+            num += c
+            i++
+          } else {
+            break
+          }
+        }
+        tokens.push(num)
+        continue
+      }
+      throw new Error(`Unexpected character: ${ch}`)
+    }
+    return tokens
+  }
+
+  private peek(parser: { tokens: string[]; pos: number }): string | undefined {
+    return parser.tokens[parser.pos]
+  }
+
+  /** Addition and subtraction (lowest precedence) */
+  private parseAddSub(parser: { tokens: string[]; pos: number }): number {
+    let left = this.parseMulDiv(parser)
+    let tok = this.peek(parser)
+    while (tok === '+' || tok === '-') {
+      parser.pos++
+      const right = this.parseMulDiv(parser)
+      left = tok === '+' ? left + right : left - right
+      tok = this.peek(parser)
+    }
+    return left
+  }
+
+  /** Multiplication and division (higher precedence) */
+  private parseMulDiv(parser: { tokens: string[]; pos: number }): number {
+    let left = this.parseUnary(parser)
+    let tok = this.peek(parser)
+    while (tok === '*' || tok === '/') {
+      parser.pos++
+      const right = this.parseUnary(parser)
+      left = tok === '*' ? left * right : left / right
+      tok = this.peek(parser)
+    }
+    return left
+  }
+
+  /** Unary minus / plus */
+  private parseUnary(parser: { tokens: string[]; pos: number }): number {
+    const tok = this.peek(parser)
+    if (tok === '-') {
+      parser.pos++
+      return -this.parseUnary(parser)
+    }
+    if (tok === '+') {
+      parser.pos++
+      return this.parseUnary(parser)
+    }
+    return this.parsePrimary(parser)
+  }
+
+  /** Numbers and parenthesized sub-expressions */
+  private parsePrimary(parser: { tokens: string[]; pos: number }): number {
+    const token = this.peek(parser)
+    if (token === undefined) {
+      throw new Error('Unexpected end of expression')
+    }
+
+    if (token === '(') {
+      parser.pos++
+      const value = this.parseAddSub(parser)
+      if (this.peek(parser) !== ')') {
+        throw new Error('Missing closing parenthesis')
+      }
+      parser.pos++
+      return value
+    }
+
+    const num = parseFloat(token)
+    if (isNaN(num)) {
+      throw new Error(`Expected number but got: ${token}`)
+    }
+    parser.pos++
+    return num
   }
 }

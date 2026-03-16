@@ -102,4 +102,10 @@ export function useDisclosure() {
   return useHeroUIDisclosure()
 }
 
-export type { IModalProps, IModalContentProps, IModalHeaderProps, IModalBodyProps, IModalFooterProps }
+export type {
+  IModalProps,
+  IModalContentProps,
+  IModalHeaderProps,
+  IModalBodyProps,
+  IModalFooterProps,
+}

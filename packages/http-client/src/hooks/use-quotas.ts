@@ -231,7 +231,7 @@ export function useUpdateQuota(id: string, options?: IUpdateQuotaOptions) {
 
 export function useDeleteQuota(options?: IDeleteQuotaOptions) {
   return useApiMutation<TApiDataResponse<TQuota>, { id: string }>({
-    path: (data) => `/condominium/quotas/${data.id}`,
+    path: data => `/condominium/quotas/${data.id}`,
     method: 'DELETE',
     config: {},
     onSuccess: options?.onSuccess,
@@ -252,7 +252,9 @@ export async function getQuotas(): Promise<TQuota[]> {
 
 export async function getQuotasByUnit(unitId: string): Promise<TQuota[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TQuota[]>>(`/condominium/quotas/unit/${unitId}`)
+  const response = await client.get<TApiDataResponse<TQuota[]>>(
+    `/condominium/quotas/unit/${unitId}`
+  )
   return response.data.data
 }
 
@@ -272,25 +274,34 @@ export async function getQuotasByUnitServer(
   if (managementCompanyId) {
     headers['x-management-company-id'] = managementCompanyId
   }
-  const response = await client.get<TApiDataResponse<TQuota[]>>(`/condominium/quotas/unit/${unitId}`, { headers })
+  const response = await client.get<TApiDataResponse<TQuota[]>>(
+    `/condominium/quotas/unit/${unitId}`,
+    { headers }
+  )
   return response.data.data
 }
 
 export async function getQuotasPendingByUnit(unitId: string): Promise<TQuota[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TQuota[]>>(`/condominium/quotas/unit/${unitId}/pending`)
+  const response = await client.get<TApiDataResponse<TQuota[]>>(
+    `/condominium/quotas/unit/${unitId}/pending`
+  )
   return response.data.data
 }
 
 export async function getQuotasByStatus(status: string): Promise<TQuota[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TQuota[]>>(`/condominium/quotas/status/${status}`)
+  const response = await client.get<TApiDataResponse<TQuota[]>>(
+    `/condominium/quotas/status/${status}`
+  )
   return response.data.data
 }
 
 export async function getQuotasOverdue(date: string): Promise<TQuota[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TQuota[]>>(`/condominium/quotas/overdue/${date}`)
+  const response = await client.get<TApiDataResponse<TQuota[]>>(
+    `/condominium/quotas/overdue/${date}`
+  )
   return response.data.data
 }
 

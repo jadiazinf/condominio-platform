@@ -1,6 +1,10 @@
 'use client'
 
+import type { TTicketStatus } from '@packages/domain'
+
 import { useState } from 'react'
+import { Settings, Check } from 'lucide-react'
+
 import { Button } from '@/ui/components/button'
 import {
   Modal,
@@ -11,8 +15,6 @@ import {
   useDisclosure,
 } from '@/ui/components/modal'
 import { Chip } from '@/ui/components/chip'
-import { Settings, Check } from 'lucide-react'
-import type { TTicketStatus } from '@packages/domain'
 import { getTicketStatusColor } from '@/utils/status-colors'
 
 export interface ITicketStatusActionTranslations {
@@ -45,11 +47,7 @@ export function TicketStatusAction({
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure()
   const [selectedStatus, setSelectedStatus] = useState<TTicketStatus>(currentStatus)
 
-  const statuses: TTicketStatus[] = [
-    'open',
-    'in_progress',
-    'waiting_customer',
-  ]
+  const statuses: TTicketStatus[] = ['open', 'in_progress', 'waiting_customer']
 
   const handleConfirm = () => {
     if (selectedStatus !== currentStatus) {
@@ -66,12 +64,12 @@ export function TicketStatusAction({
   return (
     <>
       <Button
+        aria-label={translations.changeStatus}
         color="default"
         isDisabled={isLoading}
         isIconOnly={iconOnly}
         size="sm"
         variant="light"
-        aria-label={translations.changeStatus}
         onPress={handleOpen}
       >
         <Settings size={18} />
@@ -84,24 +82,22 @@ export function TicketStatusAction({
               <ModalHeader>{translations.changeStatus}</ModalHeader>
               <ModalBody>
                 <div className="flex flex-col gap-2">
-                  {statuses.map((status) => (
+                  {statuses.map(status => (
                     <button
                       key={status}
-                      type="button"
                       className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
                         selectedStatus === status
                           ? 'border-primary bg-primary/10'
                           : 'border-default-200 hover:bg-default-100'
                       } ${status === currentStatus ? 'opacity-50' : ''}`}
                       disabled={status === currentStatus}
+                      type="button"
                       onClick={() => setSelectedStatus(status)}
                     >
                       <Chip color={getTicketStatusColor(status)} size="sm" variant="flat">
                         {translations.statuses[status]}
                       </Chip>
-                      {selectedStatus === status && (
-                        <Check className="text-primary" size={18} />
-                      )}
+                      {selectedStatus === status && <Check className="text-primary" size={18} />}
                     </button>
                   ))}
                 </div>

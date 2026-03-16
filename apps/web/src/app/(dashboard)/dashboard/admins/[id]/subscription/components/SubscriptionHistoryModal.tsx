@@ -1,6 +1,14 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
+import { CreditCard, Calendar, DollarSign, History, Search, X } from 'lucide-react'
+import {
+  useManagementCompanySubscriptionsPaginated,
+  type ISubscriptionHistoryQuery,
+} from '@packages/http-client'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
+
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Card, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
@@ -9,14 +17,7 @@ import { Button } from '@/ui/components/button'
 import { Typography } from '@/ui/components/typography'
 import { Spinner } from '@/ui/components/spinner'
 import { Pagination } from '@/ui/components/pagination'
-import { CreditCard, Calendar, DollarSign, History, Search, X } from 'lucide-react'
 import { useTranslation } from '@/contexts'
-import {
-  useManagementCompanySubscriptionsPaginated,
-  type ISubscriptionHistoryQuery,
-} from '@packages/http-client'
-import { formatCurrency } from '@packages/utils/currency'
-import { formatShortDate } from '@packages/utils/dates'
 import { getSubscriptionStatusColor } from '@/utils/status-colors'
 
 interface SubscriptionHistoryModalProps {
@@ -117,11 +118,12 @@ export function SubscriptionHistoryModal({
     if (count === 1) {
       return t('superadmin.companies.subscription.history.resultCountSingular')
     }
+
     return t('superadmin.companies.subscription.history.resultCountPlural', { count })
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="3xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="3xl" onClose={onClose}>
       <ModalContent className="max-h-[90vh]">
         <ModalHeader className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
@@ -135,13 +137,13 @@ export function SubscriptionHistoryModal({
           <div className="space-y-3">
             <div className="flex flex-col gap-3 sm:flex-row">
               <Input
-                placeholder={t('superadmin.companies.subscription.history.searchPlaceholder')}
-                value={searchName}
-                onValueChange={handleSearchChange}
-                startContent={<Search size={16} className="text-default-400" />}
-                className="flex-1"
                 isClearable
+                className="flex-1"
+                placeholder={t('superadmin.companies.subscription.history.searchPlaceholder')}
+                startContent={<Search className="text-default-400" size={16} />}
+                value={searchName}
                 onClear={() => handleSearchChange('')}
+                onValueChange={handleSearchChange}
               />
             </div>
 
@@ -151,10 +153,10 @@ export function SubscriptionHistoryModal({
                   {t('superadmin.companies.subscription.history.fromDate')}
                 </label>
                 <input
+                  className="w-full rounded-md border border-default-200 bg-default-100 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   type="date"
                   value={startDateFilter}
                   onChange={handleStartDateChange}
-                  className="w-full rounded-md border border-default-200 bg-default-100 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -163,20 +165,20 @@ export function SubscriptionHistoryModal({
                   {t('superadmin.companies.subscription.history.toDate')}
                 </label>
                 <input
+                  className="w-full rounded-md border border-default-200 bg-default-100 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   type="date"
                   value={endDateFilter}
                   onChange={handleEndDateChange}
-                  className="w-full rounded-md border border-default-200 bg-default-100 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
               {hasActiveFilters && (
                 <Button
-                  variant="flat"
+                  className="sm:self-end"
                   color="danger"
                   startContent={<X size={16} />}
+                  variant="flat"
                   onPress={handleClearFilters}
-                  className="sm:self-end"
                 >
                   {t('superadmin.companies.subscription.history.clearFilters')}
                 </Button>
@@ -186,7 +188,7 @@ export function SubscriptionHistoryModal({
 
           {/* Results count */}
           <div className="flex items-center justify-between">
-            <Typography variant="caption" color="muted">
+            <Typography color="muted" variant="caption">
               {getResultsCountText(pagination.total)}
             </Typography>
             {isFetching && !isLoading && <Spinner size="sm" />}
@@ -214,7 +216,7 @@ export function SubscriptionHistoryModal({
           {/* Subscriptions list */}
           {!isLoading && subscriptions.length > 0 && (
             <div className="space-y-3">
-              {subscriptions.map((subscription) => {
+              {subscriptions.map(subscription => {
                 const isActive = isActiveSubscription(subscription.status)
 
                 return (
@@ -299,7 +301,9 @@ export function SubscriptionHistoryModal({
                           <span className="font-medium text-warning-700">
                             {t('superadmin.companies.subscription.history.reason')}:{' '}
                           </span>
-                          <span className="text-warning-600">{subscription.cancellationReason}</span>
+                          <span className="text-warning-600">
+                            {subscription.cancellationReason}
+                          </span>
                         </div>
                       )}
                     </CardBody>
@@ -313,12 +317,12 @@ export function SubscriptionHistoryModal({
           {!isLoading && pagination.totalPages > 1 && (
             <div className="pt-4">
               <Pagination
-                page={pagination.page}
-                totalPages={pagination.totalPages}
-                total={pagination.total}
                 limit={pagination.limit}
-                onPageChange={handlePageChange}
+                page={pagination.page}
                 showLimitSelector={false}
+                total={pagination.total}
+                totalPages={pagination.totalPages}
+                onPageChange={handlePageChange}
               />
             </div>
           )}

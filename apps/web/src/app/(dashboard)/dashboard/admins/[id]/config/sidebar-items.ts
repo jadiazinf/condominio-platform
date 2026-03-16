@@ -1,4 +1,11 @@
-export type TCompanyDetailIconName = 'general' | 'condominiums' | 'members' | 'subscription' | 'invoices' | 'tickets' | 'toggle'
+export type TCompanyDetailIconName =
+  | 'general'
+  | 'condominiums'
+  | 'members'
+  | 'subscription'
+  | 'invoices'
+  | 'tickets'
+  | 'toggle'
 
 export interface ICompanyDetailMenuItem {
   key: string

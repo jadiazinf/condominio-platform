@@ -61,11 +61,11 @@ beforeEach(async () => {
   `)
 
   // Insert a management company and capture its id
-  const companyResult = await db.execute(sql`
+  const companyResult = (await db.execute(sql`
     INSERT INTO management_companies (name, created_by)
     VALUES ('Test Company', ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   companyId = companyResult[0]!.id
 
   // Insert roles required by AddMemberService
@@ -134,7 +134,7 @@ async function addPrimaryAdmin(): Promise<{ id: string }> {
     isPrimary: true,
     invitedBy: MOCK_USER_ID,
   })
-  const json = await res.json() as { data: { id: string } }
+  const json = (await res.json()) as { data: { id: string } }
   return json.data
 }
 
@@ -144,7 +144,7 @@ async function addRegularMember(): Promise<{ id: string }> {
     role: 'accountant',
     invitedBy: MOCK_USER_ID,
   })
-  const json = await res.json() as { data: { id: string } }
+  const json = (await res.json()) as { data: { id: string } }
   return json.data
 }
 
@@ -153,13 +153,11 @@ async function addRegularMember(): Promise<{ id: string }> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('ManagementCompanyMembersController — Integration', function () {
-
   // ════════════════════════════════════════════════════════════════════════════
   // POST /platform/management-companies/:companyId/members
   // ════════════════════════════════════════════════════════════════════════════
 
   describe('POST — Add Member', function () {
-
     it('should add a primary admin member with 201', async function () {
       const res = await addMember({
         userId: MOCK_USER_ID,
@@ -169,7 +167,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
       })
 
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.userId).toBe(MOCK_USER_ID)
       expect(json.data.roleName).toBe('admin')
       expect(json.data.isPrimaryAdmin).toBe(true)
@@ -185,7 +183,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
       })
 
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.userId).toBe(SECOND_USER_ID)
       expect(json.data.roleName).toBe('accountant')
       expect(json.data.isPrimaryAdmin).toBe(false)
@@ -199,7 +197,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
       })
 
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: { permissions: Record<string, boolean> } }
+      const json = (await res.json()) as { data: { permissions: Record<string, boolean> } }
       // Viewer gets limited permissions by default (from AddMemberService)
       expect(json.data.permissions.can_change_subscription).toBe(false)
       expect(json.data.permissions.can_manage_members).toBe(false)
@@ -221,7 +219,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
       })
 
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: { permissions: Record<string, boolean> } }
+      const json = (await res.json()) as { data: { permissions: Record<string, boolean> } }
       expect(json.data.permissions).toEqual(customPerms)
     })
 
@@ -241,7 +239,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
       })
 
       expect(res.status).toBe(400)
-      const json = await res.json() as { error: string }
+      const json = (await res.json()) as { error: string }
       expect(json.error).toContain('primary admin')
     })
 
@@ -303,16 +301,16 @@ describe('ManagementCompanyMembersController — Integration', function () {
                  (${ESystemRole.VIEWER}, 'Viewer role', true)
           ON CONFLICT (name) DO NOTHING
         `)
-        const cRes = await db.execute(sql`
+        const cRes = (await db.execute(sql`
           INSERT INTO management_companies (name, created_by)
           VALUES ('Role Test Company', ${MOCK_USER_ID})
           RETURNING id
-        `) as unknown as { id: string }[]
+        `)) as unknown as { id: string }[]
         const cId = cRes[0]!.id
 
         const res = await addMember({ userId: SECOND_USER_ID, role }, cId)
         expect(res.status).toBe(201)
-        const json = await res.json() as { data: { roleName: string } }
+        const json = (await res.json()) as { data: { roleName: string } }
         expect(json.data.roleName).toBe(role)
       }
     })
@@ -323,11 +321,10 @@ describe('ManagementCompanyMembersController — Integration', function () {
   // ════════════════════════════════════════════════════════════════════════════
 
   describe('GET — List Members', function () {
-
     it('should return empty list when no members exist', async function () {
       const res = await request(membersUrl())
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[]; pagination: Record<string, number> }
+      const json = (await res.json()) as { data: unknown[]; pagination: Record<string, number> }
       expect(json.data).toHaveLength(0)
       expect(json.pagination.total).toBe(0)
     })
@@ -338,12 +335,15 @@ describe('ManagementCompanyMembersController — Integration', function () {
 
       const res = await request(membersUrl())
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { user: Record<string, unknown> }[]; pagination: Record<string, number> }
+      const json = (await res.json()) as {
+        data: { user: Record<string, unknown> }[]
+        pagination: Record<string, number>
+      }
       expect(json.data).toHaveLength(2)
       expect(json.pagination.total).toBe(2)
 
       // Verify user info is joined
-      const userEmails = json.data.map((m) => m.user?.email)
+      const userEmails = json.data.map(m => m.user?.email)
       expect(userEmails).toContain('admin@test.com')
       expect(userEmails).toContain('member@test.com')
     })
@@ -355,7 +355,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
 
       const res = await request(membersUrl())
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { isPrimaryAdmin: boolean }[] }
+      const json = (await res.json()) as { data: { isPrimaryAdmin: boolean }[] }
       expect(json.data[0]!.isPrimaryAdmin).toBe(true)
     })
 
@@ -367,7 +367,10 @@ describe('ManagementCompanyMembersController — Integration', function () {
       // Request page 1, limit 1
       const res = await request(`${membersUrl()}?page=1&limit=1`)
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[]; pagination: { total: number; totalPages: number; page: number; limit: number } }
+      const json = (await res.json()) as {
+        data: unknown[]
+        pagination: { total: number; totalPages: number; page: number; limit: number }
+      }
       expect(json.data).toHaveLength(1)
       expect(json.pagination.total).toBe(2)
       expect(json.pagination.totalPages).toBe(2)
@@ -379,7 +382,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
 
       const res = await request(`${membersUrl()}?roleName=accountant`)
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { roleName: string }[] }
+      const json = (await res.json()) as { data: { roleName: string }[] }
       expect(json.data).toHaveLength(1)
       expect(json.data[0]!.roleName).toBe('accountant')
     })
@@ -390,7 +393,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
 
       const res = await request(`${membersUrl()}?search=Member`)
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[] }
+      const json = (await res.json()) as { data: unknown[] }
       expect(json.data).toHaveLength(1)
     })
 
@@ -405,7 +408,6 @@ describe('ManagementCompanyMembersController — Integration', function () {
   // ════════════════════════════════════════════════════════════════════════════
 
   describe('GET — Primary Admin', function () {
-
     it('should return 404 when no primary admin exists', async function () {
       const res = await request(primaryAdminUrl())
       expect(res.status).toBe(404)
@@ -416,7 +418,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
 
       const res = await request(primaryAdminUrl())
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { userId: string; isPrimaryAdmin: boolean } }
+      const json = (await res.json()) as { data: { userId: string; isPrimaryAdmin: boolean } }
       expect(json.data.userId).toBe(MOCK_USER_ID)
       expect(json.data.isPrimaryAdmin).toBe(true)
     })
@@ -434,7 +436,6 @@ describe('ManagementCompanyMembersController — Integration', function () {
   // ════════════════════════════════════════════════════════════════════════════
 
   describe('PATCH — Update Member', function () {
-
     it('should update member role', async function () {
       const member = await addRegularMember()
 
@@ -445,7 +446,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { roleName: string } }
+      const json = (await res.json()) as { data: { roleName: string } }
       expect(json.data.roleName).toBe('support')
     })
 
@@ -459,7 +460,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { isPrimaryAdmin: boolean } }
+      const json = (await res.json()) as { data: { isPrimaryAdmin: boolean } }
       expect(json.data.isPrimaryAdmin).toBe(true)
     })
 
@@ -490,7 +491,6 @@ describe('ManagementCompanyMembersController — Integration', function () {
   // ════════════════════════════════════════════════════════════════════════════
 
   describe('PATCH — Update Permissions', function () {
-
     it('should update member permissions', async function () {
       const member = await addRegularMember()
 
@@ -508,7 +508,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { permissions: Record<string, boolean> } }
+      const json = (await res.json()) as { data: { permissions: Record<string, boolean> } }
       expect(json.data.permissions).toEqual(newPerms)
     })
 
@@ -523,7 +523,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
       })
 
       expect(res.status).toBe(400)
-      const json = await res.json() as { error: string }
+      const json = (await res.json()) as { error: string }
       expect(json.error).toContain('not found')
     })
 
@@ -560,7 +560,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
       })
 
       expect(res.status).toBe(400)
-      const json = await res.json() as { error: string }
+      const json = (await res.json()) as { error: string }
       expect(json.error).toContain('not found')
     })
   })
@@ -570,7 +570,6 @@ describe('ManagementCompanyMembersController — Integration', function () {
   // ════════════════════════════════════════════════════════════════════════════
 
   describe('DELETE — Remove Member (soft delete)', function () {
-
     it('should soft-delete a member and return the deactivated record', async function () {
       const member = await addRegularMember()
 
@@ -581,7 +580,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { isActive: boolean; deactivatedBy: string } }
+      const json = (await res.json()) as { data: { isActive: boolean; deactivatedBy: string } }
       expect(json.data.isActive).toBe(false)
       expect(json.data.deactivatedBy).toBe(MOCK_USER_ID)
     })
@@ -600,7 +599,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
       // List members (default filter is active only via isActive query)
       const listRes = await request(`${membersUrl()}?isActive=true`)
       expect(listRes.status).toBe(200)
-      const json = await listRes.json() as { data: unknown[] }
+      const json = (await listRes.json()) as { data: unknown[] }
       expect(json.data).toHaveLength(1)
     })
 
@@ -613,7 +612,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
       })
 
       expect(res.status).toBe(404)
-      const json = await res.json() as { error: string }
+      const json = (await res.json()) as { error: string }
       expect(json.error).toContain('not found')
     })
 
@@ -647,7 +646,6 @@ describe('ManagementCompanyMembersController — Integration', function () {
   // ════════════════════════════════════════════════════════════════════════════
 
   describe('Full lifecycle flow', function () {
-
     it('add primary admin -> add member -> update permissions -> remove member -> verify state', async function () {
       // 1. Add primary admin
       const admin = await addPrimaryAdmin()
@@ -657,7 +655,7 @@ describe('ManagementCompanyMembersController — Integration', function () {
 
       // 3. Verify both appear in list
       let listRes = await request(membersUrl())
-      let listJson = await listRes.json() as { data: unknown[] }
+      let listJson = (await listRes.json()) as { data: unknown[] }
       expect(listJson.data).toHaveLength(2)
 
       // 4. Update member permissions
@@ -674,7 +672,9 @@ describe('ManagementCompanyMembersController — Integration', function () {
         }),
       })
       expect(patchRes.status).toBe(200)
-      const patchJson = await patchRes.json() as { data: { permissions: Record<string, boolean> } }
+      const patchJson = (await patchRes.json()) as {
+        data: { permissions: Record<string, boolean> }
+      }
       expect(patchJson.data.permissions.can_change_subscription).toBe(true)
       expect(patchJson.data.permissions.can_view_invoices).toBe(true)
 
@@ -688,13 +688,13 @@ describe('ManagementCompanyMembersController — Integration', function () {
 
       // 6. Verify only primary admin remains active
       listRes = await request(`${membersUrl()}?isActive=true`)
-      listJson = await listRes.json() as { data: unknown[] }
+      listJson = (await listRes.json()) as { data: unknown[] }
       expect(listJson.data).toHaveLength(1)
 
       // 7. Primary admin endpoint still works
       const primaryRes = await request(primaryAdminUrl())
       expect(primaryRes.status).toBe(200)
-      const primaryJson = await primaryRes.json() as { data: { id: string } }
+      const primaryJson = (await primaryRes.json()) as { data: { id: string } }
       expect(primaryJson.data.id).toBe(admin.id)
     })
   })

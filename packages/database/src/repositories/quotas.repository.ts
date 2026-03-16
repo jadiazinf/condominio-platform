@@ -1,4 +1,4 @@
-import { and, eq, desc, lte, gte, or, sql, inArray, type SQL } from 'drizzle-orm'
+import { and, eq, desc, asc, lte, gte, or, sql, inArray, notInArray, type SQL } from 'drizzle-orm'
 import type { TQuota, TQuotaCreate, TQuotaUpdate, TPaginatedResponse } from '@packages/domain'
 import { quotas, paymentConcepts } from '../drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
@@ -35,6 +35,7 @@ export class QuotasRepository
       issueDate: r.issueDate,
       dueDate: r.dueDate,
       status: (r.status ?? 'pending') as TQuota['status'],
+      adjustmentsTotal: r.adjustmentsTotal ?? '0',
       paidAmount: r.paidAmount ?? '0',
       balance: r.balance,
       notes: r.notes,
@@ -43,6 +44,23 @@ export class QuotasRepository
       createdAt: r.createdAt ?? new Date(),
       updatedAt: r.updatedAt ?? new Date(),
     }
+  }
+
+  /**
+   * Retrieves all quotas belonging to a condominium via paymentConcepts join.
+   */
+  async listByCondominiumId(condominiumId: string): Promise<TQuota[]> {
+    const conceptIds = this.db
+      .select({ id: paymentConcepts.id })
+      .from(paymentConcepts)
+      .where(eq(paymentConcepts.condominiumId, condominiumId))
+
+    const results = await this.db
+      .select()
+      .from(quotas)
+      .where(inArray(quotas.paymentConceptId, conceptIds))
+      .orderBy(desc(quotas.createdAt))
+    return results.map(record => this.mapToEntity(record))
   }
 
   /**
@@ -71,10 +89,24 @@ export class QuotasRepository
    */
   async listPaginatedByUnit(
     unitId: string,
-    options: { page?: number; limit?: number; startDate?: string; endDate?: string; status?: string }
+    options: {
+      page?: number
+      limit?: number
+      startDate?: string
+      endDate?: string
+      status?: string
+    },
+    condominiumId?: string
   ): Promise<TPaginatedResponse<TQuota>> {
     const conditions: SQL[] = [eq(quotas.unitId, unitId)]
 
+    if (condominiumId) {
+      const conceptIds = this.db
+        .select({ id: paymentConcepts.id })
+        .from(paymentConcepts)
+        .where(eq(paymentConcepts.condominiumId, condominiumId))
+      conditions.push(inArray(quotas.paymentConceptId, conceptIds))
+    }
     if (options.startDate) {
       conditions.push(gte(quotas.dueDate, options.startDate))
     }
@@ -91,8 +123,21 @@ export class QuotasRepository
   /**
    * Retrieves quotas by unit.
    */
-  async getByUnitId(unitId: string): Promise<TQuota[]> {
-    const results = await this.db.select().from(quotas).where(eq(quotas.unitId, unitId))
+  async getByUnitId(unitId: string, condominiumId?: string): Promise<TQuota[]> {
+    const conditions: SQL[] = [eq(quotas.unitId, unitId)]
+
+    if (condominiumId) {
+      const conceptIds = this.db
+        .select({ id: paymentConcepts.id })
+        .from(paymentConcepts)
+        .where(eq(paymentConcepts.condominiumId, condominiumId))
+      conditions.push(inArray(quotas.paymentConceptId, conceptIds))
+    }
+
+    const results = await this.db
+      .select()
+      .from(quotas)
+      .where(and(...conditions))
 
     return results.map(record => this.mapToEntity(record))
   }
@@ -100,8 +145,20 @@ export class QuotasRepository
   /**
    * Retrieves quotas by status.
    */
-  async getByStatus(status: TQuota['status']): Promise<TQuota[]> {
-    const results = await this.db.select().from(quotas).where(eq(quotas.status, status))
+  async getByStatus(status: TQuota['status'], condominiumId?: string): Promise<TQuota[]> {
+    const conditions: SQL[] = [eq(quotas.status, status)]
+    if (condominiumId) {
+      const conceptIds = this.db
+        .select({ id: paymentConcepts.id })
+        .from(paymentConcepts)
+        .where(eq(paymentConcepts.condominiumId, condominiumId))
+      conditions.push(inArray(quotas.paymentConceptId, conceptIds))
+    }
+
+    const results = await this.db
+      .select()
+      .from(quotas)
+      .where(and(...conditions))
 
     return results.map(record => this.mapToEntity(record))
   }
@@ -109,29 +166,86 @@ export class QuotasRepository
   /**
    * Retrieves pending quotas for a unit.
    */
-  async getPendingByUnit(unitId: string): Promise<TQuota[]> {
+  async getPendingByUnit(unitId: string, condominiumId?: string): Promise<TQuota[]> {
+    const conditions: SQL[] = [eq(quotas.unitId, unitId), eq(quotas.status, 'pending')]
+
+    if (condominiumId) {
+      const conceptIds = this.db
+        .select({ id: paymentConcepts.id })
+        .from(paymentConcepts)
+        .where(eq(paymentConcepts.condominiumId, condominiumId))
+      conditions.push(inArray(quotas.paymentConceptId, conceptIds))
+    }
+
     const results = await this.db
       .select()
       .from(quotas)
-      .where(and(eq(quotas.unitId, unitId), eq(quotas.status, 'pending')))
+      .where(and(...conditions))
       .orderBy(desc(quotas.dueDate))
 
     return results.map(record => this.mapToEntity(record))
   }
 
   /**
-   * Retrieves overdue quotas (pending or already marked overdue, with due date in the past).
+   * Retrieves unpaid quotas for a specific concept and unit, ordered by due date (oldest first).
    */
-  async getOverdue(asOfDate: string): Promise<TQuota[]> {
+  async getUnpaidByConceptAndUnit(paymentConceptId: string, unitId: string): Promise<TQuota[]> {
     const results = await this.db
       .select()
       .from(quotas)
-      .where(and(
-        or(eq(quotas.status, 'pending'), eq(quotas.status, 'overdue')),
-        lte(quotas.dueDate, asOfDate),
-      ))
+      .where(
+        and(
+          eq(quotas.paymentConceptId, paymentConceptId),
+          eq(quotas.unitId, unitId),
+          or(eq(quotas.status, 'pending'), eq(quotas.status, 'overdue'))
+        )
+      )
+      .orderBy(asc(quotas.dueDate))
 
     return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Retrieves overdue quotas (pending, partial, or already marked overdue, with due date in the past).
+   */
+  async getOverdue(asOfDate: string, condominiumId?: string): Promise<TQuota[]> {
+    const conditions: SQL[] = [
+      or(eq(quotas.status, 'pending'), eq(quotas.status, 'partial'), eq(quotas.status, 'overdue'))!,
+      lte(quotas.dueDate, asOfDate),
+    ]
+    if (condominiumId) {
+      const conceptIds = this.db
+        .select({ id: paymentConcepts.id })
+        .from(paymentConcepts)
+        .where(eq(paymentConcepts.condominiumId, condominiumId))
+      conditions.push(inArray(quotas.paymentConceptId, conceptIds))
+    }
+
+    const results = await this.db
+      .select()
+      .from(quotas)
+      .where(and(...conditions))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Marks all pending/partial quotas past due date as overdue in a single query.
+   * Returns the number of rows updated.
+   */
+  async markOverdue(asOfDate: string): Promise<number> {
+    const results = await this.db
+      .update(quotas)
+      .set({ status: 'overdue', updatedAt: new Date() })
+      .where(
+        and(
+          or(eq(quotas.status, 'pending'), eq(quotas.status, 'partial')),
+          lte(quotas.dueDate, asOfDate)
+        )
+      )
+      .returning()
+
+    return results.length
   }
 
   /**
@@ -149,7 +263,8 @@ export class QuotasRepository
         and(
           eq(quotas.paymentConceptId, conceptId),
           eq(quotas.periodYear, year),
-          eq(quotas.periodMonth, month)
+          eq(quotas.periodMonth, month),
+          notInArray(quotas.status, ['cancelled', 'exonerated'])
         )
       )
       .limit(1)
@@ -196,11 +311,18 @@ export class QuotasRepository
   /**
    * Retrieves quotas for a period.
    */
-  async getByPeriod(year: number, month?: number): Promise<TQuota[]> {
-    const conditions = [eq(quotas.periodYear, year)]
+  async getByPeriod(year: number, month?: number, condominiumId?: string): Promise<TQuota[]> {
+    const conditions: SQL[] = [eq(quotas.periodYear, year)]
 
     if (month !== undefined) {
       conditions.push(eq(quotas.periodMonth, month))
+    }
+    if (condominiumId) {
+      const conceptIds = this.db
+        .select({ id: paymentConcepts.id })
+        .from(paymentConcepts)
+        .where(eq(paymentConcepts.condominiumId, condominiumId))
+      conditions.push(inArray(quotas.paymentConceptId, conceptIds))
     }
 
     const results = await this.db

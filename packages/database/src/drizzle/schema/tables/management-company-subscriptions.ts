@@ -9,7 +9,6 @@ import {
   boolean,
   text,
   index,
-  uniqueIndex,
 } from 'drizzle-orm/pg-core'
 import { managementCompanies } from './management-companies'
 import { currencies } from './currencies'

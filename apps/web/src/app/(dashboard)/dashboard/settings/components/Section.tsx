@@ -1,6 +1,5 @@
 import { Card, CardBody, CardHeader } from '@/ui/components/card'
 import { cn } from '@/ui/utils'
-
 import { Typography } from '@/ui/components/typography'
 
 interface ISectionProps {
@@ -12,9 +11,9 @@ interface ISectionProps {
 
 export function Section({ title, description, children, className }: ISectionProps) {
   return (
-    <Card className={cn('border border-default-200', className)} shadow="none" radius="lg">
+    <Card className={cn('border border-default-200', className)} radius="lg" shadow="none">
       <CardHeader className="flex-col items-start gap-1 px-5 pt-5 pb-4">
-        <Typography variant="subtitle1" className="font-semibold">
+        <Typography className="font-semibold" variant="subtitle1">
           {title}
         </Typography>
         {description && (

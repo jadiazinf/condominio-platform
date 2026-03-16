@@ -52,7 +52,7 @@ export const managementCompaniesQuerySchema = paginationQuerySchema.extend({
   isActive: z
     .string()
     .optional()
-    .transform((val) => {
+    .transform(val => {
       if (val === undefined || val === '') return undefined
       return val === 'true'
     }),
@@ -77,7 +77,7 @@ export const condominiumsQuerySchema = paginationQuerySchema.extend({
   isActive: z
     .string()
     .optional()
-    .transform((val) => {
+    .transform(val => {
       if (val === undefined || val === '') return undefined
       return val === 'true'
     }),
@@ -105,14 +105,16 @@ export const managementCompanyMembersQuerySchema = paginationQuerySchema.extend(
   isActive: z
     .string()
     .optional()
-    .transform((val) => {
+    .transform(val => {
       if (val === undefined || val === '') return undefined
       return val === 'true'
     }),
   condominiumId: z.string().uuid().optional(),
 })
 
-export type TManagementCompanyMembersQuerySchema = z.infer<typeof managementCompanyMembersQuerySchema>
+export type TManagementCompanyMembersQuerySchema = z.infer<
+  typeof managementCompanyMembersQuerySchema
+>
 
 /**
  * Query parameters for payment concepts list with filters
@@ -135,14 +137,14 @@ export const paymentConceptsQuerySchema = paginationQuerySchema.extend({
   isActive: z
     .string()
     .optional()
-    .transform((val) => {
+    .transform(val => {
       if (val === undefined || val === '') return undefined
       return val === 'true'
     }),
   isRecurring: z
     .string()
     .optional()
-    .transform((val) => {
+    .transform(val => {
       if (val === undefined || val === '') return undefined
       return val === 'true'
     }),
@@ -169,7 +171,7 @@ export const bankAccountsQuerySchema = paginationQuerySchema.extend({
   isActive: z
     .string()
     .optional()
-    .transform((val) => {
+    .transform(val => {
       if (val === undefined || val === '') return undefined
       return val === 'true'
     }),
@@ -216,7 +218,7 @@ export const condominiumServicesQuerySchema = paginationQuerySchema.extend({
   isActive: z
     .string()
     .optional()
-    .transform((val) => {
+    .transform(val => {
       if (val === undefined || val === '') return undefined
       return val === 'true'
     }),

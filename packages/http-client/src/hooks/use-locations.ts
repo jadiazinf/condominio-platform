@@ -111,10 +111,7 @@ export async function getLocationsByType(
 /**
  * Function to fetch locations by parent ID.
  */
-export async function getLocationsByParent(
-  token: string,
-  parentId: string
-): Promise<TLocation[]> {
+export async function getLocationsByParent(token: string, parentId: string): Promise<TLocation[]> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TLocation[]>>(
     `/platform/locations/parent/${parentId}`,
@@ -131,10 +128,7 @@ export async function getLocationsByParent(
 /**
  * Function to fetch a single location by ID.
  */
-export async function getLocationById(
-  token: string,
-  locationId: string
-): Promise<TLocation> {
+export async function getLocationById(token: string, locationId: string): Promise<TLocation> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TLocation>>(
     `/platform/locations/${locationId}`,

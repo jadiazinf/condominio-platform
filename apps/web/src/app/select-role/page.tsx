@@ -4,12 +4,19 @@ import type { TActiveRoleType } from '@packages/domain'
 
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { Shield, Building, Home } from 'lucide-react'
 
 import { Card, CardBody } from '@/ui/components/card'
 import { Typography } from '@/ui/components/typography'
-import { Shield, Building, Home } from 'lucide-react'
-
-import { useAuth, useUser, useCondominium, useManagementCompany, useSuperadmin, useActiveRole, useTranslation } from '@/contexts'
+import {
+  useAuth,
+  useUser,
+  useCondominium,
+  useManagementCompany,
+  useSuperadmin,
+  useActiveRole,
+  useTranslation,
+} from '@/contexts'
 import { setActiveRoleCookie } from '@/libs/cookies'
 
 export default function SelectRolePage() {
@@ -30,12 +37,14 @@ export default function SelectRolePage() {
     if (!firebaseUser) {
       hasRedirected.current = true
       router.replace('/auth')
+
       return
     }
 
     if (!user) {
       hasRedirected.current = true
       router.replace('/dashboard')
+
       return
     }
   }, [firebaseUser, authLoading, user, router])
@@ -69,7 +78,13 @@ export default function SelectRolePage() {
     return null
   }
 
-  const roleCards: { role: TActiveRoleType; icon: React.ReactNode; title: string; description: string; color: string }[] = []
+  const roleCards: {
+    role: TActiveRoleType
+    icon: React.ReactNode
+    title: string
+    description: string
+    color: string
+  }[] = []
 
   if (superadmin) {
     roleCards.push({
@@ -83,6 +98,7 @@ export default function SelectRolePage() {
 
   if (managementCompanies.length > 0) {
     const companyNames = managementCompanies.map(mc => mc.managementCompanyName).join(', ')
+
     roleCards.push({
       role: 'management_company',
       icon: <Building size={32} />,
@@ -129,7 +145,7 @@ export default function SelectRolePage() {
                 <Typography color="default" variant="h4">
                   {title}
                 </Typography>
-                <Typography color="muted" variant="body2" className="line-clamp-2">
+                <Typography className="line-clamp-2" color="muted" variant="body2">
                   {description}
                 </Typography>
               </CardBody>

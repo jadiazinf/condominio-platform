@@ -1,10 +1,15 @@
 'use client'
 
+import type { TTicketPriority } from '@packages/domain'
+
+import {
+  TicketPriorityAction,
+  type ITicketPriorityActionTranslations,
+} from '../../TicketPriorityAction'
+import { getPriorityColor } from '../../ticket-helpers'
+
 import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
-import { TicketPriorityAction, type ITicketPriorityActionTranslations } from '../../TicketPriorityAction'
-import { getPriorityColor } from '../../ticket-helpers'
-import type { TTicketPriority } from '@packages/domain'
 
 interface ITicketPrioritySectionProps {
   priority: TTicketPriority
@@ -38,8 +43,8 @@ export function TicketPrioritySection({
         </Chip>
         {canManage && (
           <TicketPriorityAction
-            currentPriority={priority}
             iconOnly
+            currentPriority={priority}
             isLoading={isLoading}
             translations={{
               changePriority: translations.changePriority,

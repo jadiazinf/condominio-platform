@@ -7,6 +7,7 @@ import type {
 } from '@database/repositories'
 import type { PaymentGatewayManager } from '../payment-gateways/gateway-manager'
 import { type TServiceResult, success, failure } from '../base.service'
+import { parseAmount, toDecimal } from '@packages/utils/money'
 import logger from '@packages/logger'
 
 const SYSTEM_USER_ID = '00000000-0000-0000-0000-000000000000'
@@ -42,7 +43,7 @@ export class ReportPaymentService {
     private readonly paymentGatewaysRepository?: PaymentGatewaysRepository,
     private readonly entityPaymentGatewaysRepository?: EntityPaymentGatewaysRepository,
     private readonly gatewayTransactionsRepository?: GatewayTransactionsRepository,
-    private readonly gatewayManager?: PaymentGatewayManager,
+    private readonly gatewayManager?: PaymentGatewayManager
   ) {}
 
   async execute(input: IReportPaymentInput): Promise<TServiceResult<IReportPaymentOutput>> {
@@ -53,7 +54,7 @@ export class ReportPaymentService {
       if (existing.length > 0) {
         return failure(
           `Ya existe un pago registrado con la referencia "${receiptNumber}". ` +
-          `Si este es un pago diferente, por favor verifica el número de referencia.`,
+            `Si este es un pago diferente, por favor verifica el número de referencia.`,
           'CONFLICT'
         )
       }
@@ -103,7 +104,7 @@ export class ReportPaymentService {
           payment.id,
           input.externalReference,
           input.condominiumId,
-          error,
+          error
         )
       }
     }
@@ -117,7 +118,8 @@ export class ReportPaymentService {
     condominiumId: string
   ): Promise<boolean> {
     // Find gateway configured for this condominium
-    const entityGateways = await this.entityPaymentGatewaysRepository!.getByCondominiumId(condominiumId)
+    const entityGateways =
+      await this.entityPaymentGatewaysRepository!.getByCondominiumId(condominiumId)
     const activeGateway = entityGateways.find(eg => eg.isActive)
 
     if (!activeGateway) return false
@@ -134,7 +136,11 @@ export class ReportPaymentService {
     const configValidation = adapter.validateConfiguration(config)
     if (!configValidation.valid) {
       logger.warn(
-        { paymentId: payment.id, gatewayType: gateway.gatewayType, missingFields: configValidation.missingFields },
+        {
+          paymentId: payment.id,
+          gatewayType: gateway.gatewayType,
+          missingFields: configValidation.missingFields,
+        },
         '[ReportPayment] Gateway configuration incomplete — skipping auto-verification'
       )
       return false
@@ -152,17 +158,17 @@ export class ReportPaymentService {
     let mismatchMessage: string | null = null
 
     if (verification.found && verification.status === 'completed') {
-      const reportedAmount = parseFloat(payment.amount)
+      const reportedAmount = parseAmount(payment.amount)
       const verifiedAmount = verification.verifiedAmount
-        ? parseFloat(verification.verifiedAmount)
+        ? parseAmount(verification.verifiedAmount)
         : null
 
       if (verifiedAmount !== null && Math.abs(verifiedAmount - reportedAmount) > 0.01) {
         amountMismatch = true
         mismatchMessage =
-          `Amount mismatch: reported ${reportedAmount.toFixed(2)}, ` +
-          `bank verified ${verifiedAmount.toFixed(2)} ` +
-          `(difference: ${Math.abs(verifiedAmount - reportedAmount).toFixed(2)})`
+          `Amount mismatch: reported ${toDecimal(reportedAmount)}, ` +
+          `bank verified ${toDecimal(verifiedAmount)} ` +
+          `(difference: ${toDecimal(Math.abs(verifiedAmount - reportedAmount))})`
       }
     }
 
@@ -171,15 +177,14 @@ export class ReportPaymentService {
     // - Bank says completed and amounts match → completed
     // - Bank says failed → failed
     // - Reference not found → failed (verification unsuccessful)
-    const txStatus = verification.status === 'failed' ? 'failed'
-      : verification.found ? 'completed'
-      : 'failed'
+    const txStatus =
+      verification.status === 'failed' ? 'failed' : verification.found ? 'completed' : 'failed'
 
     const txErrorMessage = amountMismatch
       ? mismatchMessage
       : verification.found
         ? null
-        : verification.errorMessage ?? 'Reference not found in bank'
+        : (verification.errorMessage ?? 'Reference not found in bank')
 
     // Create gateway transaction record (audit trail)
     await this.gatewayTransactionsRepository!.create({
@@ -211,7 +216,11 @@ export class ReportPaymentService {
 
     // Auto-verify if bank confirmed the payment
     if (verification.found && verification.status === 'completed') {
-      await this.repository.verifyPayment(payment.id, SYSTEM_USER_ID, 'Auto-verified via bank gateway')
+      await this.repository.verifyPayment(
+        payment.id,
+        SYSTEM_USER_ID,
+        'Auto-verified via bank gateway'
+      )
       return true
     }
 
@@ -226,11 +235,12 @@ export class ReportPaymentService {
     paymentId: string,
     externalReference: string,
     condominiumId: string,
-    error: unknown,
+    error: unknown
   ): Promise<void> {
     try {
       // Try to resolve the gateway type for the audit record
-      const entityGateways = await this.entityPaymentGatewaysRepository!.getByCondominiumId(condominiumId)
+      const entityGateways =
+        await this.entityPaymentGatewaysRepository!.getByCondominiumId(condominiumId)
       const activeGateway = entityGateways.find(eg => eg.isActive)
       let gatewayType: TGatewayType = 'other'
 

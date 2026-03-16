@@ -1,5 +1,4 @@
 import { Card, CardBody } from '@/ui/components/card'
-
 import { getTranslations } from '@/libs/i18n/server'
 import { Button } from '@/ui/components/button'
 import { Typography } from '@/ui/components/typography'

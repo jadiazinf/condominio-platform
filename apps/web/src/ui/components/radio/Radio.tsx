@@ -1,9 +1,6 @@
 'use client'
 
-import {
-  RadioGroup as HeroUIRadioGroup,
-  Radio as HeroUIRadio,
-} from '@heroui/radio'
+import { RadioGroup as HeroUIRadioGroup, Radio as HeroUIRadio } from '@heroui/radio'
 import { cn } from '@heroui/theme'
 import { ReactNode } from 'react'
 
@@ -122,10 +119,4 @@ export function Radio({
   )
 }
 
-export type {
-  TRadioSize,
-  TRadioColor,
-  TRadioOrientation,
-  IRadioGroupProps,
-  IRadioProps,
-}
+export type { TRadioSize, TRadioColor, TRadioOrientation, IRadioGroupProps, IRadioProps }

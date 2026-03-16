@@ -1,13 +1,20 @@
 'use client'
 
 import { Controller, useFormContext } from 'react-hook-form'
+
 import { DocumentInput, type IDocumentInputProps, type TIdDocumentType } from './DocumentInput'
+
 import { getTranslatedError } from '@/utils/formErrors'
 
 interface IDocumentInputFieldProps
   extends Omit<
     IDocumentInputProps,
-    'documentType' | 'documentNumber' | 'onDocumentTypeChange' | 'onDocumentNumberChange' | 'documentTypeError' | 'documentNumberError'
+    | 'documentType'
+    | 'documentNumber'
+    | 'onDocumentTypeChange'
+    | 'onDocumentNumberChange'
+    | 'documentTypeError'
+    | 'documentNumberError'
   > {
   documentTypeFieldName: string
   documentNumberFieldName: string
@@ -32,7 +39,10 @@ export function DocumentInputField({
   translateError,
   ...props
 }: IDocumentInputFieldProps) {
-  const { control, formState: { errors } } = useFormContext()
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext()
 
   return (
     <Controller
@@ -44,12 +54,16 @@ export function DocumentInputField({
           name={documentNumberFieldName}
           render={({ field: numberField }) => (
             <DocumentInput
-              documentType={typeField.value as TIdDocumentType | null}
               documentNumber={numberField.value || ''}
-              onDocumentTypeChange={(value) => typeField.onChange(value)}
-              onDocumentNumberChange={(value) => numberField.onChange(value)}
+              documentNumberError={getTranslatedError(
+                errors,
+                documentNumberFieldName,
+                translateError
+              )}
+              documentType={typeField.value as TIdDocumentType | null}
               documentTypeError={getTranslatedError(errors, documentTypeFieldName, translateError)}
-              documentNumberError={getTranslatedError(errors, documentNumberFieldName, translateError)}
+              onDocumentNumberChange={value => numberField.onChange(value)}
+              onDocumentTypeChange={value => typeField.onChange(value)}
               {...props}
             />
           )}

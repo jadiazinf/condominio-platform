@@ -1,7 +1,15 @@
 'use client'
 
+import type { TApiPaginationMeta } from '@packages/http-client'
+import type { TManagementCompanySubscription } from '@packages/domain'
+
 import { useState, useCallback } from 'react'
 import { History, CreditCard, Search } from 'lucide-react'
+import { getMyCompanySubscriptionsPaginated, useQuery } from '@packages/http-client'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
+
+import { SubscriptionDetailModal } from './SubscriptionDetailModal'
 
 import { Card, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
@@ -11,12 +19,6 @@ import { Input } from '@/ui/components/input'
 import { Spinner } from '@/ui/components/spinner'
 import { useTranslation } from '@/contexts'
 import { useAuth } from '@/contexts'
-import { getMyCompanySubscriptionsPaginated, useQuery } from '@packages/http-client'
-import type { TApiPaginationMeta } from '@packages/http-client'
-import type { TManagementCompanySubscription } from '@packages/domain'
-import { formatCurrency } from '@packages/utils/currency'
-import { formatFullDate } from '@packages/utils/dates'
-import { SubscriptionDetailModal } from './SubscriptionDetailModal'
 
 const statusColorMap: Record<string, 'success' | 'primary' | 'default' | 'warning' | 'danger'> = {
   active: 'success',
@@ -45,7 +47,8 @@ export function AdminSubscriptionHistory({ companyId }: AdminSubscriptionHistory
 
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
-  const [selectedSubscription, setSelectedSubscription] = useState<TManagementCompanySubscription | null>(null)
+  const [selectedSubscription, setSelectedSubscription] =
+    useState<TManagementCompanySubscription | null>(null)
 
   const limit = 5
 
@@ -53,7 +56,9 @@ export function AdminSubscriptionHistory({ companyId }: AdminSubscriptionHistory
     queryKey: ['myCompanySubscriptions', companyId, page, search],
     queryFn: async () => {
       const token = await user?.getIdToken()
+
       if (!token) throw new Error('No token')
+
       return getMyCompanySubscriptionsPaginated(token, companyId, {
         page,
         limit,
@@ -84,7 +89,7 @@ export function AdminSubscriptionHistory({ companyId }: AdminSubscriptionHistory
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <History className="text-default-500" size={20} />
-        <Typography variant="h3" className="text-lg">
+        <Typography className="text-lg" variant="h3">
           {t(`${tp}.title`)}
         </Typography>
       </div>
@@ -120,7 +125,7 @@ export function AdminSubscriptionHistory({ companyId }: AdminSubscriptionHistory
           <Typography color="muted" variant="body1">
             {t(`${tp}.empty`)}
           </Typography>
-          <Typography color="muted" variant="body2" className="mt-1">
+          <Typography className="mt-1" color="muted" variant="body2">
             {t(`${tp}.emptyDescription`)}
           </Typography>
         </div>
@@ -129,33 +134,40 @@ export function AdminSubscriptionHistory({ companyId }: AdminSubscriptionHistory
       {/* Subscription List */}
       {!isLoading && subscriptions.length > 0 && (
         <div className="space-y-3">
-          {subscriptions.map((sub) => (
+          {subscriptions.map(sub => (
             <Card
               key={sub.id}
-              className="cursor-pointer transition-all hover:shadow-md"
               isPressable
+              className="cursor-pointer transition-all hover:shadow-md"
               onPress={() => setSelectedSubscription(sub)}
             >
               <CardBody className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <Typography variant="body1" className="font-medium truncate">
+                      <Typography className="font-medium truncate" variant="body1">
                         {sub.subscriptionName || 'Plan'}
                       </Typography>
                       <Chip
                         color={statusColorMap[sub.status] || 'default'}
-                        variant="flat"
                         size="sm"
+                        variant="flat"
                       >
                         {t(`admin.subscription.status.${sub.status}`)}
                       </Chip>
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-default-500">
-                      <span>{formatCurrency(sub.basePrice)} / {billingCycleLabels[sub.billingCycle] || sub.billingCycle}</span>
-                      <span>{t(`${tp}.startedAt`)}: {formatFullDate(sub.startDate)}</span>
+                      <span>
+                        {formatCurrency(sub.basePrice)} /{' '}
+                        {billingCycleLabels[sub.billingCycle] || sub.billingCycle}
+                      </span>
+                      <span>
+                        {t(`${tp}.startedAt`)}: {formatFullDate(sub.startDate)}
+                      </span>
                       {sub.cancelledAt && (
-                        <span className="text-warning">{t(`${tp}.cancelledAt`)}: {formatFullDate(sub.cancelledAt)}</span>
+                        <span className="text-warning">
+                          {t(`${tp}.cancelledAt`)}: {formatFullDate(sub.cancelledAt)}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -179,8 +191,8 @@ export function AdminSubscriptionHistory({ companyId }: AdminSubscriptionHistory
 
       {/* Detail Modal */}
       <SubscriptionDetailModal
-        subscription={selectedSubscription}
         isOpen={!!selectedSubscription}
+        subscription={selectedSubscription}
         onClose={() => setSelectedSubscription(null)}
       />
     </div>

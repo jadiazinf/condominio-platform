@@ -173,7 +173,13 @@ const createAuthMock = () => {
   // Mock requireRole: sets role, condominiumId, and managementCompanyId in context
   const mockRequireRole = (...allowedRoles: string[]) => {
     return async (
-      c: { set: (key: string, value: unknown) => void; req: { header: (name: string) => string | undefined; param: (name: string) => string | undefined } },
+      c: {
+        set: (key: string, value: unknown) => void
+        req: {
+          header: (name: string) => string | undefined
+          param: (name: string) => string | undefined
+        }
+      },
       next: () => Promise<void>
     ) => {
       const role = allowedRoles[0] || ESystemRole.SUPERADMIN

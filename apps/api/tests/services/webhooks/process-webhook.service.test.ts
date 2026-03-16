@@ -13,7 +13,10 @@ type TMockGatewayManager = {
 }
 
 type TMockAdapter = {
-  validateConfiguration: (config: Record<string, unknown>) => { valid: boolean; missingFields: string[] }
+  validateConfiguration: (config: Record<string, unknown>) => {
+    valid: boolean
+    missingFields: string[]
+  }
   validateWebhookSignature: (input: unknown) => { valid: boolean; reason?: string }
   processWebhook: (payload: unknown) => Promise<{
     paymentId: string | null
@@ -25,7 +28,9 @@ type TMockAdapter = {
 
 type TMockPaymentGatewaysRepository = {
   getById: (id: string) => Promise<{ id: string; configuration: Record<string, unknown> } | null>
-  getByType: (type: TGatewayType) => Promise<{ id: string; configuration: Record<string, unknown> }[]>
+  getByType: (
+    type: TGatewayType
+  ) => Promise<{ id: string; configuration: Record<string, unknown> }[]>
 }
 
 type TMockGatewayTransactionsRepository = {
@@ -69,7 +74,9 @@ const MOCK_PAYMENT = {
   paymentDate: '2026-03-01',
 } as TPayment
 
-function createStripeWebhookInput(overrides: Partial<IProcessWebhookInput> = {}): IProcessWebhookInput {
+function createStripeWebhookInput(
+  overrides: Partial<IProcessWebhookInput> = {}
+): IProcessWebhookInput {
   return {
     gatewayType: 'stripe' as TGatewayType,
     headers: { 'stripe-signature': 'sig_test_123' },
@@ -87,7 +94,9 @@ function createStripeWebhookInput(overrides: Partial<IProcessWebhookInput> = {})
   }
 }
 
-function createBankWebhookInput(overrides: Partial<IProcessWebhookInput> = {}): IProcessWebhookInput {
+function createBankWebhookInput(
+  overrides: Partial<IProcessWebhookInput> = {}
+): IProcessWebhookInput {
   return {
     gatewayType: 'banco_plaza' as TGatewayType,
     headers: { 'x-bank-signature': 'hmac_test_123' },
@@ -145,8 +154,12 @@ describe('ProcessWebhookService', function () {
     }
 
     mockGatewayManager = {
-      hasAdapter: function () { return true },
-      getAdapter: function () { return mockAdapter },
+      hasAdapter: function () {
+        return true
+      },
+      getAdapter: function () {
+        return mockAdapter
+      },
     }
 
     mockPaymentGatewaysRepo = {
@@ -162,14 +175,18 @@ describe('ProcessWebhookService', function () {
     }
 
     mockGatewayTxRepo = {
-      getByExternalReference: async function () { return null },
+      getByExternalReference: async function () {
+        return null
+      },
       markVerified: async function (id: string, externalTxId: string) {
         markVerifiedCalls.push({ id, externalTxId })
       },
       markFailed: async function (id: string, error: string) {
         markFailedCalls.push({ id, error })
       },
-      withTx: function () { return this },
+      withTx: function () {
+        return this
+      },
     }
 
     mockPaymentsRepo = {
@@ -181,7 +198,9 @@ describe('ProcessWebhookService', function () {
         verifyPaymentCalls.push({ id, verifiedBy, notes })
         return { ...MOCK_PAYMENT, status: 'completed', verifiedBy } as TPayment
       },
-      withTx: function () { return this },
+      withTx: function () {
+        return this
+      },
     }
 
     mockNotificationService = {
@@ -203,7 +222,7 @@ describe('ProcessWebhookService', function () {
       mockPaymentGatewaysRepo as never,
       mockGatewayTxRepo as never,
       mockPaymentsRepo as never,
-      mockNotificationService as never,
+      mockNotificationService as never
     )
   })
 
@@ -254,7 +273,7 @@ describe('ProcessWebhookService', function () {
       await service.execute(createStripeWebhookInput())
 
       // Notifications are fire-and-forget, give them a tick to resolve
-      await new Promise((r) => setTimeout(r, 10))
+      await new Promise(r => setTimeout(r, 10))
 
       expect(notificationCalls.length).toBeGreaterThanOrEqual(1)
       const call = notificationCalls[0] as Record<string, unknown>
@@ -267,7 +286,9 @@ describe('ProcessWebhookService', function () {
 
   describe('unknown gateway type', function () {
     it('should return BAD_REQUEST for unregistered gateway', async function () {
-      mockGatewayManager.hasAdapter = function () { return false }
+      mockGatewayManager.hasAdapter = function () {
+        return false
+      }
 
       const result = await service.execute(
         createStripeWebhookInput({ gatewayType: 'nonexistent' as TGatewayType })
@@ -285,8 +306,12 @@ describe('ProcessWebhookService', function () {
 
   describe('no gateway configuration', function () {
     it('should return NOT_FOUND when no gateway is configured', async function () {
-      mockPaymentGatewaysRepo.getByType = async function () { return [] }
-      mockPaymentsRepo.getById = async function () { return null }
+      mockPaymentGatewaysRepo.getByType = async function () {
+        return []
+      }
+      mockPaymentsRepo.getById = async function () {
+        return null
+      }
 
       const result = await service.execute(
         createStripeWebhookInput({
@@ -479,7 +504,7 @@ describe('ProcessWebhookService', function () {
 
       await service.execute(createStripeWebhookInput())
 
-      await new Promise((r) => setTimeout(r, 10))
+      await new Promise(r => setTimeout(r, 10))
 
       expect(notificationCalls.length).toBeGreaterThanOrEqual(1)
       const call = notificationCalls[0] as Record<string, unknown>
@@ -499,7 +524,7 @@ describe('ProcessWebhookService', function () {
 
       await service.execute(createStripeWebhookInput())
 
-      await new Promise((r) => setTimeout(r, 10))
+      await new Promise(r => setTimeout(r, 10))
 
       expect(notificationCalls).toHaveLength(0)
     })
@@ -605,7 +630,7 @@ describe('ProcessWebhookService', function () {
         mockPaymentGatewaysRepo as never,
         mockGatewayTxRepo as never,
         mockPaymentsRepo as never,
-        undefined,
+        undefined
       )
 
       const result = await service.execute(createStripeWebhookInput())

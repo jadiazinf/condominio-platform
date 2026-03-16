@@ -1,12 +1,13 @@
 'use client'
 
 import { Input as HeroUIInput } from '@heroui/input'
-import { Select, type ISelectItem } from '@/ui/components/select'
-import { Tooltip } from '@/ui/components/tooltip'
 import { cn } from '@heroui/theme'
 import { EIdDocumentTypes } from '@packages/domain'
 import { Info } from 'lucide-react'
 import { useMemo } from 'react'
+
+import { Tooltip } from '@/ui/components/tooltip'
+import { Select, type ISelectItem } from '@/ui/components/select'
 
 type TInputSize = 'sm' | 'md' | 'lg'
 type TInputVariant = 'flat' | 'bordered' | 'underlined' | 'faded'
@@ -79,12 +80,12 @@ export function DocumentInput({
           <span>{label}</span>
           {tooltip && (
             <Tooltip
-              content={tooltip}
-              placement="right"
               showArrow
               classNames={{
                 content: 'max-w-xs text-sm',
               }}
+              content={tooltip}
+              placement="right"
             >
               <Info className="h-4 w-4 text-default-400 cursor-help" />
             </Tooltip>
@@ -95,33 +96,33 @@ export function DocumentInput({
         <Select
           aria-label="Document type"
           className="w-[160px] shrink-0"
-          placeholder={typePlaceholder}
-          items={documentTypeItems}
-          value={documentType || typePlaceholder || undefined}
-          onChange={key => onDocumentTypeChange?.((key as TIdDocumentType) || null)}
-          variant={variant}
-          radius={radius}
-          size={size}
-          isDisabled={isDisabled || isReadOnly}
-          isInvalid={!!documentTypeError}
           classNames={{
             trigger: 'min-h-unit-10',
           }}
+          isDisabled={isDisabled || isReadOnly}
+          isInvalid={!!documentTypeError}
+          items={documentTypeItems}
+          placeholder={typePlaceholder}
+          radius={radius}
+          size={size}
+          value={documentType || typePlaceholder || undefined}
+          variant={variant}
+          onChange={key => onDocumentTypeChange?.((key as TIdDocumentType) || null)}
         />
         <HeroUIInput
           className="flex-1"
           classNames={{
             input: 'placeholder:text-default-400 placeholder:opacity-70',
           }}
+          isDisabled={isDisabled}
+          isInvalid={!!documentNumberError}
+          isReadOnly={isReadOnly}
           placeholder={numberPlaceholder}
-          value={documentNumber || ''}
-          onValueChange={onDocumentNumberChange}
-          variant={variant}
           radius={radius}
           size={size}
-          isDisabled={isDisabled}
-          isReadOnly={isReadOnly}
-          isInvalid={!!documentNumberError}
+          value={documentNumber || ''}
+          variant={variant}
+          onValueChange={onDocumentNumberChange}
         />
       </div>
       {description && !isInvalid && <p className="text-tiny text-foreground-400">{description}</p>}

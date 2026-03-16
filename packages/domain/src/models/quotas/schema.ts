@@ -8,7 +8,14 @@ import { DomainLocaleDictionary } from '../../i18n/dictionary'
 
 const d = DomainLocaleDictionary.validation.models.quotas
 
-export const EQuotaStatuses = ['pending', 'paid', 'overdue', 'cancelled', 'exonerated'] as const
+export const EQuotaStatuses = [
+  'pending',
+  'partial',
+  'paid',
+  'overdue',
+  'cancelled',
+  'exonerated',
+] as const
 
 export const quotaSchema = baseModelSchema.extend({
   unitId: z.uuid({ error: d.unitId.invalid }),
@@ -18,8 +25,7 @@ export const quotaSchema = baseModelSchema.extend({
     .number()
     .int()
     .min(1, { error: d.periodMonth.min })
-    .max(12, { error: d.periodMonth.max })
-    .nullable(),
+    .max(12, { error: d.periodMonth.max }),
   periodDescription: z.string().max(100).nullable(),
   baseAmount: z.string({ error: d.baseAmount.required }),
   currencyId: z.uuid({ error: d.currencyId.invalid }),
@@ -29,6 +35,7 @@ export const quotaSchema = baseModelSchema.extend({
   issueDate: dateField,
   dueDate: dateField,
   status: z.enum(EQuotaStatuses, { error: d.status.invalid }).default('pending'),
+  adjustmentsTotal: z.string().default('0'),
   paidAmount: z.string().default('0'),
   balance: z.string(),
   notes: z.string().nullable(),

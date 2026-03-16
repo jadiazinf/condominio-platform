@@ -1,4 +1,15 @@
-import { pgTable, uuid, varchar, text, boolean, timestamp, jsonb, index, integer, decimal } from 'drizzle-orm/pg-core'
+import {
+  pgTable,
+  uuid,
+  varchar,
+  text,
+  boolean,
+  timestamp,
+  jsonb,
+  index,
+  integer,
+  decimal,
+} from 'drizzle-orm/pg-core'
 import { condominiums } from './condominiums'
 import { buildings } from './buildings'
 import { currencies } from './currencies'
@@ -20,7 +31,9 @@ export const paymentConcepts = pgTable(
     conceptType: conceptTypeEnum('concept_type').notNull(),
     isRecurring: boolean('is_recurring').default(true),
     recurrencePeriod: varchar('recurrence_period', { length: 50 }),
-    chargeGenerationStrategy: chargeGenerationStrategyEnum('charge_generation_strategy').default('auto'),
+    chargeGenerationStrategy: chargeGenerationStrategyEnum('charge_generation_strategy').default(
+      'auto'
+    ),
     currencyId: uuid('currency_id')
       .notNull()
       .references(() => currencies.id, { onDelete: 'restrict' }),

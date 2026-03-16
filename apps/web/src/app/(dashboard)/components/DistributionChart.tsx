@@ -2,9 +2,10 @@
 
 import type { ICardProps } from '@/ui/components/card'
 
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { cn } from '@/ui/utils'
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 
 type TDistributionDataPoint = {
   name: string
@@ -36,7 +37,11 @@ export function DistributionChart({
       </CardHeader>
       <CardBody className="flex flex-col items-center justify-center px-4 pb-4">
         <div className="relative h-[200px] w-full">
-          <ResponsiveContainer className="[&_.recharts-surface]:outline-hidden" width="100%" height="100%">
+          <ResponsiveContainer
+            className="[&_.recharts-surface]:outline-hidden"
+            height="100%"
+            width="100%"
+          >
             <PieChart>
               <Pie
                 cx="50%"

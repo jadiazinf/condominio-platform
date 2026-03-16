@@ -1,12 +1,13 @@
 'use client'
 
 import { Input as HeroUIInput } from '@heroui/input'
-import { Select, type ISelectItem } from '@/ui/components/select'
-import { Tooltip } from '@/ui/components/tooltip'
 import { cn } from '@heroui/theme'
 import { Info } from 'lucide-react'
 import { ETaxIdTypes, type TTaxIdType } from '@packages/domain'
 import { useMemo } from 'react'
+
+import { Tooltip } from '@/ui/components/tooltip'
+import { Select, type ISelectItem } from '@/ui/components/select'
 
 type TInputSize = 'sm' | 'md' | 'lg'
 type TInputVariant = 'flat' | 'bordered' | 'underlined' | 'faded'
@@ -63,7 +64,7 @@ export function TaxIdInput({
 
   const taxIdTypeItems: ISelectItem[] = useMemo(
     () =>
-      ETaxIdTypes.map((type) => ({
+      ETaxIdTypes.map(type => ({
         key: type,
         label: TAX_ID_TYPE_LABELS[type],
       })),
@@ -78,12 +79,12 @@ export function TaxIdInput({
           {label}
           {tooltip && (
             <Tooltip
-              content={tooltip}
-              placement="right"
               showArrow
               classNames={{
                 content: 'max-w-xs text-sm',
               }}
+              content={tooltip}
+              placement="right"
             >
               <Info className="h-4 w-4 text-default-400 cursor-help" />
             </Tooltip>
@@ -94,34 +95,34 @@ export function TaxIdInput({
         <Select
           aria-label="Tax ID type"
           className="w-[160px] shrink-0"
-          placeholder={typePlaceholder}
-          items={taxIdTypeItems}
-          value={taxIdType}
-          onChange={(key) => onTaxIdTypeChange?.((key as TTaxIdType) || null)}
-          variant={variant}
-          radius={radius}
-          size={size}
-          isDisabled={isDisabled || isReadOnly}
-          isInvalid={!!taxIdTypeError}
           classNames={{
             trigger: 'min-h-unit-10',
           }}
+          isDisabled={isDisabled || isReadOnly}
+          isInvalid={!!taxIdTypeError}
+          items={taxIdTypeItems}
+          placeholder={typePlaceholder}
+          radius={radius}
+          size={size}
+          value={taxIdType}
+          variant={variant}
+          onChange={key => onTaxIdTypeChange?.((key as TTaxIdType) || null)}
         />
         <HeroUIInput
           className="flex-1"
-          placeholder={numberPlaceholder}
-          value={taxIdNumber || ''}
-          onValueChange={(value) => onTaxIdNumberChange?.(value.replace(/\D/g, ''))}
-          inputMode="numeric"
-          variant={variant}
-          radius={radius}
-          size={size}
-          isDisabled={isDisabled}
-          isReadOnly={isReadOnly}
-          isInvalid={!!taxIdNumberError}
           classNames={{
             input: 'placeholder:text-default-300',
           }}
+          inputMode="numeric"
+          isDisabled={isDisabled}
+          isInvalid={!!taxIdNumberError}
+          isReadOnly={isReadOnly}
+          placeholder={numberPlaceholder}
+          radius={radius}
+          size={size}
+          value={taxIdNumber || ''}
+          variant={variant}
+          onValueChange={value => onTaxIdNumberChange?.(value.replace(/\D/g, ''))}
         />
       </div>
       {errorMessage && <p className="text-tiny text-danger">{errorMessage}</p>}

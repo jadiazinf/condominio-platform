@@ -50,12 +50,15 @@ export function Checkbox({
   onValueChange,
 }: ICheckboxProps) {
   // Create label content with required asterisk on the left
-  const labelContent = children && isRequired ? (
-    <span>
-      <span className="text-danger">*</span>
-      {children}
-    </span>
-  ) : children
+  const labelContent =
+    children && isRequired ? (
+      <span>
+        <span className="text-danger">*</span>
+        {children}
+      </span>
+    ) : (
+      children
+    )
 
   return (
     <HeroUICheckbox
@@ -73,7 +76,7 @@ export function Checkbox({
       radius={radius}
       size={size}
       value={value}
-      onChange={(e) => onChange?.(e.target.checked)}
+      onChange={e => onChange?.(e.target.checked)}
       onValueChange={onValueChange}
     >
       {labelContent}
@@ -81,9 +84,4 @@ export function Checkbox({
   )
 }
 
-export type {
-  TCheckboxSize,
-  TCheckboxColor,
-  TCheckboxRadius,
-  ICheckboxProps,
-}
+export type { TCheckboxSize, TCheckboxColor, TCheckboxRadius, ICheckboxProps }

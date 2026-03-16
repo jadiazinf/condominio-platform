@@ -207,6 +207,7 @@ describe('GenerateQuotasForScheduleService', function () {
     issueDate: '2025-02-01',
     dueDate: '2025-02-15',
     status: 'pending',
+    adjustmentsTotal: '0',
     paidAmount: '0',
     balance: '100.00',
     notes: null,
@@ -292,7 +293,7 @@ describe('GenerateQuotasForScheduleService', function () {
       mockSchedulesRepo as never,
       mockLogsRepo as never,
       mockUnitsRepo as never,
-      mockBuildingsRepo as never,
+      mockBuildingsRepo as never
     )
   })
 
@@ -752,6 +753,64 @@ describe('GenerateQuotasForScheduleService', function () {
     })
   })
 
+  describe('Exonerated and cancelled quota handling', function () {
+    it('should skip units with existing active quotas but allow generation for exonerated quotas', async function () {
+      // Exonerated quota for unit-1 should NOT block re-generation
+      const exoneratedQuota = { ...mockQuota, unitId: 'unit-1', status: 'exonerated' as const }
+      mockQuotasRepo.getByPeriod = mock(() => Promise.resolve([exoneratedQuota]))
+
+      const result = await service.execute({
+        scheduleId: 'schedule-1',
+        periodYear: 2025,
+        periodMonth: 2,
+        generatedBy: 'system',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        // Both units should get quotas since exonerated is treated as "no longer active"
+        expect(result.data.quotasCreated).toBe(2)
+      }
+    })
+
+    it('should skip units with existing cancelled quotas (allow re-generation)', async function () {
+      const cancelledQuota = { ...mockQuota, unitId: 'unit-1', status: 'cancelled' as const }
+      mockQuotasRepo.getByPeriod = mock(() => Promise.resolve([cancelledQuota]))
+
+      const result = await service.execute({
+        scheduleId: 'schedule-1',
+        periodYear: 2025,
+        periodMonth: 2,
+        generatedBy: 'system',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        // Both units should get quotas since cancelled is filtered out
+        expect(result.data.quotasCreated).toBe(2)
+      }
+    })
+
+    it('should block generation for units with pending/overdue/paid quotas', async function () {
+      const pendingQuota = { ...mockQuota, unitId: 'unit-1', status: 'pending' as const }
+      const overdueQuota = { ...mockQuota, unitId: 'unit-2', status: 'overdue' as const }
+      mockQuotasRepo.getByPeriod = mock(() => Promise.resolve([pendingQuota, overdueQuota]))
+
+      const result = await service.execute({
+        scheduleId: 'schedule-1',
+        periodYear: 2025,
+        periodMonth: 2,
+        generatedBy: 'system',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        // No units should get new quotas — both already have active quotas
+        expect(result.data.quotasCreated).toBe(0)
+      }
+    })
+  })
+
   describe('Multiple buildings in condominium', function () {
     it('should generate quotas for units across multiple buildings', async function () {
       const mockBuilding2: TBuilding = {
@@ -769,7 +828,7 @@ describe('GenerateQuotasForScheduleService', function () {
       }
 
       mockBuildingsRepo.getByCondominiumId = mock(() =>
-        Promise.resolve([mockBuilding, mockBuilding2]),
+        Promise.resolve([mockBuilding, mockBuilding2])
       )
 
       let buildingCallCount = 0

@@ -83,7 +83,7 @@ export function useTicketWebSocket({
         reconnectAttemptsRef.current = 0
       }
 
-      ws.onmessage = (event) => {
+      ws.onmessage = event => {
         try {
           const message: IWebSocketMessage = JSON.parse(event.data)
 
@@ -99,7 +99,7 @@ export function useTicketWebSocket({
                 }
 
                 // Check if message already exists (avoid duplicates)
-                const exists = old.data.some((msg) => msg.id === newMessage.id)
+                const exists = old.data.some(msg => msg.id === newMessage.id)
 
                 if (exists) {
                   return old
@@ -123,7 +123,7 @@ export function useTicketWebSocket({
         setError('WebSocket connection error')
       }
 
-      ws.onclose = (event) => {
+      ws.onclose = event => {
         setIsConnected(false)
 
         // Attempt reconnection if not a normal closure and under max attempts

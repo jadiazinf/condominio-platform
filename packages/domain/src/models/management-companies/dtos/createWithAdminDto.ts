@@ -48,9 +48,7 @@ export const companyStepSchema = z.object({
     .string({ error: d.address.required })
     .min(1, { error: d.address.required })
     .max(500, { error: d.address.max }),
-  locationId: z
-    .string({ error: d.locationId.required })
-    .uuid({ error: d.locationId.invalid }),
+  locationId: z.string({ error: d.locationId.required }).uuid({ error: d.locationId.invalid }),
 })
 
 /**

@@ -1,11 +1,12 @@
 'use client'
 
+import type { ReactNode } from 'react'
+
 import { useCallback, useMemo, useRef, type KeyboardEvent } from 'react'
 import { Input as HeroUIInput } from '@heroui/input'
 import { Tooltip } from '@heroui/tooltip'
 import { cn } from '@heroui/theme'
 import { Info, DollarSign } from 'lucide-react'
-import type { ReactNode } from 'react'
 
 type TInputSize = 'sm' | 'md' | 'lg'
 type TInputColor = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
@@ -88,27 +89,40 @@ export function CurrencyInput({
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Convert string value to cents (integer)
-  const valueToCents = useCallback((val: string): number => {
-    if (!val || val === '') return 0
-    const num = parseFloat(val)
-    if (isNaN(num)) return 0
-    return Math.round(num * Math.pow(10, decimals))
-  }, [decimals])
+  const valueToCents = useCallback(
+    (val: string): number => {
+      if (!val || val === '') return 0
+      const num = parseFloat(val)
+
+      if (isNaN(num)) return 0
+
+      return Math.round(num * Math.pow(10, decimals))
+    },
+    [decimals]
+  )
 
   // Convert cents to formatted display string
-  const centsToDisplay = useCallback((cents: number): string => {
-    const value = cents / Math.pow(10, decimals)
-    return new Intl.NumberFormat(locale, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    }).format(value)
-  }, [locale, decimals])
+  const centsToDisplay = useCallback(
+    (cents: number): string => {
+      const value = cents / Math.pow(10, decimals)
+
+      return new Intl.NumberFormat(locale, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      }).format(value)
+    },
+    [locale, decimals]
+  )
 
   // Convert cents to API value string
-  const centsToValue = useCallback((cents: number): string => {
-    const value = cents / Math.pow(10, decimals)
-    return value.toFixed(decimals)
-  }, [decimals])
+  const centsToValue = useCallback(
+    (cents: number): string => {
+      const value = cents / Math.pow(10, decimals)
+
+      return value.toFixed(decimals)
+    },
+    [decimals]
+  )
 
   // Current value in cents
   const currentCents = useMemo(() => valueToCents(value), [value, valueToCents])
@@ -117,72 +131,84 @@ export function CurrencyInput({
   const displayValue = useMemo(() => centsToDisplay(currentCents), [currentCents, centsToDisplay])
 
   // Handle key press
-  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
-    // Don't process input when readonly or disabled
-    if (isReadOnly || isDisabled) return
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLInputElement>) => {
+      // Don't process input when readonly or disabled
+      if (isReadOnly || isDisabled) return
 
-    // Allow navigation keys
-    if (['Tab', 'Escape', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
-      return
-    }
+      // Allow navigation keys
+      if (['Tab', 'Escape', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+        return
+      }
 
-    // Prevent default for all other keys
-    e.preventDefault()
+      // Prevent default for all other keys
+      e.preventDefault()
 
-    // Handle backspace - remove last digit
-    if (e.key === 'Backspace') {
-      const newCents = Math.floor(currentCents / 10)
+      // Handle backspace - remove last digit
+      if (e.key === 'Backspace') {
+        const newCents = Math.floor(currentCents / 10)
+
+        onValueChange?.(centsToValue(newCents))
+
+        return
+      }
+
+      // Handle delete - same as backspace
+      if (e.key === 'Delete') {
+        const newCents = Math.floor(currentCents / 10)
+
+        onValueChange?.(centsToValue(newCents))
+
+        return
+      }
+
+      // Only allow numeric input
+      if (!/^[0-9]$/.test(e.key)) {
+        return
+      }
+
+      // Add new digit
+      const digit = parseInt(e.key, 10)
+      const newCents = currentCents * 10 + digit
+
+      // Prevent overflow (max safe integer consideration)
+      if (newCents > 999999999999) {
+        return
+      }
+
       onValueChange?.(centsToValue(newCents))
-      return
-    }
-
-    // Handle delete - same as backspace
-    if (e.key === 'Delete') {
-      const newCents = Math.floor(currentCents / 10)
-      onValueChange?.(centsToValue(newCents))
-      return
-    }
-
-    // Only allow numeric input
-    if (!/^[0-9]$/.test(e.key)) {
-      return
-    }
-
-    // Add new digit
-    const digit = parseInt(e.key, 10)
-    const newCents = currentCents * 10 + digit
-
-    // Prevent overflow (max safe integer consideration)
-    if (newCents > 999999999999) {
-      return
-    }
-
-    onValueChange?.(centsToValue(newCents))
-  }, [currentCents, onValueChange, centsToValue, isReadOnly, isDisabled])
+    },
+    [currentCents, onValueChange, centsToValue, isReadOnly, isDisabled]
+  )
 
   // Handle paste - extract only numbers
-  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
-    if (isReadOnly || isDisabled) return
-    e.preventDefault()
-    const pastedText = e.clipboardData.getData('text')
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent<HTMLInputElement>) => {
+      if (isReadOnly || isDisabled) return
+      e.preventDefault()
+      const pastedText = e.clipboardData.getData('text')
 
-    // Extract only digits from pasted text
-    const digits = pastedText.replace(/\D/g, '')
+      // Extract only digits from pasted text
+      const digits = pastedText.replace(/\D/g, '')
 
-    if (digits.length === 0) return
+      if (digits.length === 0) return
 
-    // Process each digit
-    let newCents = currentCents
-    for (const char of digits) {
-      const digit = parseInt(char, 10)
-      newCents = newCents * 10 + digit
-      if (newCents > 999999999999) {
-        break
+      // Process each digit
+      let newCents = currentCents
+
+      for (const char of digits) {
+        const digit = parseInt(char, 10)
+
+        newCents = newCents * 10 + digit
+        if (newCents > 999999999999) {
+          break
+        }
       }
-    }
 
-    onValueChange?.(centsToValue(newCents))
-  }, [currentCents, onValueChange, centsToValue, isReadOnly, isDisabled])
+      onValueChange?.(centsToValue(newCents))
+    },
+    [currentCents, onValueChange, centsToValue, isReadOnly, isDisabled]
+  )
 
   // Create label with tooltip and required asterisk
   const labelContent = label ? (
@@ -191,12 +217,12 @@ export function CurrencyInput({
       {label}
       {tooltip && (
         <Tooltip
-          content={tooltip}
-          placement="right"
           showArrow
           classNames={{
             content: 'max-w-xs text-sm',
           }}
+          content={tooltip}
+          placement="right"
         >
           <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
         </Tooltip>
@@ -204,9 +230,9 @@ export function CurrencyInput({
     </span>
   ) : undefined
 
-  const startContent = showCurrencySymbol ? (
-    currencySymbol || <DollarSign className="text-default-400" size={16} />
-  ) : undefined
+  const startContent = showCurrencySymbol
+    ? currencySymbol || <DollarSign className="text-default-400" size={16} />
+    : undefined
 
   return (
     <HeroUIInput

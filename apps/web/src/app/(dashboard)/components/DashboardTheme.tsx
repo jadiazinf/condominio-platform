@@ -14,7 +14,9 @@ export function DashboardTheme({ children }: DashboardThemeProps) {
   useEffect(() => setMounted(true), [])
 
   const themeClass = mounted
-    ? resolvedTheme === 'dark' ? 'dashboard-dark' : 'dashboard-light'
+    ? resolvedTheme === 'dark'
+      ? 'dashboard-dark'
+      : 'dashboard-light'
     : 'dashboard-light'
 
   // Apply the theme class to document.body so HeroUI portals (Modals, Tooltips, Popovers)
@@ -22,6 +24,7 @@ export function DashboardTheme({ children }: DashboardThemeProps) {
   useEffect(() => {
     document.body.classList.remove('dashboard-light', 'dashboard-dark')
     document.body.classList.add(themeClass)
+
     return () => {
       document.body.classList.remove('dashboard-light', 'dashboard-dark')
     }

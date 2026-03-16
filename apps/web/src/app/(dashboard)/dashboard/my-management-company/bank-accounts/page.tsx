@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
-import { getFullSession } from '@/libs/session'
+
 import { BankAccountsPage } from './components/BankAccountsPage'
+
+import { getFullSession } from '@/libs/session'
 
 export default async function BankAccountsRoute() {
   const session = await getFullSession()
@@ -17,9 +19,6 @@ export default async function BankAccountsRoute() {
   }
 
   return (
-    <BankAccountsPage
-      managementCompanyId={managementCompanyId}
-      memberRole={memberRole ?? null}
-    />
+    <BankAccountsPage managementCompanyId={managementCompanyId} memberRole={memberRole ?? null} />
   )
 }

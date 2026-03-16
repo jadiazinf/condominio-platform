@@ -135,35 +135,43 @@ export interface ITicketDetailClientProps {
   availableUsers: TUser[]
 }
 
-export function TicketDetailClient({ ticket, locale, translations, availableUsers }: ITicketDetailClientProps) {
+export function TicketDetailClient({
+  ticket,
+  locale,
+  translations,
+  availableUsers,
+}: ITicketDetailClientProps) {
   return (
     <div className="space-y-6">
       <TicketHeader
+        priority={ticket.priority}
         subject={ticket.subject}
         ticketNumber={ticket.ticketNumber}
-        priority={ticket.priority}
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
-          <TicketDescription description={ticket.description} title={translations.description.title} />
+          <TicketDescription
+            description={ticket.description}
+            title={translations.description.title}
+          />
           <TicketMessages
+            locale={locale}
             ticketId={ticket.id}
             ticketStatus={ticket.status}
-            locale={locale}
             translations={translations.messages}
           />
         </div>
 
         <div className="space-y-6">
           <TicketDetails
-            ticket={ticket}
-            locale={locale}
-            translations={translations.details}
-            statusLabels={translations.statusLabels}
-            priorityLabels={translations.priorityLabels}
-            categoryLabels={translations.categoryLabels}
             availableUsers={availableUsers}
+            categoryLabels={translations.categoryLabels}
+            locale={locale}
+            priorityLabels={translations.priorityLabels}
+            statusLabels={translations.statusLabels}
+            ticket={ticket}
+            translations={translations.details}
           />
         </div>
       </div>

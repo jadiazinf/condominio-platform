@@ -8,7 +8,11 @@ import {
 } from '@packages/domain'
 import type { SubscriptionTermsConditionsRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
+import {
+  bodyValidator,
+  paramsValidator,
+  queryValidator,
+} from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { isUserAuthenticated } from '../../middlewares/utils/auth/is-user-authenticated'
@@ -87,7 +91,11 @@ export class SubscriptionTermsConditionsController extends BaseController<
         method: 'get',
         path: '/version/:version',
         handler: this.getByVersion,
-        middlewares: [isUserAuthenticated, requireRole(ESystemRole.SUPERADMIN), paramsValidator(VersionParamSchema)],
+        middlewares: [
+          isUserAuthenticated,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(VersionParamSchema),
+        ],
       },
       // Superadmin: List all terms
       {

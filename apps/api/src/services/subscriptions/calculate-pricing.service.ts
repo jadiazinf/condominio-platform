@@ -69,7 +69,9 @@ export class CalculatePricingService {
     this.ratesRepository = new SubscriptionRatesRepository(db)
   }
 
-  async execute(input: IPricingCalculationInput): Promise<TServiceResult<IPricingCalculationResult>> {
+  async execute(
+    input: IPricingCalculationInput
+  ): Promise<TServiceResult<IPricingCalculationResult>> {
     const {
       managementCompanyId,
       billingCycle = 'monthly',
@@ -83,7 +85,11 @@ export class CalculatePricingService {
       let unitCount: number
       let userCount: number
 
-      if (input.condominiumCount !== undefined || input.unitCount !== undefined || input.userCount !== undefined) {
+      if (
+        input.condominiumCount !== undefined ||
+        input.unitCount !== undefined ||
+        input.userCount !== undefined
+      ) {
         // Using subscription limits (maxCondominiums, maxUnits, maxUsers from form)
         condominiumCount = input.condominiumCount ?? 0
         unitCount = input.unitCount ?? 0
@@ -128,10 +134,7 @@ export class CalculatePricingService {
         // Fetch specific rate by ID
         tieredRate = await this.ratesRepository.getById(input.rateId)
         if (!tieredRate) {
-          return failure(
-            `No se encontró la tarifa con ID: ${input.rateId}`,
-            'BAD_REQUEST'
-          )
+          return failure(`No se encontró la tarifa con ID: ${input.rateId}`, 'BAD_REQUEST')
         }
       } else {
         // Use tiered pricing based on condominium count
@@ -139,7 +142,12 @@ export class CalculatePricingService {
       }
 
       // If no rate in DB and no override provided, return error
-      if (!tieredRate && input.condominiumRate === undefined && input.unitRate === undefined && input.userRate === undefined) {
+      if (
+        !tieredRate &&
+        input.condominiumRate === undefined &&
+        input.unitRate === undefined &&
+        input.userRate === undefined
+      ) {
         return failure(
           'No hay tarifas de suscripción configuradas. Por favor, configure una tarifa activa antes de continuar.',
           'BAD_REQUEST'
@@ -186,16 +194,10 @@ export class CalculatePricingService {
 
       // Validate discount
       if (discountType === 'percentage' && discountValue !== null && discountValue > 100) {
-        return failure(
-          'El descuento en porcentaje no puede ser mayor a 100%',
-          'BAD_REQUEST'
-        )
+        return failure('El descuento en porcentaje no puede ser mayor a 100%', 'BAD_REQUEST')
       }
       if (discountType === 'fixed' && discountValue !== null && discountValue > calculatedPrice) {
-        return failure(
-          'El descuento fijo no puede ser mayor al precio calculado',
-          'BAD_REQUEST'
-        )
+        return failure('El descuento fijo no puede ser mayor al precio calculado', 'BAD_REQUEST')
       }
 
       // Calculate manual discount
@@ -218,7 +220,11 @@ export class CalculatePricingService {
       const finalPrice = Math.max(0, calculatedPrice - discountAmount - annualDiscountAmount)
 
       // Determine if we should show rate info (only when not using override rates)
-      const usingDbRate = input.condominiumRate === undefined && input.unitRate === undefined && input.userRate === undefined && tieredRate
+      const usingDbRate =
+        input.condominiumRate === undefined &&
+        input.unitRate === undefined &&
+        input.userRate === undefined &&
+        tieredRate
 
       return success({
         condominiumCount,

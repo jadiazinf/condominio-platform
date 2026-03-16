@@ -1,17 +1,19 @@
 'use client'
 
 import { FormProvider } from 'react-hook-form'
+
+import { useCondominiumForm } from '../hooks/useCondominiumForm'
+
+import { BasicStepForm } from './steps/BasicStepForm'
+import { LocationStepForm } from './steps/LocationStepForm'
+import { ContactStepForm } from './steps/ContactStepForm'
+import { ConfirmationStep } from './steps/ConfirmationStep'
+
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Progress } from '@/ui/components/progress'
 import { Stepper } from '@/ui/components/stepper'
 import { useTranslation } from '@/contexts'
-
-import { useCondominiumForm } from '../hooks/useCondominiumForm'
-import { BasicStepForm } from './steps/BasicStepForm'
-import { LocationStepForm } from './steps/LocationStepForm'
-import { ContactStepForm } from './steps/ContactStepForm'
-import { ConfirmationStep } from './steps/ConfirmationStep'
 
 interface CreateCondominiumFormProps {
   isOpen: boolean
@@ -68,7 +70,7 @@ export function CreateCondominiumForm({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="4xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="4xl" onClose={onClose}>
       <ModalContent className="max-h-[95vh] min-h-[80vh]">
         <FormProvider {...form}>
           <ModalHeader>{t('condominiums.form.title')}</ModalHeader>
@@ -83,11 +85,7 @@ export function CreateCondominiumForm({
                 }}
                 value={progressValue}
               />
-              <Stepper
-                currentStep={currentStep}
-                steps={steps}
-                onStepChange={goToStep}
-              />
+              <Stepper currentStep={currentStep} steps={steps} onStepChange={goToStep} />
             </div>
 
             {/* Step Content */}
@@ -97,21 +95,13 @@ export function CreateCondominiumForm({
           <ModalFooter className="border-t border-default-200">
             <div className="flex w-full justify-end gap-3">
               {!isFirstStep && (
-                <Button
-                  variant="bordered"
-                  onPress={goToPreviousStep}
-                  isDisabled={isSubmitting}
-                >
+                <Button isDisabled={isSubmitting} variant="bordered" onPress={goToPreviousStep}>
                   {t('condominiums.actions.previous')}
                 </Button>
               )}
 
               {isLastStep ? (
-                <Button
-                  color="primary"
-                  onPress={handleSubmit}
-                  isLoading={isSubmitting}
-                >
+                <Button color="primary" isLoading={isSubmitting} onPress={handleSubmit}>
                   {t('condominiums.actions.submit')}
                 </Button>
               ) : (

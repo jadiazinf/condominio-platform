@@ -55,30 +55,59 @@ export class BuildingsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT)] },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.list,
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT),
+        ],
+      },
       {
         method: 'get',
         path: '/code/:code',
         handler: this.getByCondominiumAndCode,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT), paramsValidator(CodeParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT),
+          paramsValidator(CodeParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.USER
+          ),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
         path: '/bulk',
         handler: this.bulkCreate,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN), bodyValidator(buildingBulkCreateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN),
+          bodyValidator(buildingBulkCreateSchema),
+        ],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN), bodyValidator(buildingCreateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN, ESystemRole.ADMIN),
+          bodyValidator(buildingCreateSchema),
+        ],
       },
       {
         method: 'patch',
@@ -95,7 +124,11 @@ export class BuildingsController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }
@@ -144,7 +177,10 @@ export class BuildingsController extends BaseController<
     const ctx = this.ctx<unknown, unknown, TCodeParam>(c)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
-    const building = await this.buildingsRepository.getByCondominiumAndCode(condominiumId, ctx.params.code)
+    const building = await this.buildingsRepository.getByCondominiumAndCode(
+      condominiumId,
+      ctx.params.code
+    )
 
     if (!building) {
       return ctx.notFound({ error: 'Building not found' })

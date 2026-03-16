@@ -1,4 +1,8 @@
-import type { TPaymentConcept, TPaymentConceptCreate, TServiceExecutionCreate } from '@packages/domain'
+import type {
+  TPaymentConcept,
+  TPaymentConceptCreate,
+  TServiceExecutionCreate,
+} from '@packages/domain'
 import type {
   PaymentConceptsRepository,
   CondominiumsRepository,
@@ -30,8 +34,21 @@ export interface IServiceWithExecution {
     totalAmount: string
     currencyId: string
     invoiceNumber?: string
-    items: Array<{ id: string; description: string; quantity: number; unitPrice: number; amount: number; notes?: string }>
-    attachments: Array<{ name: string; url: string; mimeType: string; size: number; storagePath?: string }>
+    items: Array<{
+      id: string
+      description: string
+      quantity: number
+      unitPrice: number
+      amount: number
+      notes?: string
+    }>
+    attachments: Array<{
+      name: string
+      url: string
+      mimeType: string
+      size: number
+      storagePath?: string
+    }>
     notes?: string
   }
 }
@@ -71,20 +88,26 @@ export class CreatePaymentConceptFullService {
 
     // Validate scheduling for recurring concepts
     if (input.isRecurring) {
-      if (!input.recurrencePeriod) return failure('Recurrence period is required for recurring concepts', 'BAD_REQUEST')
-      if (input.issueDay == null) return failure('Issue day is required for recurring concepts', 'BAD_REQUEST')
-      if (input.dueDay == null) return failure('Due day is required for recurring concepts', 'BAD_REQUEST')
+      if (!input.recurrencePeriod)
+        return failure('Recurrence period is required for recurring concepts', 'BAD_REQUEST')
+      if (input.issueDay == null)
+        return failure('Issue day is required for recurring concepts', 'BAD_REQUEST')
+      if (input.dueDay == null)
+        return failure('Due day is required for recurring concepts', 'BAD_REQUEST')
     }
 
     // Validate bulk generation strategy requirements
     const strategy = input.chargeGenerationStrategy ?? 'auto'
     if (input.isRecurring && strategy === 'bulk') {
-      if (!input.effectiveFrom) return failure('Start date is required for bulk generation', 'BAD_REQUEST')
-      if (!input.effectiveUntil) return failure('End date is required for bulk generation', 'BAD_REQUEST')
+      if (!input.effectiveFrom)
+        return failure('Start date is required for bulk generation', 'BAD_REQUEST')
+      if (!input.effectiveUntil)
+        return failure('End date is required for bulk generation', 'BAD_REQUEST')
       const from = new Date(input.effectiveFrom)
       const until = new Date(input.effectiveUntil)
       if (until <= from) return failure('End date must be after start date', 'BAD_REQUEST')
-      const monthsDiff = (until.getFullYear() - from.getFullYear()) * 12 + (until.getMonth() - from.getMonth())
+      const monthsDiff =
+        (until.getFullYear() - from.getFullYear()) * 12 + (until.getMonth() - from.getMonth())
       if (monthsDiff > 12) return failure('Bulk generation is limited to 12 months', 'BAD_REQUEST')
     }
 
@@ -111,7 +134,10 @@ export class CreatePaymentConceptFullService {
         return failure('Early payment value must be greater than 0', 'BAD_REQUEST')
       }
       if (input.earlyPaymentDaysBeforeDue <= 0) {
-        return failure('Days before due must be greater than 0 for early payment discounts', 'BAD_REQUEST')
+        return failure(
+          'Days before due must be greater than 0 for early payment discounts',
+          'BAD_REQUEST'
+        )
       }
       if (input.earlyPaymentType === 'percentage' && input.earlyPaymentValue > 100) {
         return failure('Early payment percentage cannot exceed 100%', 'BAD_REQUEST')
@@ -161,7 +187,7 @@ export class CreatePaymentConceptFullService {
 
     // ── Transaction: create concept + link services + create executions ────
 
-    const result = await this.db.transaction(async (tx) => {
+    const result = await this.db.transaction(async tx => {
       const txConceptsRepo = this.paymentConceptsRepo.withTx(tx)
       const txConceptServicesRepo = this.conceptServicesRepo.withTx(tx)
       const txExecutionsRepo = this.executionsRepo.withTx(tx)

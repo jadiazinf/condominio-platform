@@ -12,7 +12,7 @@ export interface ITicketHeaderProps {
 export function TicketHeader({ subject, ticketNumber, priority }: ITicketHeaderProps) {
   return (
     <div className="flex items-start gap-4">
-      <Button className="mt-1" href="/dashboard/tickets" isIconOnly variant="flat">
+      <Button isIconOnly className="mt-1" href="/dashboard/tickets" variant="flat">
         <ArrowLeft size={18} />
       </Button>
       <div className="flex items-center gap-3">

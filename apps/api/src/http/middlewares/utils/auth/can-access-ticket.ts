@@ -69,7 +69,10 @@ export function createCanAccessTicket(paramName: string = 'id'): MiddlewareHandl
       })
       .from(userRoles)
       .innerJoin(condominiums, eq(userRoles.condominiumId, condominiums.id))
-      .innerJoin(condominiumManagementCompanies, eq(condominiums.id, condominiumManagementCompanies.condominiumId))
+      .innerJoin(
+        condominiumManagementCompanies,
+        eq(condominiums.id, condominiumManagementCompanies.condominiumId)
+      )
       .where(
         and(
           eq(userRoles.userId, user.id),

@@ -1,6 +1,15 @@
 'use client'
 
+import type { TExpense, TReserveFundExpensesQuery } from '@packages/domain'
+import type { TExpensesTranslations } from './types'
+
 import { useState, useMemo, useCallback } from 'react'
+import { Receipt, Plus } from 'lucide-react'
+import { useReserveFundExpensesPaginated, useActiveCurrencies } from '@packages/http-client/hooks'
+
+import { CreateReserveFundExpenseModal } from './CreateReserveFundExpenseModal'
+import { ExpenseDetailModal } from './ExpenseDetailModal'
+
 import { Input } from '@/ui/components/input'
 import { Spinner } from '@/ui/components/spinner'
 import { Pagination } from '@/ui/components/pagination'
@@ -8,12 +17,6 @@ import { Typography } from '@/ui/components/typography'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Card, CardBody } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
-import { Receipt, Plus } from 'lucide-react'
-import type { TExpense, TReserveFundExpensesQuery } from '@packages/domain'
-import { useReserveFundExpensesPaginated, useActiveCurrencies } from '@packages/http-client/hooks'
-import { CreateReserveFundExpenseModal } from './CreateReserveFundExpenseModal'
-import { ExpenseDetailModal } from './ExpenseDetailModal'
-import type { TExpensesTranslations } from './types'
 
 interface ReserveFundExpensesSectionProps {
   condominiumId: string
@@ -76,40 +79,37 @@ export function ReserveFundExpensesSection({
     [t]
   )
 
-  const renderCell = useCallback(
-    (expense: TExpense, columnKey: string) => {
-      switch (columnKey) {
-        case 'description':
-          return <span className="text-sm font-medium">{expense.description || '-'}</span>
-        case 'amount':
-          return (
-            <span className="text-sm font-medium">
-              {parseFloat(expense.amount).toLocaleString('es-ES', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          )
-        case 'date':
-          return expense.expenseDate ? (
-            <span className="text-sm text-default-600">
-              {new Date(expense.expenseDate).toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-              })}
-            </span>
-          ) : (
-            <span className="text-sm text-default-400">-</span>
-          )
-        case 'vendor':
-          return <span className="text-sm text-default-600">{expense.vendorName || '-'}</span>
-        default:
-          return null
-      }
-    },
-    []
-  )
+  const renderCell = useCallback((expense: TExpense, columnKey: string) => {
+    switch (columnKey) {
+      case 'description':
+        return <span className="text-sm font-medium">{expense.description || '-'}</span>
+      case 'amount':
+        return (
+          <span className="text-sm font-medium">
+            {parseFloat(expense.amount).toLocaleString('es-ES', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+        )
+      case 'date':
+        return expense.expenseDate ? (
+          <span className="text-sm text-default-600">
+            {new Date(expense.expenseDate).toLocaleDateString('es-ES', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            })}
+          </span>
+        ) : (
+          <span className="text-sm text-default-400">-</span>
+        )
+      case 'vendor':
+        return <span className="text-sm text-default-600">{expense.vendorName || '-'}</span>
+      default:
+        return null
+    }
+  }, [])
 
   return (
     <div className="space-y-4">
@@ -127,24 +127,24 @@ export function ReserveFundExpensesSection({
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:flex-wrap">
         <Input
-          type="date"
-          label={t.filters.startDate}
-          value={startDate}
-          onValueChange={handleStartDateChange}
-          className="w-full sm:w-44"
-          variant="bordered"
           isClearable
+          className="w-full sm:w-44"
+          label={t.filters.startDate}
+          type="date"
+          value={startDate}
+          variant="bordered"
           onClear={() => handleStartDateChange('')}
+          onValueChange={handleStartDateChange}
         />
         <Input
-          type="date"
-          label={t.filters.endDate}
-          value={endDate}
-          onValueChange={handleEndDateChange}
-          className="w-full sm:w-44"
-          variant="bordered"
           isClearable
+          className="w-full sm:w-44"
+          label={t.filters.endDate}
+          type="date"
+          value={endDate}
+          variant="bordered"
           onClear={() => handleEndDateChange('')}
+          onValueChange={handleEndDateChange}
         />
       </div>
 
@@ -167,8 +167,8 @@ export function ReserveFundExpensesSection({
             {expenses.map(expense => (
               <Card
                 key={expense.id}
-                className="w-full cursor-pointer"
                 isPressable
+                className="w-full cursor-pointer"
                 onPress={() => setSelectedExpenseId(expense.id)}
               >
                 <CardBody className="space-y-2">
@@ -201,12 +201,12 @@ export function ReserveFundExpensesSection({
           {/* Desktop Table */}
           <div className="hidden md:block">
             <Table<TExpense>
-              mobileCards={false}
               aria-label={t.title}
               columns={columns}
-              rows={expenses}
+              mobileCards={false}
               renderCell={renderCell}
-              onRowClick={(expense) => setSelectedExpenseId(expense.id)}
+              rows={expenses}
+              onRowClick={expense => setSelectedExpenseId(expense.id)}
             />
           </div>
 
@@ -227,21 +227,21 @@ export function ReserveFundExpensesSection({
       )}
 
       <CreateReserveFundExpenseModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
         condominiumId={condominiumId}
-        managementCompanyId={managementCompanyId}
         currencies={currencies}
+        isOpen={isModalOpen}
+        managementCompanyId={managementCompanyId}
         translations={t.form}
+        onClose={() => setIsModalOpen(false)}
       />
 
       <ExpenseDetailModal
-        isOpen={!!selectedExpenseId}
-        onClose={() => setSelectedExpenseId(null)}
-        expenseId={selectedExpenseId}
-        managementCompanyId={managementCompanyId}
         currencies={currencies}
+        expenseId={selectedExpenseId}
+        isOpen={!!selectedExpenseId}
+        managementCompanyId={managementCompanyId}
         translations={t.detail}
+        onClose={() => setSelectedExpenseId(null)}
       />
     </div>
   )

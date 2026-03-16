@@ -1,7 +1,8 @@
 'use client'
 
-import { Tooltip as HeroUITooltip } from '@heroui/tooltip'
 import type { TooltipProps as HeroUITooltipProps } from '@heroui/tooltip'
+
+import { Tooltip as HeroUITooltip } from '@heroui/tooltip'
 import { cn } from '@heroui/theme'
 import { ReactNode } from 'react'
 
@@ -19,7 +20,14 @@ type TTooltipPlacement =
   | 'right-start'
   | 'right-end'
 
-type TTooltipColor = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'foreground'
+type TTooltipColor =
+  | 'default'
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'foreground'
 
 type TTooltipRadius = 'none' | 'sm' | 'md' | 'lg' | 'full'
 

@@ -75,10 +75,9 @@ export function useApiMutation<TData, TVariables = unknown, TContext = unknown>(
     },
     onSuccess: async (data, variables, context, ...rest) => {
       if (invalidateKeys) {
-        const keys = typeof invalidateKeys === 'function' ? invalidateKeys(variables) : invalidateKeys
-        await Promise.all(
-          keys.map(key => queryClient.invalidateQueries({ queryKey: key }))
-        )
+        const keys =
+          typeof invalidateKeys === 'function' ? invalidateKeys(variables) : invalidateKeys
+        await Promise.all(keys.map(key => queryClient.invalidateQueries({ queryKey: key })))
       }
       return options.onSuccess?.(data, variables, context, ...rest)
     },

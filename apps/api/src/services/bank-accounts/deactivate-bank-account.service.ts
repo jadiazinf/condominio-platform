@@ -9,9 +9,7 @@ export interface IDeactivateBankAccountInput {
 }
 
 export class DeactivateBankAccountService {
-  constructor(
-    private readonly bankAccountsRepository: BankAccountsRepository
-  ) {}
+  constructor(private readonly bankAccountsRepository: BankAccountsRepository) {}
 
   async execute(input: IDeactivateBankAccountInput): Promise<TServiceResult<TBankAccount>> {
     const existing = await this.bankAccountsRepository.getById(input.bankAccountId, true)

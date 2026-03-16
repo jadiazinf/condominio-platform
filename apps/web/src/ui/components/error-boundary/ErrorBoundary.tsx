@@ -1,6 +1,7 @@
 'use client'
 
 import { Component, type ReactNode, type ErrorInfo } from 'react'
+
 import { Button } from '@/ui/components/button'
 import { Card, CardBody, CardFooter, CardHeader } from '@/ui/components/card'
 
@@ -85,6 +86,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         if (typeof this.props.fallback === 'function') {
           return this.props.fallback(this.state.error, this.handleReset)
         }
+
         return this.props.fallback
       }
 
@@ -168,7 +170,7 @@ export function PageErrorBoundary({ children, pageName }: PageErrorBoundaryProps
   return (
     <ErrorBoundary
       fallback={(error, reset) => (
-        <PageErrorFallback error={error} onReset={reset} pageName={pageName} />
+        <PageErrorFallback error={error} pageName={pageName} onReset={reset} />
       )}
       onError={(error, errorInfo) => {
         // In production, you could send this to an error tracking service
@@ -222,8 +224,8 @@ function PageErrorFallback({ error, onReset, pageName }: PageErrorFallbackProps)
             Intentar de nuevo
           </Button>
           <Button
-            variant="bordered"
             size="lg"
+            variant="bordered"
             onPress={() => (window.location.href = '/dashboard')}
           >
             Ir al Dashboard

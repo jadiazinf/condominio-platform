@@ -2,25 +2,41 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useQuotaDetail } from '@packages/http-client'
+import { ArrowLeft } from 'lucide-react'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
+
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
-import { ArrowLeft } from 'lucide-react'
-import { formatCurrency } from '@packages/utils/currency'
-import { formatShortDate } from '@packages/utils/dates'
 
-const STATUS_COLOR_MAP: Record<string, 'warning' | 'success' | 'danger' | 'default'> = {
+const STATUS_COLOR_MAP: Record<
+  string,
+  'warning' | 'success' | 'danger' | 'default' | 'secondary' | 'primary'
+> = {
   pending: 'warning',
+  partial: 'primary',
   paid: 'success',
   overdue: 'danger',
   cancelled: 'default',
+  exonerated: 'secondary',
 }
 
 const MONTH_NAMES = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ]
 
 export default function QuotaDetailPage() {
@@ -35,6 +51,7 @@ export default function QuotaDetailPage() {
     if (month && month >= 1 && month <= 12) {
       return `${MONTH_NAMES[month - 1]} ${year}`
     }
+
     return `${year}`
   }
 
@@ -50,8 +67,8 @@ export default function QuotaDetailPage() {
     return (
       <div className="space-y-4">
         <Button
-          variant="light"
           startContent={<ArrowLeft size={16} />}
+          variant="light"
           onPress={() => router.push('/dashboard/quotas')}
         >
           {t('admin.quotas.actions.backToList')}
@@ -72,8 +89,8 @@ export default function QuotaDetailPage() {
       {/* Back button and header */}
       <div className="flex items-center gap-4">
         <Button
-          variant="light"
           startContent={<ArrowLeft size={16} />}
+          variant="light"
           onPress={() => router.push('/dashboard/quotas')}
         >
           {t('admin.quotas.actions.backToList')}
@@ -84,21 +101,18 @@ export default function QuotaDetailPage() {
         <div>
           <Typography variant="h2">{t('admin.quotas.detail.title')}</Typography>
           <Typography className="mt-1" color="muted" variant="body2">
-            {quota.paymentConcept?.name ?? '-'} - {formatPeriod(quota.periodYear, quota.periodMonth)}
+            {quota.paymentConcept?.name ?? '-'} -{' '}
+            {formatPeriod(quota.periodYear, quota.periodMonth)}
           </Typography>
         </div>
-        <Chip
-          color={STATUS_COLOR_MAP[quota.status] || 'default'}
-          variant="flat"
-          size="lg"
-        >
+        <Chip color={STATUS_COLOR_MAP[quota.status] || 'default'} size="lg" variant="flat">
           {t(`admin.quotas.status.${quota.status}`)}
         </Chip>
       </div>
 
       {/* Unit Information */}
       <div className="rounded-lg border border-default-200 p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('admin.quotas.detail.unitInfo')}
         </Typography>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -106,17 +120,13 @@ export default function QuotaDetailPage() {
             <Typography color="muted" variant="body2">
               {t('admin.quotas.table.unit')}
             </Typography>
-            <Typography variant="body1">
-              {quota.unit?.unitNumber ?? '-'}
-            </Typography>
+            <Typography variant="body1">{quota.unit?.unitNumber ?? '-'}</Typography>
           </div>
           <div>
             <Typography color="muted" variant="body2">
               {t('admin.quotas.table.concept')}
             </Typography>
-            <Typography variant="body1">
-              {quota.paymentConcept?.name ?? '-'}
-            </Typography>
+            <Typography variant="body1">{quota.paymentConcept?.name ?? '-'}</Typography>
           </div>
           <div>
             <Typography color="muted" variant="body2">
@@ -131,9 +141,7 @@ export default function QuotaDetailPage() {
               <Typography color="muted" variant="body2">
                 {t('admin.quotas.table.concept')}
               </Typography>
-              <Typography variant="body1">
-                {quota.periodDescription}
-              </Typography>
+              <Typography variant="body1">{quota.periodDescription}</Typography>
             </div>
           )}
         </div>
@@ -141,7 +149,7 @@ export default function QuotaDetailPage() {
 
       {/* Amount Information */}
       <div className="rounded-lg border border-default-200 p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('admin.quotas.detail.amountInfo')}
         </Typography>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -149,7 +157,7 @@ export default function QuotaDetailPage() {
             <Typography color="muted" variant="body2">
               {t('admin.quotas.detail.baseAmount')}
             </Typography>
-            <Typography variant="body1" className="font-semibold">
+            <Typography className="font-semibold" variant="body1">
               {formatCurrency(quota.baseAmount, { currency: currencyCode })}
             </Typography>
           </div>
@@ -157,7 +165,7 @@ export default function QuotaDetailPage() {
             <Typography color="muted" variant="body2">
               {t('admin.quotas.detail.interestAmount')}
             </Typography>
-            <Typography variant="body1" className="font-semibold">
+            <Typography className="font-semibold" variant="body1">
               {formatCurrency(quota.interestAmount, { currency: currencyCode })}
             </Typography>
           </div>
@@ -165,7 +173,7 @@ export default function QuotaDetailPage() {
             <Typography color="muted" variant="body2">
               {t('admin.quotas.detail.paidAmount')}
             </Typography>
-            <Typography variant="body1" className="font-semibold text-success">
+            <Typography className="font-semibold text-success" variant="body1">
               {formatCurrency(quota.paidAmount, { currency: currencyCode })}
             </Typography>
           </div>
@@ -173,7 +181,7 @@ export default function QuotaDetailPage() {
             <Typography color="muted" variant="body2">
               {t('admin.quotas.detail.balance')}
             </Typography>
-            <Typography variant="body1" className="font-semibold">
+            <Typography className="font-semibold" variant="body1">
               {formatCurrency(quota.balance, { currency: currencyCode })}
             </Typography>
           </div>
@@ -182,7 +190,7 @@ export default function QuotaDetailPage() {
 
       {/* Date Information */}
       <div className="rounded-lg border border-default-200 p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('admin.quotas.detail.dateInfo')}
         </Typography>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -190,27 +198,23 @@ export default function QuotaDetailPage() {
             <Typography color="muted" variant="body2">
               {t('admin.quotas.detail.issueDate')}
             </Typography>
-            <Typography variant="body1">
-              {formatShortDate(quota.issueDate)}
-            </Typography>
+            <Typography variant="body1">{formatShortDate(quota.issueDate)}</Typography>
           </div>
           <div>
             <Typography color="muted" variant="body2">
               {t('admin.quotas.detail.dueDate')}
             </Typography>
-            <Typography variant="body1">
-              {formatShortDate(quota.dueDate)}
-            </Typography>
+            <Typography variant="body1">{formatShortDate(quota.dueDate)}</Typography>
           </div>
         </div>
       </div>
 
       {/* Notes */}
       <div className="rounded-lg border border-default-200 p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('admin.quotas.detail.notes')}
         </Typography>
-        <Typography variant="body1" color={quota.notes ? undefined : 'muted'}>
+        <Typography color={quota.notes ? undefined : 'muted'} variant="body1">
           {quota.notes ?? t('admin.quotas.detail.noNotes')}
         </Typography>
       </div>

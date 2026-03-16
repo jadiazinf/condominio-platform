@@ -2,8 +2,9 @@
 
 import type { TSupportTicket, TPaginationMeta } from '@packages/domain'
 
-import { useI18n } from '@/contexts'
 import { SupportTicketsTable } from './components'
+
+import { useI18n } from '@/contexts'
 
 interface AdminTicketsPageClientProps {
   companyId: string
@@ -25,7 +26,7 @@ export function AdminTicketsPageClient({
         <p className="mt-2 text-sm text-default-500">{t('tickets.subtitle')}</p>
       </div>
 
-      <SupportTicketsTable companyId={companyId} tickets={tickets} pagination={pagination} />
+      <SupportTicketsTable companyId={companyId} pagination={pagination} tickets={tickets} />
     </div>
   )
 }

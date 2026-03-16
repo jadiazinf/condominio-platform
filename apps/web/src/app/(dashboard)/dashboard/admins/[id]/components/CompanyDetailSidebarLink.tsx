@@ -1,11 +1,12 @@
 'use client'
 
-import { Link } from '@/ui/components/link'
+import type { TCompanyDetailIconName } from '../config/sidebar-items'
+
 import { usePathname } from 'next/navigation'
-import { cn } from '@/ui/utils'
 import { Building2, Home, Users, CreditCard, Receipt, Headset, ToggleLeft } from 'lucide-react'
 
-import type { TCompanyDetailIconName } from '../config/sidebar-items'
+import { Link } from '@/ui/components/link'
+import { cn } from '@/ui/utils'
 
 const ICONS = {
   general: Building2,

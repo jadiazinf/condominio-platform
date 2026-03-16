@@ -143,7 +143,6 @@ afterAll(async () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('Full Onboarding Flow — End-to-End', function () {
-
   it('completes the full onboarding lifecycle: company → admin → condominium → building → unit → resident', async function () {
     // ─── Step 1: Create management company with admin ────────────────────
     const createCompanyRes = await request('/platform/admin-invitations/create-with-admin', {
@@ -165,7 +164,7 @@ describe('Full Onboarding Flow — End-to-End', function () {
       }),
     })
     expect(createCompanyRes.status).toBe(201)
-    const createCompanyJson = await createCompanyRes.json() as {
+    const createCompanyJson = (await createCompanyRes.json()) as {
       data: {
         company: { id: string; name: string; isActive: boolean }
         admin: { id: string; email: string; isActive: boolean }
@@ -187,11 +186,11 @@ describe('Full Onboarding Flow — End-to-End', function () {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer placeholder-token:admin-firebase-uid',
+        Authorization: 'Bearer placeholder-token:admin-firebase-uid',
       },
     })
     expect(acceptAdminRes.status).toBe(200)
-    const acceptAdminJson = await acceptAdminRes.json() as {
+    const acceptAdminJson = (await acceptAdminRes.json()) as {
       data: {
         user: { id: string; isActive: boolean }
         managementCompany: { id: string; isActive: boolean }
@@ -284,11 +283,11 @@ describe('Full Onboarding Flow — End-to-End', function () {
 
     // ─── Step 6: Create role and invite resident ─────────────────────────
     // Create a RESIDENT role
-    const roleResult = await db.execute(sql`
+    const roleResult = (await db.execute(sql`
       INSERT INTO roles (name, description, is_system_role)
       VALUES ('RESIDENT', 'Resident of condominium', false)
       RETURNING id
-    `) as unknown as { id: string }[]
+    `)) as unknown as { id: string }[]
     const residentRoleId = roleResult[0]!.id
 
     // Invite a resident via user invitations controller
@@ -296,7 +295,7 @@ describe('Full Onboarding Flow — End-to-End', function () {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer placeholder-token:firebase-uid-superadmin',
+        Authorization: 'Bearer placeholder-token:firebase-uid-superadmin',
       },
       body: JSON.stringify({
         email: 'resident@onboarding-test.com',
@@ -307,7 +306,7 @@ describe('Full Onboarding Flow — End-to-End', function () {
       }),
     })
     expect(inviteRes.status).toBe(201)
-    const inviteJson = await inviteRes.json() as {
+    const inviteJson = (await inviteRes.json()) as {
       data: {
         user: { id: string; isActive: boolean }
         invitation: { id: string; status: string }
@@ -325,15 +324,18 @@ describe('Full Onboarding Flow — End-to-End', function () {
     expect(inviteJson.data.invitation.status).toBe('pending')
 
     // ─── Step 7: Resident accepts invitation ─────────────────────────────
-    const acceptResidentRes = await request(`/condominium/user-invitations/accept/${residentInvToken}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer placeholder-token:resident-firebase-uid',
-      },
-    })
+    const acceptResidentRes = await request(
+      `/condominium/user-invitations/accept/${residentInvToken}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer placeholder-token:resident-firebase-uid',
+        },
+      }
+    )
     expect(acceptResidentRes.status).toBe(200)
-    const acceptResidentJson = await acceptResidentRes.json() as {
+    const acceptResidentJson = (await acceptResidentRes.json()) as {
       data: {
         user: { id: string; isActive: boolean; email: string }
         invitation: { status: string }
@@ -388,11 +390,11 @@ describe('Full Onboarding Flow — End-to-End', function () {
 
   it('cannot invite resident to a condominium that does not exist', async function () {
     // Create role
-    const roleResult = await db.execute(sql`
+    const roleResult = (await db.execute(sql`
       INSERT INTO roles (name, description, is_system_role)
       VALUES ('RESIDENT', 'Resident', false)
       RETURNING id
-    `) as unknown as { id: string }[]
+    `)) as unknown as { id: string }[]
     const roleId = roleResult[0]!.id
 
     // Try to invite to non-existent condominium
@@ -400,7 +402,7 @@ describe('Full Onboarding Flow — End-to-End', function () {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer placeholder-token:firebase-uid-superadmin',
+        Authorization: 'Bearer placeholder-token:firebase-uid-superadmin',
       },
       body: JSON.stringify({
         email: 'resident@test.com',
@@ -434,18 +436,21 @@ describe('Full Onboarding Flow — End-to-End', function () {
       }),
     })
     expect(createRes.status).toBe(201)
-    const createJson = await createRes.json() as {
+    const createJson = (await createRes.json()) as {
       data: { company: { id: string }; invitationToken: string }
     }
 
     // Step 2: Accept invitation
-    const acceptRes = await request(`/platform/admin-invitations/accept/${createJson.data.invitationToken}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer placeholder-token:sub-admin-firebase-uid',
-      },
-    })
+    const acceptRes = await request(
+      `/platform/admin-invitations/accept/${createJson.data.invitationToken}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer placeholder-token:sub-admin-firebase-uid',
+        },
+      }
+    )
     expect(acceptRes.status).toBe(200)
 
     // Step 3: Verify NO subscription was auto-created

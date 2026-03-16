@@ -11,10 +11,7 @@ export type {
 } from './validate-invitation-token.service'
 
 export { AcceptInvitationService } from './accept-invitation.service'
-export type {
-  IAcceptInvitationInput,
-  IAcceptInvitationResult,
-} from './accept-invitation.service'
+export type { IAcceptInvitationInput, IAcceptInvitationResult } from './accept-invitation.service'
 
 export { GetInvitationByTokenService } from './get-invitation-by-token.service'
 export type { IGetInvitationByTokenInput } from './get-invitation-by-token.service'

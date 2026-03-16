@@ -140,7 +140,7 @@ export function useUpdateServiceExecution(
 ) {
   const config = condominiumId ? { headers: { 'x-condominium-id': condominiumId } } : undefined
   return useApiMutation<TApiDataResponse<TServiceExecution>, IUpdateServiceExecutionVariables>({
-    path: (variables) =>
+    path: variables =>
       `/${companyId}/me/condominium-services/${serviceId}/executions/${variables.executionId}`,
     method: 'PATCH',
     config,
@@ -158,7 +158,7 @@ export function useDeleteServiceExecution(
 ) {
   const config = condominiumId ? { headers: { 'x-condominium-id': condominiumId } } : undefined
   return useApiMutation<TApiDataResponse<{ id: string }>, IDeleteServiceExecutionVariables>({
-    path: (variables) =>
+    path: variables =>
       `/${companyId}/me/condominium-services/${serviceId}/executions/${variables.executionId}`,
     method: 'DELETE',
     config,

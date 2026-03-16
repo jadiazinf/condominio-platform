@@ -10,19 +10,8 @@ interface IDividerProps {
   className?: string
 }
 
-export function Divider({
-  orientation = 'horizontal',
-  className,
-}: IDividerProps) {
-  return (
-    <HeroUIDivider
-      className={cn(className)}
-      orientation={orientation}
-    />
-  )
+export function Divider({ orientation = 'horizontal', className }: IDividerProps) {
+  return <HeroUIDivider className={cn(className)} orientation={orientation} />
 }
 
-export type {
-  TDividerOrientation,
-  IDividerProps,
-}
+export type { TDividerOrientation, IDividerProps }

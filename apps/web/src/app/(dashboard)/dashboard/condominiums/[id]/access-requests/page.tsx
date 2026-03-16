@@ -1,7 +1,8 @@
+import { AccessRequestsPageClient } from './AccessRequestsPageClient'
+
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
-import { AccessRequestsPageClient } from './AccessRequestsPageClient'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -9,14 +10,12 @@ interface PageProps {
 
 export default async function AccessRequestsPage({ params }: PageProps) {
   const { id } = await params
-  const [{ t }, session] = await Promise.all([
-    getTranslations(),
-    getFullSession(),
-  ])
+  const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
 
-  const managementCompanyId = session?.activeRole === 'management_company'
-    ? session.managementCompanies?.[0]?.managementCompanyId
-    : undefined
+  const managementCompanyId =
+    session?.activeRole === 'management_company'
+      ? session.managementCompanies?.[0]?.managementCompanyId
+      : undefined
 
   const translations = {
     title: t('admin.accessRequests.title'),
@@ -89,7 +88,7 @@ export default async function AccessRequestsPage({ params }: PageProps) {
     <div className="space-y-6">
       <div>
         <Typography variant="h3">{translations.title}</Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
+        <Typography className="mt-1" color="muted" variant="body2">
           {translations.subtitle}
         </Typography>
       </div>

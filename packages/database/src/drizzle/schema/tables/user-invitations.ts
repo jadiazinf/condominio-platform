@@ -1,11 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  varchar,
-  text,
-  timestamp,
-  index,
-} from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, text, timestamp, index } from 'drizzle-orm/pg-core'
 import { adminInvitationStatusEnum } from '../enums'
 import { users } from './users'
 import { condominiums } from './condominiums'

@@ -11,6 +11,7 @@ import type {
 import type { TDrizzleClient } from '../../../database/src/repositories/interfaces'
 import { CalculateFormulaAmountService } from './calculate-formula-amount.service'
 import { type TServiceResult, success, failure } from '../base'
+import { parseAmount, toDecimal } from '../../../utils/src/money'
 import logger from '../../../logger/src'
 
 export interface IGenerateQuotasInput {
@@ -28,8 +29,18 @@ export interface IGenerateQuotasOutput {
 }
 
 const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ]
 
 export class GenerateQuotasForScheduleService {
@@ -117,16 +128,22 @@ export class GenerateQuotasForScheduleService {
       let totalAmount = 0
       const affectedUnitIds: string[] = []
 
+      // Pre-check which units already have quotas for this period/concept (avoid N+1)
+      const existingQuotas = await txQuotasRepo.getByPeriod(periodYear, periodMonth)
+      const existingUnitIds = new Set(
+        existingQuotas
+          .filter(
+            q =>
+              q.paymentConceptId === rule.paymentConceptId &&
+              q.status !== 'cancelled' &&
+              q.status !== 'exonerated'
+          )
+          .map(q => q.unitId)
+      )
+
       for (const { unit, amount } of unitsWithAmounts) {
         try {
-          const existingQuotas = await txQuotasRepo.getByPeriod(periodYear, periodMonth)
-          const alreadyExists = existingQuotas.some(
-            q =>
-              q.unitId === unit.id &&
-              q.paymentConceptId === rule.paymentConceptId &&
-              q.status !== 'cancelled'
-          )
-          if (alreadyExists) {
+          if (existingUnitIds.has(unit.id)) {
             continue
           }
 
@@ -144,6 +161,7 @@ export class GenerateQuotasForScheduleService {
             issueDate,
             dueDate,
             status: 'pending',
+            adjustmentsTotal: '0',
             paidAmount: '0',
             balance: amount,
             notes: null,
@@ -152,7 +170,7 @@ export class GenerateQuotasForScheduleService {
           })
 
           quotasCreated++
-          totalAmount += parseFloat(amount)
+          totalAmount += parseAmount(amount)
           affectedUnitIds.push(unit.id)
         } catch (error) {
           quotasFailed++
@@ -179,7 +197,7 @@ export class GenerateQuotasForScheduleService {
         periodDescription,
         quotasCreated,
         quotasFailed,
-        totalAmount: totalAmount.toFixed(2),
+        totalAmount: toDecimal(totalAmount),
         currencyId: formula.currencyId,
         unitsAffected: affectedUnitIds.length > 0 ? affectedUnitIds : null,
         parameters: {

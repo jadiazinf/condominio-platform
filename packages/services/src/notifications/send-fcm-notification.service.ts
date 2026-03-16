@@ -42,7 +42,10 @@ export class SendFcmNotificationService {
       return success({ successCount: 0, failureCount: 0, invalidTokens: [] })
     }
 
-    return this.sendToTokens(tokens.map(t => t.token), input)
+    return this.sendToTokens(
+      tokens.map(t => t.token),
+      input
+    )
   }
 
   async executeMulticast(
@@ -159,7 +162,11 @@ export class SendFcmNotificationService {
         logger.info({ count: invalidTokens.length }, 'Deactivated invalid FCM tokens')
       }
 
-      return success({ successCount: totalSuccessCount, failureCount: totalFailureCount, invalidTokens })
+      return success({
+        successCount: totalSuccessCount,
+        failureCount: totalFailureCount,
+        invalidTokens,
+      })
     } catch (error) {
       logger.error({ err: error }, 'Failed to send FCM notification')
       return failure('Failed to send FCM notification', 'INTERNAL_ERROR')
@@ -221,7 +228,11 @@ export class SendFcmNotificationService {
         await this.fcmTokensRepository.deactivateToken(invalidToken)
       }
 
-      return success({ successCount: totalSuccessCount, failureCount: totalFailureCount, invalidTokens })
+      return success({
+        successCount: totalSuccessCount,
+        failureCount: totalFailureCount,
+        invalidTokens,
+      })
     } catch (error) {
       logger.error({ err: error }, 'Failed to send FCM data-only notification')
       return failure('Failed to send FCM data-only notification', 'INTERNAL_ERROR')

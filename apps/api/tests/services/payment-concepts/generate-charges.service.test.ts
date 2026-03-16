@@ -30,6 +30,7 @@ type TMockUnitsRepo = {
 type TMockQuotasRepo = {
   existsForConceptAndPeriod: (conceptId: string, year: number, month: number) => Promise<boolean>
   createMany: (quotas: Record<string, unknown>[]) => Promise<{ id: string }[]>
+  withTx: (tx: unknown) => TMockQuotasRepo
 }
 
 type TMockDb = {
@@ -82,7 +83,9 @@ function mockConcept(overrides: Partial<TPaymentConcept> = {}): TPaymentConcept 
   }
 }
 
-function mockAssignment(overrides: Partial<TPaymentConceptAssignment> = {}): TPaymentConceptAssignment {
+function mockAssignment(
+  overrides: Partial<TPaymentConceptAssignment> = {}
+): TPaymentConceptAssignment {
   return {
     id: '550e8400-e29b-41d4-a716-446655440050',
     paymentConceptId: conceptId,
@@ -135,7 +138,7 @@ describe('GenerateChargesService', function () {
         { id: unit1, buildingId, aliquotPercentage: '60.000000', isActive: true },
         { id: unit2, buildingId, aliquotPercentage: '40.000000', isActive: true },
       ],
-      getById: async (id) => ({
+      getById: async id => ({
         id,
         buildingId,
         aliquotPercentage: '100.000000',
@@ -145,14 +148,17 @@ describe('GenerateChargesService', function () {
 
     mockQuotasRepo = {
       existsForConceptAndPeriod: async () => false,
-      createMany: async (quotas) => {
+      createMany: async quotas => {
         createdQuotas = quotas
         return quotas.map((_, i) => ({ id: `quota-${i}` }))
+      },
+      withTx() {
+        return this
       },
     }
 
     mockDb = {
-      transaction: async (fn) => fn(null),
+      transaction: async fn => fn(null),
     }
 
     service = new GenerateChargesService(
@@ -198,7 +204,8 @@ describe('GenerateChargesService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         const totalGenerated = result.data.unitDetails.reduce(
-          (sum: number, d: { amount: number }) => sum + d.amount, 0
+          (sum: number, d: { amount: number }) => sum + d.amount,
+          0
         )
         expect(totalGenerated).toBeCloseTo(1000, 2)
       }
@@ -225,7 +232,8 @@ describe('GenerateChargesService', function () {
       if (result.success) {
         expect(result.data.quotasCreated).toBe(2)
         const totalGenerated = result.data.unitDetails.reduce(
-          (sum: number, d: { amount: number }) => sum + d.amount, 0
+          (sum: number, d: { amount: number }) => sum + d.amount,
+          0
         )
         expect(totalGenerated).toBeCloseTo(500, 2)
       }
@@ -289,7 +297,8 @@ describe('GenerateChargesService', function () {
       if (result.success) {
         expect(result.data.quotasCreated).toBe(3)
         const totalGenerated = result.data.unitDetails.reduce(
-          (sum: number, d: { amount: number }) => sum + d.amount, 0
+          (sum: number, d: { amount: number }) => sum + d.amount,
+          0
         )
         // Sum must equal exactly 100 (penny adjustment on last unit)
         expect(totalGenerated).toBeCloseTo(100, 2)
@@ -411,8 +420,12 @@ describe('GenerateChargesService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         expect(result.data.quotasCreated).toBe(2)
-        const unit1Detail = result.data.unitDetails.find((d: { unitId: string }) => d.unitId === unit1)
-        const unit2Detail = result.data.unitDetails.find((d: { unitId: string }) => d.unitId === unit2)
+        const unit1Detail = result.data.unitDetails.find(
+          (d: { unitId: string }) => d.unitId === unit1
+        )
+        const unit2Detail = result.data.unitDetails.find(
+          (d: { unitId: string }) => d.unitId === unit2
+        )
         expect(unit1Detail!.amount).toBe(200) // overridden
         expect(unit2Detail!.amount).toBe(100) // from condominium-wide
       }
@@ -561,7 +574,8 @@ describe('GenerateChargesService', function () {
       expect(result.success).toBe(true)
       if (result.success) {
         const totalGenerated = result.data.unitDetails.reduce(
-          (sum: number, d: { amount: number }) => sum + d.amount, 0
+          (sum: number, d: { amount: number }) => sum + d.amount,
+          0
         )
         // Must sum to exactly 1000 regardless of rounding
         expect(totalGenerated).toBeCloseTo(1000, 2)

@@ -2,8 +2,15 @@ import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll } from
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
 import { sql } from 'drizzle-orm'
-import { isUserAuthenticated, AUTHENTICATED_USER_PROP } from '@http/middlewares/utils/auth/is-user-authenticated'
-import { requireRole, CONDOMINIUM_ID_PROP, USER_ROLE_PROP } from '@http/middlewares/utils/auth/require-role'
+import {
+  isUserAuthenticated,
+  AUTHENTICATED_USER_PROP,
+} from '@http/middlewares/utils/auth/is-user-authenticated'
+import {
+  requireRole,
+  CONDOMINIUM_ID_PROP,
+  USER_ROLE_PROP,
+} from '@http/middlewares/utils/auth/require-role'
 import { env } from '@config/environment'
 import { applyI18nMiddleware } from '@http/middlewares/locales'
 import { ESystemRole, type TSystemRole } from '@packages/domain'
@@ -65,10 +72,16 @@ describe('requireRole middleware', () => {
     userRolesRepo = new UserRolesRepository(db)
 
     // Seed the five system roles (UPPERCASE names as required)
-    const superadminRole = await rolesRepo.create(RoleFactory.systemRole({ name: ESystemRole.SUPERADMIN }))
+    const superadminRole = await rolesRepo.create(
+      RoleFactory.systemRole({ name: ESystemRole.SUPERADMIN })
+    )
     const adminRole = await rolesRepo.create(RoleFactory.systemRole({ name: ESystemRole.ADMIN }))
-    const accountantRole = await rolesRepo.create(RoleFactory.systemRole({ name: ESystemRole.ACCOUNTANT }))
-    const supportRole = await rolesRepo.create(RoleFactory.systemRole({ name: ESystemRole.SUPPORT }))
+    const accountantRole = await rolesRepo.create(
+      RoleFactory.systemRole({ name: ESystemRole.ACCOUNTANT })
+    )
+    const supportRole = await rolesRepo.create(
+      RoleFactory.systemRole({ name: ESystemRole.SUPPORT })
+    )
     const userRole = await rolesRepo.create(RoleFactory.systemRole({ name: ESystemRole.USER }))
 
     superadminRoleId = superadminRole.id
@@ -108,7 +121,9 @@ describe('requireRole middleware', () => {
     const id = crypto.randomUUID()
     const name = `Test Condo ${id.slice(0, 8)}`
     const code = id.slice(0, 6).toUpperCase()
-    await db.execute(sql`INSERT INTO condominiums (id, name, code, is_active) VALUES (${id}, ${name}, ${code}, true)`)
+    await db.execute(
+      sql`INSERT INTO condominiums (id, name, code, is_active) VALUES (${id}, ${name}, ${code}, true)`
+    )
     return id
   }
 

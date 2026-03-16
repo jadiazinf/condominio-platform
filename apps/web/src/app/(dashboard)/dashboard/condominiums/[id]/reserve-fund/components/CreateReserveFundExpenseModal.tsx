@@ -1,20 +1,10 @@
 'use client'
 
+import type { TCondominiumService, TTaxIdType } from '@packages/domain'
+import type { IStepItem } from '@/ui/components/stepper'
+import type { TExpensesTranslations } from './types'
+
 import { useState, useMemo, useCallback, useRef } from 'react'
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
-import { Input, CurrencyInput } from '@/ui/components/input'
-import { Textarea } from '@/ui/components/textarea'
-import { Select, type ISelectItem } from '@/ui/components/select'
-import { Button } from '@/ui/components/button'
-import { Typography } from '@/ui/components/typography'
-import { Card, CardBody } from '@/ui/components/card'
-import { Stepper } from '@/ui/components/stepper'
-import { Progress } from '@/ui/components/progress'
-import { Table, type ITableColumn } from '@/ui/components/table'
-import { Chip } from '@/ui/components/chip'
-import { Pagination } from '@/ui/components/pagination'
-import { Tabs, Tab } from '@/ui/components/tabs'
-import { useToast } from '@/ui/components/toast'
 import {
   Upload,
   X,
@@ -29,16 +19,26 @@ import {
   useCreateReserveFundExpense,
   useCondominiumServicesPaginated,
 } from '@packages/http-client/hooks'
-import type { TCondominiumService, TTaxIdType } from '@packages/domain'
 import { formatFileSize } from '@packages/domain'
+
+import { useExpenseDocumentUpload, EXPENSE_ACCEPT_STRING } from '../hooks/useExpenseDocumentUpload'
+
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
+import { Input, CurrencyInput } from '@/ui/components/input'
+import { Textarea } from '@/ui/components/textarea'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Button } from '@/ui/components/button'
+import { Typography } from '@/ui/components/typography'
+import { Card, CardBody } from '@/ui/components/card'
+import { Stepper } from '@/ui/components/stepper'
+import { Progress } from '@/ui/components/progress'
+import { Table, type ITableColumn } from '@/ui/components/table'
+import { Chip } from '@/ui/components/chip'
+import { Pagination } from '@/ui/components/pagination'
+import { Tabs, Tab } from '@/ui/components/tabs'
+import { useToast } from '@/ui/components/toast'
 import { TaxIdInput } from '@/ui/components/tax-id-input'
 import { PhoneInput } from '@/ui/components/phone-input'
-import type { IStepItem } from '@/ui/components/stepper'
-import {
-  useExpenseDocumentUpload,
-  EXPENSE_ACCEPT_STRING,
-} from '../hooks/useExpenseDocumentUpload'
-import type { TExpensesTranslations } from './types'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -101,7 +101,10 @@ interface IServiceRow {
   phone: string | null
 }
 
-const PROVIDER_TYPE_COLORS: Record<string, 'primary' | 'secondary' | 'success' | 'warning' | 'default'> = {
+const PROVIDER_TYPE_COLORS: Record<
+  string,
+  'primary' | 'secondary' | 'success' | 'warning' | 'default'
+> = {
   individual: 'primary',
   company: 'secondary',
   cooperative: 'success',
@@ -136,6 +139,7 @@ export function CreateReserveFundExpenseModal({
 
   const defaultCurrencyId = useMemo(() => {
     const usd = currencies.find(c => c.code === 'USD')
+
     return usd?.id ?? currencies[0]?.id ?? ''
   }, [currencies])
 
@@ -187,7 +191,7 @@ export function CreateReserveFundExpenseModal({
     retryFile,
     clearAll,
   } = useExpenseDocumentUpload({
-    onValidationError: (errors) => {
+    onValidationError: errors => {
       for (const err of errors) {
         toast.error(
           err.reason === 'file_too_large'
@@ -250,6 +254,7 @@ export function CreateReserveFundExpenseModal({
   const currencySymbol = useMemo(() => {
     if (!formData.currencyId) return '$'
     const cur = currencies.find(c => c.id === formData.currencyId)
+
     return cur?.symbol || cur?.code || '$'
   }, [formData.currencyId, currencies])
 
@@ -295,8 +300,8 @@ export function CreateReserveFundExpenseModal({
           return (
             <Chip
               color={PROVIDER_TYPE_COLORS[row.providerType] ?? 'default'}
-              variant="flat"
               size="sm"
+              variant="flat"
             >
               {providerTypeLabels[row.providerType] ?? row.providerType}
             </Chip>
@@ -312,17 +317,21 @@ export function CreateReserveFundExpenseModal({
     [providerTypeLabels]
   )
 
-  const handleServiceSelectionChange = useCallback((keys: 'all' | Set<string | number>) => {
-    if (keys === 'all') {
-      setSelectedServiceIds(new Set(services.map(s => s.id)))
-    } else {
-      setSelectedServiceIds(new Set(Array.from(keys).map(String)))
-    }
-  }, [services])
+  const handleServiceSelectionChange = useCallback(
+    (keys: 'all' | Set<string | number>) => {
+      if (keys === 'all') {
+        setSelectedServiceIds(new Set(services.map(s => s.id)))
+      } else {
+        setSelectedServiceIds(new Set(Array.from(keys).map(String)))
+      }
+    },
+    [services]
+  )
 
   // Get selected service names for review
   const selectedServiceNames = useMemo(() => {
     if (selectedServiceIds.size === 0) return []
+
     // We need to look across all known services
     return services
       .filter(s => selectedServiceIds.has(s.id))
@@ -340,11 +349,9 @@ export function CreateReserveFundExpenseModal({
         )
       case 1:
         if (vendorMode === 'manual') {
-          return !!(
-            formData.vendorName.trim() &&
-            formData.vendorType
-          )
+          return !!(formData.vendorName.trim() && formData.vendorType)
         }
+
         return true
       case 2:
         return !isUploading
@@ -399,16 +406,19 @@ export function CreateReserveFundExpenseModal({
         currencyId: formData.currencyId,
         expenseDate: formData.expenseDate,
         serviceIds: serviceIdsArray.length > 0 ? serviceIdsArray : undefined,
-        vendorName: vendorMode === 'manual' ? (formData.vendorName.trim() || undefined) : undefined,
-        vendorTaxId: vendorMode === 'manual' && formData.vendorTaxIdType && formData.vendorTaxIdNumber.trim()
-          ? `${formData.vendorTaxIdType}-${formData.vendorTaxIdNumber.trim()}`
-          : undefined,
-        vendorType: vendorMode === 'manual' ? (formData.vendorType || undefined) : undefined,
-        vendorPhone: vendorMode === 'manual' && formData.vendorPhoneNumber.trim()
-          ? `${formData.vendorPhoneCountryCode || '+58'}${formData.vendorPhoneNumber.trim()}`
-          : undefined,
-        vendorEmail: vendorMode === 'manual' ? (formData.vendorEmail.trim() || undefined) : undefined,
-        vendorAddress: vendorMode === 'manual' ? (formData.vendorAddress.trim() || undefined) : undefined,
+        vendorName: vendorMode === 'manual' ? formData.vendorName.trim() || undefined : undefined,
+        vendorTaxId:
+          vendorMode === 'manual' && formData.vendorTaxIdType && formData.vendorTaxIdNumber.trim()
+            ? `${formData.vendorTaxIdType}-${formData.vendorTaxIdNumber.trim()}`
+            : undefined,
+        vendorType: vendorMode === 'manual' ? formData.vendorType || undefined : undefined,
+        vendorPhone:
+          vendorMode === 'manual' && formData.vendorPhoneNumber.trim()
+            ? `${formData.vendorPhoneCountryCode || '+58'}${formData.vendorPhoneNumber.trim()}`
+            : undefined,
+        vendorEmail: vendorMode === 'manual' ? formData.vendorEmail.trim() || undefined : undefined,
+        vendorAddress:
+          vendorMode === 'manual' ? formData.vendorAddress.trim() || undefined : undefined,
         invoiceNumber: formData.invoiceNumber.trim() || undefined,
         notes: formData.notes.trim() || undefined,
         documents: documents.length > 0 ? documents : undefined,
@@ -451,50 +461,50 @@ export function CreateReserveFundExpenseModal({
   const renderChargeInfoStep = () => (
     <div className="flex flex-col gap-5">
       <Input
+        isRequired
         label={t.name}
         placeholder={t.namePlaceholder}
         value={formData.name}
-        onValueChange={v => updateForm({ name: v })}
         variant="bordered"
-        isRequired
+        onValueChange={v => updateForm({ name: v })}
       />
       <Textarea
         label={t.description}
+        minRows={2}
         placeholder={t.descriptionPlaceholder}
         value={formData.description}
-        onValueChange={v => updateForm({ description: v })}
         variant="bordered"
-        minRows={2}
+        onValueChange={v => updateForm({ description: v })}
       />
       <div className="flex flex-col gap-5 sm:flex-row">
         <div className="flex-1">
           <Select
-            label={t.currency}
             items={currencyItems}
+            label={t.currency}
             value={formData.currencyId}
-            onChange={key => key && updateForm({ currencyId: key })}
             variant="bordered"
+            onChange={key => key && updateForm({ currencyId: key })}
           />
         </div>
         <div className="flex-1">
           <CurrencyInput
+            isRequired
+            currencySymbol={currencySymbol}
             label={t.amount}
             placeholder="0,00"
             value={formData.amount}
-            onValueChange={v => updateForm({ amount: v })}
             variant="bordered"
-            isRequired
-            currencySymbol={currencySymbol}
+            onValueChange={v => updateForm({ amount: v })}
           />
         </div>
       </div>
       <Input
-        type="date"
-        label={t.expenseDate}
-        value={formData.expenseDate}
-        onValueChange={v => updateForm({ expenseDate: v })}
-        variant="bordered"
         isRequired
+        label={t.expenseDate}
+        type="date"
+        value={formData.expenseDate}
+        variant="bordered"
+        onValueChange={v => updateForm({ expenseDate: v })}
       />
     </div>
   )
@@ -502,10 +512,10 @@ export function CreateReserveFundExpenseModal({
   const renderVendorStep = () => (
     <div className="flex flex-col gap-4">
       <Tabs
-        selectedKey={vendorMode}
-        onSelectionChange={key => setVendorMode(key as TVendorMode)}
-        variant="bordered"
         fullWidth
+        selectedKey={vendorMode}
+        variant="bordered"
+        onSelectionChange={key => setVendorMode(key as TVendorMode)}
       >
         <Tab key="existing" title={t.vendor.selectExisting}>
           <div className="flex flex-col gap-4 pt-2">
@@ -514,27 +524,27 @@ export function CreateReserveFundExpenseModal({
               <div className="flex-1">
                 <Input
                   placeholder={t.vendor.selectPlaceholder}
+                  size="sm"
                   value={serviceSearch}
+                  variant="bordered"
                   onValueChange={v => {
                     setServiceSearch(v)
                     setServicePage(1)
                   }}
-                  variant="bordered"
-                  size="sm"
                 />
               </div>
               <div className="w-full sm:w-48">
                 <Select
                   items={providerTypeFilterItems}
+                  size="sm"
                   value={serviceTypeFilter}
+                  variant="bordered"
                   onChange={key => {
                     if (key) {
                       setServiceTypeFilter(key)
                       setServicePage(1)
                     }
                   }}
-                  variant="bordered"
-                  size="sm"
                 />
               </div>
             </div>
@@ -542,14 +552,10 @@ export function CreateReserveFundExpenseModal({
             {/* Selected count */}
             {selectedServiceIds.size > 0 && (
               <div className="flex items-center gap-2">
-                <Chip color="primary" variant="flat" size="sm">
+                <Chip color="primary" size="sm" variant="flat">
                   {selectedServiceIds.size} {t.vendor.selected}
                 </Chip>
-                <Button
-                  size="sm"
-                  variant="light"
-                  onPress={() => setSelectedServiceIds(new Set())}
-                >
+                <Button size="sm" variant="light" onPress={() => setSelectedServiceIds(new Set())}>
                   <X size={14} />
                 </Button>
               </div>
@@ -557,32 +563,32 @@ export function CreateReserveFundExpenseModal({
 
             {/* Table */}
             <Table<IServiceRow>
-              columns={serviceColumns}
-              rows={serviceRows}
-              renderCell={renderServiceCell}
-              aria-label="Services"
-              selectionMode="multiple"
-              selectedKeys={selectedServiceIds}
-              onSelectionChange={handleServiceSelectionChange}
-              isLoading={servicesLoading}
               isCompact
               removeWrapper
+              aria-label="Services"
+              columns={serviceColumns}
               emptyContent={
-                <Typography variant="body2" color="muted" className="py-4">
+                <Typography className="py-4" color="muted" variant="body2">
                   {t.vendor.noServices}
                 </Typography>
               }
+              isLoading={servicesLoading}
+              renderCell={renderServiceCell}
+              rows={serviceRows}
+              selectedKeys={selectedServiceIds}
+              selectionMode="multiple"
+              onSelectionChange={handleServiceSelectionChange}
             />
 
             {/* Pagination */}
             {servicesPagination.totalPages > 1 && (
               <Pagination
-                page={servicesPagination.page}
-                totalPages={servicesPagination.totalPages}
-                total={servicesPagination.total}
                 limit={servicesPagination.limit}
-                onPageChange={setServicePage}
+                page={servicesPagination.page}
                 showLimitSelector={false}
+                total={servicesPagination.total}
+                totalPages={servicesPagination.totalPages}
+                onPageChange={setServicePage}
               />
             )}
           </div>
@@ -593,45 +599,45 @@ export function CreateReserveFundExpenseModal({
             <div className="flex flex-col gap-5 sm:flex-row">
               <div className="flex-1">
                 <Select
+                  isRequired
+                  items={vendorTypeItems}
                   label={t.vendor.type}
                   placeholder={t.vendor.type}
-                  items={vendorTypeItems}
                   value={formData.vendorType}
+                  variant="bordered"
                   onChange={key =>
                     key && updateForm({ vendorType: key as 'individual' | 'company' })
                   }
-                  variant="bordered"
-                  isRequired
                 />
               </div>
               <div className="flex-1">
                 <TaxIdInput
                   label={t.vendor.taxId}
-                  taxIdType={formData.vendorTaxIdType as TTaxIdType || null}
                   taxIdNumber={formData.vendorTaxIdNumber}
-                  onTaxIdTypeChange={type => updateForm({ vendorTaxIdType: type ?? '' })}
-                  onTaxIdNumberChange={v => updateForm({ vendorTaxIdNumber: v })}
+                  taxIdType={(formData.vendorTaxIdType as TTaxIdType) || null}
                   variant="bordered"
+                  onTaxIdNumberChange={v => updateForm({ vendorTaxIdNumber: v })}
+                  onTaxIdTypeChange={type => updateForm({ vendorTaxIdType: type ?? '' })}
                 />
               </div>
             </div>
             <Input
+              isRequired
               label={t.vendor.name}
               placeholder={t.vendor.namePlaceholder}
               value={formData.vendorName}
-              onValueChange={v => updateForm({ vendorName: v })}
               variant="bordered"
-              isRequired
+              onValueChange={v => updateForm({ vendorName: v })}
             />
             <div className="flex flex-col gap-5 sm:flex-row">
               <div className="flex-1">
                 <PhoneInput
-                  label={t.vendor.phone}
                   countryCode={formData.vendorPhoneCountryCode || null}
+                  label={t.vendor.phone}
                   phoneNumber={formData.vendorPhoneNumber}
+                  variant="bordered"
                   onCountryCodeChange={code => updateForm({ vendorPhoneCountryCode: code ?? '' })}
                   onPhoneNumberChange={v => updateForm({ vendorPhoneNumber: v })}
-                  variant="bordered"
                 />
               </div>
               <div className="flex-1">
@@ -639,18 +645,18 @@ export function CreateReserveFundExpenseModal({
                   label={t.vendor.email}
                   type="email"
                   value={formData.vendorEmail}
-                  onValueChange={v => updateForm({ vendorEmail: v })}
                   variant="bordered"
+                  onValueChange={v => updateForm({ vendorEmail: v })}
                 />
               </div>
             </div>
             <Textarea
               label={t.vendor.address}
+              minRows={2}
               placeholder={t.vendor.addressPlaceholder}
               value={formData.vendorAddress}
-              onValueChange={v => updateForm({ vendorAddress: v })}
               variant="bordered"
-              minRows={2}
+              onValueChange={v => updateForm({ vendorAddress: v })}
             />
           </div>
         </Tab>
@@ -667,23 +673,23 @@ export function CreateReserveFundExpenseModal({
             ? 'border-primary bg-primary-50'
             : 'border-default-300 hover:border-default-400'
         }`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
       >
         <Upload className="mb-2 text-default-400" size={32} />
-        <Typography variant="body2" color="muted">
+        <Typography color="muted" variant="body2">
           {t.documents.uploadHint}
         </Typography>
-        <Typography variant="caption" color="muted" className="mt-1">
+        <Typography className="mt-1" color="muted" variant="caption">
           {t.documents.allowedTypes} · {t.documents.maxSize}
         </Typography>
         <input
           ref={fileInputRef}
+          multiple
           accept={EXPENSE_ACCEPT_STRING}
           className="hidden"
-          multiple
           type="file"
           onChange={handleFileSelect}
         />
@@ -693,20 +699,17 @@ export function CreateReserveFundExpenseModal({
       {uploadingFiles.length > 0 && (
         <div className="space-y-2">
           {uploadingFiles.map(file => (
-            <div
-              key={file.id}
-              className="flex items-center gap-3 rounded-lg bg-default-100 p-3"
-            >
+            <div key={file.id} className="flex items-center gap-3 rounded-lg bg-default-100 p-3">
               {file.file.type.startsWith('image/') ? (
-                <ImageIcon size={20} className="text-primary shrink-0" />
+                <ImageIcon className="text-primary shrink-0" size={20} />
               ) : (
-                <FileText size={20} className="text-warning shrink-0" />
+                <FileText className="text-warning shrink-0" size={20} />
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm truncate">{file.file.name}</p>
                 <p className="text-xs text-default-400">{formatFileSize(file.file.size)}</p>
                 {(file.status === 'uploading' || file.status === 'pending') && (
-                  <Progress value={file.progress} size="sm" className="mt-1" color="primary" />
+                  <Progress className="mt-1" color="primary" size="sm" value={file.progress} />
                 )}
                 {file.status === 'error' && (
                   <p className="text-xs text-danger mt-1">{file.error}</p>
@@ -714,24 +717,12 @@ export function CreateReserveFundExpenseModal({
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 {file.status === 'error' && (
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    onPress={() => retryFile(file.id)}
-                  >
+                  <Button isIconOnly size="sm" variant="light" onPress={() => retryFile(file.id)}>
                     <RefreshCw size={14} />
                   </Button>
                 )}
-                {file.status === 'completed' && (
-                  <Check size={16} className="text-success" />
-                )}
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  onPress={() => removeFile(file.id)}
-                >
+                {file.status === 'completed' && <Check className="text-success" size={16} />}
+                <Button isIconOnly size="sm" variant="light" onPress={() => removeFile(file.id)}>
                   <X size={14} />
                 </Button>
               </div>
@@ -743,15 +734,15 @@ export function CreateReserveFundExpenseModal({
       <Input
         label={t.documents.invoiceNumber}
         value={formData.invoiceNumber}
-        onValueChange={v => updateForm({ invoiceNumber: v })}
         variant="bordered"
+        onValueChange={v => updateForm({ invoiceNumber: v })}
       />
       <Textarea
         label={t.documents.notes}
-        value={formData.notes}
-        onValueChange={v => updateForm({ notes: v })}
-        variant="bordered"
         minRows={2}
+        value={formData.notes}
+        variant="bordered"
+        onValueChange={v => updateForm({ notes: v })}
       />
     </div>
   )
@@ -771,7 +762,7 @@ export function CreateReserveFundExpenseModal({
         {/* Charge info */}
         <Card>
           <CardBody className="space-y-2">
-            <Typography variant="body2" className="font-semibold">
+            <Typography className="font-semibold" variant="body2">
               {t.review.chargeInfo}
             </Typography>
             <div className="grid grid-cols-2 gap-2 text-sm">
@@ -810,13 +801,13 @@ export function CreateReserveFundExpenseModal({
         {/* Vendor info */}
         <Card>
           <CardBody className="space-y-2">
-            <Typography variant="body2" className="font-semibold">
+            <Typography className="font-semibold" variant="body2">
               {t.review.vendorInfo}
             </Typography>
             {hasSelectedServices ? (
               <div className="flex flex-wrap gap-2">
                 {selectedServiceNames.map((name, i) => (
-                  <Chip key={i} variant="flat" color="primary" size="sm">
+                  <Chip key={i} color="primary" size="sm" variant="flat">
                     {name}
                   </Chip>
                 ))}
@@ -871,7 +862,7 @@ export function CreateReserveFundExpenseModal({
                 )}
               </div>
             ) : (
-              <Typography variant="body2" color="muted">
+              <Typography color="muted" variant="body2">
                 {t.review.noVendor}
               </Typography>
             )}
@@ -881,7 +872,7 @@ export function CreateReserveFundExpenseModal({
         {/* Documents */}
         <Card>
           <CardBody className="space-y-2">
-            <Typography variant="body2" className="font-semibold">
+            <Typography className="font-semibold" variant="body2">
               {t.review.attachedDocs}
             </Typography>
             {completedAttachments.length > 0 ? (
@@ -889,9 +880,9 @@ export function CreateReserveFundExpenseModal({
                 {completedAttachments.map((a, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm">
                     {a.mimeType.startsWith('image/') ? (
-                      <ImageIcon size={14} className="text-primary" />
+                      <ImageIcon className="text-primary" size={14} />
                     ) : (
-                      <FileText size={14} className="text-warning" />
+                      <FileText className="text-warning" size={14} />
                     )}
                     <span>{a.name}</span>
                     <span className="text-default-400">({formatFileSize(a.size)})</span>
@@ -899,7 +890,7 @@ export function CreateReserveFundExpenseModal({
                 ))}
               </div>
             ) : (
-              <Typography variant="body2" color="muted">
+              <Typography color="muted" variant="body2">
                 {t.review.noDocs}
               </Typography>
             )}
@@ -940,16 +931,16 @@ export function CreateReserveFundExpenseModal({
   const isFirstStep = currentStep === 0
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="3xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="3xl" onClose={handleClose}>
       <ModalContent>
         <ModalHeader className="flex flex-col gap-4">
           <Typography variant="h4">{t.title}</Typography>
           <Stepper
-            steps={wizardSteps}
-            currentStep={STEPS[currentStep]!}
-            color="primary"
-            size="sm"
             hideLabelsOnMobile
+            color="primary"
+            currentStep={STEPS[currentStep]!}
+            size="sm"
+            steps={wizardSteps}
           />
         </ModalHeader>
 
@@ -959,10 +950,10 @@ export function CreateReserveFundExpenseModal({
           <div className="flex gap-2">
             {!isFirstStep && (
               <Button
-                variant="flat"
-                startContent={<ChevronLeft size={16} />}
-                onPress={handlePrevious}
                 isDisabled={isPending}
+                startContent={<ChevronLeft size={16} />}
+                variant="flat"
+                onPress={handlePrevious}
               >
                 {t.navigation.previous}
               </Button>
@@ -970,10 +961,10 @@ export function CreateReserveFundExpenseModal({
             {isLastStep ? (
               <Button
                 color="primary"
-                onPress={handleSubmit}
-                isLoading={isPending}
                 isDisabled={!canProceed()}
+                isLoading={isPending}
                 startContent={!isPending ? <Check size={16} /> : undefined}
+                onPress={handleSubmit}
               >
                 {isPending ? t.submitting : t.submit}
               </Button>
@@ -981,8 +972,8 @@ export function CreateReserveFundExpenseModal({
               <Button
                 color="primary"
                 endContent={<ChevronRight size={16} />}
-                onPress={handleNext}
                 isDisabled={!canProceed()}
+                onPress={handleNext}
               >
                 {t.navigation.next}
               </Button>

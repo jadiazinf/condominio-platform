@@ -65,10 +65,7 @@ export class CreateCompanyWithAdminService {
     const existingUser = await this.usersRepository.getByEmail(input.admin.email)
     if (existingUser) {
       if (!existingUser.isActive) {
-        return failure(
-          'A pending user with this email already exists',
-          'CONFLICT'
-        )
+        return failure('A pending user with this email already exists', 'CONFLICT')
       }
       return failure(
         'A user with this email already exists. Use the existing user option.',
@@ -78,12 +75,11 @@ export class CreateCompanyWithAdminService {
 
     // Check if a management company with this email already exists
     if (input.company.email) {
-      const existingCompany = await this.managementCompaniesRepository.getByEmail(input.company.email)
+      const existingCompany = await this.managementCompaniesRepository.getByEmail(
+        input.company.email
+      )
       if (existingCompany) {
-        return failure(
-          'A management company with this email already exists',
-          'CONFLICT'
-        )
+        return failure('A management company with this email already exists', 'CONFLICT')
       }
     }
 
@@ -102,7 +98,7 @@ export class CreateCompanyWithAdminService {
     }
 
     // All writes inside a transaction for atomicity
-    return await this.db.transaction(async (tx) => {
+    return await this.db.transaction(async tx => {
       const txUsersRepo = this.usersRepository.withTx(tx)
       const txCompaniesRepo = this.managementCompaniesRepository.withTx(tx)
       const txInvitationsRepo = this.invitationsRepository.withTx(tx)

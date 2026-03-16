@@ -63,7 +63,11 @@ function mockPaymentConcept(overrides: Partial<TPaymentConcept> = {}): TPaymentC
   }
 }
 
-function createInput(overrides: Partial<TPaymentConceptCreate & { managementCompanyId: string; createdBy: string }> = {}) {
+function createInput(
+  overrides: Partial<
+    TPaymentConceptCreate & { managementCompanyId: string; createdBy: string }
+  > = {}
+) {
   return {
     condominiumId,
     buildingId: null,
@@ -100,7 +104,8 @@ describe('CreatePaymentConceptService', function () {
 
   beforeEach(function () {
     mockPaymentConceptsRepo = {
-      create: async (data: TPaymentConceptCreate) => mockPaymentConcept(data as Partial<TPaymentConcept>),
+      create: async (data: TPaymentConceptCreate) =>
+        mockPaymentConcept(data as Partial<TPaymentConcept>),
     }
 
     mockCondominiumsRepo = {
@@ -192,6 +197,24 @@ describe('CreatePaymentConceptService', function () {
         expect(result.data.allowsPartialPayment).toBe(false)
       }
     })
+
+    it('should preserve chargeGenerationStrategy when set to bulk', async function () {
+      let capturedData: TPaymentConceptCreate | null = null
+      mockPaymentConceptsRepo.create = async (data: TPaymentConceptCreate) => {
+        capturedData = data
+        return mockPaymentConcept({ chargeGenerationStrategy: 'bulk' })
+      }
+
+      const input = createInput({ chargeGenerationStrategy: 'bulk' as const })
+      const result = await service.execute(input)
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.chargeGenerationStrategy).toBe('bulk')
+      }
+      expect(capturedData).not.toBeNull()
+      expect(capturedData!.chargeGenerationStrategy).toBe('bulk')
+    })
   })
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -216,10 +239,12 @@ describe('CreatePaymentConceptService', function () {
     })
 
     it('should fail when recurring concept is missing recurrencePeriod', async function () {
-      const result = await service.execute(createInput({
-        isRecurring: true,
-        recurrencePeriod: null,
-      }))
+      const result = await service.execute(
+        createInput({
+          isRecurring: true,
+          recurrencePeriod: null,
+        })
+      )
       expect(result.success).toBe(false)
       if (!result.success) {
         expect(result.code).toBe('BAD_REQUEST')
@@ -227,10 +252,12 @@ describe('CreatePaymentConceptService', function () {
     })
 
     it('should fail when recurring concept is missing issueDay', async function () {
-      const result = await service.execute(createInput({
-        isRecurring: true,
-        issueDay: null,
-      }))
+      const result = await service.execute(
+        createInput({
+          isRecurring: true,
+          issueDay: null,
+        })
+      )
       expect(result.success).toBe(false)
       if (!result.success) {
         expect(result.code).toBe('BAD_REQUEST')
@@ -238,10 +265,12 @@ describe('CreatePaymentConceptService', function () {
     })
 
     it('should fail when recurring concept is missing dueDay', async function () {
-      const result = await service.execute(createInput({
-        isRecurring: true,
-        dueDay: null,
-      }))
+      const result = await service.execute(
+        createInput({
+          isRecurring: true,
+          dueDay: null,
+        })
+      )
       expect(result.success).toBe(false)
       if (!result.success) {
         expect(result.code).toBe('BAD_REQUEST')
@@ -264,10 +293,12 @@ describe('CreatePaymentConceptService', function () {
     })
 
     it('should fail when latePaymentType is percentage with value 0', async function () {
-      const result = await service.execute(createInput({
-        latePaymentType: 'percentage',
-        latePaymentValue: 0,
-      }))
+      const result = await service.execute(
+        createInput({
+          latePaymentType: 'percentage',
+          latePaymentValue: 0,
+        })
+      )
       expect(result.success).toBe(false)
       if (!result.success) {
         expect(result.code).toBe('BAD_REQUEST')
@@ -275,10 +306,12 @@ describe('CreatePaymentConceptService', function () {
     })
 
     it('should fail when latePaymentType is percentage with value over 100', async function () {
-      const result = await service.execute(createInput({
-        latePaymentType: 'percentage',
-        latePaymentValue: 150,
-      }))
+      const result = await service.execute(
+        createInput({
+          latePaymentType: 'percentage',
+          latePaymentValue: 150,
+        })
+      )
       expect(result.success).toBe(false)
       if (!result.success) {
         expect(result.code).toBe('BAD_REQUEST')
@@ -286,27 +319,33 @@ describe('CreatePaymentConceptService', function () {
     })
 
     it('should fail when latePaymentType is fixed with negative value', async function () {
-      const result = await service.execute(createInput({
-        latePaymentType: 'fixed',
-        latePaymentValue: -5,
-      }))
+      const result = await service.execute(
+        createInput({
+          latePaymentType: 'fixed',
+          latePaymentValue: -5,
+        })
+      )
       expect(result.success).toBe(false)
     })
 
     it('should succeed when latePaymentType is none even with value set', async function () {
-      const result = await service.execute(createInput({
-        latePaymentType: 'none',
-        latePaymentValue: 50,
-      }))
+      const result = await service.execute(
+        createInput({
+          latePaymentType: 'none',
+          latePaymentValue: 50,
+        })
+      )
       expect(result.success).toBe(true)
     })
 
     it('should fail when earlyPaymentType is percentage with daysBeforeDue=0', async function () {
-      const result = await service.execute(createInput({
-        earlyPaymentType: 'percentage',
-        earlyPaymentValue: 5,
-        earlyPaymentDaysBeforeDue: 0,
-      }))
+      const result = await service.execute(
+        createInput({
+          earlyPaymentType: 'percentage',
+          earlyPaymentValue: 5,
+          earlyPaymentDaysBeforeDue: 0,
+        })
+      )
       expect(result.success).toBe(false)
       if (!result.success) {
         expect(result.code).toBe('BAD_REQUEST')
@@ -314,11 +353,13 @@ describe('CreatePaymentConceptService', function () {
     })
 
     it('should fail when earlyPaymentType is percentage with value over 100', async function () {
-      const result = await service.execute(createInput({
-        earlyPaymentType: 'percentage',
-        earlyPaymentValue: 150,
-        earlyPaymentDaysBeforeDue: 10,
-      }))
+      const result = await service.execute(
+        createInput({
+          earlyPaymentType: 'percentage',
+          earlyPaymentValue: 150,
+          earlyPaymentDaysBeforeDue: 10,
+        })
+      )
       expect(result.success).toBe(false)
     })
   })

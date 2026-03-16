@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+
 import { CompanyActions } from './components/CompanyActions'
 
 interface PageProps {

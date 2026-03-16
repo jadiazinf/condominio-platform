@@ -1,16 +1,14 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
+import { useMyCompanyMemberAuditLogDetail, type TAuditLogEntry } from '@packages/http-client/hooks'
+
 import { Card } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
 import { Spinner } from '@/ui/components/spinner'
-import { ArrowLeft } from 'lucide-react'
 import { useTranslation } from '@/contexts'
-import {
-  useMyCompanyMemberAuditLogDetail,
-  type TAuditLogEntry,
-} from '@packages/http-client/hooks'
 
 const T_PREFIX = 'admin.company.myCompany.members.detail'
 const T_ACTIVITY = `${T_PREFIX}.activityDetail`
@@ -21,7 +19,11 @@ interface AuditLogDetailPageProps {
   logId: string
 }
 
-export function AuditLogDetailPage({ managementCompanyId, memberId, logId }: AuditLogDetailPageProps) {
+export function AuditLogDetailPage({
+  managementCompanyId,
+  memberId,
+  logId,
+}: AuditLogDetailPageProps) {
   const { t } = useTranslation()
   const router = useRouter()
 
@@ -45,23 +47,27 @@ export function AuditLogDetailPage({ managementCompanyId, memberId, logId }: Aud
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20">
         <p className="text-default-500">{t(`${T_ACTIVITY}.notFound`)}</p>
-        <Button variant="flat" onPress={() => router.push(`/dashboard/my-management-company/members/${memberId}`)}>
+        <Button
+          variant="flat"
+          onPress={() => router.push(`/dashboard/my-management-company/members/${memberId}`)}
+        >
           {t(`${T_PREFIX}.back`)}
         </Button>
       </div>
     )
   }
 
-  const actionColor = log.action === 'INSERT' ? 'success' : log.action === 'DELETE' ? 'danger' : 'primary'
+  const actionColor =
+    log.action === 'INSERT' ? 'success' : log.action === 'DELETE' ? 'danger' : 'primary'
 
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button
-          variant="light"
           size="sm"
           startContent={<ArrowLeft size={16} />}
+          variant="light"
           onPress={() => router.push(`/dashboard/my-management-company/members/${memberId}`)}
         >
           {t(`${T_ACTIVITY}.backToMember`)}
@@ -70,7 +76,7 @@ export function AuditLogDetailPage({ managementCompanyId, memberId, logId }: Aud
 
       <div className="flex items-center gap-3">
         <h2 className="text-2xl font-semibold">{t(`${T_ACTIVITY}.title`)}</h2>
-        <Chip color={actionColor} variant="flat" size="sm">
+        <Chip color={actionColor} size="sm" variant="flat">
           {t(`${T_PREFIX}.auditLogs.action.${log.action}`)}
         </Chip>
       </div>
@@ -79,8 +85,14 @@ export function AuditLogDetailPage({ managementCompanyId, memberId, logId }: Aud
       <Card className="p-6">
         <h3 className="mb-4 text-lg font-medium">{t(`${T_ACTIVITY}.generalInfo`)}</h3>
         <div className="flex flex-col gap-3">
-          <InfoRow label={t(`${T_ACTIVITY}.actionType`)} value={t(`${T_PREFIX}.auditLogs.action.${log.action}`)} />
-          <InfoRow label={t(`${T_ACTIVITY}.date`)} value={new Date(log.createdAt).toLocaleString()} />
+          <InfoRow
+            label={t(`${T_ACTIVITY}.actionType`)}
+            value={t(`${T_PREFIX}.auditLogs.action.${log.action}`)}
+          />
+          <InfoRow
+            label={t(`${T_ACTIVITY}.date`)}
+            value={new Date(log.createdAt).toLocaleString()}
+          />
           <InfoRow label={t(`${T_ACTIVITY}.table`)} value={log.tableName} />
           <InfoRow label={t(`${T_ACTIVITY}.recordId`)} value={log.recordId} />
           {log.userId && <InfoRow label={t(`${T_ACTIVITY}.userId`)} value={log.userId} />}
@@ -94,8 +106,8 @@ export function AuditLogDetailPage({ managementCompanyId, memberId, logId }: Aud
         <Card className="p-6">
           <h3 className="mb-4 text-lg font-medium">{t(`${T_ACTIVITY}.changedFields`)}</h3>
           <div className="flex flex-wrap gap-2">
-            {log.changedFields.map((field) => (
-              <Chip key={field} variant="flat" size="sm">
+            {log.changedFields.map(field => (
+              <Chip key={field} size="sm" variant="flat">
                 {t(`${T_PREFIX}.auditLogs.fields.${field}`) || field}
               </Chip>
             ))}
@@ -110,7 +122,9 @@ export function AuditLogDetailPage({ managementCompanyId, memberId, logId }: Aud
           <div className="grid gap-4 md:grid-cols-2">
             {/* Old Values */}
             <div>
-              <h4 className="mb-2 text-sm font-medium text-default-600">{t(`${T_ACTIVITY}.oldValues`)}</h4>
+              <h4 className="mb-2 text-sm font-medium text-default-600">
+                {t(`${T_ACTIVITY}.oldValues`)}
+              </h4>
               {log.oldValues ? (
                 <div className="rounded-lg bg-danger-50 p-4">
                   <pre className="whitespace-pre-wrap break-words text-xs text-default-700">
@@ -124,7 +138,9 @@ export function AuditLogDetailPage({ managementCompanyId, memberId, logId }: Aud
 
             {/* New Values */}
             <div>
-              <h4 className="mb-2 text-sm font-medium text-default-600">{t(`${T_ACTIVITY}.newValues`)}</h4>
+              <h4 className="mb-2 text-sm font-medium text-default-600">
+                {t(`${T_ACTIVITY}.newValues`)}
+              </h4>
               {log.newValues ? (
                 <div className="rounded-lg bg-success-50 p-4">
                   <pre className="whitespace-pre-wrap break-words text-xs text-default-700">

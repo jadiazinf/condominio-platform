@@ -1,4 +1,11 @@
-import type { TUser, TUserCondominiumAccess, TUserRole, TPermission, TUserManagementCompanyAccess, TActiveRoleType } from '@packages/domain'
+import type {
+  TUser,
+  TUserCondominiumAccess,
+  TUserRole,
+  TPermission,
+  TUserManagementCompanyAccess,
+  TActiveRoleType,
+} from '@packages/domain'
 
 import { cache } from 'react'
 import { cookies } from 'next/headers'
@@ -59,7 +66,10 @@ async function retryWithBackoff<T>(
       if (attempt < maxRetries - 1) {
         // Exponential backoff: 500ms, 1000ms, 2000ms
         const delay = initialDelay * Math.pow(2, attempt)
-        console.log(`[getFullSession] ${description} failed, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`)
+
+        console.log(
+          `[getFullSession] ${description} failed, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`
+        )
         await sleep(delay)
       }
     }
@@ -121,7 +131,13 @@ export const getFullSession = cache(async function getFullSession(): Promise<Ful
 
   // Try to get user and condominium data from cookies first
   // Note: We always fetch superadmin status from API to catch permission changes
-  const [cookieUser, cookieCondominiums, cookieSelectedCondominium, cookieManagementCompanies, cookieActiveRole] = await Promise.all([
+  const [
+    cookieUser,
+    cookieCondominiums,
+    cookieSelectedCondominium,
+    cookieManagementCompanies,
+    cookieActiveRole,
+  ] = await Promise.all([
     getUserCookieServer(),
     getCondominiumsCookieServer(),
     getSelectedCondominiumCookieServer(),
@@ -187,20 +203,20 @@ export const getFullSession = cache(async function getFullSession(): Promise<Ful
     user = fetchedUser
 
     // Fetch condominiums, superadmin, and management companies in parallel (with silent retry)
-    const [condominiumsResponse, superadminSession, managementCompaniesResponse] = await Promise.all([
-      retryWithBackoff(
-        () => fetchUserCondominiums(sessionToken),
-        'fetchUserCondominiums'
-      ).catch(() => null), // Non-critical - fall back to empty
-      retryWithBackoff(
-        () => fetchSuperadminSession(fetchedUser.id, sessionToken),
-        'fetchSuperadminSession'
-      ).catch(() => null), // Non-critical - fall back to null
-      retryWithBackoff(
-        () => fetchUserManagementCompanies(sessionToken),
-        'fetchUserManagementCompanies'
-      ).catch(() => null), // Non-critical - fall back to empty
-    ])
+    const [condominiumsResponse, superadminSession, managementCompaniesResponse] =
+      await Promise.all([
+        retryWithBackoff(() => fetchUserCondominiums(sessionToken), 'fetchUserCondominiums').catch(
+          () => null
+        ), // Non-critical - fall back to empty
+        retryWithBackoff(
+          () => fetchSuperadminSession(fetchedUser.id, sessionToken),
+          'fetchSuperadminSession'
+        ).catch(() => null), // Non-critical - fall back to null
+        retryWithBackoff(
+          () => fetchUserManagementCompanies(sessionToken),
+          'fetchUserManagementCompanies'
+        ).catch(() => null), // Non-critical - fall back to empty
+      ])
 
     condominiums = condominiumsResponse?.condominiums ?? []
     superadmin = superadminSession?.superadmin ?? null
@@ -231,12 +247,14 @@ export const getFullSession = cache(async function getFullSession(): Promise<Ful
 
   // Compute available role types
   const availableRoles: TActiveRoleType[] = []
+
   if (superadmin) availableRoles.push('superadmin')
   if (managementCompanies.length > 0) availableRoles.push('management_company')
   if (condominiums.length > 0) availableRoles.push('condominium')
 
   // Determine active role: cookie → auto-select if single role → null
   let activeRole: TActiveRoleType | null = cookieActiveRole
+
   if (activeRole && !availableRoles.includes(activeRole)) {
     activeRole = null // Cookie role no longer valid
   }

@@ -10,7 +10,11 @@ import {
 } from '@packages/domain'
 import type { BankAccountsRepository, BanksRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
+import {
+  bodyValidator,
+  paramsValidator,
+  queryValidator,
+} from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { ManagementCompanyIdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
@@ -26,14 +30,27 @@ const BankAccountIdParamSchema = z.object({
 
 type TBankAccountIdParam = z.infer<typeof BankAccountIdParamSchema>
 
-const allMcRoles = [ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER] as const
+const allMcRoles = [
+  ESystemRole.ADMIN,
+  ESystemRole.ACCOUNTANT,
+  ESystemRole.SUPPORT,
+  ESystemRole.VIEWER,
+] as const
 
-export class BankAccountsController extends BaseController<TBankAccount, TBankAccountCreate, Partial<TBankAccountCreate>> {
+export class BankAccountsController extends BaseController<
+  TBankAccount,
+  TBankAccountCreate,
+  Partial<TBankAccountCreate>
+> {
   private readonly bankAccountsRepository: BankAccountsRepository
   private readonly createService: CreateBankAccountService
   private readonly deactivateService: DeactivateBankAccountService
 
-  constructor(repository: BankAccountsRepository, banksRepository: BanksRepository, db: TDrizzleClient) {
+  constructor(
+    repository: BankAccountsRepository,
+    banksRepository: BanksRepository,
+    db: TDrizzleClient
+  ) {
     super(repository)
     this.bankAccountsRepository = repository
     this.createService = new CreateBankAccountService(db, repository, banksRepository)
@@ -105,7 +122,9 @@ export class BankAccountsController extends BaseController<TBankAccount, TBankAc
     const ctx = this.ctx<unknown, unknown, TBankAccountIdParam>(c)
 
     try {
-      const bankAccount = await this.bankAccountsRepository.getByIdWithCondominiums(ctx.params.bankAccountId)
+      const bankAccount = await this.bankAccountsRepository.getByIdWithCondominiums(
+        ctx.params.bankAccountId
+      )
 
       if (!bankAccount) {
         throw AppError.notFound('BankAccount', ctx.params.bankAccountId)

@@ -22,7 +22,14 @@ type TPopoverPlacement =
   | 'right-start'
   | 'right-end'
 
-type TPopoverColor = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'foreground'
+type TPopoverColor =
+  | 'default'
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'foreground'
 
 type TPopoverRadius = 'none' | 'sm' | 'md' | 'lg' | 'full'
 
@@ -102,11 +109,7 @@ interface IPopoverContentProps {
 }
 
 export function PopoverContent({ className, children }: IPopoverContentProps) {
-  return (
-    <HeroUIPopoverContent className={cn(className)}>
-      {children}
-    </HeroUIPopoverContent>
-  )
+  return <HeroUIPopoverContent className={cn(className)}>{children}</HeroUIPopoverContent>
 }
 
 export type {

@@ -1,8 +1,8 @@
 'use client'
 
-import { Card, CardBody } from '@/ui/components/card'
 import { Clock } from 'lucide-react'
 
+import { Card, CardBody } from '@/ui/components/card'
 import { useTranslation } from '@/contexts'
 import { Button } from '@/ui/components/button'
 
@@ -35,7 +35,7 @@ export function ExpiredTokenView({ companyName, email }: ExpiredTokenViewProps) 
           <Button href="/auth" variant="flat">
             {t('auth.acceptInvitation.goToSignIn')}
           </Button>
-          <Button href="/" color="primary">
+          <Button color="primary" href="/">
             {t('auth.acceptInvitation.goToHome')}
           </Button>
         </div>

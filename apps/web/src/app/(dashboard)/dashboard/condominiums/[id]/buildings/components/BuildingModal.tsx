@@ -1,23 +1,25 @@
 'use client'
 
+import type { TBuilding } from '@packages/domain'
+
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import type { TBuilding } from '@packages/domain'
-
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
-import { Button } from '@/ui/components/button'
-import { Typography } from '@/ui/components/typography'
-import { useToast } from '@/ui/components/toast'
-import { BuildingForm } from './BuildingForm'
 import {
   TCreateBuildingVariables,
   TUpdateBuildingVariables,
   useCreateBuilding,
   useUpdateBuilding,
 } from '@packages/http-client/hooks'
+
+import { BuildingForm } from './BuildingForm'
+
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
+import { Button } from '@/ui/components/button'
+import { Typography } from '@/ui/components/typography'
+import { useToast } from '@/ui/components/toast'
 
 const buildingFormSchema = z.object({
   name: z.string().min(1, 'required').max(255),
@@ -129,6 +131,7 @@ export function BuildingModal({
         buildingId: building.id,
         ...data,
       }
+
       updateMutation.mutate(updateData)
     } else {
       const createData: TCreateBuildingVariables = {
@@ -137,6 +140,7 @@ export function BuildingModal({
         code: data.code,
         floorsCount: data.floorsCount,
       }
+
       createMutation.mutate(createData)
     }
   })
@@ -149,7 +153,7 @@ export function BuildingModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="lg" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="lg" onClose={handleClose}>
       <ModalContent>
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit}>
@@ -162,10 +166,10 @@ export function BuildingModal({
               <BuildingForm translateError={translateError} translations={translations.form} />
             </ModalBody>
             <ModalFooter>
-              <Button variant="bordered" onPress={handleClose} isDisabled={isPending}>
+              <Button isDisabled={isPending} variant="bordered" onPress={handleClose}>
                 {translations.cancel}
               </Button>
-              <Button type="submit" color="primary" isLoading={isPending}>
+              <Button color="primary" isLoading={isPending} type="submit">
                 {isPending ? translations.saving : translations.save}
               </Button>
             </ModalFooter>

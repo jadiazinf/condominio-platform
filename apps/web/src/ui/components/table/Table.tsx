@@ -121,7 +121,7 @@ export function Table<T extends { id: string | number }>({
         <div className="py-8 text-center text-default-400">{emptyContent}</div>
       )}
       {!isLoading &&
-        rows.map((row) => (
+        rows.map(row => (
           <div
             key={String(row.id)}
             className={cn(
@@ -130,11 +130,16 @@ export function Table<T extends { id: string | number }>({
             )}
             onClick={() => onRowClick?.(row)}
           >
-            {mobileColumnsForCards.map((col) => {
+            {mobileColumnsForCards.map(col => {
               const content = renderCellContent(row, String(col.key) as TableKey)
+
               if (content === null || content === undefined) return null
+
               return (
-                <div key={String(col.key)} className="flex items-start justify-between gap-2 min-w-0">
+                <div
+                  key={String(col.key)}
+                  className="flex items-start justify-between gap-2 min-w-0"
+                >
                   <span className="text-xs text-default-500 shrink-0">{col.label}</span>
                   <div className="text-sm text-right min-w-0 break-words">{content}</div>
                 </div>
@@ -171,10 +176,10 @@ export function Table<T extends { id: string | number }>({
       selectedKeys={selectedKeys}
       selectionMode={selectionMode}
       shadow={shadow}
-      onSelectionChange={(keys) => onSelectionChange?.(keys as Selection)}
+      onSelectionChange={keys => onSelectionChange?.(keys as Selection)}
     >
       <HeroUITableHeader columns={columns}>
-        {(column) => (
+        {column => (
           <HeroUITableColumn
             key={String(column.key)}
             align={column.align}
@@ -194,15 +199,13 @@ export function Table<T extends { id: string | number }>({
         items={rows}
         loadingContent={loadingContent}
       >
-        {(row) => (
+        {row => (
           <HeroUITableRow
             key={String(row.id)}
             className={onRowClick ? 'cursor-pointer' : undefined}
             onClick={() => onRowClick?.(row)}
           >
-            {(columnKey) => (
-              <HeroUITableCell>{renderCellContent(row, columnKey)}</HeroUITableCell>
-            )}
+            {columnKey => <HeroUITableCell>{renderCellContent(row, columnKey)}</HeroUITableCell>}
           </HeroUITableRow>
         )}
       </HeroUITableBody>

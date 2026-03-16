@@ -12,6 +12,9 @@ export function success<T>(data: T): TServiceResult<T> {
   return { success: true, data }
 }
 
-export function failure<T, TError = string>(error: TError, code: TErrorCode): TServiceResult<T, TError> {
+export function failure<T, TError = string>(
+  error: TError,
+  code: TErrorCode
+): TServiceResult<T, TError> {
   return { success: false, error, code }
 }

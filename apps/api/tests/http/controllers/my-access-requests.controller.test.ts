@@ -16,14 +16,30 @@ describe('MyAccessRequestsController', function () {
     // For validation-focused tests, the mock just needs to support basic operations.
     const createQueryChain = function (): any {
       const chain: any = {
-        from: function () { return chain },
-        where: function () { return chain },
-        leftJoin: function () { return chain },
-        innerJoin: function () { return chain },
-        orderBy: function () { return chain },
-        limit: function () { return chain },
-        offset: function () { return Promise.resolve([]) },
-        then: function (resolve: any) { return Promise.resolve([]).then(resolve) },
+        from: function () {
+          return chain
+        },
+        where: function () {
+          return chain
+        },
+        leftJoin: function () {
+          return chain
+        },
+        innerJoin: function () {
+          return chain
+        },
+        orderBy: function () {
+          return chain
+        },
+        limit: function () {
+          return chain
+        },
+        offset: function () {
+          return Promise.resolve([])
+        },
+        then: function (resolve: any) {
+          return Promise.resolve([]).then(resolve)
+        },
       }
       return chain
     }

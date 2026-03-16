@@ -37,7 +37,7 @@ export class CreateBankAccountService {
         }
       }
 
-      return await this.db.transaction(async (tx) => {
+      return await this.db.transaction(async tx => {
         const txRepo = this.bankAccountsRepository.withTx(tx)
 
         const createData = {
@@ -48,7 +48,11 @@ export class CreateBankAccountService {
 
         const bankAccount = await txRepo.create(createData as unknown as TBankAccountCreate)
 
-        if (!input.appliesToAllCondominiums && input.condominiumIds && input.condominiumIds.length > 0) {
+        if (
+          !input.appliesToAllCondominiums &&
+          input.condominiumIds &&
+          input.condominiumIds.length > 0
+        ) {
           await txRepo.assignCondominiums(bankAccount.id, input.condominiumIds, input.createdBy)
         }
 

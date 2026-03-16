@@ -1,12 +1,18 @@
 'use client'
 
+import type {
+  NavbarProps,
+  NavbarBrandProps,
+  NavbarContentProps,
+  NavbarItemProps,
+} from '@heroui/navbar'
+
 import {
   Navbar as NavbarBase,
   NavbarBrand as NavbarBrandBase,
   NavbarContent as NavbarContentBase,
-  NavbarItem as NavbarItemBase
+  NavbarItem as NavbarItemBase,
 } from '@heroui/navbar'
-import type { NavbarProps, NavbarBrandProps, NavbarContentProps, NavbarItemProps } from '@heroui/navbar'
 
 export function HeroUINavbar(props: NavbarProps) {
   return <NavbarBase {...props} />

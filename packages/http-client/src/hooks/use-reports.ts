@@ -44,10 +44,7 @@ export function setReportAuthToken(
 // Internal: common download helper
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function downloadFile(
-  path: string,
-  filename: string
-): Promise<void> {
+async function downloadFile(path: string, filename: string): Promise<void> {
   if (typeof window === 'undefined') return
 
   const { apiBaseUrl } = getEnvConfig()
@@ -108,9 +105,7 @@ export async function downloadAccountStatement(
  * Download a debtors report (CSV or PDF).
  * Triggers a browser file download.
  */
-export async function downloadDebtorsReport(
-  params: IDebtorsReportExportParams
-): Promise<void> {
+export async function downloadDebtorsReport(params: IDebtorsReportExportParams): Promise<void> {
   const queryParams = new URLSearchParams()
   queryParams.set('condominiumId', params.condominiumId)
   queryParams.set('format', params.format)

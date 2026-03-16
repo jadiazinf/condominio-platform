@@ -1,8 +1,9 @@
 'use client'
 
+import { CheckCircle, AlertCircle, XCircle } from 'lucide-react'
+
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
-import { CheckCircle, AlertCircle, XCircle } from 'lucide-react'
 
 type ServiceStatus = 'operational' | 'degraded' | 'down'
 

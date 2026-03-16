@@ -13,9 +13,7 @@ export interface IGetInvitationsByEmailInput {
 export class GetInvitationsByEmailService {
   constructor(private readonly repository: AdminInvitationsRepository) {}
 
-  async execute(
-    input: IGetInvitationsByEmailInput
-  ): Promise<TServiceResult<TAdminInvitation[]>> {
+  async execute(input: IGetInvitationsByEmailInput): Promise<TServiceResult<TAdminInvitation[]>> {
     const invitations = await this.repository.getPendingByEmail(input.email)
     return success(invitations)
   }

@@ -1057,7 +1057,8 @@ export const DomainLocaleDictionary = {
             max: 'validation.models.bankAccounts.national.identityDocNumber.max',
           },
           phoneNumber: {
-            requiredForPagoMovil: 'validation.models.bankAccounts.national.phoneNumber.requiredForPagoMovil',
+            requiredForPagoMovil:
+              'validation.models.bankAccounts.national.phoneNumber.requiredForPagoMovil',
             max: 'validation.models.bankAccounts.national.phoneNumber.max',
           },
         },

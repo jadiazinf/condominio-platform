@@ -14,9 +14,7 @@ import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { z } from 'zod'
-import {
-  RenderTemplateService,
-} from '@src/services/notification-templates'
+import { RenderTemplateService } from '@src/services/notification-templates'
 
 const CodeParamSchema = z.object({
   code: z.string().min(1).max(100),
@@ -56,30 +54,52 @@ export class NotificationTemplatesController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)] },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.list,
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)],
+      },
       {
         method: 'get',
         path: '/code/:code',
         handler: this.getByCode,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(CodeParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(CodeParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), bodyValidator(notificationTemplateCreateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          bodyValidator(notificationTemplateCreateSchema),
+        ],
       },
       {
         method: 'post',
         path: '/code/:code/render',
         handler: this.renderTemplate,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(CodeParamSchema), bodyValidator(RenderTemplateBodySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(CodeParamSchema),
+          bodyValidator(RenderTemplateBodySchema),
+        ],
       },
       {
         method: 'patch',
@@ -96,7 +116,11 @@ export class NotificationTemplatesController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }

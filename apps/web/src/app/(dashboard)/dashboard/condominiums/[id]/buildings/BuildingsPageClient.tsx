@@ -2,10 +2,10 @@
 
 import { Plus } from 'lucide-react'
 
+import { BuildingModal } from './components'
+
 import { Button } from '@/ui/components/button'
 import { useDisclosure } from '@/ui/components/modal'
-
-import { BuildingModal } from './components'
 
 interface IBuildingsPageClientProps {
   condominiumId: string
@@ -46,11 +46,11 @@ export function BuildingsPageClient({ condominiumId, translations }: IBuildingsP
       </Button>
 
       <BuildingModal
-        isOpen={isOpen}
-        onClose={onClose}
         condominiumId={condominiumId}
+        isOpen={isOpen}
+        translateError={msg => msg}
         translations={translations.buildingModal}
-        translateError={(msg) => msg}
+        onClose={onClose}
       />
     </>
   )

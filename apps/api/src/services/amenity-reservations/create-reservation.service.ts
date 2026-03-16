@@ -27,9 +27,7 @@ export class CreateReservationService {
       input.data.endTime
     )
 
-    const conflicts = overlapping.filter(
-      r => r.status === 'pending' || r.status === 'approved'
-    )
+    const conflicts = overlapping.filter(r => r.status === 'pending' || r.status === 'approved')
 
     if (conflicts.length > 0) {
       return failure('Time slot conflicts with an existing reservation', 'CONFLICT')

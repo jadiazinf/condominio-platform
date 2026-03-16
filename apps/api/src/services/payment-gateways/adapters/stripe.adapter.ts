@@ -103,9 +103,7 @@ export class StripePaymentAdapter implements IPaymentGatewayAdapter {
     }
   }
 
-  async verifyPayment(
-    request: IGatewayVerificationRequest
-  ): Promise<IGatewayVerificationResponse> {
+  async verifyPayment(request: IGatewayVerificationRequest): Promise<IGatewayVerificationResponse> {
     // TODO: Replace with real Stripe session/payment intent retrieval
     //   const stripe = new Stripe(config.secretKey as string)
     //   const session = await stripe.checkout.sessions.retrieve(request.externalReference)
@@ -139,9 +137,7 @@ export class StripePaymentAdapter implements IPaymentGatewayAdapter {
     }
   }
 
-  async processWebhook(
-    payload: IGatewayWebhookPayload
-  ): Promise<IGatewayWebhookResult> {
+  async processWebhook(payload: IGatewayWebhookPayload): Promise<IGatewayWebhookResult> {
     // TODO: Replace with real Stripe webhook event handling
     //   const stripe = new Stripe(config.secretKey as string)
     //   const event = stripe.webhooks.constructEvent(...)
@@ -163,9 +159,7 @@ export class StripePaymentAdapter implements IPaymentGatewayAdapter {
     }
   }
 
-  async refund(
-    request: IGatewayRefundRequest
-  ): Promise<IGatewayRefundResponse> {
+  async refund(request: IGatewayRefundRequest): Promise<IGatewayRefundResponse> {
     // TODO: Replace with real Stripe refund
     //   const stripe = new Stripe(config.secretKey as string)
     //   const refund = await stripe.refunds.create({

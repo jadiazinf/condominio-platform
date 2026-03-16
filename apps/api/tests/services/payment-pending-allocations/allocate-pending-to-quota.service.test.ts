@@ -9,6 +9,7 @@ type TMockPaymentPendingAllocationsRepository = {
 
 type TMockQuotasRepository = {
   getById: (id: string) => Promise<TQuota | null>
+  update: (id: string, data: unknown) => Promise<TQuota | null>
 }
 
 describe('AllocatePendingToQuotaService', function () {
@@ -51,6 +52,7 @@ describe('AllocatePendingToQuotaService', function () {
     issueDate: '2024-06-01',
     dueDate: '2024-06-15',
     status: 'pending',
+    adjustmentsTotal: '0',
     paidAmount: '0',
     balance: '150.00',
     notes: null,
@@ -79,9 +81,22 @@ describe('AllocatePendingToQuotaService', function () {
         if (id === quotaId) return mockQuota
         return null
       },
+      update: async function (id: string, data: unknown) {
+        if (id === quotaId) return { ...mockQuota, ...(data as object) }
+        return null
+      },
     }
 
+    const mockDb = {
+      transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn(mockDb),
+    }
+
+    ;(mockPaymentPendingAllocationsRepository as any).withTx = () =>
+      mockPaymentPendingAllocationsRepository
+    ;(mockQuotasRepository as any).withTx = () => mockQuotasRepository
+
     service = new AllocatePendingToQuotaService(
+      mockDb as never,
       mockPaymentPendingAllocationsRepository as never,
       mockQuotasRepository as never
     )

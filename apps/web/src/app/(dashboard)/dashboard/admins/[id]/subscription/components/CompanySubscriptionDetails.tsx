@@ -1,13 +1,6 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { Card, CardHeader, CardBody } from '@/ui/components/card'
-import { Chip } from '@/ui/components/chip'
-import { Button } from '@/ui/components/button'
-import { Divider } from '@/ui/components/divider'
-import { Progress } from '@/ui/components/progress'
-import { Typography } from '@/ui/components/typography'
-import { Spinner } from '@/ui/components/spinner'
 import {
   CreditCard,
   Calendar,
@@ -24,8 +17,6 @@ import {
   RefreshCw,
   History,
 } from 'lucide-react'
-import { useToast } from '@/ui/components/toast'
-import { useUser, useTranslation, useAuth } from '@/contexts'
 import {
   useManagementCompanySubscription,
   useManagementCompanySubscriptionsPaginated,
@@ -34,13 +25,23 @@ import {
   managementCompanySubscriptionKeys,
   useQueryClient,
 } from '@packages/http-client'
-
 import { formatCurrency } from '@packages/utils/currency'
 import { formatFullDate } from '@packages/utils/dates'
-import { getSubscriptionStatusColor } from '@/utils/status-colors'
+
 import { SubscriptionFormModal } from './SubscriptionFormModal'
 import { CancelSubscriptionModal } from './CancelSubscriptionModal'
 import { SubscriptionHistoryModal } from './SubscriptionHistoryModal'
+
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
+import { Divider } from '@/ui/components/divider'
+import { Progress } from '@/ui/components/progress'
+import { Typography } from '@/ui/components/typography'
+import { Spinner } from '@/ui/components/spinner'
+import { useToast } from '@/ui/components/toast'
+import { useUser, useTranslation, useAuth } from '@/contexts'
+import { getSubscriptionStatusColor } from '@/utils/status-colors'
 
 interface CompanySubscriptionDetailsProps {
   companyId: string
@@ -65,15 +66,19 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
   }, [firebaseUser])
 
   // Fetch active subscription (trial or active status)
-  const { data: activeData, isLoading: isLoadingActive } = useManagementCompanySubscription(companyId, {
-    enabled: !!companyId,
-  })
+  const { data: activeData, isLoading: isLoadingActive } = useManagementCompanySubscription(
+    companyId,
+    {
+      enabled: !!companyId,
+    }
+  )
 
   // Fetch subscription history to check if there are any subscriptions
-  const { data: historyData, isLoading: isLoadingHistory } = useManagementCompanySubscriptionsPaginated(companyId, {
-    query: { page: 1, limit: 1 },
-    enabled: !!companyId,
-  })
+  const { data: historyData, isLoading: isLoadingHistory } =
+    useManagementCompanySubscriptionsPaginated(companyId, {
+      query: { page: 1, limit: 1 },
+      enabled: !!companyId,
+    })
 
   // Fetch usage statistics
   const { data: usageStatsData, isLoading: isLoadingStats } = useManagementCompanyUsageStats({
@@ -89,7 +94,7 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
       toast.success(t('superadmin.companies.subscription.createSuccess'))
       queryClient.invalidateQueries({ queryKey: managementCompanySubscriptionKeys.all })
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || t('superadmin.companies.subscription.createError'))
     },
   })
@@ -153,8 +158,8 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
         {hasAnySubscriptions && (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <Button
-              variant="flat"
               startContent={<History size={16} />}
+              variant="flat"
               onPress={() => setIsHistoryModalOpen(true)}
             >
               {t('superadmin.companies.subscription.viewHistory')}
@@ -166,10 +171,10 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
         {!hasAnySubscriptions && (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16">
             <AlertCircle className="mb-4 text-default-400" size={48} />
-            <Typography variant="subtitle1" className="text-default-700">
+            <Typography className="text-default-700" variant="subtitle1">
               {t('superadmin.companies.subscription.noActiveSubscription')}
             </Typography>
-            <Typography color="muted" variant="body2" className="mt-1">
+            <Typography className="mt-1" color="muted" variant="body2">
               {t('superadmin.companies.subscription.noActiveSubscriptionDescription')}
             </Typography>
             <Button
@@ -203,7 +208,11 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                       </Typography>
                     </div>
                   </div>
-                  <Chip color={getSubscriptionStatusColor(subscription.status)} size="md" variant="flat">
+                  <Chip
+                    color={getSubscriptionStatusColor(subscription.status)}
+                    size="md"
+                    variant="flat"
+                  >
                     {getStatusLabel(subscription.status)}
                   </Chip>
                 </CardHeader>
@@ -232,7 +241,9 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                         <Typography color="muted" variant="caption">
                           Fecha de Inicio
                         </Typography>
-                        <Typography variant="body2">{formatDate(subscription.startDate)}</Typography>
+                        <Typography variant="body2">
+                          {formatDate(subscription.startDate)}
+                        </Typography>
                       </div>
                     </div>
 
@@ -271,7 +282,9 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                           <Typography color="muted" variant="caption">
                             Fecha de Finalización
                           </Typography>
-                          <Typography variant="body2">{formatDate(subscription.endDate)}</Typography>
+                          <Typography variant="body2">
+                            {formatDate(subscription.endDate)}
+                          </Typography>
                         </div>
                       </div>
                     )}
@@ -291,17 +304,17 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <Building2 size={16} className="text-default-500" />
+                                <Building2 className="text-default-500" size={16} />
                                 <Typography variant="body2">Condominios</Typography>
                               </div>
-                              <Typography variant="caption" color="muted">
+                              <Typography color="muted" variant="caption">
                                 {usageStats.condominiumsCount} / {subscription.maxCondominiums}
                               </Typography>
                             </div>
                             <Progress
-                              value={usageStats.condominiumsCount}
-                              maxValue={subscription.maxCondominiums}
                               color="primary"
+                              maxValue={subscription.maxCondominiums}
+                              value={usageStats.condominiumsCount}
                             />
                           </div>
                         )}
@@ -310,17 +323,17 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <Home size={16} className="text-default-500" />
+                                <Home className="text-default-500" size={16} />
                                 <Typography variant="body2">Unidades</Typography>
                               </div>
-                              <Typography variant="caption" color="muted">
+                              <Typography color="muted" variant="caption">
                                 {usageStats.unitsCount} / {subscription.maxUnits}
                               </Typography>
                             </div>
                             <Progress
-                              value={usageStats.unitsCount}
-                              maxValue={subscription.maxUnits}
                               color="secondary"
+                              maxValue={subscription.maxUnits}
+                              value={usageStats.unitsCount}
                             />
                           </div>
                         )}
@@ -329,14 +342,18 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <Users size={16} className="text-default-500" />
+                                <Users className="text-default-500" size={16} />
                                 <Typography variant="body2">Usuarios</Typography>
                               </div>
-                              <Typography variant="caption" color="muted">
+                              <Typography color="muted" variant="caption">
                                 {usageStats.usersCount} / {subscription.maxUsers}
                               </Typography>
                             </div>
-                            <Progress value={usageStats.usersCount} maxValue={subscription.maxUsers} color="primary" />
+                            <Progress
+                              color="primary"
+                              maxValue={subscription.maxUsers}
+                              value={usageStats.usersCount}
+                            />
                           </div>
                         )}
 
@@ -344,17 +361,17 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <HardDrive size={16} className="text-default-500" />
+                                <HardDrive className="text-default-500" size={16} />
                                 <Typography variant="body2">Almacenamiento</Typography>
                               </div>
-                              <Typography variant="caption" color="muted">
+                              <Typography color="muted" variant="caption">
                                 {usageStats.storageGb} GB / {subscription.maxStorageGb} GB
                               </Typography>
                             </div>
                             <Progress
-                              value={usageStats.storageGb}
-                              maxValue={subscription.maxStorageGb}
                               color="primary"
+                              maxValue={subscription.maxStorageGb}
+                              value={usageStats.storageGb}
                             />
                           </div>
                         )}
@@ -376,8 +393,8 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                               ) : (
                                 <XCircle className="text-default-300" size={16} />
                               )}
-                              <Typography variant="body2" color={value ? 'default' : 'muted'}>
-                                {key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                              <Typography color={value ? 'default' : 'muted'} variant="body2">
+                                {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                               </Typography>
                             </div>
                           ))}
@@ -391,10 +408,10 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                     <>
                       <Divider />
                       <div>
-                        <Typography variant="subtitle2" className="mb-2">
+                        <Typography className="mb-2" variant="subtitle2">
                           {t('superadmin.companies.subscription.form.sections.pricingNotes')}
                         </Typography>
-                        <Typography variant="body2" color="muted">
+                        <Typography color="muted" variant="body2">
                           {subscription.pricingNotes}
                         </Typography>
                       </div>
@@ -406,10 +423,10 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                     <>
                       <Divider />
                       <div>
-                        <Typography variant="subtitle2" className="mb-2">
+                        <Typography className="mb-2" variant="subtitle2">
                           {t('superadmin.companies.subscription.form.sections.notes')}
                         </Typography>
-                        <Typography variant="body2" color="muted">
+                        <Typography color="muted" variant="body2">
                           {subscription.notes}
                         </Typography>
                       </div>
@@ -421,14 +438,14 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                     <>
                       <Divider />
                       <div className="rounded-lg bg-warning-50 p-4">
-                        <Typography variant="subtitle2" color="warning" className="mb-1">
+                        <Typography className="mb-1" color="warning" variant="subtitle2">
                           Motivo de Cancelación
                         </Typography>
-                        <Typography variant="body2" className="text-warning-700">
+                        <Typography className="text-warning-700" variant="body2">
                           {subscription.cancellationReason}
                         </Typography>
                         {subscription.cancelledAt && (
-                          <Typography variant="caption" color="muted" className="mt-2 block">
+                          <Typography className="mt-2 block" color="muted" variant="caption">
                             Cancelada el {formatDate(subscription.cancelledAt)}
                           </Typography>
                         )}
@@ -443,7 +460,9 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <Typography variant="subtitle1">{t('superadmin.companies.subscription.actions')}</Typography>
+                  <Typography variant="subtitle1">
+                    {t('superadmin.companies.subscription.actions')}
+                  </Typography>
                 </CardHeader>
                 <Divider />
                 <CardBody className="space-y-3">
@@ -451,8 +470,8 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                     <Button
                       className="w-full justify-start"
                       color="primary"
-                      variant="flat"
                       startContent={<Plus size={16} />}
+                      variant="flat"
                       onPress={handleOpenCreateModal}
                     >
                       {t('superadmin.companies.subscription.createButton')}
@@ -462,8 +481,8 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                     <Button
                       className="w-full justify-start"
                       color="warning"
-                      variant="flat"
                       startContent={<XOctagon size={16} />}
+                      variant="flat"
                       onPress={() => setIsCancelModalOpen(true)}
                     >
                       {t('superadmin.companies.subscription.cancelButton')}
@@ -473,10 +492,10 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
                     <Button
                       className="w-full justify-start"
                       color="success"
-                      variant="flat"
-                      startContent={<RefreshCw size={16} />}
-                      onPress={handleRenew}
                       isLoading={isRenewing}
+                      startContent={<RefreshCw size={16} />}
+                      variant="flat"
+                      onPress={handleRenew}
                     >
                       {t('superadmin.companies.subscription.renewButton')}
                     </Button>
@@ -506,27 +525,27 @@ export function CompanySubscriptionDetails({ companyId }: CompanySubscriptionDet
       {/* Modals - only render when open to prevent unnecessary queries */}
       {isFormModalOpen && (
         <SubscriptionFormModal
-          isOpen={isFormModalOpen}
-          onClose={handleCloseFormModal}
           companyId={companyId}
           createdBy={user?.id || ''}
+          isOpen={isFormModalOpen}
+          onClose={handleCloseFormModal}
         />
       )}
 
       {subscription && (
         <CancelSubscriptionModal
-          isOpen={isCancelModalOpen}
-          onClose={() => setIsCancelModalOpen(false)}
-          companyId={companyId}
-          subscriptionName={subscription.subscriptionName || 'Plan Personalizado'}
           cancelledBy={user?.id || ''}
+          companyId={companyId}
+          isOpen={isCancelModalOpen}
+          subscriptionName={subscription.subscriptionName || 'Plan Personalizado'}
+          onClose={() => setIsCancelModalOpen(false)}
         />
       )}
 
       <SubscriptionHistoryModal
+        companyId={companyId}
         isOpen={isHistoryModalOpen}
         onClose={() => setIsHistoryModalOpen(false)}
-        companyId={companyId}
       />
     </>
   )

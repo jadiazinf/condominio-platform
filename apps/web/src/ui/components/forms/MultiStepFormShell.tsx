@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
+
 import { Card, CardBody } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
 import { Progress } from '@/ui/components/progress'
@@ -103,11 +104,7 @@ export function MultiStepFormShell<TStep extends string = string>({
         {/* Navigation buttons */}
         <div className="flex justify-end gap-3 border-t border-default-200 pt-4">
           {!isFirstStep && (
-            <Button
-              isDisabled={isSubmitting || isLoading}
-              variant="bordered"
-              onPress={onPrevious}
-            >
+            <Button isDisabled={isSubmitting || isLoading} variant="bordered" onPress={onPrevious}>
               {previousButtonText}
             </Button>
           )}
@@ -115,8 +112,8 @@ export function MultiStepFormShell<TStep extends string = string>({
           {isLastStep ? (
             <Button
               color="primary"
-              isLoading={isSubmitting}
               isDisabled={isSubmitDisabled || isSubmitting}
+              isLoading={isSubmitting}
               onPress={onSubmit}
             >
               {isSubmitting && submittingButtonText ? submittingButtonText : submitButtonText}
@@ -124,8 +121,8 @@ export function MultiStepFormShell<TStep extends string = string>({
           ) : (
             <Button
               color="primary"
-              isLoading={isLoading}
               isDisabled={isNextDisabled || isLoading}
+              isLoading={isLoading}
               onPress={onNext}
             >
               {nextButtonText}

@@ -2,10 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardHeader, CardBody } from '@/ui/components/card'
-import { Chip } from '@/ui/components/chip'
-import { Button } from '@/ui/components/button'
-import { Divider } from '@/ui/components/divider'
 import {
   ArrowLeft,
   Calendar,
@@ -16,13 +12,17 @@ import {
   CheckCircle2,
   XCircle,
 } from 'lucide-react'
-
 import { useSupportTicket } from '@packages/http-client'
+
+import { TicketMessages } from './TicketMessages'
+
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
+import { Divider } from '@/ui/components/divider'
 import { getTicketStatusColor, getTicketPriorityColor } from '@/utils/status-colors'
 import { useAuth } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
-
-import { TicketMessages } from './TicketMessages'
 
 interface TicketDetailProps {
   companyId: string
@@ -65,6 +65,7 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
       closed: 'Cerrado',
       cancelled: 'Cancelado',
     }
+
     return labels[status.toLowerCase()] || status
   }
 
@@ -75,6 +76,7 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
       medium: 'Media',
       low: 'Baja',
     }
+
     return labels[priority.toLowerCase()] || priority
   }
 
@@ -87,6 +89,7 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
       general: 'General',
       bug: 'Error',
     }
+
     return labels[category.toLowerCase()] || category
   }
 
@@ -283,7 +286,8 @@ export function TicketDetail({ companyId, ticketId }: TicketDetailProps) {
                 <div className="flex items-center gap-3">
                   <User className="text-default-400" size={18} />
                   <Typography variant="body2">
-                    {ticket.currentAssignment.assignedToUser.displayName || ticket.currentAssignment.assignedToUser.email}
+                    {ticket.currentAssignment.assignedToUser.displayName ||
+                      ticket.currentAssignment.assignedToUser.email}
                   </Typography>
                 </div>
               </CardBody>

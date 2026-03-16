@@ -16,7 +16,10 @@ async function runMigration() {
   try {
     console.log('Reading migration file...')
     const migrationSQL = readFileSync(
-      join(import.meta.dir, '../src/database/drizzle/migrations/0015_add_concept_id_to_service_executions.sql'),
+      join(
+        import.meta.dir,
+        '../src/database/drizzle/migrations/0015_add_concept_id_to_service_executions.sql'
+      ),
       'utf-8'
     )
 

@@ -2,12 +2,12 @@ import { Suspense } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { redirect } from 'next/navigation'
 
+import { CreateCompanyForm } from './components'
+
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
-
-import { CreateCompanyForm } from './components'
 
 async function CreateCompanyContent() {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
@@ -21,7 +21,7 @@ async function CreateCompanyContent() {
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header */}
       <div className="flex items-start gap-4">
-        <Button className="mt-1" href="/dashboard/admins" isIconOnly variant="flat">
+        <Button isIconOnly className="mt-1" href="/dashboard/admins" variant="flat">
           <ArrowLeft size={18} />
         </Button>
         <div>

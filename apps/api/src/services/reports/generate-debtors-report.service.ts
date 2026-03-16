@@ -5,6 +5,7 @@ import type { BuildingsRepository } from '@database/repositories/buildings.repos
 import { CsvExporterService, type ICsvColumn } from './csv-exporter.service'
 import { PdfExporterService, type IPdfColumn } from './pdf-exporter.service'
 import { type TServiceResult, success, failure } from '../base.service'
+import { parseAmount } from '@packages/utils/money'
 
 /**
  * Input parameters for generating a debtors report.
@@ -66,7 +67,7 @@ export class GenerateDebtorsReportService {
   constructor(
     private readonly quotasRepo: QuotasRepository,
     private readonly unitsRepo: UnitsRepository,
-    private readonly buildingsRepo: BuildingsRepository,
+    private readonly buildingsRepo: BuildingsRepository
   ) {}
 
   async execute(input: IDebtorsReportInput): Promise<TServiceResult<IDebtorsReportOutput>> {
@@ -125,7 +126,7 @@ export class GenerateDebtorsReportService {
       const building = buildingMap.get(unit.buildingId)
 
       // Calculate total debt
-      const totalDebt = quotas.reduce((sum, q) => sum + parseFloat(q.balance), 0)
+      const totalDebt = quotas.reduce((sum, q) => sum + parseAmount(q.balance), 0)
 
       // Find date range
       const dueDates = quotas.map(q => q.dueDate).sort()
@@ -141,7 +142,7 @@ export class GenerateDebtorsReportService {
     }
 
     // Sort by total debt descending
-    rows.sort((a, b) => parseFloat(b.totalDebt) - parseFloat(a.totalDebt))
+    rows.sort((a, b) => parseAmount(b.totalDebt) - parseAmount(a.totalDebt))
 
     return this.generateOutput(rows, input, asOfDate)
   }
@@ -166,10 +167,7 @@ export class GenerateDebtorsReportService {
   /**
    * Generates the CSV output.
    */
-  private generateCsv(
-    rows: IDebtorRow[],
-    dateLabel: string
-  ): TServiceResult<IDebtorsReportOutput> {
+  private generateCsv(rows: IDebtorRow[], dateLabel: string): TServiceResult<IDebtorsReportOutput> {
     const csvService = new CsvExporterService()
     const csvResult = csvService.generate(rows, csvColumns)
 

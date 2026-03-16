@@ -14,7 +14,7 @@ export class BulkCreateUnitsService {
   ) {}
 
   async execute(input: TBulkCreateUnitsInput): Promise<TServiceResult<TUnit[]>> {
-    return await this.db.transaction(async (tx) => {
+    return await this.db.transaction(async tx => {
       const txRepo = this.unitsRepository.withTx(tx)
       const created = await txRepo.createBulk(input.units)
       return success(created)

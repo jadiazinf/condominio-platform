@@ -26,11 +26,11 @@ export class PaymentGatewayManager {
     const stripe = new StripePaymentAdapter()
 
     // Map gateway types to adapters
-    this.register(manual)                      // 'other'
-    this.adapters.set('zelle', manual)          // Zelle → manual (no API)
-    this.adapters.set('paypal', manual)         // PayPal → manual (no API yet)
-    this.register(bank)                        // 'banco_plaza'
-    this.register(stripe)                      // 'stripe'
+    this.register(manual) // 'other'
+    this.adapters.set('zelle', manual) // Zelle → manual (no API)
+    this.adapters.set('paypal', manual) // PayPal → manual (no API yet)
+    this.register(bank) // 'banco_plaza'
+    this.register(stripe) // 'stripe'
   }
 
   /**

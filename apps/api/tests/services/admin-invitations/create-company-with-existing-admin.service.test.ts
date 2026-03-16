@@ -27,8 +27,17 @@ type TMockMembersRepository = {
 
 type TMockUserRolesRepository = {
   create: (data: any) => Promise<TUserRole>
-  createManagementCompanyRole: (userId: string, roleId: string, managementCompanyId: string, assignedBy?: string) => Promise<TUserRole>
-  getByUserAndRole: (userId: string, roleId: string, condominiumId: string | null) => Promise<TUserRole[]>
+  createManagementCompanyRole: (
+    userId: string,
+    roleId: string,
+    managementCompanyId: string,
+    assignedBy?: string
+  ) => Promise<TUserRole>
+  getByUserAndRole: (
+    userId: string,
+    roleId: string,
+    condominiumId: string | null
+  ) => Promise<TUserRole[]>
   withTx: (tx: unknown) => TMockUserRolesRepository
 }
 
@@ -159,7 +168,9 @@ describe('CreateCompanyWithExistingAdminService', function () {
       getByEmail: async function () {
         return null
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     mockMembersRepository = {
@@ -167,7 +178,9 @@ describe('CreateCompanyWithExistingAdminService', function () {
         lastMemberCreateData = data
         return memberCreateResult
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     const mockAdminRole: TRole = {
@@ -199,7 +212,12 @@ describe('CreateCompanyWithExistingAdminService', function () {
           expiresAt: data.expiresAt,
         }
       },
-      createManagementCompanyRole: async function (userId: string, roleId: string, managementCompanyId: string, assignedBy?: string) {
+      createManagementCompanyRole: async function (
+        userId: string,
+        roleId: string,
+        managementCompanyId: string,
+        assignedBy?: string
+      ) {
         return {
           id: mcRoleId,
           userId,
@@ -218,7 +236,9 @@ describe('CreateCompanyWithExistingAdminService', function () {
       getByUserAndRole: async function () {
         return [] // No existing role by default
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     mockRolesRepository = {
@@ -395,6 +415,5 @@ describe('CreateCompanyWithExistingAdminService', function () {
       expect(permissions.can_create_tickets).toBe(true)
       expect(permissions.can_view_invoices).toBe(true)
     })
-
   })
 })

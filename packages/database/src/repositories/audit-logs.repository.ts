@@ -1,5 +1,5 @@
-import { and, eq, desc, gte, lte } from 'drizzle-orm'
-import type { TAuditLog, TAuditLogCreate } from '@packages/domain'
+import { and, eq, desc, gte, lte, sql } from 'drizzle-orm'
+import type { TAuditLog, TAuditLogCreate, TPaginatedResponse } from '@packages/domain'
 import { auditLogs } from '../drizzle/schema'
 import type { TDrizzleClient, IReadOnlyRepository } from './interfaces'
 
@@ -135,6 +135,54 @@ export class AuditLogsRepository implements IReadOnlyRepository<TAuditLog, TAudi
       .orderBy(desc(auditLogs.createdAt))
 
     return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Retrieves audit logs for a specific table and record with pagination.
+   */
+  async getByTableAndRecordPaginated(
+    tableName: string,
+    recordId: string,
+    query: { page?: number; limit?: number; action?: string; dateFrom?: string; dateTo?: string }
+  ): Promise<TPaginatedResponse<TAuditLog>> {
+    const { page = 1, limit = 10, action, dateFrom, dateTo } = query
+    const offset = (page - 1) * limit
+
+    const conditions = [eq(auditLogs.tableName, tableName), eq(auditLogs.recordId, recordId)]
+
+    if (action) {
+      conditions.push(eq(auditLogs.action, action as TAuditLog['action']))
+    }
+    if (dateFrom) {
+      conditions.push(gte(auditLogs.createdAt, new Date(dateFrom)))
+    }
+    if (dateTo) {
+      conditions.push(lte(auditLogs.createdAt, new Date(dateTo)))
+    }
+
+    const whereClause = and(...conditions)
+
+    const [results, countResult] = await Promise.all([
+      this.db
+        .select()
+        .from(auditLogs)
+        .where(whereClause)
+        .orderBy(desc(auditLogs.createdAt))
+        .limit(limit)
+        .offset(offset),
+      this.db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(auditLogs)
+        .where(whereClause),
+    ])
+
+    const total = countResult[0]?.count ?? 0
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data: results.map(record => this.mapToEntity(record)),
+      pagination: { page, limit, total, totalPages },
+    }
   }
 
   /**

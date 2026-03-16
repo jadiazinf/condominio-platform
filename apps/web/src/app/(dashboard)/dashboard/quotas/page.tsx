@@ -1,17 +1,18 @@
 import { Suspense } from 'react'
-
-import { Typography } from '@/ui/components/typography'
-import { getTranslations } from '@/libs/i18n/server'
-import { getFullSession } from '@/libs/session'
 import { redirect } from 'next/navigation'
 
 import { QuotasTable } from './components/QuotasTable'
 import { QuotasTableSkeleton } from './components/QuotasTableSkeleton'
 
+import { Typography } from '@/ui/components/typography'
+import { getTranslations } from '@/libs/i18n/server'
+import { getFullSession } from '@/libs/session'
+
 async function QuotasContent() {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
 
   const isAdmin = session.activeRole === 'management_company'
+
   if (!isAdmin && !session.condominiums?.length) {
     redirect('/dashboard')
   }

@@ -1,6 +1,13 @@
-import { and, eq, desc, gte, lte, sql, type SQL } from 'drizzle-orm'
+import { and, eq, desc, gte, lte, sql, inArray, type SQL } from 'drizzle-orm'
 import type { TPayment, TPaymentCreate, TPaymentUpdate, TPaginatedResponse } from '@packages/domain'
-import { payments, paymentApplications, quotas, paymentConcepts } from '../drizzle/schema'
+import {
+  payments,
+  paymentApplications,
+  quotas,
+  paymentConcepts,
+  units,
+  buildings,
+} from '../drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -50,6 +57,25 @@ export class PaymentsRepository
   }
 
   /**
+   * Retrieves payments scoped to a condominium via unit → building → condominium.
+   */
+  async listByCondominiumId(condominiumId: string): Promise<TPayment[]> {
+    const condominiumUnitIds = this.db
+      .select({ id: units.id })
+      .from(units)
+      .innerJoin(buildings, eq(units.buildingId, buildings.id))
+      .where(eq(buildings.condominiumId, condominiumId))
+
+    const results = await this.db
+      .select()
+      .from(payments)
+      .where(inArray(payments.unitId, condominiumUnitIds))
+      .orderBy(desc(payments.paymentDate))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
    * Override listAll since payments don't have isActive.
    */
   override async listAll(): Promise<TPayment[]> {
@@ -69,10 +95,25 @@ export class PaymentsRepository
    */
   async listPaginatedByUnit(
     unitId: string,
-    options: { page?: number; limit?: number; startDate?: string; endDate?: string; status?: string }
+    options: {
+      page?: number
+      limit?: number
+      startDate?: string
+      endDate?: string
+      status?: string
+    },
+    condominiumId?: string
   ): Promise<TPaginatedResponse<TPayment>> {
     const conditions: SQL[] = [eq(payments.unitId, unitId)]
 
+    if (condominiumId) {
+      const condominiumUnitIds = this.db
+        .select({ id: units.id })
+        .from(units)
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(eq(buildings.condominiumId, condominiumId))
+      conditions.push(inArray(payments.unitId, condominiumUnitIds))
+    }
     if (options.startDate) {
       conditions.push(gte(payments.paymentDate, options.startDate))
     }
@@ -89,7 +130,10 @@ export class PaymentsRepository
   /**
    * Retrieves a payment by payment number.
    */
-  async getByPaymentNumber(paymentNumber: string): Promise<TPayment | null> {
+  async getByPaymentNumber(
+    paymentNumber: string,
+    condominiumId?: string
+  ): Promise<TPayment | null> {
     const results = await this.db
       .select()
       .from(payments)
@@ -100,17 +144,48 @@ export class PaymentsRepository
       return null
     }
 
-    return this.mapToEntity(results[0])
+    const payment = this.mapToEntity(results[0])
+
+    if (condominiumId && payment.unitId) {
+      const condominiumUnitIds = this.db
+        .select({ id: units.id })
+        .from(units)
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(eq(buildings.condominiumId, condominiumId))
+
+      const belongsResult = await this.db
+        .select({ id: payments.id })
+        .from(payments)
+        .where(and(eq(payments.id, payment.id), inArray(payments.unitId, condominiumUnitIds)))
+        .limit(1)
+
+      if (belongsResult.length === 0) {
+        return null
+      }
+    }
+
+    return payment
   }
 
   /**
    * Retrieves payments by user.
    */
-  async getByUserId(userId: string): Promise<TPayment[]> {
+  async getByUserId(userId: string, condominiumId?: string): Promise<TPayment[]> {
+    const conditions: SQL[] = [eq(payments.userId, userId)]
+
+    if (condominiumId) {
+      const condominiumUnitIds = this.db
+        .select({ id: units.id })
+        .from(units)
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(eq(buildings.condominiumId, condominiumId))
+      conditions.push(inArray(payments.unitId, condominiumUnitIds))
+    }
+
     const results = await this.db
       .select()
       .from(payments)
-      .where(eq(payments.userId, userId))
+      .where(and(...conditions))
       .orderBy(desc(payments.paymentDate))
 
     return results.map(record => this.mapToEntity(record))
@@ -119,11 +194,22 @@ export class PaymentsRepository
   /**
    * Retrieves payments by unit.
    */
-  async getByUnitId(unitId: string): Promise<TPayment[]> {
+  async getByUnitId(unitId: string, condominiumId?: string): Promise<TPayment[]> {
+    const conditions: SQL[] = [eq(payments.unitId, unitId)]
+
+    if (condominiumId) {
+      const condominiumUnitIds = this.db
+        .select({ id: units.id })
+        .from(units)
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(eq(buildings.condominiumId, condominiumId))
+      conditions.push(inArray(payments.unitId, condominiumUnitIds))
+    }
+
     const results = await this.db
       .select()
       .from(payments)
-      .where(eq(payments.unitId, unitId))
+      .where(and(...conditions))
       .orderBy(desc(payments.paymentDate))
 
     return results.map(record => this.mapToEntity(record))
@@ -132,11 +218,22 @@ export class PaymentsRepository
   /**
    * Retrieves payments by status.
    */
-  async getByStatus(status: TPayment['status']): Promise<TPayment[]> {
+  async getByStatus(status: TPayment['status'], condominiumId?: string): Promise<TPayment[]> {
+    const conditions: SQL[] = [eq(payments.status, status)]
+
+    if (condominiumId) {
+      const condominiumUnitIds = this.db
+        .select({ id: units.id })
+        .from(units)
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(eq(buildings.condominiumId, condominiumId))
+      conditions.push(inArray(payments.unitId, condominiumUnitIds))
+    }
+
     const results = await this.db
       .select()
       .from(payments)
-      .where(eq(payments.status, status))
+      .where(and(...conditions))
       .orderBy(desc(payments.paymentDate))
 
     return results.map(record => this.mapToEntity(record))
@@ -145,11 +242,42 @@ export class PaymentsRepository
   /**
    * Retrieves payments within a date range.
    */
-  async getByDateRange(startDate: string, endDate: string): Promise<TPayment[]> {
+  async getByDateRange(
+    startDate: string,
+    endDate: string,
+    condominiumId?: string
+  ): Promise<TPayment[]> {
+    const conditions: SQL[] = [
+      gte(payments.paymentDate, startDate),
+      lte(payments.paymentDate, endDate),
+    ]
+
+    if (condominiumId) {
+      const condominiumUnitIds = this.db
+        .select({ id: units.id })
+        .from(units)
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(eq(buildings.condominiumId, condominiumId))
+      conditions.push(inArray(payments.unitId, condominiumUnitIds))
+    }
+
     const results = await this.db
       .select()
       .from(payments)
-      .where(and(gte(payments.paymentDate, startDate), lte(payments.paymentDate, endDate)))
+      .where(and(...conditions))
+      .orderBy(desc(payments.paymentDate))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Retrieves payments by receipt number (excluding rejected).
+   */
+  async getByReceiptNumber(receiptNumber: string): Promise<TPayment[]> {
+    const results = await this.db
+      .select()
+      .from(payments)
+      .where(and(eq(payments.receiptNumber, receiptNumber), sql`${payments.status} != 'rejected'`))
       .orderBy(desc(payments.paymentDate))
 
     return results.map(record => this.mapToEntity(record))
@@ -158,11 +286,22 @@ export class PaymentsRepository
   /**
    * Retrieves payments pending verification.
    */
-  async getPendingVerification(): Promise<TPayment[]> {
+  async getPendingVerification(condominiumId?: string): Promise<TPayment[]> {
+    const conditions: SQL[] = [eq(payments.status, 'pending_verification')]
+
+    if (condominiumId) {
+      const condominiumUnitIds = this.db
+        .select({ id: units.id })
+        .from(units)
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(eq(buildings.condominiumId, condominiumId))
+      conditions.push(inArray(payments.unitId, condominiumUnitIds))
+    }
+
     const results = await this.db
       .select()
       .from(payments)
-      .where(eq(payments.status, 'pending_verification'))
+      .where(and(...conditions))
       .orderBy(desc(payments.registeredAt))
 
     return results.map(record => this.mapToEntity(record))
@@ -291,7 +430,12 @@ export class PaymentsRepository
     const results = await this.db
       .select()
       .from(payments)
-      .where(sql`${payments.id} IN (${sql.join(paymentIds.map(id => sql`${id}`), sql`, `)})`)
+      .where(
+        sql`${payments.id} IN (${sql.join(
+          paymentIds.map(id => sql`${id}`),
+          sql`, `
+        )})`
+      )
       .orderBy(desc(payments.paymentDate))
 
     return {

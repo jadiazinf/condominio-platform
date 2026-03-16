@@ -1,7 +1,6 @@
 'use client'
 
 import { Switch as HeroUISwitch } from '@heroui/switch'
-import type { SwitchProps as HeroUISwitchProps } from '@heroui/switch'
 import { ReactNode } from 'react'
 
 type TSwitchSize = 'sm' | 'md' | 'lg'
@@ -52,15 +51,15 @@ export function Switch({
 
   return (
     <HeroUISwitch
-      id={id}
-      size={size}
-      color={color}
-      isSelected={selected}
-      defaultSelected={defaultSelected}
-      isDisabled={isDisabled}
-      isReadOnly={isReadOnly}
       className={className}
       classNames={classNames}
+      color={color}
+      defaultSelected={defaultSelected}
+      id={id}
+      isDisabled={isDisabled}
+      isReadOnly={isReadOnly}
+      isSelected={selected}
+      size={size}
       onChange={onChange}
       onValueChange={handleChange}
     >

@@ -181,9 +181,7 @@ export class PdfExporterService {
 
       // Draw row background
       const bgColor = i % 2 === 0 ? ROW_EVEN_BG : ROW_ODD_BG
-      doc
-        .rect(MARGIN, y, pageWidth, rowHeight)
-        .fill(bgColor)
+      doc.rect(MARGIN, y, pageWidth, rowHeight).fill(bgColor)
 
       // Draw row content
       let x = MARGIN
@@ -225,9 +223,7 @@ export class PdfExporterService {
     const headerHeight = 24
 
     // Header background
-    doc
-      .rect(MARGIN, y, pageWidth, headerHeight)
-      .fill(HEADER_BG_COLOR)
+    doc.rect(MARGIN, y, pageWidth, headerHeight).fill(HEADER_BG_COLOR)
 
     // Header text
     let x = MARGIN

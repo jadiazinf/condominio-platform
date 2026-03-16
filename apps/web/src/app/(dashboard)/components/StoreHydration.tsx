@@ -1,10 +1,23 @@
 'use client'
 
-import type { TUser, TUserCondominiumAccess, TUserRole, TPermission, TUserManagementCompanyAccess, TActiveRoleType } from '@packages/domain'
+import type {
+  TUser,
+  TUserCondominiumAccess,
+  TUserRole,
+  TPermission,
+  TUserManagementCompanyAccess,
+  TActiveRoleType,
+} from '@packages/domain'
 
 import { useEffect, useRef } from 'react'
 
-import { useUser, useCondominium, useSuperadmin, useManagementCompany, useActiveRole } from '@/stores/session-store'
+import {
+  useUser,
+  useCondominium,
+  useSuperadmin,
+  useManagementCompany,
+  useActiveRole,
+} from '@/stores/session-store'
 import { getUserCookie, setUserCookie } from '@/libs/cookies/user-cookie'
 import {
   setCondominiumsCookie,
@@ -80,13 +93,9 @@ export function StoreHydration({
     setPermissions,
     clearSuperadmin,
   } = useSuperadmin()
-  const {
-    managementCompanies: currentManagementCompanies,
-    setManagementCompanies,
-  } = useManagementCompany()
-  const {
-    setActiveRole,
-  } = useActiveRole()
+  const { managementCompanies: currentManagementCompanies, setManagementCompanies } =
+    useManagementCompany()
+  const { setActiveRole } = useActiveRole()
 
   const hasHydrated = useRef(false)
   const hasRefreshedPhotoUrl = useRef(false)
@@ -150,8 +159,11 @@ export function StoreHydration({
     }
 
     // Hydrate management companies
-    if (managementCompanies && managementCompanies.length > 0 &&
-        (!currentManagementCompanies || currentManagementCompanies.length === 0)) {
+    if (
+      managementCompanies &&
+      managementCompanies.length > 0 &&
+      (!currentManagementCompanies || currentManagementCompanies.length === 0)
+    ) {
       setManagementCompanies(managementCompanies)
 
       if (wasFetched) {
@@ -201,6 +213,7 @@ export function StoreHydration({
 
         // Update user with fresh photo URL (or null if photo doesn't exist)
         const updatedUser = { ...user!, photoUrl: freshPhotoUrl }
+
         setUser(updatedUser)
         setUserCookie(updatedUser)
       } catch (error) {

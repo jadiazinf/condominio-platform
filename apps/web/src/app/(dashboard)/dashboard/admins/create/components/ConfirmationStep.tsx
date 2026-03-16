@@ -1,9 +1,10 @@
 'use client'
 
-import { Card, CardBody, CardHeader } from '@/ui/components/card'
-import { Building2, User, Mail, Phone, Globe, MapPin, AlertTriangle } from 'lucide-react'
 import type { TCreateManagementCompanyWithAdminForm } from '@packages/domain'
 
+import { Building2, User, Mail, Phone, Globe, MapPin, AlertTriangle } from 'lucide-react'
+
+import { Card, CardBody, CardHeader } from '@/ui/components/card'
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 
@@ -17,7 +18,7 @@ export function ConfirmationStep({ data }: ConfirmationStepProps) {
   return (
     <div className="space-y-6">
       <div>
-        <Typography variant="subtitle1" className="font-semibold">
+        <Typography className="font-semibold" variant="subtitle1">
           {t('superadmin.companies.form.confirmation.title')}
         </Typography>
         <Typography color="muted" variant="body2">
@@ -33,7 +34,7 @@ export function ConfirmationStep({ data }: ConfirmationStepProps) {
               <Building2 className="text-primary" size={20} />
             </div>
             <div>
-              <Typography variant="subtitle2" className="font-semibold">
+              <Typography className="font-semibold" variant="subtitle2">
                 {t('superadmin.companies.form.confirmation.companyInfo')}
               </Typography>
             </div>
@@ -71,7 +72,7 @@ export function ConfirmationStep({ data }: ConfirmationStepProps) {
               <User className="text-success" size={20} />
             </div>
             <div>
-              <Typography variant="subtitle2" className="font-semibold">
+              <Typography className="font-semibold" variant="subtitle2">
                 {t('superadmin.companies.form.confirmation.adminInfo')}
               </Typography>
               {data.admin.mode === 'existing' && (

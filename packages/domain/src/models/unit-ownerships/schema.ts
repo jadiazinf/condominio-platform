@@ -6,7 +6,13 @@ import { DomainLocaleDictionary } from '../../i18n/dictionary'
 
 const d = DomainLocaleDictionary.validation.models.unitOwnerships
 
-export const EOwnershipTypes = ['owner', 'co-owner', 'tenant', 'family_member', 'authorized'] as const
+export const EOwnershipTypes = [
+  'owner',
+  'co-owner',
+  'tenant',
+  'family_member',
+  'authorized',
+] as const
 
 export const unitOwnershipSchema = baseModelSchema.extend({
   unitId: z.uuid({ error: d.unitId.invalid }),

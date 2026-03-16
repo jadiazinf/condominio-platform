@@ -2,6 +2,10 @@
 
 import type { TUser } from '@packages/domain'
 
+import { Menu } from 'lucide-react'
+
+import { SwitchRoleButton } from './SwitchRoleButton'
+
 import {
   HeroUINavbar,
   NavbarBrandPrimitive,
@@ -10,11 +14,8 @@ import {
 } from '@/ui/components/navbar'
 import { Button } from '@/ui/components/button'
 import { Link } from '@/ui/components/link'
-import { Menu } from 'lucide-react'
-
 import { NotificationPanel } from '@/ui/components/notifications'
 import { CurrentUserAvatar } from '@/ui/components/avatar'
-import { SwitchRoleButton } from './SwitchRoleButton'
 
 interface DashboardNavbarProps {
   onToggleSidebar?: () => void
@@ -46,7 +47,7 @@ export function DashboardNavbar({ onToggleSidebar, initialUser }: DashboardNavba
           <NotificationPanel />
         </NavbarItem>
         <NavbarItem className="flex ml-2">
-          <CurrentUserAvatar initialUser={initialUser} isClickable />
+          <CurrentUserAvatar isClickable initialUser={initialUser} />
         </NavbarItem>
       </NavbarContent>
     </HeroUINavbar>

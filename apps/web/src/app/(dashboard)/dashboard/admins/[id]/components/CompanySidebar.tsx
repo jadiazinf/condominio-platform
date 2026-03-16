@@ -1,8 +1,10 @@
 'use client'
 
-import { useTranslation } from '@/contexts'
 import { COMPANY_DETAIL_MENU_ITEMS } from '../config/sidebar-items'
+
 import { CompanyDetailSidebarLink } from './CompanyDetailSidebarLink'
+
+import { useTranslation } from '@/contexts'
 
 interface CompanySidebarProps {
   companyId: string
@@ -18,8 +20,8 @@ export function CompanySidebar({ companyId }: CompanySidebarProps) {
         {COMPANY_DETAIL_MENU_ITEMS.map(item => (
           <CompanyDetailSidebarLink
             key={item.key}
-            href={`${basePath}${item.path}`}
             basePath={basePath}
+            href={`${basePath}${item.path}`}
             iconName={item.iconName}
             label={t(item.translationKey)}
           />

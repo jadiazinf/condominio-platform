@@ -64,14 +64,19 @@ export class SyncBcvRatesService {
     logger.info({ count: scrapedRates.length }, '[BCV Sync] Scraped rates from BCV')
 
     // All database writes inside a transaction for atomicity
-    await this.db.transaction(async (tx) => {
+    await this.db.transaction(async tx => {
       const txCurrenciesRepo = this.currenciesRepo.withTx(tx)
       const txExchangeRatesRepo = this.exchangeRatesRepo.withTx(tx)
 
       const vesCurrency = await this.ensureCurrencyWithRepo(txCurrenciesRepo, VES_METADATA)
 
       for (const scraped of scrapedRates) {
-        await this.processSingleRateWithRepos(txCurrenciesRepo, txExchangeRatesRepo, scraped, vesCurrency)
+        await this.processSingleRateWithRepos(
+          txCurrenciesRepo,
+          txExchangeRatesRepo,
+          scraped,
+          vesCurrency
+        )
       }
     })
   }
@@ -166,7 +171,7 @@ export class SyncBcvRatesService {
     scraped: IBcvScrapedRate,
     vesCurrency: TCurrency
   ): Promise<void> {
-    const meta = Object.values(BCV_CURRENCY_MAP).find((m) => m.code === scraped.currencyCode)
+    const meta = Object.values(BCV_CURRENCY_MAP).find(m => m.code === scraped.currencyCode)
     if (!meta) return
 
     const fromCurrency = await this.ensureCurrencyWithRepo(currenciesRepo, meta)

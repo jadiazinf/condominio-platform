@@ -11,7 +11,6 @@ import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
 
 type TCondominiumRecord = typeof condominiums.$inferSelect
-type TCondominiumManagementCompanyRecord = typeof condominiumManagementCompanies.$inferSelect
 
 /**
  * Repository for managing condominium entities.
@@ -116,10 +115,7 @@ export class CondominiumsRepository
       assignedBy: assignedBy ?? null,
     }))
 
-    await this.db
-      .insert(condominiumManagementCompanies)
-      .values(values)
-      .onConflictDoNothing()
+    await this.db.insert(condominiumManagementCompanies).values(values).onConflictDoNothing()
   }
 
   /**
@@ -186,8 +182,11 @@ export class CondominiumsRepository
    */
   override async create(dto: TCondominiumCreate): Promise<TCondominium> {
     const values = this.mapToInsertValues(dto)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Drizzle requires specific type for insert values
-    const results = await this.db.insert(condominiums).values(values as any).returning()
+    const results = await this.db
+      .insert(condominiums)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Drizzle requires specific type for insert values
+      .values(values as any)
+      .returning()
 
     const record = results[0]
     if (!record) {
@@ -229,7 +228,11 @@ export class CondominiumsRepository
       record = updatedRecord
     } else {
       // Just fetch the current record
-      const results = await this.db.select().from(condominiums).where(eq(condominiums.id, id)).limit(1)
+      const results = await this.db
+        .select()
+        .from(condominiums)
+        .where(eq(condominiums.id, id))
+        .limit(1)
       const fetchedRecord = results[0]
       if (!fetchedRecord) {
         return null
@@ -434,7 +437,9 @@ export class CondominiumsRepository
   /**
    * Retrieves condominiums with pagination, filtering, and ordering.
    */
-  override async listPaginated(query: TCondominiumsQuerySchema): Promise<TPaginatedResponse<TCondominium>> {
+  override async listPaginated(
+    query: TCondominiumsQuerySchema
+  ): Promise<TPaginatedResponse<TCondominium>> {
     const { page = 1, limit = 20, search, isActive, locationId } = query
     const offset = (page - 1) * limit
 

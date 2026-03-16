@@ -1,9 +1,11 @@
 'use client'
 
+import type { TAccessRequest, TAccessRequestStatus } from '@packages/domain'
+
 import { useState, useCallback } from 'react'
 import { Check, X, Search } from 'lucide-react'
-import type { TAccessRequest, TAccessRequestStatus } from '@packages/domain'
 import { HttpError } from '@packages/http-client'
+import { useCondominiumAccessRequests, useReviewAccessRequest } from '@packages/http-client/hooks'
 
 import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
@@ -15,7 +17,6 @@ import { Textarea } from '@/ui/components/textarea'
 import { Spinner } from '@/ui/components/spinner'
 import { Pagination } from '@/ui/components/pagination'
 import { useToast } from '@/ui/components/toast'
-import { useCondominiumAccessRequests, useReviewAccessRequest } from '@packages/http-client/hooks'
 
 type TStatusFilter = 'all' | TAccessRequestStatus
 
@@ -117,7 +118,9 @@ function getUser(request: TAccessRequest): TRequestUser | undefined {
 }
 
 function getUnit(request: TAccessRequest) {
-  return (request as Record<string, unknown>).unit as { id: string; unitNumber: string; buildingId: string } | undefined
+  return (request as Record<string, unknown>).unit as
+    | { id: string; unitNumber: string; buildingId: string }
+    | undefined
 }
 
 function getBuilding(request: TAccessRequest) {
@@ -144,17 +147,25 @@ export function AccessRequestsPageClient({
 
   // Debounce search
   const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null)
-  const handleSearchChange = useCallback((value: string) => {
-    setSearch(value)
-    if (searchTimeout) clearTimeout(searchTimeout)
-    const timeout = setTimeout(() => {
-      setDebouncedSearch(value)
-      setPage(1)
-    }, 400)
-    setSearchTimeout(timeout)
-  }, [searchTimeout])
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearch(value)
+      if (searchTimeout) clearTimeout(searchTimeout)
+      const timeout = setTimeout(() => {
+        setDebouncedSearch(value)
+        setPage(1)
+      }, 400)
 
-  const { data: response, isLoading, refetch } = useCondominiumAccessRequests({
+      setSearchTimeout(timeout)
+    },
+    [searchTimeout]
+  )
+
+  const {
+    data: response,
+    isLoading,
+    refetch,
+  } = useCondominiumAccessRequests({
     condominiumId,
     managementCompanyId,
     page,
@@ -186,8 +197,10 @@ export function AccessRequestsPageClient({
     onError: (error: Error) => {
       if (HttpError.isHttpError(error)) {
         const errorKey = API_ERROR_MAP[error.message]
+
         if (errorKey && errorKey in translations.error) {
           toast.error(translations.error[errorKey as keyof typeof translations.error])
+
           return
         }
       }
@@ -246,19 +259,25 @@ export function AccessRequestsPageClient({
 
   const getUserDisplay = (request: TAccessRequest) => {
     const user = getUser(request)
+
     if (user) {
-      return user.displayName || `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email
+      return (
+        user.displayName || `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email
+      )
     }
+
     return request.userId
   }
 
   const getUnitDisplay = (request: TAccessRequest) => {
     const unit = getUnit(request)
+
     return unit?.unitNumber ?? request.unitId
   }
 
   const getBuildingDisplay = (request: TAccessRequest) => {
     const building = getBuilding(request)
+
     return building?.name ?? '-'
   }
 
@@ -267,20 +286,20 @@ export function AccessRequestsPageClient({
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <Input
-          placeholder={translations.searchPlaceholder}
-          value={search}
-          onValueChange={handleSearchChange}
-          startContent={<Search size={16} className="text-default-400" />}
-          className="sm:max-w-xs"
           isClearable
+          className="sm:max-w-xs"
+          placeholder={translations.searchPlaceholder}
+          startContent={<Search className="text-default-400" size={16} />}
+          value={search}
           onClear={() => handleSearchChange('')}
+          onValueChange={handleSearchChange}
         />
         <Select
           aria-label="Status"
+          className="sm:max-w-[200px]"
           items={statusItems}
           value={statusFilter}
           onChange={handleStatusChange}
-          className="sm:max-w-[200px]"
         />
       </div>
 
@@ -299,13 +318,27 @@ export function AccessRequestsPageClient({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-default-200 text-left">
-                  <th className="px-4 py-3 font-medium text-default-500">{translations.table.user}</th>
-                  <th className="px-4 py-3 font-medium text-default-500">{translations.table.building}</th>
-                  <th className="px-4 py-3 font-medium text-default-500">{translations.table.unit}</th>
-                  <th className="px-4 py-3 font-medium text-default-500">{translations.table.ownershipType}</th>
-                  <th className="px-4 py-3 font-medium text-default-500">{translations.table.date}</th>
-                  <th className="px-4 py-3 font-medium text-default-500">{translations.table.status}</th>
-                  <th className="px-4 py-3 font-medium text-default-500">{translations.table.actions}</th>
+                  <th className="px-4 py-3 font-medium text-default-500">
+                    {translations.table.user}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-default-500">
+                    {translations.table.building}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-default-500">
+                    {translations.table.unit}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-default-500">
+                    {translations.table.ownershipType}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-default-500">
+                    {translations.table.date}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-default-500">
+                    {translations.table.status}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-default-500">
+                    {translations.table.actions}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -323,11 +356,7 @@ export function AccessRequestsPageClient({
                       {new Date(request.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3">
-                      <Chip
-                        size="sm"
-                        color={STATUS_COLORS[request.status]}
-                        variant="flat"
-                      >
+                      <Chip color={STATUS_COLORS[request.status]} size="sm" variant="flat">
                         {translations.status[request.status]}
                       </Chip>
                     </td>
@@ -335,22 +364,22 @@ export function AccessRequestsPageClient({
                       {request.status === 'pending' && (
                         <div className="flex items-center gap-1">
                           <Button
-                            size="sm"
-                            color="success"
-                            variant="flat"
                             isIconOnly
-                            onPress={() => handleApprove(request)}
                             aria-label={translations.actions.approve}
+                            color="success"
+                            size="sm"
+                            variant="flat"
+                            onPress={() => handleApprove(request)}
                           >
                             <Check size={14} />
                           </Button>
                           <Button
-                            size="sm"
-                            color="danger"
-                            variant="flat"
                             isIconOnly
-                            onPress={() => handleReject(request)}
                             aria-label={translations.actions.reject}
+                            color="danger"
+                            size="sm"
+                            variant="flat"
+                            onPress={() => handleReject(request)}
                           >
                             <X size={14} />
                           </Button>
@@ -365,102 +394,115 @@ export function AccessRequestsPageClient({
 
           {/* Pagination */}
           <Pagination
-            page={pagination.page}
-            totalPages={pagination.totalPages}
-            total={pagination.total}
             limit={pagination.limit}
-            onPageChange={setPage}
-            onLimitChange={(newLimit) => {
+            page={pagination.page}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            onLimitChange={newLimit => {
               setLimit(newLimit)
               setPage(1)
             }}
+            onPageChange={setPage}
           />
         </>
       )}
 
       {/* Detail modal */}
-      <Modal isOpen={isDetailOpen} onClose={onDetailClose} size="lg">
+      <Modal isOpen={isDetailOpen} size="lg" onClose={onDetailClose}>
         <ModalContent>
           <ModalHeader>{translations.detail.title}</ModalHeader>
           <ModalBody>
-            {detailRequest && (() => {
-              const user = getUser(detailRequest)
-              const unit = getUnit(detailRequest)
-              const building = getBuilding(detailRequest)
-              const userName = user
-                ? (user.displayName || `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email)
-                : detailRequest.userId
-              const phone = user?.phoneCountryCode && user?.phoneNumber
-                ? `${user.phoneCountryCode} ${user.phoneNumber}`
-                : null
-              const document = user?.idDocumentType && user?.idDocumentNumber
-                ? `${user.idDocumentType}: ${user.idDocumentNumber}`
-                : null
+            {detailRequest &&
+              (() => {
+                const user = getUser(detailRequest)
+                const unit = getUnit(detailRequest)
+                const building = getBuilding(detailRequest)
+                const userName = user
+                  ? user.displayName ||
+                    `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() ||
+                    user.email
+                  : detailRequest.userId
+                const phone =
+                  user?.phoneCountryCode && user?.phoneNumber
+                    ? `${user.phoneCountryCode} ${user.phoneNumber}`
+                    : null
+                const document =
+                  user?.idDocumentType && user?.idDocumentNumber
+                    ? `${user.idDocumentType}: ${user.idDocumentNumber}`
+                    : null
 
-              return (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-default-400">{translations.detail.name}</p>
-                      <p className="text-sm font-medium">{userName}</p>
+                return (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs text-default-400">{translations.detail.name}</p>
+                        <p className="text-sm font-medium">{userName}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-default-400">{translations.detail.email}</p>
+                        <p className="text-sm font-medium">{user?.email ?? '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-default-400">{translations.detail.phone}</p>
+                        <p className="text-sm font-medium">
+                          {phone ?? translations.detail.noPhone}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-default-400">
+                          {translations.detail.identityDocument}
+                        </p>
+                        <p className="text-sm font-medium">
+                          {document ?? translations.detail.noDocument}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-default-400">{translations.detail.email}</p>
-                      <p className="text-sm font-medium">{user?.email ?? '-'}</p>
+
+                    <hr className="border-default-200" />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs text-default-400">{translations.detail.building}</p>
+                        <p className="text-sm font-medium">{building?.name ?? '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-default-400">{translations.detail.unit}</p>
+                        <p className="text-sm font-medium">{unit?.unitNumber ?? '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-default-400">
+                          {translations.detail.ownershipType}
+                        </p>
+                        <p className="text-sm font-medium">
+                          {getOwnershipLabel(detailRequest.ownershipType)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-default-400">{translations.detail.date}</p>
+                        <p className="text-sm font-medium">
+                          {new Date(detailRequest.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
+
                     <div>
-                      <p className="text-xs text-default-400">{translations.detail.phone}</p>
-                      <p className="text-sm font-medium">{phone ?? translations.detail.noPhone}</p>
+                      <p className="text-xs text-default-400">{translations.detail.status}</p>
+                      <div className="mt-1">
+                        <Chip color={STATUS_COLORS[detailRequest.status]} size="sm" variant="flat">
+                          {translations.status[detailRequest.status]}
+                        </Chip>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-default-400">{translations.detail.identityDocument}</p>
-                      <p className="text-sm font-medium">{document ?? translations.detail.noDocument}</p>
-                    </div>
+
+                    {detailRequest.adminNotes && (
+                      <div>
+                        <p className="text-xs text-default-400">{translations.detail.adminNotes}</p>
+                        <p className="text-sm mt-1">{detailRequest.adminNotes}</p>
+                      </div>
+                    )}
                   </div>
-
-                  <hr className="border-default-200" />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-default-400">{translations.detail.building}</p>
-                      <p className="text-sm font-medium">{building?.name ?? '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-default-400">{translations.detail.unit}</p>
-                      <p className="text-sm font-medium">{unit?.unitNumber ?? '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-default-400">{translations.detail.ownershipType}</p>
-                      <p className="text-sm font-medium">{getOwnershipLabel(detailRequest.ownershipType)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-default-400">{translations.detail.date}</p>
-                      <p className="text-sm font-medium">{new Date(detailRequest.createdAt).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-default-400">{translations.detail.status}</p>
-                    <div className="mt-1">
-                      <Chip
-                        size="sm"
-                        color={STATUS_COLORS[detailRequest.status]}
-                        variant="flat"
-                      >
-                        {translations.status[detailRequest.status]}
-                      </Chip>
-                    </div>
-                  </div>
-
-                  {detailRequest.adminNotes && (
-                    <div>
-                      <p className="text-xs text-default-400">{translations.detail.adminNotes}</p>
-                      <p className="text-sm mt-1">{detailRequest.adminNotes}</p>
-                    </div>
-                  )}
-                </div>
-              )
-            })()}
+                )
+              })()}
           </ModalBody>
           <ModalFooter>
             {detailRequest?.status === 'pending' && (
@@ -491,7 +533,7 @@ export function AccessRequestsPageClient({
       </Modal>
 
       {/* Approve confirmation modal */}
-      <Modal isOpen={isApproveOpen} onClose={onApproveClose} size="sm">
+      <Modal isOpen={isApproveOpen} size="sm" onClose={onApproveClose}>
         <ModalContent>
           <ModalHeader>{translations.actions.approve}</ModalHeader>
           <ModalBody>
@@ -501,11 +543,7 @@ export function AccessRequestsPageClient({
             <Button variant="light" onPress={onApproveClose}>
               {translations.actions.cancel}
             </Button>
-            <Button
-              color="success"
-              onPress={confirmApprove}
-              isLoading={reviewMutation.isPending}
-            >
+            <Button color="success" isLoading={reviewMutation.isPending} onPress={confirmApprove}>
               {translations.actions.confirm}
             </Button>
           </ModalFooter>
@@ -513,26 +551,22 @@ export function AccessRequestsPageClient({
       </Modal>
 
       {/* Reject modal with notes */}
-      <Modal isOpen={isRejectOpen} onClose={onRejectClose} size="md">
+      <Modal isOpen={isRejectOpen} size="md" onClose={onRejectClose}>
         <ModalContent>
           <ModalHeader>{translations.actions.rejectTitle}</ModalHeader>
           <ModalBody>
             <Textarea
+              minRows={3}
               placeholder={translations.actions.rejectNotesPlaceholder}
               value={rejectNotes}
               onValueChange={setRejectNotes}
-              minRows={3}
             />
           </ModalBody>
           <ModalFooter>
             <Button variant="light" onPress={onRejectClose}>
               {translations.actions.cancel}
             </Button>
-            <Button
-              color="danger"
-              onPress={confirmReject}
-              isLoading={reviewMutation.isPending}
-            >
+            <Button color="danger" isLoading={reviewMutation.isPending} onPress={confirmReject}>
               {translations.actions.reject}
             </Button>
           </ModalFooter>

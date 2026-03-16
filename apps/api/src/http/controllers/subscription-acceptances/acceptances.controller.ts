@@ -11,7 +11,10 @@ import { authMiddleware } from '../../middlewares/auth'
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
 import { createRouter } from '../create-router'
 import type { TRouteDefinition } from '../types'
-import { AcceptSubscriptionService, SubscriptionAuditService } from '../../../services/subscriptions'
+import {
+  AcceptSubscriptionService,
+  SubscriptionAuditService,
+} from '../../../services/subscriptions'
 
 const TokenParamSchema = z.object({
   token: z.string().min(1, 'Token is required'),
@@ -86,10 +89,19 @@ export class SubscriptionAcceptancesController {
     const subscription = await this.acceptService.getSubscriptionById(acceptance.subscriptionId)
 
     if (!subscription) {
-      return { authorized: false as const, tokenResult: { success: false as const, error: 'Subscription not found', code: 'NOT_FOUND' } }
+      return {
+        authorized: false as const,
+        tokenResult: {
+          success: false as const,
+          error: 'Subscription not found',
+          code: 'NOT_FOUND',
+        },
+      }
     }
 
-    const primaryAdmin = await this.membersRepository.getPrimaryAdmin(subscription.managementCompanyId)
+    const primaryAdmin = await this.membersRepository.getPrimaryAdmin(
+      subscription.managementCompanyId
+    )
 
     if (!primaryAdmin || primaryAdmin.userId !== userId) {
       return { authorized: false as const, forbidden: true as const }
@@ -110,7 +122,10 @@ export class SubscriptionAcceptancesController {
 
       if ('forbidden' in auth) {
         return c.json(
-          { success: false, error: 'Solo el administrador principal de la empresa puede acceder a este enlace' },
+          {
+            success: false,
+            error: 'Solo el administrador principal de la empresa puede acceder a este enlace',
+          },
           403
         )
       }
@@ -152,7 +167,10 @@ export class SubscriptionAcceptancesController {
 
       if ('forbidden' in auth) {
         return c.json(
-          { success: false, error: 'Solo el administrador principal de la empresa puede aceptar la suscripción' },
+          {
+            success: false,
+            error: 'Solo el administrador principal de la empresa puede aceptar la suscripción',
+          },
           403
         )
       }

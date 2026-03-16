@@ -1,15 +1,17 @@
 'use client'
 
+import type { TServiceExecution } from '@packages/domain'
+
 import { useMemo, useState, useEffect } from 'react'
+import { Wrench, Receipt } from 'lucide-react'
+import { usePaymentConceptServices } from '@packages/http-client'
+import { useServiceExecutionsPaginated } from '@packages/http-client/hooks/use-service-executions'
+
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Spinner } from '@/ui/components/spinner'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
-import { Wrench, Receipt } from 'lucide-react'
 import { Accordion, AccordionItem } from '@/ui/components/accordion'
-import { usePaymentConceptServices } from '@packages/http-client'
-import { useServiceExecutionsPaginated } from '@packages/http-client/hooks/use-service-executions'
-import type { TServiceExecution } from '@packages/domain'
 
 interface RelatedServicesModalProps {
   isOpen: boolean
@@ -61,15 +63,13 @@ function ServiceExecutionsList({
 
   if (executions.length === 0) {
     return (
-      <p className="text-xs text-default-400 py-2 text-center">
-        {t(`${d}.noServiceExecutions`)}
-      </p>
+      <p className="text-xs text-default-400 py-2 text-center">{t(`${d}.noServiceExecutions`)}</p>
     )
   }
 
   return (
     <div className="space-y-2">
-      {executions.map((execution) => (
+      {executions.map(execution => (
         <div
           key={execution.id}
           className="flex items-center justify-between rounded-md border border-default-100 bg-default-50 px-3 py-2"
@@ -131,16 +131,18 @@ export function RelatedServicesModal({
     if (keys === 'all') return
     setLoadedServiceIds(prev => {
       const merged = new Set(prev)
+
       ;(keys as Set<React.Key>).forEach(k => merged.add(String(k)))
+
       return merged
     })
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="2xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader className="flex items-center gap-3">
-          <Wrench size={18} className="text-primary" />
+          <Wrench className="text-primary" size={18} />
           <Typography variant="h4">{t(`${d}.relatedServices`)}</Typography>
         </ModalHeader>
 
@@ -153,7 +155,6 @@ export function RelatedServicesModal({
             <p className="text-sm text-default-400 py-8 text-center">{t(`${d}.noServices`)}</p>
           ) : (
             <Accordion
-              selectionMode="multiple"
               className="p-0 gap-0"
               itemClasses={{
                 base: 'border border-default-200 rounded-lg mb-2 px-0',
@@ -161,13 +162,14 @@ export function RelatedServicesModal({
                 title: 'text-sm',
                 content: 'px-3 pb-3 pt-0',
               }}
+              selectionMode="multiple"
               onSelectionChange={handleSelectionChange}
             >
               {services.map(service => (
                 <AccordionItem
                   key={service.serviceId}
                   aria-label={service.serviceName}
-                  startContent={<Receipt size={14} className="text-default-400 shrink-0" />}
+                  startContent={<Receipt className="text-default-400 shrink-0" size={14} />}
                   title={
                     <div className="flex items-center justify-between w-full pr-2">
                       <div>
@@ -186,11 +188,11 @@ export function RelatedServicesModal({
                 >
                   <ServiceExecutionsList
                     companyId={managementCompanyId}
-                    serviceId={service.serviceId}
-                    condominiumId={condominiumId}
                     conceptId={conceptId}
-                    formatAmount={formatAmount}
+                    condominiumId={condominiumId}
                     enabled={isOpen && loadedServiceIds.has(service.serviceId)}
+                    formatAmount={formatAmount}
+                    serviceId={service.serviceId}
                   />
                 </AccordionItem>
               ))}
@@ -201,10 +203,10 @@ export function RelatedServicesModal({
         {!isLoading && services.length > 0 && (
           <ModalFooter className="border-t border-default-200">
             <div className="flex w-full items-center justify-between">
-              <Typography variant="body2" className="font-semibold">
+              <Typography className="font-semibold" variant="body2">
                 {t(`${d}.totalAmount`)}
               </Typography>
-              <Typography variant="body2" className="font-semibold">
+              <Typography className="font-semibold" variant="body2">
                 {formatAmount(totalAmount)}
               </Typography>
             </div>

@@ -159,13 +159,9 @@
         "audit_logs_user_id_users_id_fk": {
           "name": "audit_logs_user_id_users_id_fk",
           "tableFrom": "audit_logs",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -368,26 +364,18 @@
         "buildings_condominium_id_condominiums_id_fk": {
           "name": "buildings_condominium_id_condominiums_id_fk",
           "tableFrom": "buildings",
-          "columnsFrom": [
-            "condominium_id"
-          ],
+          "columnsFrom": ["condominium_id"],
           "tableTo": "condominiums",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "buildings_created_by_users_id_fk": {
           "name": "buildings_created_by_users_id_fk",
           "tableFrom": "buildings",
-          "columnsFrom": [
-            "created_by"
-          ],
+          "columnsFrom": ["created_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -587,52 +575,36 @@
         "condominiums_management_company_id_management_companies_id_fk": {
           "name": "condominiums_management_company_id_management_companies_id_fk",
           "tableFrom": "condominiums",
-          "columnsFrom": [
-            "management_company_id"
-          ],
+          "columnsFrom": ["management_company_id"],
           "tableTo": "management_companies",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "condominiums_location_id_locations_id_fk": {
           "name": "condominiums_location_id_locations_id_fk",
           "tableFrom": "condominiums",
-          "columnsFrom": [
-            "location_id"
-          ],
+          "columnsFrom": ["location_id"],
           "tableTo": "locations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "condominiums_default_currency_id_currencies_id_fk": {
           "name": "condominiums_default_currency_id_currencies_id_fk",
           "tableFrom": "condominiums",
-          "columnsFrom": [
-            "default_currency_id"
-          ],
+          "columnsFrom": ["default_currency_id"],
           "tableTo": "currencies",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "condominiums_created_by_users_id_fk": {
           "name": "condominiums_created_by_users_id_fk",
           "tableFrom": "condominiums",
-          "columnsFrom": [
-            "created_by"
-          ],
+          "columnsFrom": ["created_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -641,9 +613,7 @@
       "uniqueConstraints": {
         "condominiums_code_unique": {
           "name": "condominiums_code_unique",
-          "columns": [
-            "code"
-          ],
+          "columns": ["code"],
           "nullsNotDistinct": false
         }
       },
@@ -774,9 +744,7 @@
       "uniqueConstraints": {
         "currencies_code_unique": {
           "name": "currencies_code_unique",
-          "columns": [
-            "code"
-          ],
+          "columns": ["code"],
           "nullsNotDistinct": false
         }
       },
@@ -1052,104 +1020,72 @@
         "documents_condominium_id_condominiums_id_fk": {
           "name": "documents_condominium_id_condominiums_id_fk",
           "tableFrom": "documents",
-          "columnsFrom": [
-            "condominium_id"
-          ],
+          "columnsFrom": ["condominium_id"],
           "tableTo": "condominiums",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "documents_building_id_buildings_id_fk": {
           "name": "documents_building_id_buildings_id_fk",
           "tableFrom": "documents",
-          "columnsFrom": [
-            "building_id"
-          ],
+          "columnsFrom": ["building_id"],
           "tableTo": "buildings",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "documents_unit_id_units_id_fk": {
           "name": "documents_unit_id_units_id_fk",
           "tableFrom": "documents",
-          "columnsFrom": [
-            "unit_id"
-          ],
+          "columnsFrom": ["unit_id"],
           "tableTo": "units",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "documents_user_id_users_id_fk": {
           "name": "documents_user_id_users_id_fk",
           "tableFrom": "documents",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "documents_payment_id_payments_id_fk": {
           "name": "documents_payment_id_payments_id_fk",
           "tableFrom": "documents",
-          "columnsFrom": [
-            "payment_id"
-          ],
+          "columnsFrom": ["payment_id"],
           "tableTo": "payments",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "documents_quota_id_quotas_id_fk": {
           "name": "documents_quota_id_quotas_id_fk",
           "tableFrom": "documents",
-          "columnsFrom": [
-            "quota_id"
-          ],
+          "columnsFrom": ["quota_id"],
           "tableTo": "quotas",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "documents_expense_id_expenses_id_fk": {
           "name": "documents_expense_id_expenses_id_fk",
           "tableFrom": "documents",
-          "columnsFrom": [
-            "expense_id"
-          ],
+          "columnsFrom": ["expense_id"],
           "tableTo": "expenses",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "documents_created_by_users_id_fk": {
           "name": "documents_created_by_users_id_fk",
           "tableFrom": "documents",
-          "columnsFrom": [
-            "created_by"
-          ],
+          "columnsFrom": ["created_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -1282,52 +1218,36 @@
         "entity_payment_gateways_payment_gateway_id_payment_gateways_id_fk": {
           "name": "entity_payment_gateways_payment_gateway_id_payment_gateways_id_fk",
           "tableFrom": "entity_payment_gateways",
-          "columnsFrom": [
-            "payment_gateway_id"
-          ],
+          "columnsFrom": ["payment_gateway_id"],
           "tableTo": "payment_gateways",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "entity_payment_gateways_condominium_id_condominiums_id_fk": {
           "name": "entity_payment_gateways_condominium_id_condominiums_id_fk",
           "tableFrom": "entity_payment_gateways",
-          "columnsFrom": [
-            "condominium_id"
-          ],
+          "columnsFrom": ["condominium_id"],
           "tableTo": "condominiums",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "entity_payment_gateways_building_id_buildings_id_fk": {
           "name": "entity_payment_gateways_building_id_buildings_id_fk",
           "tableFrom": "entity_payment_gateways",
-          "columnsFrom": [
-            "building_id"
-          ],
+          "columnsFrom": ["building_id"],
           "tableTo": "buildings",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "entity_payment_gateways_registered_by_users_id_fk": {
           "name": "entity_payment_gateways_registered_by_users_id_fk",
           "tableFrom": "entity_payment_gateways",
-          "columnsFrom": [
-            "registered_by"
-          ],
+          "columnsFrom": ["registered_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -1507,26 +1427,18 @@
         "exchange_rates_from_currency_id_currencies_id_fk": {
           "name": "exchange_rates_from_currency_id_currencies_id_fk",
           "tableFrom": "exchange_rates",
-          "columnsFrom": [
-            "from_currency_id"
-          ],
+          "columnsFrom": ["from_currency_id"],
           "tableTo": "currencies",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "exchange_rates_to_currency_id_currencies_id_fk": {
           "name": "exchange_rates_to_currency_id_currencies_id_fk",
           "tableFrom": "exchange_rates",
-          "columnsFrom": [
-            "to_currency_id"
-          ],
+          "columnsFrom": ["to_currency_id"],
           "tableTo": "currencies",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -1643,26 +1555,18 @@
         "expense_categories_registered_by_users_id_fk": {
           "name": "expense_categories_registered_by_users_id_fk",
           "tableFrom": "expense_categories",
-          "columnsFrom": [
-            "registered_by"
-          ],
+          "columnsFrom": ["registered_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "fk_expense_categories_parent": {
           "name": "fk_expense_categories_parent",
           "tableFrom": "expense_categories",
-          "columnsFrom": [
-            "parent_category_id"
-          ],
+          "columnsFrom": ["parent_category_id"],
           "tableTo": "expense_categories",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -1899,78 +1803,54 @@
         "expenses_condominium_id_condominiums_id_fk": {
           "name": "expenses_condominium_id_condominiums_id_fk",
           "tableFrom": "expenses",
-          "columnsFrom": [
-            "condominium_id"
-          ],
+          "columnsFrom": ["condominium_id"],
           "tableTo": "condominiums",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "expenses_building_id_buildings_id_fk": {
           "name": "expenses_building_id_buildings_id_fk",
           "tableFrom": "expenses",
-          "columnsFrom": [
-            "building_id"
-          ],
+          "columnsFrom": ["building_id"],
           "tableTo": "buildings",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "expenses_expense_category_id_expense_categories_id_fk": {
           "name": "expenses_expense_category_id_expense_categories_id_fk",
           "tableFrom": "expenses",
-          "columnsFrom": [
-            "expense_category_id"
-          ],
+          "columnsFrom": ["expense_category_id"],
           "tableTo": "expense_categories",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "expenses_currency_id_currencies_id_fk": {
           "name": "expenses_currency_id_currencies_id_fk",
           "tableFrom": "expenses",
-          "columnsFrom": [
-            "currency_id"
-          ],
+          "columnsFrom": ["currency_id"],
           "tableTo": "currencies",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "expenses_approved_by_users_id_fk": {
           "name": "expenses_approved_by_users_id_fk",
           "tableFrom": "expenses",
-          "columnsFrom": [
-            "approved_by"
-          ],
+          "columnsFrom": ["approved_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "expenses_created_by_users_id_fk": {
           "name": "expenses_created_by_users_id_fk",
           "tableFrom": "expenses",
-          "columnsFrom": [
-            "created_by"
-          ],
+          "columnsFrom": ["created_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -2208,65 +2088,45 @@
         "interest_configurations_condominium_id_condominiums_id_fk": {
           "name": "interest_configurations_condominium_id_condominiums_id_fk",
           "tableFrom": "interest_configurations",
-          "columnsFrom": [
-            "condominium_id"
-          ],
+          "columnsFrom": ["condominium_id"],
           "tableTo": "condominiums",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "interest_configurations_building_id_buildings_id_fk": {
           "name": "interest_configurations_building_id_buildings_id_fk",
           "tableFrom": "interest_configurations",
-          "columnsFrom": [
-            "building_id"
-          ],
+          "columnsFrom": ["building_id"],
           "tableTo": "buildings",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "interest_configurations_payment_concept_id_payment_concepts_id_fk": {
           "name": "interest_configurations_payment_concept_id_payment_concepts_id_fk",
           "tableFrom": "interest_configurations",
-          "columnsFrom": [
-            "payment_concept_id"
-          ],
+          "columnsFrom": ["payment_concept_id"],
           "tableTo": "payment_concepts",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "interest_configurations_currency_id_currencies_id_fk": {
           "name": "interest_configurations_currency_id_currencies_id_fk",
           "tableFrom": "interest_configurations",
-          "columnsFrom": [
-            "currency_id"
-          ],
+          "columnsFrom": ["currency_id"],
           "tableTo": "currencies",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "interest_configurations_created_by_users_id_fk": {
           "name": "interest_configurations_created_by_users_id_fk",
           "tableFrom": "interest_configurations",
-          "columnsFrom": [
-            "created_by"
-          ],
+          "columnsFrom": ["created_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -2443,13 +2303,9 @@
         "fk_locations_parent": {
           "name": "fk_locations_parent",
           "tableFrom": "locations",
-          "columnsFrom": [
-            "parent_id"
-          ],
+          "columnsFrom": ["parent_id"],
           "tableTo": "locations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -2625,26 +2481,18 @@
         "management_companies_location_id_locations_id_fk": {
           "name": "management_companies_location_id_locations_id_fk",
           "tableFrom": "management_companies",
-          "columnsFrom": [
-            "location_id"
-          ],
+          "columnsFrom": ["location_id"],
           "tableTo": "locations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "management_companies_created_by_users_id_fk": {
           "name": "management_companies_created_by_users_id_fk",
           "tableFrom": "management_companies",
-          "columnsFrom": [
-            "created_by"
-          ],
+          "columnsFrom": ["created_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -2653,9 +2501,7 @@
       "uniqueConstraints": {
         "management_companies_tax_id_unique": {
           "name": "management_companies_tax_id_unique",
-          "columns": [
-            "tax_id"
-          ],
+          "columns": ["tax_id"],
           "nullsNotDistinct": false
         }
       },
@@ -2919,78 +2765,54 @@
         "messages_sender_id_users_id_fk": {
           "name": "messages_sender_id_users_id_fk",
           "tableFrom": "messages",
-          "columnsFrom": [
-            "sender_id"
-          ],
+          "columnsFrom": ["sender_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "messages_recipient_user_id_users_id_fk": {
           "name": "messages_recipient_user_id_users_id_fk",
           "tableFrom": "messages",
-          "columnsFrom": [
-            "recipient_user_id"
-          ],
+          "columnsFrom": ["recipient_user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "messages_recipient_condominium_id_condominiums_id_fk": {
           "name": "messages_recipient_condominium_id_condominiums_id_fk",
           "tableFrom": "messages",
-          "columnsFrom": [
-            "recipient_condominium_id"
-          ],
+          "columnsFrom": ["recipient_condominium_id"],
           "tableTo": "condominiums",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "messages_recipient_building_id_buildings_id_fk": {
           "name": "messages_recipient_building_id_buildings_id_fk",
           "tableFrom": "messages",
-          "columnsFrom": [
-            "recipient_building_id"
-          ],
+          "columnsFrom": ["recipient_building_id"],
           "tableTo": "buildings",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "messages_recipient_unit_id_units_id_fk": {
           "name": "messages_recipient_unit_id_units_id_fk",
           "tableFrom": "messages",
-          "columnsFrom": [
-            "recipient_unit_id"
-          ],
+          "columnsFrom": ["recipient_unit_id"],
           "tableTo": "units",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "messages_registered_by_users_id_fk": {
           "name": "messages_registered_by_users_id_fk",
           "tableFrom": "messages",
-          "columnsFrom": [
-            "registered_by"
-          ],
+          "columnsFrom": ["registered_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -3130,39 +2952,27 @@
         "payment_applications_payment_id_payments_id_fk": {
           "name": "payment_applications_payment_id_payments_id_fk",
           "tableFrom": "payment_applications",
-          "columnsFrom": [
-            "payment_id"
-          ],
+          "columnsFrom": ["payment_id"],
           "tableTo": "payments",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "payment_applications_quota_id_quotas_id_fk": {
           "name": "payment_applications_quota_id_quotas_id_fk",
           "tableFrom": "payment_applications",
-          "columnsFrom": [
-            "quota_id"
-          ],
+          "columnsFrom": ["quota_id"],
           "tableTo": "quotas",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "payment_applications_registered_by_users_id_fk": {
           "name": "payment_applications_registered_by_users_id_fk",
           "tableFrom": "payment_applications",
-          "columnsFrom": [
-            "registered_by"
-          ],
+          "columnsFrom": ["registered_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -3349,52 +3159,36 @@
         "payment_concepts_condominium_id_condominiums_id_fk": {
           "name": "payment_concepts_condominium_id_condominiums_id_fk",
           "tableFrom": "payment_concepts",
-          "columnsFrom": [
-            "condominium_id"
-          ],
+          "columnsFrom": ["condominium_id"],
           "tableTo": "condominiums",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "payment_concepts_building_id_buildings_id_fk": {
           "name": "payment_concepts_building_id_buildings_id_fk",
           "tableFrom": "payment_concepts",
-          "columnsFrom": [
-            "building_id"
-          ],
+          "columnsFrom": ["building_id"],
           "tableTo": "buildings",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "payment_concepts_currency_id_currencies_id_fk": {
           "name": "payment_concepts_currency_id_currencies_id_fk",
           "tableFrom": "payment_concepts",
-          "columnsFrom": [
-            "currency_id"
-          ],
+          "columnsFrom": ["currency_id"],
           "tableTo": "currencies",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "payment_concepts_created_by_users_id_fk": {
           "name": "payment_concepts_created_by_users_id_fk",
           "tableFrom": "payment_concepts",
-          "columnsFrom": [
-            "created_by"
-          ],
+          "columnsFrom": ["created_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -3533,13 +3327,9 @@
         "payment_gateways_registered_by_users_id_fk": {
           "name": "payment_gateways_registered_by_users_id_fk",
           "tableFrom": "payment_gateways",
-          "columnsFrom": [
-            "registered_by"
-          ],
+          "columnsFrom": ["registered_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -3548,9 +3338,7 @@
       "uniqueConstraints": {
         "payment_gateways_name_unique": {
           "name": "payment_gateways_name_unique",
-          "columns": [
-            "name"
-          ],
+          "columns": ["name"],
           "nullsNotDistinct": false
         }
       },
@@ -3699,52 +3487,36 @@
         "payment_pending_allocations_payment_id_payments_id_fk": {
           "name": "payment_pending_allocations_payment_id_payments_id_fk",
           "tableFrom": "payment_pending_allocations",
-          "columnsFrom": [
-            "payment_id"
-          ],
+          "columnsFrom": ["payment_id"],
           "tableTo": "payments",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "payment_pending_allocations_currency_id_currencies_id_fk": {
           "name": "payment_pending_allocations_currency_id_currencies_id_fk",
           "tableFrom": "payment_pending_allocations",
-          "columnsFrom": [
-            "currency_id"
-          ],
+          "columnsFrom": ["currency_id"],
           "tableTo": "currencies",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "payment_pending_allocations_allocated_to_quota_id_quotas_id_fk": {
           "name": "payment_pending_allocations_allocated_to_quota_id_quotas_id_fk",
           "tableFrom": "payment_pending_allocations",
-          "columnsFrom": [
-            "allocated_to_quota_id"
-          ],
+          "columnsFrom": ["allocated_to_quota_id"],
           "tableTo": "quotas",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "payment_pending_allocations_allocated_by_users_id_fk": {
           "name": "payment_pending_allocations_allocated_by_users_id_fk",
           "tableFrom": "payment_pending_allocations",
-          "columnsFrom": [
-            "allocated_by"
-          ],
+          "columnsFrom": ["allocated_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -4058,91 +3830,63 @@
         "payments_user_id_users_id_fk": {
           "name": "payments_user_id_users_id_fk",
           "tableFrom": "payments",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "payments_unit_id_units_id_fk": {
           "name": "payments_unit_id_units_id_fk",
           "tableFrom": "payments",
-          "columnsFrom": [
-            "unit_id"
-          ],
+          "columnsFrom": ["unit_id"],
           "tableTo": "units",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "payments_currency_id_currencies_id_fk": {
           "name": "payments_currency_id_currencies_id_fk",
           "tableFrom": "payments",
-          "columnsFrom": [
-            "currency_id"
-          ],
+          "columnsFrom": ["currency_id"],
           "tableTo": "currencies",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "payments_paid_currency_id_currencies_id_fk": {
           "name": "payments_paid_currency_id_currencies_id_fk",
           "tableFrom": "payments",
-          "columnsFrom": [
-            "paid_currency_id"
-          ],
+          "columnsFrom": ["paid_currency_id"],
           "tableTo": "currencies",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "payments_payment_gateway_id_payment_gateways_id_fk": {
           "name": "payments_payment_gateway_id_payment_gateways_id_fk",
           "tableFrom": "payments",
-          "columnsFrom": [
-            "payment_gateway_id"
-          ],
+          "columnsFrom": ["payment_gateway_id"],
           "tableTo": "payment_gateways",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "payments_registered_by_users_id_fk": {
           "name": "payments_registered_by_users_id_fk",
           "tableFrom": "payments",
-          "columnsFrom": [
-            "registered_by"
-          ],
+          "columnsFrom": ["registered_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "payments_verified_by_users_id_fk": {
           "name": "payments_verified_by_users_id_fk",
           "tableFrom": "payments",
-          "columnsFrom": [
-            "verified_by"
-          ],
+          "columnsFrom": ["verified_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -4151,9 +3895,7 @@
       "uniqueConstraints": {
         "payments_payment_number_unique": {
           "name": "payments_payment_number_unique",
-          "columns": [
-            "payment_number"
-          ],
+          "columns": ["payment_number"],
           "nullsNotDistinct": false
         }
       },
@@ -4274,13 +4016,9 @@
         "permissions_registered_by_users_id_fk": {
           "name": "permissions_registered_by_users_id_fk",
           "tableFrom": "permissions",
-          "columnsFrom": [
-            "registered_by"
-          ],
+          "columnsFrom": ["registered_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -4289,9 +4027,7 @@
       "uniqueConstraints": {
         "permissions_name_unique": {
           "name": "permissions_name_unique",
-          "columns": [
-            "name"
-          ],
+          "columns": ["name"],
           "nullsNotDistinct": false
         }
       },
@@ -4406,26 +4142,18 @@
         "quota_adjustments_quota_id_quotas_id_fk": {
           "name": "quota_adjustments_quota_id_quotas_id_fk",
           "tableFrom": "quota_adjustments",
-          "columnsFrom": [
-            "quota_id"
-          ],
+          "columnsFrom": ["quota_id"],
           "tableTo": "quotas",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "quota_adjustments_created_by_users_id_fk": {
           "name": "quota_adjustments_created_by_users_id_fk",
           "tableFrom": "quota_adjustments",
-          "columnsFrom": [
-            "created_by"
-          ],
+          "columnsFrom": ["created_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         }
@@ -4613,52 +4341,36 @@
         "quota_formulas_condominium_id_condominiums_id_fk": {
           "name": "quota_formulas_condominium_id_condominiums_id_fk",
           "tableFrom": "quota_formulas",
-          "columnsFrom": [
-            "condominium_id"
-          ],
+          "columnsFrom": ["condominium_id"],
           "tableTo": "condominiums",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "quota_formulas_currency_id_currencies_id_fk": {
           "name": "quota_formulas_currency_id_currencies_id_fk",
           "tableFrom": "quota_formulas",
-          "columnsFrom": [
-            "currency_id"
-          ],
+          "columnsFrom": ["currency_id"],
           "tableTo": "currencies",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "quota_formulas_created_by_users_id_fk": {
           "name": "quota_formulas_created_by_users_id_fk",
           "tableFrom": "quota_formulas",
-          "columnsFrom": [
-            "created_by"
-          ],
+          "columnsFrom": ["created_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "quota_formulas_updated_by_users_id_fk": {
           "name": "quota_formulas_updated_by_users_id_fk",
           "tableFrom": "quota_formulas",
-          "columnsFrom": [
-            "updated_by"
-          ],
+          "columnsFrom": ["updated_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -4926,65 +4638,45 @@
         "quota_generation_logs_generation_rule_id_quota_generation_rules_id_fk": {
           "name": "quota_generation_logs_generation_rule_id_quota_generation_rules_id_fk",
           "tableFrom": "quota_generation_logs",
-          "columnsFrom": [
-            "generation_rule_id"
-          ],
+          "columnsFrom": ["generation_rule_id"],
           "tableTo": "quota_generation_rules",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "quota_generation_logs_generation_schedule_id_quota_generation_schedules_id_fk": {
           "name": "quota_generation_logs_generation_schedule_id_quota_generation_schedules_id_fk",
           "tableFrom": "quota_generation_logs",
-          "columnsFrom": [
-            "generation_schedule_id"
-          ],
+          "columnsFrom": ["generation_schedule_id"],
           "tableTo": "quota_generation_schedules",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "quota_generation_logs_quota_formula_id_quota_formulas_id_fk": {
           "name": "quota_generation_logs_quota_formula_id_quota_formulas_id_fk",
           "tableFrom": "quota_generation_logs",
-          "columnsFrom": [
-            "quota_formula_id"
-          ],
+          "columnsFrom": ["quota_formula_id"],
           "tableTo": "quota_formulas",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "quota_generation_logs_currency_id_currencies_id_fk": {
           "name": "quota_generation_logs_currency_id_currencies_id_fk",
           "tableFrom": "quota_generation_logs",
-          "columnsFrom": [
-            "currency_id"
-          ],
+          "columnsFrom": ["currency_id"],
           "tableTo": "currencies",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "quota_generation_logs_generated_by_users_id_fk": {
           "name": "quota_generation_logs_generated_by_users_id_fk",
           "tableFrom": "quota_generation_logs",
-          "columnsFrom": [
-            "generated_by"
-          ],
+          "columnsFrom": ["generated_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         }
@@ -5211,78 +4903,54 @@
         "quota_generation_rules_condominium_id_condominiums_id_fk": {
           "name": "quota_generation_rules_condominium_id_condominiums_id_fk",
           "tableFrom": "quota_generation_rules",
-          "columnsFrom": [
-            "condominium_id"
-          ],
+          "columnsFrom": ["condominium_id"],
           "tableTo": "condominiums",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "quota_generation_rules_building_id_buildings_id_fk": {
           "name": "quota_generation_rules_building_id_buildings_id_fk",
           "tableFrom": "quota_generation_rules",
-          "columnsFrom": [
-            "building_id"
-          ],
+          "columnsFrom": ["building_id"],
           "tableTo": "buildings",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "quota_generation_rules_payment_concept_id_payment_concepts_id_fk": {
           "name": "quota_generation_rules_payment_concept_id_payment_concepts_id_fk",
           "tableFrom": "quota_generation_rules",
-          "columnsFrom": [
-            "payment_concept_id"
-          ],
+          "columnsFrom": ["payment_concept_id"],
           "tableTo": "payment_concepts",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "quota_generation_rules_quota_formula_id_quota_formulas_id_fk": {
           "name": "quota_generation_rules_quota_formula_id_quota_formulas_id_fk",
           "tableFrom": "quota_generation_rules",
-          "columnsFrom": [
-            "quota_formula_id"
-          ],
+          "columnsFrom": ["quota_formula_id"],
           "tableTo": "quota_formulas",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "quota_generation_rules_created_by_users_id_fk": {
           "name": "quota_generation_rules_created_by_users_id_fk",
           "tableFrom": "quota_generation_rules",
-          "columnsFrom": [
-            "created_by"
-          ],
+          "columnsFrom": ["created_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "quota_generation_rules_updated_by_users_id_fk": {
           "name": "quota_generation_rules_updated_by_users_id_fk",
           "tableFrom": "quota_generation_rules",
-          "columnsFrom": [
-            "updated_by"
-          ],
+          "columnsFrom": ["updated_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -5500,39 +5168,27 @@
         "quota_generation_schedules_quota_generation_rule_id_quota_generation_rules_id_fk": {
           "name": "quota_generation_schedules_quota_generation_rule_id_quota_generation_rules_id_fk",
           "tableFrom": "quota_generation_schedules",
-          "columnsFrom": [
-            "quota_generation_rule_id"
-          ],
+          "columnsFrom": ["quota_generation_rule_id"],
           "tableTo": "quota_generation_rules",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "quota_generation_schedules_created_by_users_id_fk": {
           "name": "quota_generation_schedules_created_by_users_id_fk",
           "tableFrom": "quota_generation_schedules",
-          "columnsFrom": [
-            "created_by"
-          ],
+          "columnsFrom": ["created_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "quota_generation_schedules_updated_by_users_id_fk": {
           "name": "quota_generation_schedules_updated_by_users_id_fk",
           "tableFrom": "quota_generation_schedules",
-          "columnsFrom": [
-            "updated_by"
-          ],
+          "columnsFrom": ["updated_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -5798,52 +5454,36 @@
         "quotas_unit_id_units_id_fk": {
           "name": "quotas_unit_id_units_id_fk",
           "tableFrom": "quotas",
-          "columnsFrom": [
-            "unit_id"
-          ],
+          "columnsFrom": ["unit_id"],
           "tableTo": "units",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "quotas_payment_concept_id_payment_concepts_id_fk": {
           "name": "quotas_payment_concept_id_payment_concepts_id_fk",
           "tableFrom": "quotas",
-          "columnsFrom": [
-            "payment_concept_id"
-          ],
+          "columnsFrom": ["payment_concept_id"],
           "tableTo": "payment_concepts",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "quotas_currency_id_currencies_id_fk": {
           "name": "quotas_currency_id_currencies_id_fk",
           "tableFrom": "quotas",
-          "columnsFrom": [
-            "currency_id"
-          ],
+          "columnsFrom": ["currency_id"],
           "tableTo": "currencies",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "quotas_created_by_users_id_fk": {
           "name": "quotas_created_by_users_id_fk",
           "tableFrom": "quotas",
-          "columnsFrom": [
-            "created_by"
-          ],
+          "columnsFrom": ["created_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -5963,39 +5603,27 @@
         "role_permissions_role_id_roles_id_fk": {
           "name": "role_permissions_role_id_roles_id_fk",
           "tableFrom": "role_permissions",
-          "columnsFrom": [
-            "role_id"
-          ],
+          "columnsFrom": ["role_id"],
           "tableTo": "roles",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "role_permissions_permission_id_permissions_id_fk": {
           "name": "role_permissions_permission_id_permissions_id_fk",
           "tableFrom": "role_permissions",
-          "columnsFrom": [
-            "permission_id"
-          ],
+          "columnsFrom": ["permission_id"],
           "tableTo": "permissions",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "role_permissions_registered_by_users_id_fk": {
           "name": "role_permissions_registered_by_users_id_fk",
           "tableFrom": "role_permissions",
-          "columnsFrom": [
-            "registered_by"
-          ],
+          "columnsFrom": ["registered_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -6108,13 +5736,9 @@
         "roles_registered_by_users_id_fk": {
           "name": "roles_registered_by_users_id_fk",
           "tableFrom": "roles",
-          "columnsFrom": [
-            "registered_by"
-          ],
+          "columnsFrom": ["registered_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -6123,9 +5747,7 @@
       "uniqueConstraints": {
         "roles_name_unique": {
           "name": "roles_name_unique",
-          "columns": [
-            "name"
-          ],
+          "columns": ["name"],
           "nullsNotDistinct": false
         }
       },
@@ -6294,26 +5916,18 @@
         "unit_ownerships_unit_id_units_id_fk": {
           "name": "unit_ownerships_unit_id_units_id_fk",
           "tableFrom": "unit_ownerships",
-          "columnsFrom": [
-            "unit_id"
-          ],
+          "columnsFrom": ["unit_id"],
           "tableTo": "units",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "unit_ownerships_user_id_users_id_fk": {
           "name": "unit_ownerships_user_id_users_id_fk",
           "tableFrom": "unit_ownerships",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -6517,26 +6131,18 @@
         "units_building_id_buildings_id_fk": {
           "name": "units_building_id_buildings_id_fk",
           "tableFrom": "units",
-          "columnsFrom": [
-            "building_id"
-          ],
+          "columnsFrom": ["building_id"],
           "tableTo": "buildings",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "units_created_by_users_id_fk": {
           "name": "units_created_by_users_id_fk",
           "tableFrom": "units",
-          "columnsFrom": [
-            "created_by"
-          ],
+          "columnsFrom": ["created_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -6737,78 +6343,54 @@
         "user_roles_user_id_users_id_fk": {
           "name": "user_roles_user_id_users_id_fk",
           "tableFrom": "user_roles",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "user_roles_role_id_roles_id_fk": {
           "name": "user_roles_role_id_roles_id_fk",
           "tableFrom": "user_roles",
-          "columnsFrom": [
-            "role_id"
-          ],
+          "columnsFrom": ["role_id"],
           "tableTo": "roles",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "user_roles_condominium_id_condominiums_id_fk": {
           "name": "user_roles_condominium_id_condominiums_id_fk",
           "tableFrom": "user_roles",
-          "columnsFrom": [
-            "condominium_id"
-          ],
+          "columnsFrom": ["condominium_id"],
           "tableTo": "condominiums",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "user_roles_building_id_buildings_id_fk": {
           "name": "user_roles_building_id_buildings_id_fk",
           "tableFrom": "user_roles",
-          "columnsFrom": [
-            "building_id"
-          ],
+          "columnsFrom": ["building_id"],
           "tableTo": "buildings",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "user_roles_assigned_by_users_id_fk": {
           "name": "user_roles_assigned_by_users_id_fk",
           "tableFrom": "user_roles",
-          "columnsFrom": [
-            "assigned_by"
-          ],
+          "columnsFrom": ["assigned_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "user_roles_registered_by_users_id_fk": {
           "name": "user_roles_registered_by_users_id_fk",
           "tableFrom": "user_roles",
-          "columnsFrom": [
-            "registered_by"
-          ],
+          "columnsFrom": ["registered_by"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -7031,26 +6613,18 @@
         "fk_users_location": {
           "name": "fk_users_location",
           "tableFrom": "users",
-          "columnsFrom": [
-            "location_id"
-          ],
+          "columnsFrom": ["location_id"],
           "tableTo": "locations",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "fk_users_preferred_currency": {
           "name": "fk_users_preferred_currency",
           "tableFrom": "users",
-          "columnsFrom": [
-            "preferred_currency_id"
-          ],
+          "columnsFrom": ["preferred_currency_id"],
           "tableTo": "currencies",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -7059,16 +6633,12 @@
       "uniqueConstraints": {
         "users_firebase_uid_unique": {
           "name": "users_firebase_uid_unique",
-          "columns": [
-            "firebase_uid"
-          ],
+          "columns": ["firebase_uid"],
           "nullsNotDistinct": false
         },
         "users_email_unique": {
           "name": "users_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "nullsNotDistinct": false
         }
       },
@@ -7081,201 +6651,102 @@
     "public.adjustment_type": {
       "name": "adjustment_type",
       "schema": "public",
-      "values": [
-        "discount",
-        "increase",
-        "correction",
-        "waiver"
-      ]
+      "values": ["discount", "increase", "correction", "waiver"]
     },
     "public.allocation_status": {
       "name": "allocation_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "allocated",
-        "refunded"
-      ]
+      "values": ["pending", "allocated", "refunded"]
     },
     "public.audit_action": {
       "name": "audit_action",
       "schema": "public",
-      "values": [
-        "INSERT",
-        "UPDATE",
-        "DELETE"
-      ]
+      "values": ["INSERT", "UPDATE", "DELETE"]
     },
     "public.concept_type": {
       "name": "concept_type",
       "schema": "public",
-      "values": [
-        "maintenance",
-        "condominium_fee",
-        "extraordinary",
-        "fine"
-      ]
+      "values": ["maintenance", "condominium_fee", "extraordinary", "fine"]
     },
     "public.document_type": {
       "name": "document_type",
       "schema": "public",
-      "values": [
-        "invoice",
-        "receipt",
-        "statement",
-        "contract",
-        "regulation",
-        "minutes",
-        "other"
-      ]
+      "values": ["invoice", "receipt", "statement", "contract", "regulation", "minutes", "other"]
     },
     "public.expense_status": {
       "name": "expense_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "approved",
-        "rejected",
-        "paid"
-      ]
+      "values": ["pending", "approved", "rejected", "paid"]
     },
     "public.formula_type": {
       "name": "formula_type",
       "schema": "public",
-      "values": [
-        "fixed",
-        "expression",
-        "per_unit"
-      ]
+      "values": ["fixed", "expression", "per_unit"]
     },
     "public.frequency_type": {
       "name": "frequency_type",
       "schema": "public",
-      "values": [
-        "days",
-        "monthly",
-        "quarterly",
-        "semi_annual",
-        "annual"
-      ]
+      "values": ["days", "monthly", "quarterly", "semi_annual", "annual"]
     },
     "public.gateway_type": {
       "name": "gateway_type",
       "schema": "public",
-      "values": [
-        "stripe",
-        "banco_plaza",
-        "paypal",
-        "zelle",
-        "other"
-      ]
+      "values": ["stripe", "banco_plaza", "paypal", "zelle", "other"]
     },
     "public.generation_method": {
       "name": "generation_method",
       "schema": "public",
-      "values": [
-        "manual_single",
-        "manual_batch",
-        "scheduled",
-        "range"
-      ]
+      "values": ["manual_single", "manual_batch", "scheduled", "range"]
     },
     "public.generation_status": {
       "name": "generation_status",
       "schema": "public",
-      "values": [
-        "completed",
-        "partial",
-        "failed"
-      ]
+      "values": ["completed", "partial", "failed"]
     },
     "public.interest_type": {
       "name": "interest_type",
       "schema": "public",
-      "values": [
-        "simple",
-        "compound",
-        "fixed_amount"
-      ]
+      "values": ["simple", "compound", "fixed_amount"]
     },
     "public.location_type": {
       "name": "location_type",
       "schema": "public",
-      "values": [
-        "country",
-        "province",
-        "city"
-      ]
+      "values": ["country", "province", "city"]
     },
     "public.message_type": {
       "name": "message_type",
       "schema": "public",
-      "values": [
-        "message",
-        "notification",
-        "announcement"
-      ]
+      "values": ["message", "notification", "announcement"]
     },
     "public.ownership_type": {
       "name": "ownership_type",
       "schema": "public",
-      "values": [
-        "owner",
-        "co-owner",
-        "tenant"
-      ]
+      "values": ["owner", "co-owner", "tenant"]
     },
     "public.payment_method": {
       "name": "payment_method",
       "schema": "public",
-      "values": [
-        "transfer",
-        "cash",
-        "card",
-        "gateway"
-      ]
+      "values": ["transfer", "cash", "card", "gateway"]
     },
     "public.payment_status": {
       "name": "payment_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "pending_verification",
-        "completed",
-        "failed",
-        "refunded",
-        "rejected"
-      ]
+      "values": ["pending", "pending_verification", "completed", "failed", "refunded", "rejected"]
     },
     "public.priority": {
       "name": "priority",
       "schema": "public",
-      "values": [
-        "low",
-        "normal",
-        "high",
-        "urgent"
-      ]
+      "values": ["low", "normal", "high", "urgent"]
     },
     "public.quota_status": {
       "name": "quota_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "paid",
-        "overdue",
-        "cancelled"
-      ]
+      "values": ["pending", "paid", "overdue", "cancelled"]
     },
     "public.recipient_type": {
       "name": "recipient_type",
       "schema": "public",
-      "values": [
-        "user",
-        "condominium",
-        "building",
-        "unit"
-      ]
+      "values": ["user", "condominium", "building", "unit"]
     }
   },
   "schemas": {},

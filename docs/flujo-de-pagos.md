@@ -33,14 +33,14 @@ Ambos modelos coexisten. Un condominio puede tener una pasarela bancaria configu
 
 ## Estados de un Pago
 
-| Estado | Descripción |
-|--------|-------------|
-| `pending` | Pago iniciado vía gateway. Esperando confirmación automática del gateway externo. |
-| `pending_verification` | Pago reportado manualmente. Esperando que un admin lo verifique. |
-| `completed` | Pago verificado y aprobado (manual o automáticamente). |
-| `failed` | El procesamiento automático del gateway falló. |
-| `rejected` | Un admin rechazó el pago reportado. |
-| `refunded` | Pago reembolsado. Todas las aplicaciones a cuotas fueron revertidas. |
+| Estado                 | Descripción                                                                       |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| `pending`              | Pago iniciado vía gateway. Esperando confirmación automática del gateway externo. |
+| `pending_verification` | Pago reportado manualmente. Esperando que un admin lo verifique.                  |
+| `completed`            | Pago verificado y aprobado (manual o automáticamente).                            |
+| `failed`               | El procesamiento automático del gateway falló.                                    |
+| `rejected`             | Un admin rechazó el pago reportado.                                               |
+| `refunded`             | Pago reembolsado. Todas las aplicaciones a cuotas fueron revertidas.              |
 
 ### Transiciones Válidas
 
@@ -57,14 +57,14 @@ completed             → refunded     (admin reembolsa)
 
 ## Métodos de Pago
 
-| Método | Tipo | Estado Inicial | Verificación |
-|--------|------|----------------|-------------|
-| `transfer` | Manual | `pending_verification` | Admin o auto-verificación bancaria |
-| `cash` | Manual | `pending_verification` | Admin |
-| `card` | Manual | `pending_verification` | Admin |
-| `mobile_payment` | Manual | `pending_verification` | Admin o auto-verificación bancaria |
-| `gateway` | Automático | `pending` | Webhook del gateway |
-| `other` | Manual | `pending_verification` | Admin |
+| Método           | Tipo       | Estado Inicial         | Verificación                       |
+| ---------------- | ---------- | ---------------------- | ---------------------------------- |
+| `transfer`       | Manual     | `pending_verification` | Admin o auto-verificación bancaria |
+| `cash`           | Manual     | `pending_verification` | Admin                              |
+| `card`           | Manual     | `pending_verification` | Admin                              |
+| `mobile_payment` | Manual     | `pending_verification` | Admin o auto-verificación bancaria |
+| `gateway`        | Automático | `pending`              | Webhook del gateway                |
+| `other`          | Manual     | `pending_verification` | Admin                              |
 
 ---
 
@@ -462,47 +462,47 @@ PaymentApplication ◄──────── Payment (pago del residente)
 
 ### Tabla `payments`
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `id` | UUID | PK |
-| `paymentNumber` | VARCHAR | Número de pago (auto-generado) |
-| `userId` | UUID FK → users | Residente que paga |
-| `unitId` | UUID FK → units | Unidad asociada |
-| `amount` | DECIMAL | Monto reportado |
-| `currencyId` | UUID FK → currencies | Moneda |
-| `paidAmount` | DECIMAL | Monto efectivamente pagado (puede diferir) |
-| `paidCurrencyId` | UUID FK → currencies | Moneda en que se pagó |
-| `exchangeRate` | DECIMAL | Tasa de cambio aplicada |
-| `paymentMethod` | ENUM | transfer, cash, card, mobile_payment, gateway, other |
-| `paymentGatewayId` | UUID FK → payment_gateways | Gateway usado (si aplica) |
-| `paymentDetails` | JSONB | Datos adicionales del pago |
-| `paymentDate` | DATE | Fecha del pago |
-| `status` | ENUM | pending, pending_verification, completed, failed, refunded, rejected |
-| `receiptUrl` | TEXT | URL del comprobante |
-| `receiptNumber` | VARCHAR | Número de recibo |
-| `notes` | TEXT | Notas del pago |
-| `registeredBy` | UUID FK → users | Quién lo registró |
-| `verifiedBy` | UUID FK → users | Quién lo verificó/rechazó |
-| `verifiedAt` | TIMESTAMP | Cuándo se verificó |
-| `verificationNotes` | TEXT | Notas de verificación/rechazo |
+| Campo               | Tipo                       | Descripción                                                          |
+| ------------------- | -------------------------- | -------------------------------------------------------------------- |
+| `id`                | UUID                       | PK                                                                   |
+| `paymentNumber`     | VARCHAR                    | Número de pago (auto-generado)                                       |
+| `userId`            | UUID FK → users            | Residente que paga                                                   |
+| `unitId`            | UUID FK → units            | Unidad asociada                                                      |
+| `amount`            | DECIMAL                    | Monto reportado                                                      |
+| `currencyId`        | UUID FK → currencies       | Moneda                                                               |
+| `paidAmount`        | DECIMAL                    | Monto efectivamente pagado (puede diferir)                           |
+| `paidCurrencyId`    | UUID FK → currencies       | Moneda en que se pagó                                                |
+| `exchangeRate`      | DECIMAL                    | Tasa de cambio aplicada                                              |
+| `paymentMethod`     | ENUM                       | transfer, cash, card, mobile_payment, gateway, other                 |
+| `paymentGatewayId`  | UUID FK → payment_gateways | Gateway usado (si aplica)                                            |
+| `paymentDetails`    | JSONB                      | Datos adicionales del pago                                           |
+| `paymentDate`       | DATE                       | Fecha del pago                                                       |
+| `status`            | ENUM                       | pending, pending_verification, completed, failed, refunded, rejected |
+| `receiptUrl`        | TEXT                       | URL del comprobante                                                  |
+| `receiptNumber`     | VARCHAR                    | Número de recibo                                                     |
+| `notes`             | TEXT                       | Notas del pago                                                       |
+| `registeredBy`      | UUID FK → users            | Quién lo registró                                                    |
+| `verifiedBy`        | UUID FK → users            | Quién lo verificó/rechazó                                            |
+| `verifiedAt`        | TIMESTAMP                  | Cuándo se verificó                                                   |
+| `verificationNotes` | TEXT                       | Notas de verificación/rechazo                                        |
 
 ### Tabla `gateway_transactions`
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `id` | UUID | PK |
-| `paymentId` | UUID FK → payments | Pago asociado |
-| `gatewayType` | ENUM | stripe, banco_plaza, paypal, zelle, other |
-| `externalTransactionId` | VARCHAR(255) | ID de transacción del gateway |
-| `externalReference` | VARCHAR(255) | Referencia bancaria, session ID de Stripe |
-| `requestPayload` | JSONB | Lo que se envió al gateway |
-| `responsePayload` | JSONB | Lo que respondió el gateway |
-| `status` | VARCHAR(50) | initiated, processing, completed, failed |
-| `attempts` | INTEGER | Contador de intentos |
-| `maxAttempts` | INTEGER | Máximo de intentos (default 10) |
-| `lastAttemptAt` | TIMESTAMP | Último intento |
-| `verifiedAt` | TIMESTAMP | Cuándo se verificó exitosamente |
-| `errorMessage` | TEXT | Mensaje de error si falló |
+| Campo                   | Tipo               | Descripción                               |
+| ----------------------- | ------------------ | ----------------------------------------- |
+| `id`                    | UUID               | PK                                        |
+| `paymentId`             | UUID FK → payments | Pago asociado                             |
+| `gatewayType`           | ENUM               | stripe, banco_plaza, paypal, zelle, other |
+| `externalTransactionId` | VARCHAR(255)       | ID de transacción del gateway             |
+| `externalReference`     | VARCHAR(255)       | Referencia bancaria, session ID de Stripe |
+| `requestPayload`        | JSONB              | Lo que se envió al gateway                |
+| `responsePayload`       | JSONB              | Lo que respondió el gateway               |
+| `status`                | VARCHAR(50)        | initiated, processing, completed, failed  |
+| `attempts`              | INTEGER            | Contador de intentos                      |
+| `maxAttempts`           | INTEGER            | Máximo de intentos (default 10)           |
+| `lastAttemptAt`         | TIMESTAMP          | Último intento                            |
+| `verifiedAt`            | TIMESTAMP          | Cuándo se verificó exitosamente           |
+| `errorMessage`          | TEXT               | Mensaje de error si falló                 |
 
 ---
 
@@ -526,11 +526,11 @@ IPaymentGatewayAdapter (interfaz)
 
 ### Adapters Implementados
 
-| Adapter | Gateway Types | Comportamiento |
-|---------|--------------|----------------|
+| Adapter                | Gateway Types              | Comportamiento                                                           |
+| ---------------------- | -------------------------- | ------------------------------------------------------------------------ |
 | `ManualPaymentAdapter` | `other`, `zelle`, `paypal` | No-op. No hay API externa. `verifyPayment()` retorna `{ found: false }`. |
-| `BankPaymentAdapter` | `banco_plaza` | **Stub**. Simula respuestas. Listo para conectar con API bancaria real. |
-| `StripePaymentAdapter` | `stripe` | **Stub**. Retorna URLs de checkout mock. Listo para integrar Stripe SDK. |
+| `BankPaymentAdapter`   | `banco_plaza`              | **Stub**. Simula respuestas. Listo para conectar con API bancaria real.  |
+| `StripePaymentAdapter` | `stripe`                   | **Stub**. Retorna URLs de checkout mock. Listo para integrar Stripe SDK. |
 
 ### Agregar un nuevo gateway
 
@@ -549,29 +549,29 @@ Cada condominio puede tener gateways distintos configurados:
 
 ## Control de Acceso por Rol
 
-| Operación | Endpoint | Roles Permitidos |
-|-----------|----------|-----------------|
-| Reportar pago | `POST /report` | Cualquier usuario autenticado |
-| Crear pago | `POST /` | Admin, Contador |
-| Verificar pago | `POST /:id/verify` | Admin, Contador |
-| Rechazar pago | `POST /:id/reject` | Admin, Contador |
-| Reembolsar pago | `POST /:id/refund` | Admin, Contador |
-| Eliminar pago | `DELETE /:id` | Admin |
-| Ver pagos | `GET /` y variantes | Admin, Contador |
+| Operación              | Endpoint                      | Roles Permitidos                  |
+| ---------------------- | ----------------------------- | --------------------------------- |
+| Reportar pago          | `POST /report`                | Cualquier usuario autenticado     |
+| Crear pago             | `POST /`                      | Admin, Contador                   |
+| Verificar pago         | `POST /:id/verify`            | Admin, Contador                   |
+| Rechazar pago          | `POST /:id/reject`            | Admin, Contador                   |
+| Reembolsar pago        | `POST /:id/refund`            | Admin, Contador                   |
+| Eliminar pago          | `DELETE /:id`                 | Admin                             |
+| Ver pagos              | `GET /` y variantes           | Admin, Contador                   |
 | Ver pagos de mi unidad | `GET /unit/:unitId/paginated` | Usuario, Soporte, Contador, Admin |
-| Aplicar pago a cuota | `POST /payment-applications` | Admin, Contador |
+| Aplicar pago a cuota   | `POST /payment-applications`  | Admin, Contador                   |
 
 ---
 
 ## Notificaciones
 
-| Evento | Canal | Prioridad | Destinatario |
-|--------|-------|-----------|-------------|
-| Pago verificado (manual) | in_app + push | Normal | Residente que pagó |
-| Pago verificado (webhook) | in_app + push | Normal | Residente que pagó |
-| Pago rechazado | in_app + push | Alta | Residente que pagó |
-| Pago fallido (webhook) | in_app + push | Alta | Residente que pagó |
-| Pago reembolsado | in_app + push | Alta | Residente que pagó |
+| Evento                    | Canal         | Prioridad | Destinatario       |
+| ------------------------- | ------------- | --------- | ------------------ |
+| Pago verificado (manual)  | in_app + push | Normal    | Residente que pagó |
+| Pago verificado (webhook) | in_app + push | Normal    | Residente que pagó |
+| Pago rechazado            | in_app + push | Alta      | Residente que pagó |
+| Pago fallido (webhook)    | in_app + push | Alta      | Residente que pagó |
+| Pago reembolsado          | in_app + push | Alta      | Residente que pagó |
 
 Todas las notificaciones son fire-and-forget (no bloquean la respuesta HTTP).
 
@@ -579,20 +579,20 @@ Todas las notificaciones son fire-and-forget (no bloquean la respuesta HTTP).
 
 ## Archivos Clave
 
-| Archivo | Descripción |
-|---------|-------------|
-| `apps/api/src/services/payments/create-payment.service.ts` | Creación de pagos + inicio de gateway |
-| `apps/api/src/services/payments/report-payment.service.ts` | Reporte externo + auto-verificación sincrónica |
-| `apps/api/src/services/payments/verify-payment.service.ts` | Verificación manual por admin |
-| `apps/api/src/services/payments/reject-payment.service.ts` | Rechazo por admin |
-| `apps/api/src/services/payments/refund-payment.service.ts` | Reembolso + reversión de aplicaciones |
-| `apps/api/src/services/payments/mark-payment-as-failed.service.ts` | Marcar como fallido (gateway) |
-| `apps/api/src/services/payment-applications/apply-payment-to-quota.service.ts` | Aplicación de pago a cuota |
-| `apps/api/src/services/payment-gateways/gateway-manager.ts` | Registry de adapters |
-| `apps/api/src/services/payment-gateways/adapters/types.ts` | Interfaz IPaymentGatewayAdapter |
-| `apps/api/src/services/payment-gateways/adapters/bank.adapter.ts` | Adapter bancario (stub) |
-| `apps/api/src/services/payment-gateways/adapters/stripe.adapter.ts` | Adapter Stripe (stub) |
-| `apps/api/src/services/webhooks/process-webhook.service.ts` | Lógica de negocio del webhook (auditoría + notificaciones) |
-| `apps/api/src/http/endpoints/webhooks.endpoint.ts` | Endpoint HTTP de webhooks (delega al servicio) |
-| `packages/database/src/drizzle/schema/tables/gateway-transactions.ts` | Schema de gateway_transactions |
-| `packages/domain/src/models/gateway-transactions/` | Modelo de dominio |
+| Archivo                                                                        | Descripción                                                |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| `apps/api/src/services/payments/create-payment.service.ts`                     | Creación de pagos + inicio de gateway                      |
+| `apps/api/src/services/payments/report-payment.service.ts`                     | Reporte externo + auto-verificación sincrónica             |
+| `apps/api/src/services/payments/verify-payment.service.ts`                     | Verificación manual por admin                              |
+| `apps/api/src/services/payments/reject-payment.service.ts`                     | Rechazo por admin                                          |
+| `apps/api/src/services/payments/refund-payment.service.ts`                     | Reembolso + reversión de aplicaciones                      |
+| `apps/api/src/services/payments/mark-payment-as-failed.service.ts`             | Marcar como fallido (gateway)                              |
+| `apps/api/src/services/payment-applications/apply-payment-to-quota.service.ts` | Aplicación de pago a cuota                                 |
+| `apps/api/src/services/payment-gateways/gateway-manager.ts`                    | Registry de adapters                                       |
+| `apps/api/src/services/payment-gateways/adapters/types.ts`                     | Interfaz IPaymentGatewayAdapter                            |
+| `apps/api/src/services/payment-gateways/adapters/bank.adapter.ts`              | Adapter bancario (stub)                                    |
+| `apps/api/src/services/payment-gateways/adapters/stripe.adapter.ts`            | Adapter Stripe (stub)                                      |
+| `apps/api/src/services/webhooks/process-webhook.service.ts`                    | Lógica de negocio del webhook (auditoría + notificaciones) |
+| `apps/api/src/http/endpoints/webhooks.endpoint.ts`                             | Endpoint HTTP de webhooks (delega al servicio)             |
+| `packages/database/src/drizzle/schema/tables/gateway-transactions.ts`          | Schema de gateway_transactions                             |
+| `packages/domain/src/models/gateway-transactions/`                             | Modelo de dominio                                          |

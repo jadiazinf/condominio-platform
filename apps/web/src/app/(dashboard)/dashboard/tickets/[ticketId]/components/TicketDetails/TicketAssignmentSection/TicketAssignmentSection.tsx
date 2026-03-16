@@ -1,9 +1,11 @@
 'use client'
 
 import type { TUser } from '@packages/domain'
-import { Typography } from '@/ui/components/typography'
+
 import { UserInfo } from '../../UserInfo'
-import { TicketAssignAction, type ITicketAssignActionTranslations } from '../../TicketAssignAction'
+import { TicketAssignAction } from '../../TicketAssignAction'
+
+import { Typography } from '@/ui/components/typography'
 
 interface ITicketAssignmentSectionProps {
   assignedToUser: TUser | null
@@ -43,9 +45,9 @@ export function TicketAssignmentSection({
 }: ITicketAssignmentSectionProps) {
   const assignAction = canManage ? (
     <TicketAssignAction
+      iconOnly
       availableUsers={availableUsers}
       currentAssignedUser={assignedToUser ?? undefined}
-      iconOnly
       isLoading={isLoading}
       translations={{
         assignUser: translations.assignUser,
@@ -71,10 +73,10 @@ export function TicketAssignmentSection({
       {assignedToUser ? (
         <div className="mt-1">
           <UserInfo
-            user={assignedToUser}
             showViewProfile
-            viewProfileLabel={translations.viewProfile}
             action={assignAction}
+            user={assignedToUser}
+            viewProfileLabel={translations.viewProfile}
           />
         </div>
       ) : (

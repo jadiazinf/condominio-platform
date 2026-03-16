@@ -56,7 +56,9 @@ export function SidebarNestItem({ item, isCompact, hideEndContent }: SidebarNest
                 {(nestedItem: TSidebarItem) => (
                   <ListboxItem
                     key={nestedItem.key}
-                    endContent={isCompact || hideEndContent ? null : (nestedItem.endContent ?? null)}
+                    endContent={
+                      isCompact || hideEndContent ? null : (nestedItem.endContent ?? null)
+                    }
                     startContent={isCompact ? null : <SidebarIcon icon={nestedItem.icon} />}
                     textValue={nestedItem.title}
                     title={isCompact ? null : nestedItem.title}

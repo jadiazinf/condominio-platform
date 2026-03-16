@@ -2,15 +2,21 @@
 
 import type { TUser } from '@packages/domain'
 
-import { HeroUINavbar, NavbarBrandPrimitive, NavbarContent, NavbarItem } from '@/ui/components/navbar'
+import { Menu, Building } from 'lucide-react'
+
+import { SwitchRoleButton } from './SwitchRoleButton'
+
+import {
+  HeroUINavbar,
+  NavbarBrandPrimitive,
+  NavbarContent,
+  NavbarItem,
+} from '@/ui/components/navbar'
 import { Button } from '@/ui/components/button'
 import { Link } from '@/ui/components/link'
 import { Chip } from '@/ui/components/chip'
-import { Menu, Building } from 'lucide-react'
-
 import { NotificationPanel } from '@/ui/components/notifications'
 import { CurrentUserAvatar } from '@/ui/components/avatar'
-import { SwitchRoleButton } from './SwitchRoleButton'
 import { useManagementCompany } from '@/contexts'
 
 interface AdminNavbarProps {
@@ -35,7 +41,10 @@ export function AdminNavbar({ onToggleSidebar, initialUser }: AdminNavbarProps) 
             CondominioApp
           </Link>
           <Chip
-            classNames={{ base: 'bg-primary/10', content: 'text-primary font-semibold text-xs max-w-[150px] truncate' }}
+            classNames={{
+              base: 'bg-primary/10',
+              content: 'text-primary font-semibold text-xs max-w-[150px] truncate',
+            }}
             startContent={<Building size={12} />}
             variant="flat"
           >
@@ -52,7 +61,7 @@ export function AdminNavbar({ onToggleSidebar, initialUser }: AdminNavbarProps) 
           <NotificationPanel />
         </NavbarItem>
         <NavbarItem className="flex ml-2">
-          <CurrentUserAvatar initialUser={initialUser} isClickable />
+          <CurrentUserAvatar isClickable initialUser={initialUser} />
         </NavbarItem>
       </NavbarContent>
     </HeroUINavbar>

@@ -1,16 +1,17 @@
 import type { TBuilding, TUnit } from '@packages/domain'
 
+import { ArrowLeft, Building2 } from 'lucide-react'
+import { getBuildingDetail } from '@packages/http-client/hooks'
+import { getBuildingUnits } from '@packages/http-client/hooks'
+
+import { UnitsTable } from '../components'
+
 import { getTranslations } from '@/libs/i18n/server'
 import { getServerAuthToken, getFullSession } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
 import { Card, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Link } from '@/ui/components/link'
-import { ArrowLeft, Building2 } from 'lucide-react'
-
-import { UnitsTable } from '../components'
-import { getBuildingDetail } from '@packages/http-client/hooks'
-import { getBuildingUnits } from '@packages/http-client/hooks'
 
 interface PageProps {
   params: Promise<{ id: string; buildingId: string }>
@@ -18,15 +19,21 @@ interface PageProps {
 
 export default async function BuildingDetailPage({ params }: PageProps) {
   const { id: condominiumId, buildingId } = await params
-  const [{ t }, token, session] = await Promise.all([getTranslations(), getServerAuthToken(), getFullSession()])
+  const [{ t }, token, session] = await Promise.all([
+    getTranslations(),
+    getServerAuthToken(),
+    getFullSession(),
+  ])
 
-  const managementCompanyId = session?.activeRole === 'management_company'
-    ? session.managementCompanies?.[0]?.managementCompanyId
-    : undefined
+  const managementCompanyId =
+    session?.activeRole === 'management_company'
+      ? session.managementCompanies?.[0]?.managementCompanyId
+      : undefined
 
   // Fetch building details and units in parallel
   let building: TBuilding | null = null
   let units: TUnit[] = []
+
   try {
     ;[building, units] = await Promise.all([
       getBuildingDetail(token, buildingId, condominiumId, managementCompanyId),
@@ -92,8 +99,8 @@ export default async function BuildingDetailPage({ params }: PageProps) {
     return (
       <div className="space-y-6">
         <Link
-          href={`/dashboard/condominiums/${condominiumId}/buildings`}
           className="inline-flex items-center gap-1 text-sm text-default-500 hover:text-default-700"
+          href={`/dashboard/condominiums/${condominiumId}/buildings`}
         >
           <ArrowLeft size={14} />
           {t(`${bd}.back`)}
@@ -109,8 +116,8 @@ export default async function BuildingDetailPage({ params }: PageProps) {
     <div className="space-y-6">
       {/* Back link */}
       <Link
-        href={`/dashboard/condominiums/${condominiumId}/buildings`}
         className="inline-flex items-center gap-1 text-sm text-default-500 hover:text-default-700"
+        href={`/dashboard/condominiums/${condominiumId}/buildings`}
       >
         <ArrowLeft size={14} />
         {t(`${bd}.back`)}
@@ -141,10 +148,10 @@ export default async function BuildingDetailPage({ params }: PageProps) {
         {building.address && (
           <Card>
             <CardBody className="py-3">
-              <Typography variant="body2" color="muted" className="text-xs">
+              <Typography className="text-xs" color="muted" variant="body2">
                 {t(`${bd}.address`)}
               </Typography>
-              <Typography variant="body1" className="mt-0.5 font-medium">
+              <Typography className="mt-0.5 font-medium" variant="body1">
                 {building.address}
               </Typography>
             </CardBody>
@@ -153,10 +160,10 @@ export default async function BuildingDetailPage({ params }: PageProps) {
         {building.floorsCount != null && (
           <Card>
             <CardBody className="py-3">
-              <Typography variant="body2" color="muted" className="text-xs">
+              <Typography className="text-xs" color="muted" variant="body2">
                 {t(`${bd}.floors`)}
               </Typography>
-              <Typography variant="body1" className="mt-0.5 font-medium">
+              <Typography className="mt-0.5 font-medium" variant="body1">
                 {building.floorsCount}
               </Typography>
             </CardBody>
@@ -164,10 +171,10 @@ export default async function BuildingDetailPage({ params }: PageProps) {
         )}
         <Card>
           <CardBody className="py-3">
-            <Typography variant="body2" color="muted" className="text-xs">
+            <Typography className="text-xs" color="muted" variant="body2">
               {t(`${bd}.units`)}
             </Typography>
-            <Typography variant="body1" className="mt-0.5 font-medium">
+            <Typography className="mt-0.5 font-medium" variant="body1">
               {units.length}
             </Typography>
           </CardBody>
@@ -178,46 +185,46 @@ export default async function BuildingDetailPage({ params }: PageProps) {
       {hasBankInfo && (
         <Card>
           <CardBody>
-            <Typography variant="body1" className="mb-3 font-semibold">
+            <Typography className="mb-3 font-semibold" variant="body1">
               {t(`${bd}.bankInfo`)}
             </Typography>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {building.bankAccountHolder && (
                 <div>
-                  <Typography variant="body2" color="muted" className="text-xs">
+                  <Typography className="text-xs" color="muted" variant="body2">
                     {t(`${bd}.bankAccountHolder`)}
                   </Typography>
-                  <Typography variant="body2" className="mt-0.5">
+                  <Typography className="mt-0.5" variant="body2">
                     {building.bankAccountHolder}
                   </Typography>
                 </div>
               )}
               {building.bankName && (
                 <div>
-                  <Typography variant="body2" color="muted" className="text-xs">
+                  <Typography className="text-xs" color="muted" variant="body2">
                     {t(`${bd}.bankName`)}
                   </Typography>
-                  <Typography variant="body2" className="mt-0.5">
+                  <Typography className="mt-0.5" variant="body2">
                     {building.bankName}
                   </Typography>
                 </div>
               )}
               {building.bankAccountNumber && (
                 <div>
-                  <Typography variant="body2" color="muted" className="text-xs">
+                  <Typography className="text-xs" color="muted" variant="body2">
                     {t(`${bd}.bankAccountNumber`)}
                   </Typography>
-                  <Typography variant="body2" className="mt-0.5">
+                  <Typography className="mt-0.5" variant="body2">
                     {building.bankAccountNumber}
                   </Typography>
                 </div>
               )}
               {building.bankAccountType && (
                 <div>
-                  <Typography variant="body2" color="muted" className="text-xs">
+                  <Typography className="text-xs" color="muted" variant="body2">
                     {t(`${bd}.bankAccountType`)}
                   </Typography>
-                  <Typography variant="body2" className="mt-0.5">
+                  <Typography className="mt-0.5" variant="body2">
                     {building.bankAccountType}
                   </Typography>
                 </div>
@@ -229,10 +236,10 @@ export default async function BuildingDetailPage({ params }: PageProps) {
 
       {/* Units table */}
       <UnitsTable
-        units={units}
         buildingId={buildingId}
         condominiumId={condominiumId}
         translations={unitsTranslations}
+        units={units}
       />
     </div>
   )

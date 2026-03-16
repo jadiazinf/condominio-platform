@@ -1,5 +1,17 @@
+import type { TManagementCompanySubscription } from '@packages/domain'
+import type { ReactNode } from 'react'
+
 import { redirect } from 'next/navigation'
 import { CreditCard, Calendar, Clock, RefreshCw, FileText, AlertTriangle } from 'lucide-react'
+import {
+  getMyCompanySubscription,
+  getMyCompanyUsageStats,
+  type TManagementCompanyUsageStats,
+} from '@packages/http-client'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
+
+import { AdminCancelSubscriptionButton } from './AdminCancelSubscriptionButton'
 
 import { Card } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
@@ -7,12 +19,6 @@ import { Typography } from '@/ui/components/typography'
 import { Progress } from '@/ui/components/progress'
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession, getServerAuthToken } from '@/libs/session'
-import { getMyCompanySubscription, getMyCompanyUsageStats, type TManagementCompanyUsageStats } from '@packages/http-client'
-import type { TManagementCompanySubscription } from '@packages/domain'
-import { formatCurrency } from '@packages/utils/currency'
-import { formatFullDate } from '@packages/utils/dates'
-
-import type { ReactNode } from 'react'
 
 function InfoRow({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
@@ -27,7 +33,6 @@ function InfoRow({ icon, label, value }: { icon: ReactNode; label: string; value
     </div>
   )
 }
-import { AdminCancelSubscriptionButton } from './AdminCancelSubscriptionButton'
 
 const statusColorMap: Record<string, 'success' | 'primary' | 'default' | 'warning' | 'danger'> = {
   active: 'success',
@@ -53,6 +58,7 @@ export async function SubscriptionPage() {
   ])
 
   const companyId = session.managementCompanies?.[0]?.managementCompanyId
+
   if (!companyId || !token) {
     redirect('/dashboard')
   }
@@ -83,13 +89,13 @@ export async function SubscriptionPage() {
                 <CreditCard className="text-primary" size={24} />
               </div>
               <div>
-                <Typography variant="h3" className="text-xl">
+                <Typography className="text-xl" variant="h3">
                   {subscription.subscriptionName || t(`${tp}.currentPlan`)}
                 </Typography>
                 <Chip
                   color={statusColorMap[subscription.status] || 'default'}
-                  variant="flat"
                   size="sm"
+                  variant="flat"
                 >
                   {t(`${tp}.status.${subscription.status}`)}
                 </Chip>
@@ -109,7 +115,7 @@ export async function SubscriptionPage() {
               {t(`${tp}.price`)}
             </Typography>
             <div className="flex items-baseline gap-2">
-              <Typography variant="h2" className="text-3xl font-bold">
+              <Typography className="text-3xl font-bold" variant="h2">
                 {formatCurrency(subscription.basePrice)}
               </Typography>
               <Typography color="muted" variant="body2">
@@ -156,7 +162,10 @@ export async function SubscriptionPage() {
           {/* Limits & Usage */}
           {usageStats && (
             <div className="space-y-4">
-              <Typography variant="h4" className="text-sm font-semibold uppercase tracking-wide text-default-500">
+              <Typography
+                className="text-sm font-semibold uppercase tracking-wide text-default-500"
+                variant="h4"
+              >
                 {t(`${tp}.limits`)}
               </Typography>
 
@@ -184,18 +193,21 @@ export async function SubscriptionPage() {
               ].map(({ label, current, max }) => {
                 const percentage = max > 0 ? Math.min((current / max) * 100, 100) : 0
                 const isNearLimit = percentage >= 80
+
                 return (
                   <div key={label} className="space-y-1">
                     <div className="flex justify-between text-sm">
                       <span className="text-default-600">{label}</span>
-                      <span className={isNearLimit ? 'text-warning font-medium' : 'text-default-500'}>
+                      <span
+                        className={isNearLimit ? 'text-warning font-medium' : 'text-default-500'}
+                      >
                         {current.toLocaleString()} / {max.toLocaleString()}
                       </span>
                     </div>
                     <Progress
-                      value={percentage}
                       color={isNearLimit ? 'warning' : 'primary'}
                       size="sm"
+                      value={percentage}
                     />
                   </div>
                 )
@@ -206,7 +218,10 @@ export async function SubscriptionPage() {
           {/* Features */}
           {subscription.customFeatures && typeof subscription.customFeatures === 'object' && (
             <div className="mt-6 space-y-2">
-              <Typography variant="h4" className="text-sm font-semibold uppercase tracking-wide text-default-500">
+              <Typography
+                className="text-sm font-semibold uppercase tracking-wide text-default-500"
+                variant="h4"
+              >
                 {t(`${tp}.features`)}
               </Typography>
               <div className="grid gap-2 sm:grid-cols-2">
@@ -239,15 +254,15 @@ export async function SubscriptionPage() {
             <div className="mt-6 rounded-lg bg-warning-50 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="text-warning" size={18} />
-                <Typography variant="body2" className="font-medium text-warning-700">
+                <Typography className="font-medium text-warning-700" variant="body2">
                   {t(`${tp}.cancelledInfo`)}
                 </Typography>
               </div>
-              <Typography variant="caption" color="muted">
+              <Typography color="muted" variant="caption">
                 {t(`${tp}.cancelledAt`)}: {formatFullDate(subscription.cancelledAt)}
               </Typography>
               {subscription.cancellationReason && (
-                <Typography variant="caption" color="muted" className="mt-1">
+                <Typography className="mt-1" color="muted" variant="caption">
                   {t(`${tp}.cancellationReason`)}: {subscription.cancellationReason}
                 </Typography>
               )}
@@ -257,15 +272,14 @@ export async function SubscriptionPage() {
       ) : (
         <Card className="flex flex-col items-center justify-center py-16 px-6">
           <CreditCard className="mb-4 text-default-300" size={48} />
-          <Typography variant="body1" color="muted">
+          <Typography color="muted" variant="body1">
             {t(`${tp}.noPlan`)}
           </Typography>
-          <Typography variant="body2" color="muted" className="mt-1 text-center">
+          <Typography className="mt-1 text-center" color="muted" variant="body2">
             {t(`${tp}.noPlanDescription`)}
           </Typography>
         </Card>
       )}
-
     </div>
   )
 }

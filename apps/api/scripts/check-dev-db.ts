@@ -16,10 +16,12 @@ function checkDatabaseUrl(): boolean {
     return false
   }
 
-  const isLocalhost = LOCALHOST_PATTERNS.some((pattern) => databaseUrl.includes(pattern))
+  const isLocalhost = LOCALHOST_PATTERNS.some(pattern => databaseUrl.includes(pattern))
 
   if (!isLocalhost) {
-    console.error('\x1b[31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\x1b[0m')
+    console.error(
+      '\x1b[31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\x1b[0m'
+    )
     console.error('\x1b[31m[ERROR]\x1b[0m DATABASE_URL does not point to localhost!')
     console.error('')
     console.error('  Current URL contains: \x1b[33m' + new URL(databaseUrl).host + '\x1b[0m')
@@ -29,7 +31,9 @@ function checkDatabaseUrl(): boolean {
     console.error('')
     console.error('  If you need to connect to a remote database, use:')
     console.error('    \x1b[36mbun run start\x1b[0m (without the localhost check)')
-    console.error('\x1b[31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\x1b[0m')
+    console.error(
+      '\x1b[31m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\x1b[0m'
+    )
     return false
   }
 

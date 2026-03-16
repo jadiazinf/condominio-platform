@@ -1,21 +1,16 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from '@/ui/components/modal'
+import { ArrowRight } from 'lucide-react'
+import { useMyLatestExchangeRates } from '@packages/http-client'
+
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { CurrencyInput } from '@/ui/components/input'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Typography } from '@/ui/components/typography'
 import { Spinner } from '@/ui/components/spinner'
-import { ArrowRight } from 'lucide-react'
 import { useTranslation } from '@/contexts'
-import { useMyLatestExchangeRates } from '@packages/http-client'
 
 interface CurrencyCalculatorModalProps {
   isOpen: boolean
@@ -65,8 +60,10 @@ export function CurrencyCalculatorModal({
   const defaultSourceId = useMemo(() => {
     const usdItem = sourceCurrencyItems.find(item => {
       const cur = currencies.find(c => c.id === item.key)
+
       return cur?.code === 'USD'
     })
+
     return usdItem?.key || sourceCurrencyItems[0]?.key || ''
   }, [sourceCurrencyItems, currencies])
 
@@ -84,6 +81,7 @@ export function CurrencyCalculatorModal({
     const directRate = rates.find(
       r => r.fromCurrencyId === effectiveSourceId && r.toCurrencyId === targetCurrencyId
     )
+
     if (directRate) {
       return {
         rate: Number(directRate.rate),
@@ -96,6 +94,7 @@ export function CurrencyCalculatorModal({
     const inverseRate = rates.find(
       r => r.fromCurrencyId === targetCurrencyId && r.toCurrencyId === effectiveSourceId
     )
+
     if (inverseRate) {
       return {
         rate: 1 / Number(inverseRate.rate),
@@ -112,16 +111,19 @@ export function CurrencyCalculatorModal({
   const result = useMemo(() => {
     if (!rateInfo || !sourceAmount) return null
     const amount = Number(sourceAmount)
+
     if (!amount || amount <= 0) return null
+
     return amount * rateInfo.rate
   }, [rateInfo, sourceAmount])
 
   const sourceSymbol = sourceCurrency?.symbol || sourceCurrency?.code || ''
   const targetSymbol = targetCurrency?.symbol || targetCurrency?.code || ''
 
-  const formattedResult = result != null
-    ? `${targetSymbol} ${result.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : null
+  const formattedResult =
+    result != null
+      ? `${targetSymbol} ${result.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      : null
 
   const handleConfirm = useCallback(() => {
     if (result != null) {
@@ -136,7 +138,7 @@ export function CurrencyCalculatorModal({
   }, [onClose])
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="lg">
+    <Modal isOpen={isOpen} size="lg" onClose={handleClose}>
       <ModalContent>
         <ModalHeader>
           <Typography variant="h4">{t(`${w}.title`)}</Typography>
@@ -149,13 +151,13 @@ export function CurrencyCalculatorModal({
             </div>
           ) : rates.length === 0 ? (
             <div className="rounded-lg bg-warning-50 p-4 text-center">
-              <Typography variant="body2" className="text-warning-700">
+              <Typography className="text-warning-700" variant="body2">
                 {t(`${w}.noRates`)}
               </Typography>
             </div>
           ) : sourceCurrencyItems.length === 0 ? (
             <div className="rounded-lg bg-warning-50 p-4 text-center">
-              <Typography variant="body2" className="text-warning-700">
+              <Typography className="text-warning-700" variant="body2">
                 {t(`${w}.noPairRate`)}
               </Typography>
             </div>
@@ -163,37 +165,40 @@ export function CurrencyCalculatorModal({
             <>
               {/* Source currency selector */}
               <Select
+                items={sourceCurrencyItems}
                 label={t(`${w}.sourceCurrency`)}
                 placeholder={t(`${w}.sourceCurrencyPlaceholder`)}
-                items={sourceCurrencyItems}
                 value={effectiveSourceId}
-                onChange={(key) => key && setSourceCurrencyId(key)}
                 variant="bordered"
+                onChange={key => key && setSourceCurrencyId(key)}
               />
 
               {/* Exchange rate info */}
               {rateInfo && sourceCurrency && targetCurrency && (
                 <div className="flex flex-col gap-1 rounded-lg bg-default-50 p-3">
                   <div className="flex items-center gap-2">
-                    <Typography variant="body2" className="font-semibold">
+                    <Typography className="font-semibold" variant="body2">
                       {t(`${w}.exchangeRate`)}
                     </Typography>
                   </div>
                   <Typography variant="body2">
                     {t(`${w}.rateInfo`, {
                       from: sourceCurrency.code,
-                      rate: rateInfo.rate.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 8 }),
+                      rate: rateInfo.rate.toLocaleString('es-VE', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 8,
+                      }),
                       to: targetCurrency.code,
                     })}
                   </Typography>
                   <div className="flex items-center gap-3">
                     {rateInfo.effectiveDate && (
-                      <Typography variant="caption" color="muted">
+                      <Typography color="muted" variant="caption">
                         {t(`${w}.rateDate`, { date: rateInfo.effectiveDate })}
                       </Typography>
                     )}
                     {rateInfo.source && (
-                      <Typography variant="caption" color="muted">
+                      <Typography color="muted" variant="caption">
                         {t(`${w}.rateSource`, { source: rateInfo.source })}
                       </Typography>
                     )}
@@ -203,25 +208,29 @@ export function CurrencyCalculatorModal({
 
               {/* Source amount input */}
               <CurrencyInput
+                currencySymbol={
+                  sourceSymbol ? (
+                    <span className="text-default-400 text-sm">{sourceSymbol}</span>
+                  ) : undefined
+                }
                 label={t(`${w}.sourceAmount`, { currency: sourceCurrency?.code || '' })}
                 placeholder="0.00"
-                value={sourceAmount}
-                onValueChange={setSourceAmount}
-                currencySymbol={sourceSymbol ? <span className="text-default-400 text-sm">{sourceSymbol}</span> : undefined}
                 showCurrencySymbol={!!sourceSymbol}
+                value={sourceAmount}
                 variant="bordered"
+                onValueChange={setSourceAmount}
               />
 
               {/* Result */}
               {formattedResult && (
                 <div className="flex flex-col items-center gap-2 rounded-lg border-2 border-success-200 bg-success-50 p-4">
                   <div className="flex items-center gap-2">
-                    <Typography variant="caption" color="muted">
+                    <Typography color="muted" variant="caption">
                       {t(`${w}.result`)}
                     </Typography>
-                    <ArrowRight size={14} className="text-default-400" />
+                    <ArrowRight className="text-default-400" size={14} />
                   </div>
-                  <Typography variant="h4" className="text-success-700">
+                  <Typography className="text-success-700" variant="h4">
                     {formattedResult}
                   </Typography>
                 </div>
@@ -234,11 +243,7 @@ export function CurrencyCalculatorModal({
           <Button variant="flat" onPress={handleClose}>
             {t(`${w}.cancel`)}
           </Button>
-          <Button
-            color="primary"
-            isDisabled={result == null}
-            onPress={handleConfirm}
-          >
+          <Button color="primary" isDisabled={result == null} onPress={handleConfirm}>
             {formattedResult
               ? t(`${w}.apply`, { amount: formattedResult })
               : t(`${w}.apply`, { amount: '' })}

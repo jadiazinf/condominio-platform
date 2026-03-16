@@ -1,12 +1,12 @@
 import { Suspense } from 'react'
-
-import { Typography } from '@/ui/components/typography'
-import { getTranslations } from '@/libs/i18n/server'
-import { getFullSession } from '@/libs/session'
 import { redirect } from 'next/navigation'
 
 import { ExpensesTable } from './components/ExpensesTable'
 import { ExpensesTableSkeleton } from './components/ExpensesTableSkeleton'
+
+import { Typography } from '@/ui/components/typography'
+import { getTranslations } from '@/libs/i18n/server'
+import { getFullSession } from '@/libs/session'
 
 async function ExpensesContent() {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])

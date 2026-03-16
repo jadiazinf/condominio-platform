@@ -1,6 +1,7 @@
 import type { TQuotaFormula, TQuotaFormulaUpdate, TFormulaType } from '@packages/domain'
 import type { QuotaFormulasRepository } from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
+import { parseAmount } from '@packages/utils/money'
 
 export type TUpdateQuotaFormulaInput = {
   formulaId: string
@@ -102,8 +103,8 @@ export class UpdateQuotaFormulaService {
         if (!fixedAmount) {
           return { valid: false, error: 'Fixed amount is required for fixed formula type' }
         }
-        const amount = parseFloat(fixedAmount)
-        if (isNaN(amount) || amount < 0) {
+        const amount = parseAmount(fixedAmount)
+        if (amount < 0) {
           return { valid: false, error: 'Fixed amount must be a valid non-negative number' }
         }
         break

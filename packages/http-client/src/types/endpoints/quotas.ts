@@ -144,12 +144,6 @@ type TAdjustQuotaBody = {
   reason: string
 }
 
-// Adjust quota response
-type TAdjustQuotaResponseData = {
-  adjustment: TQuotaAdjustment
-  message: string
-}
-
 /** GET /quota-adjustments - List all */
 export type TQuotaAdjustmentsListEndpoint = TEndpointDefinition<
   'GET',

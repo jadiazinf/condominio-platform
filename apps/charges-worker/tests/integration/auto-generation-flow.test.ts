@@ -85,46 +85,46 @@ beforeEach(async () => {
   `)
 
   // Currency
-  const currencyResult = await db.execute(sql`
+  const currencyResult = (await db.execute(sql`
     INSERT INTO currencies (name, code, symbol, is_active)
     VALUES ('US Dollar', 'USD', '$', true)
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   currencyId = currencyResult[0]!.id
 
   // Condominium
-  const condoResult = await db.execute(sql`
+  const condoResult = (await db.execute(sql`
     INSERT INTO condominiums (name, default_currency_id, is_active, created_by)
     VALUES ('Test Condo', ${currencyId}, true, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   condominiumId = condoResult[0]!.id
 
   // Building
-  const buildingResult = await db.execute(sql`
+  const buildingResult = (await db.execute(sql`
     INSERT INTO buildings (name, condominium_id, created_by)
     VALUES ('Building A', ${condominiumId}, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   buildingId = buildingResult[0]!.id
 
   // 2 units
   unitIds = []
   for (const [i, num] of ['A-101', 'A-102'].entries()) {
-    const unitResult = await db.execute(sql`
+    const unitResult = (await db.execute(sql`
       INSERT INTO units (unit_number, building_id, aliquot_percentage, area_m2, floor, created_by)
       VALUES (${num}, ${buildingId}, 50.00, 80.00, ${i + 1}, ${MOCK_USER_ID})
       RETURNING id
-    `) as unknown as { id: string }[]
+    `)) as unknown as { id: string }[]
     unitIds.push(unitResult[0]!.id)
   }
 
   // Payment concept
-  const conceptResult = await db.execute(sql`
+  const conceptResult = (await db.execute(sql`
     INSERT INTO payment_concepts (name, condominium_id, concept_type, is_recurring, recurrence_period, currency_id, issue_day, due_day, is_active, created_by)
     VALUES ('Mantenimiento', ${condominiumId}, 'maintenance', true, 'monthly', ${currencyId}, 1, 15, true, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   conceptId = conceptResult[0]!.id
 })
 
@@ -132,13 +132,15 @@ beforeEach(async () => {
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function createFullScheduleChain(overrides: {
-  fixedAmount?: string
-  ruleIsActive?: boolean
-  formulaIsActive?: boolean
-  nextGenerationDate?: string
-  isActive?: boolean
-} = {}) {
+async function createFullScheduleChain(
+  overrides: {
+    fixedAmount?: string
+    ruleIsActive?: boolean
+    formulaIsActive?: boolean
+    nextGenerationDate?: string
+    isActive?: boolean
+  } = {}
+) {
   // Formula
   const formula = await formulasRepo.create({
     condominiumId,
@@ -172,13 +174,13 @@ async function createFullScheduleChain(overrides: {
   const today = new Date().toISOString().split('T')[0]!
   const nextDate = overrides.nextGenerationDate ?? today
 
-  const schedResult = await db.execute(sql`
+  const schedResult = (await db.execute(sql`
     INSERT INTO quota_generation_schedules
       (quota_generation_rule_id, name, frequency_type, frequency_value, generation_day, periods_in_advance, issue_day, due_day, grace_days, is_active, next_generation_date, created_by)
     VALUES
       (${rule.id}, 'Monthly Schedule', 'monthly', NULL, 1, 1, 1, 15, 0, ${overrides.isActive ?? true}, ${nextDate}, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
 
   const schedule = await schedulesRepo.getById(schedResult[0]!.id)
 
@@ -194,7 +196,14 @@ describe('Auto-Generation Flow', () => {
     const { schedule } = await createFullScheduleChain({ fixedAmount: '150.00' })
 
     const service = new GenerateQuotasForScheduleService(
-      db, quotasRepo, rulesRepo, formulasRepo, schedulesRepo, logsRepo, unitsRepo, buildingsRepo,
+      db,
+      quotasRepo,
+      rulesRepo,
+      formulasRepo,
+      schedulesRepo,
+      logsRepo,
+      unitsRepo,
+      buildingsRepo
     )
 
     const now = new Date()
@@ -240,7 +249,14 @@ describe('Auto-Generation Flow', () => {
     const { schedule } = await createFullScheduleChain()
 
     const service = new GenerateQuotasForScheduleService(
-      db, quotasRepo, rulesRepo, formulasRepo, schedulesRepo, logsRepo, unitsRepo, buildingsRepo,
+      db,
+      quotasRepo,
+      rulesRepo,
+      formulasRepo,
+      schedulesRepo,
+      logsRepo,
+      unitsRepo,
+      buildingsRepo
     )
 
     const periodYear = 2025
@@ -278,7 +294,14 @@ describe('Auto-Generation Flow', () => {
     const { schedule } = await createFullScheduleChain()
 
     const service = new GenerateQuotasForScheduleService(
-      db, quotasRepo, rulesRepo, formulasRepo, schedulesRepo, logsRepo, unitsRepo, buildingsRepo,
+      db,
+      quotasRepo,
+      rulesRepo,
+      formulasRepo,
+      schedulesRepo,
+      logsRepo,
+      unitsRepo,
+      buildingsRepo
     )
 
     const result = await service.execute({
@@ -323,7 +346,14 @@ describe('Auto-Generation Flow', () => {
     const { schedule } = await createFullScheduleChain({ ruleIsActive: false })
 
     const service = new GenerateQuotasForScheduleService(
-      db, quotasRepo, rulesRepo, formulasRepo, schedulesRepo, logsRepo, unitsRepo, buildingsRepo,
+      db,
+      quotasRepo,
+      rulesRepo,
+      formulasRepo,
+      schedulesRepo,
+      logsRepo,
+      unitsRepo,
+      buildingsRepo
     )
 
     const result = await service.execute({
@@ -355,6 +385,7 @@ describe('Auto-Generation Flow', () => {
       issueDate: '2025-05-01',
       dueDate: pastDueDate,
       status: 'pending',
+      adjustmentsTotal: '0',
       paidAmount: '0',
       balance: '100.00',
       notes: null,

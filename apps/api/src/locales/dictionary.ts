@@ -17,9 +17,12 @@ export const LocaleDictionary = {
             'http.middlewares.utils.auth.insufficientSuperadminPermissions',
           noTicketAccess: 'http.middlewares.utils.auth.noTicketAccess',
           missingCondominiumHeader: 'http.middlewares.utils.auth.missingCondominiumHeader',
-          invalidCondominiumHeaderFormat: 'http.middlewares.utils.auth.invalidCondominiumHeaderFormat',
-          missingManagementCompanyParam: 'http.middlewares.utils.auth.missingManagementCompanyParam',
-          invalidManagementCompanyParamFormat: 'http.middlewares.utils.auth.invalidManagementCompanyParamFormat',
+          invalidCondominiumHeaderFormat:
+            'http.middlewares.utils.auth.invalidCondominiumHeaderFormat',
+          missingManagementCompanyParam:
+            'http.middlewares.utils.auth.missingManagementCompanyParam',
+          invalidManagementCompanyParamFormat:
+            'http.middlewares.utils.auth.invalidManagementCompanyParamFormat',
         },
       },
     },
@@ -58,15 +61,20 @@ export const LocaleDictionary = {
         invalidAttachmentType: 'http.controllers.supportTickets.invalidAttachmentType',
         attachmentTooLarge: 'http.controllers.supportTickets.attachmentTooLarge',
         statusTransitions: {
-          closedNoTransition: 'http.controllers.supportTickets.statusTransitions.closedNoTransition',
-          cancelledNoTransition: 'http.controllers.supportTickets.statusTransitions.cancelledNoTransition',
+          closedNoTransition:
+            'http.controllers.supportTickets.statusTransitions.closedNoTransition',
+          cancelledNoTransition:
+            'http.controllers.supportTickets.statusTransitions.cancelledNoTransition',
           openToResolved: 'http.controllers.supportTickets.statusTransitions.openTo.resolved',
           openToClosed: 'http.controllers.supportTickets.statusTransitions.openTo.closed',
           inProgressToOpen: 'http.controllers.supportTickets.statusTransitions.inProgressTo.open',
-          waitingCustomerToOpen: 'http.controllers.supportTickets.statusTransitions.waitingCustomerTo.open',
+          waitingCustomerToOpen:
+            'http.controllers.supportTickets.statusTransitions.waitingCustomerTo.open',
           resolvedToOpen: 'http.controllers.supportTickets.statusTransitions.resolvedTo.open',
-          resolvedToWaitingCustomer: 'http.controllers.supportTickets.statusTransitions.resolvedTo.waiting_customer',
-          resolvedToCancelled: 'http.controllers.supportTickets.statusTransitions.resolvedTo.cancelled',
+          resolvedToWaitingCustomer:
+            'http.controllers.supportTickets.statusTransitions.resolvedTo.waiting_customer',
+          resolvedToCancelled:
+            'http.controllers.supportTickets.statusTransitions.resolvedTo.cancelled',
         },
       },
       userInvitations: {

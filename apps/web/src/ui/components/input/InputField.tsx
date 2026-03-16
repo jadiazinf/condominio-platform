@@ -1,7 +1,9 @@
 'use client'
 
 import { Controller, useFormContext } from 'react-hook-form'
+
 import { Input, type IInputProps } from './Input'
+
 import { getTranslatedError } from '@/utils/formErrors'
 
 interface IInputFieldProps
@@ -43,10 +45,10 @@ export function InputField({
       name={name}
       render={({ field }) => (
         <Input
+          errorMessage={finalErrorMessage}
+          isInvalid={!!finalErrorMessage}
           value={field.value || ''}
           onValueChange={field.onChange}
-          isInvalid={!!finalErrorMessage}
-          errorMessage={finalErrorMessage}
           {...props}
         />
       )}

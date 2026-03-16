@@ -302,10 +302,7 @@ export class UserInvitationsRepository extends BaseRepository<
   /**
    * Checks if a user has an accepted invitation for a specific unit.
    */
-  async getAcceptedByUserAndUnit(
-    userId: string,
-    unitId: string
-  ): Promise<TUserInvitation | null> {
+  async getAcceptedByUserAndUnit(userId: string, unitId: string): Promise<TUserInvitation | null> {
     const results = await this.db
       .select()
       .from(userInvitations)
@@ -339,11 +336,7 @@ export class UserInvitationsRepository extends BaseRepository<
         )
       : and(eq(userInvitations.userId, userId), eq(userInvitations.status, 'pending'))
 
-    const results = await this.db
-      .select()
-      .from(userInvitations)
-      .where(whereConditions)
-      .limit(1)
+    const results = await this.db.select().from(userInvitations).where(whereConditions).limit(1)
 
     const invitation = results[0]
     if (!invitation) {

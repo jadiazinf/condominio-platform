@@ -1,6 +1,5 @@
 import type { TNotification, TPaginatedResponse } from '@packages/domain'
 import type { TApiDataResponse } from '../types'
-import type { ApiResponse } from '../types/http'
 
 import { useApiQuery, useApiMutation } from './use-api-query'
 import { useQueryClient } from '@tanstack/react-query'
@@ -9,10 +8,8 @@ import { useQueryClient } from '@tanstack/react-query'
 export const notificationsKeys = {
   all: ['notifications'] as const,
   mine: ['my-notifications'] as const,
-  mineFiltered: (filters: Record<string, unknown>) =>
-    [...notificationsKeys.mine, filters] as const,
-  unreadCount: (userId?: string) =>
-    ['notifications', 'unread-count', userId] as const,
+  mineFiltered: (filters: Record<string, unknown>) => [...notificationsKeys.mine, filters] as const,
+  unreadCount: (userId?: string) => ['notifications', 'unread-count', userId] as const,
 }
 
 // ============================================================================

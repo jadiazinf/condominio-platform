@@ -1,5 +1,7 @@
 'use client'
 
+import type { TLocalUnit } from '../hooks/useCreateCondominiumWizard'
+
 import { useState, useCallback, useEffect } from 'react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/modal'
@@ -9,7 +11,6 @@ import { Divider } from '@heroui/divider'
 import { useTranslation } from '@/contexts'
 import { InputField } from '@/ui/components/input'
 import { Typography } from '@/ui/components/typography'
-import type { TLocalUnit } from '../hooks/useCreateCondominiumWizard'
 
 type TNamingPattern = 'floor_letter' | 'floor_sequence' | 'sequential'
 
@@ -43,14 +44,17 @@ function generateUnitNumber(
   switch (pattern) {
     case 'floor_letter': {
       const letter = String.fromCharCode(65 + unitIndex) // A, B, C, D...
+
       return `${floor}${letter}`
     }
     case 'floor_sequence': {
       const seq = String(unitIndex + 1).padStart(2, '0')
+
       return `${floor}${seq}`
     }
     case 'sequential': {
       const seq = String(unitIndex + 1).padStart(2, '0')
+
       return `${floor}${seq}`
     }
     default:
@@ -122,6 +126,7 @@ export function BulkUnitGeneratorModal({
     const subscription = form.watch((_value, { name }) => {
       if (name) form.clearErrors(name)
     })
+
     return () => subscription.unsubscribe()
   }, [form])
 
@@ -138,6 +143,7 @@ export function BulkUnitGeneratorModal({
   const translateError = useCallback(
     (message: string | undefined): string | undefined => {
       if (!message) return undefined
+
       return t(message)
     },
     [t]
@@ -152,23 +158,38 @@ export function BulkUnitGeneratorModal({
     const perFloor = Number(values.unitsPerFloor)
 
     if (!values.floorFrom || isNaN(from) || from < 0) {
-      form.setError('floorFrom', { type: 'manual', message: 'superadmin.condominiums.wizard.bulk.floorFromRequired' })
+      form.setError('floorFrom', {
+        type: 'manual',
+        message: 'superadmin.condominiums.wizard.bulk.floorFromRequired',
+      })
       hasError = true
     }
     if (!values.floorTo || isNaN(to) || to < 0) {
-      form.setError('floorTo', { type: 'manual', message: 'superadmin.condominiums.wizard.bulk.floorToRequired' })
+      form.setError('floorTo', {
+        type: 'manual',
+        message: 'superadmin.condominiums.wizard.bulk.floorToRequired',
+      })
       hasError = true
     }
     if (from > to) {
-      form.setError('floorTo', { type: 'manual', message: 'superadmin.condominiums.wizard.bulk.floorRangeError' })
+      form.setError('floorTo', {
+        type: 'manual',
+        message: 'superadmin.condominiums.wizard.bulk.floorRangeError',
+      })
       hasError = true
     }
     if (!values.unitsPerFloor || isNaN(perFloor) || perFloor < 1) {
-      form.setError('unitsPerFloor', { type: 'manual', message: 'superadmin.condominiums.wizard.bulk.unitsPerFloorRequired' })
+      form.setError('unitsPerFloor', {
+        type: 'manual',
+        message: 'superadmin.condominiums.wizard.bulk.unitsPerFloorRequired',
+      })
       hasError = true
     }
     if (selectedPattern === 'floor_letter' && perFloor > 26) {
-      form.setError('unitsPerFloor', { type: 'manual', message: 'superadmin.condominiums.wizard.bulk.maxLetterUnits' })
+      form.setError('unitsPerFloor', {
+        type: 'manual',
+        message: 'superadmin.condominiums.wizard.bulk.maxLetterUnits',
+      })
       hasError = true
     }
 
@@ -216,7 +237,7 @@ export function BulkUnitGeneratorModal({
   ]
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="2xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader>
           <div className="flex flex-col">
@@ -229,67 +250,69 @@ export function BulkUnitGeneratorModal({
             <div className="flex flex-col gap-6">
               {/* Floor Range */}
               <div>
-                <Typography variant="subtitle2" className="font-medium mb-3">
+                <Typography className="font-medium mb-3" variant="subtitle2">
                   {t('superadmin.condominiums.wizard.bulk.floorRange')}
                 </Typography>
                 <div className="grid grid-cols-2 gap-4">
                   <InputField
-                    name="floorFrom"
-                    label={t('superadmin.condominiums.wizard.bulk.floorFrom')}
-                    type="number"
-                    inputMode="numeric"
                     isRequired
+                    inputMode="numeric"
+                    label={t('superadmin.condominiums.wizard.bulk.floorFrom')}
+                    name="floorFrom"
                     translateError={translateError}
+                    type="number"
                   />
                   <InputField
-                    name="floorTo"
-                    label={t('superadmin.condominiums.wizard.bulk.floorTo')}
-                    type="number"
-                    inputMode="numeric"
                     isRequired
+                    inputMode="numeric"
+                    label={t('superadmin.condominiums.wizard.bulk.floorTo')}
+                    name="floorTo"
                     translateError={translateError}
+                    type="number"
                   />
                 </div>
               </div>
 
               {/* Units per floor */}
               <InputField
-                name="unitsPerFloor"
-                label={t('superadmin.condominiums.wizard.bulk.unitsPerFloor')}
-                type="number"
-                inputMode="numeric"
                 isRequired
+                inputMode="numeric"
+                label={t('superadmin.condominiums.wizard.bulk.unitsPerFloor')}
+                name="unitsPerFloor"
                 translateError={translateError}
+                type="number"
               />
 
               {/* Naming Pattern */}
               <div>
-                <Typography variant="subtitle2" className="font-medium mb-3">
+                <Typography className="font-medium mb-3" variant="subtitle2">
                   {t('superadmin.condominiums.wizard.bulk.namingPattern')}
                 </Typography>
                 <div className="flex flex-col gap-2">
-                  {patterns.map((pattern) => (
+                  {patterns.map(pattern => (
                     <button
                       key={pattern.value}
-                      type="button"
                       className={`flex items-center justify-between p-3 rounded-lg border transition-colors text-left ${
                         selectedPattern === pattern.value
                           ? 'border-success bg-success/10'
                           : 'border-default-200 hover:border-default-400'
                       }`}
+                      type="button"
                       onClick={() => setSelectedPattern(pattern.value)}
                     >
                       <div>
-                        <Typography variant="body2" className="font-medium">
+                        <Typography className="font-medium" variant="body2">
                           {pattern.label}
                         </Typography>
-                        <Typography variant="caption" className="text-default-400">
+                        <Typography className="text-default-400" variant="caption">
                           {pattern.example}
                         </Typography>
                       </div>
                       <div
                         className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                          selectedPattern === pattern.value ? 'border-success' : 'border-default-300'
+                          selectedPattern === pattern.value
+                            ? 'border-success'
+                            : 'border-default-300'
                         }`}
                       >
                         {selectedPattern === pattern.value && (
@@ -305,52 +328,52 @@ export function BulkUnitGeneratorModal({
 
               {/* Default values for all units */}
               <div>
-                <Typography variant="subtitle2" className="font-medium mb-3">
+                <Typography className="font-medium mb-3" variant="subtitle2">
                   {t('superadmin.condominiums.wizard.bulk.defaultValues')}
                 </Typography>
-                <Typography variant="caption" className="text-default-400 mb-3 block">
+                <Typography className="text-default-400 mb-3 block" variant="caption">
                   {t('superadmin.condominiums.wizard.bulk.defaultValuesHint')}
                 </Typography>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4">
                   <InputField
-                    name="areaM2"
                     label={t('superadmin.condominiums.detail.units.form.area')}
+                    name="areaM2"
                     translateError={translateError}
                   />
                   <InputField
-                    name="bedrooms"
                     label={t('superadmin.condominiums.detail.units.form.bedrooms')}
-                    type="number"
+                    name="bedrooms"
                     translateError={translateError}
+                    type="number"
                   />
                   <InputField
-                    name="bathrooms"
                     label={t('superadmin.condominiums.detail.units.form.bathrooms')}
-                    type="number"
+                    name="bathrooms"
                     translateError={translateError}
+                    type="number"
                   />
                   <InputField
-                    name="parkingSpaces"
                     label={t('superadmin.condominiums.detail.units.form.parkingSpaces')}
-                    type="number"
+                    name="parkingSpaces"
                     translateError={translateError}
+                    type="number"
                   />
                 </div>
                 <div className="flex items-end gap-2 mt-4">
                   <div className="flex-1">
                     <InputField
-                      name="aliquotPercentage"
                       label={t('superadmin.condominiums.wizard.bulk.aliquot')}
+                      name="aliquotPercentage"
                       placeholder="%"
                       translateError={translateError}
                     />
                   </div>
                   <Button
+                    className="mb-0.5"
+                    color="success"
+                    isDisabled={totalUnits === 0}
                     size="sm"
                     variant="flat"
-                    color="success"
-                    className="mb-0.5"
-                    isDisabled={totalUnits === 0}
                     onPress={() => {
                       if (totalUnits > 0) {
                         form.setValue('aliquotPercentage', (100 / totalUnits).toFixed(4))
@@ -367,10 +390,10 @@ export function BulkUnitGeneratorModal({
               {/* Preview */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <Typography variant="subtitle2" className="font-medium">
+                  <Typography className="font-medium" variant="subtitle2">
                     {t('superadmin.condominiums.wizard.bulk.preview')}
                   </Typography>
-                  <Typography variant="caption" className="text-default-500">
+                  <Typography className="text-default-500" variant="caption">
                     {totalUnits} {t('superadmin.condominiums.wizard.units.label')}
                   </Typography>
                 </div>
@@ -397,7 +420,7 @@ export function BulkUnitGeneratorModal({
           <Button variant="bordered" onPress={onClose}>
             {t('common.cancel')}
           </Button>
-          <Button color="success" onPress={handleGenerate} isDisabled={totalUnits === 0}>
+          <Button color="success" isDisabled={totalUnits === 0} onPress={handleGenerate}>
             {t('superadmin.condominiums.wizard.bulk.generate', { count: totalUnits })}
           </Button>
         </ModalFooter>

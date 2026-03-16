@@ -58,7 +58,10 @@ export function usePaymentApplications(options?: { enabled?: boolean }) {
 // Hooks - Get Applications by Payment
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function usePaymentApplicationsByPayment(paymentId: string, options?: { enabled?: boolean }) {
+export function usePaymentApplicationsByPayment(
+  paymentId: string,
+  options?: { enabled?: boolean }
+) {
   return useApiQuery<TApiDataResponse<TPaymentApplication[]>>({
     path: `/condominium/payment-applications/payment/${paymentId}`,
     queryKey: paymentApplicationKeys.byPayment(paymentId),
@@ -104,11 +107,7 @@ export function useApplyPaymentToQuota(options?: IApplyPaymentOptions) {
     config: {},
     onSuccess: options?.onSuccess,
     onError: options?.onError,
-    invalidateKeys: [
-      paymentApplicationKeys.all,
-      paymentKeys.all,
-      quotaKeys.all,
-    ],
+    invalidateKeys: [paymentApplicationKeys.all, paymentKeys.all, quotaKeys.all],
   })
 }
 
@@ -118,11 +117,15 @@ export function useApplyPaymentToQuota(options?: IApplyPaymentOptions) {
 
 export async function getPaymentApplications(): Promise<TPaymentApplication[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TPaymentApplication[]>>('/condominium/payment-applications')
+  const response = await client.get<TApiDataResponse<TPaymentApplication[]>>(
+    '/condominium/payment-applications'
+  )
   return response.data.data
 }
 
-export async function getPaymentApplicationsByPayment(paymentId: string): Promise<TPaymentApplication[]> {
+export async function getPaymentApplicationsByPayment(
+  paymentId: string
+): Promise<TPaymentApplication[]> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TPaymentApplication[]>>(
     `/condominium/payment-applications/payment/${paymentId}`
@@ -130,7 +133,9 @@ export async function getPaymentApplicationsByPayment(paymentId: string): Promis
   return response.data.data
 }
 
-export async function getPaymentApplicationsByQuota(quotaId: string): Promise<TPaymentApplication[]> {
+export async function getPaymentApplicationsByQuota(
+  quotaId: string
+): Promise<TPaymentApplication[]> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TPaymentApplication[]>>(
     `/condominium/payment-applications/quota/${quotaId}`
@@ -138,7 +143,9 @@ export async function getPaymentApplicationsByQuota(quotaId: string): Promise<TP
   return response.data.data
 }
 
-export async function applyPaymentToQuota(data: IApplyPaymentToQuotaData): Promise<IApplyPaymentToQuotaResponse> {
+export async function applyPaymentToQuota(
+  data: IApplyPaymentToQuotaData
+): Promise<IApplyPaymentToQuotaResponse> {
   const client = getHttpClient()
   const response = await client.post<IApplyPaymentToQuotaResponse>(
     '/condominium/payment-applications',

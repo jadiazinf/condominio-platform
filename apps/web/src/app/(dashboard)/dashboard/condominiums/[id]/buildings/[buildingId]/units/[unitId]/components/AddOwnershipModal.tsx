@@ -5,6 +5,12 @@ import { useRouter } from 'next/navigation'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import {
+  useAddUnitOwner,
+  useSearchUserForOwnership,
+  type TSearchUserResult,
+} from '@packages/http-client/hooks'
+import { Search, UserCheck, UserPlus } from 'lucide-react'
 
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
@@ -19,12 +25,6 @@ import { Avatar } from '@/ui/components/avatar-base'
 import { PhoneInputField } from '@/ui/components/phone-input'
 import { DocumentInputField } from '@/ui/components/document-input'
 import { useToast } from '@/ui/components/toast'
-import {
-  useAddUnitOwner,
-  useSearchUserForOwnership,
-  type TSearchUserResult,
-} from '@packages/http-client/hooks'
-import { Search, UserCheck, UserPlus } from 'lucide-react'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Register form schema
@@ -140,6 +140,7 @@ export function AddOwnershipModal({
     (message: string | undefined): string | undefined => {
       if (!message) return undefined
       if (t.validation?.[message]) return t.validation[message]
+
       // Return the message as-is if no translation found
       return message
     },
@@ -181,6 +182,7 @@ export function AddOwnershipModal({
   // Search handlers
   const handleSearch = () => {
     const trimmed = searchQuery.trim()
+
     if (trimmed) {
       setFoundUser(null)
       setSearchTrigger(trimmed)
@@ -229,22 +231,22 @@ export function AddOwnershipModal({
   ]
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="2xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="2xl" onClose={handleClose}>
       <ModalContent>
         <ModalHeader>
           <Typography variant="h4">{t.title}</Typography>
         </ModalHeader>
         <ModalBody className="pb-6">
           <Tabs
-            variant="underlined"
             fullWidth
-            selectedKey={activeTab}
-            onSelectionChange={key => setActiveTab(key as string)}
             aria-label="Opciones para agregar propietario"
             classNames={{
               tabList: 'w-full',
               tab: 'justify-center',
             }}
+            selectedKey={activeTab}
+            variant="underlined"
+            onSelectionChange={key => setActiveTab(key as string)}
           >
             {/* ─────────── Tab: Search existing user ─────────── */}
             <Tab
@@ -260,22 +262,22 @@ export function AddOwnershipModal({
                 {/* Search input */}
                 <div className="flex gap-3">
                   <Input
-                    label={t.search.placeholder}
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    onKeyDown={handleSearchKeyDown}
                     className="flex-1"
                     isDisabled={isPending}
+                    label={t.search.placeholder}
+                    value={searchQuery}
                     variant="bordered"
+                    onChange={e => setSearchQuery(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
                   />
                   <Button
+                    className="mt-auto"
                     color="success"
+                    isDisabled={!searchQuery.trim() || isPending}
+                    isLoading={isSearching}
+                    startContent={!isSearching ? <Search size={16} /> : undefined}
                     variant="bordered"
                     onPress={handleSearch}
-                    isLoading={isSearching}
-                    isDisabled={!searchQuery.trim() || isPending}
-                    className="mt-auto"
-                    startContent={!isSearching ? <Search size={16} /> : undefined}
                   >
                     {isSearching ? t.search.searching : t.search.button}
                   </Button>
@@ -290,21 +292,21 @@ export function AddOwnershipModal({
                           <div className="flex items-center gap-3">
                             <Avatar name={foundUser.displayName || foundUser.email} size="md" />
                             <div className="flex-1 min-w-0">
-                              <Typography variant="body1" className="font-medium truncate">
+                              <Typography className="font-medium truncate" variant="body1">
                                 {foundUser.displayName ||
                                   `${foundUser.firstName || ''} ${foundUser.lastName || ''}`.trim() ||
                                   foundUser.email}
                               </Typography>
-                              <Typography variant="body2" color="muted" className="truncate">
+                              <Typography className="truncate" color="muted" variant="body2">
                                 {foundUser.email}
                               </Typography>
                               {foundUser.phoneNumber && (
-                                <Typography variant="body2" color="muted" className="text-xs">
+                                <Typography className="text-xs" color="muted" variant="body2">
                                   {foundUser.phoneCountryCode} {foundUser.phoneNumber}
                                 </Typography>
                               )}
                               {foundUser.idDocumentNumber && (
-                                <Typography variant="body2" color="muted" className="text-xs">
+                                <Typography className="text-xs" color="muted" variant="body2">
                                   {foundUser.idDocumentType}: {foundUser.idDocumentNumber}
                                 </Typography>
                               )}
@@ -315,10 +317,10 @@ export function AddOwnershipModal({
                     ) : (
                       <Card className="border border-warning/30 bg-warning/5">
                         <CardBody>
-                          <Typography variant="body2" className="font-medium">
+                          <Typography className="font-medium" variant="body2">
                             {t.search.notFound}
                           </Typography>
-                          <Typography variant="body2" color="muted" className="text-xs mt-1">
+                          <Typography className="text-xs mt-1" color="muted" variant="body2">
                             {t.search.notFoundHint}
                           </Typography>
                         </CardBody>
@@ -331,19 +333,19 @@ export function AddOwnershipModal({
                 {foundUser && (
                   <>
                     <Select
-                      label={t.form.ownershipType}
                       items={ownershipTypeOptions}
+                      label={t.form.ownershipType}
                       value={searchOwnershipType}
+                      variant="bordered"
                       onChange={key => {
                         if (key) setSearchOwnershipType(key)
                       }}
-                      variant="bordered"
                     />
                     <div className="flex justify-end gap-3 pt-2">
-                      <Button variant="bordered" onPress={handleClose} isDisabled={isPending}>
+                      <Button isDisabled={isPending} variant="bordered" onPress={handleClose}>
                         {t.cancel}
                       </Button>
-                      <Button color="success" onPress={handleSearchSubmit} isLoading={isPending}>
+                      <Button color="success" isLoading={isPending} onPress={handleSearchSubmit}>
                         {isPending ? t.saving : t.save}
                       </Button>
                     </div>
@@ -363,59 +365,59 @@ export function AddOwnershipModal({
               }
             >
               <FormProvider {...methods}>
-                <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-6 pt-4">
+                <form className="flex flex-col gap-6 pt-4" onSubmit={handleRegisterSubmit}>
                   {/* Full name */}
                   <InputField
-                    name="fullName"
-                    label={t.form.fullName}
                     isRequired
                     isDisabled={isPending}
+                    label={t.form.fullName}
+                    name="fullName"
                     translateError={translateError}
                   />
 
                   {/* Email */}
                   <InputField
-                    name="email"
-                    type="email"
-                    label={t.form.email}
                     isDisabled={isPending}
+                    label={t.form.email}
+                    name="email"
                     translateError={translateError}
+                    type="email"
                   />
 
                   {/* Phone with country code */}
                   <PhoneInputField
                     countryCodeFieldName="phoneCountryCode"
-                    phoneNumberFieldName="phoneNumber"
-                    label={t.form.phone}
                     isDisabled={isPending}
+                    label={t.form.phone}
+                    phoneNumberFieldName="phoneNumber"
                     translateError={translateError}
                   />
 
                   {/* Document type + number */}
                   <DocumentInputField
-                    documentTypeFieldName="idDocumentType"
-                    documentNumberFieldName="idDocumentNumber"
-                    label={t.form.idDocumentNumber}
                     isRequired
+                    documentNumberFieldName="idDocumentNumber"
+                    documentTypeFieldName="idDocumentType"
                     isDisabled={isPending}
+                    label={t.form.idDocumentNumber}
                     translateError={translateError}
                   />
 
                   {/* Ownership type */}
                   <SelectField
-                    name="ownershipType"
-                    label={t.form.ownershipType}
-                    items={ownershipTypeOptions}
                     isDisabled={isPending}
+                    items={ownershipTypeOptions}
+                    label={t.form.ownershipType}
+                    name="ownershipType"
                     translateError={translateError}
                   />
 
                   {/* Actions */}
                   <div className="flex justify-end gap-3 pt-2">
-                    <Button variant="bordered" onPress={handleClose} isDisabled={isPending}>
+                    <Button isDisabled={isPending} variant="bordered" onPress={handleClose}>
                       {t.cancel}
                     </Button>
-                    <Button type="submit" color="success" isLoading={isPending}>
+                    <Button color="success" isLoading={isPending} type="submit">
                       {isPending ? t.saving : t.save}
                     </Button>
                   </div>

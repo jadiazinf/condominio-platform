@@ -1,9 +1,11 @@
 'use client'
 
+import type { ICondominiumFormData } from '../../hooks/useCondominiumForm'
+
 import { useFormContext } from 'react-hook-form'
+
 import { Button } from '@/ui/components'
 import { useTranslation } from '@/contexts'
-import type { ICondominiumFormData } from '../../hooks/useCondominiumForm'
 
 interface ConfirmationStepProps {
   onGoToStep: (step: 'basic' | 'location' | 'contact') => void
@@ -27,12 +29,7 @@ export function ConfirmationStep({ onGoToStep }: ConfirmationStepProps) {
           <h4 className="font-medium text-foreground">
             {t('condominiums.confirmation.sections.basic')}
           </h4>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => onGoToStep('basic')}
-          >
+          <Button size="sm" type="button" variant="ghost" onClick={() => onGoToStep('basic')}>
             {t('condominiums.actions.edit')}
           </Button>
         </div>
@@ -41,7 +38,9 @@ export function ConfirmationStep({ onGoToStep }: ConfirmationStepProps) {
           <dd className="text-foreground font-medium">{values.name || '-'}</dd>
 
           <dt className="text-default-600">{t('condominiums.form.fields.code.label')}</dt>
-          <dd className="text-foreground">{values.code || t('condominiums.form.fields.code.placeholder')}</dd>
+          <dd className="text-foreground">
+            {values.code || t('condominiums.form.fields.code.placeholder')}
+          </dd>
 
           <dt className="text-default-600">{t('condominiums.form.fields.status.label')}</dt>
           <dd className="text-foreground">
@@ -58,12 +57,7 @@ export function ConfirmationStep({ onGoToStep }: ConfirmationStepProps) {
           <h4 className="font-medium text-foreground">
             {t('condominiums.confirmation.sections.location')}
           </h4>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => onGoToStep('location')}
-          >
+          <Button size="sm" type="button" variant="ghost" onClick={() => onGoToStep('location')}>
             {t('condominiums.actions.edit')}
           </Button>
         </div>
@@ -79,12 +73,7 @@ export function ConfirmationStep({ onGoToStep }: ConfirmationStepProps) {
           <h4 className="font-medium text-foreground">
             {t('condominiums.confirmation.sections.contact')}
           </h4>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => onGoToStep('contact')}
-          >
+          <Button size="sm" type="button" variant="ghost" onClick={() => onGoToStep('contact')}>
             {t('condominiums.actions.edit')}
           </Button>
         </div>

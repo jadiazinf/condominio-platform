@@ -1,10 +1,7 @@
 import type { Context, Next, MiddlewareHandler } from 'hono'
 import { useTranslation } from '@intlify/hono'
 import { StatusCodes } from 'http-status-codes'
-import {
-  ValidateSubscriptionLimitsService,
-  type TResourceType,
-} from '@src/services/subscriptions'
+import { ValidateSubscriptionLimitsService, type TResourceType } from '@src/services/subscriptions'
 import type {
   ManagementCompanySubscriptionsRepository,
   ManagementCompaniesRepository,
@@ -31,7 +28,10 @@ export function validateSubscriptionLimit(
   subscriptionsRepository: ManagementCompanySubscriptionsRepository,
   companiesRepository: ManagementCompaniesRepository
 ): MiddlewareHandler {
-  const service = new ValidateSubscriptionLimitsService(subscriptionsRepository, companiesRepository)
+  const service = new ValidateSubscriptionLimitsService(
+    subscriptionsRepository,
+    companiesRepository
+  )
 
   return async (c: Context, next: Next) => {
     try {
@@ -105,7 +105,8 @@ export function validateSubscriptionLimit(
           success: false,
           error: {
             code: 'INTERNAL_ERROR',
-            message: error instanceof Error ? error.message : 'Failed to validate subscription limits',
+            message:
+              error instanceof Error ? error.message : 'Failed to validate subscription limits',
           },
         },
         StatusCodes.INTERNAL_SERVER_ERROR

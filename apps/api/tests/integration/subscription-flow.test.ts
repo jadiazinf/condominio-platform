@@ -56,11 +56,11 @@ beforeEach(async () => {
   `)
 
   // 2. Insert management company
-  const companyResult = await db.execute(sql`
+  const companyResult = (await db.execute(sql`
     INSERT INTO management_companies (name, created_by)
     VALUES ('Test Company', ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   companyId = companyResult[0]!.id
 
   // 3. Set up controllers + app
@@ -75,7 +75,12 @@ beforeEach(async () => {
   const ratesController = new SubscriptionRatesController(ratesRepo)
   const termsController = new SubscriptionTermsConditionsController(termsRepo)
   const invoicesController = new SubscriptionInvoicesController(invoicesRepo)
-  const acceptancesController = new SubscriptionAcceptancesController(acceptancesRepo, subscriptionsRepo, auditRepo, membersRepo)
+  const acceptancesController = new SubscriptionAcceptancesController(
+    acceptancesRepo,
+    subscriptionsRepo,
+    auditRepo,
+    membersRepo
+  )
 
   app = createTestApp()
   app.route('', ratesController.createRouter())
@@ -118,23 +123,27 @@ function termsBody(overrides: Record<string, unknown> = {}) {
   }
 }
 
-async function createRate(overrides: Record<string, unknown> = {}): Promise<Record<string, unknown>> {
+async function createRate(
+  overrides: Record<string, unknown> = {}
+): Promise<Record<string, unknown>> {
   const res = await request('/platform/subscription-rates', {
     method: 'POST',
     headers: JSON_HEADERS,
     body: JSON.stringify(rateBody(overrides)),
   })
-  const json = await res.json() as { data: Record<string, unknown> }
+  const json = (await res.json()) as { data: Record<string, unknown> }
   return json.data
 }
 
-async function createTerms(overrides: Record<string, unknown> = {}): Promise<Record<string, unknown>> {
+async function createTerms(
+  overrides: Record<string, unknown> = {}
+): Promise<Record<string, unknown>> {
   const res = await request('/subscription-terms', {
     method: 'POST',
     headers: JSON_HEADERS,
     body: JSON.stringify(termsBody(overrides)),
   })
-  const json = await res.json() as { data: Record<string, unknown> }
+  const json = (await res.json()) as { data: Record<string, unknown> }
   return json.data
 }
 
@@ -148,13 +157,13 @@ async function insertSubscription(overrides: Record<string, unknown> = {}): Prom
   const maxUsers = overrides.maxUsers ?? 20
   const maxStorageGb = overrides.maxStorageGb ?? 5
 
-  const result = await db.execute(sql`
+  const result = (await db.execute(sql`
     INSERT INTO management_company_subscriptions
       (management_company_id, billing_cycle, base_price, status, max_condominiums, max_units, max_users, max_storage_gb, start_date, created_by)
     VALUES
       (${companyId}, ${billingCycle as string}, ${basePrice as number}, ${status as string}, ${maxCondominiums as number}, ${maxUnits as number}, ${maxUsers as number}, ${maxStorageGb as number}, NOW(), ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   return result[0]!.id
 }
 
@@ -172,7 +181,7 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.name).toBe('Standard Plan')
       expect(json.data.condominiumRate).toBe(50)
       expect(json.data.unitRate).toBe(2.5)
@@ -201,7 +210,7 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.id).toBe(rate.id)
       expect(json.data.name).toBe('Standard Plan')
     })
@@ -214,7 +223,7 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.version).toBe('2.0.0')
     })
 
@@ -227,7 +236,7 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[]; pagination: { total: number } }
+      const json = (await res.json()) as { data: unknown[]; pagination: { total: number } }
       expect(json.data.length).toBe(2)
       expect(json.pagination.total).toBe(2)
     })
@@ -251,7 +260,7 @@ describe('Subscription System', () => {
       const res = await request('/platform/subscription-rates/active')
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.id).toBe(rate.id)
       expect(json.data.isActive).toBe(true)
     })
@@ -291,7 +300,7 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.name).toBe('Premium Plan')
     })
   })
@@ -309,7 +318,7 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.version).toBe('1.0.0')
       expect(json.data.title).toBe('Terms and Conditions v1')
       expect(json.data.isActive).toBe(true)
@@ -321,7 +330,7 @@ describe('Subscription System', () => {
       const res = await request('/subscription-terms/active')
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.version).toBe('1.0.0')
       expect(json.data.isActive).toBe(true)
     })
@@ -340,7 +349,7 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.version).toBe('2.0.0')
       expect(json.data.title).toBe('Terms v2')
     })
@@ -354,7 +363,7 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[]; pagination: { total: number } }
+      const json = (await res.json()) as { data: unknown[]; pagination: { total: number } }
       expect(json.data.length).toBe(2)
       expect(json.pagination.total).toBe(2)
     })
@@ -368,7 +377,7 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.isActive).toBe(false)
     })
 
@@ -396,7 +405,7 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[] }
+      const json = (await res.json()) as { data: unknown[] }
       expect(json.data.length).toBe(0)
     })
 
@@ -416,7 +425,7 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown>[] }
+      const json = (await res.json()) as { data: Record<string, unknown>[] }
       expect(json.data.length).toBe(1)
       expect((json.data[0] as Record<string, unknown>).invoiceNumber).toBe('INV-2026-00001')
     })
@@ -424,13 +433,13 @@ describe('Subscription System', () => {
     it('gets invoice by ID', async () => {
       const subscriptionId = await insertSubscription()
 
-      const invoiceResult = await db.execute(sql`
+      const invoiceResult = (await db.execute(sql`
         INSERT INTO subscription_invoices
           (invoice_number, subscription_id, management_company_id, amount, total_amount, status, due_date, billing_period_start, billing_period_end)
         VALUES
           ('INV-2026-00002', ${subscriptionId}, ${companyId}, 200.00, 200.00, 'pending', NOW() + INTERVAL '30 days', NOW(), NOW() + INTERVAL '30 days')
         RETURNING id
-      `) as unknown as { id: string }[]
+      `)) as unknown as { id: string }[]
       const invoiceId = invoiceResult[0]!.id
 
       const res = await request(`/platform/subscription-invoices/${invoiceId}`, {
@@ -438,7 +447,7 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.id).toBe(invoiceId)
       expect(json.data.invoiceNumber).toBe('INV-2026-00002')
     })
@@ -446,13 +455,13 @@ describe('Subscription System', () => {
     it('marks invoice as paid', async () => {
       const subscriptionId = await insertSubscription()
 
-      const invoiceResult = await db.execute(sql`
+      const invoiceResult = (await db.execute(sql`
         INSERT INTO subscription_invoices
           (invoice_number, subscription_id, management_company_id, amount, total_amount, status, due_date, billing_period_start, billing_period_end)
         VALUES
           ('INV-2026-00003', ${subscriptionId}, ${companyId}, 150.00, 150.00, 'pending', NOW() + INTERVAL '30 days', NOW(), NOW() + INTERVAL '30 days')
         RETURNING id
-      `) as unknown as { id: string }[]
+      `)) as unknown as { id: string }[]
       const invoiceId = invoiceResult[0]!.id
 
       const res = await request(`/platform/subscription-invoices/${invoiceId}/mark-paid`, {
@@ -462,7 +471,7 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.status).toBe('paid')
       expect(json.data.paidDate).toBeTruthy()
     })
@@ -506,7 +515,7 @@ describe('Subscription System', () => {
       const res = await request(`/subscription-accept/validate/${token}`)
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { success: boolean; data: Record<string, unknown> }
+      const json = (await res.json()) as { success: boolean; data: Record<string, unknown> }
       expect(json.success).toBe(true)
       expect(json.data.subscriptionId).toBe(subscriptionId)
       expect(json.data.status).toBe('pending')
@@ -541,7 +550,10 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { success: boolean; data: { subscription: Record<string, unknown>; acceptance: Record<string, unknown> } }
+      const json = (await res.json()) as {
+        success: boolean
+        data: { subscription: Record<string, unknown>; acceptance: Record<string, unknown> }
+      }
       expect(json.success).toBe(true)
       expect(json.data.subscription.status).toBe('active')
       expect(json.data.acceptance.status).toBe('accepted')
@@ -579,7 +591,7 @@ describe('Subscription System', () => {
       const res = await request(`/subscription-accept/validate/${token}`)
 
       expect(res.status).toBe(403)
-      const json = await res.json() as { success: boolean; error: string }
+      const json = (await res.json()) as { success: boolean; error: string }
       expect(json.success).toBe(false)
     })
 
@@ -619,7 +631,7 @@ describe('Subscription System', () => {
       })
 
       expect(res.status).toBe(403)
-      const json = await res.json() as { success: boolean; error: string }
+      const json = (await res.json()) as { success: boolean; error: string }
       expect(json.success).toBe(false)
     })
 

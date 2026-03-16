@@ -39,6 +39,7 @@ function getLocaleFromHeaders(request: NextRequest): string {
 function handleLocale(request: NextRequest, skipAuthRedirect = false): NextResponse {
   // Create request headers to pass info to Server Components
   const requestHeaders = new Headers(request.headers)
+
   requestHeaders.set('x-pathname', request.nextUrl.pathname)
 
   // When session has issues, remove the session cookie from the request headers
@@ -53,6 +54,7 @@ function handleLocale(request: NextRequest, skipAuthRedirect = false): NextRespo
       .map(c => c.trim())
       .filter(c => !c.startsWith(`${SESSION_COOKIE_NAME}=`))
       .join('; ')
+
     requestHeaders.set('cookie', filteredCookies)
   }
 
@@ -120,14 +122,22 @@ export function middleware(request: NextRequest) {
   const isInactivityLogout = request.nextUrl.searchParams.get('inactivity') === 'true'
 
   // Redirect authenticated users away from auth routes
-  if (isAuthRoute && hasSession && !isExpiredSession && !hasTemporaryError && !isUserNotFound && !isInactivityLogout) {
+  if (
+    isAuthRoute &&
+    hasSession &&
+    !isExpiredSession &&
+    !hasTemporaryError &&
+    !isUserNotFound &&
+    !isInactivityLogout
+  ) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   // When session has issues (expired, inactivity, etc.), clear the cookie directly in the response
   // This prevents redirect loops between auth layout (sees cookie → redirects to dashboard)
   // and dashboard (sees expired token → redirects to auth)
-  const hasSessionIssue = isExpiredSession || hasTemporaryError || isUserNotFound || isInactivityLogout
+  const hasSessionIssue =
+    isExpiredSession || hasTemporaryError || isUserNotFound || isInactivityLogout
   const skipAuthRedirect = isAuthRoute && hasSessionIssue
 
   const response = handleLocale(request, skipAuthRedirect)

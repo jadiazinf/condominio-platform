@@ -136,7 +136,7 @@ export function useCreatePaymentConcept(companyId: string, options?: ICreatePaym
 
 export function useUpdatePaymentConcept(companyId: string, options?: IUpdatePaymentConceptOptions) {
   return useApiMutation<TApiDataResponse<TPaymentConcept>, IUpdatePaymentConceptVariables>({
-    path: (variables) => `/${companyId}/me/payment-concepts/${variables.conceptId}`,
+    path: variables => `/${companyId}/me/payment-concepts/${variables.conceptId}`,
     method: 'PATCH',
     onSuccess: options?.onSuccess,
     onError: options?.onError,
@@ -144,9 +144,15 @@ export function useUpdatePaymentConcept(companyId: string, options?: IUpdatePaym
   })
 }
 
-export function useDeactivatePaymentConcept(companyId: string, options?: IDeactivatePaymentConceptOptions) {
-  return useApiMutation<TApiDataResponse<IDeactivatePaymentConceptResult>, IDeactivatePaymentConceptVariables>({
-    path: (variables) => `/${companyId}/me/payment-concepts/${variables.conceptId}/deactivate`,
+export function useDeactivatePaymentConcept(
+  companyId: string,
+  options?: IDeactivatePaymentConceptOptions
+) {
+  return useApiMutation<
+    TApiDataResponse<IDeactivatePaymentConceptResult>,
+    IDeactivatePaymentConceptVariables
+  >({
+    path: variables => `/${companyId}/me/payment-concepts/${variables.conceptId}/deactivate`,
     method: 'PATCH',
     onSuccess: options?.onSuccess,
     onError: options?.onError,
@@ -172,7 +178,10 @@ export interface ICreatePaymentConceptFullOptions {
   onError?: (error: Error) => void
 }
 
-export function useCreatePaymentConceptFull(companyId: string, options?: ICreatePaymentConceptFullOptions) {
+export function useCreatePaymentConceptFull(
+  companyId: string,
+  options?: ICreatePaymentConceptFullOptions
+) {
   return useApiMutation<TApiDataResponse<TPaymentConcept>, TCreatePaymentConceptFullInput>({
     path: `/${companyId}/me/payment-concepts/full`,
     method: 'POST',
@@ -227,9 +236,12 @@ export interface IUpdatePaymentConceptFullOptions {
   onError?: (error: Error) => void
 }
 
-export function useUpdatePaymentConceptFull(companyId: string, options?: IUpdatePaymentConceptFullOptions) {
+export function useUpdatePaymentConceptFull(
+  companyId: string,
+  options?: IUpdatePaymentConceptFullOptions
+) {
   return useApiMutation<TApiDataResponse<TPaymentConcept>, IUpdatePaymentConceptFullVariables>({
-    path: (variables) => `/${companyId}/me/payment-concepts/${variables.conceptId}/full`,
+    path: variables => `/${companyId}/me/payment-concepts/${variables.conceptId}/full`,
     method: 'PUT',
     onSuccess: options?.onSuccess,
     onError: options?.onError,
@@ -327,4 +339,3 @@ export function usePaymentConceptAffectedUnits(options: IUseAffectedUnitsOptions
     enabled: enabled && !!companyId && !!conceptId,
   })
 }
-

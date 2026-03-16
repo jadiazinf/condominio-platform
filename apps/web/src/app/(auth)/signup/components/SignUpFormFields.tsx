@@ -52,11 +52,11 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
               {t('auth.signUp.firstName')}
             </Typography>
             <InputField
+              isRequired
               name="firstName"
               placeholder={t('auth.signUp.firstNamePlaceholder')}
               size="lg"
               startContent={<User className="w-5 h-5 text-default-400" />}
-              isRequired
               translateError={translateError}
             />
           </div>
@@ -66,11 +66,11 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
               {t('auth.signUp.lastName')}
             </Typography>
             <InputField
+              isRequired
               name="lastName"
               placeholder={t('auth.signUp.lastNamePlaceholder')}
               size="lg"
               startContent={<User className="w-5 h-5 text-default-400" />}
-              isRequired
               translateError={translateError}
             />
           </div>
@@ -81,13 +81,13 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
             {t('auth.signUp.email')}
           </Typography>
           <InputField
+            isRequired
             name="email"
-            type="email"
             placeholder={t('auth.signUp.emailPlaceholder')}
             size="lg"
             startContent={<Mail className="w-5 h-5 text-default-400" />}
-            isRequired
             translateError={translateError}
+            type="email"
           />
         </div>
 
@@ -96,11 +96,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
             {t('auth.signUp.password')}
           </Typography>
           <InputField
-            name="password"
-            type={showPassword ? 'text' : 'password'}
-            placeholder={t('auth.signUp.passwordPlaceholder')}
-            size="lg"
-            startContent={<Lock className="w-5 h-5 text-default-400" />}
+            isRequired
             endContent={
               <button
                 className="focus:outline-none"
@@ -114,8 +110,12 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
                 )}
               </button>
             }
-            isRequired
+            name="password"
+            placeholder={t('auth.signUp.passwordPlaceholder')}
+            size="lg"
+            startContent={<Lock className="w-5 h-5 text-default-400" />}
             translateError={translateError}
+            type={showPassword ? 'text' : 'password'}
           />
         </div>
 
@@ -124,11 +124,7 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
             {t('auth.signUp.confirmPassword')}
           </Typography>
           <InputField
-            name="confirmPassword"
-            type={showConfirmPassword ? 'text' : 'password'}
-            placeholder={t('auth.signUp.confirmPasswordPlaceholder')}
-            size="lg"
-            startContent={<Lock className="w-5 h-5 text-default-400" />}
+            isRequired
             endContent={
               <button
                 className="focus:outline-none"
@@ -142,8 +138,12 @@ export function SignUpFormFields({ onSubmit, onGoogleSignUp, isLoading }: SignUp
                 )}
               </button>
             }
-            isRequired
+            name="confirmPassword"
+            placeholder={t('auth.signUp.confirmPasswordPlaceholder')}
+            size="lg"
+            startContent={<Lock className="w-5 h-5 text-default-400" />}
             translateError={translateError}
+            type={showConfirmPassword ? 'text' : 'password'}
           />
         </div>
 

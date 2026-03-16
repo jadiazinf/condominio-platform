@@ -6,6 +6,7 @@ import { DashboardShell } from './components/DashboardShell'
 import { SuperadminShell } from './components/SuperadminShell'
 import { AdminShell } from './components/AdminShell'
 import { DashboardTheme } from './components/DashboardTheme'
+
 import { PageErrorBoundary } from '@/ui/components/error-boundary'
 import { getFullSession } from '@/libs/session'
 
@@ -32,7 +33,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   // Preload avatar image from server to prevent flash
   const avatarPreloadLink = session.user?.photoUrl ? (
-    <link rel="preload" as="image" href={session.user.photoUrl} />
+    <link as="image" href={session.user.photoUrl} rel="preload" />
   ) : null
 
   // Common StoreHydration props

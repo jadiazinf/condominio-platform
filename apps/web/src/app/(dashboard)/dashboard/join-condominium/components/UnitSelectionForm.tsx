@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { Building2, MapPin, Mail, Phone } from 'lucide-react'
 import type { TOwnershipType } from '@packages/domain'
 import type { TValidateAccessCodeResponse } from '@packages/http-client/hooks'
+
+import { useState } from 'react'
+import { Building2, MapPin, Mail, Phone } from 'lucide-react'
 
 import { Button } from '@/ui/components/button'
 import { Card, CardBody, CardHeader } from '@/ui/components/card'
@@ -56,7 +57,7 @@ export function UnitSelectionForm({
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
-            <Building2 size={18} className="text-success" />
+            <Building2 className="text-success" size={18} />
             <span className="font-semibold">{translations.condominiumInfo}</span>
           </div>
         </CardHeader>
@@ -95,9 +96,9 @@ export function UnitSelectionForm({
                   {building.units.map(unit => (
                     <Button
                       key={unit.id}
+                      color={selectedUnitId === unit.id ? 'success' : 'default'}
                       size="sm"
                       variant={selectedUnitId === unit.id ? 'solid' : 'bordered'}
-                      color={selectedUnitId === unit.id ? 'success' : 'default'}
                       onPress={() => setSelectedUnitId(unit.id)}
                     >
                       {unit.unitNumber}
@@ -114,16 +115,16 @@ export function UnitSelectionForm({
       {selectedUnitId && (
         <div className="max-w-xs mt-10">
           <Select
-            label={translations.ownershipType}
-            value={ownershipType}
-            onChange={val => {
-              if (val) setOwnershipType(val as TOwnershipType)
-            }}
             items={OWNERSHIP_OPTIONS.map(opt => ({
               key: opt,
               label:
                 translations.ownershipTypes[opt as keyof typeof translations.ownershipTypes] ?? opt,
             }))}
+            label={translations.ownershipType}
+            value={ownershipType}
+            onChange={val => {
+              if (val) setOwnershipType(val as TOwnershipType)
+            }}
           />
         </div>
       )}
@@ -133,9 +134,9 @@ export function UnitSelectionForm({
         {renderExtraActions?.()}
         <Button
           color="success"
-          onPress={handleSubmit}
-          isLoading={isSubmitting}
           isDisabled={!selectedUnitId}
+          isLoading={isSubmitting}
+          onPress={handleSubmit}
         >
           {isSubmitting ? translations.submitting : translations.submit}
         </Button>

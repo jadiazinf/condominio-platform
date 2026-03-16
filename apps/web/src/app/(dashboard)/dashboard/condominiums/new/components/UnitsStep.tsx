@@ -1,18 +1,24 @@
 'use client'
 
+import type {
+  TLocalUnit,
+  TLocalBuilding,
+  TUseCreateCondominiumWizard,
+} from '../hooks/useCreateCondominiumWizard'
+
 import { useState, useCallback } from 'react'
 import { Home, Plus, Pencil, Trash2, Building2, Zap, FileSpreadsheet, XCircle } from 'lucide-react'
 import { Button } from '@heroui/button'
 import { Accordion, AccordionItem } from '@heroui/accordion'
-import { Card, CardBody } from '@/ui/components/card'
 import { Chip } from '@heroui/chip'
 
-import { useTranslation } from '@/contexts'
-import { Typography } from '@/ui/components/typography'
 import { UnitEditorModal } from './UnitEditorModal'
 import { BulkUnitGeneratorModal } from './BulkUnitGeneratorModal'
 import { CsvUnitImportModal } from './CsvUnitImportModal'
-import type { TLocalUnit, TLocalBuilding, TUseCreateCondominiumWizard } from '../hooks/useCreateCondominiumWizard'
+
+import { Typography } from '@/ui/components/typography'
+import { useTranslation } from '@/contexts'
+import { Card, CardBody } from '@/ui/components/card'
 
 interface UnitsStepProps {
   wizard: TUseCreateCondominiumWizard
@@ -20,7 +26,15 @@ interface UnitsStepProps {
 
 export function UnitsStep({ wizard }: UnitsStepProps) {
   const { t } = useTranslation()
-  const { buildings, addUnit, addBulkUnits, updateUnit, removeUnit, clearUnitsForBuilding, getUnitsForBuilding } = wizard
+  const {
+    buildings,
+    addUnit,
+    addBulkUnits,
+    updateUnit,
+    removeUnit,
+    clearUnitsForBuilding,
+    getUnitsForBuilding,
+  } = wizard
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false)
@@ -30,49 +44,38 @@ export function UnitsStep({ wizard }: UnitsStepProps) {
   const [activeBuildingName, setActiveBuildingName] = useState<string>('')
   const [activeBuildingFloors, setActiveBuildingFloors] = useState<number | null>(null)
 
-  const handleAddUnit = useCallback(
-    (building: TLocalBuilding) => {
-      setActiveBuildingTempId(building.tempId)
-      setActiveBuildingName(building.name)
-      setEditingUnit(null)
-      setIsModalOpen(true)
-    },
-    []
-  )
+  const handleAddUnit = useCallback((building: TLocalBuilding) => {
+    setActiveBuildingTempId(building.tempId)
+    setActiveBuildingName(building.name)
+    setEditingUnit(null)
+    setIsModalOpen(true)
+  }, [])
 
-  const handleEditUnit = useCallback(
-    (building: TLocalBuilding, unit: TLocalUnit) => {
-      setActiveBuildingTempId(building.tempId)
-      setActiveBuildingName(building.name)
-      setEditingUnit(unit)
-      setIsModalOpen(true)
-    },
-    []
-  )
+  const handleEditUnit = useCallback((building: TLocalBuilding, unit: TLocalUnit) => {
+    setActiveBuildingTempId(building.tempId)
+    setActiveBuildingName(building.name)
+    setEditingUnit(unit)
+    setIsModalOpen(true)
+  }, [])
 
-  const handleOpenBulkGenerator = useCallback(
-    (building: TLocalBuilding) => {
-      setActiveBuildingTempId(building.tempId)
-      setActiveBuildingName(building.name)
-      setActiveBuildingFloors(building.floorsCount ?? null)
-      setIsBulkModalOpen(true)
-    },
-    []
-  )
+  const handleOpenBulkGenerator = useCallback((building: TLocalBuilding) => {
+    setActiveBuildingTempId(building.tempId)
+    setActiveBuildingName(building.name)
+    setActiveBuildingFloors(building.floorsCount ?? null)
+    setIsBulkModalOpen(true)
+  }, [])
 
-  const handleOpenCsvImport = useCallback(
-    (building: TLocalBuilding) => {
-      setActiveBuildingTempId(building.tempId)
-      setActiveBuildingName(building.name)
-      setIsCsvModalOpen(true)
-    },
-    []
-  )
+  const handleOpenCsvImport = useCallback((building: TLocalBuilding) => {
+    setActiveBuildingTempId(building.tempId)
+    setActiveBuildingName(building.name)
+    setIsCsvModalOpen(true)
+  }, [])
 
   const handleSave = useCallback(
     (data: Omit<TLocalUnit, 'tempId'>) => {
       if (editingUnit) {
         const { buildingTempId, ...updateData } = data
+
         updateUnit(editingUnit.buildingTempId, editingUnit.tempId, updateData)
       } else {
         addUnit(data)
@@ -101,22 +104,27 @@ export function UnitsStep({ wizard }: UnitsStepProps) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <Typography variant="subtitle1" className="font-semibold">
+        <Typography className="font-semibold" variant="subtitle1">
           {t('superadmin.condominiums.wizard.units.title')}
         </Typography>
-        <Typography variant="body2" className="text-default-500">
+        <Typography className="text-default-500" variant="body2">
           {t('superadmin.condominiums.wizard.units.subtitle')}
         </Typography>
       </div>
 
       {/* Buildings Accordion */}
-      <Accordion variant="bordered" selectionMode="multiple" defaultExpandedKeys={buildings.map((b) => b.tempId)}>
-        {buildings.map((building) => {
+      <Accordion
+        defaultExpandedKeys={buildings.map(b => b.tempId)}
+        selectionMode="multiple"
+        variant="bordered"
+      >
+        {buildings.map(building => {
           const buildingUnits = getUnitsForBuilding(building.tempId)
-          const hasAliquots = buildingUnits.some((u) => u.aliquotPercentage)
+          const hasAliquots = buildingUnits.some(u => u.aliquotPercentage)
           const aliquotSum = hasAliquots
             ? buildingUnits.reduce((sum, u) => {
                 const pct = parseFloat(u.aliquotPercentage || '0')
+
                 return sum + (isNaN(pct) ? 0 : pct)
               }, 0)
             : 0
@@ -127,16 +135,22 @@ export function UnitsStep({ wizard }: UnitsStepProps) {
               key={building.tempId}
               title={
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Building2 size={16} className="text-primary" />
+                  <Building2 className="text-primary" size={16} />
                   <span className="font-medium">{building.name}</span>
-                  <Chip size="sm" variant="flat" color={buildingUnits.length > 0 ? 'success' : 'warning'}>
+                  <Chip
+                    color={buildingUnits.length > 0 ? 'success' : 'warning'}
+                    size="sm"
+                    variant="flat"
+                  >
                     {buildingUnits.length} {t('superadmin.condominiums.wizard.units.label')}
                   </Chip>
                   {hasAliquots && (
-                    <Chip size="sm" variant="flat" color={aliquotOk ? 'success' : 'warning'}>
+                    <Chip color={aliquotOk ? 'success' : 'warning'} size="sm" variant="flat">
                       {aliquotOk
                         ? t('superadmin.condominiums.wizard.units.aliquotOk')
-                        : t('superadmin.condominiums.wizard.units.aliquotWarning', { sum: aliquotSum.toFixed(2) })}
+                        : t('superadmin.condominiums.wizard.units.aliquotWarning', {
+                            sum: aliquotSum.toFixed(2),
+                          })}
                     </Chip>
                   )}
                 </div>
@@ -146,35 +160,32 @@ export function UnitsStep({ wizard }: UnitsStepProps) {
                 {buildingUnits.length === 0 ? (
                   <div className="flex flex-col items-center py-8 text-center">
                     <Home className="h-8 w-8 text-default-300 mb-2" />
-                    <Typography variant="body2" className="text-default-400">
+                    <Typography className="text-default-400" variant="body2">
                       {t('superadmin.condominiums.wizard.units.empty')}
                     </Typography>
                   </div>
                 ) : (
                   <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {buildingUnits.map((unit) => (
+                    {buildingUnits.map(unit => (
                       <Card key={unit.tempId} className="border border-default-100" shadow="none">
                         <CardBody className="p-3">
                           <div className="flex items-center justify-between">
                             <div className="min-w-0">
-                              <Typography variant="subtitle2" className="font-medium">
+                              <Typography className="font-medium" variant="subtitle2">
                                 {unit.unitNumber}
                               </Typography>
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {unit.floor != null && (
                                   <span className="text-xs text-default-500">
-                                    {t('superadmin.condominiums.detail.units.form.floor')}: {unit.floor}
+                                    {t('superadmin.condominiums.detail.units.form.floor')}:{' '}
+                                    {unit.floor}
                                   </span>
                                 )}
                                 {unit.areaM2 && (
-                                  <span className="text-xs text-default-500">
-                                    {unit.areaM2}m²
-                                  </span>
+                                  <span className="text-xs text-default-500">{unit.areaM2}m²</span>
                                 )}
                                 {unit.bedrooms != null && (
-                                  <span className="text-xs text-default-500">
-                                    {unit.bedrooms}H
-                                  </span>
+                                  <span className="text-xs text-default-500">{unit.bedrooms}H</span>
                                 )}
                                 {unit.bathrooms != null && (
                                   <span className="text-xs text-default-500">
@@ -194,9 +205,9 @@ export function UnitsStep({ wizard }: UnitsStepProps) {
                               </Button>
                               <Button
                                 isIconOnly
+                                color="danger"
                                 size="sm"
                                 variant="light"
-                                color="danger"
                                 onPress={() => removeUnit(building.tempId, unit.tempId)}
                               >
                                 <Trash2 size={12} />
@@ -212,38 +223,38 @@ export function UnitsStep({ wizard }: UnitsStepProps) {
                 {/* Action buttons */}
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    size="sm"
                     color="success"
-                    variant="flat"
+                    size="sm"
                     startContent={<Plus size={14} />}
+                    variant="flat"
                     onPress={() => handleAddUnit(building)}
                   >
                     {t('superadmin.condominiums.wizard.units.add')}
                   </Button>
                   <Button
-                    size="sm"
                     color="success"
-                    variant="bordered"
+                    size="sm"
                     startContent={<Zap size={14} />}
+                    variant="bordered"
                     onPress={() => handleOpenBulkGenerator(building)}
                   >
                     {t('superadmin.condominiums.wizard.bulk.generate')}
                   </Button>
                   <Button
-                    size="sm"
                     color="default"
-                    variant="bordered"
+                    size="sm"
                     startContent={<FileSpreadsheet size={14} />}
+                    variant="bordered"
                     onPress={() => handleOpenCsvImport(building)}
                   >
                     {t('superadmin.condominiums.wizard.csv.importButton')}
                   </Button>
                   {buildingUnits.length > 0 && (
                     <Button
-                      size="sm"
                       color="danger"
-                      variant="light"
+                      size="sm"
                       startContent={<XCircle size={14} />}
+                      variant="light"
                       onPress={() => clearUnitsForBuilding(building.tempId)}
                     >
                       {t('superadmin.condominiums.wizard.units.clearAll')}
@@ -258,34 +269,34 @@ export function UnitsStep({ wizard }: UnitsStepProps) {
 
       {/* Unit Editor Modal */}
       <UnitEditorModal
+        buildingName={activeBuildingName}
+        buildingTempId={activeBuildingTempId}
+        editingUnit={editingUnit}
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false)
           setEditingUnit(null)
         }}
         onSave={handleSave}
-        buildingTempId={activeBuildingTempId}
-        buildingName={activeBuildingName}
-        editingUnit={editingUnit}
       />
 
       {/* Bulk Unit Generator Modal */}
       <BulkUnitGeneratorModal
+        buildingFloors={activeBuildingFloors}
+        buildingName={activeBuildingName}
+        buildingTempId={activeBuildingTempId}
         isOpen={isBulkModalOpen}
         onClose={() => setIsBulkModalOpen(false)}
         onGenerate={handleBulkGenerate}
-        buildingTempId={activeBuildingTempId}
-        buildingName={activeBuildingName}
-        buildingFloors={activeBuildingFloors}
       />
 
       {/* CSV Import Modal */}
       <CsvUnitImportModal
+        buildingName={activeBuildingName}
+        buildingTempId={activeBuildingTempId}
         isOpen={isCsvModalOpen}
         onClose={() => setIsCsvModalOpen(false)}
         onImport={handleCsvImport}
-        buildingTempId={activeBuildingTempId}
-        buildingName={activeBuildingName}
       />
     </div>
   )

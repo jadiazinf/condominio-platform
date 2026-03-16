@@ -1,13 +1,10 @@
 import type { Context } from 'hono'
-import {
-  EAdjustmentTypes,
-  ESystemRole,
-} from '@packages/domain'
+import { EAdjustmentTypes, ESystemRole } from '@packages/domain'
 import type { QuotasRepository, QuotaAdjustmentsRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { HttpContext } from '../../context'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware, requireRole } from '../../middlewares/auth'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { createRouter } from '../create-router'
@@ -63,35 +60,60 @@ export class QuotaAdjustmentsController {
     private readonly quotasRepository: QuotasRepository,
     private readonly quotaAdjustmentsRepository: QuotaAdjustmentsRepository
   ) {
-    this.adjustQuotaService = new AdjustQuotaService(db, quotasRepository, quotaAdjustmentsRepository)
+    this.adjustQuotaService = new AdjustQuotaService(
+      db,
+      quotasRepository,
+      quotaAdjustmentsRepository
+    )
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)] },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.list,
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)],
+      },
       {
         method: 'get',
         path: '/quota/:quotaId',
         handler: this.getByQuotaId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(QuotaIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(QuotaIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(UserIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(UserIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/type/:type',
         handler: this.getByType,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(AdjustmentTypeParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(AdjustmentTypeParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
@@ -121,10 +143,12 @@ export class QuotaAdjustmentsController {
 
   private list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-    // TODO: Filter by condominiumId via JOIN through quota → unit → building.condominiumId
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
-      const adjustments = await this.quotaAdjustmentsRepository.listAll()
+      const adjustments = condominiumId
+        ? await this.quotaAdjustmentsRepository.listByCondominiumId(condominiumId)
+        : await this.quotaAdjustmentsRepository.listAll()
       return ctx.ok({ data: adjustments })
     } catch (error) {
       return this.handleError(ctx, error)
@@ -149,9 +173,13 @@ export class QuotaAdjustmentsController {
 
   private getByQuotaId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TQuotaIdParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
-      const adjustments = await this.quotaAdjustmentsRepository.getByQuotaId(ctx.params.quotaId)
+      const adjustments = await this.quotaAdjustmentsRepository.getByQuotaId(
+        ctx.params.quotaId,
+        condominiumId
+      )
       return ctx.ok({ data: adjustments })
     } catch (error) {
       return this.handleError(ctx, error)
@@ -160,9 +188,13 @@ export class QuotaAdjustmentsController {
 
   private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
-      const adjustments = await this.quotaAdjustmentsRepository.getByCreatedBy(ctx.params.userId)
+      const adjustments = await this.quotaAdjustmentsRepository.getByCreatedBy(
+        ctx.params.userId,
+        condominiumId
+      )
       return ctx.ok({ data: adjustments })
     } catch (error) {
       return this.handleError(ctx, error)
@@ -171,9 +203,13 @@ export class QuotaAdjustmentsController {
 
   private getByType = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TAdjustmentTypeParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
-      const adjustments = await this.quotaAdjustmentsRepository.getByType(ctx.params.type)
+      const adjustments = await this.quotaAdjustmentsRepository.getByType(
+        ctx.params.type,
+        condominiumId
+      )
       return ctx.ok({ data: adjustments })
     } catch (error) {
       return this.handleError(ctx, error)

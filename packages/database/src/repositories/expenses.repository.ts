@@ -75,11 +75,14 @@ export class ExpensesRepository
   /**
    * Retrieves expenses by building.
    */
-  async getByBuildingId(buildingId: string): Promise<TExpense[]> {
+  async getByBuildingId(buildingId: string, condominiumId?: string): Promise<TExpense[]> {
+    const conditions = [eq(expenses.buildingId, buildingId)]
+    if (condominiumId) conditions.push(eq(expenses.condominiumId, condominiumId))
+
     const results = await this.db
       .select()
       .from(expenses)
-      .where(eq(expenses.buildingId, buildingId))
+      .where(and(...conditions))
       .orderBy(desc(expenses.expenseDate))
 
     return results.map(record => this.mapToEntity(record))
@@ -88,11 +91,14 @@ export class ExpensesRepository
   /**
    * Retrieves expenses by status.
    */
-  async getByStatus(status: TExpense['status']): Promise<TExpense[]> {
+  async getByStatus(status: TExpense['status'], condominiumId?: string): Promise<TExpense[]> {
+    const conditions = [eq(expenses.status, status)]
+    if (condominiumId) conditions.push(eq(expenses.condominiumId, condominiumId))
+
     const results = await this.db
       .select()
       .from(expenses)
-      .where(eq(expenses.status, status))
+      .where(and(...conditions))
       .orderBy(desc(expenses.expenseDate))
 
     return results.map(record => this.mapToEntity(record))
@@ -101,11 +107,14 @@ export class ExpensesRepository
   /**
    * Retrieves expenses by category.
    */
-  async getByCategoryId(expenseCategoryId: string): Promise<TExpense[]> {
+  async getByCategoryId(expenseCategoryId: string, condominiumId?: string): Promise<TExpense[]> {
+    const conditions = [eq(expenses.expenseCategoryId, expenseCategoryId)]
+    if (condominiumId) conditions.push(eq(expenses.condominiumId, condominiumId))
+
     const results = await this.db
       .select()
       .from(expenses)
-      .where(eq(expenses.expenseCategoryId, expenseCategoryId))
+      .where(and(...conditions))
       .orderBy(desc(expenses.expenseDate))
 
     return results.map(record => this.mapToEntity(record))
@@ -114,11 +123,18 @@ export class ExpensesRepository
   /**
    * Retrieves expenses within a date range.
    */
-  async getByDateRange(startDate: string, endDate: string): Promise<TExpense[]> {
+  async getByDateRange(
+    startDate: string,
+    endDate: string,
+    condominiumId?: string
+  ): Promise<TExpense[]> {
+    const conditions = [gte(expenses.expenseDate, startDate), lte(expenses.expenseDate, endDate)]
+    if (condominiumId) conditions.push(eq(expenses.condominiumId, condominiumId))
+
     const results = await this.db
       .select()
       .from(expenses)
-      .where(and(gte(expenses.expenseDate, startDate), lte(expenses.expenseDate, endDate)))
+      .where(and(...conditions))
       .orderBy(desc(expenses.expenseDate))
 
     return results.map(record => this.mapToEntity(record))
@@ -127,11 +143,14 @@ export class ExpensesRepository
   /**
    * Retrieves pending expenses for approval.
    */
-  async getPendingApproval(): Promise<TExpense[]> {
+  async getPendingApproval(condominiumId?: string): Promise<TExpense[]> {
+    const conditions = [eq(expenses.status, 'pending')]
+    if (condominiumId) conditions.push(eq(expenses.condominiumId, condominiumId))
+
     const results = await this.db
       .select()
       .from(expenses)
-      .where(eq(expenses.status, 'pending'))
+      .where(and(...conditions))
       .orderBy(desc(expenses.expenseDate))
 
     return results.map(record => this.mapToEntity(record))
@@ -165,10 +184,7 @@ export class ExpensesRepository
       conditions.push(lte(expenses.expenseDate, options.endDate))
     }
 
-    return this.listPaginated(
-      { page: options.page, limit: options.limit },
-      conditions
-    )
+    return this.listPaginated({ page: options.page, limit: options.limit }, conditions)
   }
 
   /**

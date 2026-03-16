@@ -1,18 +1,27 @@
 'use client'
 
+import type { TPayment } from '@packages/domain'
+
 import { useState, useMemo, useCallback } from 'react'
+import { CreditCard, Search } from 'lucide-react'
+import { formatAmount } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
 import { Card, CardBody } from '@/ui/components/card'
 import { Typography } from '@/ui/components/typography'
 import { Input } from '@/ui/components/input'
-import { CreditCard, Search } from 'lucide-react'
-import type { TPayment } from '@packages/domain'
-import { formatAmount } from '@packages/utils/currency'
-import { formatShortDate } from '@packages/utils/dates'
 
-type TPaymentStatusFilter = 'all' | 'pending' | 'pending_verification' | 'completed' | 'failed' | 'refunded' | 'rejected'
+type TPaymentStatusFilter =
+  | 'all'
+  | 'pending'
+  | 'pending_verification'
+  | 'completed'
+  | 'failed'
+  | 'refunded'
+  | 'rejected'
 
 const STATUS_COLORS = {
   pending: 'warning',
@@ -81,11 +90,13 @@ export function PaymentsTable({ payments, translations: t }: PaymentsTableProps)
 
   const filteredPayments = useMemo(() => {
     let filtered = payments
+
     if (statusFilter !== 'all') {
       filtered = filtered.filter(p => p.status === statusFilter)
     }
     if (searchInput.trim()) {
       const search = searchInput.toLowerCase()
+
       filtered = filtered.filter(
         p =>
           p.paymentNumber?.toLowerCase().includes(search) ||
@@ -93,6 +104,7 @@ export function PaymentsTable({ payments, translations: t }: PaymentsTableProps)
           p.receiptNumber?.toLowerCase().includes(search)
       )
     }
+
     return filtered
   }, [payments, statusFilter, searchInput])
 
@@ -116,23 +128,11 @@ export function PaymentsTable({ payments, translations: t }: PaymentsTableProps)
     (payment: TPayment, columnKey: string) => {
       switch (columnKey) {
         case 'paymentNumber':
-          return (
-            <span className="font-medium text-sm">
-              {payment.paymentNumber || '-'}
-            </span>
-          )
+          return <span className="font-medium text-sm">{payment.paymentNumber || '-'}</span>
         case 'unit':
-          return (
-            <span className="text-sm text-default-700">
-              {payment.unit?.unitNumber || '-'}
-            </span>
-          )
+          return <span className="text-sm text-default-700">{payment.unit?.unitNumber || '-'}</span>
         case 'amount':
-          return (
-            <span className="text-sm font-medium">
-              {formatAmount(payment.amount)}
-            </span>
-          )
+          return <span className="text-sm font-medium">{formatAmount(payment.amount)}</span>
         case 'method':
           return (
             <span className="text-sm text-default-600">
@@ -143,17 +143,15 @@ export function PaymentsTable({ payments, translations: t }: PaymentsTableProps)
           return (
             <Chip
               color={STATUS_COLORS[payment.status as keyof typeof STATUS_COLORS] || 'default'}
-              variant="flat"
               size="sm"
+              variant="flat"
             >
               {t.status[payment.status as keyof typeof t.status] || payment.status}
             </Chip>
           )
         case 'date':
           return (
-            <span className="text-sm text-default-600">
-              {formatShortDate(payment.paymentDate)}
-            </span>
+            <span className="text-sm text-default-600">{formatShortDate(payment.paymentDate)}</span>
           )
         default:
           return null
@@ -189,12 +187,12 @@ export function PaymentsTable({ payments, translations: t }: PaymentsTableProps)
         />
         <Select
           aria-label={t.filters.status}
-          placeholder={t.filters.status}
           className="w-full sm:w-40"
           items={statusFilterItems}
+          placeholder={t.filters.status}
           value={statusFilter}
-          onChange={handleStatusChange}
           variant="bordered"
+          onChange={handleStatusChange}
         />
       </div>
 
@@ -210,14 +208,17 @@ export function PaymentsTable({ payments, translations: t }: PaymentsTableProps)
                 </div>
                 <Chip
                   color={STATUS_COLORS[payment.status as keyof typeof STATUS_COLORS] || 'default'}
-                  variant="flat"
                   size="sm"
+                  variant="flat"
                 >
                   {t.status[payment.status as keyof typeof t.status] || payment.status}
                 </Chip>
               </div>
               <div className="flex items-center justify-between text-xs text-default-500">
-                <span>{t.methods[payment.paymentMethod as keyof typeof t.methods] || payment.paymentMethod}</span>
+                <span>
+                  {t.methods[payment.paymentMethod as keyof typeof t.methods] ||
+                    payment.paymentMethod}
+                </span>
                 <span>{formatShortDate(payment.paymentDate)}</span>
               </div>
               <div className="flex items-center justify-between">
@@ -231,11 +232,11 @@ export function PaymentsTable({ payments, translations: t }: PaymentsTableProps)
       {/* Desktop Table */}
       <div className="hidden md:block">
         <Table<TPayment>
-          mobileCards={false}
           aria-label={t.title}
           columns={columns}
-          rows={filteredPayments}
+          mobileCards={false}
           renderCell={renderCell}
+          rows={filteredPayments}
         />
       </div>
     </div>

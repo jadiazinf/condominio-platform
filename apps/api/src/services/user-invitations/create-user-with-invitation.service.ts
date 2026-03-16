@@ -111,7 +111,7 @@ export class CreateUserWithInvitationService {
     }
 
     // Step 3: All writes inside a transaction (auto-rollback on failure)
-    return await this.db.transaction(async (tx) => {
+    return await this.db.transaction(async tx => {
       const txUsersRepo = this.usersRepository.withTx(tx)
       const txUserRolesRepo = this.userRolesRepository.withTx(tx)
       const txUserPermissionsRepo = this.userPermissionsRepository.withTx(tx)
@@ -124,7 +124,11 @@ export class CreateUserWithInvitationService {
       const userRole = await this.createUserRole(user.id, input, txUserRolesRepo)
 
       // Create custom permissions (if provided)
-      const userPermissions = await this.createUserPermissions(user.id, input, txUserPermissionsRepo)
+      const userPermissions = await this.createUserPermissions(
+        user.id,
+        input,
+        txUserPermissionsRepo
+      )
 
       // Create invitation
       const { invitation, token } = await this.createInvitation(user, input, txInvitationsRepo)
@@ -330,7 +334,7 @@ export class CreateUserWithInvitationService {
     existingUser: TUser,
     input: ICreateUserWithInvitationInput
   ): Promise<TServiceResult<ICreateUserWithInvitationResult>> {
-    return await this.db.transaction(async (tx) => {
+    return await this.db.transaction(async tx => {
       const txUserRolesRepo = this.userRolesRepository.withTx(tx)
       const txUserPermissionsRepo = this.userPermissionsRepository.withTx(tx)
       const txInvitationsRepo = this.invitationsRepository.withTx(tx)
@@ -339,10 +343,18 @@ export class CreateUserWithInvitationService {
       const userRole = await this.createUserRole(existingUser.id, input, txUserRolesRepo)
 
       // Create custom permissions
-      const userPermissions = await this.createUserPermissions(existingUser.id, input, txUserPermissionsRepo)
+      const userPermissions = await this.createUserPermissions(
+        existingUser.id,
+        input,
+        txUserPermissionsRepo
+      )
 
       // Create invitation
-      const { invitation, token } = await this.createInvitation(existingUser, input, txInvitationsRepo)
+      const { invitation, token } = await this.createInvitation(
+        existingUser,
+        input,
+        txInvitationsRepo
+      )
 
       return success({
         user: existingUser,

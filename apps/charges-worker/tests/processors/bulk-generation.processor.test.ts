@@ -29,7 +29,7 @@ import { describe, it, expect } from 'bun:test'
 function calculatePeriods(
   from: Date,
   until: Date,
-  recurrence: 'monthly' | 'quarterly' | 'yearly',
+  recurrence: 'monthly' | 'quarterly' | 'yearly'
 ): Array<{ year: number; month: number }> {
   const periods: Array<{ year: number; month: number }> = []
   const monthStep = recurrence === 'monthly' ? 1 : recurrence === 'quarterly' ? 3 : 12

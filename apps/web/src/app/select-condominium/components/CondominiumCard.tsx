@@ -4,7 +4,6 @@ import type { TUserCondominiumAccess } from '@packages/domain'
 
 import { Card, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
-
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 

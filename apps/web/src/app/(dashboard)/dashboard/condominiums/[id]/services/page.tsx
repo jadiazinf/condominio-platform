@@ -1,6 +1,7 @@
+import { ServicesPageClient } from './components/ServicesPageClient'
+
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
-import { ServicesPageClient } from './components/ServicesPageClient'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -10,9 +11,10 @@ export default async function CondominiumServicesPage({ params }: PageProps) {
   const { id } = await params
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
 
-  const managementCompanyId = session?.activeRole === 'management_company'
-    ? session.managementCompanies?.[0]?.managementCompanyId ?? ''
-    : ''
+  const managementCompanyId =
+    session?.activeRole === 'management_company'
+      ? (session.managementCompanies?.[0]?.managementCompanyId ?? '')
+      : ''
 
   const w = 'admin.condominiums.detail.services'
 

@@ -17,14 +17,23 @@ type TDateParam = z.infer<typeof DateParamSchema>
  * Public-facing exchange rates controller.
  * Any authenticated user can view the latest exchange rates.
  */
-export class MyExchangeRatesController extends BaseController<TExchangeRate, TExchangeRateCreate, TExchangeRateUpdate> {
+export class MyExchangeRatesController extends BaseController<
+  TExchangeRate,
+  TExchangeRateCreate,
+  TExchangeRateUpdate
+> {
   constructor(repository: ExchangeRatesRepository) {
     super(repository)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/latest', handler: this.getLatestRates, middlewares: [authMiddleware] },
+      {
+        method: 'get',
+        path: '/latest',
+        handler: this.getLatestRates,
+        middlewares: [authMiddleware],
+      },
       {
         method: 'get',
         path: '/effective/:date',

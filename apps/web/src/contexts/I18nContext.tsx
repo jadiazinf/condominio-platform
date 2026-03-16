@@ -25,12 +25,7 @@ import {
   DEFAULT_LANGUAGE,
   type TAppLanguages,
 } from '@/locales'
-import {
-  deepMerge,
-  getNestedValue,
-  getLocaleCookie,
-  setLocaleCookie,
-} from '@/libs/i18n/utils'
+import { deepMerge, getNestedValue, getLocaleCookie, setLocaleCookie } from '@/libs/i18n/utils'
 
 type TMessages = Record<string, unknown>
 
@@ -74,15 +69,18 @@ export function I18nProvider({ children, initialLocale }: II18nProviderProps) {
 
       if (!message) {
         console.warn(`[i18n] Missing translation for key: ${key}`)
+
         return key
       }
 
       if (values) {
         try {
           const formatter = new IntlMessageFormat(message, locale)
+
           return formatter.format(values) as string
         } catch (error) {
           console.warn(`[i18n] Error formatting message for key: ${key}`, error)
+
           return message
         }
       }
@@ -98,6 +96,7 @@ export function I18nProvider({ children, initialLocale }: II18nProviderProps) {
 
       if (refresh) {
         window.location.reload()
+
         return
       }
 
@@ -108,6 +107,7 @@ export function I18nProvider({ children, initialLocale }: II18nProviderProps) {
 
   useEffect(() => {
     const adapter = createTranslateFunction(t)
+
     setI18nAdapter(adapter)
   }, [t])
 
@@ -145,5 +145,6 @@ export function useI18n(): II18nContextValue {
 
 export function useTranslation() {
   const { t, locale } = useI18n()
+
   return { t, locale }
 }

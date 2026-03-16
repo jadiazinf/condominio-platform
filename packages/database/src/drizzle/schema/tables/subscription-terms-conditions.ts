@@ -27,7 +27,7 @@ export const subscriptionTermsConditions = pgTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
-  (table) => [
+  table => [
     uniqueIndex('idx_terms_version_unique').on(table.version),
     index('idx_terms_active').on(table.isActive),
     index('idx_terms_effective_from').on(table.effectiveFrom),

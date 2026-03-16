@@ -68,7 +68,10 @@ export class SubmitAccessRequestService {
     }
 
     // 4. Check no pending request for this user+unit
-    const existingRequest = await this.accessRequestsRepository.getPendingByUserAndUnit(userId, unitId)
+    const existingRequest = await this.accessRequestsRepository.getPendingByUserAndUnit(
+      userId,
+      unitId
+    )
     if (existingRequest) {
       return failure('You already have a pending request for this unit', 'CONFLICT')
     }

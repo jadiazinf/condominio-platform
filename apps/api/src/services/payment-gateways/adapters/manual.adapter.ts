@@ -68,9 +68,7 @@ export class ManualPaymentAdapter implements IPaymentGatewayAdapter {
     }
   }
 
-  async processWebhook(
-    _payload: IGatewayWebhookPayload
-  ): Promise<IGatewayWebhookResult> {
+  async processWebhook(_payload: IGatewayWebhookPayload): Promise<IGatewayWebhookResult> {
     return {
       paymentId: null,
       externalTransactionId: null as unknown as string,
@@ -79,9 +77,7 @@ export class ManualPaymentAdapter implements IPaymentGatewayAdapter {
     }
   }
 
-  async refund(
-    _request: IGatewayRefundRequest
-  ): Promise<IGatewayRefundResponse> {
+  async refund(_request: IGatewayRefundRequest): Promise<IGatewayRefundResponse> {
     return {
       refundId: null,
       status: 'failed',

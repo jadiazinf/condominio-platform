@@ -80,7 +80,10 @@ export function useSubscriptionTermsList(options?: IUseSubscriptionTermsListOpti
 // Hooks - Get Terms by ID
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useSubscriptionTermsDetail(id: string, options?: IUseSubscriptionTermsDetailOptions) {
+export function useSubscriptionTermsDetail(
+  id: string,
+  options?: IUseSubscriptionTermsDetailOptions
+) {
   return useApiQuery<TApiDataResponse<TSubscriptionTermsConditions>>({
     path: `/platform/subscription-terms/${id}`,
     queryKey: subscriptionTermsKeys.detail(id),
@@ -94,7 +97,10 @@ export function useSubscriptionTermsDetail(id: string, options?: IUseSubscriptio
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function useCreateSubscriptionTerms(options?: ICreateSubscriptionTermsOptions) {
-  return useApiMutation<TApiDataResponse<TSubscriptionTermsConditions>, TSubscriptionTermsConditionsCreate>({
+  return useApiMutation<
+    TApiDataResponse<TSubscriptionTermsConditions>,
+    TSubscriptionTermsConditionsCreate
+  >({
     path: '/platform/subscription-terms',
     method: 'POST',
     config: {},
@@ -109,7 +115,10 @@ export function useCreateSubscriptionTerms(options?: ICreateSubscriptionTermsOpt
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function useUpdateSubscriptionTerms(id: string, options?: IUpdateSubscriptionTermsOptions) {
-  return useApiMutation<TApiDataResponse<TSubscriptionTermsConditions>, TSubscriptionTermsConditionsUpdate>({
+  return useApiMutation<
+    TApiDataResponse<TSubscriptionTermsConditions>,
+    TSubscriptionTermsConditionsUpdate
+  >({
     path: `/platform/subscription-terms/${id}`,
     method: 'PATCH',
     config: {},
@@ -125,7 +134,7 @@ export function useUpdateSubscriptionTerms(id: string, options?: IUpdateSubscrip
 
 export function useDeactivateSubscriptionTerms(options?: IDeactivateSubscriptionTermsOptions) {
   return useApiMutation<TApiDataResponse<TSubscriptionTermsConditions>, { id: string }>({
-    path: (data) => `/platform/subscription-terms/${data.id}/deactivate`,
+    path: data => `/platform/subscription-terms/${data.id}/deactivate`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
@@ -151,7 +160,9 @@ export function useActiveSubscriptionTerms(options?: { enabled?: boolean }) {
 // Standalone Functions
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function getSubscriptionTermsList(query?: ITermsListQuery): Promise<TPaginatedResponse<TSubscriptionTermsConditions>> {
+export async function getSubscriptionTermsList(
+  query?: ITermsListQuery
+): Promise<TPaginatedResponse<TSubscriptionTermsConditions>> {
   const client = getHttpClient()
   const params = new URLSearchParams()
   if (query?.page) params.set('page', String(query.page))
@@ -163,8 +174,12 @@ export async function getSubscriptionTermsList(query?: ITermsListQuery): Promise
   return response.data
 }
 
-export async function getSubscriptionTermsDetail(id: string): Promise<TSubscriptionTermsConditions> {
+export async function getSubscriptionTermsDetail(
+  id: string
+): Promise<TSubscriptionTermsConditions> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TSubscriptionTermsConditions>>(`/platform/subscription-terms/${id}`)
+  const response = await client.get<TApiDataResponse<TSubscriptionTermsConditions>>(
+    `/platform/subscription-terms/${id}`
+  )
   return response.data.data
 }

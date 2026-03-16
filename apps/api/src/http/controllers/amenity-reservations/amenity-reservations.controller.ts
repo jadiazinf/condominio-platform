@@ -9,7 +9,11 @@ import {
 } from '@packages/domain'
 import type { AmenityReservationsRepository, AmenitiesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
+import {
+  bodyValidator,
+  paramsValidator,
+  queryValidator,
+} from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
@@ -81,54 +85,73 @@ export class AmenityReservationsController extends BaseController<
   private readonly rejectReservationService: RejectReservationService
   private readonly checkAvailabilityService: CheckAvailabilityService
 
-  constructor(
-    repository: AmenityReservationsRepository,
-    amenitiesRepository: AmenitiesRepository
-  ) {
+  constructor(repository: AmenityReservationsRepository, amenitiesRepository: AmenitiesRepository) {
     super(repository)
 
     this.createReservationService = new CreateReservationService(repository, amenitiesRepository)
     this.cancelReservationService = new CancelReservationService(repository)
     this.approveReservationService = new ApproveReservationService(repository)
     this.rejectReservationService = new RejectReservationService(repository)
-    this.checkAvailabilityService = new CheckAvailabilityService(
-      repository,
-      amenitiesRepository
-    )
+    this.checkAvailabilityService = new CheckAvailabilityService(repository, amenitiesRepository)
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT)] },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.list,
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT)],
+      },
       {
         method: 'get',
         path: '/amenity/:amenityId',
         handler: this.getByAmenityId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT), paramsValidator(AmenityIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT),
+          paramsValidator(AmenityIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(UserIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER),
+          paramsValidator(UserIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/check-availability',
         handler: this.checkAvailability,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), queryValidator(CheckAvailabilityQuerySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER),
+          queryValidator(CheckAvailabilityQuerySchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
         path: '/',
         handler: this.createReservation,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), bodyValidator(amenityReservationCreateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER),
+          bodyValidator(amenityReservationCreateSchema),
+        ],
       },
       {
         method: 'patch',
@@ -167,13 +190,21 @@ export class AmenityReservationsController extends BaseController<
         method: 'patch',
         path: '/:id/cancel',
         handler: this.cancelReservation,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.SUPPORT, ESystemRole.USER),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }

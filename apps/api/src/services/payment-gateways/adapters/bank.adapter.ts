@@ -19,7 +19,13 @@ import type { TGatewayType } from '@packages/domain'
  * Required configuration fields for bank gateways.
  * Stored in `payment_gateways.configuration` JSONB column.
  */
-const REQUIRED_CONFIG_FIELDS = ['bankCode', 'apiUrl', 'apiKey', 'apiSecret', 'accountNumber'] as const
+const REQUIRED_CONFIG_FIELDS = [
+  'bankCode',
+  'apiUrl',
+  'apiKey',
+  'apiSecret',
+  'accountNumber',
+] as const
 
 /**
  * Adapter for Venezuelan bank integrations (Banco Plaza, Mercantil, Banesco, etc.).
@@ -88,9 +94,7 @@ export class BankPaymentAdapter implements IPaymentGatewayAdapter {
     }
   }
 
-  async verifyPayment(
-    request: IGatewayVerificationRequest
-  ): Promise<IGatewayVerificationResponse> {
+  async verifyPayment(request: IGatewayVerificationRequest): Promise<IGatewayVerificationResponse> {
     // TODO: Replace with real bank API call
     // GET /api/transactions?reference={externalReference}
     return {
@@ -123,9 +127,7 @@ export class BankPaymentAdapter implements IPaymentGatewayAdapter {
     }
   }
 
-  async processWebhook(
-    payload: IGatewayWebhookPayload
-  ): Promise<IGatewayWebhookResult> {
+  async processWebhook(payload: IGatewayWebhookPayload): Promise<IGatewayWebhookResult> {
     // TODO: Replace with real bank webhook processing
     const body = payload.body as Record<string, unknown>
     return {
@@ -140,9 +142,7 @@ export class BankPaymentAdapter implements IPaymentGatewayAdapter {
     }
   }
 
-  async refund(
-    request: IGatewayRefundRequest
-  ): Promise<IGatewayRefundResponse> {
+  async refund(request: IGatewayRefundRequest): Promise<IGatewayRefundResponse> {
     // TODO: Replace with real bank API call
     //
     // Real implementation should handle these scenarios:

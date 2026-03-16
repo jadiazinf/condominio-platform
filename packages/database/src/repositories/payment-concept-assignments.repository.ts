@@ -1,5 +1,9 @@
 import { eq, and } from 'drizzle-orm'
-import type { TPaymentConceptAssignment, TPaymentConceptAssignmentCreate, TPaymentConceptAssignmentUpdate } from '@packages/domain'
+import type {
+  TPaymentConceptAssignment,
+  TPaymentConceptAssignmentCreate,
+  TPaymentConceptAssignmentUpdate,
+} from '@packages/domain'
 import { paymentConceptAssignments } from '../drizzle/schema'
 import type { TDrizzleClient } from './interfaces'
 import { BaseRepository } from './base'
@@ -34,7 +38,9 @@ export class PaymentConceptAssignmentsRepository extends BaseRepository<
     }
   }
 
-  protected override mapToInsertValues(dto: TPaymentConceptAssignmentCreate): Record<string, unknown> {
+  protected override mapToInsertValues(
+    dto: TPaymentConceptAssignmentCreate
+  ): Record<string, unknown> {
     return {
       paymentConceptId: dto.paymentConceptId,
       scopeType: dto.scopeType,
@@ -46,7 +52,9 @@ export class PaymentConceptAssignmentsRepository extends BaseRepository<
     }
   }
 
-  protected override mapToUpdateValues(dto: TPaymentConceptAssignmentUpdate): Record<string, unknown> {
+  protected override mapToUpdateValues(
+    dto: TPaymentConceptAssignmentUpdate
+  ): Record<string, unknown> {
     const values: Record<string, unknown> = {}
     if (dto.amount !== undefined) values.amount = dto.amount.toString()
     if (dto.isActive !== undefined) values.isActive = dto.isActive
@@ -72,7 +80,10 @@ export class PaymentConceptAssignmentsRepository extends BaseRepository<
     return results.length
   }
 
-  async listByConceptId(conceptId: string, activeOnly = true): Promise<TPaymentConceptAssignment[]> {
+  async listByConceptId(
+    conceptId: string,
+    activeOnly = true
+  ): Promise<TPaymentConceptAssignment[]> {
     const conditions = [eq(paymentConceptAssignments.paymentConceptId, conceptId)]
     if (activeOnly) {
       conditions.push(eq(paymentConceptAssignments.isActive, true))

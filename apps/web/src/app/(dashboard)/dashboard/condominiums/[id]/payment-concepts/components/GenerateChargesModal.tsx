@@ -1,14 +1,15 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { Zap } from 'lucide-react'
+import { useGenerateCharges, paymentConceptKeys, useQueryClient } from '@packages/http-client'
+
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
-import { Zap } from 'lucide-react'
-import { useGenerateCharges, paymentConceptKeys, useQueryClient } from '@packages/http-client'
 
 interface GenerateChargesModalProps {
   isOpen: boolean
@@ -34,6 +35,7 @@ export function GenerateChargesModal({
 
   const yearItems: ISelectItem[] = useMemo(() => {
     const year = currentDate.getFullYear()
+
     return [
       { key: String(year - 1), label: String(year - 1) },
       { key: String(year), label: String(year) },
@@ -51,8 +53,9 @@ export function GenerateChargesModal({
   )
 
   const generateCharges = useGenerateCharges(managementCompanyId, conceptId, {
-    onSuccess: (data) => {
+    onSuccess: data => {
       const result = data.data.data
+
       toast.success(
         t(`${g}.success`, {
           count: String(result.quotasCreated),
@@ -80,7 +83,7 @@ export function GenerateChargesModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="sm">
+    <Modal isOpen={isOpen} size="sm" onClose={handleClose}>
       <ModalContent>
         <ModalHeader className="flex items-center gap-2">
           <Zap className="text-primary" size={18} />
@@ -88,37 +91,37 @@ export function GenerateChargesModal({
         </ModalHeader>
 
         <ModalBody className="space-y-4">
-          <Typography variant="body2" color="muted">
+          <Typography color="muted" variant="body2">
             {t(`${g}.description`)}
           </Typography>
 
           <div className="grid grid-cols-2 gap-4">
             <Select
-              label={t(`${g}.year`)}
               items={yearItems}
+              label={t(`${g}.year`)}
               value={selectedYear}
-              onChange={(key) => key && setSelectedYear(key)}
               variant="bordered"
+              onChange={key => key && setSelectedYear(key)}
             />
             <Select
-              label={t(`${g}.month`)}
               items={monthItems}
+              label={t(`${g}.month`)}
               value={selectedMonth}
-              onChange={(key) => key && setSelectedMonth(key)}
               variant="bordered"
+              onChange={key => key && setSelectedMonth(key)}
             />
           </div>
         </ModalBody>
 
         <ModalFooter>
-          <Button variant="flat" onPress={handleClose} isDisabled={generateCharges.isPending}>
+          <Button isDisabled={generateCharges.isPending} variant="flat" onPress={handleClose}>
             {t('common.cancel')}
           </Button>
           <Button
             color="primary"
-            onPress={handleGenerate}
             isLoading={generateCharges.isPending}
             startContent={!generateCharges.isPending ? <Zap size={14} /> : undefined}
+            onPress={handleGenerate}
           >
             {generateCharges.isPending ? t(`${g}.generating`) : t(`${g}.generate`)}
           </Button>

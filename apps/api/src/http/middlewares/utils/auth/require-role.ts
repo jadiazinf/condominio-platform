@@ -108,12 +108,15 @@ export function requireRole(...allowedRoles: TSystemRole[]): MiddlewareHandler {
 
     // --- Management Company path ---
     // Detect MC scope from route param :managementCompanyId or x-management-company-id header
-    const managementCompanyId = c.req.param('managementCompanyId') || c.req.header('x-management-company-id')
+    const managementCompanyId =
+      c.req.param('managementCompanyId') || c.req.header('x-management-company-id')
 
     if (managementCompanyId) {
       if (!UUID_REGEX.test(managementCompanyId)) {
         return ctx.badRequest({
-          error: t(LocaleDictionary.http.middlewares.utils.auth.invalidManagementCompanyParamFormat),
+          error: t(
+            LocaleDictionary.http.middlewares.utils.auth.invalidManagementCompanyParamFormat
+          ),
         })
       }
 

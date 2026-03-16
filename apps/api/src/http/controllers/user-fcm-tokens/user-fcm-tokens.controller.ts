@@ -7,10 +7,7 @@ import { authMiddleware } from '../../middlewares/auth'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
-import {
-  RegisterTokenService,
-  UnregisterTokenService,
-} from '@src/services/user-fcm-tokens'
+import { RegisterTokenService, UnregisterTokenService } from '@src/services/user-fcm-tokens'
 
 const UserIdParamSchema = z.object({
   userId: z.string().uuid('Invalid user ID format'),
@@ -67,13 +64,21 @@ export class UserFcmTokensController extends BaseController<
         method: 'post',
         path: '/user/:userId/register',
         handler: this.registerToken,
-        middlewares: [authMiddleware, paramsValidator(UserIdParamSchema), bodyValidator(RegisterTokenBodySchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(UserIdParamSchema),
+          bodyValidator(RegisterTokenBodySchema),
+        ],
       },
       {
         method: 'post',
         path: '/user/:userId/unregister',
         handler: this.unregisterToken,
-        middlewares: [authMiddleware, paramsValidator(UserIdParamSchema), bodyValidator(UnregisterTokenBodySchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(UserIdParamSchema),
+          bodyValidator(UnregisterTokenBodySchema),
+        ],
       },
       {
         method: 'delete',

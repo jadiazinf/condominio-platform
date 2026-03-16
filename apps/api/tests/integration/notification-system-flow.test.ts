@@ -166,15 +166,15 @@ async function registerToken(userId: string, overrides: Record<string, unknown> 
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('Notification System Flow — Integration', function () {
-
   // ─── Create Notification ────────────────────────────────────────────────
 
   describe('POST / — Create Notification', function () {
-
     it('creates a notification with valid data', async function () {
       const res = await createNotification()
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: { id: string; userId: string; title: string; category: string; isRead: boolean } }
+      const json = (await res.json()) as {
+        data: { id: string; userId: string; title: string; category: string; isRead: boolean }
+      }
       expect(json.data.id).toBeDefined()
       expect(json.data.userId).toBe(MOCK_USER_ID)
       expect(json.data.title).toBe('Test Notification')
@@ -191,7 +191,9 @@ describe('Notification System Flow — Integration', function () {
         expiresAt: expiresAt.toISOString(),
       })
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: { priority: string; data: Record<string, unknown> } }
+      const json = (await res.json()) as {
+        data: { priority: string; data: Record<string, unknown> }
+      }
       expect(json.data.priority).toBe('high')
       expect(json.data.data).toEqual({ link: '/dashboard' })
     })
@@ -215,11 +217,10 @@ describe('Notification System Flow — Integration', function () {
   // ─── List Notifications ─────────────────────────────────────────────────
 
   describe('GET / — List Notifications', function () {
-
     it('returns empty array when no notifications exist', async function () {
       const res = await request('/condominium/notifications', { headers: jsonHeaders() })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[] }
+      const json = (await res.json()) as { data: unknown[] }
       expect(json.data).toHaveLength(0)
     })
 
@@ -230,7 +231,7 @@ describe('Notification System Flow — Integration', function () {
 
       const res = await request('/condominium/notifications', { headers: jsonHeaders() })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[] }
+      const json = (await res.json()) as { data: unknown[] }
       expect(json.data).toHaveLength(3)
     })
   })
@@ -238,16 +239,15 @@ describe('Notification System Flow — Integration', function () {
   // ─── Get By ID ──────────────────────────────────────────────────────────
 
   describe('GET /:id — Get Notification by ID', function () {
-
     it('returns notification by ID', async function () {
       const createRes = await createNotification()
-      const createJson = await createRes.json() as { data: { id: string } }
+      const createJson = (await createRes.json()) as { data: { id: string } }
 
       const res = await request(`/condominium/notifications/${createJson.data.id}`, {
         headers: jsonHeaders(),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { id: string; title: string } }
+      const json = (await res.json()) as { data: { id: string; title: string } }
       expect(json.data.id).toBe(createJson.data.id)
       expect(json.data.title).toBe('Test Notification')
     })
@@ -263,7 +263,6 @@ describe('Notification System Flow — Integration', function () {
   // ─── Get By User ────────────────────────────────────────────────────────
 
   describe('GET /user/:userId — Get Notifications by User', function () {
-
     it('returns notifications for a specific user', async function () {
       await createNotification({ userId: MOCK_USER_ID, title: 'For admin' })
       await createNotification({ userId: OTHER_USER_ID, title: 'For other' })
@@ -272,7 +271,7 @@ describe('Notification System Flow — Integration', function () {
         headers: jsonHeaders(),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { title: string }[] }
+      const json = (await res.json()) as { data: { title: string }[] }
       expect(json.data).toHaveLength(1)
       expect(json.data[0]!.title).toBe('For admin')
     })
@@ -282,7 +281,7 @@ describe('Notification System Flow — Integration', function () {
         headers: jsonHeaders(),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[] }
+      const json = (await res.json()) as { data: unknown[] }
       expect(json.data).toHaveLength(0)
     })
   })
@@ -290,13 +289,12 @@ describe('Notification System Flow — Integration', function () {
   // ─── Unread Count ───────────────────────────────────────────────────────
 
   describe('GET /user/:userId/unread-count — Unread Count', function () {
-
     it('returns 0 when no notifications exist', async function () {
       const res = await request(`/condominium/notifications/user/${MOCK_USER_ID}/unread-count`, {
         headers: jsonHeaders(),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { count: number } }
+      const json = (await res.json()) as { data: { count: number } }
       expect(json.data.count).toBe(0)
     })
 
@@ -309,13 +307,13 @@ describe('Notification System Flow — Integration', function () {
         headers: jsonHeaders(),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { count: number } }
+      const json = (await res.json()) as { data: { count: number } }
       expect(json.data.count).toBe(3)
     })
 
     it('decreases count after marking as read', async function () {
       const createRes = await createNotification()
-      const createJson = await createRes.json() as { data: { id: string } }
+      const createJson = (await createRes.json()) as { data: { id: string } }
       await createNotification({ title: 'Second' })
 
       // Mark first as read
@@ -328,7 +326,7 @@ describe('Notification System Flow — Integration', function () {
         headers: jsonHeaders(),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { count: number } }
+      const json = (await res.json()) as { data: { count: number } }
       expect(json.data.count).toBe(1)
     })
   })
@@ -336,13 +334,14 @@ describe('Notification System Flow — Integration', function () {
   // ─── Send Notification ──────────────────────────────────────────────────
 
   describe('POST /send — Send Notification', function () {
-
     it('sends a notification with in_app delivery', async function () {
       const res = await sendNotification({
         channels: ['in_app'],
       })
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: { notification: { id: string; title: string; userId: string }; deliveryIds: string[] } }
+      const json = (await res.json()) as {
+        data: { notification: { id: string; title: string; userId: string }; deliveryIds: string[] }
+      }
       expect(json.data.notification).toBeDefined()
       expect(json.data.notification.title).toBe('Sent Notification')
       expect(json.data.notification.userId).toBe(MOCK_USER_ID)
@@ -352,7 +351,9 @@ describe('Notification System Flow — Integration', function () {
     it('sends a notification with default channels (in_app)', async function () {
       const res = await sendNotification()
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: { notification: { id: string }; deliveryIds: string[] } }
+      const json = (await res.json()) as {
+        data: { notification: { id: string }; deliveryIds: string[] }
+      }
       expect(json.data.notification.id).toBeDefined()
       expect(json.data.deliveryIds).toHaveLength(1)
     })
@@ -362,7 +363,7 @@ describe('Notification System Flow — Integration', function () {
         channels: ['in_app', 'email'],
       })
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: { deliveryIds: string[] } }
+      const json = (await res.json()) as { data: { deliveryIds: string[] } }
       expect(json.data.deliveryIds).toHaveLength(2)
     })
 
@@ -372,7 +373,9 @@ describe('Notification System Flow — Integration', function () {
         data: { action: 'view_payment', paymentId: '123' },
       })
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: { notification: { priority: string; data: Record<string, unknown> } } }
+      const json = (await res.json()) as {
+        data: { notification: { priority: string; data: Record<string, unknown> } }
+      }
       expect(json.data.notification.priority).toBe('urgent')
       expect(json.data.notification.data).toEqual({ action: 'view_payment', paymentId: '123' })
     })
@@ -402,7 +405,7 @@ describe('Notification System Flow — Integration', function () {
 
       const res = await sendNotification({ channels: ['in_app'] })
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: { deliveryIds: string[] } }
+      const json = (await res.json()) as { data: { deliveryIds: string[] } }
       // No deliveries because channel is disabled
       expect(json.data.deliveryIds).toHaveLength(0)
     })
@@ -411,32 +414,34 @@ describe('Notification System Flow — Integration', function () {
   // ─── Mark as Read ───────────────────────────────────────────────────────
 
   describe('POST /:id/read — Mark as Read', function () {
-
     it('marks a notification as read', async function () {
       const createRes = await createNotification()
-      const createJson = await createRes.json() as { data: { id: string } }
+      const createJson = (await createRes.json()) as { data: { id: string } }
 
       const res = await request(`/condominium/notifications/${createJson.data.id}/read`, {
         method: 'POST',
         headers: jsonHeaders(),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { isRead: boolean; readAt: string } }
+      const json = (await res.json()) as { data: { isRead: boolean; readAt: string } }
       expect(json.data.isRead).toBe(true)
       expect(json.data.readAt).toBeDefined()
     })
 
     it('returns 404 for non-existent notification', async function () {
-      const res = await request('/condominium/notifications/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11/read', {
-        method: 'POST',
-        headers: jsonHeaders(),
-      })
+      const res = await request(
+        '/condominium/notifications/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11/read',
+        {
+          method: 'POST',
+          headers: jsonHeaders(),
+        }
+      )
       expect(res.status).toBe(404)
     })
 
     it('is idempotent (marking as read twice succeeds)', async function () {
       const createRes = await createNotification()
-      const createJson = await createRes.json() as { data: { id: string } }
+      const createJson = (await createRes.json()) as { data: { id: string } }
       const notifId = createJson.data.id
 
       // Mark read once
@@ -451,7 +456,7 @@ describe('Notification System Flow — Integration', function () {
         headers: jsonHeaders(),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { isRead: boolean } }
+      const json = (await res.json()) as { data: { isRead: boolean } }
       expect(json.data.isRead).toBe(true)
     })
   })
@@ -459,7 +464,6 @@ describe('Notification System Flow — Integration', function () {
   // ─── Mark All as Read ───────────────────────────────────────────────────
 
   describe('POST /user/:userId/read-all — Mark All as Read', function () {
-
     it('marks all notifications as read for a user', async function () {
       await createNotification({ title: 'N1' })
       await createNotification({ title: 'N2' })
@@ -470,14 +474,17 @@ describe('Notification System Flow — Integration', function () {
         headers: jsonHeaders(),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { count: number } }
+      const json = (await res.json()) as { data: { count: number } }
       expect(json.data.count).toBe(3)
 
       // Verify unread count is now 0
-      const unreadRes = await request(`/condominium/notifications/user/${MOCK_USER_ID}/unread-count`, {
-        headers: jsonHeaders(),
-      })
-      const unreadJson = await unreadRes.json() as { data: { count: number } }
+      const unreadRes = await request(
+        `/condominium/notifications/user/${MOCK_USER_ID}/unread-count`,
+        {
+          headers: jsonHeaders(),
+        }
+      )
+      const unreadJson = (await unreadRes.json()) as { data: { count: number } }
       expect(unreadJson.data.count).toBe(0)
     })
 
@@ -487,13 +494,13 @@ describe('Notification System Flow — Integration', function () {
         headers: jsonHeaders(),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { count: number } }
+      const json = (await res.json()) as { data: { count: number } }
       expect(json.data.count).toBe(0)
     })
 
     it('only marks unread notifications, not already-read ones', async function () {
       const createRes = await createNotification({ title: 'Already Read' })
-      const createJson = await createRes.json() as { data: { id: string } }
+      const createJson = (await createRes.json()) as { data: { id: string } }
       await request(`/condominium/notifications/${createJson.data.id}/read`, {
         method: 'POST',
         headers: jsonHeaders(),
@@ -506,7 +513,7 @@ describe('Notification System Flow — Integration', function () {
         headers: jsonHeaders(),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { count: number } }
+      const json = (await res.json()) as { data: { count: number } }
       expect(json.data.count).toBe(1)
     })
   })
@@ -514,10 +521,9 @@ describe('Notification System Flow — Integration', function () {
   // ─── Update Notification ────────────────────────────────────────────────
 
   describe('PATCH /:id — Update Notification', function () {
-
     it('updates isRead field', async function () {
       const createRes = await createNotification()
-      const createJson = await createRes.json() as { data: { id: string } }
+      const createJson = (await createRes.json()) as { data: { id: string } }
 
       const res = await request(`/condominium/notifications/${createJson.data.id}`, {
         method: 'PATCH',
@@ -525,7 +531,7 @@ describe('Notification System Flow — Integration', function () {
         body: JSON.stringify({ isRead: true }),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { isRead: boolean } }
+      const json = (await res.json()) as { data: { isRead: boolean } }
       expect(json.data.isRead).toBe(true)
     })
 
@@ -542,10 +548,9 @@ describe('Notification System Flow — Integration', function () {
   // ─── Delete Notification ────────────────────────────────────────────────
 
   describe('DELETE /:id — Delete Notification', function () {
-
     it('deletes a notification (hard delete)', async function () {
       const createRes = await createNotification()
-      const createJson = await createRes.json() as { data: { id: string } }
+      const createJson = (await createRes.json()) as { data: { id: string } }
 
       const deleteRes = await request(`/condominium/notifications/${createJson.data.id}`, {
         method: 'DELETE',
@@ -572,7 +577,6 @@ describe('Notification System Flow — Integration', function () {
   // ─── Full Notification Lifecycle ────────────────────────────────────────
 
   describe('Full Notification Lifecycle', function () {
-
     it('send -> read -> verify DB state', async function () {
       // Send notification
       const sendRes = await sendNotification({
@@ -582,14 +586,17 @@ describe('Notification System Flow — Integration', function () {
         channels: ['in_app'],
       })
       expect(sendRes.status).toBe(201)
-      const sendJson = await sendRes.json() as { data: { notification: { id: string } } }
+      const sendJson = (await sendRes.json()) as { data: { notification: { id: string } } }
       const notifId = sendJson.data.notification.id
 
       // Verify unread count = 1
-      const unreadRes1 = await request(`/condominium/notifications/user/${MOCK_USER_ID}/unread-count`, {
-        headers: jsonHeaders(),
-      })
-      const unreadJson1 = await unreadRes1.json() as { data: { count: number } }
+      const unreadRes1 = await request(
+        `/condominium/notifications/user/${MOCK_USER_ID}/unread-count`,
+        {
+          headers: jsonHeaders(),
+        }
+      )
+      const unreadJson1 = (await unreadRes1.json()) as { data: { count: number } }
       expect(unreadJson1.data.count).toBe(1)
 
       // Mark as read
@@ -600,10 +607,13 @@ describe('Notification System Flow — Integration', function () {
       expect(readRes.status).toBe(200)
 
       // Verify unread count = 0
-      const unreadRes2 = await request(`/condominium/notifications/user/${MOCK_USER_ID}/unread-count`, {
-        headers: jsonHeaders(),
-      })
-      const unreadJson2 = await unreadRes2.json() as { data: { count: number } }
+      const unreadRes2 = await request(
+        `/condominium/notifications/user/${MOCK_USER_ID}/unread-count`,
+        {
+          headers: jsonHeaders(),
+        }
+      )
+      const unreadJson2 = (await unreadRes2.json()) as { data: { count: number } }
       expect(unreadJson2.data.count).toBe(0)
 
       // Verify in DB
@@ -617,7 +627,7 @@ describe('Notification System Flow — Integration', function () {
     it('create multiple -> mark all read -> delete one -> verify DB', async function () {
       // Create 3 notifications
       const res1 = await createNotification({ title: 'N1', category: 'alert' })
-      const json1 = await res1.json() as { data: { id: string } }
+      const json1 = (await res1.json()) as { data: { id: string } }
       await createNotification({ title: 'N2', category: 'reminder' })
       await createNotification({ title: 'N3', category: 'system' })
 
@@ -626,7 +636,7 @@ describe('Notification System Flow — Integration', function () {
         method: 'POST',
         headers: jsonHeaders(),
       })
-      const markAllJson = await markAllRes.json() as { data: { count: number } }
+      const markAllJson = (await markAllRes.json()) as { data: { count: number } }
       expect(markAllJson.data.count).toBe(3)
 
       // Delete one
@@ -638,7 +648,7 @@ describe('Notification System Flow — Integration', function () {
 
       // Verify only 2 remain
       const listRes = await request('/condominium/notifications', { headers: jsonHeaders() })
-      const listJson = await listRes.json() as { data: unknown[] }
+      const listJson = (await listRes.json()) as { data: unknown[] }
       expect(listJson.data).toHaveLength(2)
     })
   })
@@ -649,15 +659,16 @@ describe('Notification System Flow — Integration', function () {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('FCM Tokens Flow — Integration', function () {
-
   // ─── Register Token ─────────────────────────────────────────────────────
 
   describe('POST /user/:userId/register — Register Token', function () {
-
     it('registers a new FCM token', async function () {
       const res = await registerToken(MOCK_USER_ID)
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { id: string; token: string; platform: string; deviceName: string; isActive: boolean }; isNew: boolean }
+      const json = (await res.json()) as {
+        data: { id: string; token: string; platform: string; deviceName: string; isActive: boolean }
+        isNew: boolean
+      }
       expect(json.data.token).toBe('fcm-token-abc123def456')
       expect(json.data.platform).toBe('web')
       expect(json.data.deviceName).toBe('Chrome Browser')
@@ -672,7 +683,7 @@ describe('FCM Tokens Flow — Integration', function () {
       // Register same token again
       const res = await registerToken(MOCK_USER_ID, { deviceName: 'Updated Chrome' })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { deviceName: string }; isNew: boolean }
+      const json = (await res.json()) as { data: { deviceName: string }; isNew: boolean }
       expect(json.isNew).toBe(false)
       expect(json.data.deviceName).toBe('Updated Chrome')
     })
@@ -686,7 +697,7 @@ describe('FCM Tokens Flow — Integration', function () {
         headers: jsonHeaders(),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[] }
+      const json = (await res.json()) as { data: unknown[] }
       expect(json.data).toHaveLength(3)
     })
 
@@ -704,13 +715,12 @@ describe('FCM Tokens Flow — Integration', function () {
   // ─── Get User Tokens ───────────────────────────────────────────────────
 
   describe('GET /user/:userId — Get User Tokens', function () {
-
     it('returns empty array when user has no tokens', async function () {
       const res = await request(`/me/fcm-tokens/user/${MOCK_USER_ID}`, {
         headers: jsonHeaders(),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[] }
+      const json = (await res.json()) as { data: unknown[] }
       expect(json.data).toHaveLength(0)
     })
 
@@ -722,7 +732,7 @@ describe('FCM Tokens Flow — Integration', function () {
         headers: jsonHeaders(),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { token: string; isActive: boolean }[] }
+      const json = (await res.json()) as { data: { token: string; isActive: boolean }[] }
       expect(json.data).toHaveLength(2)
       for (const token of json.data) {
         expect(token.isActive).toBe(true)
@@ -733,7 +743,6 @@ describe('FCM Tokens Flow — Integration', function () {
   // ─── Unregister Token ──────────────────────────────────────────────────
 
   describe('POST /user/:userId/unregister — Unregister Token', function () {
-
     it('unregisters an existing token', async function () {
       await registerToken(MOCK_USER_ID)
 
@@ -743,14 +752,14 @@ describe('FCM Tokens Flow — Integration', function () {
         body: JSON.stringify({ token: 'fcm-token-abc123def456' }),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { deleted: boolean } }
+      const json = (await res.json()) as { data: { deleted: boolean } }
       expect(json.data.deleted).toBe(true)
 
       // Verify token is gone
       const listRes = await request(`/me/fcm-tokens/user/${MOCK_USER_ID}`, {
         headers: jsonHeaders(),
       })
-      const listJson = await listRes.json() as { data: unknown[] }
+      const listJson = (await listRes.json()) as { data: unknown[] }
       expect(listJson.data).toHaveLength(0)
     })
 
@@ -761,7 +770,7 @@ describe('FCM Tokens Flow — Integration', function () {
         body: JSON.stringify({ token: 'non-existent-token' }),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { deleted: boolean } }
+      const json = (await res.json()) as { data: { deleted: boolean } }
       expect(json.data.deleted).toBe(false)
     })
 
@@ -791,10 +800,9 @@ describe('FCM Tokens Flow — Integration', function () {
   // ─── Delete Token by ID ────────────────────────────────────────────────
 
   describe('DELETE /:id — Delete Token', function () {
-
     it('deletes a token by ID', async function () {
       const regRes = await registerToken(MOCK_USER_ID)
-      const regJson = await regRes.json() as { data: { id: string } }
+      const regJson = (await regRes.json()) as { data: { id: string } }
 
       const deleteRes = await request(`/me/fcm-tokens/${regJson.data.id}`, {
         method: 'DELETE',
@@ -806,7 +814,7 @@ describe('FCM Tokens Flow — Integration', function () {
       const listRes = await request(`/me/fcm-tokens/user/${MOCK_USER_ID}`, {
         headers: jsonHeaders(),
       })
-      const listJson = await listRes.json() as { data: unknown[] }
+      const listJson = (await listRes.json()) as { data: unknown[] }
       expect(listJson.data).toHaveLength(0)
     })
 
@@ -822,7 +830,6 @@ describe('FCM Tokens Flow — Integration', function () {
   // ─── Full FCM Token Lifecycle ──────────────────────────────────────────
 
   describe('Full FCM Token Lifecycle', function () {
-
     it('register -> list -> unregister -> verify empty', async function () {
       // Register
       const regRes = await registerToken(MOCK_USER_ID, { token: 'lifecycle-token' })
@@ -832,7 +839,7 @@ describe('FCM Tokens Flow — Integration', function () {
       const listRes1 = await request(`/me/fcm-tokens/user/${MOCK_USER_ID}`, {
         headers: jsonHeaders(),
       })
-      const listJson1 = await listRes1.json() as { data: { token: string }[] }
+      const listJson1 = (await listRes1.json()) as { data: { token: string }[] }
       expect(listJson1.data).toHaveLength(1)
       expect(listJson1.data[0]!.token).toBe('lifecycle-token')
 
@@ -848,14 +855,14 @@ describe('FCM Tokens Flow — Integration', function () {
       const listRes2 = await request(`/me/fcm-tokens/user/${MOCK_USER_ID}`, {
         headers: jsonHeaders(),
       })
-      const listJson2 = await listRes2.json() as { data: unknown[] }
+      const listJson2 = (await listRes2.json()) as { data: unknown[] }
       expect(listJson2.data).toHaveLength(0)
     })
 
     it('register multiple -> delete by ID -> verify remaining', async function () {
       // Register 2 tokens
       const reg1 = await registerToken(MOCK_USER_ID, { token: 'token-A', platform: 'web' })
-      const json1 = await reg1.json() as { data: { id: string } }
+      const json1 = (await reg1.json()) as { data: { id: string } }
       await registerToken(MOCK_USER_ID, { token: 'token-B', platform: 'ios' })
 
       // Delete first by ID
@@ -868,7 +875,7 @@ describe('FCM Tokens Flow — Integration', function () {
       const listRes = await request(`/me/fcm-tokens/user/${MOCK_USER_ID}`, {
         headers: jsonHeaders(),
       })
-      const listJson = await listRes.json() as { data: { token: string }[] }
+      const listJson = (await listRes.json()) as { data: { token: string }[] }
       expect(listJson.data).toHaveLength(1)
       expect(listJson.data[0]!.token).toBe('token-B')
     })
@@ -876,14 +883,14 @@ describe('FCM Tokens Flow — Integration', function () {
     it('register token -> re-register updates lastUsedAt', async function () {
       // Register
       const reg1 = await registerToken(MOCK_USER_ID, { token: 'reuse-token' })
-      const json1 = await reg1.json() as { data: { id: string } }
+      const json1 = (await reg1.json()) as { data: { id: string } }
 
       // Small delay for timestamp difference
       await new Promise(resolve => setTimeout(resolve, 10))
 
       // Re-register same token
       const reg2 = await registerToken(MOCK_USER_ID, { token: 'reuse-token' })
-      const json2 = await reg2.json() as { data: { id: string }; isNew: boolean }
+      const json2 = (await reg2.json()) as { data: { id: string }; isNew: boolean }
 
       // Should be the same record (not new)
       expect(json2.isNew).toBe(false)

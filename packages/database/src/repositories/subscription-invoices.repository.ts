@@ -27,7 +27,8 @@ export class SubscriptionInvoicesRepository
     TSubscriptionInvoiceCreate,
     TSubscriptionInvoiceUpdate
   >
-  implements IRepository<TSubscriptionInvoice, TSubscriptionInvoiceCreate, TSubscriptionInvoiceUpdate>
+  implements
+    IRepository<TSubscriptionInvoice, TSubscriptionInvoiceCreate, TSubscriptionInvoiceUpdate>
 {
   constructor(db: TDrizzleClient) {
     super(db, subscriptionInvoices)
@@ -176,10 +177,7 @@ export class SubscriptionInvoicesRepository
       .from(subscriptionInvoices)
       .where(
         and(
-          or(
-            eq(subscriptionInvoices.status, 'pending'),
-            eq(subscriptionInvoices.status, 'sent')
-          ),
+          or(eq(subscriptionInvoices.status, 'pending'), eq(subscriptionInvoices.status, 'sent')),
           sql`${subscriptionInvoices.dueDate} < ${now}`
         )
       )

@@ -8,10 +8,11 @@ import { Tabs, Tab } from '@heroui/tabs'
 import { ScrollShadow } from '@heroui/scroll-shadow'
 import { Bell, CheckCheck } from 'lucide-react'
 
+import { NotificationList } from './NotificationList'
+
 import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
 import { Link } from '@/ui/components/link'
-import { NotificationList } from './NotificationList'
 import { useNotifications } from '@/hooks'
 import { useTranslation } from '@/contexts'
 
@@ -34,27 +35,28 @@ export function NotificationPanel({ maxNotifications = 10 }: INotificationPanelP
   const filteredNotifications = useMemo(() => {
     const list =
       activeTab === ENotificationTab.Unread ? notifications.filter(n => !n.isRead) : notifications
+
     return list.slice(0, maxNotifications)
   }, [notifications, activeTab, maxNotifications])
 
   const hasUnread = unreadCount > 0
 
   return (
-    <Popover placement="bottom-end" offset={10} radius="sm">
+    <Popover offset={10} placement="bottom-end" radius="sm">
       <PopoverTrigger>
         <HeroUIButton
           isIconOnly
+          aria-label={t('notifications.title')}
+          className="overflow-visible"
           size="sm"
           variant="light"
-          className="overflow-visible"
-          aria-label={t('notifications.title')}
         >
           <Badge
-            content={unreadCount}
-            color="success"
-            size="sm"
-            isInvisible={!hasUnread}
             classNames={{ badge: 'border-0' }}
+            color="success"
+            content={unreadCount}
+            isInvisible={!hasUnread}
+            size="sm"
           >
             <Bell size={20} />
           </Badge>
@@ -74,11 +76,11 @@ export function NotificationPanel({ maxNotifications = 10 }: INotificationPanelP
             </div>
             {hasUnread && (
               <Button
-                size="sm"
-                variant="light"
-                color="success"
                 className="h-7 text-xs"
+                color="success"
+                size="sm"
                 startContent={<CheckCheck size={14} />}
+                variant="light"
                 onPress={() => markAllAsRead()}
               >
                 {t('notifications.markAllAsRead')}
@@ -129,16 +131,16 @@ export function NotificationPanel({ maxNotifications = 10 }: INotificationPanelP
           {/* Notification list */}
           <ScrollShadow className="h-[350px] max-h-[350px] w-full">
             <NotificationList
-              notifications={filteredNotifications}
               isLoading={isLoading}
-              onMarkAsRead={markAsRead}
+              notifications={filteredNotifications}
               onDelete={deleteNotification}
+              onMarkAsRead={markAsRead}
             />
           </ScrollShadow>
 
           {/* Footer */}
           <div className="border-t border-divider px-4 py-2 text-center">
-            <Link href="/dashboard/notifications" className="text-sm text-primary hover:underline">
+            <Link className="text-sm text-primary hover:underline" href="/dashboard/notifications">
               {t('notifications.viewAll')}
             </Link>
           </div>

@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardBody } from '@/ui/components/card'
-import { Spinner } from '@/ui/components/spinner'
 import {
   validateInvitationToken,
   type TValidateInvitationResult,
@@ -13,6 +11,9 @@ import {
 import { InvalidTokenView } from './InvalidTokenView'
 import { ExpiredTokenView } from './ExpiredTokenView'
 import { AcceptInvitationForm } from './AcceptInvitationForm'
+
+import { Spinner } from '@/ui/components/spinner'
+import { Card, CardBody } from '@/ui/components/card'
 import { useTranslation } from '@/contexts'
 
 interface AcceptInvitationContentProps {
@@ -35,6 +36,7 @@ export function AcceptInvitationContent({ token }: AcceptInvitationContentProps)
   useEffect(() => {
     if (!token) {
       setViewState({ type: 'no-token' })
+
       return
     }
 
@@ -62,6 +64,7 @@ export function AcceptInvitationContent({ token }: AcceptInvitationContentProps)
             // Invitation already used or cancelled
             setViewState({ type: 'invalid' })
           }
+
           return
         }
 
@@ -122,8 +125,8 @@ export function AcceptInvitationContent({ token }: AcceptInvitationContentProps)
   // Valid token - show the form
   return (
     <AcceptInvitationForm
-      token={token!}
       invitationData={viewState.data}
+      token={token!}
       onSuccess={() => router.push('/dashboard')}
     />
   )

@@ -157,19 +157,31 @@ export class UserInvitationsController {
         method: 'post',
         path: '/',
         handler: this.createInvitation,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(CreateUserInvitationSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          bodyValidator(CreateUserInvitationSchema),
+        ],
       },
       {
         method: 'post',
         path: '/create-user',
         handler: this.createUserWithInvitation,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(CreateUserWithInvitationSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          bodyValidator(CreateUserWithInvitationSchema),
+        ],
       },
       {
         method: 'post',
         path: '/:id/resend-email',
         handler: this.resendEmail,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'get',
@@ -187,7 +199,11 @@ export class UserInvitationsController {
         method: 'delete',
         path: '/:id',
         handler: this.cancelInvitation,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }
@@ -354,9 +370,13 @@ export class UserInvitationsController {
           if (result.error.includes('Role')) {
             translatedError = t(LocaleDictionary.http.controllers.userInvitations.roleNotFound)
           } else if (result.error.includes('Condominium')) {
-            translatedError = t(LocaleDictionary.http.controllers.userInvitations.condominiumNotFound)
+            translatedError = t(
+              LocaleDictionary.http.controllers.userInvitations.condominiumNotFound
+            )
           } else if (result.error.includes('Permission')) {
-            translatedError = t(LocaleDictionary.http.controllers.userInvitations.permissionNotFound)
+            translatedError = t(
+              LocaleDictionary.http.controllers.userInvitations.permissionNotFound
+            )
           }
           throw AppError.notFound(translatedError)
         }
@@ -364,9 +384,13 @@ export class UserInvitationsController {
           // Map service error messages to translated messages
           let translatedError = result.error
           if (result.error.includes('pending invitation')) {
-            translatedError = t(LocaleDictionary.http.controllers.userInvitations.pendingInvitationExists)
+            translatedError = t(
+              LocaleDictionary.http.controllers.userInvitations.pendingInvitationExists
+            )
           } else if (result.error.includes('active')) {
-            translatedError = t(LocaleDictionary.http.controllers.userInvitations.userActiveUseAssignRole)
+            translatedError = t(
+              LocaleDictionary.http.controllers.userInvitations.userActiveUseAssignRole
+            )
           }
           throw AppError.conflict(translatedError)
         }

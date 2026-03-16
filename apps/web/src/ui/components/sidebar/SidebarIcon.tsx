@@ -7,7 +7,5 @@ interface SidebarIconProps {
 export function SidebarIcon({ icon }: SidebarIconProps) {
   if (!icon) return null
 
-  return (
-    <span className="text-default-500 group-data-[selected=true]:text-foreground">{icon}</span>
-  )
+  return <span className="text-default-500 group-data-[selected=true]:text-foreground">{icon}</span>
 }

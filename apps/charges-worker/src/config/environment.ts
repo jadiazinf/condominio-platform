@@ -1,9 +1,7 @@
 import { z } from 'zod'
 
 const envSchema = z.object({
-  NODE_ENV: z
-    .enum(['development', 'production', 'staging', 'test'])
-    .default('development'),
+  NODE_ENV: z.enum(['development', 'production', 'staging', 'test']).default('development'),
   DATABASE_URL: z.url('DATABASE_URL must be a valid URL'),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   // Resend (Email) - needed for notification processor

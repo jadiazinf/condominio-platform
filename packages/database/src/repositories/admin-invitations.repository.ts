@@ -102,9 +102,7 @@ export class AdminInvitationsRepository extends BaseRepository<
     const results = await this.db
       .select()
       .from(adminInvitations)
-      .where(
-        and(eq(adminInvitations.email, email), eq(adminInvitations.status, 'pending'))
-      )
+      .where(and(eq(adminInvitations.email, email), eq(adminInvitations.status, 'pending')))
       .orderBy(desc(adminInvitations.createdAt))
 
     return results.map(r => this.mapToEntity(r))
@@ -177,9 +175,7 @@ export class AdminInvitationsRepository extends BaseRepository<
         status: 'expired',
         updatedAt: now,
       })
-      .where(
-        and(eq(adminInvitations.status, 'pending'), lt(adminInvitations.expiresAt, now))
-      )
+      .where(and(eq(adminInvitations.status, 'pending'), lt(adminInvitations.expiresAt, now)))
       .returning()
 
     return results.length

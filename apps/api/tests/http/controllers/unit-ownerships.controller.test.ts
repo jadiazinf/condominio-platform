@@ -17,12 +17,13 @@ import { ErrorCodes } from '@http/responses/types'
 // Mock repository type with custom methods
 type TMockUnitOwnershipsRepository = {
   listAll: () => Promise<TUnitOwnership[]>
+  listByCondominiumId: (condominiumId: string) => Promise<TUnitOwnership[]>
   getById: (id: string) => Promise<TUnitOwnership | null>
   create: (data: TUnitOwnershipCreate) => Promise<TUnitOwnership>
   update: (id: string, data: TUnitOwnershipUpdate) => Promise<TUnitOwnership | null>
   delete: (id: string) => Promise<boolean>
-  getByUnitId: (unitId: string) => Promise<TUnitOwnership[]>
-  getByUserId: (userId: string) => Promise<TUnitOwnership[]>
+  getByUnitId: (unitId: string, condominiumId?: string) => Promise<TUnitOwnership[]>
+  getByUserId: (userId: string, condominiumId?: string) => Promise<TUnitOwnership[]>
   getByUnitAndUser: (unitId: string, userId: string) => Promise<TUnitOwnership | null>
   getPrimaryResidenceByUser: (userId: string) => Promise<TUnitOwnership | null>
 }
@@ -84,6 +85,9 @@ describe('UnitOwnershipsController', function () {
     // Create mock repository
     mockRepository = {
       listAll: async function () {
+        return testUnitOwnerships
+      },
+      listByCondominiumId: async function () {
         return testUnitOwnerships
       },
       getById: async function (id: string) {
@@ -243,6 +247,46 @@ describe('UnitOwnershipsController', function () {
 
       const json = (await res.json()) as IApiResponse
       expect(json.data).toHaveLength(0)
+    })
+  })
+
+  describe('Tenant isolation', function () {
+    const condominiumId = '550e8400-e29b-41d4-a716-446655440090'
+
+    it('should pass condominiumId to getByUnitId', async function () {
+      let calledWithCondoId: string | undefined
+      ;(mockRepository as any).getByUnitId = async function (
+        _unitId: string,
+        _includeInactive?: boolean,
+        condoId?: string
+      ) {
+        calledWithCondoId = condoId
+        return []
+      }
+
+      await request(`/unit-ownerships/unit/${unitId1}`, {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+
+      expect(calledWithCondoId).toBe(condominiumId)
+    })
+
+    it('should pass condominiumId to getByUserId', async function () {
+      let calledWithCondoId: string | undefined
+      ;(mockRepository as any).getByUserId = async function (
+        _userId: string,
+        _includeInactive?: boolean,
+        condoId?: string
+      ) {
+        calledWithCondoId = condoId
+        return []
+      }
+
+      await request(`/unit-ownerships/user/${userId1}`, {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+
+      expect(calledWithCondoId).toBe(condominiumId)
     })
   })
 

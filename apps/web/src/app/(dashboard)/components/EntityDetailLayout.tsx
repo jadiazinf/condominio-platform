@@ -1,10 +1,11 @@
 'use client'
 
 import type { ReactNode } from 'react'
+
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
+
 import { Button } from '@/ui/components/button'
-import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
 
 interface IEntityDetailLayoutProps {
@@ -33,9 +34,9 @@ export function EntityDetailLayout({
   return (
     <div className="max-w-6xl mx-auto">
       <Button
-        variant="light"
-        startContent={<ArrowLeft size={16} />}
         className="mb-4"
+        startContent={<ArrowLeft size={16} />}
+        variant="light"
         onPress={() => router.push(backUrl)}
       >
         {backLabel || defaultBackLabel}

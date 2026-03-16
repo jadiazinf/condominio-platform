@@ -1,6 +1,7 @@
-import Link from 'next/link'
 import type { TUser } from '@packages/domain'
 import type { ReactNode } from 'react'
+
+import Link from 'next/link'
 import { User, Mail, Phone, ExternalLink } from 'lucide-react'
 
 import { Typography } from '@/ui/components/typography'
@@ -12,7 +13,12 @@ export interface IUserInfoProps {
   action?: ReactNode
 }
 
-export function UserInfo({ user, showViewProfile = false, viewProfileLabel, action }: IUserInfoProps) {
+export function UserInfo({
+  user,
+  showViewProfile = false,
+  viewProfileLabel,
+  action,
+}: IUserInfoProps) {
   const displayName =
     user.firstName && user.lastName
       ? `${user.firstName} ${user.lastName}`

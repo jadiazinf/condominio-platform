@@ -1,10 +1,14 @@
 'use client'
 
-import { useMemo } from 'react'
 import type { TMemberRole } from '@packages/domain'
-import { useTranslation } from '@/contexts'
+
+import { useMemo } from 'react'
+
 import { getMenuItemsForMemberRole } from '../config/sidebar-items'
+
 import { MyManagementCompanySidebarLink } from './MyManagementCompanySidebarLink'
+
+import { useTranslation } from '@/contexts'
 
 interface IMyManagementCompanySidebarProps {
   memberRole?: TMemberRole | null
@@ -21,8 +25,8 @@ export function MyManagementCompanySidebar({ memberRole }: IMyManagementCompanyS
         {menuItems.map(item => (
           <MyManagementCompanySidebarLink
             key={item.key}
-            href={`${basePath}${item.path}`}
             basePath={basePath}
+            href={`${basePath}${item.path}`}
             iconName={item.iconName}
             label={t(item.translationKey)}
           />

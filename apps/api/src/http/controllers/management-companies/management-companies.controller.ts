@@ -25,19 +25,31 @@ import type {
   RolesRepository,
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
+import {
+  bodyValidator,
+  paramsValidator,
+  queryValidator,
+} from '../../middlewares/utils/payload-validator'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
 import { IdParamSchema, ManagementCompanyIdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
 import type { ISubscriptionHistoryQuery } from '@database/repositories/management-company-subscriptions.repository'
-import { ValidateSubscriptionLimitsService, CancelSubscriptionService, type TResourceType } from '@src/services/subscriptions'
+import {
+  ValidateSubscriptionLimitsService,
+  CancelSubscriptionService,
+  type TResourceType,
+} from '@src/services/subscriptions'
 import { CreateMemberWithInvitationService } from '@src/services/management-company-members/create-member-with-invitation.service'
 import { SendSubscriptionCancellationEmailService } from '@src/services/email'
 import { DatabaseService } from '@database/service'
 import { AppError } from '@errors/index'
-import type { ManagementCompanyMembersRepository, PaymentConceptsRepository, AuditLogsRepository } from '@database/repositories'
+import type {
+  ManagementCompanyMembersRepository,
+  PaymentConceptsRepository,
+  AuditLogsRepository,
+} from '@database/repositories'
 
 const TaxIdNumberParamSchema = z.object({
   taxIdNumber: z.string().min(1),
@@ -213,158 +225,296 @@ export class ManagementCompaniesController extends BaseController<
         method: 'get',
         path: '/',
         handler: this.listPaginated,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), queryValidator(managementCompaniesQuerySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          queryValidator(managementCompaniesQuerySchema),
+        ],
       },
       {
         method: 'get',
         path: '/tax-id-number/:taxIdNumber',
         handler: this.getByTaxIdNumber,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(TaxIdNumberParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(TaxIdNumberParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/location/:locationId',
         handler: this.getByLocationId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(LocationIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(LocationIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id/usage-stats',
         handler: this.getUsageStats,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id/subscription/can-create/:resourceType',
         handler: this.checkCanCreateResource,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(CheckLimitParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(CheckLimitParamSchema),
+        ],
       },
       // ── Member routes (for management company members via unified role system) ──
       {
         method: 'get',
         path: '/:managementCompanyId/me',
         handler: this.getMyCompany,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ManagementCompanyIdParamSchema),
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.VIEWER
+          ),
+        ],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/subscription',
         handler: this.getMyCompanySubscription,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ManagementCompanyIdParamSchema),
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.VIEWER
+          ),
+        ],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/usage-stats',
         handler: this.getMyCompanyUsageStats,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ManagementCompanyIdParamSchema),
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.VIEWER
+          ),
+        ],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/subscriptions',
         handler: this.getMyCompanySubscriptions,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER), queryValidator(MemberSubscriptionHistoryQuerySchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ManagementCompanyIdParamSchema),
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.VIEWER
+          ),
+          queryValidator(MemberSubscriptionHistoryQuerySchema),
+        ],
       },
       {
         method: 'post',
         path: '/:managementCompanyId/me/subscription/cancel',
         handler: this.cancelMyCompanySubscription,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN), bodyValidator(MemberCancelSubscriptionBodySchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ManagementCompanyIdParamSchema),
+          requireRole(ESystemRole.ADMIN),
+          bodyValidator(MemberCancelSubscriptionBodySchema),
+        ],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/subscription/can-create/:resourceType',
         handler: this.checkMyCompanyCanCreateResource,
-        middlewares: [authMiddleware, paramsValidator(MyCompanyCheckLimitParamSchema), requireRole(ESystemRole.ADMIN)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(MyCompanyCheckLimitParamSchema),
+          requireRole(ESystemRole.ADMIN),
+        ],
       },
       {
         method: 'post',
         path: '/:managementCompanyId/me/members/invite',
         handler: this.inviteMyCompanyMember,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN), bodyValidator(InviteMemberBodySchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ManagementCompanyIdParamSchema),
+          requireRole(ESystemRole.ADMIN),
+          bodyValidator(InviteMemberBodySchema),
+        ],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/members',
         handler: this.getMyCompanyMembers,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN), queryValidator(managementCompanyMembersQuerySchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ManagementCompanyIdParamSchema),
+          requireRole(ESystemRole.ADMIN),
+          queryValidator(managementCompanyMembersQuerySchema),
+        ],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/members/:memberId',
         handler: this.getMyCompanyMemberDetail,
-        middlewares: [authMiddleware, paramsValidator(MemberIdParamSchema), requireRole(ESystemRole.ADMIN)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(MemberIdParamSchema),
+          requireRole(ESystemRole.ADMIN),
+        ],
       },
       {
         method: 'patch',
         path: '/:managementCompanyId/me/members/:memberId/role',
         handler: this.updateMyCompanyMemberRole,
-        middlewares: [authMiddleware, paramsValidator(MemberIdParamSchema), requireRole(ESystemRole.ADMIN), bodyValidator(UpdateMemberRoleBodySchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(MemberIdParamSchema),
+          requireRole(ESystemRole.ADMIN),
+          bodyValidator(UpdateMemberRoleBodySchema),
+        ],
       },
       {
         method: 'post',
         path: '/:managementCompanyId/me/members/:memberId/deactivate',
         handler: this.deactivateMyCompanyMember,
-        middlewares: [authMiddleware, paramsValidator(MemberIdParamSchema), requireRole(ESystemRole.ADMIN)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(MemberIdParamSchema),
+          requireRole(ESystemRole.ADMIN),
+        ],
       },
       {
         method: 'post',
         path: '/:managementCompanyId/me/members/:memberId/reactivate',
         handler: this.reactivateMyCompanyMember,
-        middlewares: [authMiddleware, paramsValidator(MemberIdParamSchema), requireRole(ESystemRole.ADMIN)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(MemberIdParamSchema),
+          requireRole(ESystemRole.ADMIN),
+        ],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/members/:memberId/audit-logs',
         handler: this.getMyCompanyMemberAuditLogs,
-        middlewares: [authMiddleware, paramsValidator(MemberIdParamSchema), requireRole(ESystemRole.ADMIN)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(MemberIdParamSchema),
+          requireRole(ESystemRole.ADMIN),
+        ],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/members/:memberId/audit-logs/paginated',
         handler: this.getMyCompanyMemberAuditLogsPaginated,
-        middlewares: [authMiddleware, paramsValidator(MemberIdParamSchema), requireRole(ESystemRole.ADMIN), queryValidator(MemberAuditLogsQuerySchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(MemberIdParamSchema),
+          requireRole(ESystemRole.ADMIN),
+          queryValidator(MemberAuditLogsQuerySchema),
+        ],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/members/:memberId/audit-logs/:logId',
         handler: this.getMyCompanyMemberAuditLogDetail,
-        middlewares: [authMiddleware, paramsValidator(MemberAuditLogIdParamSchema), requireRole(ESystemRole.ADMIN)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(MemberAuditLogIdParamSchema),
+          requireRole(ESystemRole.ADMIN),
+        ],
       },
       {
         method: 'get',
         path: '/:managementCompanyId/me/payment-concepts',
         handler: this.getMyCompanyPaymentConcepts,
-        middlewares: [authMiddleware, paramsValidator(ManagementCompanyIdParamSchema), requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER), queryValidator(paymentConceptsQuerySchema)],
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ManagementCompanyIdParamSchema),
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.VIEWER
+          ),
+          queryValidator(paymentConceptsQuerySchema),
+        ],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), bodyValidator(managementCompanyCreateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          bodyValidator(managementCompanyCreateSchema),
+        ],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(managementCompanyUpdateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+          bodyValidator(managementCompanyUpdateSchema),
+        ],
       },
       {
         method: 'patch',
         path: '/:id/toggle-active',
         handler: this.toggleActive,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(ToggleActiveBodySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+          bodyValidator(ToggleActiveBodySchema),
+        ],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }
@@ -387,9 +537,13 @@ export class ManagementCompaniesController extends BaseController<
       // Populate relations
       const [location, createdByUser] = await Promise.all([
         // Get location with full hierarchy (country -> province -> city)
-        company.locationId ? this.locationsRepository.getByIdWithHierarchy(company.locationId) : Promise.resolve(null),
+        company.locationId
+          ? this.locationsRepository.getByIdWithHierarchy(company.locationId)
+          : Promise.resolve(null),
         // Get created by user (include inactive users to show who created it)
-        company.createdBy ? this.usersRepository.getById(company.createdBy, true) : Promise.resolve(null),
+        company.createdBy
+          ? this.usersRepository.getById(company.createdBy, true)
+          : Promise.resolve(null),
       ])
 
       // Check if created by user is superadmin
@@ -556,11 +710,15 @@ export class ManagementCompaniesController extends BaseController<
     const ctx = this.ctx<unknown, unknown, { managementCompanyId: string }>(c)
 
     try {
-      const subscription = await this.subscriptionsRepository.getActiveByCompanyId(ctx.params.managementCompanyId)
+      const subscription = await this.subscriptionsRepository.getActiveByCompanyId(
+        ctx.params.managementCompanyId
+      )
 
       if (!subscription) {
         const t = useTranslation(c)
-        return ctx.notFound({ error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription) })
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription),
+        })
       }
 
       return ctx.ok({ data: subscription })
@@ -570,7 +728,9 @@ export class ManagementCompaniesController extends BaseController<
   }
 
   private getMyCompanySubscriptions = async (c: Context): Promise<Response> => {
-    const ctx = this.ctx<unknown, TMemberSubscriptionHistoryQuery, { managementCompanyId: string }>(c)
+    const ctx = this.ctx<unknown, TMemberSubscriptionHistoryQuery, { managementCompanyId: string }>(
+      c
+    )
 
     try {
       const query: ISubscriptionHistoryQuery = {
@@ -603,7 +763,9 @@ export class ManagementCompaniesController extends BaseController<
 
       if (!subscription) {
         const t = useTranslation(c)
-        return ctx.notFound({ error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription) })
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.services.subscriptions.noActiveSubscription),
+        })
       }
 
       const result = await this.cancelService.execute({
@@ -687,9 +849,10 @@ export class ManagementCompaniesController extends BaseController<
         email: ctx.body.email,
         firstName: ctx.body.firstName ?? null,
         lastName: ctx.body.lastName ?? null,
-        displayName: ctx.body.firstName && ctx.body.lastName
-          ? `${ctx.body.firstName} ${ctx.body.lastName}`
-          : null,
+        displayName:
+          ctx.body.firstName && ctx.body.lastName
+            ? `${ctx.body.firstName} ${ctx.body.lastName}`
+            : null,
         phoneCountryCode: ctx.body.phoneCountryCode ?? null,
         phoneNumber: ctx.body.phoneNumber ?? null,
         idDocumentType: ctx.body.idDocumentType ?? null,
@@ -713,7 +876,11 @@ export class ManagementCompaniesController extends BaseController<
   }
 
   private getMyCompanyMembers = async (c: Context): Promise<Response> => {
-    const ctx = this.ctx<unknown, TManagementCompanyMembersQuerySchema, { managementCompanyId: string }>(c)
+    const ctx = this.ctx<
+      unknown,
+      TManagementCompanyMembersQuerySchema,
+      { managementCompanyId: string }
+    >(c)
 
     try {
       if (!this.membersRepository) {
@@ -807,7 +974,10 @@ export class ManagementCompaniesController extends BaseController<
         return ctx.badRequest({ error: 'Cannot deactivate yourself' })
       }
 
-      const deactivated = await this.membersRepository.removeMember(ctx.params.memberId, authenticatedUser?.id)
+      const deactivated = await this.membersRepository.removeMember(
+        ctx.params.memberId,
+        authenticatedUser?.id
+      )
       if (!deactivated) {
         return ctx.notFound({ error: 'Member not found' })
       }
@@ -837,7 +1007,9 @@ export class ManagementCompaniesController extends BaseController<
 
       // Cannot reactivate if user hasn't verified email (hasn't accepted invitation)
       if (member.user && !member.user.isEmailVerified) {
-        return ctx.badRequest({ error: 'Cannot reactivate a user who has not accepted their invitation' })
+        return ctx.badRequest({
+          error: 'Cannot reactivate a user who has not accepted their invitation',
+        })
       }
 
       const reactivated = await this.membersRepository.reactivateMember(ctx.params.memberId)
@@ -915,7 +1087,11 @@ export class ManagementCompaniesController extends BaseController<
       }
 
       const log = await this.auditLogsRepository.getById(ctx.params.logId)
-      if (!log || log.tableName !== 'management_company_members' || log.recordId !== ctx.params.memberId) {
+      if (
+        !log ||
+        log.tableName !== 'management_company_members' ||
+        log.recordId !== ctx.params.memberId
+      ) {
         return ctx.notFound({ error: 'Audit log not found' })
       }
 

@@ -8,7 +8,7 @@ import type {
   TPaginatedResponse,
   TManagementCompanyMembersQuerySchema,
 } from '@packages/domain'
-import { managementCompanyMembers, users, managementCompanies, userRoles, condominiumManagementCompanies } from '../drizzle/schema'
+import { managementCompanyMembers, users, managementCompanies, userRoles } from '../drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -23,7 +23,10 @@ export type TMemberUserInfo = {
   photoUrl: string | null
 }
 
-export type TManagementCompanyMemberWithUser = Omit<TManagementCompanyMember, 'user' | 'managementCompany' | 'invitedByUser' | 'deactivatedByUser'> & {
+export type TManagementCompanyMemberWithUser = Omit<
+  TManagementCompanyMember,
+  'user' | 'managementCompany' | 'invitedByUser' | 'deactivatedByUser'
+> & {
   user: TMemberUserInfo | null
 }
 
@@ -48,7 +51,12 @@ export class ManagementCompanyMembersRepository
     TManagementCompanyMemberCreate,
     TManagementCompanyMemberUpdate
   >
-  implements IRepository<TManagementCompanyMember, TManagementCompanyMemberCreate, TManagementCompanyMemberUpdate>
+  implements
+    IRepository<
+      TManagementCompanyMember,
+      TManagementCompanyMemberCreate,
+      TManagementCompanyMemberUpdate
+    >
 {
   constructor(db: TDrizzleClient) {
     super(db, managementCompanyMembers)
@@ -76,9 +84,119 @@ export class ManagementCompanyMembersRepository
   }
 
   /**
+   * Retrieves a member by ID with full user details, invitedBy and deactivatedBy info.
+   */
+  async getByIdWithUser(id: string): Promise<
+    | (Omit<
+        TManagementCompanyMember,
+        'user' | 'invitedByUser' | 'deactivatedByUser' | 'managementCompany'
+      > & {
+        user:
+          | (TMemberUserInfo & {
+              isEmailVerified: boolean
+              isActive: boolean
+              phoneCountryCode: string | null
+              phoneNumber: string | null
+              idDocumentType: string | null
+              idDocumentNumber: string | null
+              lastLogin: Date | null
+            })
+          | null
+        invitedByUser: { id: string; displayName: string | null; email: string } | null
+        deactivatedByUser: { id: string; displayName: string | null; email: string } | null
+      })
+    | null
+  > {
+    const results = await this.db
+      .select({
+        member: managementCompanyMembers,
+        user: {
+          id: users.id,
+          email: users.email,
+          displayName: users.displayName,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          photoUrl: users.photoUrl,
+          isEmailVerified: users.isEmailVerified,
+          isActive: users.isActive,
+          phoneCountryCode: users.phoneCountryCode,
+          phoneNumber: users.phoneNumber,
+          idDocumentType: users.idDocumentType,
+          idDocumentNumber: users.idDocumentNumber,
+          lastLogin: users.lastLogin,
+        },
+      })
+      .from(managementCompanyMembers)
+      .leftJoin(users, eq(managementCompanyMembers.userId, users.id))
+      .where(eq(managementCompanyMembers.id, id))
+      .limit(1)
+
+    if (results.length === 0) return null
+
+    const { member, user } = results[0]!
+    const mapped = this.mapToEntity(member)
+
+    let invitedByUser: { id: string; displayName: string | null; email: string } | null = null
+    if (mapped.invitedBy) {
+      const invRows = await this.db
+        .select({ id: users.id, displayName: users.displayName, email: users.email })
+        .from(users)
+        .where(eq(users.id, mapped.invitedBy))
+        .limit(1)
+      invitedByUser = invRows[0] ?? null
+    }
+
+    let deactivatedByUser: { id: string; displayName: string | null; email: string } | null = null
+    if (mapped.deactivatedBy) {
+      const deacRows = await this.db
+        .select({ id: users.id, displayName: users.displayName, email: users.email })
+        .from(users)
+        .where(eq(users.id, mapped.deactivatedBy))
+        .limit(1)
+      deactivatedByUser = deacRows[0] ?? null
+    }
+
+    return {
+      ...mapped,
+      user: user
+        ? {
+            ...user,
+            isEmailVerified: user.isEmailVerified ?? false,
+            isActive: user.isActive ?? false,
+          }
+        : null,
+      invitedByUser,
+      deactivatedByUser,
+    }
+  }
+
+  /**
+   * Reactivates a deactivated member.
+   */
+  async reactivateMember(id: string): Promise<TManagementCompanyMember | null> {
+    const results = await this.db
+      .update(managementCompanyMembers)
+      .set({
+        isActive: true,
+        joinedAt: new Date(),
+        deactivatedAt: null,
+        deactivatedBy: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(managementCompanyMembers.id, id))
+      .returning()
+
+    if (results.length === 0) return null
+    return this.mapToEntity(results[0])
+  }
+
+  /**
    * Get all members by management company ID (active only by default)
    */
-  async listByCompanyId(companyId: string, includeInactive = false): Promise<TManagementCompanyMember[]> {
+  async listByCompanyId(
+    companyId: string,
+    includeInactive = false
+  ): Promise<TManagementCompanyMember[]> {
     const conditions = [eq(managementCompanyMembers.managementCompanyId, companyId)]
 
     if (!includeInactive) {
@@ -191,7 +309,10 @@ export class ManagementCompanyMembersRepository
     // When condominiumId is set, the join to userRoles can produce duplicates,
     // so we use DISTINCT ON (which requires id first in ORDER BY).
     // Otherwise, we use a simple select with desired ordering.
-    let results: { member: typeof managementCompanyMembers.$inferSelect; user: typeof users.$inferSelect | null }[]
+    let results: {
+      member: typeof managementCompanyMembers.$inferSelect
+      user: typeof users.$inferSelect | null
+    }[]
 
     if (condominiumId) {
       const baseQuery = this.db
@@ -205,7 +326,11 @@ export class ManagementCompanyMembersRepository
 
       results = await baseQuery
         .where(whereClause)
-        .orderBy(managementCompanyMembers.id, desc(managementCompanyMembers.isPrimaryAdmin), desc(managementCompanyMembers.joinedAt))
+        .orderBy(
+          managementCompanyMembers.id,
+          desc(managementCompanyMembers.isPrimaryAdmin),
+          desc(managementCompanyMembers.joinedAt)
+        )
         .limit(limit)
         .offset(offset)
 
@@ -229,7 +354,10 @@ export class ManagementCompanyMembersRepository
 
       results = await baseQuery
         .where(whereClause)
-        .orderBy(desc(managementCompanyMembers.isPrimaryAdmin), desc(managementCompanyMembers.joinedAt))
+        .orderBy(
+          desc(managementCompanyMembers.isPrimaryAdmin),
+          desc(managementCompanyMembers.joinedAt)
+        )
         .limit(limit)
         .offset(offset)
     }
@@ -275,7 +403,10 @@ export class ManagementCompanyMembersRepository
   /**
    * Get a member by company ID and user ID
    */
-  async getByCompanyAndUser(companyId: string, userId: string): Promise<TManagementCompanyMember | null> {
+  async getByCompanyAndUser(
+    companyId: string,
+    userId: string
+  ): Promise<TManagementCompanyMember | null> {
     const results = await this.db
       .select()
       .from(managementCompanyMembers)
@@ -327,7 +458,8 @@ export class ManagementCompanyMembersRepository
     isPrimary: boolean,
     permissions: TMemberPermissions | null,
     invitedBy?: string | null,
-    userRoleId?: string | null
+    userRoleId?: string | null,
+    isActive: boolean = true
   ): Promise<TManagementCompanyMember> {
     const dto: TManagementCompanyMemberCreate = {
       managementCompanyId: companyId,
@@ -336,8 +468,8 @@ export class ManagementCompanyMembersRepository
       userRoleId: userRoleId ?? null,
       isPrimaryAdmin: isPrimary,
       permissions,
-      isActive: true,
-      joinedAt: new Date(),
+      isActive,
+      joinedAt: isActive ? new Date() : null,
       invitedAt: invitedBy ? new Date() : null,
       invitedBy: invitedBy ?? null,
       deactivatedAt: null,
@@ -392,7 +524,10 @@ export class ManagementCompanyMembersRepository
   /**
    * Update member permissions
    */
-  async updatePermissions(id: string, permissions: TMemberPermissions): Promise<TManagementCompanyMember | null> {
+  async updatePermissions(
+    id: string,
+    permissions: TMemberPermissions
+  ): Promise<TManagementCompanyMember | null> {
     const results = await this.db
       .update(managementCompanyMembers)
       .set({
@@ -435,7 +570,10 @@ export class ManagementCompanyMembersRepository
           eq(managementCompanies.isActive, true)
         )
       )
-      .orderBy(desc(managementCompanyMembers.isPrimaryAdmin), desc(managementCompanyMembers.joinedAt))
+      .orderBy(
+        desc(managementCompanyMembers.isPrimaryAdmin),
+        desc(managementCompanyMembers.joinedAt)
+      )
 
     return results.map(({ member, company }) => ({
       ...this.mapToEntity(member),

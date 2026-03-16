@@ -113,9 +113,9 @@ export function DropdownMenu({
       selectionMode={selectionMode}
       variant={variant}
       onAction={onAction}
-      onSelectionChange={(keys) => onSelectionChange?.(keys as Selection)}
+      onSelectionChange={keys => onSelectionChange?.(keys as Selection)}
     >
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- HeroUI requires CollectionChildren type */}
+      {}
       {children as any}
     </HeroUIDropdownMenu>
   )
@@ -128,7 +128,7 @@ export const DropdownItem = HeroUIDropdownItem
 export function DropdownSection({ children, title, showDivider }: IDropdownSectionProps) {
   return (
     <HeroUIDropdownSection showDivider={showDivider} title={title}>
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- HeroUI requires CollectionChildren type */}
+      {}
       {children as any}
     </HeroUIDropdownSection>
   )

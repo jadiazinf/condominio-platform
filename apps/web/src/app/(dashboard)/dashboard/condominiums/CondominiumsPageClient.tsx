@@ -1,9 +1,15 @@
 'use client'
 
-import type { TCondominium, TCondominiumsQuery, TPaginationMeta, TActiveRoleType } from '@packages/domain'
+import type {
+  TCondominium,
+  TCondominiumsQuery,
+  TPaginationMeta,
+  TActiveRoleType,
+} from '@packages/domain'
+
+import { CondominiumsTable } from './components'
 
 import { useTranslation } from '@/contexts'
-import { CondominiumsTable } from './components'
 
 interface CondominiumsPageClientProps {
   condominiums: TCondominium[]
@@ -28,20 +34,16 @@ export function CondominiumsPageClient({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-default-900">
-          {t(`${translationPrefix}.title`)}
-        </h1>
-        <p className="mt-2 text-sm text-default-500">
-          {t(`${translationPrefix}.subtitle`)}
-        </p>
+        <h1 className="text-2xl font-bold text-default-900">{t(`${translationPrefix}.title`)}</h1>
+        <p className="mt-2 text-sm text-default-500">{t(`${translationPrefix}.subtitle`)}</p>
       </div>
 
       <CondominiumsTable
-        condominiums={condominiums}
-        pagination={pagination}
-        initialQuery={initialQuery}
-        role={role}
         canCreateCondominium={canCreateCondominium}
+        condominiums={condominiums}
+        initialQuery={initialQuery}
+        pagination={pagination}
+        role={role}
       />
     </div>
   )

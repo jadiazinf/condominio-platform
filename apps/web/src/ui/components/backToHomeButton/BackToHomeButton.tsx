@@ -1,8 +1,8 @@
 'use client'
 
-import { Link } from '@/ui/components/link'
 import { ArrowLeft } from 'lucide-react'
 
+import { Link } from '@/ui/components/link'
 import { useTranslation } from '@/contexts'
 
 export function BackToHomeButton() {

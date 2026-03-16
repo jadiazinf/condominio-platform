@@ -1,17 +1,18 @@
 'use client'
 
+import type { TLocation } from '@packages/domain'
+
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { Select, type ISelectItem } from '@/ui/components/select'
-import { Tooltip } from '@/ui/components/tooltip'
 import { cn } from '@heroui/theme'
 import { Info } from 'lucide-react'
-import type { TLocation } from '@packages/domain'
 import {
   useLocationsByType,
   useLocationsByParent,
   getLocationHierarchy,
 } from '@packages/http-client'
 
+import { Tooltip } from '@/ui/components/tooltip'
+import { Select, type ISelectItem } from '@/ui/components/select'
 import { useAuth, useTranslation } from '@/contexts'
 
 type TInputVariant = 'flat' | 'bordered' | 'underlined' | 'faded'
@@ -133,6 +134,7 @@ export function LocationSelector({
     if (selectedCountryId && selectedProvinceId && selectedCityId) {
       return selectedCityId
     }
+
     return null
   }, [selectedCountryId, selectedProvinceId, selectedCityId])
 
@@ -210,12 +212,12 @@ export function LocationSelector({
       {label}
       {tooltip && (
         <Tooltip
-          content={tooltip}
-          placement="right"
           showArrow
           classNames={{
             content: 'max-w-xs text-sm',
           }}
+          content={tooltip}
+          placement="right"
         >
           <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
         </Tooltip>
@@ -239,61 +241,61 @@ export function LocationSelector({
         {/* Country Select */}
         <Select
           aria-label={resolvedCountryLabel}
-          placeholder={resolvedCountryPlaceholder}
-          items={countryItems}
-          value={selectedCountryId}
-          onChange={handleCountryChange}
-          variant={variant}
-          radius={radius}
-          size={size}
-          isDisabled={isDisabled || countriesLoading}
-          label={renderSelectLabel(resolvedCountryLabel)}
-          labelPlacement="outside"
-          isLoading={countriesLoading}
-          isInvalid={isRequired && !!errorMessage && !selectedCountryId}
           classNames={{
             trigger: 'min-h-unit-10',
           }}
+          isDisabled={isDisabled || countriesLoading}
+          isInvalid={isRequired && !!errorMessage && !selectedCountryId}
+          isLoading={countriesLoading}
+          items={countryItems}
+          label={renderSelectLabel(resolvedCountryLabel)}
+          labelPlacement="outside"
+          placeholder={resolvedCountryPlaceholder}
+          radius={radius}
+          size={size}
+          value={selectedCountryId}
+          variant={variant}
+          onChange={handleCountryChange}
         />
 
         {/* Province Select */}
         <Select
           aria-label={resolvedProvinceLabel}
-          placeholder={resolvedProvincePlaceholder}
-          items={provinceItems}
-          value={selectedProvinceId}
-          onChange={handleProvinceChange}
-          variant={variant}
-          radius={radius}
-          size={size}
-          isDisabled={isDisabled || !selectedCountryId || provincesLoading}
-          label={renderSelectLabel(resolvedProvinceLabel)}
-          labelPlacement="outside"
-          isLoading={provincesLoading}
-          isInvalid={isRequired && !!errorMessage && !!selectedCountryId && !selectedProvinceId}
           classNames={{
             trigger: 'min-h-unit-10',
           }}
+          isDisabled={isDisabled || !selectedCountryId || provincesLoading}
+          isInvalid={isRequired && !!errorMessage && !!selectedCountryId && !selectedProvinceId}
+          isLoading={provincesLoading}
+          items={provinceItems}
+          label={renderSelectLabel(resolvedProvinceLabel)}
+          labelPlacement="outside"
+          placeholder={resolvedProvincePlaceholder}
+          radius={radius}
+          size={size}
+          value={selectedProvinceId}
+          variant={variant}
+          onChange={handleProvinceChange}
         />
 
         {/* City Select */}
         <Select
           aria-label={resolvedCityLabel}
-          placeholder={resolvedCityPlaceholder}
-          items={cityItems}
-          value={selectedCityId}
-          onChange={handleCityChange}
-          variant={variant}
-          radius={radius}
-          size={size}
-          isDisabled={isDisabled || !selectedProvinceId || citiesLoading}
-          label={renderSelectLabel(resolvedCityLabel)}
-          labelPlacement="outside"
-          isLoading={citiesLoading}
-          isInvalid={isRequired && !!errorMessage && !!selectedProvinceId && !selectedCityId}
           classNames={{
             trigger: 'min-h-unit-10',
           }}
+          isDisabled={isDisabled || !selectedProvinceId || citiesLoading}
+          isInvalid={isRequired && !!errorMessage && !!selectedProvinceId && !selectedCityId}
+          isLoading={citiesLoading}
+          items={cityItems}
+          label={renderSelectLabel(resolvedCityLabel)}
+          labelPlacement="outside"
+          placeholder={resolvedCityPlaceholder}
+          radius={radius}
+          size={size}
+          value={selectedCityId}
+          variant={variant}
+          onChange={handleCityChange}
         />
       </div>
 

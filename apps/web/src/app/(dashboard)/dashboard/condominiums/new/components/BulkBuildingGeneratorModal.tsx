@@ -1,5 +1,7 @@
 'use client'
 
+import type { TLocalBuilding, TLocalUnit } from '../hooks/useCreateCondominiumWizard'
+
 import { useState, useCallback, useEffect } from 'react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/modal'
@@ -12,11 +14,15 @@ import { useTranslation } from '@/contexts'
 import { Input, InputField } from '@/ui/components/input'
 import { Switch } from '@/ui/components/switch'
 import { Typography } from '@/ui/components/typography'
-import type { TLocalBuilding, TLocalUnit } from '../hooks/useCreateCondominiumWizard'
 
 type TNamingPattern = 'prefix_letter' | 'prefix_number' | 'letter_only' | 'number_only'
 type TCodePattern = 'padded_number' | 'letter' | 'triple_letter'
-type TUnitNamingPattern = 'floor_letter' | 'floor_sequence' | 'bldg_sequential' | 'bldg_floor_number' | 'bldg_floor_letter'
+type TUnitNamingPattern =
+  | 'floor_letter'
+  | 'floor_sequence'
+  | 'bldg_sequential'
+  | 'bldg_floor_number'
+  | 'bldg_floor_letter'
 
 type TAliquotMode = 'equal' | 'by_area' | 'custom' | 'none'
 
@@ -96,6 +102,7 @@ function generateBuildingCode(codePrefix: string, pattern: TCodePattern, index: 
       const a = Math.floor(index / (26 * 26)) % 26
       const b = Math.floor(index / 26) % 26
       const c = index % 26
+
       return `${base}${String.fromCharCode(65 + a)}${String.fromCharCode(65 + b)}${String.fromCharCode(65 + c)}`
     }
     default:
@@ -113,6 +120,7 @@ function generateUnitNumber(
   customPrefix?: string
 ): string {
   const bldgLetter = String.fromCharCode(65 + buildingIndex)
+
   if (customPrefix) {
     return `${customPrefix}${separator}${bldgLetter}${separator}${unitIndex + 1}`
   }
@@ -147,7 +155,12 @@ function createDefaultFloorGroup(): TFloorGroup {
   }
 }
 
-type TPreviewItem = { name: string; code: string | null; sampleUnits?: string[]; totalUnits?: number }
+type TPreviewItem = {
+  name: string
+  code: string | null
+  sampleUnits?: string[]
+  totalUnits?: number
+}
 
 function generatePreview(
   prefix: string,
@@ -176,16 +189,30 @@ function generatePreview(
       let globalIdx = 0
       let total = 0
 
-      const sorted = [...floorGroups].sort((a, b) => (Number(a.fromFloor) || 0) - (Number(b.fromFloor) || 0))
+      const sorted = [...floorGroups].sort(
+        (a, b) => (Number(a.fromFloor) || 0) - (Number(b.fromFloor) || 0)
+      )
+
       for (const group of sorted) {
         const gFrom = Number(group.fromFloor) || 0
         const gTo = Number(group.toFloor) || 0
         const gPer = Number(group.unitsPerFloor) || 0
+
         if (gFrom > 0 && gTo >= gFrom && gPer > 0) {
           for (let floor = gFrom; floor <= gTo; floor++) {
             for (let u = 0; u < gPer; u++) {
               if (sampleUnits.length < maxSampleUnits) {
-                sampleUnits.push(generateUnitNumber(unitPattern, i, floor, u, globalIdx, unitSeparator, group.unitPrefix || undefined))
+                sampleUnits.push(
+                  generateUnitNumber(
+                    unitPattern,
+                    i,
+                    floor,
+                    u,
+                    globalIdx,
+                    unitSeparator,
+                    group.unitPrefix || undefined
+                  )
+                )
               }
               globalIdx++
               total++
@@ -219,19 +246,17 @@ function PatternButton<T extends string>({
 }) {
   return (
     <button
-      type="button"
       className={`flex items-center justify-between p-3 rounded-lg border transition-colors text-left ${
-        selected
-          ? 'border-success bg-success/10'
-          : 'border-default-200 hover:border-default-400'
+        selected ? 'border-success bg-success/10' : 'border-default-200 hover:border-default-400'
       }`}
+      type="button"
       onClick={() => onSelect(value)}
     >
       <div>
-        <Typography variant="body2" className="font-medium">
+        <Typography className="font-medium" variant="body2">
           {label}
         </Typography>
-        <Typography variant="caption" className="text-default-400">
+        <Typography className="text-default-400" variant="caption">
           {example}
         </Typography>
       </div>
@@ -286,7 +311,7 @@ export function BulkBuildingGeneratorModal({
         setSelectedCodePattern(initialConfig.codePattern)
         setGenerateUnitsEnabled(initialConfig.generateUnitsEnabled)
         setSelectedUnitPattern(initialConfig.unitPattern)
-        setFloorGroups(initialConfig.floorGroups.map((g) => ({ ...g, id: crypto.randomUUID() })))
+        setFloorGroups(initialConfig.floorGroups.map(g => ({ ...g, id: crypto.randomUUID() })))
         setAliquotMode(initialConfig.aliquotMode ?? 'none')
       } else {
         form.reset({
@@ -311,6 +336,7 @@ export function BulkBuildingGeneratorModal({
     const subscription = form.watch((_value, { name }) => {
       if (name) form.clearErrors(name)
     })
+
     return () => subscription.unsubscribe()
   }, [form])
 
@@ -327,6 +353,7 @@ export function BulkBuildingGeneratorModal({
         const to = Number(g.toFloor) || 0
         const perFloor = Number(g.unitsPerFloor) || 0
         const floors = Math.max(0, to - from + 1)
+
         return sum + floors * perFloor
       }, 0)
     : 0
@@ -347,15 +374,17 @@ export function BulkBuildingGeneratorModal({
   const translateError = useCallback(
     (message: string | undefined): string | undefined => {
       if (!message) return undefined
+
       return t(message)
     },
     [t]
   )
 
   const addFloorGroup = useCallback(() => {
-    setFloorGroups((prev) => {
+    setFloorGroups(prev => {
       const lastGroup = prev[prev.length - 1]
       const nextFrom = lastGroup ? (Number(lastGroup.toFloor) || 0) + 1 : 1
+
       return [
         ...prev,
         {
@@ -376,12 +405,12 @@ export function BulkBuildingGeneratorModal({
   }, [])
 
   const removeFloorGroup = useCallback((id: string) => {
-    setFloorGroups((prev) => prev.filter((g) => g.id !== id))
+    setFloorGroups(prev => prev.filter(g => g.id !== id))
     setFloorGroupError(null)
   }, [])
 
   const updateFloorGroup = useCallback((id: string, updates: Partial<Omit<TFloorGroup, 'id'>>) => {
-    setFloorGroups((prev) => prev.map((g) => (g.id === id ? { ...g, ...updates } : g)))
+    setFloorGroups(prev => prev.map(g => (g.id === id ? { ...g, ...updates } : g)))
     setFloorGroupError(null)
   }, [])
 
@@ -398,6 +427,7 @@ export function BulkBuildingGeneratorModal({
     }
 
     const countNum = Number(values.count)
+
     if (!values.count || isNaN(countNum) || countNum < 1) {
       form.setError('count', {
         type: 'manual',
@@ -405,7 +435,10 @@ export function BulkBuildingGeneratorModal({
       })
       hasError = true
     }
-    if ((selectedNamePattern === 'prefix_letter' || selectedNamePattern === 'letter_only') && countNum > 26) {
+    if (
+      (selectedNamePattern === 'prefix_letter' || selectedNamePattern === 'letter_only') &&
+      countNum > 26
+    ) {
       form.setError('count', {
         type: 'manual',
         message: 'superadmin.condominiums.wizard.bulkBuildings.maxLetterBuildings',
@@ -430,6 +463,7 @@ export function BulkBuildingGeneratorModal({
         const gFrom = Number(group.fromFloor) || 0
         const gTo = Number(group.toFloor) || 0
         const gPer = Number(group.unitsPerFloor) || 0
+
         if (gFrom < 1 || gTo < gFrom) {
           setFloorGroupError('superadmin.condominiums.wizard.bulk.floorRangeError')
           hasError = true
@@ -450,9 +484,14 @@ export function BulkBuildingGeneratorModal({
         }
       }
 
-      const sortedGroups = [...floorGroups].sort((a, b) => (Number(a.fromFloor) || 0) - (Number(b.fromFloor) || 0))
+      const sortedGroups = [...floorGroups].sort(
+        (a, b) => (Number(a.fromFloor) || 0) - (Number(b.fromFloor) || 0)
+      )
+
       for (let i = 1; i < sortedGroups.length; i++) {
-        if ((Number(sortedGroups[i].fromFloor) || 0) <= (Number(sortedGroups[i - 1].toFloor) || 0)) {
+        if (
+          (Number(sortedGroups[i].fromFloor) || 0) <= (Number(sortedGroups[i - 1].toFloor) || 0)
+        ) {
           setFloorGroupError('superadmin.condominiums.wizard.bulk.floorOverlap')
           hasError = true
           break
@@ -460,7 +499,8 @@ export function BulkBuildingGeneratorModal({
       }
 
       if (aliquotMode === 'by_area') {
-        const missingArea = floorGroups.some((g) => !g.areaM2 || Number(g.areaM2) <= 0)
+        const missingArea = floorGroups.some(g => !g.areaM2 || Number(g.areaM2) <= 0)
+
         if (missingArea) {
           setFloorGroupError('superadmin.condominiums.wizard.bulk.aliquotByAreaMissingArea')
           hasError = true
@@ -472,7 +512,7 @@ export function BulkBuildingGeneratorModal({
 
     // Derive floorsCount from floor groups
     const derivedFloorsCount = generateUnitsEnabled
-      ? Math.max(...floorGroups.map((g) => Number(g.toFloor) || 0))
+      ? Math.max(...floorGroups.map(g => Number(g.toFloor) || 0))
       : null
 
     const generatedBuildings: Omit<TLocalBuilding, 'tempId'>[] = []
@@ -493,12 +533,21 @@ export function BulkBuildingGeneratorModal({
         let globalIdx = 0
 
         // First pass: collect units and their areas for by_area calculation
-        const unitEntries: { group: TFloorGroup; floor: number; unitIndex: number; globalIdx: number }[] = []
-        const sortedGroups = [...floorGroups].sort((a, b) => (Number(a.fromFloor) || 0) - (Number(b.fromFloor) || 0))
+        const unitEntries: {
+          group: TFloorGroup
+          floor: number
+          unitIndex: number
+          globalIdx: number
+        }[] = []
+        const sortedGroups = [...floorGroups].sort(
+          (a, b) => (Number(a.fromFloor) || 0) - (Number(b.fromFloor) || 0)
+        )
+
         for (const group of sortedGroups) {
           const gFrom = Number(group.fromFloor) || 0
           const gTo = Number(group.toFloor) || 0
           const gPer = Number(group.unitsPerFloor) || 0
+
           for (let floor = gFrom; floor <= gTo; floor++) {
             for (let u = 0; u < gPer; u++) {
               unitEntries.push({ group, floor, unitIndex: u, globalIdx })
@@ -508,9 +557,10 @@ export function BulkBuildingGeneratorModal({
         }
 
         // Calculate total area per building for by_area mode
-        const totalArea = aliquotMode === 'by_area'
-          ? unitEntries.reduce((sum, e) => sum + (Number(e.group.areaM2) || 0), 0)
-          : 0
+        const totalArea =
+          aliquotMode === 'by_area'
+            ? unitEntries.reduce((sum, e) => sum + (Number(e.group.areaM2) || 0), 0)
+            : 0
 
         // Total units per building for equal mode
         const unitsPerBldg = unitEntries.length
@@ -518,22 +568,34 @@ export function BulkBuildingGeneratorModal({
         // Second pass: generate units
         for (const entry of unitEntries) {
           let unitAliquot: string | null = null
+
           if (aliquotMode === 'equal' && unitsPerBldg > 0) {
             unitAliquot = (100 / (unitsPerBldg * countNum)).toFixed(4)
           } else if (aliquotMode === 'by_area' && totalArea > 0) {
             const unitArea = Number(entry.group.areaM2) || 0
+
             unitAliquot = ((unitArea / totalArea) * 100).toFixed(4)
           } else if (aliquotMode === 'custom') {
             unitAliquot = entry.group.aliquotPercentage || null
           }
 
           buildingUnits.push({
-            unitNumber: generateUnitNumber(selectedUnitPattern, i, entry.floor, entry.unitIndex, entry.globalIdx, sep, entry.group.unitPrefix || undefined),
+            unitNumber: generateUnitNumber(
+              selectedUnitPattern,
+              i,
+              entry.floor,
+              entry.unitIndex,
+              entry.globalIdx,
+              sep,
+              entry.group.unitPrefix || undefined
+            ),
             floor: entry.floor,
             areaM2: entry.group.areaM2 || null,
             bedrooms: entry.group.bedrooms ? Number(entry.group.bedrooms) : null,
             bathrooms: entry.group.bathrooms ? Number(entry.group.bathrooms) : null,
-            parkingSpaces: entry.group.parkingSpaces ? Number(entry.group.parkingSpaces) : undefined,
+            parkingSpaces: entry.group.parkingSpaces
+              ? Number(entry.group.parkingSpaces)
+              : undefined,
             parkingIdentifiers: null,
             storageIdentifier: null,
             aliquotPercentage: unitAliquot,
@@ -649,7 +711,7 @@ export function BulkBuildingGeneratorModal({
   ]
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="2xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader>
           <div className="flex flex-col">
@@ -661,34 +723,34 @@ export function BulkBuildingGeneratorModal({
             <div className="flex flex-col gap-6">
               <div className="grid grid-cols-2 gap-4">
                 <InputField
-                  name="prefix"
-                  label={t('superadmin.condominiums.wizard.bulkBuildings.prefix')}
-                  placeholder="Torre"
                   isRequired
+                  label={t('superadmin.condominiums.wizard.bulkBuildings.prefix')}
+                  name="prefix"
+                  placeholder="Torre"
                   translateError={translateError}
                 />
                 <InputField
-                  name="count"
-                  label={t('superadmin.condominiums.wizard.bulkBuildings.count')}
-                  type="number"
-                  inputMode="numeric"
                   isRequired
+                  inputMode="numeric"
+                  label={t('superadmin.condominiums.wizard.bulkBuildings.count')}
+                  name="count"
                   translateError={translateError}
+                  type="number"
                 />
               </div>
 
               <div>
-                <Typography variant="subtitle2" className="font-medium mb-3">
+                <Typography className="font-medium mb-3" variant="subtitle2">
                   {t('superadmin.condominiums.wizard.bulkBuildings.namingPattern')}
                 </Typography>
                 <div className="flex flex-col gap-2">
-                  {namePatterns.map((p) => (
+                  {namePatterns.map(p => (
                     <PatternButton
                       key={p.value}
-                      value={p.value}
-                      label={p.label}
                       example={p.example}
+                      label={p.label}
                       selected={selectedNamePattern === p.value}
+                      value={p.value}
                       onSelect={setSelectedNamePattern}
                     />
                   ))}
@@ -700,32 +762,42 @@ export function BulkBuildingGeneratorModal({
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="flex items-center gap-1.5">
-                    <Typography variant="subtitle2" className="font-medium">
+                    <Typography className="font-medium" variant="subtitle2">
                       {t('superadmin.condominiums.wizard.bulkBuildings.codeConfig')}
                     </Typography>
-                    <Tooltip content={t('superadmin.condominiums.wizard.bulkBuildings.codeConfigHint')} placement="right" showArrow classNames={{ content: 'max-w-xs text-sm' }}>
+                    <Tooltip
+                      showArrow
+                      classNames={{ content: 'max-w-xs text-sm' }}
+                      content={t('superadmin.condominiums.wizard.bulkBuildings.codeConfigHint')}
+                      placement="right"
+                    >
                       <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
                     </Tooltip>
                   </span>
-                  <Switch size="sm" color="success" isSelected={codeEnabled} onValueChange={setCodeEnabled} />
+                  <Switch
+                    color="success"
+                    isSelected={codeEnabled}
+                    size="sm"
+                    onValueChange={setCodeEnabled}
+                  />
                 </div>
 
                 {codeEnabled && (
                   <div className="flex flex-col gap-4 mt-4 p-4 rounded-lg border border-success/30 bg-success/5">
                     <InputField
-                      name="codePrefix"
                       label={t('superadmin.condominiums.wizard.bulkBuildings.codePrefix')}
+                      name="codePrefix"
                       placeholder="T"
                       translateError={translateError}
                     />
                     <div className="flex flex-col gap-2">
-                      {codePatterns.map((p) => (
+                      {codePatterns.map(p => (
                         <PatternButton
                           key={p.value}
-                          value={p.value}
-                          label={p.label}
                           example={p.example}
+                          label={p.label}
                           selected={selectedCodePattern === p.value}
+                          value={p.value}
                           onSelect={setSelectedCodePattern}
                         />
                       ))}
@@ -739,17 +811,22 @@ export function BulkBuildingGeneratorModal({
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="flex items-center gap-1.5">
-                    <Typography variant="subtitle2" className="font-medium">
+                    <Typography className="font-medium" variant="subtitle2">
                       {t('superadmin.condominiums.wizard.bulkBuildings.generateUnits')}
                     </Typography>
-                    <Tooltip content={t('superadmin.condominiums.wizard.bulkBuildings.generateUnitsHint')} placement="right" showArrow classNames={{ content: 'max-w-xs text-sm' }}>
+                    <Tooltip
+                      showArrow
+                      classNames={{ content: 'max-w-xs text-sm' }}
+                      content={t('superadmin.condominiums.wizard.bulkBuildings.generateUnitsHint')}
+                      placement="right"
+                    >
                       <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
                     </Tooltip>
                   </span>
                   <Switch
-                    size="sm"
                     color="success"
                     isSelected={generateUnitsEnabled}
+                    size="sm"
                     onValueChange={setGenerateUnitsEnabled}
                   />
                 </div>
@@ -758,25 +835,25 @@ export function BulkBuildingGeneratorModal({
                   <div className="flex flex-col gap-5 mt-4 p-4 rounded-lg border border-success/30 bg-success/5">
                     {/* Unit Naming Pattern */}
                     <div>
-                      <Typography variant="subtitle2" className="font-medium mb-3">
+                      <Typography className="font-medium mb-3" variant="subtitle2">
                         {t('superadmin.condominiums.wizard.bulk.namingPattern')}
                       </Typography>
                       <div className="flex flex-col gap-2">
-                        {unitPatterns.map((p) => (
+                        {unitPatterns.map(p => (
                           <PatternButton
                             key={p.value}
-                            value={p.value}
-                            label={p.label}
                             example={p.example}
+                            label={p.label}
                             selected={selectedUnitPattern === p.value}
+                            value={p.value}
                             onSelect={setSelectedUnitPattern}
                           />
                         ))}
                       </div>
                       <div className="mt-5 w-32">
                         <InputField
-                          name="unitSeparator"
                           label={t('superadmin.condominiums.wizard.bulk.separator')}
+                          name="unitSeparator"
                           placeholder="-"
                           translateError={translateError}
                         />
@@ -788,42 +865,53 @@ export function BulkBuildingGeneratorModal({
                     {/* Aliquot Percentage — before floor groups */}
                     <div>
                       <span className="flex items-center gap-1.5 mb-3">
-                        <Typography variant="subtitle2" className="font-medium">
+                        <Typography className="font-medium" variant="subtitle2">
                           {t('superadmin.condominiums.wizard.bulk.aliquot')}
                         </Typography>
-                        <Tooltip content={t('superadmin.condominiums.wizard.bulk.aliquotHint')} placement="right" showArrow classNames={{ content: 'max-w-xs text-sm' }}>
+                        <Tooltip
+                          showArrow
+                          classNames={{ content: 'max-w-xs text-sm' }}
+                          content={t('superadmin.condominiums.wizard.bulk.aliquotHint')}
+                          placement="right"
+                        >
                           <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
                         </Tooltip>
                       </span>
                       <div className="flex flex-col gap-2">
                         <PatternButton
-                          value="none"
-                          label={t('superadmin.condominiums.wizard.bulk.aliquotNone')}
                           example={t('superadmin.condominiums.wizard.bulk.aliquotNoneHint')}
+                          label={t('superadmin.condominiums.wizard.bulk.aliquotNone')}
                           selected={aliquotMode === 'none'}
+                          value="none"
                           onSelect={() => setAliquotMode('none')}
                         />
                         <PatternButton
-                          value="equal"
+                          example={
+                            totalUnits > 0
+                              ? t('superadmin.condominiums.wizard.bulk.aliquotEqualHint', {
+                                  percentage: (100 / totalUnits).toFixed(4),
+                                })
+                              : t('superadmin.condominiums.wizard.bulk.aliquotEqualHint', {
+                                  percentage: '—',
+                                })
+                          }
                           label={t('superadmin.condominiums.wizard.bulk.aliquotEqual')}
-                          example={totalUnits > 0
-                            ? t('superadmin.condominiums.wizard.bulk.aliquotEqualHint', { percentage: (100 / totalUnits).toFixed(4) })
-                            : t('superadmin.condominiums.wizard.bulk.aliquotEqualHint', { percentage: '—' })}
                           selected={aliquotMode === 'equal'}
+                          value="equal"
                           onSelect={() => setAliquotMode('equal')}
                         />
                         <PatternButton
-                          value="by_area"
-                          label={t('superadmin.condominiums.wizard.bulk.aliquotByArea')}
                           example={t('superadmin.condominiums.wizard.bulk.aliquotByAreaHint')}
+                          label={t('superadmin.condominiums.wizard.bulk.aliquotByArea')}
                           selected={aliquotMode === 'by_area'}
+                          value="by_area"
                           onSelect={() => setAliquotMode('by_area')}
                         />
                         <PatternButton
-                          value="custom"
-                          label={t('superadmin.condominiums.wizard.bulk.aliquotCustom')}
                           example={t('superadmin.condominiums.wizard.bulk.aliquotCustomHint')}
+                          label={t('superadmin.condominiums.wizard.bulk.aliquotCustom')}
                           selected={aliquotMode === 'custom'}
+                          value="custom"
                           onSelect={() => setAliquotMode('custom')}
                         />
                       </div>
@@ -835,18 +923,23 @@ export function BulkBuildingGeneratorModal({
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="flex items-center gap-1.5">
-                          <Typography variant="subtitle2" className="font-medium">
+                          <Typography className="font-medium" variant="subtitle2">
                             {t('superadmin.condominiums.wizard.bulk.floorGroups')}
                           </Typography>
-                          <Tooltip content={t('superadmin.condominiums.wizard.bulk.floorGroupsHint')} placement="right" showArrow classNames={{ content: 'max-w-xs text-sm' }}>
+                          <Tooltip
+                            showArrow
+                            classNames={{ content: 'max-w-xs text-sm' }}
+                            content={t('superadmin.condominiums.wizard.bulk.floorGroupsHint')}
+                            placement="right"
+                          >
                             <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
                           </Tooltip>
                         </span>
                         <Button
-                          size="sm"
-                          variant="flat"
                           color="success"
+                          size="sm"
                           startContent={<Plus size={14} />}
+                          variant="flat"
                           onPress={addFloorGroup}
                         >
                           {t('superadmin.condominiums.wizard.bulk.addFloorGroup')}
@@ -854,84 +947,92 @@ export function BulkBuildingGeneratorModal({
                       </div>
 
                       <div className="flex flex-col gap-3 mt-3">
-                        {floorGroups.map((group) => (
+                        {floorGroups.map(group => (
                           <div key={group.id} className="flex items-center gap-2">
                             <div className="flex-1 p-3 rounded-lg border border-default-200 bg-default-50 space-y-3">
                               {/* Row 1: Floor range + units per floor */}
                               <div className="grid grid-cols-3 gap-3">
                                 <Input
                                   isRequired
-                                  size="sm"
-                                  type="number"
                                   label={t('superadmin.condominiums.wizard.bulk.floorFrom')}
+                                  size="sm"
+                                  type="number"
                                   value={group.fromFloor}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { fromFloor: v })}
+                                  onValueChange={v => updateFloorGroup(group.id, { fromFloor: v })}
                                 />
                                 <Input
                                   isRequired
-                                  size="sm"
-                                  type="number"
                                   label={t('superadmin.condominiums.wizard.bulk.floorTo')}
+                                  size="sm"
+                                  type="number"
                                   value={group.toFloor}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { toFloor: v })}
+                                  onValueChange={v => updateFloorGroup(group.id, { toFloor: v })}
                                 />
                                 <Input
                                   isRequired
+                                  label={t('superadmin.condominiums.wizard.bulk.unitsPerFloor')}
                                   size="sm"
                                   type="number"
-                                  label={t('superadmin.condominiums.wizard.bulk.unitsPerFloor')}
                                   value={group.unitsPerFloor}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { unitsPerFloor: v })}
+                                  onValueChange={v =>
+                                    updateFloorGroup(group.id, { unitsPerFloor: v })
+                                  }
                                 />
                               </div>
                               {/* Row 2: Prefix + Properties */}
                               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                 <Input
-                                  size="sm"
                                   label={t('superadmin.condominiums.wizard.bulk.unitPrefix')}
                                   placeholder={t('common.optional')}
+                                  size="sm"
                                   value={group.unitPrefix}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { unitPrefix: v })}
+                                  onValueChange={v => updateFloorGroup(group.id, { unitPrefix: v })}
                                 />
                                 <Input
-                                  size="sm"
+                                  isRequired={aliquotMode === 'by_area'}
                                   label={t('superadmin.condominiums.detail.units.form.area')}
                                   placeholder="m²"
+                                  size="sm"
                                   value={group.areaM2}
-                                  isRequired={aliquotMode === 'by_area'}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { areaM2: v })}
+                                  onValueChange={v => updateFloorGroup(group.id, { areaM2: v })}
                                 />
                                 <Input
-                                  size="sm"
-                                  type="number"
                                   label={t('superadmin.condominiums.detail.units.form.bedrooms')}
-                                  value={group.bedrooms}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { bedrooms: v })}
-                                />
-                                <Input
                                   size="sm"
                                   type="number"
+                                  value={group.bedrooms}
+                                  onValueChange={v => updateFloorGroup(group.id, { bedrooms: v })}
+                                />
+                                <Input
                                   label={t('superadmin.condominiums.detail.units.form.bathrooms')}
+                                  size="sm"
+                                  type="number"
                                   value={group.bathrooms}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { bathrooms: v })}
+                                  onValueChange={v => updateFloorGroup(group.id, { bathrooms: v })}
                                 />
                               </div>
                               {/* Row 3: Parking + Aliquot (if custom) */}
                               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                 <Input
+                                  label={t(
+                                    'superadmin.condominiums.detail.units.form.parkingSpaces'
+                                  )}
                                   size="sm"
                                   type="number"
-                                  label={t('superadmin.condominiums.detail.units.form.parkingSpaces')}
                                   value={group.parkingSpaces}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { parkingSpaces: v })}
+                                  onValueChange={v =>
+                                    updateFloorGroup(group.id, { parkingSpaces: v })
+                                  }
                                 />
                                 {aliquotMode === 'custom' && (
                                   <Input
-                                    size="sm"
                                     label={t('superadmin.condominiums.wizard.bulk.aliquot')}
                                     placeholder="%"
+                                    size="sm"
                                     value={group.aliquotPercentage}
-                                    onValueChange={(v) => updateFloorGroup(group.id, { aliquotPercentage: v })}
+                                    onValueChange={v =>
+                                      updateFloorGroup(group.id, { aliquotPercentage: v })
+                                    }
                                   />
                                 )}
                               </div>
@@ -939,9 +1040,9 @@ export function BulkBuildingGeneratorModal({
                             {floorGroups.length > 1 && (
                               <Button
                                 isIconOnly
+                                color="danger"
                                 size="sm"
                                 variant="light"
-                                color="danger"
                                 onPress={() => removeFloorGroup(group.id)}
                               >
                                 <Trash2 size={14} />
@@ -952,7 +1053,7 @@ export function BulkBuildingGeneratorModal({
                       </div>
 
                       {floorGroupError && (
-                        <Typography variant="caption" className="text-danger mt-2 block">
+                        <Typography className="text-danger mt-2 block" variant="caption">
                           {t(floorGroupError)}
                         </Typography>
                       )}
@@ -965,15 +1066,15 @@ export function BulkBuildingGeneratorModal({
 
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <Typography variant="subtitle2" className="font-medium">
+                  <Typography className="font-medium" variant="subtitle2">
                     {t('superadmin.condominiums.wizard.bulk.preview')}
                   </Typography>
                   <div className="flex gap-3">
-                    <Typography variant="caption" className="text-default-500">
+                    <Typography className="text-default-500" variant="caption">
                       {count} {t('superadmin.condominiums.wizard.steps.buildings').toLowerCase()}
                     </Typography>
                     {generateUnitsEnabled && totalUnits > 0 && (
-                      <Typography variant="caption" className="text-success-600 font-medium">
+                      <Typography className="text-success-600 font-medium" variant="caption">
                         {totalUnits} {t('superadmin.condominiums.wizard.units.label')}
                       </Typography>
                     )}
@@ -1024,7 +1125,7 @@ export function BulkBuildingGeneratorModal({
           <Button variant="bordered" onPress={onClose}>
             {t('common.cancel')}
           </Button>
-          <Button color="success" onPress={handleGenerate} isDisabled={count === 0}>
+          <Button color="success" isDisabled={count === 0} onPress={handleGenerate}>
             {t('superadmin.condominiums.wizard.bulkBuildings.generate', { count })}
           </Button>
         </ModalFooter>

@@ -1,5 +1,6 @@
-import { getTranslations } from '@/libs/i18n/server'
 import { getUserFullDetails } from '@packages/http-client/hooks'
+
+import { getTranslations } from '@/libs/i18n/server'
 import { getServerAuthToken } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
 import { Card } from '@/ui/components/card'
@@ -18,6 +19,7 @@ export default async function UserGeneralPage({ params }: PageProps) {
 
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return t('superadmin.users.detail.general.never')
+
     return new Date(date).toLocaleDateString('es', {
       day: '2-digit',
       month: 'long',
@@ -33,14 +35,14 @@ export default async function UserGeneralPage({ params }: PageProps) {
     <div className="space-y-6">
       <div>
         <Typography variant="h3">{t('superadmin.users.detail.general.title')}</Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
+        <Typography className="mt-1" color="muted" variant="body2">
           {t('superadmin.users.detail.general.subtitle')}
         </Typography>
       </div>
 
       {/* Basic Info */}
       <Card className="p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('superadmin.users.detail.general.basicInfo')}
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -56,10 +58,7 @@ export default async function UserGeneralPage({ params }: PageProps) {
             label={t('superadmin.users.detail.general.displayName')}
             value={user.displayName || noDataText}
           />
-          <InfoRow
-            label={t('superadmin.users.detail.general.email')}
-            value={user.email}
-          />
+          <InfoRow label={t('superadmin.users.detail.general.email')} value={user.email} />
           <InfoRow
             label={t('superadmin.users.detail.general.phone')}
             value={
@@ -77,16 +76,16 @@ export default async function UserGeneralPage({ params }: PageProps) {
             }
           />
           <InfoRow
+            className="md:col-span-2"
             label={t('superadmin.users.detail.general.address')}
             value={user.address || noDataText}
-            className="md:col-span-2"
           />
         </div>
       </Card>
 
       {/* Account Info */}
       <Card className="p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('superadmin.users.detail.general.accountInfo')}
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -134,7 +133,7 @@ function InfoRow({ label, value, valueClassName, className }: IInfoRowProps) {
       <Typography color="muted" variant="body2">
         {label}
       </Typography>
-      <Typography variant="body1" className={valueClassName}>
+      <Typography className={valueClassName} variant="body1">
         {value}
       </Typography>
     </div>

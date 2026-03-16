@@ -1,8 +1,10 @@
 'use client'
 
-import { useTranslation } from '@/contexts'
 import { SUBSCRIPTION_MENU_ITEMS } from '../config/sidebar-items'
+
 import { SubscriptionSidebarLink } from './SubscriptionSidebarLink'
+
+import { useTranslation } from '@/contexts'
 
 export function SubscriptionSidebar() {
   const { t } = useTranslation()
@@ -14,8 +16,8 @@ export function SubscriptionSidebar() {
         {SUBSCRIPTION_MENU_ITEMS.map(item => (
           <SubscriptionSidebarLink
             key={item.key}
-            href={`${basePath}${item.path}`}
             basePath={basePath}
+            href={`${basePath}${item.path}`}
             iconName={item.iconName}
             label={t(item.translationKey)}
           />

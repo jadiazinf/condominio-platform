@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+
+import { updateUserRoleStatusAction } from '../../actions'
+
 import { Switch } from '@/ui/components/switch'
 import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
 import { useToast } from '@/ui/components/toast'
-import { updateUserRoleStatusAction } from '../../actions'
 
 interface RoleStatusToggleProps {
   userId: string
@@ -58,11 +60,11 @@ export function RoleStatusToggle({
     <div className="flex items-center justify-between py-3 border-b border-default-100 last:border-0">
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <Typography variant="body1" className="font-medium">
+          <Typography className="font-medium" variant="body1">
             {roleName}
           </Typography>
           {condominiumName && (
-            <Chip size="sm" variant="flat" color="default">
+            <Chip color="default" size="sm" variant="flat">
               {condominiumName}
             </Chip>
           )}
@@ -73,10 +75,10 @@ export function RoleStatusToggle({
           {isActive ? activeLabel : inactiveLabel}
         </Chip>
         <Switch
-          isSelected={isActive}
           isDisabled={isLoading}
-          onValueChange={handleToggle}
+          isSelected={isActive}
           size={size}
+          onValueChange={handleToggle}
         />
       </div>
     </div>

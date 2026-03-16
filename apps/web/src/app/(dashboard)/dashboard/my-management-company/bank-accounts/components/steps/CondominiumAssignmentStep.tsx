@@ -1,14 +1,15 @@
 'use client'
 
-import { useMemo } from 'react'
+import type { IWizardFormData } from '../CreateBankAccountWizard'
+
+import { useCompanyCondominiumsPaginated } from '@packages/http-client'
+
 import { Switch } from '@/ui/components/switch'
 import { Checkbox } from '@/ui/components/checkbox'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
-import { useCompanyCondominiumsPaginated } from '@packages/http-client'
-import type { IWizardFormData } from '../CreateBankAccountWizard'
 
 interface CondominiumAssignmentStepProps {
   formData: IWizardFormData
@@ -40,6 +41,7 @@ export function CondominiumAssignmentStep({
 
   const handleCondominiumToggle = (condominiumId: string, checked: boolean) => {
     const current = formData.condominiumIds
+
     if (checked) {
       onUpdate({ condominiumIds: [...current, condominiumId] })
     } else {
@@ -51,7 +53,7 @@ export function CondominiumAssignmentStep({
     <div className="space-y-5 py-1">
       <div className="flex items-center justify-between p-4 rounded-lg bg-default-50 border border-default-200">
         <div>
-          <Typography variant="body1" className="font-medium">
+          <Typography className="font-medium" variant="body1">
             {t('admin.company.myCompany.bankAccounts.wizard.applyToAll')}
           </Typography>
         </div>
@@ -64,7 +66,7 @@ export function CondominiumAssignmentStep({
 
       {!formData.appliesToAllCondominiums && (
         <div>
-          <Typography variant="body2" className="font-medium mb-3">
+          <Typography className="font-medium mb-3" variant="body2">
             {t('admin.company.myCompany.bankAccounts.wizard.selectCondominiums')}
           </Typography>
 
@@ -100,8 +102,9 @@ export function CondominiumAssignmentStep({
             <div className="flex flex-wrap gap-2 mt-3">
               {formData.condominiumIds.map(id => {
                 const condo = condominiums.find(c => c.id === id)
+
                 return (
-                  <Chip key={id} color="primary" variant="flat" size="sm">
+                  <Chip key={id} color="primary" size="sm" variant="flat">
                     {condo?.name ?? id}
                   </Chip>
                 )

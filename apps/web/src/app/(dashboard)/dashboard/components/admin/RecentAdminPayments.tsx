@@ -9,9 +9,10 @@
  */
 
 import Link from 'next/link'
+import { Wallet, ArrowRight } from 'lucide-react'
+
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
-import { Wallet, ArrowRight } from 'lucide-react'
 
 interface IAdminPayment {
   id: string
@@ -81,11 +82,7 @@ export function RecentAdminPayments({ payments, translations: t }: RecentAdminPa
                   <span className="text-sm font-semibold">
                     {payment.currency} {payment.amount.toLocaleString()}
                   </span>
-                  <Chip
-                    color={STATUS_COLOR_MAP[payment.status]}
-                    size="sm"
-                    variant="flat"
-                  >
+                  <Chip color={STATUS_COLOR_MAP[payment.status]} size="sm" variant="flat">
                     {t.status[payment.status]}
                   </Chip>
                 </div>

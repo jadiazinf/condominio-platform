@@ -12,9 +12,7 @@ export interface IGetInvitationByTokenInput {
 export class GetInvitationByTokenService {
   constructor(private readonly repository: AdminInvitationsRepository) {}
 
-  async execute(
-    input: IGetInvitationByTokenInput
-  ): Promise<TServiceResult<TAdminInvitation>> {
+  async execute(input: IGetInvitationByTokenInput): Promise<TServiceResult<TAdminInvitation>> {
     const invitation = await this.repository.getByToken(input.token)
 
     if (!invitation) {

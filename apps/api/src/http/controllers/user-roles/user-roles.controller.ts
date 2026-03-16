@@ -86,7 +86,12 @@ export class UserRolesController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN)] },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.list,
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN)],
+      },
       // Superadmin endpoints (must be before :id to avoid conflicts)
       {
         method: 'get',
@@ -129,13 +134,21 @@ export class UserRolesController extends BaseController<
         method: 'get',
         path: '/user/:userId/condominium/:condominiumId',
         handler: this.getByUserAndCondominium,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(UserAndCondominiumParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(UserAndCondominiumParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/user/:userId/building/:buildingId',
         handler: this.getByUserAndBuilding,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(UserAndBuildingParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(UserAndBuildingParamSchema),
+        ],
       },
       {
         method: 'get',
@@ -152,13 +165,21 @@ export class UserRolesController extends BaseController<
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(userRoleCreateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          bodyValidator(userRoleCreateSchema),
+        ],
       },
       {
         method: 'patch',
@@ -175,7 +196,11 @@ export class UserRolesController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }
@@ -193,7 +218,10 @@ export class UserRolesController extends BaseController<
       throw AppError.notFound(t(LocaleDictionary.http.controllers.userRoles.roleNotFound))
     }
 
-    return ctx.ok({ data: entity, message: t(LocaleDictionary.http.controllers.userRoles.roleStatusUpdated) })
+    return ctx.ok({
+      data: entity,
+      message: t(LocaleDictionary.http.controllers.userRoles.roleStatusUpdated),
+    })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -229,7 +257,10 @@ export class UserRolesController extends BaseController<
     const repo = this.repository as UserRolesRepository
 
     try {
-      const userRoles = await repo.getByUserAndCondominium(ctx.params.userId, ctx.params.condominiumId)
+      const userRoles = await repo.getByUserAndCondominium(
+        ctx.params.userId,
+        ctx.params.condominiumId
+      )
       return ctx.ok({ data: userRoles })
     } catch (error) {
       return this.handleError(ctx, error)

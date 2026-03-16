@@ -64,7 +64,7 @@ describe('ListAllUsersPaginatedService', function () {
     },
   ]
 
-  const mockPaginatedResponse: TPaginatedResponse<TUserWithRoles> = {
+  const _mockPaginatedResponse: TPaginatedResponse<TUserWithRoles> = {
     data: mockUsers,
     pagination: {
       page: 1,
@@ -97,9 +97,7 @@ describe('ListAllUsersPaginatedService', function () {
 
         // Filter by roleId
         if (query.roleId) {
-          filteredUsers = filteredUsers.filter(u =>
-            u.roles.some(r => r.roleId === query.roleId)
-          )
+          filteredUsers = filteredUsers.filter(u => u.roles.some(r => r.roleId === query.roleId))
         }
 
         return {

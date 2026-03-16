@@ -1,15 +1,22 @@
 'use client'
 
+import type { IWizardFormData } from '../CreateBankAccountWizard'
+
 import { useMemo } from 'react'
+import { useBanks, useActiveCurrencies } from '@packages/http-client'
+import {
+  VE_ACCOUNT_TYPES,
+  VE_IDENTITY_DOC_TYPES,
+  NATIONAL_PAYMENT_METHODS,
+  PAYMENT_METHOD_LABELS,
+} from '@packages/domain'
+
 import { Input } from '@/ui/components/input'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Autocomplete, type IAutocompleteItem } from '@/ui/components/autocomplete'
 import { Checkbox } from '@/ui/components/checkbox'
 import { PhoneInput } from '@/ui/components/phone-input'
 import { useTranslation } from '@/contexts'
-import { useBanks, useActiveCurrencies } from '@packages/http-client'
-import { VE_ACCOUNT_TYPES, VE_IDENTITY_DOC_TYPES, NATIONAL_PAYMENT_METHODS, PAYMENT_METHOD_LABELS } from '@packages/domain'
-import type { IWizardFormData } from '../CreateBankAccountWizard'
 
 interface NationalDetailsStepProps {
   formData: IWizardFormData
@@ -64,6 +71,7 @@ export function NationalDetailsStep({ formData, onUpdate, showErrors }: National
   const handleBankChange = (key: React.Key | null) => {
     if (key) {
       const selectedBank = banks.find(b => b.id === String(key))
+
       if (selectedBank) {
         onUpdate({
           bankId: selectedBank.id,
@@ -76,6 +84,7 @@ export function NationalDetailsStep({ formData, onUpdate, showErrors }: National
 
   const handlePaymentMethodToggle = (method: string, checked: boolean) => {
     const current = formData.acceptedPaymentMethods
+
     if (checked) {
       onUpdate({ acceptedPaymentMethods: [...current, method] })
     } else {
@@ -86,126 +95,149 @@ export function NationalDetailsStep({ formData, onUpdate, showErrors }: National
   return (
     <div className="flex flex-col gap-5">
       <Autocomplete
+        isRequired
         aria-label={t('admin.company.myCompany.bankAccounts.wizard.bank')}
-        label={t('admin.company.myCompany.bankAccounts.wizard.bank')}
+        errorMessage={showErrors && !formData.bankId ? t(`${V_PREFIX}.bankRequired`) : undefined}
+        isInvalid={showErrors && !formData.bankId}
         items={bankItems}
+        label={t('admin.company.myCompany.bankAccounts.wizard.bank')}
+        placeholder={t('admin.company.myCompany.bankAccounts.wizard.selectBank')}
         value={formData.bankId ?? null}
         onSelectionChange={handleBankChange}
-        isRequired
-        placeholder={t('admin.company.myCompany.bankAccounts.wizard.selectBank')}
-        isInvalid={showErrors && !formData.bankId}
-        errorMessage={showErrors && !formData.bankId ? t(`${V_PREFIX}.bankRequired`) : undefined}
       />
 
       <div className="flex gap-3 items-start">
         <Input
-          label={t('admin.company.myCompany.bankAccounts.wizard.bankCode')}
-          aria-label={t('admin.company.myCompany.bankAccounts.wizard.bankCode')}
-          value={formData.bankCode ?? ''}
           isReadOnly
+          aria-label={t('admin.company.myCompany.bankAccounts.wizard.bankCode')}
           className="w-[100px] shrink-0"
+          label={t('admin.company.myCompany.bankAccounts.wizard.bankCode')}
           placeholder="0000"
+          value={formData.bankCode ?? ''}
         />
         <Input
-          label={t('admin.company.myCompany.bankAccounts.wizard.accountNumber')}
-          placeholder="0100011234567890"
-          value={formData.accountNumber ?? ''}
-          onValueChange={v => onUpdate({ accountNumber: v.replace(/\D/g, '') })}
-          maxLength={16}
-          inputMode="numeric"
           isRequired
           className="flex-1"
-          isInvalid={
-            (!!formData.accountNumber && formData.accountNumber.length > 0 && formData.accountNumber.length !== 16) ||
-            (showErrors && !formData.accountNumber)
-          }
           errorMessage={
-            formData.accountNumber && formData.accountNumber.length > 0 && formData.accountNumber.length !== 16
-              ? t(`${V_PREFIX}.accountNumberLength`, { remaining: 16 - formData.accountNumber.length })
+            formData.accountNumber &&
+            formData.accountNumber.length > 0 &&
+            formData.accountNumber.length !== 16
+              ? t(`${V_PREFIX}.accountNumberLength`, {
+                  remaining: 16 - formData.accountNumber.length,
+                })
               : showErrors && !formData.accountNumber
                 ? t(`${V_PREFIX}.accountNumberRequired`)
                 : undefined
           }
+          inputMode="numeric"
+          isInvalid={
+            (!!formData.accountNumber &&
+              formData.accountNumber.length > 0 &&
+              formData.accountNumber.length !== 16) ||
+            (showErrors && !formData.accountNumber)
+          }
+          label={t('admin.company.myCompany.bankAccounts.wizard.accountNumber')}
+          maxLength={16}
+          placeholder="0100011234567890"
+          value={formData.accountNumber ?? ''}
+          onValueChange={v => onUpdate({ accountNumber: v.replace(/\D/g, '') })}
         />
       </div>
 
       <Select
+        isRequired
         aria-label={t('admin.company.myCompany.bankAccounts.wizard.accountType')}
-        label={t('admin.company.myCompany.bankAccounts.wizard.accountType')}
+        errorMessage={
+          showErrors && !formData.accountType ? t(`${V_PREFIX}.accountTypeRequired`) : undefined
+        }
+        isInvalid={showErrors && !formData.accountType}
         items={accountTypeItems}
+        label={t('admin.company.myCompany.bankAccounts.wizard.accountType')}
+        placeholder={t('admin.company.myCompany.bankAccounts.wizard.selectOption')}
         value={formData.accountType ?? ''}
         onChange={v => onUpdate({ accountType: v ?? undefined })}
-        placeholder={t('admin.company.myCompany.bankAccounts.wizard.selectOption')}
-        isRequired
-        isInvalid={showErrors && !formData.accountType}
-        errorMessage={showErrors && !formData.accountType ? t(`${V_PREFIX}.accountTypeRequired`) : undefined}
       />
 
       <Select
+        isRequired
         aria-label={t('admin.company.myCompany.bankAccounts.wizard.currency')}
-        label={t('admin.company.myCompany.bankAccounts.wizard.currency')}
+        errorMessage={
+          showErrors && !formData.currencyId ? t(`${V_PREFIX}.currencyRequired`) : undefined
+        }
+        isInvalid={showErrors && !formData.currencyId}
         items={currencyItems}
+        label={t('admin.company.myCompany.bankAccounts.wizard.currency')}
+        placeholder={t('admin.company.myCompany.bankAccounts.wizard.selectOption')}
         value={formData.currencyId ?? ''}
         onChange={v => {
           const selected = currencies.find(c => c.id === v)
+
           if (selected) {
             onUpdate({ currencyId: selected.id, currency: selected.code })
           }
         }}
-        placeholder={t('admin.company.myCompany.bankAccounts.wizard.selectOption')}
-        isRequired
-        isInvalid={showErrors && !formData.currencyId}
-        errorMessage={showErrors && !formData.currencyId ? t(`${V_PREFIX}.currencyRequired`) : undefined}
       />
 
       <Input
+        isRequired
+        errorMessage={
+          showErrors && !formData.accountHolderName
+            ? t(`${V_PREFIX}.accountHolderRequired`)
+            : undefined
+        }
+        isInvalid={showErrors && !formData.accountHolderName}
         label={t('admin.company.myCompany.bankAccounts.wizard.accountHolderName')}
+        placeholder="Condominio Los Pinos C.A."
         value={formData.accountHolderName}
         onValueChange={v => onUpdate({ accountHolderName: v })}
-        placeholder="Condominio Los Pinos C.A."
-        isRequired
-        isInvalid={showErrors && !formData.accountHolderName}
-        errorMessage={showErrors && !formData.accountHolderName ? t(`${V_PREFIX}.accountHolderRequired`) : undefined}
       />
 
       <div className="flex gap-3 items-start">
         <Select
+          isRequired
           aria-label={t('admin.company.myCompany.bankAccounts.wizard.identityDocType')}
-          label={t('admin.company.myCompany.bankAccounts.wizard.identityDocType')}
+          className="w-[120px] shrink-0"
+          errorMessage={
+            showErrors && !formData.identityDocType
+              ? t(`${V_PREFIX}.identityDocTypeRequired`)
+              : undefined
+          }
+          isInvalid={showErrors && !formData.identityDocType}
           items={identityDocTypeItems}
+          label={t('admin.company.myCompany.bankAccounts.wizard.identityDocType')}
+          placeholder={t('admin.company.myCompany.bankAccounts.wizard.selectOption')}
           value={formData.identityDocType ?? ''}
           onChange={v => onUpdate({ identityDocType: v ?? undefined })}
-          placeholder={t('admin.company.myCompany.bankAccounts.wizard.selectOption')}
-          isRequired
-          className="w-[120px] shrink-0"
-          isInvalid={showErrors && !formData.identityDocType}
-          errorMessage={showErrors && !formData.identityDocType ? t(`${V_PREFIX}.identityDocTypeRequired`) : undefined}
         />
         <Input
-          label={t('admin.company.myCompany.bankAccounts.wizard.identityDocNumber')}
-          value={formData.identityDocNumber ?? ''}
-          onValueChange={v => onUpdate({ identityDocNumber: v.replace(/\D/g, '') })}
-          placeholder="12345678"
-          inputMode="numeric"
           isRequired
           className="flex-1"
+          errorMessage={
+            showErrors && !formData.identityDocNumber
+              ? t(`${V_PREFIX}.identityDocRequired`)
+              : undefined
+          }
+          inputMode="numeric"
           isInvalid={showErrors && !formData.identityDocNumber}
-          errorMessage={showErrors && !formData.identityDocNumber ? t(`${V_PREFIX}.identityDocRequired`) : undefined}
+          label={t('admin.company.myCompany.bankAccounts.wizard.identityDocNumber')}
+          placeholder="12345678"
+          value={formData.identityDocNumber ?? ''}
+          onValueChange={v => onUpdate({ identityDocNumber: v.replace(/\D/g, '') })}
         />
       </div>
 
       <PhoneInput
-        label={t('admin.company.myCompany.bankAccounts.wizard.phoneNumber')}
         countryCode={formData.phoneCountryCode ?? '+58'}
-        phoneNumber={formData.phoneNumber ?? ''}
-        onCountryCodeChange={code => onUpdate({ phoneCountryCode: code ?? '+58' })}
-        onPhoneNumberChange={v => onUpdate({ phoneNumber: v })}
         isRequired={isPagoMovilSelected}
+        label={t('admin.company.myCompany.bankAccounts.wizard.phoneNumber')}
+        phoneNumber={formData.phoneNumber ?? ''}
         phoneNumberError={
           showErrors && isPagoMovilSelected && !formData.phoneNumber
             ? t(`${V_PREFIX}.phoneRequiredForPagoMovil`)
             : undefined
         }
+        onCountryCodeChange={code => onUpdate({ phoneCountryCode: code ?? '+58' })}
+        onPhoneNumberChange={v => onUpdate({ phoneNumber: v })}
       />
 
       {/* Payment Methods */}

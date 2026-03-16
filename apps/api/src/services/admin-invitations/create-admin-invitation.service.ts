@@ -1,5 +1,9 @@
 import type { TAdminInvitation, TUser, TManagementCompany } from '@packages/domain'
-import type { AdminInvitationsRepository, UsersRepository, ManagementCompaniesRepository } from '@database/repositories'
+import type {
+  AdminInvitationsRepository,
+  UsersRepository,
+  ManagementCompaniesRepository,
+} from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 import { generateSecureToken, hashToken, calculateExpirationDate } from '../../utils/token'
 
@@ -52,10 +56,7 @@ export class CreateAdminInvitationService {
       input.managementCompanyId
     )
     if (hasPending) {
-      return failure(
-        'An active invitation already exists for this user and company',
-        'CONFLICT'
-      )
+      return failure('An active invitation already exists for this user and company', 'CONFLICT')
     }
 
     // Generate secure token

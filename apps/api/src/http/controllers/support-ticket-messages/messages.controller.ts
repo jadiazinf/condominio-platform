@@ -10,7 +10,10 @@ import {
   type TAttachment,
   ESystemRole,
 } from '@packages/domain'
-import type { SupportTicketMessagesRepository, SupportTicketsRepository } from '@database/repositories'
+import type {
+  SupportTicketMessagesRepository,
+  SupportTicketsRepository,
+} from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
@@ -51,7 +54,6 @@ export class SupportTicketMessagesController extends BaseController<
   ) {
     super(repository)
     this.createService = new CreateMessageService(db, repository, ticketsRepository)
-
   }
 
   get routes(): TRouteDefinition[] {
@@ -86,7 +88,11 @@ export class SupportTicketMessagesController extends BaseController<
         method: 'delete',
         path: '/platform/support-ticket-messages/:id',
         handler: this.delete,
-        middlewares: [isUserAuthenticated, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          isUserAuthenticated,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }
@@ -109,7 +115,11 @@ export class SupportTicketMessagesController extends BaseController<
   }
 
   private createMessage = async (c: Context): Promise<Response> => {
-    const ctx = this.ctx<Omit<TSupportTicketMessageCreate, 'ticketId' | 'userId'>, unknown, TTicketIdParam>(c)
+    const ctx = this.ctx<
+      Omit<TSupportTicketMessageCreate, 'ticketId' | 'userId'>,
+      unknown,
+      TTicketIdParam
+    >(c)
     const user = ctx.getAuthenticatedUser()
     const t = useTranslation(c)
 
@@ -146,9 +156,13 @@ export class SupportTicketMessagesController extends BaseController<
         if (result.error.includes('Ticket not found')) {
           translatedError = t(LocaleDictionary.http.controllers.supportTickets.ticketNotFound)
         } else if (result.error.includes('closed or cancelled')) {
-          translatedError = t(LocaleDictionary.http.controllers.supportTickets.cannotAddMessageToClosed)
+          translatedError = t(
+            LocaleDictionary.http.controllers.supportTickets.cannotAddMessageToClosed
+          )
         } else if (result.error.includes('Failed to retrieve')) {
-          translatedError = t(LocaleDictionary.http.controllers.supportTickets.failedToCreateMessage)
+          translatedError = t(
+            LocaleDictionary.http.controllers.supportTickets.failedToCreateMessage
+          )
         } else {
           translatedError = t(LocaleDictionary.http.controllers.supportTickets.operationFailed)
         }

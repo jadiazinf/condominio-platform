@@ -1,7 +1,12 @@
 'use client'
 
+import type { TSuperadminPermissionDetail } from '@packages/http-client/hooks'
+
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { Shield, AlertTriangle } from 'lucide-react'
+
+import { toggleUserPermissionAction } from '../../actions'
+
 import { Tabs, Tab } from '@/ui/components/tabs'
 import { Switch } from '@/ui/components/switch'
 import { Typography } from '@/ui/components/typography'
@@ -9,8 +14,6 @@ import { Card } from '@/ui/components/card'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { useToast } from '@/ui/components/toast'
 import { useTranslation } from '@/contexts'
-import { toggleUserPermissionAction } from '../../actions'
-import type { TSuperadminPermissionDetail } from '@packages/http-client/hooks'
 
 interface IPermissionRow {
   id: string
@@ -41,33 +44,44 @@ export function PermissionsTable({
   const isOwnProfile = currentUserId === userId
 
   // Helper to get translated module name
-  const getModuleLabel = useCallback((module: string) => {
-    const key = `superadmin.users.detail.permissions.modules.${module.toLowerCase()}`
-    const translated = t(key)
-    if (translated && translated !== key) {
-      return translated
-    }
-    return module
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ')
-  }, [t])
+  const getModuleLabel = useCallback(
+    (module: string) => {
+      const key = `superadmin.users.detail.permissions.modules.${module.toLowerCase()}`
+      const translated = t(key)
+
+      if (translated && translated !== key) {
+        return translated
+      }
+
+      return module
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ')
+    },
+    [t]
+  )
 
   // Helper to get translated action name
-  const getActionLabel = useCallback((action: string) => {
-    const key = `superadmin.users.detail.permissions.actions.${action.toLowerCase()}`
-    const translated = t(key)
-    if (translated && translated !== key) {
-      return translated
-    }
-    return action
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ')
-  }, [t])
+  const getActionLabel = useCallback(
+    (action: string) => {
+      const key = `superadmin.users.detail.permissions.actions.${action.toLowerCase()}`
+      const translated = t(key)
+
+      if (translated && translated !== key) {
+        return translated
+      }
+
+      return action
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ')
+    },
+    [t]
+  )
 
   const permissions: IPermissionRow[] = useMemo(() => {
     if (!rawPermissions) return []
+
     return rawPermissions.map(p => ({
       id: p.id,
       permissionId: p.permissionId,
@@ -81,12 +95,14 @@ export function PermissionsTable({
   // Group permissions by module
   const groupedPermissions = useMemo(() => {
     const groups: Record<string, IPermissionRow[]> = {}
+
     permissions.forEach(p => {
       if (!groups[p.module]) {
         groups[p.module] = []
       }
       groups[p.module].push(p)
     })
+
     return groups
   }, [permissions])
 
@@ -130,31 +146,46 @@ export function PermissionsTable({
   )
 
   // Helper to get translated permission description
-  const getPermissionDescription = useCallback((row: IPermissionRow) => {
-    const moduleLabel = getModuleLabel(row.module)
-    const actionLabel = getActionLabel(row.action)
-    return `${actionLabel} ${moduleLabel.toLowerCase()}`
-  }, [getModuleLabel, getActionLabel])
+  const getPermissionDescription = useCallback(
+    (row: IPermissionRow) => {
+      const moduleLabel = getModuleLabel(row.module)
+      const actionLabel = getActionLabel(row.action)
 
-  const renderCell = useCallback((row: IPermissionRow, columnKey: string | number | symbol) => {
-    switch (String(columnKey)) {
-      case 'action':
-        return <span className="font-medium">{getActionLabel(row.action)}</span>
-      case 'description':
-        return <span className="text-default-600">{getPermissionDescription(row)}</span>
-      case 'status':
-        return (
-          <Switch
-            isSelected={row.isEnabled}
-            isDisabled={isOwnProfile || togglingPermissionId === row.permissionId}
-            onValueChange={(isEnabled: boolean) => handleTogglePermission(row.permissionId, isEnabled)}
-            size="sm"
-          />
-        )
-      default:
-        return null
-    }
-  }, [getActionLabel, getPermissionDescription, isOwnProfile, togglingPermissionId, handleTogglePermission])
+      return `${actionLabel} ${moduleLabel.toLowerCase()}`
+    },
+    [getModuleLabel, getActionLabel]
+  )
+
+  const renderCell = useCallback(
+    (row: IPermissionRow, columnKey: string | number | symbol) => {
+      switch (String(columnKey)) {
+        case 'action':
+          return <span className="font-medium">{getActionLabel(row.action)}</span>
+        case 'description':
+          return <span className="text-default-600">{getPermissionDescription(row)}</span>
+        case 'status':
+          return (
+            <Switch
+              isDisabled={isOwnProfile || togglingPermissionId === row.permissionId}
+              isSelected={row.isEnabled}
+              size="sm"
+              onValueChange={(isEnabled: boolean) =>
+                handleTogglePermission(row.permissionId, isEnabled)
+              }
+            />
+          )
+        default:
+          return null
+      }
+    },
+    [
+      getActionLabel,
+      getPermissionDescription,
+      isOwnProfile,
+      togglingPermissionId,
+      handleTogglePermission,
+    ]
+  )
 
   return (
     <div className="space-y-6">
@@ -181,25 +212,26 @@ export function PermissionsTable({
           <div className="overflow-x-auto">
             <Tabs
               aria-label={t('superadmin.users.detail.permissions.title')}
-              selectedKey={selectedModule}
-              onSelectionChange={key => setSelectedModule(key as string)}
-              variant="underlined"
-              isVertical={false}
               classNames={{
                 base: 'w-full',
-                tabList: 'gap-4 w-full relative rounded-none p-0 border-b border-divider flex-nowrap overflow-x-auto',
+                tabList:
+                  'gap-4 w-full relative rounded-none p-0 border-b border-divider flex-nowrap overflow-x-auto',
                 tab: 'max-w-fit px-4 h-10 whitespace-nowrap',
                 cursor: 'bg-primary',
                 panel: 'pt-4',
               }}
+              isVertical={false}
+              selectedKey={selectedModule}
+              variant="underlined"
+              onSelectionChange={key => setSelectedModule(key as string)}
             >
               {moduleNames.map(module => (
                 <Tab key={module} title={getModuleLabel(module)}>
                   <Table<IPermissionRow>
                     aria-label={`${t('superadmin.users.detail.permissions.title')} - ${getModuleLabel(module)}`}
                     columns={tableColumns}
-                    rows={groupedPermissions[module] || []}
                     renderCell={renderCell}
+                    rows={groupedPermissions[module] || []}
                   />
                 </Tab>
               ))}

@@ -11,12 +11,15 @@ import { BaseRepository } from './base'
 
 type TServiceExecutionRecord = typeof serviceExecutions.$inferSelect
 
-export class ServiceExecutionsRepository extends BaseRepository<
-  typeof serviceExecutions,
-  TServiceExecution,
-  TServiceExecutionCreate,
-  TServiceExecutionUpdate
-> implements IRepositoryWithHardDelete<TServiceExecution, TServiceExecutionCreate, TServiceExecutionUpdate>
+export class ServiceExecutionsRepository
+  extends BaseRepository<
+    typeof serviceExecutions,
+    TServiceExecution,
+    TServiceExecutionCreate,
+    TServiceExecutionUpdate
+  >
+  implements
+    IRepositoryWithHardDelete<TServiceExecution, TServiceExecutionCreate, TServiceExecutionUpdate>
 {
   constructor(db: TDrizzleClient) {
     super(db, serviceExecutions)
@@ -128,7 +131,10 @@ export class ServiceExecutionsRepository extends BaseRepository<
    * Hard delete an execution by ID (physical deletion).
    */
   override async hardDelete(id: string): Promise<boolean> {
-    const results = await this.db.delete(serviceExecutions).where(eq(serviceExecutions.id, id)).returning()
+    const results = await this.db
+      .delete(serviceExecutions)
+      .where(eq(serviceExecutions.id, id))
+      .returning()
     return results.length > 0
   }
 }

@@ -1,5 +1,10 @@
 import { and, eq, desc, gte, lte, sql } from 'drizzle-orm'
-import type { TExchangeRate, TExchangeRateCreate, TExchangeRateUpdate, TPaginatedResponse } from '@packages/domain'
+import type {
+  TExchangeRate,
+  TExchangeRateCreate,
+  TExchangeRateUpdate,
+  TPaginatedResponse,
+} from '@packages/domain'
 import { exchangeRates } from '../drizzle/schema'
 import type { TDrizzleClient } from './interfaces'
 import { BaseRepository } from './base'
@@ -10,14 +15,12 @@ type TExchangeRateRecord = typeof exchangeRates.$inferSelect
  * Repository for managing exchange rate entities.
  * Uses soft delete via isActive flag.
  */
-export class ExchangeRatesRepository
-  extends BaseRepository<
-    typeof exchangeRates,
-    TExchangeRate,
-    TExchangeRateCreate,
-    TExchangeRateUpdate
-  >
-{
+export class ExchangeRatesRepository extends BaseRepository<
+  typeof exchangeRates,
+  TExchangeRate,
+  TExchangeRateCreate,
+  TExchangeRateUpdate
+> {
   constructor(db: TDrizzleClient) {
     super(db, exchangeRates)
   }
@@ -70,12 +73,7 @@ export class ExchangeRatesRepository
     const results = await this.db
       .select()
       .from(exchangeRates)
-      .where(
-        and(
-          eq(exchangeRates.effectiveDate, effectiveDate),
-          eq(exchangeRates.isActive, true)
-        )
-      )
+      .where(and(eq(exchangeRates.effectiveDate, effectiveDate), eq(exchangeRates.isActive, true)))
 
     return results.map(record => this.mapToEntity(record))
   }
@@ -124,12 +122,7 @@ export class ExchangeRatesRepository
         maxDate: sql<string>`max(${exchangeRates.effectiveDate})`.as('max_date'),
       })
       .from(exchangeRates)
-      .where(
-        and(
-          eq(exchangeRates.isActive, true),
-          lte(exchangeRates.effectiveDate, date)
-        )
-      )
+      .where(and(eq(exchangeRates.isActive, true), lte(exchangeRates.effectiveDate, date)))
       .groupBy(exchangeRates.fromCurrencyId, exchangeRates.toCurrencyId)
       .as('effective')
 
@@ -159,7 +152,8 @@ export class ExchangeRatesRepository
     const offset = (page - 1) * limit
 
     const conditions = []
-    if (query.fromCurrencyId) conditions.push(eq(exchangeRates.fromCurrencyId, query.fromCurrencyId))
+    if (query.fromCurrencyId)
+      conditions.push(eq(exchangeRates.fromCurrencyId, query.fromCurrencyId))
     if (query.toCurrencyId) conditions.push(eq(exchangeRates.toCurrencyId, query.toCurrencyId))
     if (query.dateFrom) conditions.push(gte(exchangeRates.effectiveDate, query.dateFrom))
     if (query.dateTo) conditions.push(lte(exchangeRates.effectiveDate, query.dateTo))

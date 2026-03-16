@@ -26,9 +26,7 @@ export const bankAccounts = pgTable(
     currency: varchar('currency', { length: 3 }).notNull(),
     currencyId: uuid('currency_id').references(() => currencies.id, { onDelete: 'restrict' }),
     accountDetails: jsonb('account_details').notNull(),
-    acceptedPaymentMethods: bankPaymentMethodEnum('accepted_payment_methods')
-      .array()
-      .notNull(),
+    acceptedPaymentMethods: bankPaymentMethodEnum('accepted_payment_methods').array().notNull(),
     appliesToAllCondominiums: boolean('applies_to_all_condominiums').default(false),
     isActive: boolean('is_active').default(true),
     notes: text('notes'),

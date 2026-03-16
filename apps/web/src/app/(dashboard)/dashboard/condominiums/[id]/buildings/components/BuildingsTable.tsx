@@ -1,9 +1,13 @@
 'use client'
 
+import type { TBuilding } from '@packages/domain'
+
 import { useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import type { TBuilding } from '@packages/domain'
 import { Building2, Plus, Trash2 } from 'lucide-react'
+import { useToggleBuildingStatus } from '@packages/http-client/hooks'
+
+import { BuildingModal } from './BuildingModal'
 
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Card, CardBody } from '@/ui/components/card'
@@ -12,9 +16,6 @@ import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
 import { useDisclosure } from '@/ui/components/modal'
 import { useToast } from '@/ui/components/toast'
-
-import { BuildingModal } from './BuildingModal'
-import { useToggleBuildingStatus } from '@packages/http-client/hooks'
 
 type TBuildingRow = TBuilding & { id: string }
 
@@ -139,7 +140,7 @@ export function BuildingsTable({
           return building.unitsCount ?? '-'
         case 'status':
           return (
-            <Chip color={building.isActive ? 'success' : 'default'} variant="flat" size="sm">
+            <Chip color={building.isActive ? 'success' : 'default'} size="sm" variant="flat">
               {building.isActive ? translations.status.active : translations.status.inactive}
             </Chip>
           )
@@ -148,11 +149,11 @@ export function BuildingsTable({
             <div className="flex items-center justify-end">
               <Button
                 isIconOnly
+                color="danger"
+                isDisabled={toggleStatusMutation.isPending}
                 size="sm"
                 variant="light"
-                color="danger"
                 onPress={() => handleToggleStatus(building)}
-                isDisabled={toggleStatusMutation.isPending}
               >
                 <Trash2 size={14} />
               </Button>
@@ -162,11 +163,7 @@ export function BuildingsTable({
           return null
       }
     },
-    [
-      translations.status,
-      handleToggleStatus,
-      toggleStatusMutation.isPending,
-    ]
+    [translations.status, handleToggleStatus, toggleStatusMutation.isPending]
   )
 
   // Empty state
@@ -176,10 +173,10 @@ export function BuildingsTable({
         <Card className="p-12">
           <div className="flex flex-col items-center justify-center text-center">
             <Building2 className="mb-4 text-default-300" size={48} />
-            <Typography variant="h4" className="mb-2">
+            <Typography className="mb-2" variant="h4">
               {translations.noBuildings}
             </Typography>
-            <Typography color="muted" variant="body2" className="mb-6">
+            <Typography className="mb-6" color="muted" variant="body2">
               {translations.noBuildingsDescription}
             </Typography>
             <Button color="primary" startContent={<Plus size={16} />} onPress={onCreateModalOpen}>
@@ -189,11 +186,11 @@ export function BuildingsTable({
         </Card>
 
         <BuildingModal
-          isOpen={isCreateModalOpen}
-          onClose={onCreateModalClose}
           condominiumId={condominiumId}
-          translations={translations.buildingModal}
+          isOpen={isCreateModalOpen}
           translateError={translateError}
+          translations={translations.buildingModal}
+          onClose={onCreateModalClose}
         />
       </>
     )
@@ -204,16 +201,16 @@ export function BuildingsTable({
       {/* Desktop Table */}
       <div className="hidden md:block">
         <Table<TBuildingRow>
-          mobileCards={false}
           aria-label="Buildings"
-          columns={columns}
-          rows={buildings}
-          renderCell={renderCell}
-          onRowClick={handleRowClick}
           classNames={{
             wrapper: 'shadow-sm',
             tr: 'hover:bg-default-50',
           }}
+          columns={columns}
+          mobileCards={false}
+          renderCell={renderCell}
+          rows={buildings}
+          onRowClick={handleRowClick}
         />
       </div>
 
@@ -222,8 +219,8 @@ export function BuildingsTable({
         {buildings.map(building => (
           <Card
             key={building.id}
-            className="w-full cursor-pointer"
             isPressable
+            className="w-full cursor-pointer"
             onPress={() => handleRowClick(building)}
           >
             <CardBody>
@@ -239,7 +236,7 @@ export function BuildingsTable({
                     )}
                   </div>
                 </div>
-                <Chip color={building.isActive ? 'success' : 'default'} variant="flat" size="sm">
+                <Chip color={building.isActive ? 'success' : 'default'} size="sm" variant="flat">
                   {building.isActive ? translations.status.active : translations.status.inactive}
                 </Chip>
               </div>
@@ -263,13 +260,12 @@ export function BuildingsTable({
 
       {/* Modals */}
       <BuildingModal
-        isOpen={isCreateModalOpen}
-        onClose={onCreateModalClose}
         condominiumId={condominiumId}
-        translations={translations.buildingModal}
+        isOpen={isCreateModalOpen}
         translateError={translateError}
+        translations={translations.buildingModal}
+        onClose={onCreateModalClose}
       />
-
     </div>
   )
 }

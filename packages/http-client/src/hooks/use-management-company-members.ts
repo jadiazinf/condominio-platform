@@ -450,7 +450,10 @@ export type TMemberDetailRelatedUser = {
   email: string
 }
 
-export type TMemberDetail = Omit<TManagementCompanyMember, 'user' | 'invitedByUser' | 'deactivatedByUser' | 'managementCompany'> & {
+export type TMemberDetail = Omit<
+  TManagementCompanyMember,
+  'user' | 'invitedByUser' | 'deactivatedByUser' | 'managementCompany'
+> & {
   user: TMemberDetailUser | null
   invitedByUser: TMemberDetailRelatedUser | null
   deactivatedByUser: TMemberDetailRelatedUser | null
@@ -482,7 +485,7 @@ export function useMyCompanyMemberDetail(
   return useApiQuery<TApiDataResponse<TMemberDetail>>({
     path: `/platform/management-companies/${companyId}/me/members/${memberId}`,
     queryKey: managementCompanyMemberKeys.detail(memberId),
-    enabled: (options?.enabled !== false) && !!companyId && !!memberId,
+    enabled: options?.enabled !== false && !!companyId && !!memberId,
   })
 }
 
@@ -498,7 +501,7 @@ export function useMyCompanyMemberAuditLogs(
   return useApiQuery<TApiDataResponse<TAuditLogEntry[]>>({
     path: `/platform/management-companies/${companyId}/me/members/${memberId}/audit-logs`,
     queryKey: managementCompanyMemberKeys.auditLogs(memberId),
-    enabled: (options?.enabled !== false) && !!companyId && !!memberId,
+    enabled: options?.enabled !== false && !!companyId && !!memberId,
   })
 }
 
@@ -591,7 +594,7 @@ export function useMyCompanyMemberAuditLogsPaginated(
   return useApiQuery<TApiPaginatedResponse<TAuditLogEntry>>({
     path,
     queryKey: managementCompanyMemberKeys.auditLogsPaginated(memberId, { ...query }),
-    enabled: (options?.enabled !== false) && !!companyId && !!memberId,
+    enabled: options?.enabled !== false && !!companyId && !!memberId,
   })
 }
 
@@ -608,6 +611,6 @@ export function useMyCompanyMemberAuditLogDetail(
   return useApiQuery<TApiDataResponse<TAuditLogEntry>>({
     path: `/platform/management-companies/${companyId}/me/members/${memberId}/audit-logs/${logId}`,
     queryKey: managementCompanyMemberKeys.auditLogDetail(logId),
-    enabled: (options?.enabled !== false) && !!companyId && !!memberId && !!logId,
+    enabled: options?.enabled !== false && !!companyId && !!memberId && !!logId,
   })
 }

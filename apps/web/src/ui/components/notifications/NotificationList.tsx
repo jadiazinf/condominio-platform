@@ -2,10 +2,11 @@
 
 import type { TNotification } from '@packages/domain'
 
-import { Spinner } from '@/ui/components/spinner'
 import { Bell } from 'lucide-react'
 
 import { NotificationItem } from './NotificationItem'
+
+import { Spinner } from '@/ui/components/spinner'
 import { useTranslation } from '@/contexts'
 
 interface INotificationListProps {
@@ -34,7 +35,7 @@ export function NotificationList({
   if (notifications.length === 0) {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center gap-2 py-12">
-        <Bell size={36} className="text-default-300" />
+        <Bell className="text-default-300" size={36} />
         <p className="text-small text-default-400">{t('notifications.empty')}</p>
       </div>
     )
@@ -46,8 +47,8 @@ export function NotificationList({
         <NotificationItem
           key={notification.id}
           notification={notification}
-          onMarkAsRead={onMarkAsRead}
           onDelete={onDelete}
+          onMarkAsRead={onMarkAsRead}
         />
       ))}
     </div>

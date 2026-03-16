@@ -14,7 +14,9 @@ export function translateZodMessages<T>(
   errorTree: z.ZodError<T> | z.core.$ZodErrorTree<z.output<T>, string>,
   t: (key: string) => string
 ): TTranslateZodMessages {
-  const normalize = (tree: Record<string, unknown>): string | string[] | Record<string, string[]> => {
+  const normalize = (
+    tree: Record<string, unknown>
+  ): string | string[] | Record<string, string[]> => {
     if ('errors' in tree && Array.isArray(tree.errors) && tree.errors.length > 0) {
       const translated = tree.errors.map((e: unknown) =>
         typeof e === 'string' ? t(e) : t((e as { message?: string })?.message ?? String(e))

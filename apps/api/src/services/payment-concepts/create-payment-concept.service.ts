@@ -1,5 +1,9 @@
 import type { TPaymentConcept, TPaymentConceptCreate } from '@packages/domain'
-import type { PaymentConceptsRepository, CondominiumsRepository, CurrenciesRepository } from '@database/repositories'
+import type {
+  PaymentConceptsRepository,
+  CondominiumsRepository,
+  CurrenciesRepository,
+} from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 
 type TCondominiumMCRepo = {
@@ -66,7 +70,10 @@ export class CreatePaymentConceptService {
         return failure('Early payment value must be greater than 0', 'BAD_REQUEST')
       }
       if (input.earlyPaymentDaysBeforeDue <= 0) {
-        return failure('Days before due must be greater than 0 for early payment discounts', 'BAD_REQUEST')
+        return failure(
+          'Days before due must be greater than 0 for early payment discounts',
+          'BAD_REQUEST'
+        )
       }
       if (input.earlyPaymentType === 'percentage' && input.earlyPaymentValue > 100) {
         return failure('Early payment percentage cannot exceed 100%', 'BAD_REQUEST')

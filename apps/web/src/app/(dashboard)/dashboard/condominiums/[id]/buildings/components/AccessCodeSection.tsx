@@ -1,14 +1,16 @@
 'use client'
 
+import type { TCondominiumAccessCode } from '@packages/domain'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { KeyRound, RefreshCw } from 'lucide-react'
-import type { TCondominiumAccessCode } from '@packages/domain'
+
+import { GenerateCodeModal } from './GenerateCodeModal'
 
 import { Button } from '@/ui/components/button'
 import { useDisclosure } from '@/ui/components/modal'
 import { CodeSnippet } from '@/ui/components/code-snippet'
-import { GenerateCodeModal } from './GenerateCodeModal'
 
 interface IAccessCodeSectionProps {
   condominiumId: string
@@ -57,13 +59,13 @@ export function AccessCodeSection({
     <div className="flex flex-col gap-3 rounded-xl border border-default-200 bg-default-50 p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <KeyRound size={18} className="text-success" />
+          <KeyRound className="text-success" size={18} />
           <span className="text-sm font-semibold">{translations.title}</span>
         </div>
         <Button
           size="sm"
-          variant={code ? 'flat' : 'bordered'}
           startContent={code ? <RefreshCw size={14} /> : <KeyRound size={14} />}
+          variant={code ? 'flat' : 'bordered'}
           onPress={onOpen}
         >
           {code ? translations.regenerate : translations.generate}
@@ -73,22 +75,22 @@ export function AccessCodeSection({
       {code ? (
         <CodeSnippet
           code={code.code}
+          copiedMessage={translations.copiedMessage}
           expiresAt={
             typeof code.expiresAt === 'string' ? code.expiresAt : code.expiresAt.toISOString()
           }
           expiresLabel={translations.expiresLabel}
-          copiedMessage={translations.copiedMessage}
         />
       ) : (
         <p className="text-sm text-default-400">{translations.noCode}</p>
       )}
 
       <GenerateCodeModal
-        isOpen={isOpen}
-        onClose={onClose}
         condominiumId={condominiumId}
         hasExistingCode={!!code}
+        isOpen={isOpen}
         translations={translations.modal}
+        onClose={onClose}
         onGenerated={handleGenerated}
       />
     </div>

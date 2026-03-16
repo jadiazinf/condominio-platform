@@ -20,11 +20,18 @@ type TMockBankAccountsRepo = {
 }
 
 type TMockBankAccountCondominiumsRepo = {
-  getByBankAccountAndCondominium: (bankAccountId: string, condominiumId: string) => Promise<{ id: string } | null>
+  getByBankAccountAndCondominium: (
+    bankAccountId: string,
+    condominiumId: string
+  ) => Promise<{ id: string } | null>
 }
 
 type TMockConceptBankAccountsRepo = {
-  linkBankAccount: (conceptId: string, bankAccountId: string, assignedBy: string | null) => Promise<TPaymentConceptBankAccount>
+  linkBankAccount: (
+    conceptId: string,
+    bankAccountId: string,
+    assignedBy: string | null
+  ) => Promise<TPaymentConceptBankAccount>
   unlinkBankAccount: (conceptId: string, bankAccountId: string) => Promise<boolean>
   getLink: (conceptId: string, bankAccountId: string) => Promise<TPaymentConceptBankAccount | null>
   listByConceptId: (conceptId: string) => Promise<TPaymentConceptBankAccount[]>
@@ -109,7 +116,8 @@ describe('LinkBankAccountsService', function () {
     }
 
     mockConceptBankAccountsRepo = {
-      linkBankAccount: async (cId, baId, by) => mockLink({ paymentConceptId: cId, bankAccountId: baId, assignedBy: by }),
+      linkBankAccount: async (cId, baId, by) =>
+        mockLink({ paymentConceptId: cId, bankAccountId: baId, assignedBy: by }),
       unlinkBankAccount: async () => true,
       getLink: async () => null,
       listByConceptId: async () => [mockLink()],

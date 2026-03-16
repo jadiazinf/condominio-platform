@@ -241,20 +241,14 @@ export async function createSubscriptionRate(
 /**
  * Hook to update a subscription rate
  */
-export function useUpdateSubscriptionRate(
-  id: string,
-  options?: IUpdateSubscriptionRateOptions
-) {
+export function useUpdateSubscriptionRate(id: string, options?: IUpdateSubscriptionRateOptions) {
   return useApiMutation<TApiDataResponse<TSubscriptionRate>, TSubscriptionRateUpdate>({
     path: `/platform/subscription-rates/${id}`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
     onError: options?.onError,
-    invalidateKeys: [
-      subscriptionRateKeys.all,
-      subscriptionRateKeys.detail(id),
-    ],
+    invalidateKeys: [subscriptionRateKeys.all, subscriptionRateKeys.detail(id)],
   })
 }
 
@@ -283,7 +277,7 @@ export async function updateSubscriptionRate(
  */
 export function useActivateSubscriptionRate(options?: IActivateSubscriptionRateOptions) {
   return useApiMutation<TApiDataResponse<TSubscriptionRate>, { id: string }>({
-    path: (data) => `/platform/subscription-rates/${data.id}/activate`,
+    path: data => `/platform/subscription-rates/${data.id}/activate`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,
@@ -313,7 +307,7 @@ export async function activateSubscriptionRate(id: string): Promise<TSubscriptio
  */
 export function useDeactivateSubscriptionRate(options?: IDeactivateSubscriptionRateOptions) {
   return useApiMutation<TApiDataResponse<TSubscriptionRate>, { id: string }>({
-    path: (data) => `/platform/subscription-rates/${data.id}/deactivate`,
+    path: data => `/platform/subscription-rates/${data.id}/deactivate`,
     method: 'PATCH',
     config: {},
     onSuccess: options?.onSuccess,

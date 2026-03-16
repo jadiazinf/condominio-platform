@@ -1,4 +1,5 @@
 import type { TPaymentConcept } from '@packages/domain'
+import { roundCurrency } from '@packages/utils/money'
 
 type TQuotaInfo = {
   baseAmount: number
@@ -27,7 +28,7 @@ export class CalculateChargeAdjustmentsService {
     }
 
     if (concept.latePaymentType === 'percentage') {
-      return this.roundCurrency(quota.balance * (concept.latePaymentValue / 100))
+      return roundCurrency(quota.balance * (concept.latePaymentValue / 100))
     }
 
     // fixed
@@ -53,7 +54,7 @@ export class CalculateChargeAdjustmentsService {
     let discount: number
 
     if (concept.earlyPaymentType === 'percentage') {
-      discount = this.roundCurrency(quota.balance * (concept.earlyPaymentValue / 100))
+      discount = roundCurrency(quota.balance * (concept.earlyPaymentValue / 100))
     } else {
       discount = concept.earlyPaymentValue
     }
@@ -65,9 +66,5 @@ export class CalculateChargeAdjustmentsService {
   private daysBetween(start: Date, end: Date): number {
     const msPerDay = 24 * 60 * 60 * 1000
     return Math.floor((end.getTime() - start.getTime()) / msPerDay)
-  }
-
-  private roundCurrency(amount: number): number {
-    return Math.round(amount * 100) / 100
   }
 }

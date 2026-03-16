@@ -1,13 +1,15 @@
 'use client'
 
+import type { IWizardFormData } from '../CreateBankAccountWizard'
+
 import { useEffect } from 'react'
+import { PAYMENT_METHOD_LABELS } from '@packages/domain'
+
 import { Input } from '@/ui/components/input'
 import { Textarea } from '@/ui/components/textarea'
 import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
-import { PAYMENT_METHOD_LABELS } from '@packages/domain'
-import type { IWizardFormData } from '../CreateBankAccountWizard'
 
 interface ReviewStepProps {
   formData: IWizardFormData
@@ -20,32 +22,33 @@ export function ReviewStep({ formData, onUpdate }: ReviewStepProps) {
   // Auto-generate display name if empty
   useEffect(() => {
     if (!formData.displayName) {
-      const autoName = `${formData.bankName} - ${formData.accountCategory === 'national' ? formData.accountType ?? '' : formData.internationalSubType ?? ''} (${formData.currency})`
+      const autoName = `${formData.bankName} - ${formData.accountCategory === 'national' ? (formData.accountType ?? '') : (formData.internationalSubType ?? '')} (${formData.currency})`
+
       onUpdate({ displayName: autoName })
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="space-y-5 py-1">
       {/* Display name */}
       <Input
+        isRequired
         label={t('admin.company.myCompany.bankAccounts.wizard.displayName')}
         value={formData.displayName}
         onValueChange={v => onUpdate({ displayName: v })}
-        isRequired
       />
 
       {/* Notes */}
       <Textarea
         label={t('admin.company.myCompany.bankAccounts.wizard.notes')}
+        minRows={2}
         value={formData.notes ?? ''}
         onValueChange={v => onUpdate({ notes: v || undefined })}
-        minRows={2}
       />
 
       {/* Summary */}
       <div className="rounded-lg border border-default-200 p-4 space-y-4">
-        <Typography variant="body1" className="font-semibold">
+        <Typography className="font-semibold" variant="body1">
           {t('admin.company.myCompany.bankAccounts.wizard.review')}
         </Typography>
 
@@ -56,8 +59,8 @@ export function ReviewStep({ formData, onUpdate }: ReviewStepProps) {
           </span>
           <Chip
             color={formData.accountCategory === 'national' ? 'primary' : 'secondary'}
-            variant="flat"
             size="sm"
+            variant="flat"
           >
             {formData.accountCategory === 'national'
               ? t('admin.company.myCompany.bankAccounts.national')
@@ -99,9 +102,7 @@ export function ReviewStep({ formData, onUpdate }: ReviewStepProps) {
                   <span className="text-default-500">
                     {t('admin.company.myCompany.bankAccounts.wizard.accountNumber')}:
                   </span>
-                  <p className="font-medium font-mono">
-                    ****{formData.accountNumber.slice(-4)}
-                  </p>
+                  <p className="font-medium font-mono">****{formData.accountNumber.slice(-4)}</p>
                 </div>
               )}
               {formData.accountType && (
@@ -119,7 +120,9 @@ export function ReviewStep({ formData, onUpdate }: ReviewStepProps) {
                   <span className="text-default-500">
                     {t('admin.company.myCompany.bankAccounts.wizard.identityDocNumber')}:
                   </span>
-                  <p className="font-medium">{formData.identityDocType}-{formData.identityDocNumber}</p>
+                  <p className="font-medium">
+                    {formData.identityDocType}-{formData.identityDocNumber}
+                  </p>
                 </div>
               )}
               {formData.phoneNumber && (
@@ -127,7 +130,10 @@ export function ReviewStep({ formData, onUpdate }: ReviewStepProps) {
                   <span className="text-default-500">
                     {t('admin.company.myCompany.bankAccounts.wizard.phoneNumber')}:
                   </span>
-                  <p className="font-medium">{formData.phoneCountryCode ?? '+58'}{formData.phoneNumber}</p>
+                  <p className="font-medium">
+                    {formData.phoneCountryCode ?? '+58'}
+                    {formData.phoneNumber}
+                  </p>
                 </div>
               )}
             </>
@@ -207,7 +213,9 @@ export function ReviewStep({ formData, onUpdate }: ReviewStepProps) {
                   <span className="text-default-500">
                     {t('admin.company.myCompany.bankAccounts.wizard.walletAddress')}:
                   </span>
-                  <p className="font-medium font-mono text-xs break-all">{formData.walletAddress}</p>
+                  <p className="font-medium font-mono text-xs break-all">
+                    {formData.walletAddress}
+                  </p>
                 </div>
               )}
               {formData.cryptoNetwork && (
@@ -250,13 +258,11 @@ export function ReviewStep({ formData, onUpdate }: ReviewStepProps) {
             {t('admin.company.myCompany.bankAccounts.columns.condominiums')}:
           </span>
           {formData.appliesToAllCondominiums ? (
-            <Chip color="success" variant="flat" size="sm" className="ml-2">
+            <Chip className="ml-2" color="success" size="sm" variant="flat">
               {t('admin.company.myCompany.bankAccounts.allCondominiumsBadge')}
             </Chip>
           ) : (
-            <p className="text-sm font-medium">
-              {formData.condominiumIds.length} condominium(s)
-            </p>
+            <p className="text-sm font-medium">{formData.condominiumIds.length} condominium(s)</p>
           )}
         </div>
       </div>

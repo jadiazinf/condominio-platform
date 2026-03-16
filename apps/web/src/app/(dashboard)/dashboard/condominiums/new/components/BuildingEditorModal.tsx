@@ -1,5 +1,7 @@
 'use client'
 
+import type { TLocalBuilding, TLocalUnit } from '../hooks/useCreateCondominiumWizard'
+
 import { useState, useCallback, useEffect } from 'react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { Wand2, Info, Plus, Trash2 } from 'lucide-react'
@@ -12,9 +14,12 @@ import { useTranslation } from '@/contexts'
 import { Input, InputField } from '@/ui/components/input'
 import { Switch } from '@/ui/components/switch'
 import { Typography } from '@/ui/components/typography'
-import type { TLocalBuilding, TLocalUnit } from '../hooks/useCreateCondominiumWizard'
 
-type TUnitNamingPattern = 'floor_letter' | 'floor_sequence' | 'bldg_floor_number' | 'bldg_floor_letter'
+type TUnitNamingPattern =
+  | 'floor_letter'
+  | 'floor_sequence'
+  | 'bldg_floor_number'
+  | 'bldg_floor_letter'
 
 interface TFloorGroup {
   id: string
@@ -31,7 +36,10 @@ interface TFloorGroup {
 interface BuildingEditorModalProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (data: Omit<TLocalBuilding, 'tempId'>, units?: Omit<TLocalUnit, 'tempId' | 'buildingTempId'>[]) => void
+  onSave: (
+    data: Omit<TLocalBuilding, 'tempId'>,
+    units?: Omit<TLocalUnit, 'tempId' | 'buildingTempId'>[]
+  ) => void
   editingBuilding?: TLocalBuilding | null
   existingUnitCount?: number
 }
@@ -50,9 +58,10 @@ function generateBuildingCode(name: string): string {
     .replace(/[^A-Z0-9\s]/g, '')
     .split(/\s+/)
     .filter(Boolean)
-    .map((word) => word.slice(0, 3))
+    .map(word => word.slice(0, 3))
     .join('-')
   const suffix = Math.random().toString(36).substring(2, 5).toUpperCase()
+
   return slug ? `${slug}-${suffix}` : `BLD-${suffix}`
 }
 
@@ -111,19 +120,17 @@ function PatternButton<T extends string>({
 }) {
   return (
     <button
-      type="button"
       className={`flex items-center justify-between p-3 rounded-lg border transition-colors text-left ${
-        selected
-          ? 'border-success bg-success/10'
-          : 'border-default-200 hover:border-default-400'
+        selected ? 'border-success bg-success/10' : 'border-default-200 hover:border-default-400'
       }`}
+      type="button"
       onClick={() => onSelect(value)}
     >
       <div>
-        <Typography variant="body2" className="font-medium">
+        <Typography className="font-medium" variant="body2">
           {label}
         </Typography>
-        <Typography variant="caption" className="text-default-400">
+        <Typography className="text-default-400" variant="caption">
           {example}
         </Typography>
       </div>
@@ -190,6 +197,7 @@ export function BuildingEditorModal({
     const subscription = form.watch((_value, { name }) => {
       if (name) form.clearErrors(name)
     })
+
     return () => subscription.unsubscribe()
   }, [form])
 
@@ -199,10 +207,14 @@ export function BuildingEditorModal({
   const buildingName = watchValues.name || ''
 
   useEffect(() => {
-    if (generateUnitsEnabled && floorsCount > 0 && floorGroups.length === 1 && Number(floorGroups[0].fromFloor) === 1) {
-      setFloorGroups((prev) => [{ ...prev[0], toFloor: String(floorsCount) }])
+    if (
+      generateUnitsEnabled &&
+      floorsCount > 0 &&
+      floorGroups.length === 1 &&
+      Number(floorGroups[0].fromFloor) === 1
+    ) {
+      setFloorGroups(prev => [{ ...prev[0], toFloor: String(floorsCount) }])
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [floorsCount, generateUnitsEnabled])
 
   const buildingLetter = buildingName.trim().charAt(0).toUpperCase() || 'A'
@@ -231,18 +243,33 @@ export function BuildingEditorModal({
   ]
 
   const previewUnits: string[] = []
+
   if (generateUnitsEnabled && floorGroups.length > 0) {
     let globalIdx = 0
-    const sorted = [...floorGroups].sort((a, b) => (Number(a.fromFloor) || 0) - (Number(b.fromFloor) || 0))
+    const sorted = [...floorGroups].sort(
+      (a, b) => (Number(a.fromFloor) || 0) - (Number(b.fromFloor) || 0)
+    )
+
     for (const group of sorted) {
       const gFrom = Number(group.fromFloor) || 0
       const gTo = Number(group.toFloor) || 0
       const gPer = Number(group.unitsPerFloor) || 0
+
       if (gFrom > 0 && gTo >= gFrom && gPer > 0) {
         for (let floor = gFrom; floor <= gTo; floor++) {
           for (let u = 0; u < gPer; u++) {
             if (previewUnits.length < 8) {
-              previewUnits.push(generateUnitNumber(selectedUnitPattern, floor, u, globalIdx, unitSeparator, buildingLetter, group.unitPrefix || undefined))
+              previewUnits.push(
+                generateUnitNumber(
+                  selectedUnitPattern,
+                  floor,
+                  u,
+                  globalIdx,
+                  unitSeparator,
+                  buildingLetter,
+                  group.unitPrefix || undefined
+                )
+              )
             }
             globalIdx++
           }
@@ -257,6 +284,7 @@ export function BuildingEditorModal({
         const to = Number(g.toFloor) || 0
         const perFloor = Number(g.unitsPerFloor) || 0
         const floors = Math.max(0, to - from + 1)
+
         return sum + floors * perFloor
       }, 0)
     : 0
@@ -264,6 +292,7 @@ export function BuildingEditorModal({
   const translateError = useCallback(
     (message: string | undefined): string | undefined => {
       if (!message) return undefined
+
       return t(message)
     },
     [t]
@@ -272,13 +301,15 @@ export function BuildingEditorModal({
   const handleGenerateCode = useCallback(() => {
     const name = form.getValues('name')
     const code = generateBuildingCode(name)
+
     form.setValue('code', code, { shouldValidate: true })
   }, [form])
 
   const addFloorGroup = useCallback(() => {
-    setFloorGroups((prev) => {
+    setFloorGroups(prev => {
       const lastGroup = prev[prev.length - 1]
       const nextFrom = lastGroup ? (Number(lastGroup.toFloor) || 0) + 1 : 1
+
       return [
         ...prev,
         {
@@ -298,12 +329,12 @@ export function BuildingEditorModal({
   }, [floorsCount])
 
   const removeFloorGroup = useCallback((id: string) => {
-    setFloorGroups((prev) => prev.filter((g) => g.id !== id))
+    setFloorGroups(prev => prev.filter(g => g.id !== id))
     setFloorGroupError(null)
   }, [])
 
   const updateFloorGroup = useCallback((id: string, updates: Partial<Omit<TFloorGroup, 'id'>>) => {
-    setFloorGroups((prev) => prev.map((g) => (g.id === id ? { ...g, ...updates } : g)))
+    setFloorGroups(prev => prev.map(g => (g.id === id ? { ...g, ...updates } : g)))
     setFloorGroupError(null)
   }, [])
 
@@ -352,6 +383,7 @@ export function BuildingEditorModal({
         const gFrom = Number(group.fromFloor) || 0
         const gTo = Number(group.toFloor) || 0
         const gPer = Number(group.unitsPerFloor) || 0
+
         if (gFrom < 1 || gTo < gFrom) {
           setFloorGroupError('superadmin.condominiums.wizard.bulk.floorRangeError')
           hasError = true
@@ -362,16 +394,24 @@ export function BuildingEditorModal({
           hasError = true
           break
         }
-        if ((selectedUnitPattern === 'floor_letter' || selectedUnitPattern === 'bldg_floor_letter') && gPer > 26) {
+        if (
+          (selectedUnitPattern === 'floor_letter' || selectedUnitPattern === 'bldg_floor_letter') &&
+          gPer > 26
+        ) {
           setFloorGroupError('superadmin.condominiums.wizard.bulk.maxLetterUnits')
           hasError = true
           break
         }
       }
 
-      const sortedGroups = [...floorGroups].sort((a, b) => (Number(a.fromFloor) || 0) - (Number(b.fromFloor) || 0))
+      const sortedGroups = [...floorGroups].sort(
+        (a, b) => (Number(a.fromFloor) || 0) - (Number(b.fromFloor) || 0)
+      )
+
       for (let i = 1; i < sortedGroups.length; i++) {
-        if ((Number(sortedGroups[i].fromFloor) || 0) <= (Number(sortedGroups[i - 1].toFloor) || 0)) {
+        if (
+          (Number(sortedGroups[i].fromFloor) || 0) <= (Number(sortedGroups[i - 1].toFloor) || 0)
+        ) {
           setFloorGroupError('superadmin.condominiums.wizard.bulk.floorOverlap')
           hasError = true
           break
@@ -389,21 +429,34 @@ export function BuildingEditorModal({
     }
 
     let generatedUnits: Omit<TLocalUnit, 'tempId' | 'buildingTempId'>[] | undefined
+
     if (generateUnitsEnabled) {
       generatedUnits = []
       const sep = values.unitSeparator || '-'
       const bLetter = values.name.trim().charAt(0).toUpperCase() || 'A'
       let globalIdx = 0
 
-      const sortedGroups = [...floorGroups].sort((a, b) => (Number(a.fromFloor) || 0) - (Number(b.fromFloor) || 0))
+      const sortedGroups = [...floorGroups].sort(
+        (a, b) => (Number(a.fromFloor) || 0) - (Number(b.fromFloor) || 0)
+      )
+
       for (const group of sortedGroups) {
         const gFrom = Number(group.fromFloor) || 0
         const gTo = Number(group.toFloor) || 0
         const gPer = Number(group.unitsPerFloor) || 0
+
         for (let floor = gFrom; floor <= Math.min(gTo, floorsNum); floor++) {
           for (let u = 0; u < gPer; u++) {
             generatedUnits.push({
-              unitNumber: generateUnitNumber(selectedUnitPattern, floor, u, globalIdx, sep, bLetter, group.unitPrefix || undefined),
+              unitNumber: generateUnitNumber(
+                selectedUnitPattern,
+                floor,
+                u,
+                globalIdx,
+                sep,
+                bLetter,
+                group.unitPrefix || undefined
+              ),
               floor,
               areaM2: group.areaM2 || null,
               bedrooms: group.bedrooms ? Number(group.bedrooms) : null,
@@ -424,7 +477,7 @@ export function BuildingEditorModal({
   }, [form, generateUnitsEnabled, selectedUnitPattern, floorGroups, onSave, onClose])
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="2xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader>
           {isEditing
@@ -435,18 +488,18 @@ export function BuildingEditorModal({
           <FormProvider {...form}>
             <div className="flex flex-col gap-6">
               <InputField
-                name="name"
-                label={t('superadmin.condominiums.detail.buildings.form.name')}
-                placeholder={t('superadmin.condominiums.detail.buildings.form.namePlaceholder')}
                 isRequired
+                label={t('superadmin.condominiums.detail.buildings.form.name')}
+                name="name"
+                placeholder={t('superadmin.condominiums.detail.buildings.form.namePlaceholder')}
                 translateError={translateError}
               />
 
               <div className="flex gap-2 items-end">
                 <div className="flex-1">
                   <InputField
-                    name="code"
                     label={t('superadmin.condominiums.detail.buildings.form.code')}
+                    name="code"
                     placeholder={t('common.optional')}
                     translateError={translateError}
                   />
@@ -456,11 +509,11 @@ export function BuildingEditorModal({
                   placement="top"
                 >
                   <Button
-                    type="button"
-                    variant="flat"
+                    isIconOnly
                     color="success"
                     size="sm"
-                    isIconOnly
+                    type="button"
+                    variant="flat"
                     onPress={handleGenerateCode}
                   >
                     <Wand2 size={14} />
@@ -469,13 +522,13 @@ export function BuildingEditorModal({
               </div>
 
               <InputField
-                name="floorsCount"
-                label={t('superadmin.condominiums.detail.buildings.form.floors')}
-                placeholder="Ej: 10"
-                type="number"
-                inputMode="numeric"
                 isRequired
+                inputMode="numeric"
+                label={t('superadmin.condominiums.detail.buildings.form.floors')}
+                name="floorsCount"
+                placeholder="Ej: 10"
                 translateError={translateError}
+                type="number"
               />
 
               <Divider />
@@ -483,49 +536,56 @@ export function BuildingEditorModal({
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="flex items-center gap-1.5">
-                    <Typography variant="subtitle2" className="font-medium">
+                    <Typography className="font-medium" variant="subtitle2">
                       {t('superadmin.condominiums.wizard.bulkBuildings.generateUnits')}
                     </Typography>
-                    <Tooltip content={t('superadmin.condominiums.wizard.bulkBuildings.generateUnitsHint')} placement="right" showArrow classNames={{ content: 'max-w-xs text-sm' }}>
+                    <Tooltip
+                      showArrow
+                      classNames={{ content: 'max-w-xs text-sm' }}
+                      content={t('superadmin.condominiums.wizard.bulkBuildings.generateUnitsHint')}
+                      placement="right"
+                    >
                       <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
                     </Tooltip>
                   </span>
                   <Switch
-                    size="sm"
                     color="success"
                     isSelected={generateUnitsEnabled}
+                    size="sm"
                     onValueChange={setGenerateUnitsEnabled}
                   />
                 </div>
 
                 {isEditing && existingUnitCount > 0 && (
-                  <Typography variant="caption" className="text-warning-600 block mb-2">
-                    {t('superadmin.condominiums.wizard.buildings.existingUnitsWarning', { count: existingUnitCount })}
+                  <Typography className="text-warning-600 block mb-2" variant="caption">
+                    {t('superadmin.condominiums.wizard.buildings.existingUnitsWarning', {
+                      count: existingUnitCount,
+                    })}
                   </Typography>
                 )}
 
                 {generateUnitsEnabled && (
                   <div className="flex flex-col gap-5 mt-4 p-4 rounded-lg border border-success/30 bg-success/5">
                     <div>
-                      <Typography variant="subtitle2" className="font-medium mb-3">
+                      <Typography className="font-medium mb-3" variant="subtitle2">
                         {t('superadmin.condominiums.wizard.bulk.namingPattern')}
                       </Typography>
                       <div className="flex flex-col gap-2">
-                        {unitPatterns.map((p) => (
+                        {unitPatterns.map(p => (
                           <PatternButton
                             key={p.value}
-                            value={p.value}
-                            label={p.label}
                             example={p.example}
+                            label={p.label}
                             selected={selectedUnitPattern === p.value}
+                            value={p.value}
                             onSelect={setSelectedUnitPattern}
                           />
                         ))}
                       </div>
                       <div className="mt-5 w-32">
                         <InputField
-                          name="unitSeparator"
                           label={t('superadmin.condominiums.wizard.bulk.separator')}
+                          name="unitSeparator"
                           placeholder="-"
                           translateError={translateError}
                         />
@@ -537,18 +597,23 @@ export function BuildingEditorModal({
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="flex items-center gap-1.5">
-                          <Typography variant="subtitle2" className="font-medium">
+                          <Typography className="font-medium" variant="subtitle2">
                             {t('superadmin.condominiums.wizard.bulk.floorGroups')}
                           </Typography>
-                          <Tooltip content={t('superadmin.condominiums.wizard.bulk.floorGroupsHint')} placement="right" showArrow classNames={{ content: 'max-w-xs text-sm' }}>
+                          <Tooltip
+                            showArrow
+                            classNames={{ content: 'max-w-xs text-sm' }}
+                            content={t('superadmin.condominiums.wizard.bulk.floorGroupsHint')}
+                            placement="right"
+                          >
                             <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
                           </Tooltip>
                         </span>
                         <Button
-                          size="sm"
-                          variant="flat"
                           color="success"
+                          size="sm"
                           startContent={<Plus size={14} />}
+                          variant="flat"
                           onPress={addFloorGroup}
                         >
                           {t('superadmin.condominiums.wizard.bulk.addFloorGroup')}
@@ -556,78 +621,84 @@ export function BuildingEditorModal({
                       </div>
 
                       <div className="flex flex-col gap-3 mt-3">
-                        {floorGroups.map((group) => (
+                        {floorGroups.map(group => (
                           <div key={group.id} className="flex items-center gap-2">
                             <div className="flex-1 p-3 rounded-lg border border-default-200 bg-default-50 space-y-3">
                               <div className="grid grid-cols-4 gap-2">
                                 <Input
                                   isRequired
-                                  size="sm"
-                                  type="number"
                                   label={t('superadmin.condominiums.wizard.bulk.floorFrom')}
+                                  size="sm"
+                                  type="number"
                                   value={group.fromFloor}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { fromFloor: v })}
+                                  onValueChange={v => updateFloorGroup(group.id, { fromFloor: v })}
                                 />
                                 <Input
                                   isRequired
-                                  size="sm"
-                                  type="number"
                                   label={t('superadmin.condominiums.wizard.bulk.floorTo')}
+                                  size="sm"
+                                  type="number"
                                   value={group.toFloor}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { toFloor: v })}
+                                  onValueChange={v => updateFloorGroup(group.id, { toFloor: v })}
                                 />
                                 <Input
                                   isRequired
+                                  label={t('superadmin.condominiums.wizard.bulk.unitsPerFloor')}
                                   size="sm"
                                   type="number"
-                                  label={t('superadmin.condominiums.wizard.bulk.unitsPerFloor')}
                                   value={group.unitsPerFloor}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { unitsPerFloor: v })}
+                                  onValueChange={v =>
+                                    updateFloorGroup(group.id, { unitsPerFloor: v })
+                                  }
                                 />
                                 <Input
-                                  size="sm"
                                   label={t('superadmin.condominiums.wizard.bulk.unitPrefix')}
                                   placeholder={t('common.optional')}
+                                  size="sm"
                                   value={group.unitPrefix}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { unitPrefix: v })}
+                                  onValueChange={v => updateFloorGroup(group.id, { unitPrefix: v })}
                                 />
                               </div>
                               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                                 <Input
-                                  size="sm"
                                   label={t('superadmin.condominiums.detail.units.form.area')}
+                                  size="sm"
                                   value={group.areaM2}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { areaM2: v })}
+                                  onValueChange={v => updateFloorGroup(group.id, { areaM2: v })}
                                 />
                                 <Input
-                                  size="sm"
-                                  type="number"
                                   label={t('superadmin.condominiums.detail.units.form.bedrooms')}
+                                  size="sm"
+                                  type="number"
                                   value={group.bedrooms}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { bedrooms: v })}
+                                  onValueChange={v => updateFloorGroup(group.id, { bedrooms: v })}
                                 />
                                 <Input
-                                  size="sm"
-                                  type="number"
                                   label={t('superadmin.condominiums.detail.units.form.bathrooms')}
-                                  value={group.bathrooms}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { bathrooms: v })}
-                                />
-                                <Input
                                   size="sm"
                                   type="number"
-                                  label={t('superadmin.condominiums.detail.units.form.parkingSpaces')}
+                                  value={group.bathrooms}
+                                  onValueChange={v => updateFloorGroup(group.id, { bathrooms: v })}
+                                />
+                                <Input
+                                  label={t(
+                                    'superadmin.condominiums.detail.units.form.parkingSpaces'
+                                  )}
+                                  size="sm"
+                                  type="number"
                                   value={group.parkingSpaces}
-                                  onValueChange={(v) => updateFloorGroup(group.id, { parkingSpaces: v })}
+                                  onValueChange={v =>
+                                    updateFloorGroup(group.id, { parkingSpaces: v })
+                                  }
                                 />
                               </div>
                             </div>
                             {floorGroups.length > 1 && (
                               <Button
                                 isIconOnly
+                                color="danger"
                                 size="sm"
                                 variant="light"
-                                color="danger"
                                 onPress={() => removeFloorGroup(group.id)}
                               >
                                 <Trash2 size={14} />
@@ -638,7 +709,7 @@ export function BuildingEditorModal({
                       </div>
 
                       {floorGroupError && (
-                        <Typography variant="caption" className="text-danger mt-2 block">
+                        <Typography className="text-danger mt-2 block" variant="caption">
                           {t(floorGroupError)}
                         </Typography>
                       )}
@@ -649,10 +720,10 @@ export function BuildingEditorModal({
                         <Divider />
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <Typography variant="subtitle2" className="font-medium">
+                            <Typography className="font-medium" variant="subtitle2">
                               {t('superadmin.condominiums.wizard.bulk.preview')}
                             </Typography>
-                            <Typography variant="caption" className="text-success-600 font-medium">
+                            <Typography className="text-success-600 font-medium" variant="caption">
                               {totalUnits} {t('superadmin.condominiums.wizard.units.label')}
                             </Typography>
                           </div>

@@ -167,11 +167,11 @@ export abstract class BaseRepository<TTable extends PgTable, TEntity, TCreateDto
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic PgTable requires any for Drizzle operations
     const tableAny = this.table as any
-    const insertValues = datas.map((dto) => this.mapToInsertValues(dto))
+    const insertValues = datas.map(dto => this.mapToInsertValues(dto))
 
     const results = (await this.db.insert(tableAny).values(insertValues).returning()) as unknown[]
 
-    return results.map((record) => this.mapToEntity(record))
+    return results.map(record => this.mapToEntity(record))
   }
 
   /**

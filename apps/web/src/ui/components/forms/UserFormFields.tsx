@@ -1,6 +1,7 @@
 'use client'
 
 import { Controller, useFormContext } from 'react-hook-form'
+
 import { Input } from '@/ui/components/input'
 import { DocumentInputField } from '@/ui/components/document-input'
 import { PhoneInputField } from '@/ui/components/phone-input'
@@ -57,7 +58,7 @@ interface IUserFormFieldsProps {
 
 /**
  * Reusable user form fields component that integrates with react-hook-form
- * 
+ *
  * @example
  * // Basic usage
  * <FormProvider {...methods}>
@@ -68,7 +69,7 @@ interface IUserFormFieldsProps {
  *     showPhoneInput
  *   />
  * </FormProvider>
- * 
+ *
  * @example
  * // With custom field names for nested forms
  * <UserFormFields
@@ -130,15 +131,20 @@ export function UserFormFields({
   // Layout
   className,
 }: IUserFormFieldsProps) {
-  const { control, formState: { errors } } = useFormContext()
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext()
 
   // Helper to get nested error
   const getError = (fieldName: string) => {
     const parts = fieldName.split('.')
     let error: any = errors
+
     for (const part of parts) {
       error = error?.[part]
     }
+
     return error
   }
 
@@ -151,16 +157,17 @@ export function UserFormFields({
             name={emailFieldName}
             render={({ field }) => {
               const error = getError(emailFieldName)
+
               return (
                 <Input
-                  type="email"
+                  errorMessage={translateError ? translateError(error?.message) : error?.message}
+                  isInvalid={!!error}
+                  isRequired={isEmailRequired}
                   label={emailLabel}
                   placeholder={emailPlaceholder}
+                  type="email"
                   value={field.value || ''}
                   onValueChange={field.onChange}
-                  isRequired={isEmailRequired}
-                  isInvalid={!!error}
-                  errorMessage={translateError ? translateError(error?.message) : error?.message}
                 />
               )
             }}
@@ -173,15 +180,16 @@ export function UserFormFields({
             name={firstNameFieldName}
             render={({ field }) => {
               const error = getError(firstNameFieldName)
+
               return (
                 <Input
+                  errorMessage={translateError ? translateError(error?.message) : error?.message}
+                  isInvalid={!!error}
+                  isRequired={isFirstNameRequired}
                   label={firstNameLabel}
                   placeholder={firstNamePlaceholder}
                   value={field.value || ''}
                   onValueChange={field.onChange}
-                  isRequired={isFirstNameRequired}
-                  isInvalid={!!error}
-                  errorMessage={translateError ? translateError(error?.message) : error?.message}
                 />
               )
             }}
@@ -194,15 +202,16 @@ export function UserFormFields({
             name={lastNameFieldName}
             render={({ field }) => {
               const error = getError(lastNameFieldName)
+
               return (
                 <Input
+                  errorMessage={translateError ? translateError(error?.message) : error?.message}
+                  isInvalid={!!error}
+                  isRequired={isLastNameRequired}
                   label={lastNameLabel}
                   placeholder={lastNamePlaceholder}
                   value={field.value || ''}
                   onValueChange={field.onChange}
-                  isRequired={isLastNameRequired}
-                  isInvalid={!!error}
-                  errorMessage={translateError ? translateError(error?.message) : error?.message}
                 />
               )
             }}
@@ -215,16 +224,17 @@ export function UserFormFields({
             name={displayNameFieldName}
             render={({ field }) => {
               const error = getError(displayNameFieldName)
+
               return (
                 <Input
+                  className="sm:col-span-2"
+                  description={displayNameDescription}
+                  errorMessage={translateError ? translateError(error?.message) : error?.message}
+                  isInvalid={!!error}
                   label={displayNameLabel}
                   placeholder={displayNamePlaceholder}
-                  description={displayNameDescription}
                   value={field.value || ''}
                   onValueChange={field.onChange}
-                  isInvalid={!!error}
-                  errorMessage={translateError ? translateError(error?.message) : error?.message}
-                  className="sm:col-span-2"
                 />
               )
             }}
@@ -233,24 +243,24 @@ export function UserFormFields({
 
         {showDocumentInput && (
           <DocumentInputField
-            documentTypeFieldName={documentTypeFieldName}
+            className="sm:col-span-2"
             documentNumberFieldName={documentNumberFieldName}
+            documentTypeFieldName={documentTypeFieldName}
             label={documentLabel}
-            typePlaceholder={documentTypePlaceholder}
             numberPlaceholder={documentNumberPlaceholder}
             translateError={translateError}
-            className="sm:col-span-2"
+            typePlaceholder={documentTypePlaceholder}
           />
         )}
 
         {showPhoneInput && (
           <PhoneInputField
-            countryCodeFieldName={phoneCountryCodeFieldName}
-            phoneNumberFieldName={phoneNumberFieldName}
-            label={phoneLabel}
-            isRequired={isPhoneRequired}
-            translateError={translateError}
             className="sm:col-span-2"
+            countryCodeFieldName={phoneCountryCodeFieldName}
+            isRequired={isPhoneRequired}
+            label={phoneLabel}
+            phoneNumberFieldName={phoneNumberFieldName}
+            translateError={translateError}
           />
         )}
       </div>

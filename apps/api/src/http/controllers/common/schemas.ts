@@ -28,7 +28,7 @@ export const IncludeInactiveQuerySchema = z.object({
   includeInactive: z
     .string()
     .optional()
-    .transform((val) => val === 'true'),
+    .transform(val => val === 'true'),
 })
 
 export type TIdParam = z.infer<typeof IdParamSchema>

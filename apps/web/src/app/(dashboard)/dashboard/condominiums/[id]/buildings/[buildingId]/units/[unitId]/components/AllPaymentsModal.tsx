@@ -1,8 +1,13 @@
 'use client'
 
-import { useState } from 'react'
 import type { TPayment } from '@packages/domain'
+
+import { useState } from 'react'
 import { usePaymentsByUnitPaginated } from '@packages/http-client/hooks'
+import { X } from 'lucide-react'
+import { formatAmount } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
+
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
@@ -12,9 +17,6 @@ import { Button } from '@/ui/components/button'
 import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
 import { Spinner } from '@/ui/components/spinner'
-import { X } from 'lucide-react'
-import { formatAmount } from '@packages/utils/currency'
-import { formatFullDate } from '@packages/utils/dates'
 
 interface AllPaymentsModalProps {
   isOpen: boolean
@@ -46,7 +48,10 @@ const ITEMS_PER_PAGE = 10
 
 type TPaymentRow = TPayment & { id: string }
 
-const paymentStatusColors: Record<string, 'success' | 'warning' | 'danger' | 'default' | 'primary'> = {
+const paymentStatusColors: Record<
+  string,
+  'success' | 'warning' | 'danger' | 'default' | 'primary'
+> = {
   completed: 'success',
   pending: 'warning',
   pending_verification: 'primary',
@@ -55,7 +60,12 @@ const paymentStatusColors: Record<string, 'success' | 'warning' | 'danger' | 'de
   rejected: 'danger',
 }
 
-export function AllPaymentsModal({ isOpen, onClose, unitId, translations: t }: AllPaymentsModalProps) {
+export function AllPaymentsModal({
+  isOpen,
+  onClose,
+  unitId,
+  translations: t,
+}: AllPaymentsModalProps) {
   const [page, setPage] = useState(1)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -105,7 +115,7 @@ export function AllPaymentsModal({ isOpen, onClose, unitId, translations: t }: A
         return t.methods[payment.paymentMethod] || payment.paymentMethod
       case 'status':
         return (
-          <Chip color={paymentStatusColors[payment.status] || 'default'} variant="flat" size="sm">
+          <Chip color={paymentStatusColors[payment.status] || 'default'} size="sm" variant="flat">
             {t.statuses[payment.status] || payment.status}
           </Chip>
         )
@@ -125,7 +135,7 @@ export function AllPaymentsModal({ isOpen, onClose, unitId, translations: t }: A
   ]
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="4xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="4xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader>
           <Typography variant="h4">{t.title}</Typography>
@@ -135,33 +145,47 @@ export function AllPaymentsModal({ isOpen, onClose, unitId, translations: t }: A
           <div className="mb-4 flex flex-wrap items-end gap-3">
             <div className="min-w-[140px]">
               <Input
-                type="date"
                 label={t.filters.dateFrom}
                 size="sm"
+                type="date"
                 value={startDate}
-                onChange={(e) => { setStartDate(e.target.value); setPage(1) }}
+                onChange={e => {
+                  setStartDate(e.target.value)
+                  setPage(1)
+                }}
               />
             </div>
             <div className="min-w-[140px]">
               <Input
-                type="date"
                 label={t.filters.dateTo}
                 size="sm"
+                type="date"
                 value={endDate}
-                onChange={(e) => { setEndDate(e.target.value); setPage(1) }}
+                onChange={e => {
+                  setEndDate(e.target.value)
+                  setPage(1)
+                }}
               />
             </div>
             <div className="min-w-[150px]">
               <Select
-                label={t.filters.status}
-                size="sm"
-                selectedKeys={status ? [status] : []}
-                onChange={(key) => { setStatus(key ?? ''); setPage(1) }}
                 items={statusOptions.map(o => ({ key: o.value, label: o.label }))}
+                label={t.filters.status}
+                selectedKeys={status ? [status] : []}
+                size="sm"
+                onChange={key => {
+                  setStatus(key ?? '')
+                  setPage(1)
+                }}
               />
             </div>
             {hasFilters && (
-              <Button size="sm" variant="light" onPress={handleClearFilters} startContent={<X size={14} />}>
+              <Button
+                size="sm"
+                startContent={<X size={14} />}
+                variant="light"
+                onPress={handleClearFilters}
+              >
                 {t.filters.clear}
               </Button>
             )}
@@ -173,30 +197,30 @@ export function AllPaymentsModal({ isOpen, onClose, unitId, translations: t }: A
               <Spinner />
             </div>
           ) : payments.length === 0 ? (
-            <Typography variant="body2" color="muted" className="py-8 text-center">
+            <Typography className="py-8 text-center" color="muted" variant="body2">
               {t.noResults}
             </Typography>
           ) : (
             <>
               <Table<TPaymentRow>
                 aria-label={t.title}
-                columns={columns}
-                rows={payments}
-                renderCell={renderCell}
                 classNames={{
                   wrapper: 'shadow-none border-none p-0',
                   tr: 'hover:bg-default-50',
                 }}
+                columns={columns}
+                renderCell={renderCell}
+                rows={payments}
               />
               {pagination && pagination.totalPages > 1 && (
                 <div className="mt-4">
                   <Pagination
-                    page={pagination.page}
-                    totalPages={pagination.totalPages}
-                    total={pagination.total}
                     limit={pagination.limit}
-                    onPageChange={setPage}
+                    page={pagination.page}
                     showLimitSelector={false}
+                    total={pagination.total}
+                    totalPages={pagination.totalPages}
+                    onPageChange={setPage}
                   />
                 </div>
               )}

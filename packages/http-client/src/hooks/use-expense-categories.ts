@@ -91,10 +91,7 @@ export function useExpenseCategoriesByParent(
 // Hooks - Get Expense Category by ID
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useExpenseCategoryDetail(
-  id: string,
-  options?: IUseExpenseCategoryDetailOptions
-) {
+export function useExpenseCategoryDetail(id: string, options?: IUseExpenseCategoryDetailOptions) {
   return useApiQuery<TApiDataResponse<TExpenseCategory>>({
     path: `/condominium/expense-categories/${id}`,
     queryKey: expenseCategoryKeys.detail(id),
@@ -139,7 +136,7 @@ export function useUpdateExpenseCategory(id: string, options?: IUpdateExpenseCat
 
 export function useDeleteExpenseCategory(options?: IDeleteExpenseCategoryOptions) {
   return useApiMutation<TApiDataResponse<TExpenseCategory>, { id: string }>({
-    path: (data) => `/condominium/expense-categories/${data.id}`,
+    path: data => `/condominium/expense-categories/${data.id}`,
     method: 'DELETE',
     config: {},
     onSuccess: options?.onSuccess,
@@ -154,7 +151,9 @@ export function useDeleteExpenseCategory(options?: IDeleteExpenseCategoryOptions
 
 export async function getExpenseCategories(): Promise<TExpenseCategory[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TExpenseCategory[]>>('/condominium/expense-categories')
+  const response = await client.get<TApiDataResponse<TExpenseCategory[]>>(
+    '/condominium/expense-categories'
+  )
   return response.data.data
 }
 

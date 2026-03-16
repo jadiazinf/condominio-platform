@@ -48,7 +48,9 @@ export class UserNotificationPreferencesRepository
     }
   }
 
-  protected override mapToUpdateValues(dto: TUserNotificationPreferenceUpdate): Record<string, unknown> {
+  protected override mapToUpdateValues(
+    dto: TUserNotificationPreferenceUpdate
+  ): Record<string, unknown> {
     const values: Record<string, unknown> = {}
 
     if (dto.userId !== undefined) values.userId = dto.userId

@@ -1,7 +1,8 @@
 'use client'
 
-import { Button } from '@/ui/components/button'
 import { Ban } from 'lucide-react'
+
+import { Button } from '@/ui/components/button'
 
 interface ICancelTicketActionProps {
   label: string

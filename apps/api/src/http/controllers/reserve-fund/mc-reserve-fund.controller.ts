@@ -5,10 +5,20 @@ import {
   reserveFundExpensesQuerySchema,
   ESystemRole,
 } from '@packages/domain'
-import type { QuotasRepository, PaymentsRepository, ExpensesRepository, DocumentsRepository, CondominiumServicesRepository } from '@database/repositories'
+import type {
+  QuotasRepository,
+  PaymentsRepository,
+  ExpensesRepository,
+  DocumentsRepository,
+  CondominiumServicesRepository,
+} from '@database/repositories'
 import { HttpContext } from '../../context'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
-import { paramsValidator, queryValidator, bodyValidator } from '../../middlewares/utils/payload-validator'
+import {
+  paramsValidator,
+  queryValidator,
+  bodyValidator,
+} from '../../middlewares/utils/payload-validator'
 import { ManagementCompanyIdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { createRouter } from '../create-router'
@@ -41,20 +51,29 @@ const createExpenseBodySchema = z.object({
   vendorAddress: z.string().max(500).optional(),
   invoiceNumber: z.string().max(100).optional(),
   notes: z.string().optional(),
-  documents: z.array(z.object({
-    title: z.string(),
-    fileUrl: z.string().url(),
-    fileName: z.string(),
-    fileSize: z.number(),
-    fileType: z.string(),
-  })).optional(),
+  documents: z
+    .array(
+      z.object({
+        title: z.string(),
+        fileUrl: z.string().url(),
+        fileName: z.string(),
+        fileSize: z.number(),
+        fileType: z.string(),
+      })
+    )
+    .optional(),
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Roles
 // ─────────────────────────────────────────────────────────────────────────────
 
-const allMcRoles = [ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.VIEWER] as const
+const allMcRoles = [
+  ESystemRole.ADMIN,
+  ESystemRole.ACCOUNTANT,
+  ESystemRole.SUPPORT,
+  ESystemRole.VIEWER,
+] as const
 const writeMcRoles = [ESystemRole.ADMIN, ESystemRole.ACCOUNTANT] as const
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -172,7 +191,11 @@ export class McReserveFundController {
   }
 
   private listPayments = async (c: Context): Promise<Response> => {
-    const ctx = new HttpContext<unknown, z.infer<typeof reserveFundPaymentsQuerySchema>, TManagementCompanyIdParam>(c)
+    const ctx = new HttpContext<
+      unknown,
+      z.infer<typeof reserveFundPaymentsQuerySchema>,
+      TManagementCompanyIdParam
+    >(c)
     const { condominiumId, unitId, conceptId, startDate, endDate, page, limit } = ctx.query
 
     const result = await this.paymentsRepo.listReserveFundPaymentsPaginated(condominiumId, {
@@ -188,7 +211,11 @@ export class McReserveFundController {
   }
 
   private listExpenses = async (c: Context): Promise<Response> => {
-    const ctx = new HttpContext<unknown, z.infer<typeof reserveFundExpensesQuerySchema>, TManagementCompanyIdParam>(c)
+    const ctx = new HttpContext<
+      unknown,
+      z.infer<typeof reserveFundExpensesQuerySchema>,
+      TManagementCompanyIdParam
+    >(c)
     const { condominiumId, status, startDate, endDate, page, limit } = ctx.query
 
     const result = await this.expensesRepo.listReserveFundExpensesPaginated(condominiumId, {
@@ -218,9 +245,7 @@ export class McReserveFundController {
     // Resolve linked services from metadata
     const metadata = expense.metadata as Record<string, unknown> | null
     const serviceIds = (metadata?.serviceIds as string[] | null) ?? []
-    const services = serviceIds.length > 0
-      ? await this.servicesRepo.getByIds(serviceIds)
-      : []
+    const services = serviceIds.length > 0 ? await this.servicesRepo.getByIds(serviceIds) : []
 
     return ctx.ok({ data: { ...expense, documents: expenseDocuments, services } })
   }
@@ -230,18 +255,17 @@ export class McReserveFundController {
     const body = ctx.body
     const user = ctx.getAuthenticatedUser()
 
-    const description = body.description
-      ? `${body.name}\n${body.description}`
-      : body.name
+    const description = body.description ? `${body.name}\n${body.description}` : body.name
 
-    const vendorMetadata = (body.vendorType || body.vendorPhone || body.vendorEmail || body.vendorAddress)
-      ? {
-          type: body.vendorType ?? null,
-          phone: body.vendorPhone ?? null,
-          email: body.vendorEmail ?? null,
-          address: body.vendorAddress ?? null,
-        }
-      : null
+    const vendorMetadata =
+      body.vendorType || body.vendorPhone || body.vendorEmail || body.vendorAddress
+        ? {
+            type: body.vendorType ?? null,
+            phone: body.vendorPhone ?? null,
+            email: body.vendorEmail ?? null,
+            address: body.vendorAddress ?? null,
+          }
+        : null
 
     const expense = await this.expensesRepo.create({
       condominiumId: body.condominiumId,

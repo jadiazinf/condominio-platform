@@ -23,7 +23,7 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import { faker } from '@faker-js/faker/locale/es_MX'
 import { eq, and, isNull } from 'drizzle-orm'
 import * as readline from 'readline'
-import * as schema from '../src/database/drizzle/schema'
+import * as schema from '@database/drizzle/schema'
 import { ESystemRole } from '@packages/domain'
 import { seedBanks } from '../src/database/seeds/banks.seed'
 import { seedCurrencies } from '../src/database/seeds/currencies.seed'
@@ -40,7 +40,6 @@ const SUPERADMIN_FIREBASE_UID = 'du7YtYB3Xeet88oTLNHUX20DACt2'
 
 // const SUPERADMIN_EMAIL = 'jesusdesk@gmail.com'
 // const SUPERADMIN_FIREBASE_UID = 'mbh2opMCerYPGwLNFDSGhL372aN2'
-
 
 // Superadmin permission modules
 const SUPERADMIN_PERMISSION_MODULES = [
@@ -425,9 +424,21 @@ async function seedRoles(db: Database): Promise<string> {
       description: 'Platform administrator with full access',
       isSystemRole: true,
     },
-    { name: ESystemRole.ADMIN, description: 'Management company administrator', isSystemRole: true },
-    { name: ESystemRole.USER, description: 'General user with basic platform access', isSystemRole: true },
-    { name: ESystemRole.ACCOUNTANT, description: 'Financial management access', isSystemRole: true },
+    {
+      name: ESystemRole.ADMIN,
+      description: 'Management company administrator',
+      isSystemRole: true,
+    },
+    {
+      name: ESystemRole.USER,
+      description: 'General user with basic platform access',
+      isSystemRole: true,
+    },
+    {
+      name: ESystemRole.ACCOUNTANT,
+      description: 'Financial management access',
+      isSystemRole: true,
+    },
     { name: ESystemRole.SUPPORT, description: 'Customer support access', isSystemRole: true },
     { name: ESystemRole.VIEWER, description: 'Read-only access', isSystemRole: true },
   ]

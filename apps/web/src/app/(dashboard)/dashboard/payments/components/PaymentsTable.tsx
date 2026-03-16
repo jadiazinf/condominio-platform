@@ -1,23 +1,11 @@
 'use client'
 
+import type { TPayment, TPaymentStatus } from '@packages/domain'
+import type { TReportFormat } from '@packages/http-client'
+
 import { useState, useCallback, useMemo } from 'react'
-import { Table, type ITableColumn } from '@/ui/components/table'
-import { Input } from '@/ui/components/input'
-import { Select, type ISelectItem } from '@/ui/components/select'
-import { Chip } from '@/ui/components/chip'
-import { Button } from '@/ui/components/button'
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
-import { Spinner } from '@/ui/components/spinner'
-import { ClearFiltersButton } from '@/ui/components/filters'
 import { CreditCard, Search, MoreVertical, Eye, CheckCircle, XCircle, Download } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import type { TPayment, TPaymentStatus } from '@packages/domain'
-
-import { getPaymentStatusColor } from '@/utils/status-colors'
-import { useTranslation, useCondominium } from '@/contexts'
-import { Typography } from '@/ui/components/typography'
-import { Pagination } from '@/ui/components/pagination'
-import { useSessionStore } from '@/stores'
 import {
   usePaymentsPaginated,
   useCompanyCondominiumsPaginated,
@@ -28,7 +16,20 @@ import {
   useQueryClient,
   downloadDebtorsReport,
 } from '@packages/http-client'
-import type { TReportFormat } from '@packages/http-client'
+
+import { Table, type ITableColumn } from '@/ui/components/table'
+import { Input } from '@/ui/components/input'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
+import { Spinner } from '@/ui/components/spinner'
+import { ClearFiltersButton } from '@/ui/components/filters'
+import { getPaymentStatusColor } from '@/utils/status-colors'
+import { useTranslation, useCondominium } from '@/contexts'
+import { Typography } from '@/ui/components/typography'
+import { Pagination } from '@/ui/components/pagination'
+import { useSessionStore } from '@/stores'
 import { useToast } from '@/ui/components/toast'
 
 type TStatusFilter = TPaymentStatus | 'all'
@@ -93,6 +94,7 @@ export function PaymentsTable() {
   // Client-side condominium filter (API doesn't support condominiumId filter directly)
   const payments = useMemo(() => {
     if (!condominiumFilter) return rawPayments
+
     return rawPayments.filter(
       (p: any) =>
         p.unit?.building?.condominiumId === condominiumFilter ||
@@ -184,6 +186,7 @@ export function PaymentsTable() {
   const handleExport = useCallback(
     async (format: TReportFormat) => {
       const condominiumId = selectedCondominium?.condominium?.id
+
       if (!condominiumId) return
 
       setExporting(format)
@@ -244,18 +247,21 @@ export function PaymentsTable() {
 
   const getPaymentMethodLabel = (method: string) => {
     const key = `admin.payments.method.${method}`
+
     return t(key)
   }
 
   const formatDate = (date: Date | string | null) => {
     if (!date) return '-'
     const d = typeof date === 'string' ? new Date(date) : date
+
     return d.toLocaleDateString()
   }
 
   const formatAmount = (amount: string | null) => {
     if (!amount) return '-'
     const num = parseFloat(amount)
+
     return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
@@ -301,6 +307,7 @@ export function PaymentsTable() {
           )
         case 'actions': {
           const isPendingVerification = payment.status === 'pending_verification'
+
           return (
             <div onClick={e => e.stopPropagation()}>
               <Dropdown>
@@ -380,19 +387,19 @@ export function PaymentsTable() {
       {/* Export buttons */}
       <div className="flex justify-end gap-2">
         <Button
-          variant="bordered"
-          startContent={<Download size={16} />}
-          isLoading={exporting === 'csv'}
           isDisabled={exporting !== null}
+          isLoading={exporting === 'csv'}
+          startContent={<Download size={16} />}
+          variant="bordered"
           onPress={() => handleExport('csv')}
         >
           {t('admin.payments.export.csv')}
         </Button>
         <Button
-          variant="bordered"
-          startContent={<Download size={16} />}
-          isLoading={exporting === 'pdf'}
           isDisabled={exporting !== null}
+          isLoading={exporting === 'pdf'}
+          startContent={<Download size={16} />}
+          variant="bordered"
           onPress={() => handleExport('pdf')}
         >
           {t('admin.payments.export.pdf')}
@@ -404,30 +411,30 @@ export function PaymentsTable() {
         <Input
           className="w-full sm:max-w-xs"
           placeholder={t('admin.payments.filters.searchPlaceholder')}
+          size="lg"
           startContent={<Search className="text-default-400" size={16} />}
           value={search}
           onValueChange={handleSearchChange}
-          size="lg"
         />
         <Select
           aria-label={t('admin.payments.filters.status')}
           className="w-full sm:w-44"
           items={statusFilterItems}
-          value={statusFilter}
-          onChange={handleStatusChange}
-          variant="bordered"
           size="lg"
+          value={statusFilter}
+          variant="bordered"
+          onChange={handleStatusChange}
         />
         {condominiums.length > 0 && (
           <Select
             aria-label={t('admin.payments.filters.condominium')}
             className="w-full sm:w-56"
             items={condominiumFilterItems}
-            value={condominiumFilter}
-            onChange={handleCondominiumChange}
-            variant="bordered"
             placeholder={t('admin.payments.filters.condominiumAll')}
             size="lg"
+            value={condominiumFilter}
+            variant="bordered"
+            onChange={handleCondominiumChange}
           />
         )}
         {bankAccounts.length > 0 && (
@@ -435,35 +442,35 @@ export function PaymentsTable() {
             aria-label={t('admin.payments.filters.bank')}
             className="w-full sm:w-44"
             items={bankAccountFilterItems}
-            value={bankAccountFilter}
-            onChange={handleBankAccountChange}
-            variant="bordered"
             placeholder={t('admin.payments.filters.bankAll')}
+            value={bankAccountFilter}
+            variant="bordered"
+            onChange={handleBankAccountChange}
           />
         )}
         <Input
           className="w-full sm:w-36"
           label={t('admin.payments.filters.startDate')}
+          labelPlacement="inside"
+          size="sm"
           type="date"
           value={startDate}
           onValueChange={v => {
             setStartDate(v)
             setPage(1)
           }}
-          size="sm"
-          labelPlacement="inside"
         />
         <Input
           className="w-full sm:w-36"
           label={t('admin.payments.filters.endDate')}
+          labelPlacement="inside"
+          size="sm"
           type="date"
           value={endDate}
           onValueChange={v => {
             setEndDate(v)
             setPage(1)
           }}
-          size="sm"
-          labelPlacement="inside"
         />
         {(search ||
           statusFilter !== 'pending_verification' ||
@@ -492,13 +499,13 @@ export function PaymentsTable() {
         <>
           <Table<TPaymentRow>
             aria-label={t('admin.payments.title')}
-            columns={tableColumns}
-            rows={payments}
-            renderCell={renderCell}
-            onRowClick={payment => handleViewDetails(payment.id)}
             classNames={{
               tr: 'cursor-pointer transition-colors hover:bg-default-100',
             }}
+            columns={tableColumns}
+            renderCell={renderCell}
+            rows={payments}
+            onRowClick={payment => handleViewDetails(payment.id)}
           />
 
           {/* Pagination */}

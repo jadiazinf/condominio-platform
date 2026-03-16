@@ -1,9 +1,11 @@
 'use client'
 
+import type { ICondominiumFormData } from '../../hooks/useCondominiumForm'
+
 import { useFormContext, Controller } from 'react-hook-form'
+
 import { Input, Label, PhoneInput } from '@/ui/components'
 import { useTranslation } from '@/contexts'
-import type { ICondominiumFormData } from '../../hooks/useCondominiumForm'
 
 export function ContactStepForm() {
   const { t } = useTranslation()
@@ -16,15 +18,24 @@ export function ContactStepForm() {
   return (
     <div className="space-y-6">
       <Controller
-        name="phoneCountryCode"
         control={control}
-        rules={{
-          required: t('condominiums.form.fields.phoneNumber.required'),
-        }}
+        name="phoneCountryCode"
         render={({ field: countryCodeField }) => (
           <Controller
-            name="phone"
             control={control}
+            name="phone"
+            render={({ field: phoneField }) => (
+              <PhoneInput
+                isRequired
+                countryCode={countryCodeField.value}
+                countryCodeError={errors.phoneCountryCode?.message}
+                label={t('condominiums.form.fields.phoneNumber.label')}
+                phoneNumber={phoneField.value}
+                phoneNumberError={errors.phone?.message}
+                onCountryCodeChange={countryCodeField.onChange}
+                onPhoneNumberChange={phoneField.onChange}
+              />
+            )}
             rules={{
               required: t('condominiums.form.fields.phoneNumber.required'),
               maxLength: {
@@ -32,24 +43,15 @@ export function ContactStepForm() {
                 message: t('condominiums.form.fields.phoneNumber.maxLengthError'),
               },
             }}
-            render={({ field: phoneField }) => (
-              <PhoneInput
-                label={t('condominiums.form.fields.phoneNumber.label')}
-                countryCode={countryCodeField.value}
-                phoneNumber={phoneField.value}
-                onCountryCodeChange={countryCodeField.onChange}
-                onPhoneNumberChange={phoneField.onChange}
-                countryCodeError={errors.phoneCountryCode?.message}
-                phoneNumberError={errors.phone?.message}
-                isRequired
-              />
-            )}
           />
         )}
+        rules={{
+          required: t('condominiums.form.fields.phoneNumber.required'),
+        }}
       />
 
       <div className="space-y-2">
-        <Label htmlFor="email" required>
+        <Label required htmlFor="email">
           {t('condominiums.form.fields.email.label')}
         </Label>
         <Input
@@ -66,8 +68,8 @@ export function ContactStepForm() {
               message: t('condominiums.form.fields.email.maxLengthError'),
             },
           })}
-          placeholder={t('condominiums.form.fields.email.placeholder')}
           error={errors.email?.message}
+          placeholder={t('condominiums.form.fields.email.placeholder')}
         />
       </div>
     </div>

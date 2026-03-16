@@ -265,7 +265,8 @@ export function parseDbError(error: unknown): AppError {
   }
 
   if (pgCode === PG_CODES.FOREIGN_KEY_VIOLATION) {
-    const refMatch = detail?.match(/referenced by table "([^"]+)"/) ??
+    const refMatch =
+      detail?.match(/referenced by table "([^"]+)"/) ??
       (pgError?.message?.match(/referenced by table "([^"]+)"/) || null)
     const reference = refMatch?.[1] ?? 'related resource'
     return AppError.foreignKeyViolation(reference)
@@ -284,9 +285,10 @@ export function parseDbError(error: unknown): AppError {
     const message = error.message.toLowerCase()
 
     if (message.includes('duplicate key') || message.includes('unique constraint')) {
-      const field = extractFieldFromDetail((error as { detail?: string }).detail)
-        ?? error.message.match(/Key \(([^)]+)\)=/)?.[1]
-        ?? 'field'
+      const field =
+        extractFieldFromDetail((error as { detail?: string }).detail) ??
+        error.message.match(/Key \(([^)]+)\)=/)?.[1] ??
+        'field'
       return AppError.duplicateKey(field)
     }
 

@@ -23,7 +23,11 @@ export class AmenityReservationsRepository
     TAmenityReservationUpdate
   >
   implements
-    IRepositoryWithHardDelete<TAmenityReservation, TAmenityReservationCreate, TAmenityReservationUpdate>
+    IRepositoryWithHardDelete<
+      TAmenityReservation,
+      TAmenityReservationCreate,
+      TAmenityReservationUpdate
+    >
 {
   constructor(db: TDrizzleClient) {
     super(db, amenityReservations)

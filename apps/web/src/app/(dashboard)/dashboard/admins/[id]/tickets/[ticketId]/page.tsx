@@ -9,9 +9,7 @@ interface TicketDetailPageProps {
   }>
 }
 
-export default async function TicketDetailPage({
-  params,
-}: TicketDetailPageProps) {
+export default async function TicketDetailPage({ params }: TicketDetailPageProps) {
   const { id, ticketId } = await params
 
   return (

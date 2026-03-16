@@ -25,6 +25,21 @@ export function getTicketPriorityColor(priority: string): ChipColor {
   return TICKET_PRIORITY_COLORS[priority] ?? 'default'
 }
 
+// ─── Quotas ─────────────────────────────────────────────────────────────────
+
+const QUOTA_STATUS_COLORS: Record<string, ChipColor> = {
+  pending: 'warning',
+  partial: 'primary',
+  paid: 'success',
+  overdue: 'danger',
+  cancelled: 'default',
+  exonerated: 'secondary',
+}
+
+export function getQuotaStatusColor(status: string): ChipColor {
+  return QUOTA_STATUS_COLORS[status] ?? 'default'
+}
+
 // ─── Payments ────────────────────────────────────────────────────────────────
 
 const PAYMENT_STATUS_COLORS: Record<string, ChipColor> = {

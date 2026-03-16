@@ -10,7 +10,7 @@
 
 import { Pool } from 'pg'
 import { drizzle } from 'drizzle-orm/node-postgres'
-import * as schema from '../src/database/drizzle/schema'
+import * as schema from '@database/drizzle/schema'
 import { seedBanks } from '../src/database/seeds/banks.seed'
 
 const DATABASE_URL = process.env.DATABASE_URL || ''

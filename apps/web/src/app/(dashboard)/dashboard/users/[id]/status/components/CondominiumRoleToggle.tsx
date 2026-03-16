@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+
+import { updateUserRoleStatusAction } from '../../actions'
+
 import { Switch } from '@/ui/components/switch'
 import { Chip } from '@/ui/components/chip'
 import { useToast } from '@/ui/components/toast'
-import { updateUserRoleStatusAction } from '../../actions'
 
 interface CondominiumRoleToggleProps {
   userId: string
@@ -51,19 +53,10 @@ export function CondominiumRoleToggle({
 
   return (
     <div className="flex items-center gap-2">
-      <Chip
-        size="sm"
-        variant="flat"
-        color={isActive ? 'primary' : 'default'}
-      >
+      <Chip color={isActive ? 'primary' : 'default'} size="sm" variant="flat">
         {roleName}
       </Chip>
-      <Switch
-        isSelected={isActive}
-        isDisabled={isLoading}
-        onValueChange={handleToggle}
-        size="sm"
-      />
+      <Switch isDisabled={isLoading} isSelected={isActive} size="sm" onValueChange={handleToggle} />
     </div>
   )
 }

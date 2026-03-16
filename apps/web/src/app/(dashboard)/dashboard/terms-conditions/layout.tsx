@@ -1,9 +1,9 @@
 import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
 
 import { Typography } from '@/ui/components/typography'
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
-import { redirect } from 'next/navigation'
 
 async function TermsConditionsLayoutContent({ children }: { children: React.ReactNode }) {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])

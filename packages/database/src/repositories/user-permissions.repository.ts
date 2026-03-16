@@ -3,7 +3,6 @@ import type {
   TUserPermission,
   TUserPermissionCreate,
   TUserPermissionUpdate,
-  TPermission,
 } from '@packages/domain'
 import { userPermissions, permissions } from '../drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
@@ -126,7 +125,10 @@ export class UserPermissionsRepository
   /**
    * Gets a specific user permission.
    */
-  async getByUserAndPermission(userId: string, permissionId: string): Promise<TUserPermission | null> {
+  async getByUserAndPermission(
+    userId: string,
+    permissionId: string
+  ): Promise<TUserPermission | null> {
     const results = await this.db
       .select()
       .from(userPermissions)

@@ -25,7 +25,12 @@ export class CondominiumAccessCodesRepository
     TCondominiumAccessCodeInsert,
     Partial<TCondominiumAccessCode>
   >
-  implements IRepository<TCondominiumAccessCode, TCondominiumAccessCodeInsert, Partial<TCondominiumAccessCode>>
+  implements
+    IRepository<
+      TCondominiumAccessCode,
+      TCondominiumAccessCodeInsert,
+      Partial<TCondominiumAccessCode>
+    >
 {
   constructor(db: TDrizzleClient) {
     super(db, condominiumAccessCodes)

@@ -54,83 +54,81 @@ export function useExpenseDocumentUpload(options: IUseExpenseDocumentUploadOptio
 
     if (!validateFileSize(mimeType, file.size)) {
       const maxSize = getFileSizeLimit(mimeType)
+
       return { file, reason: 'file_too_large', maxSize: maxSize ?? undefined }
     }
 
     return null
   }, [])
 
-  const uploadFile = useCallback(
-    async (uploadingFile: IUploadingFile) => {
-      const { id, file } = uploadingFile
+  const uploadFile = useCallback(async (uploadingFile: IUploadingFile) => {
+    const { id, file } = uploadingFile
 
-      try {
-        const storage = getFirebaseStorage()
-        const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-        const storagePath = `reserve-fund-expenses/temp/${tempIdRef.current}/documents/${id}_${safeFileName}`
-        const storageRef = ref(storage, storagePath)
+    try {
+      const storage = getFirebaseStorage()
+      const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+      const storagePath = `reserve-fund-expenses/temp/${tempIdRef.current}/documents/${id}_${safeFileName}`
+      const storageRef = ref(storage, storagePath)
 
-        setUploadingFiles((prev) =>
-          prev.map((f) => (f.id === id ? { ...f, status: 'uploading' as const } : f))
-        )
+      setUploadingFiles(prev =>
+        prev.map(f => (f.id === id ? { ...f, status: 'uploading' as const } : f))
+      )
 
-        const uploadTask = uploadBytesResumable(storageRef, file)
-        uploadTasksRef.current.set(id, uploadTask)
+      const uploadTask = uploadBytesResumable(storageRef, file)
 
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
-            setUploadingFiles((prev) => prev.map((f) => (f.id === id ? { ...f, progress } : f)))
-          },
-          (error) => {
-            setUploadingFiles((prev) =>
-              prev.map((f) =>
-                f.id === id ? { ...f, status: 'error' as const, error: error.message } : f
+      uploadTasksRef.current.set(id, uploadTask)
+
+      uploadTask.on(
+        'state_changed',
+        snapshot => {
+          const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
+
+          setUploadingFiles(prev => prev.map(f => (f.id === id ? { ...f, progress } : f)))
+        },
+        error => {
+          setUploadingFiles(prev =>
+            prev.map(f =>
+              f.id === id ? { ...f, status: 'error' as const, error: error.message } : f
+            )
+          )
+          uploadTasksRef.current.delete(id)
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
+
+            const attachment: TAttachment = {
+              name: file.name,
+              url: downloadURL,
+              size: file.size,
+              mimeType: file.type as TAttachment['mimeType'],
+            }
+
+            setUploadingFiles(prev =>
+              prev.map(f =>
+                f.id === id ? { ...f, status: 'completed' as const, progress: 100, attachment } : f
               )
             )
-            uploadTasksRef.current.delete(id)
-          },
-          async () => {
-            try {
-              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
-
-              const attachment: TAttachment = {
-                name: file.name,
-                url: downloadURL,
-                size: file.size,
-                mimeType: file.type as TAttachment['mimeType'],
-              }
-
-              setUploadingFiles((prev) =>
-                prev.map((f) =>
-                  f.id === id
-                    ? { ...f, status: 'completed' as const, progress: 100, attachment }
-                    : f
-                )
+          } catch {
+            setUploadingFiles(prev =>
+              prev.map(f =>
+                f.id === id
+                  ? { ...f, status: 'error' as const, error: 'Failed to get download URL' }
+                  : f
               )
-            } catch {
-              setUploadingFiles((prev) =>
-                prev.map((f) =>
-                  f.id === id
-                    ? { ...f, status: 'error' as const, error: 'Failed to get download URL' }
-                    : f
-                )
-              )
-            }
-            uploadTasksRef.current.delete(id)
+            )
           }
+          uploadTasksRef.current.delete(id)
+        }
+      )
+    } catch {
+      setUploadingFiles(prev =>
+        prev.map(f =>
+          f.id === id ? { ...f, status: 'error' as const, error: 'Failed to start upload' } : f
         )
-      } catch {
-        setUploadingFiles((prev) =>
-          prev.map((f) =>
-            f.id === id ? { ...f, status: 'error' as const, error: 'Failed to start upload' } : f
-          )
-        )
-      }
-    },
-    []
-  )
+      )
+    }
+  }, [])
 
   const addFiles = useCallback(
     (files: FileList | File[]) => {
@@ -140,6 +138,7 @@ export function useExpenseDocumentUpload(options: IUseExpenseDocumentUploadOptio
 
       for (const file of fileArray) {
         const error = validateFile(file)
+
         if (error) {
           validationErrors.push(error)
         } else {
@@ -152,14 +151,14 @@ export function useExpenseDocumentUpload(options: IUseExpenseDocumentUploadOptio
       }
 
       if (validFiles.length > 0) {
-        const newUploadingFiles: IUploadingFile[] = validFiles.map((file) => ({
+        const newUploadingFiles: IUploadingFile[] = validFiles.map(file => ({
           id: crypto.randomUUID(),
           file,
           progress: 0,
           status: 'pending' as const,
         }))
 
-        setUploadingFiles((prev) => [...prev, ...newUploadingFiles])
+        setUploadingFiles(prev => [...prev, ...newUploadingFiles])
 
         for (const uploadingFile of newUploadingFiles) {
           uploadFile(uploadingFile)
@@ -171,16 +170,18 @@ export function useExpenseDocumentUpload(options: IUseExpenseDocumentUploadOptio
 
   const removeFile = useCallback((id: string) => {
     const uploadTask = uploadTasksRef.current.get(id)
+
     if (uploadTask) {
       uploadTask.cancel()
       uploadTasksRef.current.delete(id)
     }
 
-    setUploadingFiles((prev) => prev.filter((f) => f.id !== id))
+    setUploadingFiles(prev => prev.filter(f => f.id !== id))
   }, [])
 
   const clearAll = useCallback(() => {
     const entries = Array.from(uploadTasksRef.current.entries())
+
     for (const [id, uploadTask] of entries) {
       uploadTask.cancel()
       uploadTasksRef.current.delete(id)
@@ -191,10 +192,11 @@ export function useExpenseDocumentUpload(options: IUseExpenseDocumentUploadOptio
 
   const retryFile = useCallback(
     (id: string) => {
-      const fileToRetry = uploadingFiles.find((f) => f.id === id)
+      const fileToRetry = uploadingFiles.find(f => f.id === id)
+
       if (fileToRetry && fileToRetry.status === 'error') {
-        setUploadingFiles((prev) =>
-          prev.map((f) =>
+        setUploadingFiles(prev =>
+          prev.map(f =>
             f.id === id ? { ...f, status: 'pending' as const, progress: 0, error: undefined } : f
           )
         )
@@ -205,12 +207,12 @@ export function useExpenseDocumentUpload(options: IUseExpenseDocumentUploadOptio
   )
 
   const completedAttachments = uploadingFiles
-    .filter((f) => f.status === 'completed' && f.attachment)
-    .map((f) => f.attachment!)
+    .filter(f => f.status === 'completed' && f.attachment)
+    .map(f => f.attachment!)
 
-  const isUploading = uploadingFiles.some((f) => f.status === 'uploading' || f.status === 'pending')
+  const isUploading = uploadingFiles.some(f => f.status === 'uploading' || f.status === 'pending')
 
-  const hasErrors = uploadingFiles.some((f) => f.status === 'error')
+  const hasErrors = uploadingFiles.some(f => f.status === 'error')
 
   return {
     uploadingFiles,

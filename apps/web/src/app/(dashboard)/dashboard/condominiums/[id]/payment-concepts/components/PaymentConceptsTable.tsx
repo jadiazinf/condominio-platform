@@ -1,12 +1,14 @@
 'use client'
 
+import type { TPaymentConcept } from '@packages/domain'
+
 import { useMemo, useCallback } from 'react'
+import { FileText } from 'lucide-react'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
 import { Card, CardBody } from '@/ui/components/card'
 import { Typography } from '@/ui/components/typography'
-import { FileText } from 'lucide-react'
-import type { TPaymentConcept } from '@packages/domain'
 
 const TYPE_COLORS = {
   maintenance: 'primary',
@@ -21,6 +23,7 @@ function formatMonthYear(dateStr: string | Date | null | undefined): string {
   if (!dateStr) return ''
   const date = new Date(dateStr)
   const monthYear = date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+
   return monthYear.charAt(0).toUpperCase() + monthYear.slice(1)
 }
 
@@ -61,7 +64,11 @@ interface PaymentConceptsTableProps {
   }
 }
 
-export function PaymentConceptsTable({ paymentConcepts, onRowClick, translations: t }: PaymentConceptsTableProps) {
+export function PaymentConceptsTable({
+  paymentConcepts,
+  onRowClick,
+  translations: t,
+}: PaymentConceptsTableProps) {
   const columns: ITableColumn<TPaymentConcept>[] = useMemo(
     () => [
       { key: 'name', label: t.table.name },
@@ -79,10 +86,12 @@ export function PaymentConceptsTable({ paymentConcepts, onRowClick, translations
       switch (columnKey) {
         case 'name': {
           const monthYear = formatMonthYear(concept.createdAt)
+
           return (
             <div className="flex flex-col gap-0.5">
               <span className="font-medium text-sm">
-                {concept.name}{monthYear ? ` — ${monthYear}` : ''}
+                {concept.name}
+                {monthYear ? ` — ${monthYear}` : ''}
               </span>
               {concept.description && (
                 <span className="text-xs text-default-500 line-clamp-1">{concept.description}</span>
@@ -94,26 +103,23 @@ export function PaymentConceptsTable({ paymentConcepts, onRowClick, translations
           return (
             <Chip
               color={TYPE_COLORS[concept.conceptType as keyof typeof TYPE_COLORS] || 'default'}
-              variant="flat"
               size="sm"
+              variant="flat"
             >
               {t.types[concept.conceptType as keyof typeof t.types] || concept.conceptType}
             </Chip>
           )
         case 'recurring':
           return (
-            <Chip
-              color={concept.isRecurring ? 'success' : 'default'}
-              variant="flat"
-              size="sm"
-            >
+            <Chip color={concept.isRecurring ? 'success' : 'default'} size="sm" variant="flat">
               {concept.isRecurring ? t.yes : t.no}
             </Chip>
           )
         case 'recurrence':
           return concept.recurrencePeriod ? (
             <span className="text-sm text-default-600">
-              {t.recurrence[concept.recurrencePeriod as keyof typeof t.recurrence] || concept.recurrencePeriod}
+              {t.recurrence[concept.recurrencePeriod as keyof typeof t.recurrence] ||
+                concept.recurrencePeriod}
             </span>
           ) : (
             <span className="text-sm text-default-400">-</span>
@@ -132,11 +138,7 @@ export function PaymentConceptsTable({ paymentConcepts, onRowClick, translations
           )
         case 'status':
           return (
-            <Chip
-              color={concept.isActive ? 'success' : 'default'}
-              variant="flat"
-              size="sm"
-            >
+            <Chip color={concept.isActive ? 'success' : 'default'} size="sm" variant="flat">
               {concept.isActive ? t.status.active : t.status.inactive}
             </Chip>
           )
@@ -167,6 +169,7 @@ export function PaymentConceptsTable({ paymentConcepts, onRowClick, translations
       <div className="block space-y-3 md:hidden">
         {paymentConcepts.map(concept => {
           const monthYear = formatMonthYear(concept.createdAt)
+
           return (
             <Card
               key={concept.id}
@@ -178,25 +181,24 @@ export function PaymentConceptsTable({ paymentConcepts, onRowClick, translations
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="font-medium text-sm">
-                      {concept.name}{monthYear ? ` — ${monthYear}` : ''}
+                      {concept.name}
+                      {monthYear ? ` — ${monthYear}` : ''}
                     </p>
                     {concept.description && (
                       <p className="text-xs text-default-500 line-clamp-2">{concept.description}</p>
                     )}
                   </div>
-                  <Chip
-                    color={concept.isActive ? 'success' : 'default'}
-                    variant="flat"
-                    size="sm"
-                  >
+                  <Chip color={concept.isActive ? 'success' : 'default'} size="sm" variant="flat">
                     {concept.isActive ? t.status.active : t.status.inactive}
                   </Chip>
                 </div>
                 <div className="flex items-center gap-2">
                   <Chip
-                    color={TYPE_COLORS[concept.conceptType as keyof typeof TYPE_COLORS] || 'default'}
-                    variant="flat"
+                    color={
+                      TYPE_COLORS[concept.conceptType as keyof typeof TYPE_COLORS] || 'default'
+                    }
                     size="sm"
+                    variant="flat"
                   >
                     {t.types[concept.conceptType as keyof typeof t.types] || concept.conceptType}
                   </Chip>
@@ -224,13 +226,15 @@ export function PaymentConceptsTable({ paymentConcepts, onRowClick, translations
       {/* Desktop Table */}
       <div className="hidden md:block">
         <Table<TPaymentConcept>
-          mobileCards={false}
           aria-label={t.title}
+          classNames={
+            onRowClick ? { tr: 'cursor-pointer hover:bg-default-100 transition-colors' } : undefined
+          }
           columns={columns}
-          rows={paymentConcepts}
+          mobileCards={false}
           renderCell={renderCell}
+          rows={paymentConcepts}
           onRowClick={onRowClick}
-          classNames={onRowClick ? { tr: 'cursor-pointer hover:bg-default-100 transition-colors' } : undefined}
         />
       </div>
     </div>

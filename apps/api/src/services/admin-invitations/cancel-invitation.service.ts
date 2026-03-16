@@ -13,9 +13,7 @@ export interface ICancelInvitationInput {
 export class CancelInvitationService {
   constructor(private readonly repository: AdminInvitationsRepository) {}
 
-  async execute(
-    input: ICancelInvitationInput
-  ): Promise<TServiceResult<TAdminInvitation>> {
+  async execute(input: ICancelInvitationInput): Promise<TServiceResult<TAdminInvitation>> {
     const invitation = await this.repository.getById(input.invitationId)
 
     if (!invitation) {
@@ -23,10 +21,7 @@ export class CancelInvitationService {
     }
 
     if (invitation.status !== 'pending') {
-      return failure(
-        `Cannot cancel invitation with status: ${invitation.status}`,
-        'BAD_REQUEST'
-      )
+      return failure(`Cannot cancel invitation with status: ${invitation.status}`, 'BAD_REQUEST')
     }
 
     const cancelled = await this.repository.markAsCancelled(input.invitationId)

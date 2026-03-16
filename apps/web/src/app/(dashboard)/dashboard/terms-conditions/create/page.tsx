@@ -2,12 +2,12 @@ import { Suspense } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { redirect } from 'next/navigation'
 
+import { CreateTermsForm } from './components'
+
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
-
-import { CreateTermsForm } from './components'
 
 async function CreateTermsContent() {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
@@ -20,7 +20,7 @@ async function CreateTermsContent() {
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header */}
       <div className="flex items-start gap-4">
-        <Button className="mt-1" href="/dashboard/terms-conditions" isIconOnly variant="flat">
+        <Button isIconOnly className="mt-1" href="/dashboard/terms-conditions" variant="flat">
           <ArrowLeft size={18} />
         </Button>
         <div>

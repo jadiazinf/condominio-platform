@@ -1,23 +1,10 @@
 'use client'
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
-import { Table, type ITableColumn } from '@/ui/components/table'
-import { Select, type ISelectItem } from '@/ui/components/select'
-import { Chip } from '@/ui/components/chip'
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
-import { Spinner } from '@/ui/components/spinner'
-import { Tooltip } from '@/ui/components/tooltip'
-import { ClearFiltersButton } from '@/ui/components/filters'
-import { Home, Search, MoreVertical, Eye, Power, MapPin, Plus, Info } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import type { TCondominium, TCondominiumsQuery } from '@packages/domain'
 
-import { useTranslation } from '@/contexts'
-import { useToast } from '@/ui/components/toast'
-import { Typography } from '@/ui/components/typography'
-import { Pagination } from '@/ui/components/pagination'
-import { Button } from '@/ui/components/button'
-import { Input } from '@/ui/components/input'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { Home, Search, MoreVertical, Eye, Power, MapPin, Plus, Info } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import {
   useCompanyCondominiumsPaginated,
   updateCondominium,
@@ -26,8 +13,23 @@ import {
   companyCondominiumsKeys,
   useCanCreateResource,
 } from '@packages/http-client'
-import { useUser } from '@/contexts'
+
 import { CreateCondominiumForm } from './CreateCondominiumForm'
+
+import { Table, type ITableColumn } from '@/ui/components/table'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Chip } from '@/ui/components/chip'
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
+import { Spinner } from '@/ui/components/spinner'
+import { Tooltip } from '@/ui/components/tooltip'
+import { ClearFiltersButton } from '@/ui/components/filters'
+import { useTranslation } from '@/contexts'
+import { useToast } from '@/ui/components/toast'
+import { Typography } from '@/ui/components/typography'
+import { Pagination } from '@/ui/components/pagination'
+import { Button } from '@/ui/components/button'
+import { Input } from '@/ui/components/input'
+import { useUser } from '@/contexts'
 
 type TStatusFilter = 'all' | 'active' | 'inactive'
 
@@ -38,7 +40,10 @@ interface CompanyCondominiumsTableProps {
   isCompanyActive: boolean
 }
 
-export function CompanyCondominiumsTable({ companyId, isCompanyActive }: CompanyCondominiumsTableProps) {
+export function CompanyCondominiumsTable({
+  companyId,
+  isCompanyActive,
+}: CompanyCondominiumsTableProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const toast = useToast()
@@ -76,6 +81,7 @@ export function CompanyCondominiumsTable({ companyId, isCompanyActive }: Company
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
+
       return
     }
 
@@ -166,6 +172,7 @@ export function CompanyCondominiumsTable({ companyId, isCompanyActive }: Company
           max: limitInfo.maxAllowed ?? t('superadmin.condominiums.unlimited'),
         })
       )
+
       return
     }
 
@@ -295,7 +302,9 @@ export function CompanyCondominiumsTable({ companyId, isCompanyActive }: Company
 
   // Show error state
   if (error) {
-    const errorMessage = HttpError.isHttpError(error) ? error.message : t('superadmin.condominiums.error')
+    const errorMessage = HttpError.isHttpError(error)
+      ? error.message
+      : t('superadmin.condominiums.error')
 
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-danger-300 py-16">
@@ -326,8 +335,8 @@ export function CompanyCondominiumsTable({ companyId, isCompanyActive }: Company
             className="w-full sm:w-48"
             items={statusFilterItems}
             value={statusFilter}
-            onChange={handleStatusChange}
             variant="bordered"
+            onChange={handleStatusChange}
           />
           {(debouncedSearch || statusFilter !== 'all') && (
             <ClearFiltersButton onClear={handleClearFilters} />
@@ -337,15 +346,16 @@ export function CompanyCondominiumsTable({ companyId, isCompanyActive }: Company
           <div className="flex items-center gap-2">
             <Button
               color="primary"
+              isDisabled={isCheckingLimit || !canCreate || hasNoSubscription}
+              isLoading={isCheckingLimit}
               startContent={<Plus size={16} />}
               onPress={handleCreateClick}
-              isLoading={isCheckingLimit}
-              isDisabled={isCheckingLimit || !canCreate || hasNoSubscription}
             >
               {t('superadmin.condominiums.create')}
             </Button>
             {(isCheckingLimit || !canCreate || hasNoSubscription) && (
               <Tooltip
+                showArrow
                 content={
                   <div className="max-w-xs">
                     {isCheckingLimit
@@ -361,7 +371,6 @@ export function CompanyCondominiumsTable({ companyId, isCompanyActive }: Company
                   </div>
                 }
                 placement="top"
-                showArrow
               >
                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-default-100 hover:bg-default-200 transition-colors cursor-help">
                   <Info className="text-default-500" size={18} />
@@ -395,13 +404,13 @@ export function CompanyCondominiumsTable({ companyId, isCompanyActive }: Company
         <>
           <Table<TCondominiumRow>
             aria-label={t('superadmin.condominiums.title')}
-            columns={tableColumns}
-            rows={condominiums}
-            renderCell={renderCell}
-            onRowClick={condominium => handleViewDetails(condominium.id)}
             classNames={{
               tr: 'cursor-pointer transition-colors hover:bg-default-100',
             }}
+            columns={tableColumns}
+            renderCell={renderCell}
+            rows={condominiums}
+            onRowClick={condominium => handleViewDetails(condominium.id)}
           />
 
           {/* Pagination */}
@@ -424,10 +433,10 @@ export function CompanyCondominiumsTable({ companyId, isCompanyActive }: Company
       {/* Create Condominium Modal */}
       {user && (
         <CreateCondominiumForm
-          isOpen={isFormOpen}
-          onClose={() => setIsFormOpen(false)}
-          managementCompanyId={companyId}
           createdBy={user.id}
+          isOpen={isFormOpen}
+          managementCompanyId={companyId}
+          onClose={() => setIsFormOpen(false)}
         />
       )}
     </div>

@@ -23,7 +23,11 @@ export class QuotaGenerationSchedulesRepository
     TQuotaGenerationScheduleUpdate
   >
   implements
-    IRepository<TQuotaGenerationSchedule, TQuotaGenerationScheduleCreate, TQuotaGenerationScheduleUpdate>
+    IRepository<
+      TQuotaGenerationSchedule,
+      TQuotaGenerationScheduleCreate,
+      TQuotaGenerationScheduleUpdate
+    >
 {
   constructor(db: TDrizzleClient) {
     super(db, quotaGenerationSchedules)

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+
 import { Card, CardBody, CardHeader } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
 import { useTranslation } from '@/contexts'
@@ -19,14 +20,14 @@ export function InvalidTokenView({ message }: InvalidTokenViewProps) {
           <svg
             className="w-8 h-8 text-danger"
             fill="none"
-            viewBox="0 0 24 24"
             stroke="currentColor"
+            viewBox="0 0 24 24"
           >
             <path
+              d="M6 18L18 6M6 6l12 12"
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
             />
           </svg>
         </div>
@@ -40,7 +41,7 @@ export function InvalidTokenView({ message }: InvalidTokenViewProps) {
           <Button as={Link} href="/" variant="bordered">
             {t('common.goHome')}
           </Button>
-          <Button as={Link} href="/login" color="primary">
+          <Button as={Link} color="primary" href="/login">
             {t('common.login')}
           </Button>
         </div>

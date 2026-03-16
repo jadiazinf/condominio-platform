@@ -1,9 +1,10 @@
 'use client'
 
 import { NavbarMenu, NavbarMenuItem } from '@heroui/navbar'
-import { Link } from '@/ui/components/link'
 
 import { NAV_ITEMS } from './NavbarLinks'
+
+import { Link } from '@/ui/components/link'
 import { useTranslation } from '@/contexts'
 
 interface NavbarMobileMenuProps {

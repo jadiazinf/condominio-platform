@@ -2,9 +2,6 @@
 
 import type { ICardProps } from '@/ui/components/card'
 
-import { Card, CardHeader, CardBody } from '@/ui/components/card'
-import { Button } from '@/ui/components/button'
-import { cn } from '@/ui/utils'
 import {
   Area,
   AreaChart,
@@ -14,6 +11,10 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts'
+
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Button } from '@/ui/components/button'
+import { cn } from '@/ui/utils'
 
 type TChartDataPoint = {
   name: string
@@ -104,9 +105,9 @@ export function AnalyticsChart({
               </defs>
               <CartesianGrid
                 horizontal
-                vertical={false}
                 stroke="hsl(var(--heroui-default-200))"
                 strokeDasharray="3 3"
+                vertical={false}
               />
               <XAxis
                 axisLine={false}

@@ -1,14 +1,10 @@
 'use client'
 
+import type { TPaymentConceptAssignment } from '@packages/domain'
+import type { TApiDataResponse } from '@packages/http-client'
+
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/ui/components/button'
-import { Chip } from '@/ui/components/chip'
-import { Spinner } from '@/ui/components/spinner'
-import { Typography } from '@/ui/components/typography'
-import { Card, CardBody } from '@/ui/components/card'
-import { useTranslation } from '@/contexts'
-import { useToast } from '@/ui/components/toast'
 import {
   CalendarDays,
   Clock,
@@ -23,10 +19,6 @@ import {
   Pencil,
   History,
 } from 'lucide-react'
-import type { TPaymentConceptAssignment } from '@packages/domain'
-import { AffectedUnitsModal } from './AffectedUnitsModal'
-import { RelatedServicesModal } from './RelatedServicesModal'
-import { DelinquencyModal } from './DelinquencyModal'
 import {
   usePaymentConceptDetail,
   useDeactivatePaymentConcept,
@@ -35,8 +27,19 @@ import {
   paymentConceptKeys,
   useQueryClient,
 } from '@packages/http-client'
-import type { TApiDataResponse } from '@packages/http-client'
+
+import { AffectedUnitsModal } from './AffectedUnitsModal'
+import { RelatedServicesModal } from './RelatedServicesModal'
+import { DelinquencyModal } from './DelinquencyModal'
 import { CreatePaymentConceptWizard } from './wizard/CreatePaymentConceptWizard'
+
+import { Button } from '@/ui/components/button'
+import { Chip } from '@/ui/components/chip'
+import { Spinner } from '@/ui/components/spinner'
+import { Typography } from '@/ui/components/typography'
+import { Card, CardBody } from '@/ui/components/card'
+import { useTranslation } from '@/contexts'
+import { useToast } from '@/ui/components/toast'
 
 interface PaymentConceptDetailPageClientProps {
   condominiumId: string
@@ -81,7 +84,9 @@ export function PaymentConceptDetailPageClient({
   const [delinquencyOpen, setDelinquencyOpen] = useState(false)
 
   // Data for the edit wizard
-  const { data: currenciesData } = useApiQuery<TApiDataResponse<Array<{ id: string; code: string; name?: string }>>>({
+  const { data: currenciesData } = useApiQuery<
+    TApiDataResponse<Array<{ id: string; code: string; name?: string }>>
+  >({
     path: `/${managementCompanyId}/me/currencies`,
     queryKey: ['currencies', 'mc', managementCompanyId],
     enabled: editWizardOpen && !!managementCompanyId,
@@ -94,23 +99,28 @@ export function PaymentConceptDetailPageClient({
 
   const currencies = useMemo(() => {
     const list = currenciesData?.data ?? []
+
     return list.map((c: any) => ({ id: c.id, code: c.code, name: c.name }))
   }, [currenciesData])
 
   const buildings = useMemo(() => {
     const list = buildingsData?.data ?? []
+
     return list.map((b: any) => ({ id: b.id, name: b.name }))
   }, [buildingsData])
 
   const changeHistoryUrl = `/dashboard/condominiums/${condominiumId}/payment-concepts/${conceptId}/change-history`
 
   const deactivateConcept = useDeactivatePaymentConcept(managementCompanyId, {
-    onSuccess: (response) => {
+    onSuccess: response => {
       const result = response.data?.data
-      toast.success(t(`${d}.deactivated`, {
-        cancelledQuotas: result?.cancelledQuotas ?? 0,
-        deactivatedAssignments: result?.deactivatedAssignments ?? 0,
-      }))
+
+      toast.success(
+        t(`${d}.deactivated`, {
+          cancelledQuotas: result?.cancelledQuotas ?? 0,
+          deactivatedAssignments: result?.deactivatedAssignments ?? 0,
+        })
+      )
       queryClient.invalidateQueries({ queryKey: paymentConceptKeys.all })
       setConfirmDeactivate(false)
       router.push(backUrl)
@@ -160,14 +170,14 @@ export function PaymentConceptDetailPageClient({
   const formatAdjustment = (type: string, value: number | null) => {
     if (type === 'none' || !value) return t(`${d}.none`)
     if (type === 'percentage') return `${value}%`
+
     return `${value}`
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const conceptAny = concept as any
   const currencyDisplay = conceptAny?.currency
     ? `${conceptAny.currency.symbol ?? ''} ${conceptAny.currency.code}`.trim()
-    : concept?.currencyId ?? '-'
+    : (concept?.currencyId ?? '-')
 
   if (isLoading || !concept) {
     return (
@@ -184,47 +194,45 @@ export function PaymentConceptDetailPageClient({
         <div className="flex items-center gap-3">
           <FileText className="text-success" size={22} />
           <Typography variant="h3">{concept.name}</Typography>
-          <Chip
-            color={concept.isActive ? 'success' : 'default'}
-            variant="flat"
-            size="sm"
-          >
+          <Chip color={concept.isActive ? 'success' : 'default'} size="sm" variant="flat">
             {concept.isActive ? t('common.status.active') : t('common.status.inactive')}
           </Chip>
         </div>
         {concept.description && (
-          <Typography color="muted" variant="body2">{concept.description}</Typography>
+          <Typography color="muted" variant="body2">
+            {concept.description}
+          </Typography>
         )}
         <div className="flex flex-wrap items-center gap-2">
           <Button
-            variant="flat"
             size="sm"
             startContent={<Wrench size={14} />}
+            variant="flat"
             onPress={() => setServicesOpen(true)}
           >
             {t(`${d}.relatedServices`)}
           </Button>
           <Button
-            variant="flat"
             size="sm"
             startContent={<Users size={14} />}
+            variant="flat"
             onPress={() => setAffectedUnitsOpen(true)}
           >
             {t(`${d}.affectedUnits`)}
           </Button>
           <Button
-            variant="flat"
             color="warning"
             size="sm"
             startContent={<AlertTriangle size={14} />}
+            variant="flat"
             onPress={() => setDelinquencyOpen(true)}
           >
             {t(`${d}.delinquency`)}
           </Button>
           <Button
-            variant="flat"
             size="sm"
             startContent={<History size={14} />}
+            variant="flat"
             onPress={() => router.push(changeHistoryUrl)}
           >
             {t(`${d}.changeHistory`)}
@@ -233,20 +241,20 @@ export function PaymentConceptDetailPageClient({
             <>
               <Button
                 color="primary"
-                variant="flat"
                 size="sm"
                 startContent={<Pencil size={14} />}
+                variant="flat"
                 onPress={() => setEditWizardOpen(true)}
               >
                 {t(`${d}.edit`)}
               </Button>
               <Button
                 color="danger"
-                variant="bordered"
+                isDisabled={confirmDeactivate}
                 size="sm"
                 startContent={<Ban size={14} />}
+                variant="bordered"
                 onPress={() => setConfirmDeactivate(true)}
-                isDisabled={confirmDeactivate}
               >
                 {t(`${d}.deactivate`)}
               </Button>
@@ -260,7 +268,7 @@ export function PaymentConceptDetailPageClient({
         <div className="rounded-lg bg-danger-50 p-4 space-y-3">
           <div className="flex items-center gap-2">
             <AlertTriangle className="text-danger" size={18} />
-            <Typography variant="body2" className="font-semibold text-danger">
+            <Typography className="font-semibold text-danger" variant="body2">
               {t(`${d}.deactivateConfirm`)}
             </Typography>
           </div>
@@ -270,9 +278,9 @@ export function PaymentConceptDetailPageClient({
               {t('common.cancel')}
             </Button>
             <Button
-              size="sm"
               color="danger"
               isLoading={deactivateConcept.isPending}
+              size="sm"
               onPress={() => deactivateConcept.mutate({ conceptId })}
             >
               {t(`${d}.confirmDeactivate`)}
@@ -284,7 +292,7 @@ export function PaymentConceptDetailPageClient({
       {/* Basic Info Section */}
       <Card>
         <CardBody className="space-y-3">
-          <Typography variant="body2" className="font-semibold flex items-center gap-2">
+          <Typography className="font-semibold flex items-center gap-2" variant="body2">
             <Layers size={16} />
             {t(`${d}.basicInfo`)}
           </Typography>
@@ -295,10 +303,11 @@ export function PaymentConceptDetailPageClient({
               <div className="mt-1">
                 <Chip
                   color={TYPE_COLORS[concept.conceptType as keyof typeof TYPE_COLORS] || 'default'}
-                  variant="flat"
                   size="sm"
+                  variant="flat"
                 >
-                  {typeLabels[concept.conceptType as keyof typeof typeLabels] || concept.conceptType}
+                  {typeLabels[concept.conceptType as keyof typeof typeLabels] ||
+                    concept.conceptType}
                 </Chip>
               </div>
             </div>
@@ -309,10 +318,12 @@ export function PaymentConceptDetailPageClient({
             <div>
               <span className="text-xs text-default-500">{t(`${d}.effectiveFrom`)}</span>
               <p className="text-sm mt-1 flex items-center gap-1">
-                <CalendarDays size={14} className="text-default-400" />
+                <CalendarDays className="text-default-400" size={14} />
                 {concept.effectiveFrom
                   ? new Date(concept.effectiveFrom).toLocaleDateString('es-ES', {
-                      day: 'numeric', month: 'long', year: 'numeric',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
                     })
                   : '-'}
               </p>
@@ -320,10 +331,12 @@ export function PaymentConceptDetailPageClient({
             <div>
               <span className="text-xs text-default-500">{t(`${d}.effectiveUntil`)}</span>
               <p className="text-sm mt-1 flex items-center gap-1">
-                <CalendarDays size={14} className="text-default-400" />
+                <CalendarDays className="text-default-400" size={14} />
                 {concept.effectiveUntil
                   ? new Date(concept.effectiveUntil).toLocaleDateString('es-ES', {
-                      day: 'numeric', month: 'long', year: 'numeric',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
                     })
                   : '-'}
               </p>
@@ -334,7 +347,8 @@ export function PaymentConceptDetailPageClient({
                 {concept.isRecurring ? t('common.yes') : t('common.no')}
                 {concept.isRecurring && concept.recurrencePeriod && (
                   <span className="text-default-500">
-                    {' '}({recurrenceLabels[concept.recurrencePeriod as keyof typeof recurrenceLabels]})
+                    {' '}
+                    ({recurrenceLabels[concept.recurrencePeriod as keyof typeof recurrenceLabels]})
                   </span>
                 )}
               </p>
@@ -352,7 +366,7 @@ export function PaymentConceptDetailPageClient({
       {/* Charge Config Section */}
       <Card>
         <CardBody className="space-y-3">
-          <Typography variant="body2" className="font-semibold flex items-center gap-2">
+          <Typography className="font-semibold flex items-center gap-2" variant="body2">
             <Clock size={16} />
             {t(`${d}.chargeConfig`)}
           </Typography>
@@ -362,7 +376,9 @@ export function PaymentConceptDetailPageClient({
               <span className="text-xs text-default-500">{t(`${d}.createdAt`)}</span>
               <p className="text-sm mt-1">
                 {new Date(concept.createdAt).toLocaleDateString('es-ES', {
-                  day: 'numeric', month: 'long', year: 'numeric',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
                 })}
               </p>
             </div>
@@ -373,14 +389,14 @@ export function PaymentConceptDetailPageClient({
                 <div>
                   <span className="text-xs text-default-500">{t(`${d}.issueDay`)}</span>
                   <p className="text-sm mt-1 flex items-center gap-1">
-                    <CalendarDays size={14} className="text-default-400" />
+                    <CalendarDays className="text-default-400" size={14} />
                     {concept.issueDay ? `${concept.issueDay} de cada mes` : '-'}
                   </p>
                 </div>
                 <div>
                   <span className="text-xs text-default-500">{t(`${d}.dueDay`)}</span>
                   <p className="text-sm mt-1 flex items-center gap-1">
-                    <CalendarDays size={14} className="text-default-400" />
+                    <CalendarDays className="text-default-400" size={14} />
                     {concept.dueDay
                       ? concept.issueDay && concept.dueDay < concept.issueDay
                         ? `${concept.dueDay} del mes siguiente`
@@ -398,7 +414,8 @@ export function PaymentConceptDetailPageClient({
                   {formatAdjustment(concept.latePaymentType, concept.latePaymentValue)}
                   {concept.latePaymentGraceDays > 0 && (
                     <span className="text-default-500">
-                      {' '}({concept.latePaymentGraceDays} {t(`${d}.graceDays`)})
+                      {' '}
+                      ({concept.latePaymentGraceDays} {t(`${d}.graceDays`)})
                     </span>
                   )}
                 </p>
@@ -412,7 +429,8 @@ export function PaymentConceptDetailPageClient({
                   {formatAdjustment(concept.earlyPaymentType, concept.earlyPaymentValue)}
                   {concept.earlyPaymentDaysBeforeDue > 0 && (
                     <span className="text-default-500">
-                      {' '}({concept.earlyPaymentDaysBeforeDue} {t(`${d}.daysBefore`)})
+                      {' '}
+                      ({concept.earlyPaymentDaysBeforeDue} {t(`${d}.daysBefore`)})
                     </span>
                   )}
                 </p>
@@ -425,7 +443,7 @@ export function PaymentConceptDetailPageClient({
       {/* Assignments Section */}
       <Card>
         <CardBody className="space-y-3">
-          <Typography variant="body2" className="font-semibold flex items-center gap-2">
+          <Typography className="font-semibold flex items-center gap-2" variant="body2">
             {t(`${d}.assignments`)} ({concept.assignments?.length ?? 0})
           </Typography>
 
@@ -437,25 +455,28 @@ export function PaymentConceptDetailPageClient({
                   className="rounded-lg border border-default-200 p-3 space-y-1"
                 >
                   <div className="flex items-center gap-2">
-                    <Chip size="sm" variant="flat" color="primary">
+                    <Chip color="primary" size="sm" variant="flat">
                       {scopeLabels[assignment.scopeType as keyof typeof scopeLabels]}
                     </Chip>
                     <Chip size="sm" variant="flat">
                       {methodLabels[assignment.distributionMethod as keyof typeof methodLabels]}
                     </Chip>
                     {!assignment.isActive && (
-                      <Chip size="sm" variant="flat" color="default">
+                      <Chip color="default" size="sm" variant="flat">
                         {t('common.status.inactive')}
                       </Chip>
                     )}
                   </div>
                   <p className="text-sm font-medium">
-                    {conceptAny?.currency?.symbol ?? ''} {assignment.amount.toLocaleString()} {conceptAny?.currency?.code ?? ''}
+                    {conceptAny?.currency?.symbol ?? ''} {assignment.amount.toLocaleString()}{' '}
+                    {conceptAny?.currency?.code ?? ''}
                   </p>
                   <p className="text-xs text-default-400">
                     {t(`${d}.assignedOn`)}{' '}
                     {new Date(assignment.createdAt).toLocaleDateString('es-ES', {
-                      day: 'numeric', month: 'short', year: 'numeric',
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
                     })}
                   </p>
                 </div>
@@ -470,33 +491,39 @@ export function PaymentConceptDetailPageClient({
       {/* Bank Accounts Section */}
       <Card>
         <CardBody className="space-y-3">
-          <Typography variant="body2" className="font-semibold flex items-center gap-2">
+          <Typography className="font-semibold flex items-center gap-2" variant="body2">
             <Landmark size={16} />
             {t(`${d}.bankAccounts`)} ({concept.bankAccounts?.length ?? 0})
           </Typography>
 
           {concept.bankAccounts && concept.bankAccounts.length > 0 ? (
             <div className="space-y-2">
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {}
               {concept.bankAccounts.map((link: any) => (
                 <div
                   key={link.id}
                   className="flex items-center gap-3 rounded-lg border border-default-200 p-3"
                 >
-                  <CreditCard size={16} className="text-default-400 shrink-0" />
+                  <CreditCard className="text-default-400 shrink-0" size={16} />
                   {link.bankAccount ? (
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">
                         {link.bankAccount.displayName}
                         {link.bankAccount.maskedAccountNumber && (
-                          <span className="text-default-400 font-normal"> · {link.bankAccount.maskedAccountNumber}</span>
+                          <span className="text-default-400 font-normal">
+                            {' '}
+                            · {link.bankAccount.maskedAccountNumber}
+                          </span>
                         )}
                       </p>
                       <p className="text-xs text-default-500 truncate">
                         {link.bankAccount.bankName} · {link.bankAccount.accountHolderName}
                       </p>
                       <p className="text-xs text-default-400">
-                        {link.bankAccount.currency} · {link.bankAccount.accountCategory === 'national' ? 'Nacional' : 'Internacional'}
+                        {link.bankAccount.currency} ·{' '}
+                        {link.bankAccount.accountCategory === 'national'
+                          ? 'Nacional'
+                          : 'Internacional'}
                       </p>
                     </div>
                   ) : (
@@ -513,46 +540,46 @@ export function PaymentConceptDetailPageClient({
 
       {/* Related Services Modal */}
       <RelatedServicesModal
-        isOpen={servicesOpen}
-        onClose={() => setServicesOpen(false)}
         conceptId={conceptId}
-        managementCompanyId={managementCompanyId}
         condominiumId={condominiumId}
-        currencySymbol={conceptAny?.currency?.symbol ?? ''}
         currencyCode={conceptAny?.currency?.code ?? ''}
+        currencySymbol={conceptAny?.currency?.symbol ?? ''}
+        isOpen={servicesOpen}
+        managementCompanyId={managementCompanyId}
+        onClose={() => setServicesOpen(false)}
       />
 
       {/* Affected Units Modal */}
       <AffectedUnitsModal
-        isOpen={affectedUnitsOpen}
-        onClose={() => setAffectedUnitsOpen(false)}
         conceptId={conceptId}
-        managementCompanyId={managementCompanyId}
-        currencySymbol={conceptAny?.currency?.symbol ?? ''}
         currencyCode={conceptAny?.currency?.code ?? ''}
+        currencySymbol={conceptAny?.currency?.symbol ?? ''}
+        isOpen={affectedUnitsOpen}
         isRecurring={concept.isRecurring}
+        managementCompanyId={managementCompanyId}
+        onClose={() => setAffectedUnitsOpen(false)}
       />
 
       {/* Change History Section */}
       {/* Delinquency Modal */}
       <DelinquencyModal
-        isOpen={delinquencyOpen}
-        onClose={() => setDelinquencyOpen(false)}
         conceptId={conceptId}
-        managementCompanyId={managementCompanyId}
-        currencySymbol={conceptAny?.currency?.symbol ?? ''}
         currencyCode={conceptAny?.currency?.code ?? ''}
+        currencySymbol={conceptAny?.currency?.symbol ?? ''}
+        isOpen={delinquencyOpen}
+        managementCompanyId={managementCompanyId}
+        onClose={() => setDelinquencyOpen(false)}
       />
 
       {/* Edit Wizard Modal */}
       <CreatePaymentConceptWizard
-        isOpen={editWizardOpen}
-        onClose={() => setEditWizardOpen(false)}
-        condominiumId={condominiumId}
-        managementCompanyId={managementCompanyId}
-        currencies={currencies}
         buildings={buildings}
+        condominiumId={condominiumId}
+        currencies={currencies}
         editConceptId={conceptId}
+        isOpen={editWizardOpen}
+        managementCompanyId={managementCompanyId}
+        onClose={() => setEditWizardOpen(false)}
       />
     </div>
   )

@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation'
 
+import { MyManagementCompanySidebar } from './components/MyManagementCompanySidebar'
+
 import { Typography } from '@/ui/components/typography'
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
-import { MyManagementCompanySidebar } from './components/MyManagementCompanySidebar'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -22,10 +23,10 @@ export default async function MyManagementCompanyLayout({ children }: LayoutProp
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
-        <Typography variant="h2" className="text-2xl sm:text-3xl">
+        <Typography className="text-2xl sm:text-3xl" variant="h2">
           {companyName || t('admin.company.myCompany.title')}
         </Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
+        <Typography className="mt-1" color="muted" variant="body2">
           {t('admin.company.myCompany.subtitle')}
         </Typography>
       </div>

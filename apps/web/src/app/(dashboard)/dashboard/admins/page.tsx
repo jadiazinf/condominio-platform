@@ -1,14 +1,14 @@
 import { Suspense } from 'react'
 import { Plus } from 'lucide-react'
+import { redirect } from 'next/navigation'
+
+import { CompaniesTable } from './components/CompaniesTable'
+import { CompaniesTableSkeleton } from './components/CompaniesTableSkeleton'
 
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
-import { redirect } from 'next/navigation'
-
-import { CompaniesTable } from './components/CompaniesTable'
-import { CompaniesTableSkeleton } from './components/CompaniesTableSkeleton'
 
 async function CompaniesContent() {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
@@ -28,11 +28,7 @@ async function CompaniesContent() {
             {t('superadmin.companies.subtitle')}
           </Typography>
         </div>
-        <Button
-          color="primary"
-          href="/dashboard/admins/create"
-          startContent={<Plus size={18} />}
-        >
+        <Button color="primary" href="/dashboard/admins/create" startContent={<Plus size={18} />}>
           {t('superadmin.companies.create')}
         </Button>
       </div>

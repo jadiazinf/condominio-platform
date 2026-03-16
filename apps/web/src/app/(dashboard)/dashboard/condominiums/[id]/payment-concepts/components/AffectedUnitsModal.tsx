@@ -1,18 +1,29 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { Building2, ChevronDown, Users } from 'lucide-react'
+import { type TAffectedUnit, usePaymentConceptAffectedUnits } from '@packages/http-client/hooks'
+
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Accordion, AccordionItem } from '@/ui/components/accordion'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
-import { Building2, ChevronDown, Users } from 'lucide-react'
-import { type TAffectedUnit, usePaymentConceptAffectedUnits } from '@packages/http-client/hooks'
 
 const MONTH_NAMES_ES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ]
 
 interface AffectedUnitsModalProps {
@@ -48,11 +59,14 @@ export function AffectedUnitsModal({
   const groupedByBuilding = useMemo(() => {
     if (!affectedUnits?.units) return []
     const map = new Map<string, TAffectedUnit[]>()
+
     for (const unit of affectedUnits.units) {
       const list = map.get(unit.buildingId) ?? []
+
       list.push(unit)
       map.set(unit.buildingId, list)
     }
+
     return Array.from(map.entries()).map(([buildingId, units]) => ({
       buildingId,
       buildingName: units[0]?.buildingName ?? '',
@@ -64,13 +78,15 @@ export function AffectedUnitsModal({
     `${currencySymbol} ${amount.toLocaleString('es-ES', { minimumFractionDigits: 2 })} ${currencyCode}`
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="3xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="3xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader className="flex items-center gap-3">
-          <Users size={18} className="text-success" />
+          <Users className="text-success" size={18} />
           <Typography variant="h4">{t(`${d}.affectedUnits`)}</Typography>
           {affectedUnits && (
-            <Chip size="sm" variant="flat">{affectedUnits.totalUnits}</Chip>
+            <Chip size="sm" variant="flat">
+              {affectedUnits.totalUnits}
+            </Chip>
           )}
         </ModalHeader>
 
@@ -88,7 +104,7 @@ export function AffectedUnitsModal({
                   key={group.buildingId}
                   title={
                     <div className="flex items-center gap-2">
-                      <Building2 size={14} className="text-success" />
+                      <Building2 className="text-success" size={14} />
                       <span className="text-sm font-medium">{group.buildingName}</span>
                       <Chip size="sm" variant="flat">
                         {group.units.length} {t(`${d}.units`)}
@@ -100,11 +116,11 @@ export function AffectedUnitsModal({
                     {group.units.map(unit => (
                       <UnitChargeRow
                         key={unit.unitId}
-                        unit={unit}
+                        d={d}
                         formatAmount={formatAmount}
                         isRecurring={isRecurring}
                         t={t}
-                        d={d}
+                        unit={unit}
                       />
                     ))}
                   </div>
@@ -162,13 +178,13 @@ function UnitChargeRow({ unit, formatAmount, isRecurring, t, d }: UnitChargeRowP
       {isRecurring && unit.periods.length > 0 && (
         <>
           <button
+            className="mt-2 text-xs text-primary flex items-center gap-1 hover:underline"
             type="button"
             onClick={() => setShowPeriods(!showPeriods)}
-            className="mt-2 text-xs text-primary flex items-center gap-1 hover:underline"
           >
             <ChevronDown
-              size={12}
               className={`transition-transform duration-200 ${showPeriods ? 'rotate-180' : ''}`}
+              size={12}
             />
             {t(`${d}.periodDetail`)}
           </button>

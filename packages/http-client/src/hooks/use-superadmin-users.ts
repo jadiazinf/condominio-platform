@@ -21,7 +21,10 @@ export interface TSuperadminUsersQuery {
 /**
  * Superadmin user with user details (returned from API)
  */
-export interface TSuperadminUserWithDetails extends Omit<TUserRole, 'user' | 'role' | 'assignedByUser'> {
+export interface TSuperadminUserWithDetails extends Omit<
+  TUserRole,
+  'user' | 'role' | 'assignedByUser'
+> {
   user: {
     id: string
     email: string

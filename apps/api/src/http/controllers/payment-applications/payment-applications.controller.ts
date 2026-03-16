@@ -13,13 +13,15 @@ import type {
   QuotaAdjustmentsRepository,
   InterestConfigurationsRepository,
   PaymentPendingAllocationsRepository,
+  PaymentConceptsRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
+import { AppError } from '@errors/index'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
-import { authMiddleware, requireRole } from '../../middlewares/auth'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { ApplyPaymentToQuotaService } from '@services/payment-applications/apply-payment-to-quota.service'
 import { z } from 'zod'
 
@@ -69,40 +71,69 @@ export class PaymentApplicationsController extends BaseController<
     private readonly quotasRepo: QuotasRepository,
     private readonly adjustmentsRepo: QuotaAdjustmentsRepository,
     private readonly interestConfigsRepo: InterestConfigurationsRepository,
-    private readonly pendingAllocationsRepo?: PaymentPendingAllocationsRepository,
+    private readonly paymentConceptsRepo: PaymentConceptsRepository,
+    private readonly pendingAllocationsRepo?: PaymentPendingAllocationsRepository
   ) {
     super(repository)
     this.applyService = new ApplyPaymentToQuotaService(
-      db, repository, paymentsRepo, quotasRepo, adjustmentsRepo, interestConfigsRepo, pendingAllocationsRepo,
+      db,
+      repository,
+      paymentsRepo,
+      quotasRepo,
+      adjustmentsRepo,
+      interestConfigsRepo,
+      paymentConceptsRepo,
+      pendingAllocationsRepo
     )
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)] },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.list,
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)],
+      },
       {
         method: 'get',
         path: '/payment/:paymentId',
         handler: this.getByPaymentId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(PaymentIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(PaymentIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/quota/:quotaId',
         handler: this.getByQuotaId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(QuotaIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(QuotaIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
         path: '/',
         handler: this.applyPayment,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), bodyValidator(ApplyPaymentBodySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          bodyValidator(ApplyPaymentBodySchema),
+        ],
       },
       {
         method: 'patch',
@@ -119,7 +150,11 @@ export class PaymentApplicationsController extends BaseController<
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }
@@ -128,9 +163,29 @@ export class PaymentApplicationsController extends BaseController<
   // Overridden Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
+  protected override getById = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, { id: string }>(c)
+    const entity = await this.repository.getById(ctx.params.id)
+    if (!entity) throw AppError.notFound('Resource', ctx.params.id)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    if (condominiumId) {
+      const quota = await this.quotasRepo.getById(entity.quotaId)
+      if (!quota) throw AppError.notFound('Resource', ctx.params.id)
+      const concept = await this.paymentConceptsRepo.getById(quota.paymentConceptId)
+      if (!concept || concept.condominiumId !== condominiumId) {
+        throw AppError.notFound('Resource', ctx.params.id)
+      }
+    }
+    return ctx.ok({ data: entity })
+  }
+
   protected override list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-    const entities = await this.repository.listAll()
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const repo = this.repository as PaymentApplicationsRepository
+    const entities = condominiumId
+      ? await repo.listByCondominiumId(condominiumId)
+      : await this.repository.listAll()
     return ctx.ok({ data: entities })
   }
 
@@ -161,10 +216,11 @@ export class PaymentApplicationsController extends BaseController<
 
   private getByPaymentId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPaymentIdParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     const repo = this.repository as PaymentApplicationsRepository
 
     try {
-      const applications = await repo.getByPaymentId(ctx.params.paymentId)
+      const applications = await repo.getByPaymentId(ctx.params.paymentId, condominiumId)
       return ctx.ok({ data: applications })
     } catch (error) {
       return this.handleError(ctx, error)
@@ -173,10 +229,11 @@ export class PaymentApplicationsController extends BaseController<
 
   private getByQuotaId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TQuotaIdParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     const repo = this.repository as PaymentApplicationsRepository
 
     try {
-      const applications = await repo.getByQuotaId(ctx.params.quotaId)
+      const applications = await repo.getByQuotaId(ctx.params.quotaId, condominiumId)
       return ctx.ok({ data: applications })
     } catch (error) {
       return this.handleError(ctx, error)

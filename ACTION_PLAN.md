@@ -82,29 +82,29 @@
 
 #### Matriz de Acceso por Módulo
 
-| Módulo | SUPERADMIN | ADMIN | ACCOUNTANT | SUPPORT | USER |
-|--------|-----------|-------|-----------|---------|------|
-| management-companies | CRUD | ❌ | ❌ | ❌ | ❌ |
-| admin-invitations | CRUD | ❌ | ❌ | ❌ | ❌ |
-| subscription-rates | CRUD | ❌ | ❌ | ❌ | ❌ |
-| currencies | CRUD | Read | Read | ❌ | ❌ |
-| condominiums | Read (todos) | Read (propios) | ❌ | ❌ | ❌ |
-| buildings | ❌ | CRUD | Read | Read | ❌ |
-| units | ❌ | CRUD | Read | Read | Read (propias) |
-| unit-ownerships | ❌ | CRUD | Read | Read | Read (propias) |
-| quotas | ❌ | CRUD | CRUD | Read | Read (propias) |
-| quota-adjustments | ❌ | CRUD | CRUD | ❌ | ❌ |
-| payments | ❌ | CRUD | CRUD | ❌ | Read (propios) + Report |
-| expenses | ❌ | CRUD | CRUD | ❌ | ❌ |
-| amenities | ❌ | CRUD | ❌ | Read | Read |
-| amenity-reservations | ❌ | CRUD + Approve | ❌ | CRUD + Approve | Create + Read (propias) |
-| support-tickets | Read + Manage | Create | ❌ | Manage | Create |
-| notifications | ❌ | Send | ❌ | Send | Read (propias) |
-| documents | ❌ | CRUD | Read | Read | Read (públicos) |
-| messages | ❌ | CRUD | ❌ | CRUD | Read |
-| user-invitations | ❌ | CRUD | ❌ | ❌ | ❌ |
-| user-roles | ❌ | CRUD | ❌ | ❌ | ❌ |
-| audit-logs | Read | Read (scoped) | ❌ | ❌ | ❌ |
+| Módulo               | SUPERADMIN    | ADMIN          | ACCOUNTANT | SUPPORT        | USER                    |
+| -------------------- | ------------- | -------------- | ---------- | -------------- | ----------------------- |
+| management-companies | CRUD          | ❌             | ❌         | ❌             | ❌                      |
+| admin-invitations    | CRUD          | ❌             | ❌         | ❌             | ❌                      |
+| subscription-rates   | CRUD          | ❌             | ❌         | ❌             | ❌                      |
+| currencies           | CRUD          | Read           | Read       | ❌             | ❌                      |
+| condominiums         | Read (todos)  | Read (propios) | ❌         | ❌             | ❌                      |
+| buildings            | ❌            | CRUD           | Read       | Read           | ❌                      |
+| units                | ❌            | CRUD           | Read       | Read           | Read (propias)          |
+| unit-ownerships      | ❌            | CRUD           | Read       | Read           | Read (propias)          |
+| quotas               | ❌            | CRUD           | CRUD       | Read           | Read (propias)          |
+| quota-adjustments    | ❌            | CRUD           | CRUD       | ❌             | ❌                      |
+| payments             | ❌            | CRUD           | CRUD       | ❌             | Read (propios) + Report |
+| expenses             | ❌            | CRUD           | CRUD       | ❌             | ❌                      |
+| amenities            | ❌            | CRUD           | ❌         | Read           | Read                    |
+| amenity-reservations | ❌            | CRUD + Approve | ❌         | CRUD + Approve | Create + Read (propias) |
+| support-tickets      | Read + Manage | Create         | ❌         | Manage         | Create                  |
+| notifications        | ❌            | Send           | ❌         | Send           | Read (propias)          |
+| documents            | ❌            | CRUD           | Read       | Read           | Read (públicos)         |
+| messages             | ❌            | CRUD           | ❌         | CRUD           | Read                    |
+| user-invitations     | ❌            | CRUD           | ❌         | ❌             | ❌                      |
+| user-roles           | ❌            | CRUD           | ❌         | ❌             | ❌                      |
+| audit-logs           | Read          | Read (scoped)  | ❌         | ❌             | ❌                      |
 
 ### 1.2 Frontend: Separación de Páginas
 
@@ -156,7 +156,11 @@
 ```typescript
 const superadminSidebarItems = [
   { key: 'dashboard', title: 'superadmin.nav.dashboard', href: '/dashboard/platform' },
-  { key: 'companies', title: 'superadmin.nav.companies', href: '/dashboard/platform/management-companies' },
+  {
+    key: 'companies',
+    title: 'superadmin.nav.companies',
+    href: '/dashboard/platform/management-companies',
+  },
   { key: 'users', title: 'superadmin.nav.users', href: '/dashboard/platform/users' },
   { key: 'rates', title: 'superadmin.nav.rates', href: '/dashboard/platform/rates' },
   { key: 'currencies', title: 'superadmin.nav.currencies', href: '/dashboard/platform/currencies' },
@@ -202,7 +206,11 @@ const supportSidebarItems = [
   { key: 'dashboard', title: 'support.nav.dashboard', href: '/dashboard/admin' },
   { key: 'tickets', title: 'support.nav.tickets', href: '/dashboard/admin/tickets' },
   { key: 'reservations', title: 'support.nav.reservations', href: '/dashboard/admin/reservations' },
-  { key: 'announcements', title: 'support.nav.announcements', href: '/dashboard/admin/announcements' },
+  {
+    key: 'announcements',
+    title: 'support.nav.announcements',
+    href: '/dashboard/admin/announcements',
+  },
   // amenities: read-only visible
 ]
 ```
@@ -214,8 +222,16 @@ const residentSidebarItems = [
   { key: 'dashboard', title: 'resident.nav.dashboard', href: '/dashboard/resident' },
   { key: 'my-quotas', title: 'resident.nav.myQuotas', href: '/dashboard/resident/my-quotas' },
   { key: 'my-payments', title: 'resident.nav.myPayments', href: '/dashboard/resident/my-payments' },
-  { key: 'report-payment', title: 'resident.nav.reportPayment', href: '/dashboard/resident/report-payment' },
-  { key: 'reservations', title: 'resident.nav.reservations', href: '/dashboard/resident/reservations' },
+  {
+    key: 'report-payment',
+    title: 'resident.nav.reportPayment',
+    href: '/dashboard/resident/report-payment',
+  },
+  {
+    key: 'reservations',
+    title: 'resident.nav.reservations',
+    href: '/dashboard/resident/reservations',
+  },
   { key: 'support', title: 'resident.nav.support', href: '/dashboard/resident/support' },
 ]
 ```
@@ -247,9 +263,10 @@ export function requireRole(...allowedRoles: TRole[]) {
     }
 
     // Para roles de condominio, necesitamos el condominiumId
-    const condominiumId = c.req.header('x-condominium-id')
-      || c.req.query('condominiumId')
-      || extractCondominiumFromBody(c)
+    const condominiumId =
+      c.req.header('x-condominium-id') ||
+      c.req.query('condominiumId') ||
+      extractCondominiumFromBody(c)
 
     if (!condominiumId) {
       return c.json({ error: 'Condominium context required' }, 400)
@@ -417,29 +434,29 @@ Repetir patrón para: payments, expenses, amenities, buildings, units, etc.
 
 ### 3.2 Sprint 2: Tests de Controllers Faltantes
 
-| Controller | Tests a Crear | Prioridad |
-|-----------|--------------|-----------|
-| auth | Register, Register Google, edge cases | ALTA |
-| admin-invitations | CRUD + token flow | ALTA |
-| user-invitations | CRUD + accept flow | ALTA |
-| support-tickets | CRUD + status transitions | ALTA |
-| amenities | CRUD | ALTA |
-| amenity-reservations | CRUD + approve/reject | ALTA |
-| quota-generation-rules | CRUD + effective rules | ALTA |
-| quota-formulas | CRUD + calculate | MEDIA |
-| notifications | Send + mark read | MEDIA |
-| management-company-members | CRUD | MEDIA |
-| subscription-rates | CRUD | MEDIA |
-| subscription-invoices | CRUD | MEDIA |
-| support-ticket-messages | CRUD | MEDIA |
-| reports | CRUD | MEDIA |
-| payment-pending-allocations | CRUD + allocate | ALTA |
-| notification-templates | CRUD | BAJA |
-| user-fcm-tokens | CRUD | BAJA |
-| user-notification-preferences | CRUD | BAJA |
-| subscription-acceptances | Flow | MEDIA |
-| subscription-terms-conditions | CRUD | BAJA |
-| management-company-subscriptions | CRUD | MEDIA |
+| Controller                       | Tests a Crear                         | Prioridad |
+| -------------------------------- | ------------------------------------- | --------- |
+| auth                             | Register, Register Google, edge cases | ALTA      |
+| admin-invitations                | CRUD + token flow                     | ALTA      |
+| user-invitations                 | CRUD + accept flow                    | ALTA      |
+| support-tickets                  | CRUD + status transitions             | ALTA      |
+| amenities                        | CRUD                                  | ALTA      |
+| amenity-reservations             | CRUD + approve/reject                 | ALTA      |
+| quota-generation-rules           | CRUD + effective rules                | ALTA      |
+| quota-formulas                   | CRUD + calculate                      | MEDIA     |
+| notifications                    | Send + mark read                      | MEDIA     |
+| management-company-members       | CRUD                                  | MEDIA     |
+| subscription-rates               | CRUD                                  | MEDIA     |
+| subscription-invoices            | CRUD                                  | MEDIA     |
+| support-ticket-messages          | CRUD                                  | MEDIA     |
+| reports                          | CRUD                                  | MEDIA     |
+| payment-pending-allocations      | CRUD + allocate                       | ALTA      |
+| notification-templates           | CRUD                                  | BAJA      |
+| user-fcm-tokens                  | CRUD                                  | BAJA      |
+| user-notification-preferences    | CRUD                                  | BAJA      |
+| subscription-acceptances         | Flow                                  | MEDIA     |
+| subscription-terms-conditions    | CRUD                                  | BAJA      |
+| management-company-subscriptions | CRUD                                  | MEDIA     |
 
 **Total: ~200 tests nuevos**
 
@@ -447,16 +464,16 @@ Repetir patrón para: payments, expenses, amenities, buildings, units, etc.
 
 #### Tests faltantes más críticos:
 
-| Servicio | Tests a Crear | Prioridad |
-|---------|--------------|-----------|
-| GenerateQuotasForScheduleService | Race condition, duplicados, errores parciales | CRÍTICA |
-| RefundPaymentService | Reversión de aplicaciones, audit trail | CRÍTICA |
-| CreateCompanyWithAdminService | Transacción parcial, rollback | ALTA |
-| CreateUserWithInvitationService | Rollback en fallo | ALTA |
-| ReportPaymentService | Validaciones, estado | ALTA |
-| AcceptUserInvitationService | Token expirado, ya usado | ALTA |
-| CreateReservationService | Solapamiento, capacidad | ALTA |
-| AdjustQuotaService | Límites, validaciones | MEDIA |
+| Servicio                         | Tests a Crear                                 | Prioridad |
+| -------------------------------- | --------------------------------------------- | --------- |
+| GenerateQuotasForScheduleService | Race condition, duplicados, errores parciales | CRÍTICA   |
+| RefundPaymentService             | Reversión de aplicaciones, audit trail        | CRÍTICA   |
+| CreateCompanyWithAdminService    | Transacción parcial, rollback                 | ALTA      |
+| CreateUserWithInvitationService  | Rollback en fallo                             | ALTA      |
+| ReportPaymentService             | Validaciones, estado                          | ALTA      |
+| AcceptUserInvitationService      | Token expirado, ya usado                      | ALTA      |
+| CreateReservationService         | Solapamiento, capacidad                       | ALTA      |
+| AdjustQuotaService               | Límites, validaciones                         | MEDIA     |
 
 **Total: ~80 tests nuevos de servicios**
 
@@ -497,6 +514,7 @@ Para cada schema de controller:
 ### 4.1 Schema de Montos Financieros (CRÍTICO)
 
 **Archivos a modificar:**
+
 - `quotas.controller.ts` — CreateQuotaSchema
 - `payments.controller.ts` — CreatePaymentSchema, ReportPaymentSchema
 - `expenses.controller.ts` — CreateExpenseSchema
@@ -520,6 +538,7 @@ amount: z.string()
 ### 4.2 Schema de Fechas (ALTO)
 
 **Archivos a modificar:**
+
 - `quota-generation-rules.controller.ts`
 - `expenses.controller.ts`
 - `interest-configurations.controller.ts`
@@ -543,6 +562,7 @@ effectiveFrom: z.string()
 ### 4.3 Schema de Cross-Field Validation (ALTO)
 
 **Archivos a modificar:**
+
 - `quota-generation-rules.controller.ts` — effectiveFrom/effectiveTo
 - `payments.controller.ts` — dateRange queries
 - `expenses.controller.ts` — dateRange queries
@@ -560,12 +580,15 @@ z.object({
 z.object({
   effectiveFrom: dateSchema,
   effectiveTo: dateSchema.optional(),
-}).refine(data => {
-  if (data.effectiveTo) {
-    return new Date(data.effectiveTo) > new Date(data.effectiveFrom)
-  }
-  return true
-}, { message: 'effectiveTo must be after effectiveFrom' })
+}).refine(
+  data => {
+    if (data.effectiveTo) {
+      return new Date(data.effectiveTo) > new Date(data.effectiveFrom)
+    }
+    return true
+  },
+  { message: 'effectiveTo must be after effectiveFrom' }
+)
 ```
 
 ### 4.4 Schema de Updates No Vacíos (MEDIO)
@@ -582,17 +605,19 @@ z.object({
 **Archivo:** `amenity-reservations.controller.ts`
 
 ```typescript
-const CreateReservationSchema = z.object({
-  amenityId: z.string().uuid(),
-  startTime: z.string().datetime(),
-  endTime: z.string().datetime(),
-  // ...
-}).refine(data => {
-  return new Date(data.endTime) > new Date(data.startTime)
-}, 'End time must be after start time')
-.refine(data => {
-  return new Date(data.startTime) > new Date()
-}, 'Cannot reserve in the past')
+const CreateReservationSchema = z
+  .object({
+    amenityId: z.string().uuid(),
+    startTime: z.string().datetime(),
+    endTime: z.string().datetime(),
+    // ...
+  })
+  .refine(data => {
+    return new Date(data.endTime) > new Date(data.startTime)
+  }, 'End time must be after start time')
+  .refine(data => {
+    return new Date(data.startTime) > new Date()
+  }, 'Cannot reserve in the past')
 ```
 
 ---
@@ -603,16 +628,16 @@ const CreateReservationSchema = z.object({
 
 **Servicios a envolver en transacción:**
 
-| Servicio | Operaciones | Cambio |
-|---------|------------|--------|
-| `CreateCompanyWithAdminService` | create user + company + invitation | Wrap en `db.transaction()` |
-| `CreateCompanyWithExistingAdminService` | create company + member + subscription | Wrap en `db.transaction()` |
-| `CreateUserWithInvitationService` | create user + role + update invitation | Wrap en `db.transaction()` (eliminar rollback manual) |
-| `GenerateQuotasForScheduleService` | create N quotas | Wrap loop en `db.transaction()` |
-| `AcceptUserInvitationService` | update invitation + create ownership + role | Wrap en `db.transaction()` |
-| `AcceptAdminInvitationService` | update invitation + create company + member | Wrap en `db.transaction()` |
-| `RefundPaymentService` | update payment + reverse applications + update quotas | Wrap en `db.transaction()` |
-| `VerifyPaymentService` | update payment + create applications | Wrap en `db.transaction()` |
+| Servicio                                | Operaciones                                           | Cambio                                                |
+| --------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
+| `CreateCompanyWithAdminService`         | create user + company + invitation                    | Wrap en `db.transaction()`                            |
+| `CreateCompanyWithExistingAdminService` | create company + member + subscription                | Wrap en `db.transaction()`                            |
+| `CreateUserWithInvitationService`       | create user + role + update invitation                | Wrap en `db.transaction()` (eliminar rollback manual) |
+| `GenerateQuotasForScheduleService`      | create N quotas                                       | Wrap loop en `db.transaction()`                       |
+| `AcceptUserInvitationService`           | update invitation + create ownership + role           | Wrap en `db.transaction()`                            |
+| `AcceptAdminInvitationService`          | update invitation + create company + member           | Wrap en `db.transaction()`                            |
+| `RefundPaymentService`                  | update payment + reverse applications + update quotas | Wrap en `db.transaction()`                            |
+| `VerifyPaymentService`                  | update payment + create applications                  | Wrap en `db.transaction()`                            |
 
 **Patrón de implementación:**
 
@@ -656,6 +681,7 @@ async execute(input: { userId: string, condominiumId: string }) {
 ```
 
 **Servicios a modificar (todos los de lectura):**
+
 - Todos los `get-*-by-user` services
 - Todos los `get-*-by-unit` services
 - Todos los `get-*-by-building` services
@@ -744,13 +770,13 @@ async execute(input: TRefundInput): Promise<TServiceResult<TPayment>> {
 
 ```typescript
 const VALID_TRANSITIONS: Record<string, string[]> = {
-  'pending': ['completed', 'failed', 'cancelled'],
-  'pending_verification': ['completed', 'rejected'],
-  'completed': ['refunded'],
-  'rejected': ['pending_verification'], // retry
-  'refunded': [], // terminal
-  'failed': ['pending'], // retry
-  'cancelled': [], // terminal
+  pending: ['completed', 'failed', 'cancelled'],
+  pending_verification: ['completed', 'rejected'],
+  completed: ['refunded'],
+  rejected: ['pending_verification'], // retry
+  refunded: [], // terminal
+  failed: ['pending'], // retry
+  cancelled: [], // terminal
 }
 
 export function canTransition(from: string, to: string): boolean {
@@ -778,77 +804,77 @@ this.logger.warn('Registration conflict', { email, reason: 'duplicate' })
 
 ### Fase 1: Fundamentos de Seguridad (Semana 1-2)
 
-| # | Tarea | Prioridad | Dependencia |
-|---|-------|-----------|-------------|
-| 1.1 | Crear middleware `requireRole()` | 🔴 CRÍTICO | Ninguna |
-| 1.2 | Crear middleware `requireCondominiumScope()` | 🔴 CRÍTICO | 1.1 |
-| 1.3 | Añadir `withTransaction(tx)` a BaseRepository | 🔴 CRÍTICO | Ninguna |
-| 1.4 | Aplicar `requireRole` a TODAS las rutas de condominio | 🔴 CRÍTICO | 1.1, 1.2 |
-| 1.5 | Aplicar `requireRole('superadmin')` a rutas de plataforma existentes sin él | 🔴 CRÍTICO | 1.1 |
-| 1.6 | Tests de `requireRole` middleware | 🔴 CRÍTICO | 1.1 |
+| #   | Tarea                                                                       | Prioridad  | Dependencia |
+| --- | --------------------------------------------------------------------------- | ---------- | ----------- |
+| 1.1 | Crear middleware `requireRole()`                                            | 🔴 CRÍTICO | Ninguna     |
+| 1.2 | Crear middleware `requireCondominiumScope()`                                | 🔴 CRÍTICO | 1.1         |
+| 1.3 | Añadir `withTransaction(tx)` a BaseRepository                               | 🔴 CRÍTICO | Ninguna     |
+| 1.4 | Aplicar `requireRole` a TODAS las rutas de condominio                       | 🔴 CRÍTICO | 1.1, 1.2    |
+| 1.5 | Aplicar `requireRole('superadmin')` a rutas de plataforma existentes sin él | 🔴 CRÍTICO | 1.1         |
+| 1.6 | Tests de `requireRole` middleware                                           | 🔴 CRÍTICO | 1.1         |
 
 ### Fase 2: Separación Platform/Condominium (Semana 2-3)
 
-| # | Tarea | Prioridad | Dependencia |
-|---|-------|-----------|-------------|
-| 2.1 | Eliminar Quotas, Payments, Expenses, Amenities del sidebar SUPERADMIN | 🔴 CRÍTICO | Ninguna |
-| 2.2 | Eliminar `session.superadmin?.isActive` de guards de páginas de condominio | 🔴 CRÍTICO | Ninguna |
-| 2.3 | Filtrar sidebar de residente por rol (ocultar admin items a USERs) | 🟡 MEDIO | Ninguna |
-| 2.4 | Crear layout guards para `/platform/*`, `/admin/*`, `/resident/*` | 🟠 ALTO | Ninguna |
-| 2.5 | Reestructurar rutas del frontend (mover páginas) | 🟠 ALTO | 2.4 |
+| #   | Tarea                                                                      | Prioridad  | Dependencia |
+| --- | -------------------------------------------------------------------------- | ---------- | ----------- |
+| 2.1 | Eliminar Quotas, Payments, Expenses, Amenities del sidebar SUPERADMIN      | 🔴 CRÍTICO | Ninguna     |
+| 2.2 | Eliminar `session.superadmin?.isActive` de guards de páginas de condominio | 🔴 CRÍTICO | Ninguna     |
+| 2.3 | Filtrar sidebar de residente por rol (ocultar admin items a USERs)         | 🟡 MEDIO   | Ninguna     |
+| 2.4 | Crear layout guards para `/platform/*`, `/admin/*`, `/resident/*`          | 🟠 ALTO    | Ninguna     |
+| 2.5 | Reestructurar rutas del frontend (mover páginas)                           | 🟠 ALTO    | 2.4         |
 
 ### Fase 3: Integridad de Datos (Semana 3-4)
 
-| # | Tarea | Prioridad | Dependencia |
-|---|-------|-----------|-------------|
-| 3.1 | Envolver servicios críticos en transacciones | 🔴 CRÍTICO | 1.3 |
-| 3.2 | Implementar scoping de condominio en servicios de lectura | 🔴 CRÍTICO | 1.2 |
-| 3.3 | Corregir RefundPaymentService (reversión de aplicaciones) | 🔴 CRÍTICO | 1.3 |
-| 3.4 | Añadir UNIQUE constraint para cuotas + ON CONFLICT | 🔴 CRÍTICO | 1.3 |
-| 3.5 | Implementar PaymentStatusMachine | 🟠 ALTO | Ninguna |
+| #   | Tarea                                                     | Prioridad  | Dependencia |
+| --- | --------------------------------------------------------- | ---------- | ----------- |
+| 3.1 | Envolver servicios críticos en transacciones              | 🔴 CRÍTICO | 1.3         |
+| 3.2 | Implementar scoping de condominio en servicios de lectura | 🔴 CRÍTICO | 1.2         |
+| 3.3 | Corregir RefundPaymentService (reversión de aplicaciones) | 🔴 CRÍTICO | 1.3         |
+| 3.4 | Añadir UNIQUE constraint para cuotas + ON CONFLICT        | 🔴 CRÍTICO | 1.3         |
+| 3.5 | Implementar PaymentStatusMachine                          | 🟠 ALTO    | Ninguna     |
 
 ### Fase 4: Validaciones (Semana 4-5)
 
-| # | Tarea | Prioridad | Dependencia |
-|---|-------|-----------|-------------|
-| 4.1 | Fortalecer schemas de montos financieros | 🟠 ALTO | Ninguna |
-| 4.2 | Fortalecer schemas de fechas | 🟠 ALTO | Ninguna |
-| 4.3 | Añadir cross-field validation | 🟡 MEDIO | Ninguna |
-| 4.4 | Añadir check de update no vacío | 🟡 MEDIO | Ninguna |
-| 4.5 | Genéricizar mensajes de error | 🟠 ALTO | Ninguna |
+| #   | Tarea                                    | Prioridad | Dependencia |
+| --- | ---------------------------------------- | --------- | ----------- |
+| 4.1 | Fortalecer schemas de montos financieros | 🟠 ALTO   | Ninguna     |
+| 4.2 | Fortalecer schemas de fechas             | 🟠 ALTO   | Ninguna     |
+| 4.3 | Añadir cross-field validation            | 🟡 MEDIO  | Ninguna     |
+| 4.4 | Añadir check de update no vacío          | 🟡 MEDIO  | Ninguna     |
+| 4.5 | Genéricizar mensajes de error            | 🟠 ALTO   | Ninguna     |
 
 ### Fase 5: Tests (Semana 5-8)
 
-| # | Tarea | Prioridad | Dependencia |
-|---|-------|-----------|-------------|
-| 5.1 | Tests de autorización para todos los controllers | 🟠 ALTO | 1.4 |
-| 5.2 | Tests de controllers faltantes (21 controllers) | 🟠 ALTO | Fase 1-2 |
-| 5.3 | Tests de servicios críticos | 🟡 MEDIO | Fase 3 |
-| 5.4 | Tests de integración (7 flujos) | 🟡 MEDIO | Fase 1-4 |
-| 5.5 | Tests de schemas | 🔵 BAJO | Fase 4 |
+| #   | Tarea                                            | Prioridad | Dependencia |
+| --- | ------------------------------------------------ | --------- | ----------- |
+| 5.1 | Tests de autorización para todos los controllers | 🟠 ALTO   | 1.4         |
+| 5.2 | Tests de controllers faltantes (21 controllers)  | 🟠 ALTO   | Fase 1-2    |
+| 5.3 | Tests de servicios críticos                      | 🟡 MEDIO  | Fase 3      |
+| 5.4 | Tests de integración (7 flujos)                  | 🟡 MEDIO  | Fase 1-4    |
+| 5.5 | Tests de schemas                                 | 🔵 BAJO   | Fase 4      |
 
 ### Fase 6: Billing y Features Faltantes (Semana 8+)
 
-| # | Tarea | Prioridad | Dependencia |
-|---|-------|-----------|-------------|
-| 6.1 | Implementar página `/dashboard/billing` | 🟡 MEDIO | Fase 2 |
-| 6.2 | Implementar auditoría automática de operaciones financieras | 🟡 MEDIO | Fase 3 |
-| 6.3 | Implementar solapamiento de reservaciones | 🟡 MEDIO | Fase 4 |
+| #   | Tarea                                                       | Prioridad | Dependencia |
+| --- | ----------------------------------------------------------- | --------- | ----------- |
+| 6.1 | Implementar página `/dashboard/billing`                     | 🟡 MEDIO  | Fase 2      |
+| 6.2 | Implementar auditoría automática de operaciones financieras | 🟡 MEDIO  | Fase 3      |
+| 6.3 | Implementar solapamiento de reservaciones                   | 🟡 MEDIO  | Fase 4      |
 
 ---
 
 ## Resumen de Esfuerzo Estimado
 
-| Fase | Tareas | Archivos a Modificar | Tests Nuevos |
-|------|--------|---------------------|-------------|
-| Fase 1: Seguridad | 6 | ~50 controllers + 2 new middleware | ~30 |
-| Fase 2: Separación | 5 | ~10 frontend files + sidebar | ~15 |
-| Fase 3: Datos | 5 | ~15 services + 1 migration | ~40 |
-| Fase 4: Validaciones | 5 | ~15 controller schemas | ~100 |
-| Fase 5: Tests | 5 | Test files only | ~400 |
-| Fase 6: Features | 3 | ~5 new files | ~20 |
-| **TOTAL** | **29** | **~95 archivos** | **~605 tests** |
+| Fase                 | Tareas | Archivos a Modificar               | Tests Nuevos   |
+| -------------------- | ------ | ---------------------------------- | -------------- |
+| Fase 1: Seguridad    | 6      | ~50 controllers + 2 new middleware | ~30            |
+| Fase 2: Separación   | 5      | ~10 frontend files + sidebar       | ~15            |
+| Fase 3: Datos        | 5      | ~15 services + 1 migration         | ~40            |
+| Fase 4: Validaciones | 5      | ~15 controller schemas             | ~100           |
+| Fase 5: Tests        | 5      | Test files only                    | ~400           |
+| Fase 6: Features     | 3      | ~5 new files                       | ~20            |
+| **TOTAL**            | **29** | **~95 archivos**                   | **~605 tests** |
 
 ---
 
-*Fin del Action Plan — Esperando aprobación para comenzar implementación.*
+_Fin del Action Plan — Esperando aprobación para comenzar implementación._

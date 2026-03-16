@@ -1,6 +1,11 @@
 import { and, eq, desc, sql, count } from 'drizzle-orm'
 import type { SQL } from 'drizzle-orm'
-import type { TNotification, TNotificationCreate, TNotificationUpdate, TPaginatedResponse } from '@packages/domain'
+import type {
+  TNotification,
+  TNotificationCreate,
+  TNotificationUpdate,
+  TPaginatedResponse,
+} from '@packages/domain'
 import { notifications } from '../drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
 import { BaseRepository } from './base'
@@ -163,7 +168,12 @@ export class NotificationsRepository
    */
   async listPaginatedByUserId(
     userId: string,
-    options: { page?: number; limit?: number; category?: 'payment' | 'quota' | 'announcement' | 'reminder' | 'alert' | 'system'; isRead?: boolean }
+    options: {
+      page?: number
+      limit?: number
+      category?: 'payment' | 'quota' | 'announcement' | 'reminder' | 'alert' | 'system'
+      isRead?: boolean
+    }
   ): Promise<TPaginatedResponse<TNotification>> {
     const page = options.page ?? 1
     const limit = options.limit ?? 20
@@ -198,6 +208,19 @@ export class NotificationsRepository
       data: results.map(record => this.mapToEntity(record)),
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     }
+  }
+
+  /**
+   * Checks if a notification with the given job ID already exists (idempotency check).
+   */
+  async existsByJobId(jobId: string): Promise<boolean> {
+    const results = await this.db
+      .select({ id: notifications.id })
+      .from(notifications)
+      .where(sql`${notifications.metadata} @> ${JSON.stringify({ jobId })}::jsonb`)
+      .limit(1)
+
+    return results.length > 0
   }
 
   /**

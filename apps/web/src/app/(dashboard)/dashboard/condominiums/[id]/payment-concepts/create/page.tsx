@@ -1,43 +1,57 @@
+import type { TApiDataResponse } from '@packages/http-client'
+
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import type { TApiDataResponse } from '@packages/http-client'
 import { getHttpClient } from '@packages/http-client'
+
+import { CreatePaymentConceptClient } from '../components/wizard/CreatePaymentConceptClient'
 
 import { Button } from '@/ui/components/button'
 import { Typography } from '@/ui/components/typography'
 import { getTranslations } from '@/libs/i18n/server'
 import { getServerAuthToken, getFullSession } from '@/libs/session'
-import { CreatePaymentConceptClient } from '../components/wizard/CreatePaymentConceptClient'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
-async function getCurrencies(token: string, managementCompanyId: string): Promise<Array<{ id: string; code: string; name?: string }>> {
+async function getCurrencies(
+  token: string,
+  managementCompanyId: string
+): Promise<Array<{ id: string; code: string; name?: string }>> {
   try {
     const client = getHttpClient()
-    const response = await client.get<TApiDataResponse<Array<{ id: string; code: string; name?: string }>>>(
-      `/${managementCompanyId}/me/currencies`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    )
+    const response = await client.get<
+      TApiDataResponse<Array<{ id: string; code: string; name?: string }>>
+    >(`/${managementCompanyId}/me/currencies`, { headers: { Authorization: `Bearer ${token}` } })
+
     return response.data.data
   } catch {
     return []
   }
 }
 
-async function getBuildings(token: string, condominiumId: string, managementCompanyId?: string): Promise<Array<{ id: string; name: string }>> {
+async function getBuildings(
+  token: string,
+  condominiumId: string,
+  managementCompanyId?: string
+): Promise<Array<{ id: string; name: string }>> {
   try {
     const client = getHttpClient()
     const headers: Record<string, string> = {
       Authorization: `Bearer ${token}`,
       'x-condominium-id': condominiumId,
     }
+
     if (managementCompanyId) {
       headers['x-management-company-id'] = managementCompanyId
     }
-    const response = await client.get<TApiDataResponse<Array<{ id: string; name: string }>>>('/condominium/buildings', { headers })
+    const response = await client.get<TApiDataResponse<Array<{ id: string; name: string }>>>(
+      '/condominium/buildings',
+      { headers }
+    )
+
     return response.data.data
   } catch {
     return []
@@ -46,11 +60,16 @@ async function getBuildings(token: string, condominiumId: string, managementComp
 
 async function CreatePaymentConceptContent({ params }: PageProps) {
   const { id } = await params
-  const [{ t }, token, session] = await Promise.all([getTranslations(), getServerAuthToken(), getFullSession()])
+  const [{ t }, token, session] = await Promise.all([
+    getTranslations(),
+    getServerAuthToken(),
+    getFullSession(),
+  ])
 
-  const managementCompanyId = session?.activeRole === 'management_company'
-    ? session.managementCompanies?.[0]?.managementCompanyId ?? ''
-    : ''
+  const managementCompanyId =
+    session?.activeRole === 'management_company'
+      ? (session.managementCompanies?.[0]?.managementCompanyId ?? '')
+      : ''
 
   if (!managementCompanyId) {
     redirect(`/dashboard/condominiums/${id}/payment-concepts`)
@@ -65,9 +84,9 @@ async function CreatePaymentConceptContent({ params }: PageProps) {
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex items-start gap-4">
         <Button
+          isIconOnly
           className="mt-1"
           href={`/dashboard/condominiums/${id}/payment-concepts`}
-          isIconOnly
           variant="flat"
         >
           <ArrowLeft size={18} />
@@ -83,10 +102,10 @@ async function CreatePaymentConceptContent({ params }: PageProps) {
       </div>
 
       <CreatePaymentConceptClient
-        condominiumId={id}
-        managementCompanyId={managementCompanyId}
-        currencies={currencies}
         buildings={buildings}
+        condominiumId={id}
+        currencies={currencies}
+        managementCompanyId={managementCompanyId}
       />
     </div>
   )

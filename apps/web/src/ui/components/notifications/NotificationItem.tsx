@@ -1,6 +1,7 @@
 'use client'
 
 import type { TNotification } from '@packages/domain'
+
 import { cn } from '@heroui/theme'
 import {
   CreditCard,
@@ -47,16 +48,19 @@ function formatRelativeTime(date: Date | string, t: (key: string) => string): st
   if (diffInSeconds < 60) return t('notifications.time.justNow')
 
   const diffInMinutes = Math.floor(diffInSeconds / 60)
+
   if (diffInMinutes < 60) {
     return t('notifications.time.minutesAgo').replace('{count}', String(diffInMinutes))
   }
 
   const diffInHours = Math.floor(diffInMinutes / 60)
+
   if (diffInHours < 24) {
     return t('notifications.time.hoursAgo').replace('{count}', String(diffInHours))
   }
 
   const diffInDays = Math.floor(diffInHours / 24)
+
   if (diffInDays < 7) {
     return t('notifications.time.daysAgo').replace('{count}', String(diffInDays))
   }
@@ -124,8 +128,7 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: INoti
 
       <div className="flex flex-col gap-1 flex-1 min-w-0">
         <p className="text-small text-foreground">
-          <strong className="font-medium">{title}</strong>{' '}
-          {body}
+          <strong className="font-medium">{title}</strong> {body}
         </p>
         <time className="text-tiny text-default-400">
           {formatRelativeTime(notification.createdAt, t)}
@@ -136,10 +139,10 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: INoti
         <div className="flex-none self-center">
           <Button
             isIconOnly
-            variant="light"
+            className="h-7 w-7 min-w-0"
             color="danger"
             size="sm"
-            className="h-7 w-7 min-w-0"
+            variant="light"
             onPress={() => onDelete(notification.id)}
           >
             <Trash2 size={14} />

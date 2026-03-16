@@ -9,13 +9,14 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 export function useControllableState<T>(
   value: T | undefined,
   defaultValue: T,
-  onChange?: (value: T) => void,
+  onChange?: (value: T) => void
 ): [T, (newValue: T) => void] {
   const [internalValue, setInternalValue] = useState(defaultValue)
   const isControlled = value !== undefined
   const currentValue = isControlled ? value : internalValue
 
   const onChangeRef = useRef(onChange)
+
   useEffect(() => {
     onChangeRef.current = onChange
   }, [onChange])
@@ -27,7 +28,7 @@ export function useControllableState<T>(
       }
       onChangeRef.current?.(newValue)
     },
-    [isControlled],
+    [isControlled]
   )
 
   return [currentValue, setValue]

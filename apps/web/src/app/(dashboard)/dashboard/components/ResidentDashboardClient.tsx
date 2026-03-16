@@ -1,11 +1,9 @@
 'use client'
 
-import { useMemo } from 'react'
-import { useTranslation } from '@/contexts'
-import { Typography } from '@/ui/components/typography'
-import { Spinner } from '@/ui/components/spinner'
-import { useQuotasByUnit, usePaymentsByUser } from '@packages/http-client'
 import type { TQuota, TPayment } from '@packages/domain'
+
+import { useMemo } from 'react'
+import { useQuotasByUnit, usePaymentsByUser } from '@packages/http-client'
 
 import {
   AccountBalanceCard,
@@ -15,6 +13,10 @@ import {
   type IQuota,
   type IPayment,
 } from './resident'
+
+import { useTranslation } from '@/contexts'
+import { Typography } from '@/ui/components/typography'
+import { Spinner } from '@/ui/components/spinner'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -31,7 +33,7 @@ interface IResidentDashboardClientProps {
 // Valid status sets for filtering
 // ─────────────────────────────────────────────────────────────────────────────
 
-const VALID_QUOTA_STATUSES = new Set<IQuota['status']>(['pending', 'overdue', 'paid'])
+const VALID_QUOTA_STATUSES = new Set<IQuota['status']>(['pending', 'partial', 'overdue', 'paid'])
 const VALID_PAYMENT_STATUSES = new Set<IPayment['status']>([
   'completed',
   'pending_verification',
@@ -86,15 +88,11 @@ export function ResidentDashboardClient({
 
   const primaryUnitId = unitIds[0] ?? ''
 
-  const {
-    data: quotasResponse,
-    isLoading: isLoadingQuotas,
-  } = useQuotasByUnit(primaryUnitId, { enabled: !!primaryUnitId })
+  const { data: quotasResponse, isLoading: isLoadingQuotas } = useQuotasByUnit(primaryUnitId, {
+    enabled: !!primaryUnitId,
+  })
 
-  const {
-    data: paymentsResponse,
-    isLoading: isLoadingPayments,
-  } = usePaymentsByUser(userId)
+  const { data: paymentsResponse, isLoading: isLoadingPayments } = usePaymentsByUser(userId)
 
   const isLoading = isLoadingQuotas || isLoadingPayments
 
@@ -105,6 +103,7 @@ export function ResidentDashboardClient({
 
     for (const quota of rawQuotas) {
       const result = mapQuota(quota)
+
       if (result) {
         mapped.push(result)
       }
@@ -119,6 +118,7 @@ export function ResidentDashboardClient({
 
     for (const payment of rawPayments) {
       const result = mapPayment(payment)
+
       if (result) {
         mapped.push(result)
       }
@@ -129,18 +129,19 @@ export function ResidentDashboardClient({
 
   // Calculate totals
   const totalPending = useMemo(
-    () => quotas.filter((q) => q.status !== 'paid').reduce((sum, q) => sum + q.amount, 0),
-    [quotas],
+    () => quotas.filter(q => q.status !== 'paid').reduce((sum, q) => sum + q.amount, 0),
+    [quotas]
   )
 
   const dueThisMonth = useMemo(
-    () => quotas.filter((q) => q.status === 'pending').reduce((sum, q) => sum + q.amount, 0),
-    [quotas],
+    () => quotas.filter(q => q.status === 'pending').reduce((sum, q) => sum + q.amount, 0),
+    [quotas]
   )
 
   // Determine currency from first non-paid quota, or fallback
   const currency = useMemo(() => {
-    const firstQuota = quotas.find((q) => q.status !== 'paid')
+    const firstQuota = quotas.find(q => q.status !== 'paid')
+
     return firstQuota?.currency ?? '$'
   }, [quotas])
 
@@ -203,8 +204,10 @@ export function ResidentDashboardClient({
             dueDate: t('resident.dashboard.dueDate'),
             status: {
               pending: t('resident.dashboard.status.pending'),
+              partial: t('resident.dashboard.status.partial'),
               overdue: t('resident.dashboard.status.overdue'),
               paid: t('resident.dashboard.status.paid'),
+              exonerated: t('resident.dashboard.status.exonerated'),
             },
           }}
         />

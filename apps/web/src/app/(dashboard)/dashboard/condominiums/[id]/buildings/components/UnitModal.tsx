@@ -1,23 +1,25 @@
 'use client'
 
+import type { TUnit } from '@packages/domain'
+
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import type { TUnit } from '@packages/domain'
-
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
-import { Button } from '@/ui/components/button'
-import { Typography } from '@/ui/components/typography'
-import { useToast } from '@/ui/components/toast'
-import { UnitForm } from './UnitForm'
 import {
   TCreateUnitVariables,
   TUpdateUnitVariables,
   useCreateUnit,
   useUpdateUnit,
 } from '@packages/http-client/hooks'
+
+import { UnitForm } from './UnitForm'
+
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
+import { Button } from '@/ui/components/button'
+import { Typography } from '@/ui/components/typography'
+import { useToast } from '@/ui/components/toast'
 
 const unitFormSchema = z.object({
   unitNumber: z.string().min(1, 'required').max(50),
@@ -154,6 +156,7 @@ export function UnitModal({
         parkingSpaces: data.parkingSpaces,
         aliquotPercentage: data.aliquotPercentage,
       }
+
       updateMutation.mutate(updateData)
     } else {
       const createData: TCreateUnitVariables = {
@@ -166,6 +169,7 @@ export function UnitModal({
         parkingSpaces: data.parkingSpaces,
         aliquotPercentage: data.aliquotPercentage,
       }
+
       createMutation.mutate(createData)
     }
   })
@@ -178,7 +182,7 @@ export function UnitModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="xl" onClose={handleClose}>
       <ModalContent>
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit}>
@@ -191,10 +195,10 @@ export function UnitModal({
               <UnitForm translateError={translateError} translations={translations.form} />
             </ModalBody>
             <ModalFooter>
-              <Button variant="bordered" onPress={handleClose} isDisabled={isPending}>
+              <Button isDisabled={isPending} variant="bordered" onPress={handleClose}>
                 {translations.cancel}
               </Button>
-              <Button type="submit" color="primary" isLoading={isPending}>
+              <Button color="primary" isLoading={isPending} type="submit">
                 {isPending ? translations.saving : translations.save}
               </Button>
             </ModalFooter>

@@ -47,11 +47,11 @@ beforeEach(async () => {
   `)
 
   // 2. Insert condominium
-  const condoResult = await db.execute(sql`
+  const condoResult = (await db.execute(sql`
     INSERT INTO condominiums (name, is_active, created_by)
     VALUES ('Test Condominium', true, ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   condominiumId = condoResult[0]!.id
 
   // 3. Set up controllers + app
@@ -157,15 +157,15 @@ async function cancelReservation(reservationId: string) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('Amenity Reservation Flow — Integration', function () {
-
   // ─── Amenity CRUD ────────────────────────────────────────────────────────
 
   describe('Amenity CRUD', function () {
-
     it('creates an amenity', async function () {
       const res = await createAmenity()
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: { id: string; name: string; condominiumId: string; requiresApproval: boolean } }
+      const json = (await res.json()) as {
+        data: { id: string; name: string; condominiumId: string; requiresApproval: boolean }
+      }
       expect(json.data.name).toBe('Pool')
       expect(json.data.condominiumId).toBe(condominiumId)
       expect(json.data.requiresApproval).toBe(true)
@@ -173,7 +173,7 @@ describe('Amenity Reservation Flow — Integration', function () {
 
     it('updates an amenity', async function () {
       const createRes = await createAmenity()
-      const createJson = await createRes.json() as { data: { id: string } }
+      const createJson = (await createRes.json()) as { data: { id: string } }
 
       const res = await request(`/condominium/amenities/${createJson.data.id}`, {
         method: 'PATCH',
@@ -181,14 +181,14 @@ describe('Amenity Reservation Flow — Integration', function () {
         body: JSON.stringify({ name: 'Gym', capacity: 15 }),
       })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { name: string; capacity: number } }
+      const json = (await res.json()) as { data: { name: string; capacity: number } }
       expect(json.data.name).toBe('Gym')
       expect(json.data.capacity).toBe(15)
     })
 
     it('soft-deletes an amenity', async function () {
       const createRes = await createAmenity()
-      const createJson = await createRes.json() as { data: { id: string } }
+      const createJson = (await createRes.json()) as { data: { id: string } }
 
       const deleteRes = await request(`/condominium/amenities/${createJson.data.id}`, {
         method: 'DELETE',
@@ -199,11 +199,13 @@ describe('Amenity Reservation Flow — Integration', function () {
 
     it('GET /:id returns a single amenity', async function () {
       const createRes = await createAmenity()
-      const createJson = await createRes.json() as { data: { id: string } }
+      const createJson = (await createRes.json()) as { data: { id: string } }
 
-      const res = await request(`/condominium/amenities/${createJson.data.id}`, { headers: headers() })
+      const res = await request(`/condominium/amenities/${createJson.data.id}`, {
+        headers: headers(),
+      })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { id: string; name: string } }
+      const json = (await res.json()) as { data: { id: string; name: string } }
       expect(json.data.id).toBe(createJson.data.id)
       expect(json.data.name).toBe('Pool')
     })
@@ -212,14 +214,15 @@ describe('Amenity Reservation Flow — Integration', function () {
   // ─── Create Reservation ──────────────────────────────────────────────────
 
   describe('Create Reservation', function () {
-
     it('creates a reservation with pending status', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
 
       const res = await createReservation(amenityJson.data.id)
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: { id: string; status: string; amenityId: string; userId: string } }
+      const json = (await res.json()) as {
+        data: { id: string; status: string; amenityId: string; userId: string }
+      }
       expect(json.data.status).toBe('pending')
       expect(json.data.amenityId).toBe(amenityJson.data.id)
       expect(json.data.userId).toBe(MOCK_USER_ID)
@@ -232,7 +235,7 @@ describe('Amenity Reservation Flow — Integration', function () {
 
     it('returns 409 for overlapping time slot', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const amenityId = amenityJson.data.id
 
       // First reservation: 10:00-12:00
@@ -248,7 +251,7 @@ describe('Amenity Reservation Flow — Integration', function () {
 
     it('allows non-overlapping time slot', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const amenityId = amenityJson.data.id
 
       // First: 10:00-12:00
@@ -266,17 +269,18 @@ describe('Amenity Reservation Flow — Integration', function () {
   // ─── Approve Reservation ─────────────────────────────────────────────────
 
   describe('Approve Reservation', function () {
-
     it('transitions pending reservation to approved', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
 
       const reserveRes = await createReservation(amenityJson.data.id)
-      const reserveJson = await reserveRes.json() as { data: { id: string } }
+      const reserveJson = (await reserveRes.json()) as { data: { id: string } }
 
       const res = await approveReservation(reserveJson.data.id)
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { status: string; approvedBy: string; approvedAt: string } }
+      const json = (await res.json()) as {
+        data: { status: string; approvedBy: string; approvedAt: string }
+      }
       expect(json.data.status).toBe('approved')
       expect(json.data.approvedBy).toBe(MOCK_USER_ID)
       expect(json.data.approvedAt).not.toBeNull()
@@ -289,9 +293,9 @@ describe('Amenity Reservation Flow — Integration', function () {
 
     it('returns 400 when reservation is already approved', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const reserveRes = await createReservation(amenityJson.data.id)
-      const reserveJson = await reserveRes.json() as { data: { id: string } }
+      const reserveJson = (await reserveRes.json()) as { data: { id: string } }
 
       await approveReservation(reserveJson.data.id)
 
@@ -303,16 +307,15 @@ describe('Amenity Reservation Flow — Integration', function () {
   // ─── Reject Reservation ──────────────────────────────────────────────────
 
   describe('Reject Reservation', function () {
-
     it('transitions pending reservation to rejected', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const reserveRes = await createReservation(amenityJson.data.id)
-      const reserveJson = await reserveRes.json() as { data: { id: string } }
+      const reserveJson = (await reserveRes.json()) as { data: { id: string } }
 
       const res = await rejectReservation(reserveJson.data.id, 'Not available that day')
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { status: string; rejectionReason: string } }
+      const json = (await res.json()) as { data: { status: string; rejectionReason: string } }
       expect(json.data.status).toBe('rejected')
       expect(json.data.rejectionReason).toBe('Not available that day')
     })
@@ -324,9 +327,9 @@ describe('Amenity Reservation Flow — Integration', function () {
 
     it('returns 400 when reservation is already rejected', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const reserveRes = await createReservation(amenityJson.data.id)
-      const reserveJson = await reserveRes.json() as { data: { id: string } }
+      const reserveJson = (await reserveRes.json()) as { data: { id: string } }
 
       await rejectReservation(reserveJson.data.id)
 
@@ -338,39 +341,38 @@ describe('Amenity Reservation Flow — Integration', function () {
   // ─── Cancel Reservation ──────────────────────────────────────────────────
 
   describe('Cancel Reservation', function () {
-
     it('transitions pending reservation to cancelled', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const reserveRes = await createReservation(amenityJson.data.id)
-      const reserveJson = await reserveRes.json() as { data: { id: string } }
+      const reserveJson = (await reserveRes.json()) as { data: { id: string } }
 
       const res = await cancelReservation(reserveJson.data.id)
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { status: string; cancelledAt: string } }
+      const json = (await res.json()) as { data: { status: string; cancelledAt: string } }
       expect(json.data.status).toBe('cancelled')
       expect(json.data.cancelledAt).not.toBeNull()
     })
 
     it('transitions approved reservation to cancelled', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const reserveRes = await createReservation(amenityJson.data.id)
-      const reserveJson = await reserveRes.json() as { data: { id: string } }
+      const reserveJson = (await reserveRes.json()) as { data: { id: string } }
 
       await approveReservation(reserveJson.data.id)
 
       const res = await cancelReservation(reserveJson.data.id)
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { status: string } }
+      const json = (await res.json()) as { data: { status: string } }
       expect(json.data.status).toBe('cancelled')
     })
 
     it('returns 400 when reservation is already cancelled', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const reserveRes = await createReservation(amenityJson.data.id)
-      const reserveJson = await reserveRes.json() as { data: { id: string } }
+      const reserveJson = (await reserveRes.json()) as { data: { id: string } }
 
       await cancelReservation(reserveJson.data.id)
 
@@ -380,9 +382,9 @@ describe('Amenity Reservation Flow — Integration', function () {
 
     it('returns 400 when trying to cancel a rejected reservation', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const reserveRes = await createReservation(amenityJson.data.id)
-      const reserveJson = await reserveRes.json() as { data: { id: string } }
+      const reserveJson = (await reserveRes.json()) as { data: { id: string } }
 
       await rejectReservation(reserveJson.data.id)
 
@@ -394,15 +396,14 @@ describe('Amenity Reservation Flow — Integration', function () {
   // ─── Conflict Resolution ─────────────────────────────────────────────────
 
   describe('Conflict Resolution', function () {
-
     it('cancelled reservation frees the time slot for new booking', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const amenityId = amenityJson.data.id
 
       // Book 10:00-12:00
       const res1 = await createReservation(amenityId)
-      const json1 = await res1.json() as { data: { id: string } }
+      const json1 = (await res1.json()) as { data: { id: string } }
 
       // Cancel it
       await cancelReservation(json1.data.id)
@@ -414,12 +415,12 @@ describe('Amenity Reservation Flow — Integration', function () {
 
     it('rejected reservation frees the time slot for new booking', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const amenityId = amenityJson.data.id
 
       // Book 10:00-12:00
       const res1 = await createReservation(amenityId)
-      const json1 = await res1.json() as { data: { id: string } }
+      const json1 = (await res1.json()) as { data: { id: string } }
 
       // Reject it
       await rejectReservation(json1.data.id)
@@ -433,10 +434,9 @@ describe('Amenity Reservation Flow — Integration', function () {
   // ─── Query Endpoints ─────────────────────────────────────────────────────
 
   describe('Query Endpoints', function () {
-
     it('GET /amenity/:amenityId returns reservations for amenity', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const amenityId = amenityJson.data.id
 
       await createReservation(amenityId)
@@ -445,9 +445,11 @@ describe('Amenity Reservation Flow — Integration', function () {
         endTime: '2026-03-02T12:00:00.000Z',
       })
 
-      const res = await request(`/condominium/amenity-reservations/amenity/${amenityId}`, { headers: headers() })
+      const res = await request(`/condominium/amenity-reservations/amenity/${amenityId}`, {
+        headers: headers(),
+      })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { amenityId: string }[] }
+      const json = (await res.json()) as { data: { amenityId: string }[] }
       expect(json.data).toHaveLength(2)
       for (const r of json.data) {
         expect(r.amenityId).toBe(amenityId)
@@ -456,20 +458,22 @@ describe('Amenity Reservation Flow — Integration', function () {
 
     it('GET /user/:userId returns reservations for user', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
 
       await createReservation(amenityJson.data.id)
 
-      const res = await request(`/condominium/amenity-reservations/user/${MOCK_USER_ID}`, { headers: headers() })
+      const res = await request(`/condominium/amenity-reservations/user/${MOCK_USER_ID}`, {
+        headers: headers(),
+      })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { userId: string }[] }
+      const json = (await res.json()) as { data: { userId: string }[] }
       expect(json.data).toHaveLength(1)
       expect(json.data[0]!.userId).toBe(MOCK_USER_ID)
     })
 
     it('GET /check-availability returns availability status', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const amenityId = amenityJson.data.id
 
       // Book 10:00-12:00
@@ -481,7 +485,9 @@ describe('Amenity Reservation Flow — Integration', function () {
         { headers: headers() }
       )
       expect(busyRes.status).toBe(200)
-      const busyJson = await busyRes.json() as { data: { available: boolean; conflictCount: number } }
+      const busyJson = (await busyRes.json()) as {
+        data: { available: boolean; conflictCount: number }
+      }
       expect(busyJson.data.available).toBe(false)
       expect(busyJson.data.conflictCount).toBe(1)
 
@@ -491,27 +497,31 @@ describe('Amenity Reservation Flow — Integration', function () {
         { headers: headers() }
       )
       expect(freeRes.status).toBe(200)
-      const freeJson = await freeRes.json() as { data: { available: boolean; conflictCount: number } }
+      const freeJson = (await freeRes.json()) as {
+        data: { available: boolean; conflictCount: number }
+      }
       expect(freeJson.data.available).toBe(true)
       expect(freeJson.data.conflictCount).toBe(0)
     })
 
     it('GET /:id returns a single reservation', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const reserveRes = await createReservation(amenityJson.data.id, { notes: 'Birthday party' })
-      const reserveJson = await reserveRes.json() as { data: { id: string } }
+      const reserveJson = (await reserveRes.json()) as { data: { id: string } }
 
-      const res = await request(`/condominium/amenity-reservations/${reserveJson.data.id}`, { headers: headers() })
+      const res = await request(`/condominium/amenity-reservations/${reserveJson.data.id}`, {
+        headers: headers(),
+      })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: { id: string; notes: string } }
+      const json = (await res.json()) as { data: { id: string; notes: string } }
       expect(json.data.id).toBe(reserveJson.data.id)
       expect(json.data.notes).toBe('Birthday party')
     })
 
     it('GET / lists all reservations', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       await createReservation(amenityJson.data.id)
       await createReservation(amenityJson.data.id, {
         startTime: '2026-03-02T10:00:00.000Z',
@@ -520,7 +530,7 @@ describe('Amenity Reservation Flow — Integration', function () {
 
       const res = await request('/condominium/amenity-reservations', { headers: headers() })
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[] }
+      const json = (await res.json()) as { data: unknown[] }
       expect(json.data).toHaveLength(2)
     })
   })
@@ -528,14 +538,13 @@ describe('Amenity Reservation Flow — Integration', function () {
   // ─── Full Lifecycle ──────────────────────────────────────────────────────
 
   describe('Full Lifecycle', function () {
-
     it('create → approve → cancel: DB state is consistent', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
 
       // Create
       const createRes = await createReservation(amenityJson.data.id)
-      const createJson = await createRes.json() as { data: { id: string } }
+      const createJson = (await createRes.json()) as { data: { id: string } }
       const reservationId = createJson.data.id
 
       // Approve
@@ -559,9 +568,9 @@ describe('Amenity Reservation Flow — Integration', function () {
 
     it('create → reject: cannot approve after rejection', async function () {
       const amenityRes = await createAmenity()
-      const amenityJson = await amenityRes.json() as { data: { id: string } }
+      const amenityJson = (await amenityRes.json()) as { data: { id: string } }
       const reserveRes = await createReservation(amenityJson.data.id)
-      const reserveJson = await reserveRes.json() as { data: { id: string } }
+      const reserveJson = (await reserveRes.json()) as { data: { id: string } }
 
       await rejectReservation(reserveJson.data.id, 'Maintenance day')
 

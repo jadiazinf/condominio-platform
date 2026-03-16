@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { XCircle } from 'lucide-react'
+
 import {
   Modal,
   ModalContent,
@@ -11,7 +13,6 @@ import {
 } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Textarea } from '@/ui/components/textarea'
-import { XCircle } from 'lucide-react'
 
 export interface ICloseTicketModalTranslations {
   trigger: string
@@ -65,25 +66,30 @@ export function CloseTicketModal({
 
       <Modal isOpen={isOpen} size="lg" onOpenChange={onOpenChange}>
         <ModalContent>
-          {(onClose) => (
+          {onClose => (
             <>
               <ModalHeader className="flex flex-col gap-1">
                 <h3 className="text-xl font-semibold">{translations.title}</h3>
               </ModalHeader>
               <ModalBody>
                 <Textarea
-                  variant="bordered"
-                  size="md"
-                  minRows={5}
                   isDisabled={isLoading}
                   label={translations.solutionLabel}
+                  minRows={5}
                   placeholder={translations.solutionPlaceholder}
+                  size="md"
                   value={solution}
+                  variant="bordered"
                   onValueChange={setSolution}
                 />
               </ModalBody>
               <ModalFooter>
-                <Button color="default" isDisabled={isLoading} variant="light" onPress={handleCancel}>
+                <Button
+                  color="default"
+                  isDisabled={isLoading}
+                  variant="light"
+                  onPress={handleCancel}
+                >
                   {translations.cancel}
                 </Button>
                 <Button

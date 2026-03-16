@@ -3,18 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertTriangle } from 'lucide-react'
+import { useRemoveUserFromCondominium } from '@packages/http-client/hooks'
 
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from '@/ui/components/modal'
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Typography } from '@/ui/components/typography'
 import { useToast } from '@/ui/components/toast'
-import { useRemoveUserFromCondominium } from '@packages/http-client/hooks'
 
 interface IRemoveUserModalProps {
   isOpen: boolean
@@ -52,7 +46,7 @@ export function RemoveUserModal({
       onClose()
       router.refresh()
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || translations.error)
       setIsDeleting(false)
     },
@@ -77,19 +71,15 @@ export function RemoveUserModal({
           <Typography variant="body1">
             {translations.confirm.replace('{name}', userName)}
           </Typography>
-          <Typography color="muted" variant="body2" className="mt-2">
+          <Typography className="mt-2" color="muted" variant="body2">
             {translations.warning}
           </Typography>
         </ModalBody>
         <ModalFooter>
-          <Button variant="flat" onPress={onClose} isDisabled={isDeleting}>
+          <Button isDisabled={isDeleting} variant="flat" onPress={onClose}>
             {translations.cancel}
           </Button>
-          <Button
-            color="danger"
-            onPress={handleRemove}
-            isLoading={isDeleting}
-          >
+          <Button color="danger" isLoading={isDeleting} onPress={handleRemove}>
             {isDeleting ? translations.removing : translations.remove}
           </Button>
         </ModalFooter>

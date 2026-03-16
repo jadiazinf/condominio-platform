@@ -1,5 +1,6 @@
 import type { DecodedIdToken } from 'firebase-admin/auth'
 import type { TUser } from '@packages/domain'
+
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { fetchUserByFirebaseUid } from '@packages/http-client'

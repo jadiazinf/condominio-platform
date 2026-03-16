@@ -1,12 +1,12 @@
 'use client'
 
 import type { ReactNode, Ref } from 'react'
-import { forwardRef } from 'react'
-
-import { Badge } from '@heroui/badge'
-import { Button } from '@heroui/button'
 import type { BadgeProps } from '@heroui/badge'
 import type { ButtonProps } from '@heroui/button'
+
+import { forwardRef } from 'react'
+import { Badge } from '@heroui/badge'
+import { Button } from '@heroui/button'
 
 export interface IconBadgeProps {
   /** The icon element to display */
@@ -66,26 +66,26 @@ export const IconBadge = forwardRef(function IconBadge(
 
   return (
     <Badge
-      content={content}
-      color={badgeColor}
-      size={badgeSize}
-      placement={placement}
-      isInvisible={!showBadge || !badgeContent}
       classNames={{
         base: 'p-0',
         badge: 'border-0',
       }}
+      color={badgeColor}
+      content={content}
+      isInvisible={!showBadge || !badgeContent}
+      placement={placement}
+      size={badgeSize}
     >
       <Button
         ref={ref}
         isIconOnly
+        aria-label={ariaLabel}
+        className={className}
+        color={buttonColor}
+        isDisabled={isDisabled}
         size={buttonSize}
         variant={buttonVariant}
-        color={buttonColor}
-        aria-label={ariaLabel}
         onPress={onPress}
-        className={className}
-        isDisabled={isDisabled}
       >
         {icon}
       </Button>

@@ -32,10 +32,13 @@ export const MY_MANAGEMENT_COMPANY_MENU_ITEMS: IMyManagementCompanyMenuItem[] = 
   },
 ]
 
-export function getMenuItemsForMemberRole(memberRole?: TMemberRole | null): IMyManagementCompanyMenuItem[] {
+export function getMenuItemsForMemberRole(
+  memberRole?: TMemberRole | null
+): IMyManagementCompanyMenuItem[] {
   return MY_MANAGEMENT_COMPANY_MENU_ITEMS.filter(item => {
     if (!item.memberRoles) return true
     if (!memberRole) return false
+
     return item.memberRoles.includes(memberRole)
   })
 }

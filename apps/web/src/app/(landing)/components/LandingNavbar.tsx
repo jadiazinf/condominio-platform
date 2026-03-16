@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { LogIn } from 'lucide-react'
+
 import { useTranslation } from '@/contexts'
 import { ThemeSwitch } from '@/ui/components/themeSwitch/ThemeSwitch'
 import { LanguageSwitcher } from '@/ui/components/language-switcher'
@@ -19,8 +20,8 @@ export function LandingNavbar({ isAuthenticated = false }: LandingNavbarProps) {
         <nav className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link
-            href="/"
             className="text-sm font-semibold tracking-widest uppercase text-foreground/90 hover:text-foreground transition-colors"
+            href="/"
           >
             CondominioApp
           </Link>
@@ -32,15 +33,15 @@ export function LandingNavbar({ isAuthenticated = false }: LandingNavbarProps) {
 
             {/* Icon button on mobile, full button on sm+ */}
             <Link
-              href={isAuthenticated ? '/dashboard' : '/auth'}
               className="hidden sm:inline-block text-xs font-medium tracking-widest uppercase px-6 py-2 border border-foreground/20 text-foreground/90 hover:bg-foreground/5 hover:border-brick/40 transition-all ml-2"
+              href={isAuthenticated ? '/dashboard' : '/auth'}
             >
               {isAuthenticated ? t('nav.dashboard') : t('nav.getStarted')}
             </Link>
             <Link
-              href={isAuthenticated ? '/dashboard' : '/auth'}
-              className="sm:hidden flex items-center justify-center w-9 h-9 border border-foreground/20 text-foreground/90 hover:bg-foreground/5 transition-all"
               aria-label={isAuthenticated ? t('nav.dashboard') : t('nav.getStarted')}
+              className="sm:hidden flex items-center justify-center w-9 h-9 border border-foreground/20 text-foreground/90 hover:bg-foreground/5 transition-all"
+              href={isAuthenticated ? '/dashboard' : '/auth'}
             >
               <LogIn size={16} />
             </Link>

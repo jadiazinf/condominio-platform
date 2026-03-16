@@ -14,4 +14,7 @@ export { GetQuotasByPeriodService } from './get-quotas-by-period.service'
 export type { IGetQuotasByPeriodInput } from './get-quotas-by-period.service'
 
 export { GenerateQuotasForScheduleService } from './generate-quotas-for-schedule.service'
-export type { IGenerateQuotasInput, IGenerateQuotasOutput } from './generate-quotas-for-schedule.service'
+export type {
+  IGenerateQuotasInput,
+  IGenerateQuotasOutput,
+} from './generate-quotas-for-schedule.service'

@@ -1,5 +1,8 @@
 'use client'
 
+import type { TLocalUnit } from '../hooks/useCreateCondominiumWizard'
+import type { TCreateUnitVariables } from '@packages/http-client/hooks'
+
 import { useCallback, useEffect } from 'react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/modal'
@@ -7,8 +10,6 @@ import { Button } from '@heroui/button'
 
 import { useTranslation } from '@/contexts'
 import { UnitForm } from '@/app/(dashboard)/dashboard/condominiums/[id]/buildings/components/UnitForm'
-import type { TLocalUnit } from '../hooks/useCreateCondominiumWizard'
-import type { TCreateUnitVariables } from '@packages/http-client/hooks'
 
 interface UnitEditorModalProps {
   isOpen: boolean
@@ -79,16 +80,19 @@ export function UnitEditorModal({
         form.clearErrors(name)
       }
     })
+
     return () => subscription.unsubscribe()
   }, [form])
 
   const handleSave = useCallback(() => {
     const values = form.getValues()
+
     if (!values.unitNumber || values.unitNumber.trim() === '') {
       form.setError('unitNumber', {
         type: 'manual',
         message: 'superadmin.condominiums.wizard.units.numberRequired',
       })
+
       return
     }
 
@@ -111,6 +115,7 @@ export function UnitEditorModal({
   const translateError = useCallback(
     (message: string | undefined): string | undefined => {
       if (!message) return undefined
+
       return t(message)
     },
     [t]
@@ -128,7 +133,7 @@ export function UnitEditorModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="2xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader>
           <div className="flex flex-col">

@@ -70,7 +70,10 @@ export function useAmenityReservations(options?: IUseAmenityReservationsOptions)
 // Hooks - List Reservations by Amenity
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useReservationsByAmenity(amenityId: string, options?: IUseAmenityReservationsOptions) {
+export function useReservationsByAmenity(
+  amenityId: string,
+  options?: IUseAmenityReservationsOptions
+) {
   return useApiQuery<TApiDataResponse<TAmenityReservation[]>>({
     path: `/condominium/amenity-reservations/amenity/${amenityId}`,
     queryKey: amenityReservationKeys.byAmenity(amenityId),
@@ -171,7 +174,9 @@ export function useCancelReservation(id: string, options?: ICancelReservationOpt
 
 export async function getAmenityReservations(): Promise<TAmenityReservation[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TAmenityReservation[]>>('/condominium/amenity-reservations')
+  const response = await client.get<TApiDataResponse<TAmenityReservation[]>>(
+    '/condominium/amenity-reservations'
+  )
   return response.data.data
 }
 
@@ -199,7 +204,9 @@ export async function getReservationDetail(id: string): Promise<TAmenityReservat
   return response.data.data
 }
 
-export async function createReservation(data: TAmenityReservationCreate): Promise<TAmenityReservation> {
+export async function createReservation(
+  data: TAmenityReservationCreate
+): Promise<TAmenityReservation> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<TAmenityReservation>>(
     '/condominium/amenity-reservations',

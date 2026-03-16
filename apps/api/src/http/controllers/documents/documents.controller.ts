@@ -8,6 +8,7 @@ import {
   ESystemRole,
 } from '@packages/domain'
 import type { DocumentsRepository } from '@database/repositories'
+import { AppError } from '@errors/index'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
@@ -75,61 +76,141 @@ export class DocumentsController extends BaseController<
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER)] },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.list,
+        middlewares: [
+          authMiddleware,
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.USER
+          ),
+        ],
+      },
       { method: 'get', path: '/public', handler: this.getPublicDocuments },
       {
         method: 'get',
         path: '/type/:documentType',
         handler: this.getByType,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(DocumentTypeParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.USER
+          ),
+          paramsValidator(DocumentTypeParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/building/:buildingId',
         handler: this.getByBuildingId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(BuildingIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.USER
+          ),
+          paramsValidator(BuildingIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/unit/:unitId',
         handler: this.getByUnitId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(UnitIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.USER
+          ),
+          paramsValidator(UnitIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(UserIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.USER
+          ),
+          paramsValidator(UserIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/payment/:paymentId',
         handler: this.getByPaymentId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(PaymentIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.USER
+          ),
+          paramsValidator(PaymentIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.USER
+          ),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), bodyValidator(documentCreateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          bodyValidator(documentCreateSchema),
+        ],
       },
       {
         method: 'patch',
         path: '/:id',
         handler: this.update,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema), bodyValidator(documentUpdateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+          bodyValidator(documentUpdateSchema),
+        ],
       },
       {
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }
@@ -145,6 +226,17 @@ export class DocumentsController extends BaseController<
     return ctx.ok({ data })
   }
 
+  protected override getById = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, { id: string }>(c)
+    const entity = await this.repository.getById(ctx.params.id)
+    if (!entity) throw AppError.notFound('Resource', ctx.params.id)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    if (condominiumId && entity.condominiumId && entity.condominiumId !== condominiumId) {
+      throw AppError.notFound('Resource', ctx.params.id)
+    }
+    return ctx.ok({ data: entity })
+  }
+
   protected override create = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TDocumentCreate>(c)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
@@ -158,37 +250,49 @@ export class DocumentsController extends BaseController<
 
   private getPublicDocuments = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-    const data = await this.documentsRepository.getPublicDocuments()
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const data = await this.documentsRepository.getPublicDocuments(condominiumId)
     return ctx.ok({ data })
   }
 
   private getByType = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TDocumentTypeParam>(c)
-    const data = await this.documentsRepository.getByType(ctx.params.documentType as TDocument['documentType'])
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const data = await this.documentsRepository.getByType(
+      ctx.params.documentType as TDocument['documentType'],
+      condominiumId
+    )
     return ctx.ok({ data })
   }
 
   private getByBuildingId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TBuildingIdParam>(c)
-    const data = await this.documentsRepository.getByBuildingId(ctx.params.buildingId)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const data = await this.documentsRepository.getByBuildingId(
+      ctx.params.buildingId,
+      condominiumId
+    )
     return ctx.ok({ data })
   }
 
   private getByUnitId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)
-    const data = await this.documentsRepository.getByUnitId(ctx.params.unitId)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const data = await this.documentsRepository.getByUnitId(ctx.params.unitId, condominiumId)
     return ctx.ok({ data })
   }
 
   private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
-    const data = await this.documentsRepository.getByUserId(ctx.params.userId)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const data = await this.documentsRepository.getByUserId(ctx.params.userId, condominiumId)
     return ctx.ok({ data })
   }
 
   private getByPaymentId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPaymentIdParam>(c)
-    const data = await this.documentsRepository.getByPaymentId(ctx.params.paymentId)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const data = await this.documentsRepository.getByPaymentId(ctx.params.paymentId, condominiumId)
     return ctx.ok({ data })
   }
 }

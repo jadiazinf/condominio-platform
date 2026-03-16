@@ -1,10 +1,12 @@
 'use client'
 
 import type { TUser, TTicketStatus } from '@packages/domain'
-import { Typography } from '@/ui/components/typography'
+
 import { UserInfo } from '../../UserInfo'
 import { TicketResolveAction } from '../../TicketResolveAction'
 import { TicketSolutionField } from '../../TicketSolutionField'
+
+import { Typography } from '@/ui/components/typography'
 
 interface ITicketResolutionSectionProps {
   resolvedByUser: TUser | null
@@ -46,8 +48,8 @@ export function TicketResolutionSection({
           </Typography>
           <div className="mt-1">
             <UserInfo
-              user={resolvedByUser}
               showViewProfile
+              user={resolvedByUser}
               viewProfileLabel={translations.viewProfile}
             />
           </div>

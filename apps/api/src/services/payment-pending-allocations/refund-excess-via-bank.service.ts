@@ -44,7 +44,7 @@ export class RefundExcessViaBankService {
     private readonly paymentGatewaysRepo: PaymentGatewaysRepository,
     private readonly entityPaymentGatewaysRepo: EntityPaymentGatewaysRepository,
     private readonly gatewayTransactionsRepo: GatewayTransactionsRepository,
-    private readonly gatewayManager: PaymentGatewayManager,
+    private readonly gatewayManager: PaymentGatewayManager
   ) {}
 
   async execute(
@@ -60,10 +60,7 @@ export class RefundExcessViaBankService {
 
     // Allow retry from pending or refund_failed
     if (allocation.status !== 'pending' && allocation.status !== 'refund_failed') {
-      return failure(
-        `Allocation cannot be refunded in status: ${allocation.status}`,
-        'BAD_REQUEST'
-      )
+      return failure(`Allocation cannot be refunded in status: ${allocation.status}`, 'BAD_REQUEST')
     }
 
     // 2. Get the original payment
@@ -94,7 +91,8 @@ export class RefundExcessViaBankService {
       refundResult = await adapter.refund({
         externalTransactionId: externalTxId,
         amount: allocation.pendingAmount,
-        reason: resolutionNotes ?? `Excess payment refund (vuelto) for payment ${allocation.paymentId}`,
+        reason:
+          resolutionNotes ?? `Excess payment refund (vuelto) for payment ${allocation.paymentId}`,
         gatewayConfiguration: config,
       })
     } catch (error) {
@@ -133,9 +131,12 @@ export class RefundExcessViaBankService {
     }
 
     // 6. Create gateway transaction audit record
-    const gatewayTxStatus = refundResult.status === 'completed' ? 'completed'
-      : refundResult.status === 'failed' ? 'failed'
-      : 'initiated'
+    const gatewayTxStatus =
+      refundResult.status === 'completed'
+        ? 'completed'
+        : refundResult.status === 'failed'
+          ? 'failed'
+          : 'initiated'
 
     await this.gatewayTransactionsRepo.create({
       paymentId: allocation.paymentId,
@@ -192,7 +193,8 @@ export class RefundExcessViaBankService {
     if (newAllocationStatus !== allocation.status) {
       const updated = await this.pendingAllocationsRepo.update(allocationId, {
         status: newAllocationStatus,
-        resolutionType: newAllocationStatus === 'refunded' ? 'refunded' : `refund_${refundResult.status}`,
+        resolutionType:
+          newAllocationStatus === 'refunded' ? 'refunded' : `refund_${refundResult.status}`,
         resolutionNotes: resolutionNotes ?? `${responseMessage} (via ${gatewayType})`,
         allocatedBy: refundedByUserId,
       })

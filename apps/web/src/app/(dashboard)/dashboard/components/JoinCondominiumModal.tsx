@@ -1,14 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import type { TOwnershipType } from '@packages/domain'
 import type { TValidateAccessCodeResponse } from '@packages/http-client/hooks'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useSubmitAccessRequest } from '@packages/http-client/hooks'
 import { HttpError } from '@packages/http-client'
-
-import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
-import { useToast } from '@/ui/components/toast'
 
 import {
   UnitSelectionForm,
@@ -18,6 +16,9 @@ import {
   SubmissionSuccess,
   type ISubmissionSuccessTranslations,
 } from '../join-condominium/components/SubmissionSuccess'
+
+import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
+import { useToast } from '@/ui/components/toast'
 
 export interface IJoinCondominiumModalTranslations {
   modalTitle: string
@@ -68,10 +69,12 @@ export function JoinCondominiumModal({
   const getSubmitErrorMessage = (error: Error): string => {
     if (HttpError.isHttpError(error)) {
       const translationKey = API_ERROR_MAP[error.message]
+
       if (translationKey) {
         return translations.errors[translationKey]
       }
     }
+
     return translations.errors.submitFailed
   }
 
@@ -79,7 +82,7 @@ export function JoinCondominiumModal({
     onSuccess: () => {
       setStep('success')
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(getSubmitErrorMessage(error))
     },
   })
@@ -104,12 +107,12 @@ export function JoinCondominiumModal({
 
   return (
     <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      size="3xl"
-      scrollBehavior="inside"
       isDismissable={!submitMutation.isPending}
       isKeyboardDismissDisabled={submitMutation.isPending}
+      isOpen={isOpen}
+      scrollBehavior="inside"
+      size="3xl"
+      onClose={onClose}
     >
       <ModalContent>
         <ModalHeader>
@@ -118,9 +121,9 @@ export function JoinCondominiumModal({
         <ModalBody className="pb-6">
           {step === 'select' ? (
             <UnitSelectionForm
-              validationResult={validationResult}
-              translations={translations.unitSelection}
               isSubmitting={submitMutation.isPending}
+              translations={translations.unitSelection}
+              validationResult={validationResult}
               onSubmit={handleSubmit}
             />
           ) : (

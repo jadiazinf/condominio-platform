@@ -43,7 +43,9 @@ export class ValidateAccessCodeService {
     this.unitsRepository = new UnitsRepository(db)
   }
 
-  async execute(input: IValidateAccessCodeInput): Promise<TServiceResult<IValidateAccessCodeResult>> {
+  async execute(
+    input: IValidateAccessCodeInput
+  ): Promise<TServiceResult<IValidateAccessCodeResult>> {
     const accessCode = await this.accessCodesRepository.getByCode(input.code.toUpperCase())
 
     if (!accessCode) {
@@ -65,7 +67,9 @@ export class ValidateAccessCodeService {
     }
 
     // Fetch buildings with units
-    const buildingsList = await this.buildingsRepository.getByCondominiumId(accessCode.condominiumId)
+    const buildingsList = await this.buildingsRepository.getByCondominiumId(
+      accessCode.condominiumId
+    )
 
     const buildingsWithUnits = await Promise.all(
       buildingsList.map(async building => {

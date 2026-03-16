@@ -2,10 +2,10 @@
 
 import type { TUser } from '@packages/domain'
 
-import { useDisclosure } from '@/ui/components/modal'
-
 import { SuperadminNavbar } from './SuperadminNavbar'
 import { SuperadminSidebar } from './SuperadminSidebar'
+
+import { useDisclosure } from '@/ui/components/modal'
 import { AppDrawer } from '@/ui/components/app-drawer'
 
 interface ISuperadminShellProps {
@@ -22,7 +22,7 @@ export function SuperadminShell({ children, initialUser }: ISuperadminShellProps
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden">
-      <SuperadminNavbar onToggleSidebar={onOpen} initialUser={initialUser} />
+      <SuperadminNavbar initialUser={initialUser} onToggleSidebar={onOpen} />
 
       <main className="flex-1 overflow-y-auto p-6">{children}</main>
 

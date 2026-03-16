@@ -1,10 +1,11 @@
 import { Suspense } from 'react'
 import { cookies } from 'next/headers'
 import { getManagementCompanyById } from '@packages/http-client'
-import { SESSION_COOKIE_NAME } from '@/libs/cookies'
 
 import { CompanyMembersTable } from './components/CompanyMembersTable'
 import { CompanyMembersTableSkeleton } from './components/CompanyMembersTableSkeleton'
+
+import { SESSION_COOKIE_NAME } from '@/libs/cookies'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -17,8 +18,10 @@ export default async function CompanyMembersPage({ params }: PageProps) {
 
   // Fetch company to check if it's active
   let isCompanyActive = true
+
   try {
     const company = await getManagementCompanyById(token, id)
+
     isCompanyActive = company.isActive
   } catch (error) {
     console.error('[CompanyMembersPage] Error fetching company:', error)

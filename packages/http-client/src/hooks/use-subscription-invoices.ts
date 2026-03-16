@@ -180,10 +180,12 @@ export async function markInvoicePaid(
  */
 export function downloadInvoicePDF(invoiceId: string): void {
   // Check if we're in a browser environment
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore - window is only available in browser
   if (typeof window === 'undefined') return
 
   const url = `/platform/subscription-invoices/${invoiceId}/download-pdf`
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore - window is only available in browser
   window.open(url, '_blank')
 }

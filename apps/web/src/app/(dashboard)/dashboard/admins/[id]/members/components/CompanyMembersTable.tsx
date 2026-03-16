@@ -1,6 +1,18 @@
 'use client'
 
+import type { TManagementCompanyMembersQuery } from '@packages/domain'
+
 import { useState, useMemo, useCallback, useEffect } from 'react'
+import { User, Plus, Crown, Search, X, Info } from 'lucide-react'
+import {
+  useManagementCompanyMembersPaginated,
+  managementCompanyMemberKeys,
+  useQueryClient,
+  useCanCreateResource,
+} from '@packages/http-client'
+
+import { AddMemberModal } from './AddMemberModal'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
@@ -10,17 +22,7 @@ import { Spinner } from '@/ui/components/spinner'
 import { Tooltip } from '@/ui/components/tooltip'
 import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
-import { User, Plus, Crown, Search, X, Info } from 'lucide-react'
 import { Avatar } from '@/ui/components/avatar-base'
-import type { TManagementCompanyMembersQuery } from '@packages/domain'
-
-import {
-  useManagementCompanyMembersPaginated,
-  managementCompanyMemberKeys,
-  useQueryClient,
-  useCanCreateResource,
-} from '@packages/http-client'
-import { AddMemberModal } from './AddMemberModal'
 
 type TRoleFilter = 'all' | 'admin' | 'accountant' | 'support' | 'viewer'
 type TStatusFilter = 'all' | 'active' | 'inactive'
@@ -52,6 +54,7 @@ function getMemberDisplayName(user: TMemberRow['user']): string {
   if (user.firstName || user.lastName) {
     return [user.firstName, user.lastName].filter(Boolean).join(' ')
   }
+
   return 'Sin nombre'
 }
 
@@ -205,6 +208,7 @@ export function CompanyMembersTable({ companyId, isCompanyActive }: CompanyMembe
       support: 'Soporte',
       viewer: 'Visualizador',
     }
+
     return labels[role.toLowerCase()] || role
   }
 
@@ -278,16 +282,16 @@ export function CompanyMembersTable({ companyId, isCompanyActive }: CompanyMembe
               className="w-full sm:w-52"
               items={roleFilterItems}
               value={roleFilter}
-              onChange={handleRoleChange}
               variant="bordered"
+              onChange={handleRoleChange}
             />
             <Select
               aria-label="Filtrar por estado"
               className="w-full sm:w-36"
               items={statusFilterItems}
               value={statusFilter}
-              onChange={handleStatusChange}
               variant="bordered"
+              onChange={handleStatusChange}
             />
             {hasActiveFilters && (
               <Button startContent={<X size={14} />} variant="flat" onPress={handleClearFilters}>
@@ -299,15 +303,16 @@ export function CompanyMembersTable({ companyId, isCompanyActive }: CompanyMembe
             <div className="flex items-center gap-2">
               <Button
                 color="primary"
+                isDisabled={isCheckingLimit || !canAddMember || hasNoSubscription}
+                isLoading={isCheckingLimit}
                 startContent={<Plus size={16} />}
                 onPress={() => setIsAddModalOpen(true)}
-                isLoading={isCheckingLimit}
-                isDisabled={isCheckingLimit || !canAddMember || hasNoSubscription}
               >
                 Agregar Miembro
               </Button>
               {(isCheckingLimit || !canAddMember || hasNoSubscription) && !isCheckingLimit && (
                 <Tooltip
+                  showArrow
                   content={
                     <div className="max-w-xs">
                       {hasNoSubscription
@@ -318,7 +323,6 @@ export function CompanyMembersTable({ companyId, isCompanyActive }: CompanyMembe
                     </div>
                   }
                   placement="top"
-                  showArrow
                 >
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-default-100 hover:bg-default-200 transition-colors cursor-help">
                     <Info className="text-default-500" size={18} />
@@ -351,8 +355,8 @@ export function CompanyMembersTable({ companyId, isCompanyActive }: CompanyMembe
             <Table<TMemberRow>
               aria-label="Tabla de miembros"
               columns={tableColumns}
-              rows={members}
               renderCell={renderCell}
+              rows={members}
             />
 
             {/* Pagination */}
@@ -363,7 +367,7 @@ export function CompanyMembersTable({ companyId, isCompanyActive }: CompanyMembe
               page={pagination.page}
               total={pagination.total}
               totalPages={pagination.totalPages}
-              onLimitChange={(newLimit) => {
+              onLimitChange={newLimit => {
                 setLimit(newLimit)
                 setPage(1)
               }}
@@ -374,9 +378,9 @@ export function CompanyMembersTable({ companyId, isCompanyActive }: CompanyMembe
       </div>
 
       <AddMemberModal
+        companyId={companyId}
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        companyId={companyId}
         onSuccess={handleAddMemberSuccess}
       />
     </>

@@ -56,7 +56,7 @@ export interface IGenerateChargesBulkResult {
 
 export function useGenerateChargesBulk(companyId: string) {
   return useApiMutation<TApiDataResponse<IGenerateChargesBulkResult>, { conceptId: string }>({
-    path: (variables) => `/${companyId}/me/payment-concepts/${variables.conceptId}/generate-bulk`,
+    path: variables => `/${companyId}/me/payment-concepts/${variables.conceptId}/generate-bulk`,
     method: 'POST',
     invalidateKeys: [paymentConceptKeys.all, ['quotas']],
   })

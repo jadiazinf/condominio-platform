@@ -9,6 +9,7 @@
 ## Hallazgos del Análisis de Código (adicionales al audit)
 
 ### Lo que el audit reportó correctamente:
+
 - ✅ 86% de rutas sin verificación de rol — confirmado: solo 4 de 48 controllers usan `isSuperadmin` en middlewares
 - ✅ SUPERADMIN ve módulos de condominio — confirmado en `sidebar-items.ts`: quotas, payments, expenses, amenities están en `superadminSidebarItems`
 - ✅ Sin scoping multi-tenant — confirmado: los servicios no reciben `condominiumId`
@@ -47,6 +48,7 @@ Request → Hono middleware (cors, rate limit, i18n, error handler)
 ```
 
 **Flujo de DI actual:**
+
 ```
 DatabaseService.getInstance().getDb() → db
   → Endpoint(db) → new Repository(db) → new Controller(repo, db)
@@ -90,6 +92,7 @@ withTx(tx: TDrizzleClient): this {
 ### Paso 2: Middleware `requireRole()`
 
 **Archivos nuevos:**
+
 - `apps/api/src/http/middlewares/utils/auth/require-role.ts`
 
 ```typescript
@@ -204,6 +207,7 @@ export function requireRole(...allowedRoles: TRole[]): MiddlewareHandler {
 ```
 
 **Puntos clave de diseño:**
+
 - Reutiliza la misma tabla `user_roles` que ya existe (SUPERADMIN = `condominiumId IS NULL`)
 - No modifica `isSuperadmin` existente — lo puedes deprecar gradualmente
 - Soporta rutas mixtas como tickets: `requireRole('SUPERADMIN', 'ADMIN', 'USER')`
@@ -227,30 +231,30 @@ export class ApiRoutes {
       new HealthEndpoint(),
       new AuthEndpoint(db),
       // Token-based (invitations)
-      new AdminInvitationsPublicEndpoint(db),  // validate/accept only
-      new UserInvitationsPublicEndpoint(db),    // validate/accept only
+      new AdminInvitationsPublicEndpoint(db), // validate/accept only
+      new UserInvitationsPublicEndpoint(db), // validate/accept only
 
       // ── PLATFORM (SUPERADMIN only) ──
       // Cada controller de este grupo usa: requireRole('SUPERADMIN')
-      new ManagementCompaniesEndpoint(db),      // path: /platform/management-companies
-      new AdminInvitationsEndpoint(db),          // path: /platform/admin-invitations
-      new SupportTicketsEndpoint(db),            // path: /platform/support-tickets
-      new SubscriptionRatesEndpoint(db),         // path: /platform/subscription-rates
-      new CurrenciesEndpoint(db),                // path: /platform/currencies
+      new ManagementCompaniesEndpoint(db), // path: /platform/management-companies
+      new AdminInvitationsEndpoint(db), // path: /platform/admin-invitations
+      new SupportTicketsEndpoint(db), // path: /platform/support-tickets
+      new SubscriptionRatesEndpoint(db), // path: /platform/subscription-rates
+      new CurrenciesEndpoint(db), // path: /platform/currencies
       // ... etc
 
       // ── CONDOMINIUM (role-based) ──
       // Cada controller usa requireRole() con los roles apropiados
-      new QuotasEndpoint(db),                    // path: /condominium/quotas
-      new PaymentsEndpoint(db),                  // path: /condominium/payments
-      new ExpensesEndpoint(db),                  // path: /condominium/expenses
-      new AmenitiesEndpoint(db),                 // path: /condominium/amenities
-      new BuildingsEndpoint(db),                 // path: /condominium/buildings
+      new QuotasEndpoint(db), // path: /condominium/quotas
+      new PaymentsEndpoint(db), // path: /condominium/payments
+      new ExpensesEndpoint(db), // path: /condominium/expenses
+      new AmenitiesEndpoint(db), // path: /condominium/amenities
+      new BuildingsEndpoint(db), // path: /condominium/buildings
       // ... etc
 
       // ── ME (any authenticated user) ──
-      new UserProfileEndpoint(db),               // path: /me/profile
-      new UserNotificationsEndpoint(db),         // path: /me/notifications
+      new UserProfileEndpoint(db), // path: /me/profile
+      new UserNotificationsEndpoint(db), // path: /me/notifications
       // ... etc
     ]
   }
@@ -312,22 +316,22 @@ get routes(): TRouteDefinition[] {
 
 **Matriz de roles por módulo (copiar al roles-skill.md de Claude):**
 
-| Módulo | SUPERADMIN | ADMIN | ACCOUNTANT | SUPPORT | USER |
-|--------|-----------|-------|-----------|---------|------|
-| management-companies | CRUD | ❌ | ❌ | ❌ | ❌ |
-| admin-invitations | CRUD | ❌ | ❌ | ❌ | ❌ |
-| subscription-rates | CRUD | ❌ | ❌ | ❌ | ❌ |
-| currencies | CRUD | Read | Read | ❌ | ❌ |
-| buildings | ❌ | CRUD | Read | Read | ❌ |
-| units | ❌ | CRUD | Read | Read | Read (propias) |
-| quotas | ❌ | CRUD | CRUD | Read | Read (propias) |
-| payments | ❌ | CRUD+Verify | CRUD+Verify | ❌ | Read (propios) + Report |
-| expenses | ❌ | CRUD | CRUD | ❌ | ❌ |
-| amenities | ❌ | CRUD | ❌ | Read | Read |
-| amenity-reservations | ❌ | CRUD+Approve | ❌ | CRUD+Approve | Create+Read (propias) |
-| support-tickets (platform) | Manage | ❌ | ❌ | ❌ | ❌ |
-| support-tickets (condo) | ❌ | Manage | ❌ | ❌ | Create+Read (propios) |
-| user-invitations | ❌ | CRUD | ❌ | ❌ | ❌ |
+| Módulo                     | SUPERADMIN | ADMIN        | ACCOUNTANT  | SUPPORT      | USER                    |
+| -------------------------- | ---------- | ------------ | ----------- | ------------ | ----------------------- |
+| management-companies       | CRUD       | ❌           | ❌          | ❌           | ❌                      |
+| admin-invitations          | CRUD       | ❌           | ❌          | ❌           | ❌                      |
+| subscription-rates         | CRUD       | ❌           | ❌          | ❌           | ❌                      |
+| currencies                 | CRUD       | Read         | Read        | ❌           | ❌                      |
+| buildings                  | ❌         | CRUD         | Read        | Read         | ❌                      |
+| units                      | ❌         | CRUD         | Read        | Read         | Read (propias)          |
+| quotas                     | ❌         | CRUD         | CRUD        | Read         | Read (propias)          |
+| payments                   | ❌         | CRUD+Verify  | CRUD+Verify | ❌           | Read (propios) + Report |
+| expenses                   | ❌         | CRUD         | CRUD        | ❌           | ❌                      |
+| amenities                  | ❌         | CRUD         | ❌          | Read         | Read                    |
+| amenity-reservations       | ❌         | CRUD+Approve | ❌          | CRUD+Approve | Create+Read (propias)   |
+| support-tickets (platform) | Manage     | ❌           | ❌          | ❌           | ❌                      |
+| support-tickets (condo)    | ❌         | Manage       | ❌          | ❌           | Create+Read (propios)   |
+| user-invitations           | ❌         | CRUD         | ❌          | ❌           | ❌                      |
 
 ---
 
@@ -351,6 +355,7 @@ private list = async (c: Context): Promise<Response> => {
 ```
 
 Para rutas donde USER solo ve "lo suyo":
+
 ```typescript
 private listMyQuotas = async (c: Context): Promise<Response> => {
   const condominiumId = c.get(CONDOMINIUM_ID_PROP)
@@ -370,6 +375,7 @@ private listMyQuotas = async (c: Context): Promise<Response> => {
 ```
 
 **Repos que necesitan método `listByCondominium()`:**
+
 - quotas, payments, expenses, buildings, units, amenities, amenity-reservations, documents, messages, notifications
 
 Muchos de estos repos ya tienen queries por condominio — solo hay que asegurar que SIEMPRE se filtren y que el `condominiumId` venga del middleware, no del query param del usuario.
@@ -424,11 +430,15 @@ export class CreateCompanyWithAdminService {
 ```typescript
 // En el controller constructor:
 this.createCompanyService = new CreateCompanyWithAdminService(
-  invitationsRepo, usersRepo, companiesRepo, db  // ← agregar db
+  invitationsRepo,
+  usersRepo,
+  companiesRepo,
+  db // ← agregar db
 )
 ```
 
 **Servicios que DEBEN usar transacciones:**
+
 1. `CreateCompanyWithAdminService` — crea user + company + invitation
 2. `AcceptInvitationService` (admin) — activa user + company + actualiza invitation
 3. `AcceptUserInvitationService` — crea/actualiza user + asigna rol + actualiza invitation
@@ -450,8 +460,8 @@ import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
   // Verificar que existe cookie de sesión para rutas protegidas
-  const sessionToken = request.cookies.get('firebase-token')?.value
-    || request.cookies.get('session')?.value
+  const sessionToken =
+    request.cookies.get('firebase-token')?.value || request.cookies.get('session')?.value
 
   if (!sessionToken && request.nextUrl.pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/signin', request.url))
@@ -464,7 +474,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*']
+  matcher: ['/dashboard/:path*'],
 }
 ```
 
@@ -520,7 +530,7 @@ En el fetch wrapper o API client del frontend, agregar automáticamente:
 ```typescript
 // En el hook/utility que hace requests al backend
 const headers: HeadersInit = {
-  'Authorization': `Bearer ${token}`,
+  Authorization: `Bearer ${token}`,
 }
 
 // Si la URL va a /condominium/*, agregar el header
@@ -569,6 +579,7 @@ async execute(input) {
 #### 7.2 Race condition en cuotas
 
 Agregar migración:
+
 ```sql
 CREATE UNIQUE INDEX uq_quotas_unit_concept_period
   ON quotas (unit_id, payment_concept_id, period_year, period_month)
@@ -586,18 +597,21 @@ Crear `apps/api/src/services/payments/payment-status-machine.ts` con transicione
 ### Paso 8: Tests priorizados
 
 **Prioridad 1 — Autorización (~100 tests):**
+
 - Tests de `requireRole` middleware
 - Para cada módulo: verificar que roles no autorizados → 403
 - Verificar que SUPERADMIN no accede a rutas de condominio → 403
 - Verificar scoping: user de condo A no ve datos de condo B
 
 **Prioridad 2 — Lógica financiera (~50 tests):**
+
 - `RefundPaymentService` con reversión
 - `GenerateQuotasForScheduleService` sin duplicados
 - Payment status transitions
 - Payment applications y saldos
 
 **Prioridad 3 — Flujos de integración (~7 tests):**
+
 1. SUPERADMIN crea company → invita admin → admin acepta
 2. ADMIN crea condominio → edificio → unidades → invita residente
 3. Generación de cuotas → reporte de pago → verificación → cuota pagada
@@ -610,16 +624,16 @@ Crear `apps/api/src/services/payments/payment-status-machine.ts` con transicione
 
 ## Orden de Ejecución (secuencial, sin volver atrás)
 
-| # | Tarea | Archivos principales | Dependencia |
-|---|-------|---------------------|-------------|
-| 1 | `withTx()` en BaseRepository | `base.repository.ts` | Ninguna |
-| 2 | Middleware `requireRole()` + tests | Nuevo archivo + tests | Ninguna |
-| 3 | Reestructurar rutas backend: mover paths a `/platform`, `/condominium`, `/me` y aplicar `requireRole` a CADA ruta | Todos los endpoints + controllers (~50 archivos) | Paso 2 |
-| 4 | Scoping de condominio en handlers y servicios de lectura | Controllers + repos que necesiten `listByCondominium` | Paso 3 |
-| 5 | Transacciones en servicios multi-step | ~6 servicios + sus controllers | Paso 1 |
-| 6 | Reestructurar frontend: `middleware.ts`, layout guards, sidebar, mover páginas | ~15 archivos frontend | Paso 3 (por las nuevas rutas API) |
-| 7 | Fixes de lógica: refund, race condition, status machine | ~4 servicios + 1 migración | Pasos 1, 5 |
-| 8 | Tests de autorización y financieros | Nuevos test files | Pasos 2-7 |
+| #   | Tarea                                                                                                             | Archivos principales                                  | Dependencia                       |
+| --- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | --------------------------------- |
+| 1   | `withTx()` en BaseRepository                                                                                      | `base.repository.ts`                                  | Ninguna                           |
+| 2   | Middleware `requireRole()` + tests                                                                                | Nuevo archivo + tests                                 | Ninguna                           |
+| 3   | Reestructurar rutas backend: mover paths a `/platform`, `/condominium`, `/me` y aplicar `requireRole` a CADA ruta | Todos los endpoints + controllers (~50 archivos)      | Paso 2                            |
+| 4   | Scoping de condominio en handlers y servicios de lectura                                                          | Controllers + repos que necesiten `listByCondominium` | Paso 3                            |
+| 5   | Transacciones en servicios multi-step                                                                             | ~6 servicios + sus controllers                        | Paso 1                            |
+| 6   | Reestructurar frontend: `middleware.ts`, layout guards, sidebar, mover páginas                                    | ~15 archivos frontend                                 | Paso 3 (por las nuevas rutas API) |
+| 7   | Fixes de lógica: refund, race condition, status machine                                                           | ~4 servicios + 1 migración                            | Pasos 1, 5                        |
+| 8   | Tests de autorización y financieros                                                                               | Nuevos test files                                     | Pasos 2-7                         |
 
 ---
 

@@ -9,7 +9,9 @@
       "@packages/domain": ["../../packages/domain/src"],
       "@packages/logger": ["../../packages/logger/src"],
       "@packages/services": ["../../packages/services/src"],
-      "@packages/test-utils": ["../../packages/test-utils/src"]
+      "@packages/test-utils": ["../../packages/test-utils/src"],
+      "@packages/utils": ["../../packages/utils/src"],
+      "@packages/utils/*": ["../../packages/utils/src/*"]
     }
   },
   "include": ["src", "tests"],

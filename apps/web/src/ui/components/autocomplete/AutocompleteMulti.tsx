@@ -58,7 +58,9 @@ export function AutocompleteMulti({
   // Build a map for quick label lookups
   const itemsMap = useMemo(() => {
     const map = new Map<string, IAutocompleteMultiItem>()
-    items.forEach((item) => map.set(item.key, item))
+
+    items.forEach(item => map.set(item.key, item))
+
     return map
   }, [items])
 
@@ -68,8 +70,9 @@ export function AutocompleteMulti({
     (key: Key | null) => {
       if (key == null) return
       const selectedKey = String(key)
+
       if (selectedSet.has(selectedKey)) {
-        onSelectionChange(selectedKeys.filter((k) => k !== selectedKey))
+        onSelectionChange(selectedKeys.filter(k => k !== selectedKey))
       } else {
         onSelectionChange([...selectedKeys, selectedKey])
       }
@@ -81,7 +84,7 @@ export function AutocompleteMulti({
 
   const handleRemove = useCallback(
     (keyToRemove: string) => {
-      onSelectionChange(selectedKeys.filter((k) => k !== keyToRemove))
+      onSelectionChange(selectedKeys.filter(k => k !== keyToRemove))
     },
     [selectedKeys, onSelectionChange]
   )
@@ -102,12 +105,12 @@ export function AutocompleteMulti({
         {label}
         {tooltip && (
           <Tooltip
-            content={tooltip}
-            placement="right"
             showArrow
             classNames={{
               content: 'max-w-xs text-sm',
             }}
+            content={tooltip}
+            placement="right"
           >
             <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
           </Tooltip>
@@ -144,11 +147,17 @@ export function AutocompleteMulti({
         onInputChange={handleInputChange}
         onSelectionChange={handleSelectionChange}
       >
-        {items.map((item) => (
+        {items.map(item => (
           <HeroUIAutocompleteItem
             key={item.key}
             description={item.description}
-            endContent={selectedSet.has(item.key) ? <Check className="h-4 w-4 text-success" /> : item.endContent}
+            endContent={
+              selectedSet.has(item.key) ? (
+                <Check className="h-4 w-4 text-success" />
+              ) : (
+                item.endContent
+              )
+            }
             startContent={item.startContent}
             textValue={item.label}
           >
@@ -159,8 +168,9 @@ export function AutocompleteMulti({
 
       {selectedKeys.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {selectedKeys.map((key) => {
+          {selectedKeys.map(key => {
             const item = itemsMap.get(key)
+
             return (
               <Chip
                 key={key}

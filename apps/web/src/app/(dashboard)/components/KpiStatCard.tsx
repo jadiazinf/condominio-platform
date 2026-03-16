@@ -3,10 +3,10 @@
 import type { ICardProps } from '@/ui/components/card'
 import type { ReactNode } from 'react'
 
-import { Card } from '@/ui/components/card'
-import { cn } from '@/ui/utils'
 import { tv, type VariantProps } from 'tailwind-variants'
 import { Area, AreaChart, ResponsiveContainer, YAxis } from 'recharts'
+
+import { Card } from '@/ui/components/card'
 
 const kpiCard = tv({
   slots: {
@@ -196,7 +196,7 @@ export function KpiStatCard({
                     <stop offset="95%" stopColor={chartColor} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <YAxis domain={[Math.min(...chartData.map(d => d.value)) * 0.9, 'auto']} hide />
+                <YAxis hide domain={[Math.min(...chartData.map(d => d.value)) * 0.9, 'auto']} />
                 <Area
                   dataKey="value"
                   fill={`url(#colorGradient${chartIndex})`}

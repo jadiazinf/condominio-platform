@@ -1,6 +1,10 @@
 import { useApiQuery, useApiMutation } from './use-api-query'
 import { getHttpClient } from '../client/http-client'
-import type { TApiPaginatedResponse, TApiDataResponse, TApiMessageResponse } from '../types/api-responses'
+import type {
+  TApiPaginatedResponse,
+  TApiDataResponse,
+  TApiMessageResponse,
+} from '../types/api-responses'
 import type { ApiResponse } from '../types/http'
 
 // =============================================================================
@@ -266,7 +270,7 @@ export function useRoles(options: UseRolesOptions) {
  */
 export function useToggleUserPermission(options?: IUseToggleUserPermissionOptions) {
   return useApiMutation<TApiMessageResponse, IToggleUserPermissionVariables>({
-    path: (variables) => `/platform/users/${variables.userId}/permissions`,
+    path: variables => `/platform/users/${variables.userId}/permissions`,
     method: 'PATCH',
     invalidateKeys: [usersKeys.all],
     onSuccess: options?.onSuccess,
@@ -279,7 +283,7 @@ export function useToggleUserPermission(options?: IUseToggleUserPermissionOption
  */
 export function useBatchToggleUserPermissions(options?: IUseBatchToggleUserPermissionsOptions) {
   return useApiMutation<IBatchToggleUserPermissionsResponse, IBatchToggleUserPermissionsVariables>({
-    path: (variables) => `/platform/users/${variables.userId}/permissions/batch`,
+    path: variables => `/platform/users/${variables.userId}/permissions/batch`,
     method: 'PATCH',
     invalidateKeys: [usersKeys.all],
     onSuccess: options?.onSuccess,
@@ -323,17 +327,17 @@ export async function getUsersPaginated(
 /**
  * Function to fetch full user details.
  */
-export async function getUserFullDetails(
-  token: string,
-  userId: string
-): Promise<TUserFullDetails> {
+export async function getUserFullDetails(token: string, userId: string): Promise<TUserFullDetails> {
   const client = getHttpClient()
 
-  const response = await client.get<TApiDataResponse<TUserFullDetails>>(`/platform/users/${userId}/full`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
+  const response = await client.get<TApiDataResponse<TUserFullDetails>>(
+    `/platform/users/${userId}/full`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
 
   return response.data.data
 }
@@ -448,7 +452,9 @@ export async function batchToggleUserPermissions(
 ): Promise<{ message: string; data: IBatchTogglePermissionsResult }> {
   const client = getHttpClient()
 
-  const response = await client.patch<TApiDataResponse<IBatchTogglePermissionsResult> & { message: string }>(
+  const response = await client.patch<
+    TApiDataResponse<IBatchTogglePermissionsResult> & { message: string }
+  >(
     `/platform/users/${userId}/permissions/batch`,
     { changes },
     {

@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import type { TNotification } from '@packages/domain'
 import type { TApiDataResponse } from '@packages/http-client'
 
+import { useState, useEffect } from 'react'
 import { useApiQuery, useApiMutation, useQueryClient } from '@packages/http-client'
+import { useNotificationWebSocket } from '@packages/http-client/hooks'
 
 import { useUser } from '@/contexts'
 import { getSessionCookie } from '@/libs/cookies'
-import { useNotificationWebSocket } from '@packages/http-client/hooks'
 
 export interface UseNotificationsOptions {
   enabled?: boolean
@@ -28,11 +28,13 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     if (typeof window !== 'undefined') {
       return getSessionCookie() || ''
     }
+
     return ''
   })
 
   useEffect(() => {
     const sessionToken = getSessionCookie()
+
     if (sessionToken && sessionToken !== token) {
       setToken(sessionToken)
     }

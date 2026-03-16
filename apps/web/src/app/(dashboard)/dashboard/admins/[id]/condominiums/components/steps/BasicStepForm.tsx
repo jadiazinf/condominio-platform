@@ -1,8 +1,10 @@
 'use client'
 
-import { useFormContext } from 'react-hook-form'
-import { useTranslation } from '@/contexts'
 import type { ICondominiumFormData } from '../../hooks/useCondominiumForm'
+
+import { useFormContext } from 'react-hook-form'
+
+import { useTranslation } from '@/contexts'
 import { Switch, Input, Label } from '@/ui/components'
 
 export function BasicStepForm() {
@@ -19,7 +21,7 @@ export function BasicStepForm() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="name" required>
+        <Label required htmlFor="name">
           {t('condominiums.form.fields.name.label')}
         </Label>
         <Input
@@ -31,8 +33,8 @@ export function BasicStepForm() {
               message: t('condominiums.form.fields.name.error'),
             },
           })}
-          placeholder={t('condominiums.form.fields.name.placeholder')}
           error={errors.name?.message}
+          placeholder={t('condominiums.form.fields.name.placeholder')}
         />
       </div>
 
@@ -46,8 +48,8 @@ export function BasicStepForm() {
               message: t('condominiums.form.fields.code.maxLengthError'),
             },
           })}
-          placeholder={t('condominiums.form.fields.code.placeholder')}
           error={errors.code?.message}
+          placeholder={t('condominiums.form.fields.code.placeholder')}
         />
         <p className="text-sm text-gray-500">{t('condominiums.form.fields.code.placeholder')}</p>
       </div>
@@ -62,8 +64,8 @@ export function BasicStepForm() {
           </p>
         </div>
         <Switch
-          id="isActive"
           checked={isActive}
+          id="isActive"
           onCheckedChange={(checked: boolean) => setValue('isActive', checked)}
         />
       </div>

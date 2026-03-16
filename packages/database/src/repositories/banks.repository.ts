@@ -52,11 +52,7 @@ export class BanksRepository
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
-    const results = await this.db
-      .select()
-      .from(banks)
-      .where(whereClause)
-      .orderBy(banks.name)
+    const results = await this.db.select().from(banks).where(whereClause).orderBy(banks.name)
 
     return results.map(record => this.mapToEntity(record))
   }

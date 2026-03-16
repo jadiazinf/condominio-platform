@@ -195,7 +195,9 @@ export class ManagementCompaniesRepository
   }> {
     // Get condominiums count
     const condominiumsResult = await this.db
-      .select({ count: sql<number>`count(distinct ${condominiumManagementCompanies.condominiumId})::int` })
+      .select({
+        count: sql<number>`count(distinct ${condominiumManagementCompanies.condominiumId})::int`,
+      })
       .from(condominiumManagementCompanies)
       .where(eq(condominiumManagementCompanies.managementCompanyId, managementCompanyId))
 

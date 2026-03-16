@@ -4,7 +4,12 @@ import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
 import type { TUser, TUserCreate, TUserUpdate } from '@packages/domain'
 import { UsersController } from '@http/controllers/users'
-import type { UsersRepository, UserPermissionsRepository, UserRolesRepository, ManagementCompanyMembersRepository } from '@database/repositories'
+import type {
+  UsersRepository,
+  UserPermissionsRepository,
+  UserRolesRepository,
+  ManagementCompanyMembersRepository,
+} from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { UserFactory } from '../../setup/factories'
 import {
@@ -107,9 +112,16 @@ describe('UsersController', function () {
 
     // Create controller with mock repository, db, and user permissions repository
     // Create mock management company members repository
-    const mockManagementCompanyMembersRepository = {} as unknown as ManagementCompanyMembersRepository
+    const mockManagementCompanyMembersRepository =
+      {} as unknown as ManagementCompanyMembersRepository
 
-    const controller = new UsersController(mockRepository as unknown as UsersRepository, mockDb, mockUserPermissionsRepository, mockUserRolesRepository, mockManagementCompanyMembersRepository)
+    const controller = new UsersController(
+      mockRepository as unknown as UsersRepository,
+      mockDb,
+      mockUserPermissionsRepository,
+      mockUserRolesRepository,
+      mockManagementCompanyMembersRepository
+    )
 
     // Create Hono app with i18n middleware and controller routes
     app = createTestApp()

@@ -13,7 +13,9 @@ export interface IUpdateMemberPermissionsInput {
 export class UpdateMemberPermissionsService {
   constructor(private readonly membersRepository: ManagementCompanyMembersRepository) {}
 
-  async execute(input: IUpdateMemberPermissionsInput): Promise<TServiceResult<TManagementCompanyMember>> {
+  async execute(
+    input: IUpdateMemberPermissionsInput
+  ): Promise<TServiceResult<TManagementCompanyMember>> {
     // Check if member exists
     const existing = await this.membersRepository.getById(input.memberId)
 
@@ -27,7 +29,10 @@ export class UpdateMemberPermissionsService {
     }
 
     // Update permissions
-    const updated = await this.membersRepository.updatePermissions(input.memberId, input.permissions)
+    const updated = await this.membersRepository.updatePermissions(
+      input.memberId,
+      input.permissions
+    )
 
     if (!updated) {
       return failure('Failed to update member permissions', 'INTERNAL_ERROR')

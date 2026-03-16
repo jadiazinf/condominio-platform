@@ -8,7 +8,11 @@ import {
 } from '@packages/domain'
 import type { SubscriptionRatesRepository } from '@database/repositories'
 import { BaseController } from '../base.controller'
-import { bodyValidator, paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
+import {
+  bodyValidator,
+  paramsValidator,
+  queryValidator,
+} from '../../middlewares/utils/payload-validator'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { isUserAuthenticated } from '../../middlewares/utils/auth/is-user-authenticated'
@@ -187,7 +191,9 @@ export class SubscriptionRatesController extends BaseController<
       const rate = await repo.getActiveRate()
 
       if (!rate) {
-        return ctx.notFound({ error: t(LocaleDictionary.http.controllers.subscriptionRates.noActiveRate) })
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.controllers.subscriptionRates.noActiveRate),
+        })
       }
 
       return ctx.ok({ data: rate })
@@ -208,7 +214,9 @@ export class SubscriptionRatesController extends BaseController<
       const rate = await repo.getByVersion(ctx.params.version)
 
       if (!rate) {
-        return ctx.notFound({ error: t(LocaleDictionary.http.controllers.subscriptionRates.versionNotFound) })
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.controllers.subscriptionRates.versionNotFound),
+        })
       }
 
       return ctx.ok({ data: rate })
@@ -249,7 +257,9 @@ export class SubscriptionRatesController extends BaseController<
       const rate = await repo.getById(ctx.params.id)
 
       if (!rate) {
-        return ctx.notFound({ error: t(LocaleDictionary.http.controllers.subscriptionRates.notFound) })
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.controllers.subscriptionRates.notFound),
+        })
       }
 
       return ctx.ok({ data: rate })
@@ -270,7 +280,9 @@ export class SubscriptionRatesController extends BaseController<
       // Check if version already exists
       const existing = await repo.getByVersion(ctx.body.version)
       if (existing) {
-        return ctx.badRequest({ error: t(LocaleDictionary.http.controllers.subscriptionRates.versionAlreadyExists) })
+        return ctx.badRequest({
+          error: t(LocaleDictionary.http.controllers.subscriptionRates.versionAlreadyExists),
+        })
       }
 
       const user = ctx.getAuthenticatedUser()
@@ -310,7 +322,9 @@ export class SubscriptionRatesController extends BaseController<
       // Check rate exists
       const existing = await repo.getById(ctx.params.id)
       if (!existing) {
-        return ctx.notFound({ error: t(LocaleDictionary.http.controllers.subscriptionRates.notFound) })
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.controllers.subscriptionRates.notFound),
+        })
       }
 
       const user = ctx.getAuthenticatedUser()
@@ -345,10 +359,15 @@ export class SubscriptionRatesController extends BaseController<
       const rate = await repo.activate(ctx.params.id, user.id)
 
       if (!rate) {
-        return ctx.notFound({ error: t(LocaleDictionary.http.controllers.subscriptionRates.notFound) })
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.controllers.subscriptionRates.notFound),
+        })
       }
 
-      return ctx.ok({ data: rate, message: t(LocaleDictionary.http.controllers.subscriptionRates.activated) })
+      return ctx.ok({
+        data: rate,
+        message: t(LocaleDictionary.http.controllers.subscriptionRates.activated),
+      })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -367,10 +386,15 @@ export class SubscriptionRatesController extends BaseController<
       const rate = await repo.deactivate(ctx.params.id, user.id)
 
       if (!rate) {
-        return ctx.notFound({ error: t(LocaleDictionary.http.controllers.subscriptionRates.notFound) })
+        return ctx.notFound({
+          error: t(LocaleDictionary.http.controllers.subscriptionRates.notFound),
+        })
       }
 
-      return ctx.ok({ data: rate, message: t(LocaleDictionary.http.controllers.subscriptionRates.deactivated) })
+      return ctx.ok({
+        data: rate,
+        message: t(LocaleDictionary.http.controllers.subscriptionRates.deactivated),
+      })
     } catch (error) {
       return this.handleError(ctx, error)
     }

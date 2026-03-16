@@ -1,6 +1,6 @@
 import type { TGatewayTransaction, TGatewayTransactionCreate } from '@packages/domain'
 import type { GatewayTransactionsRepository } from '@database/repositories'
-import { type TServiceResult, success, failure } from '../base.service'
+import { type TServiceResult, success } from '../base.service'
 
 export interface ICreateGatewayTransactionInput {
   paymentId: string
@@ -17,11 +17,11 @@ export interface ICreateGatewayTransactionInput {
  * Creates a gateway transaction record for audit/tracking purposes.
  */
 export class CreateGatewayTransactionService {
-  constructor(
-    private readonly gatewayTransactionsRepository: GatewayTransactionsRepository
-  ) {}
+  constructor(private readonly gatewayTransactionsRepository: GatewayTransactionsRepository) {}
 
-  async execute(input: ICreateGatewayTransactionInput): Promise<TServiceResult<TGatewayTransaction>> {
+  async execute(
+    input: ICreateGatewayTransactionInput
+  ): Promise<TServiceResult<TGatewayTransaction>> {
     const data: TGatewayTransactionCreate = {
       paymentId: input.paymentId,
       gatewayType: input.gatewayType,

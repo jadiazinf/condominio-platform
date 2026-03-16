@@ -1,9 +1,11 @@
 'use client'
 
+import type { TAccessRequest, TAccessRequestStatus } from '@packages/domain'
+
 import { useState } from 'react'
 import { KeyRound } from 'lucide-react'
-import type { TAccessRequest, TAccessRequestStatus } from '@packages/domain'
 import { formatFullDate } from '@packages/utils/dates'
+import { useMyAccessRequests } from '@packages/http-client/hooks'
 
 import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
@@ -13,7 +15,6 @@ import { Spinner } from '@/ui/components/spinner'
 import { Pagination } from '@/ui/components/pagination'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { useDisclosure } from '@/ui/components/modal'
-import { useMyAccessRequests } from '@packages/http-client/hooks'
 
 type TStatusFilter = 'all' | TAccessRequestStatus
 
@@ -101,17 +102,24 @@ export function MyRequestsClient({ translations }: IMyRequestsClientProps) {
   }
 
   const getCondominiumName = (request: TAccessRequest) => {
-    const condo = (request as Record<string, unknown>).condominium as Record<string, string> | undefined
+    const condo = (request as Record<string, unknown>).condominium as
+      | Record<string, string>
+      | undefined
+
     return condo?.name ?? '-'
   }
 
   const getUnitNumber = (request: TAccessRequest) => {
     const unit = (request as Record<string, unknown>).unit as Record<string, string> | undefined
+
     return unit?.unitNumber ?? '-'
   }
 
   const getBuildingName = (request: TAccessRequest) => {
-    const building = (request as Record<string, unknown>).building as Record<string, string> | undefined
+    const building = (request as Record<string, unknown>).building as
+      | Record<string, string>
+      | undefined
+
     return building?.name ?? '-'
   }
 
@@ -130,10 +138,10 @@ export function MyRequestsClient({ translations }: IMyRequestsClientProps) {
       <div className="flex flex-col sm:flex-row gap-3">
         <Select
           aria-label="Status"
+          className="sm:max-w-[200px]"
           items={statusItems}
           value={statusFilter}
           onChange={handleStatusChange}
-          className="sm:max-w-[200px]"
         />
       </div>
 
@@ -157,12 +165,24 @@ export function MyRequestsClient({ translations }: IMyRequestsClientProps) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-default-200 text-left">
-                  <th className="px-4 py-3 font-medium text-default-500">{translations.table.condominium}</th>
-                  <th className="px-4 py-3 font-medium text-default-500">{translations.table.building}</th>
-                  <th className="px-4 py-3 font-medium text-default-500">{translations.table.unit}</th>
-                  <th className="px-4 py-3 font-medium text-default-500">{translations.table.ownershipType}</th>
-                  <th className="px-4 py-3 font-medium text-default-500">{translations.table.date}</th>
-                  <th className="px-4 py-3 font-medium text-default-500">{translations.table.status}</th>
+                  <th className="px-4 py-3 font-medium text-default-500">
+                    {translations.table.condominium}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-default-500">
+                    {translations.table.building}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-default-500">
+                    {translations.table.unit}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-default-500">
+                    {translations.table.ownershipType}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-default-500">
+                    {translations.table.date}
+                  </th>
+                  <th className="px-4 py-3 font-medium text-default-500">
+                    {translations.table.status}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -176,15 +196,9 @@ export function MyRequestsClient({ translations }: IMyRequestsClientProps) {
                     <td className="px-4 py-3">{getBuildingName(request)}</td>
                     <td className="px-4 py-3">{getUnitNumber(request)}</td>
                     <td className="px-4 py-3">{getOwnershipLabel(request.ownershipType)}</td>
+                    <td className="px-4 py-3">{formatFullDate(request.createdAt)}</td>
                     <td className="px-4 py-3">
-                      {formatFullDate(request.createdAt)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Chip
-                        size="sm"
-                        color={STATUS_COLORS[request.status]}
-                        variant="flat"
-                      >
+                      <Chip color={STATUS_COLORS[request.status]} size="sm" variant="flat">
                         {translations.status[request.status]}
                       </Chip>
                     </td>
@@ -196,21 +210,21 @@ export function MyRequestsClient({ translations }: IMyRequestsClientProps) {
 
           {/* Pagination */}
           <Pagination
-            page={pagination.page}
-            totalPages={pagination.totalPages}
-            total={pagination.total}
             limit={pagination.limit}
-            onPageChange={setPage}
-            onLimitChange={(newLimit) => {
+            page={pagination.page}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            onLimitChange={newLimit => {
               setLimit(newLimit)
               setPage(1)
             }}
+            onPageChange={setPage}
           />
         </>
       )}
 
       {/* Detail modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="md">
+      <Modal isOpen={isOpen} size="md" onClose={onClose}>
         <ModalContent>
           {selectedRequest && (
             <>
@@ -231,8 +245,12 @@ export function MyRequestsClient({ translations }: IMyRequestsClientProps) {
                       <p className="text-sm font-medium">{getUnitNumber(selectedRequest)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-default-400">{translations.detail.ownershipType}</p>
-                      <p className="text-sm font-medium">{getOwnershipLabel(selectedRequest.ownershipType)}</p>
+                      <p className="text-xs text-default-400">
+                        {translations.detail.ownershipType}
+                      </p>
+                      <p className="text-sm font-medium">
+                        {getOwnershipLabel(selectedRequest.ownershipType)}
+                      </p>
                     </div>
                   </div>
 
@@ -241,14 +259,16 @@ export function MyRequestsClient({ translations }: IMyRequestsClientProps) {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-xs text-default-400">{translations.detail.date}</p>
-                      <p className="text-sm font-medium">{formatFullDate(selectedRequest.createdAt)}</p>
+                      <p className="text-sm font-medium">
+                        {formatFullDate(selectedRequest.createdAt)}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-default-400">{translations.detail.status}</p>
                       <div className="mt-1">
                         <Chip
-                          size="sm"
                           color={STATUS_COLORS[selectedRequest.status]}
+                          size="sm"
                           variant="flat"
                         >
                           {translations.status[selectedRequest.status]}
@@ -258,13 +278,15 @@ export function MyRequestsClient({ translations }: IMyRequestsClientProps) {
                   </div>
 
                   {/* Status message */}
-                  <div className={`rounded-lg p-3 text-sm ${
-                    selectedRequest.status === 'pending'
-                      ? 'bg-warning-50 text-warning-700'
-                      : selectedRequest.status === 'approved'
-                        ? 'bg-success-50 text-success-700'
-                        : 'bg-danger-50 text-danger-700'
-                  }`}>
+                  <div
+                    className={`rounded-lg p-3 text-sm ${
+                      selectedRequest.status === 'pending'
+                        ? 'bg-warning-50 text-warning-700'
+                        : selectedRequest.status === 'approved'
+                          ? 'bg-success-50 text-success-700'
+                          : 'bg-danger-50 text-danger-700'
+                    }`}
+                  >
                     {translations.detail.statusMessages[selectedRequest.status]}
                   </div>
 

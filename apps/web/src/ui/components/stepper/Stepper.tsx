@@ -1,9 +1,11 @@
 'use client'
 
-import { cn } from '@/ui/utils'
+import type { IStepperProps, TStepStatus } from './stepper.types'
+
 import { useControllableState } from './use-controllable-state'
 import { StepperItem } from './StepperItem'
-import type { IStepperProps, TStepStatus } from './stepper.types'
+
+import { cn } from '@/ui/utils'
 
 export function Stepper<T extends string = string>({
   steps,
@@ -22,48 +24,46 @@ export function Stepper<T extends string = string>({
   const [activeStep, setActiveStep] = useControllableState<T>(
     currentStep,
     defaultStep ?? steps[0]?.key ?? ('' as T),
-    onStepChange,
+    onStepChange
   )
 
-  const currentIndex = steps.findIndex((s) => s.key === activeStep)
+  const currentIndex = steps.findIndex(s => s.key === activeStep)
   const isHorizontal = orientation === 'horizontal'
 
   const getStepStatus = (index: number): TStepStatus => {
     if (index < currentIndex) return 'completed'
     if (index === currentIndex) return 'current'
+
     return 'upcoming'
   }
 
   return (
     <nav aria-label="Progress steps" className={cn('max-w-full overflow-x-auto', className)}>
-      <ol
-        className={cn(
-          isHorizontal ? 'flex flex-row flex-nowrap' : 'flex flex-col items-start',
-        )}
-      >
+      <ol className={cn(isHorizontal ? 'flex flex-row flex-nowrap' : 'flex flex-col items-start')}>
         {steps.map((step, index) => (
           <li
             key={step.key}
             className={cn(
               'relative flex items-start',
-              isHorizontal && index < steps.length - 1 && 'w-full',
+              isHorizontal && index < steps.length - 1 && 'w-full'
             )}
           >
             <StepperItem
-              step={step}
-              index={index}
-              status={getStepStatus(index)}
               color={color}
-              size={size}
-              orientation={orientation}
-              isClickable={isClickable}
-              isDisabled={isDisabled}
-              hideLabelsOnMobile={hideLabelsOnMobile}
               disableAnimation={disableAnimation}
-              showConnector={index < steps.length - 1}
+              hideLabelsOnMobile={hideLabelsOnMobile}
+              index={index}
+              isClickable={isClickable}
               isConnectorCompleted={index < currentIndex}
+              isDisabled={isDisabled}
+              orientation={orientation}
+              showConnector={index < steps.length - 1}
+              size={size}
+              status={getStepStatus(index)}
+              step={step}
               onClick={() => {
                 const status = getStepStatus(index)
+
                 if (status === 'completed' || status === 'current') {
                   setActiveStep(step.key)
                 }

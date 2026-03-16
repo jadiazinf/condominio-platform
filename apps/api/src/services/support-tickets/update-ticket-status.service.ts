@@ -22,7 +22,9 @@ export type TUpdateStatusError = string | IStatusTransitionError
 export class UpdateTicketStatusService {
   constructor(private readonly ticketsRepository: SupportTicketsRepository) {}
 
-  async execute(input: IUpdateTicketStatusInput): Promise<TServiceResult<TSupportTicket, TUpdateStatusError>> {
+  async execute(
+    input: IUpdateTicketStatusInput
+  ): Promise<TServiceResult<TSupportTicket, TUpdateStatusError>> {
     // Check if ticket exists
     const existing = await this.ticketsRepository.getById(input.ticketId)
 
@@ -42,7 +44,10 @@ export class UpdateTicketStatusService {
     const updated = await this.ticketsRepository.updateStatus(input.ticketId, input.status)
 
     if (!updated) {
-      return failure<TSupportTicket, TUpdateStatusError>('Failed to update ticket status', 'INTERNAL_ERROR')
+      return failure<TSupportTicket, TUpdateStatusError>(
+        'Failed to update ticket status',
+        'INTERNAL_ERROR'
+      )
     }
 
     return success(updated)

@@ -7,9 +7,7 @@ import { paramsValidator } from '../../middlewares/utils/payload-validator'
 import { createRouter } from '../create-router'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
-import {
-  GetUserNotificationsPaginatedService,
-} from '@src/services/notifications'
+import { GetUserNotificationsPaginatedService } from '@src/services/notifications'
 import type { IGetUserNotificationsPaginatedInput } from '@src/services/notifications/get-user-notifications-paginated.service'
 import { z } from 'zod'
 
@@ -86,8 +84,8 @@ export class MyNotificationsController {
 
   private listPaginated = async (c: Context): Promise<Response> => {
     const user: TUser = c.get(AUTHENTICATED_USER_PROP)
-    const page = Number(c.req.query('page') || '1')
-    const limit = Number(c.req.query('limit') || '20')
+    const page = Math.max(1, Number(c.req.query('page') || '1'))
+    const limit = Math.min(100, Math.max(1, Number(c.req.query('limit') || '20')))
     const category = c.req.query('category') || undefined
     const isReadParam = c.req.query('isRead')
     const isRead = isReadParam === 'true' ? true : isReadParam === 'false' ? false : undefined
@@ -114,7 +112,15 @@ export class MyNotificationsController {
   }
 
   private markAsRead = async (c: Context): Promise<Response> => {
+    const user: TUser = c.get(AUTHENTICATED_USER_PROP)
     const params = c.get('params') as TIdParam
+
+    // Verify notification belongs to the authenticated user
+    const existing = await this.repository.getById(params.id)
+    if (!existing || existing.userId !== user.id) {
+      return c.json({ error: 'Notification not found' }, 404)
+    }
+
     const notification = await this.repository.markAsRead(params.id)
 
     if (!notification) {
@@ -131,7 +137,14 @@ export class MyNotificationsController {
   }
 
   private delete = async (c: Context): Promise<Response> => {
+    const user: TUser = c.get(AUTHENTICATED_USER_PROP)
     const params = c.get('params') as TIdParam
+
+    // Verify notification belongs to the authenticated user
+    const existing = await this.repository.getById(params.id)
+    if (!existing || existing.userId !== user.id) {
+      return c.json({ error: 'Notification not found' }, 404)
+    }
 
     const deleted = await this.repository.delete(params.id)
 

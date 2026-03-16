@@ -9,9 +9,8 @@ import {
   date,
   jsonb,
   index,
-  check,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core'
-import { sql } from 'drizzle-orm'
 import { units } from './units'
 import { paymentConcepts } from './payment-concepts'
 import { currencies } from './currencies'
@@ -29,7 +28,7 @@ export const quotas = pgTable(
       .notNull()
       .references(() => paymentConcepts.id, { onDelete: 'restrict' }),
     periodYear: integer('period_year').notNull(),
-    periodMonth: integer('period_month'),
+    periodMonth: integer('period_month').notNull(),
     periodDescription: varchar('period_description', { length: 100 }),
     baseAmount: decimal('base_amount', { precision: 15, scale: 2 }).notNull(),
     currencyId: uuid('currency_id')
@@ -51,6 +50,7 @@ export const quotas = pgTable(
     dueDate: date('due_date').notNull(),
     status: quotaStatusEnum('status').default('pending'),
     paidAmount: decimal('paid_amount', { precision: 15, scale: 2 }).default('0'),
+    adjustmentsTotal: decimal('adjustments_total', { precision: 15, scale: 2 }).default('0'),
     balance: decimal('balance', { precision: 15, scale: 2 }).notNull(),
     notes: text('notes'),
     metadata: jsonb('metadata'),
@@ -68,6 +68,12 @@ export const quotas = pgTable(
     index('idx_quotas_due_date').on(table.dueDate),
     index('idx_quotas_currency').on(table.currencyId),
     index('idx_quotas_created_by').on(table.createdBy),
+    uniqueIndex('idx_quotas_unique_period').on(
+      table.unitId,
+      table.paymentConceptId,
+      table.periodYear,
+      table.periodMonth
+    ),
   ]
 )
 
@@ -82,6 +88,7 @@ export const quotaAdjustments = pgTable(
     newAmount: decimal('new_amount', { precision: 15, scale: 2 }).notNull(),
     adjustmentType: adjustmentTypeEnum('adjustment_type').notNull(),
     reason: text('reason').notNull(),
+    tag: text('tag'),
     createdBy: uuid('created_by')
       .notNull()
       .references(() => users.id, { onDelete: 'restrict' }),
@@ -91,6 +98,5 @@ export const quotaAdjustments = pgTable(
     index('idx_quota_adjustments_quota').on(table.quotaId),
     index('idx_quota_adjustments_created_by').on(table.createdBy),
     index('idx_quota_adjustments_type').on(table.adjustmentType),
-    check('check_amount_changed', sql`previous_amount != new_amount`),
   ]
 )

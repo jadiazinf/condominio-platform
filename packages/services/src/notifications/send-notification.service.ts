@@ -18,6 +18,7 @@ export interface ISendNotificationInput {
   templateId?: string
   channels?: Array<'in_app' | 'email' | 'push'>
   expiresAt?: Date
+  metadata?: Record<string, unknown>
 }
 
 export interface ISendNotificationOutput {
@@ -65,7 +66,7 @@ export class SendNotificationService {
       data: input.data ?? null,
       isRead: false,
       expiresAt: input.expiresAt ?? null,
-      metadata: null,
+      metadata: input.metadata ?? null,
     })
 
     const deliveryIds: string[] = []

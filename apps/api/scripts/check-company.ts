@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { managementCompanies } from '../src/database/drizzle/schema'
+import { managementCompanies } from '@database/drizzle/schema'
 import { eq } from 'drizzle-orm'
 
 const DATABASE_URL = process.env.DATABASE_URL

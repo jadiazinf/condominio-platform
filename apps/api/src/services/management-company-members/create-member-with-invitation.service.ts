@@ -170,7 +170,13 @@ export class CreateMemberWithInvitationService {
 
     // Step 7: Send invitation email to user (non-blocking)
     // Company notification is sent when the invitation is accepted, not at creation time
-    const userEmailSent = await this.sendUserEmail(user, company, role.name, token, invitation.expiresAt)
+    const userEmailSent = await this.sendUserEmail(
+      user,
+      company,
+      role.name,
+      token,
+      invitation.expiresAt
+    )
     const companyEmailSent = false
 
     return success({
@@ -205,7 +211,9 @@ export class CreateMemberWithInvitationService {
 
     // Check if primary admin already exists (if trying to add as primary)
     if (input.isPrimaryAdmin) {
-      const existingPrimary = await this.membersRepository.getPrimaryAdmin(input.managementCompanyId)
+      const existingPrimary = await this.membersRepository.getPrimaryAdmin(
+        input.managementCompanyId
+      )
       if (existingPrimary) {
         return failure('Management company already has a primary admin', 'CONFLICT')
       }
@@ -224,7 +232,10 @@ export class CreateMemberWithInvitationService {
 
     if (existingUser) {
       // Check if user already has a pending invitation
-      const hasPending = await this.invitationsRepository.hasPendingInvitation(existingUser.id, null)
+      const hasPending = await this.invitationsRepository.hasPendingInvitation(
+        existingUser.id,
+        null
+      )
       if (hasPending) {
         return failure(
           'User already has a pending invitation. Please wait for them to accept or cancel the existing invitation.',

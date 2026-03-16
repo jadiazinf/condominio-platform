@@ -1,10 +1,13 @@
+import type { TLocation } from '@packages/domain'
+
 import { cookies } from 'next/headers'
 import { getManagementCompanyById, HttpError } from '@packages/http-client'
-import { SESSION_COOKIE_NAME } from '@/libs/cookies'
-import { getTranslations } from '@/libs/i18n/server'
+
 import { CompanyDetailClient } from './CompanyDetailClient'
 import { CompanyDetailError } from './CompanyDetailError'
-import type { TLocation } from '@packages/domain'
+
+import { SESSION_COOKIE_NAME } from '@/libs/cookies'
+import { getTranslations } from '@/libs/i18n/server'
 
 interface CompanyDetailProps {
   id: string
@@ -26,6 +29,7 @@ export async function CompanyDetail({ id }: CompanyDetailProps) {
       if (!company.location) return { city: '', state: '', country: '' }
 
       const parts: string[] = []
+
       type TLocationWithParent = TLocation & { parent?: TLocationWithParent }
       let current: TLocationWithParent | undefined = company.location as TLocationWithParent
 
@@ -70,10 +74,10 @@ export async function CompanyDetail({ id }: CompanyDetailProps) {
     return (
       <CompanyDetailClient
         company={company}
-        noDataText={noDataText}
-        locationParts={locationParts}
         createdByDisplay={createdByDisplay}
         formattedCreatedAt={formattedCreatedAt}
+        locationParts={locationParts}
+        noDataText={noDataText}
       />
     )
   } catch (error) {
@@ -81,6 +85,7 @@ export async function CompanyDetail({ id }: CompanyDetailProps) {
 
     // Extract error message if available
     let errorMessage: string | undefined
+
     if (HttpError.isHttpError(error)) {
       errorMessage = error.message
     } else if (error instanceof Error) {

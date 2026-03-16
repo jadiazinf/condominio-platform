@@ -62,42 +62,45 @@ interface ITextareaProps {
   onKeyPress?: (e: React.KeyboardEvent) => void
 }
 
-export const Textarea = forwardRef<HTMLTextAreaElement, ITextareaProps>(function Textarea({
-  id,
-  name,
-  size = 'md',
-  color = 'default',
-  variant = 'bordered',
-  radius = 'sm',
-  label,
-  labelPlacement = 'outside',
-  placeholder,
-  description,
-  tooltip,
-  errorMessage,
-  error,
-  value,
-  defaultValue,
-  rows,
-  minRows = 3,
-  maxRows = 8,
-  minLength,
-  maxLength,
-  isRequired = false,
-  isInvalid = false,
-  isDisabled = false,
-  isReadOnly = false,
-  disableAutosize = false,
-  fullWidth = false,
-  startContent,
-  endContent,
-  className,
-  classNames,
-  onChange,
-  onValueChange,
-  onBlur,
-  onKeyPress,
-}, ref) {
+export const Textarea = forwardRef<HTMLTextAreaElement, ITextareaProps>(function Textarea(
+  {
+    id,
+    name,
+    size = 'md',
+    color = 'default',
+    variant = 'bordered',
+    radius = 'sm',
+    label,
+    labelPlacement = 'outside',
+    placeholder,
+    description,
+    tooltip,
+    errorMessage,
+    error,
+    value,
+    defaultValue,
+    rows,
+    minRows = 3,
+    maxRows = 8,
+    minLength,
+    maxLength,
+    isRequired = false,
+    isInvalid = false,
+    isDisabled = false,
+    isReadOnly = false,
+    disableAutosize = false,
+    fullWidth = false,
+    startContent,
+    endContent,
+    className,
+    classNames,
+    onChange,
+    onValueChange,
+    onBlur,
+    onKeyPress,
+  },
+  ref
+) {
   // Create label with tooltip and required asterisk
   const labelContent = label ? (
     <span className="flex items-center gap-1.5">
@@ -105,12 +108,12 @@ export const Textarea = forwardRef<HTMLTextAreaElement, ITextareaProps>(function
       {label}
       {tooltip && (
         <Tooltip
-          content={tooltip}
-          placement="right"
           showArrow
           classNames={{
             content: 'max-w-xs text-sm',
           }}
+          content={tooltip}
+          placement="right"
         >
           <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
         </Tooltip>
@@ -121,8 +124,6 @@ export const Textarea = forwardRef<HTMLTextAreaElement, ITextareaProps>(function
   return (
     <HeroUITextarea
       ref={ref}
-      id={id}
-      name={name}
       className={cn(className)}
       classNames={classNames}
       color={color}
@@ -132,6 +133,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, ITextareaProps>(function
       endContent={endContent}
       errorMessage={error || errorMessage}
       fullWidth={fullWidth}
+      id={id}
       isDisabled={isDisabled}
       isInvalid={isInvalid || !!error}
       isReadOnly={isReadOnly}
@@ -142,14 +144,15 @@ export const Textarea = forwardRef<HTMLTextAreaElement, ITextareaProps>(function
       maxRows={rows || maxRows}
       minLength={minLength}
       minRows={rows || minRows}
+      name={name}
       placeholder={placeholder}
       radius={radius}
       size={size}
       startContent={startContent}
       value={value}
       variant={variant}
-      onChange={onChange as any}
       onBlur={onBlur as any}
+      onChange={onChange as any}
       onKeyPress={onKeyPress}
       onValueChange={onValueChange}
     />

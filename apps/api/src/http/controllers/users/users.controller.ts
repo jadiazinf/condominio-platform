@@ -10,7 +10,12 @@ import {
   type TUserUpdateProfile,
   ESystemRole,
 } from '@packages/domain'
-import type { UsersRepository, UserPermissionsRepository, UserRolesRepository, ManagementCompanyMembersRepository } from '@database/repositories'
+import type {
+  UsersRepository,
+  UserPermissionsRepository,
+  UserRolesRepository,
+  ManagementCompanyMembersRepository,
+} from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
@@ -56,12 +61,14 @@ const TogglePermissionSchema = z.object({
 })
 
 const BatchTogglePermissionsSchema = z.object({
-  changes: z.array(
-    z.object({
-      permissionId: z.uuid(),
-      isEnabled: z.boolean(),
-    })
-  ).min(1, 'At least one change is required'),
+  changes: z
+    .array(
+      z.object({
+        permissionId: z.uuid(),
+        isEnabled: z.boolean(),
+      })
+    )
+    .min(1, 'At least one change is required'),
 })
 
 const PromoteToSuperadminSchema = z.object({
@@ -159,13 +166,22 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
         handler: this.getManagementCompanies,
         middlewares: [authMiddleware],
       },
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)] },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.list,
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)],
+      },
       // New paginated endpoint with filters
       {
         method: 'get',
         path: '/paginated',
         handler: this.listPaginated,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), queryValidator(AllUsersQuerySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          queryValidator(AllUsersQuerySchema),
+        ],
       },
       // Roles for filter dropdown
       {
@@ -204,40 +220,68 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
         method: 'patch',
         path: '/:id/status',
         handler: this.updateStatus,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(UpdateStatusSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+          bodyValidator(UpdateStatusSchema),
+        ],
       },
       // Permission toggle endpoint (single)
       {
         method: 'patch',
         path: '/:id/permissions',
         handler: this.togglePermission,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(TogglePermissionSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+          bodyValidator(TogglePermissionSchema),
+        ],
       },
       // Permission batch toggle endpoint (multiple)
       {
         method: 'patch',
         path: '/:id/permissions/batch',
         handler: this.batchTogglePermissions,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(BatchTogglePermissionsSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+          bodyValidator(BatchTogglePermissionsSchema),
+        ],
       },
       // Superadmin promotion/demotion endpoints
       {
         method: 'post',
         path: '/:id/promote-to-superadmin',
         handler: this.promoteToSuperadmin,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), bodyValidator(PromoteToSuperadminSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+          bodyValidator(PromoteToSuperadminSchema),
+        ],
       },
       {
         method: 'post',
         path: '/:id/demote-from-superadmin',
         handler: this.demoteFromSuperadmin,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
@@ -315,7 +359,10 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
       throw AppError.notFound(t(LocaleDictionary.http.controllers.users.userNotFound))
     }
 
-    return ctx.ok({ data: result.data, message: t(LocaleDictionary.http.controllers.users.firebaseUidSynced) })
+    return ctx.ok({
+      data: result.data,
+      message: t(LocaleDictionary.http.controllers.users.firebaseUidSynced),
+    })
   }
 
   private updateLastLogin = async (c: Context): Promise<Response> => {
@@ -355,7 +402,10 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
       throw AppError.notFound(t(LocaleDictionary.http.controllers.users.userNotFound))
     }
 
-    return ctx.ok({ data: result, message: t(LocaleDictionary.http.controllers.users.profileUpdated) })
+    return ctx.ok({
+      data: result,
+      message: t(LocaleDictionary.http.controllers.users.profileUpdated),
+    })
   }
 
   /**
@@ -443,7 +493,10 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
       throw AppError.notFound(t(LocaleDictionary.http.controllers.users.userNotFound))
     }
 
-    return ctx.ok({ data: result, message: t(LocaleDictionary.http.controllers.users.statusUpdated) })
+    return ctx.ok({
+      data: result,
+      message: t(LocaleDictionary.http.controllers.users.statusUpdated),
+    })
   }
 
   /**
@@ -458,21 +511,26 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
 
     // Prevent users from modifying their own permissions
     if (currentUser.id === ctx.params.id) {
-      throw AppError.forbidden(t(LocaleDictionary.http.controllers.users.cannotModifyOwnPermissions))
+      throw AppError.forbidden(
+        t(LocaleDictionary.http.controllers.users.cannotModifyOwnPermissions)
+      )
     }
 
     const result = await this.userPermissionsRepository.togglePermission(
       ctx.params.id,
       ctx.body.permissionId,
       ctx.body.isEnabled,
-      currentUser.id,
+      currentUser.id
     )
 
     if (!result) {
       throw AppError.internal('Failed to toggle permission')
     }
 
-    return ctx.ok({ data: result, message: t(LocaleDictionary.http.controllers.users.permissionUpdated) })
+    return ctx.ok({
+      data: result,
+      message: t(LocaleDictionary.http.controllers.users.permissionUpdated),
+    })
   }
 
   /**
@@ -482,23 +540,31 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
    */
   private batchTogglePermissions = async (c: Context): Promise<Response> => {
     const t = useTranslation(c)
-    const ctx = this.ctx<{ changes: Array<{ permissionId: string; isEnabled: boolean }> }, unknown, TIdParam>(c)
+    const ctx = this.ctx<
+      { changes: Array<{ permissionId: string; isEnabled: boolean }> },
+      unknown,
+      TIdParam
+    >(c)
     const currentUser = ctx.getAuthenticatedUser()
 
     // Prevent users from modifying their own permissions
     if (currentUser.id === ctx.params.id) {
-      throw AppError.forbidden(t(LocaleDictionary.http.controllers.users.cannotModifyOwnPermissions))
+      throw AppError.forbidden(
+        t(LocaleDictionary.http.controllers.users.cannotModifyOwnPermissions)
+      )
     }
 
     const result = await this.userPermissionsRepository.batchTogglePermissions(
       ctx.params.id,
       ctx.body.changes,
-      currentUser.id,
+      currentUser.id
     )
 
     return ctx.ok({
       data: result,
-      message: t(LocaleDictionary.http.controllers.users.permissionsUpdated) || 'Permisos actualizados correctamente',
+      message:
+        t(LocaleDictionary.http.controllers.users.permissionsUpdated) ||
+        'Permisos actualizados correctamente',
     })
   }
 
@@ -533,7 +599,10 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
       throw AppError.internal(t(LocaleDictionary.http.controllers.users.failedToPromote))
     }
 
-    return ctx.ok({ data: result.data, message: t(LocaleDictionary.http.controllers.users.promotedToSuperadmin) })
+    return ctx.ok({
+      data: result.data,
+      message: t(LocaleDictionary.http.controllers.users.promotedToSuperadmin),
+    })
   }
 
   /**
@@ -562,6 +631,9 @@ export class UsersController extends BaseController<TUser, TUserCreate, TUserUpd
       throw AppError.internal(t(LocaleDictionary.http.controllers.users.failedToDemote))
     }
 
-    return ctx.ok({ data: result.data, message: t(LocaleDictionary.http.controllers.users.demotedFromSuperadmin) })
+    return ctx.ok({
+      data: result.data,
+      message: t(LocaleDictionary.http.controllers.users.demotedFromSuperadmin),
+    })
   }
 }

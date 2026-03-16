@@ -42,7 +42,9 @@ export function useCreateCompanyForm(options: UseCreateCompanyFormOptions = {}) 
   const [validatedSteps, setValidatedSteps] = useState<Set<TFormStep>>(new Set())
 
   const form = useForm<TCreateManagementCompanyWithAdminForm>({
-    resolver: zodResolver(createManagementCompanyWithAdminFormSchema) as Resolver<TCreateManagementCompanyWithAdminForm>,
+    resolver: zodResolver(
+      createManagementCompanyWithAdminFormSchema
+    ) as Resolver<TCreateManagementCompanyWithAdminForm>,
     defaultValues: {
       company: {
         name: '',
@@ -83,6 +85,7 @@ export function useCreateCompanyForm(options: UseCreateCompanyFormOptions = {}) 
     try {
       if (currentStep === 'company') {
         companyStepSchema.parse(values.company)
+
         return true
       }
 
@@ -112,6 +115,7 @@ export function useCreateCompanyForm(options: UseCreateCompanyFormOptions = {}) 
                   message: 'superadmin.companies.form.adminValidation.emailExists',
                 })
               }
+
               return false
             }
           } catch (err) {
@@ -122,6 +126,7 @@ export function useCreateCompanyForm(options: UseCreateCompanyFormOptions = {}) 
             }
             // Other errors - show a generic error
             toast.error(t('superadmin.companies.form.adminValidation.error'))
+
             return false
           } finally {
             setIsValidatingAdmin(false)
@@ -139,15 +144,18 @@ export function useCreateCompanyForm(options: UseCreateCompanyFormOptions = {}) 
       } else if (currentStep === 'admin') {
         await form.trigger('admin')
       }
+
       return false
     }
   }, [currentStep, form, firebaseUser, toast, t])
 
   const goToNextStep = useCallback(async () => {
     const isValid = await validateCurrentStep()
+
     if (!isValid) return
 
     const nextIndex = currentStepIndex + 1
+
     if (nextIndex < STEPS.length) {
       setCurrentStep(STEPS[nextIndex])
     }
@@ -155,6 +163,7 @@ export function useCreateCompanyForm(options: UseCreateCompanyFormOptions = {}) 
 
   const goToPreviousStep = useCallback(() => {
     const prevIndex = currentStepIndex - 1
+
     if (prevIndex >= 0) {
       setCurrentStep(STEPS[prevIndex])
     }
@@ -259,6 +268,7 @@ export function useCreateCompanyForm(options: UseCreateCompanyFormOptions = {}) 
   const translateError = useCallback(
     (message: string | undefined): string | undefined => {
       if (!message) return undefined
+
       return t(message)
     },
     [t]

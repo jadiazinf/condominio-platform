@@ -91,7 +91,49 @@ export class UpdateQuotaGenerationRuleService {
       )
     }
 
-    // 6. Build update data
+    // 6. Check for overlapping rules (same logic as create service)
+    const paymentConceptId = updateFields.paymentConceptId ?? existingRule.paymentConceptId
+    const buildingId =
+      updateFields.buildingId !== undefined ? updateFields.buildingId : existingRule.buildingId
+
+    const existingRules =
+      await this.quotaGenerationRulesRepository.getByPaymentConceptId(paymentConceptId)
+    const overlappingRules = existingRules.filter(rule => {
+      // Skip the rule being updated
+      if (rule.id === ruleId) return false
+
+      // Only check rules for the same scope (condominium or building level)
+      if (buildingId) {
+        if (rule.buildingId !== buildingId) return false
+      } else {
+        if (rule.buildingId !== null) return false
+      }
+
+      // Check for date overlap
+      const ruleStart = rule.effectiveFrom
+      const ruleEnd = rule.effectiveTo
+
+      if (!ruleEnd && !effectiveTo) {
+        return effectiveFrom <= ruleStart || ruleStart <= effectiveFrom
+      }
+      if (!ruleEnd) {
+        return effectiveTo! >= ruleStart
+      }
+      if (!effectiveTo) {
+        return effectiveFrom <= ruleEnd
+      }
+
+      return effectiveFrom <= ruleEnd && effectiveTo >= ruleStart
+    })
+
+    if (overlappingRules.length > 0) {
+      return failure(
+        'A rule already exists for this payment concept in the specified date range',
+        'CONFLICT'
+      )
+    }
+
+    // Build update data
     const updateData: TQuotaGenerationRuleUpdate = {
       updatedBy: updatedByUserId,
       updateReason: updateReason ?? null,
@@ -109,7 +151,7 @@ export class UpdateQuotaGenerationRuleService {
     if (updateFields.effectiveTo !== undefined) updateData.effectiveTo = updateFields.effectiveTo
     if (updateFields.isActive !== undefined) updateData.isActive = updateFields.isActive
 
-    // 7. Update the rule
+    // Update the rule
     const updatedRule = await this.quotaGenerationRulesRepository.update(ruleId, updateData)
     if (!updatedRule) {
       return failure('Failed to update rule', 'INTERNAL_ERROR')

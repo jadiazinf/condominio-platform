@@ -2,23 +2,27 @@
 
 import { FormProvider } from 'react-hook-form'
 
-import { useTranslation } from '@/contexts'
-import { MultiStepFormShell } from '@/ui/components/forms/MultiStepFormShell'
-import { Stepper, type IStepItem } from '@/ui/components/stepper'
-
 import { useCreateCondominiumWizard, type TWizardStep } from '../hooks/useCreateCondominiumWizard'
+
 import { CondominiumInfoStep } from './CondominiumInfoStep'
 import { BuildingsStep } from './BuildingsStep'
 import { UnitsStep } from './UnitsStep'
 import { ReviewStep } from './ReviewStep'
 import { SubmissionProgressModal } from './SubmissionProgressModal'
 
+import { Stepper, type IStepItem } from '@/ui/components/stepper'
+import { MultiStepFormShell } from '@/ui/components/forms/MultiStepFormShell'
+import { useTranslation } from '@/contexts'
+
 interface CreateCondominiumFormProps {
   adminCompanyId?: string
   adminCompanyName?: string
 }
 
-export function CreateCondominiumForm({ adminCompanyId, adminCompanyName }: CreateCondominiumFormProps) {
+export function CreateCondominiumForm({
+  adminCompanyId,
+  adminCompanyName,
+}: CreateCondominiumFormProps) {
   const { t } = useTranslation()
 
   const wizard = useCreateCondominiumWizard({ adminCompanyId })
@@ -34,29 +38,29 @@ export function CreateCondominiumForm({ adminCompanyId, adminCompanyName }: Crea
     <FormProvider {...wizard.form}>
       <MultiStepFormShell
         currentStepIndex={wizard.currentStepIndex}
-        totalSteps={wizard.totalSteps}
         isFirstStep={wizard.isFirstStep}
         isLastStep={wizard.isLastStep}
-        isSubmitting={wizard.isSubmitting}
-        onPrevious={wizard.goToPreviousStep}
-        onNext={wizard.goToNextStep}
-        onSubmit={wizard.handleSubmit}
-        previousButtonText={t('common.previous')}
-        nextButtonText={t('common.next')}
-        submitButtonText={t('superadmin.condominiums.form.submit')}
-        submittingButtonText={t('superadmin.condominiums.form.submitting')}
         isSubmitDisabled={wizard.isSubmitting}
+        isSubmitting={wizard.isSubmitting}
         minHeight="auto"
+        nextButtonText={t('common.next')}
+        previousButtonText={t('common.previous')}
         stepIndicator={
           <Stepper<TWizardStep>
-            steps={steps}
             currentStep={wizard.currentStep}
+            steps={steps}
             onStepChange={wizard.goToStep}
           />
         }
+        submitButtonText={t('superadmin.condominiums.form.submit')}
+        submittingButtonText={t('superadmin.condominiums.form.submitting')}
+        totalSteps={wizard.totalSteps}
+        onNext={wizard.goToNextStep}
+        onPrevious={wizard.goToPreviousStep}
+        onSubmit={wizard.handleSubmit}
       >
         {wizard.currentStep === 'condominium' && (
-          <CondominiumInfoStep wizard={wizard} adminCompanyName={adminCompanyName} />
+          <CondominiumInfoStep adminCompanyName={adminCompanyName} wizard={wizard} />
         )}
         {wizard.currentStep === 'buildings' && <BuildingsStep wizard={wizard} />}
         {wizard.currentStep === 'units' && <UnitsStep wizard={wizard} />}
@@ -65,8 +69,8 @@ export function CreateCondominiumForm({ adminCompanyId, adminCompanyName }: Crea
 
       <SubmissionProgressModal
         state={wizard.submissionState}
-        onNavigate={wizard.navigateToCondominium}
         onClose={wizard.resetSubmission}
+        onNavigate={wizard.navigateToCondominium}
       />
     </FormProvider>
   )

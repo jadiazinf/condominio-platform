@@ -10,15 +10,12 @@ import {
   BuildingsRepository,
 } from '@database/repositories'
 import { GenerateQuotasForScheduleService } from '@packages/services'
+import { SYSTEM_USER_ID } from '@packages/domain'
 import { getBossClient } from '@worker/boss/client'
 import { QUEUES, type IAutoGenerateJobData, type INotifyJobData } from '@worker/boss/queues'
 import logger from '@packages/logger'
 
-const SYSTEM_USER_ID = '00000000-0000-0000-0000-000000000000'
-
-export async function processAutoGeneration(
-  job: PgBoss.Job<IAutoGenerateJobData>,
-): Promise<void> {
+export async function processAutoGeneration(job: PgBoss.Job<IAutoGenerateJobData>): Promise<void> {
   const start = Date.now()
   const { data } = job
 
@@ -52,7 +49,14 @@ export async function processAutoGeneration(
   logger.info({ count: dueSchedules.length }, '[AutoGen] Processing due schedules')
 
   const service = new GenerateQuotasForScheduleService(
-    db, quotasRepo, rulesRepo, formulasRepo, schedulesRepo, logsRepo, unitsRepo, buildingsRepo,
+    db,
+    quotasRepo,
+    rulesRepo,
+    formulasRepo,
+    schedulesRepo,
+    logsRepo,
+    unitsRepo,
+    buildingsRepo
   )
 
   let totalCreated = 0
@@ -80,7 +84,7 @@ export async function processAutoGeneration(
             quotasCreated: result.data.quotasCreated,
             quotasFailed: result.data.quotasFailed,
           },
-          '[AutoGen] Schedule processed',
+          '[AutoGen] Schedule processed'
         )
 
         // Update schedule tracking
@@ -103,27 +107,33 @@ export async function processAutoGeneration(
     }
   }
 
-  // Mark overdue quotas
+  // Mark overdue quotas (batch update instead of N+1)
   await markOverdueQuotas(quotasRepo, today)
 
   // Enqueue notification with results
-  const boss = getBossClient()
-  const notification: INotifyJobData = {
-    userId: SYSTEM_USER_ID,
-    category: totalFailed > 0 ? 'alert' : 'quota',
-    title: totalFailed > 0
-      ? 'Auto-generation completed with errors'
-      : 'Auto-generation completed',
-    body: `Quotas created: ${totalCreated}. Failed: ${totalFailed}.`,
-    data: { totalCreated, totalFailed, errors, schedulesProcessed: dueSchedules.length },
+  try {
+    const boss = getBossClient()
+    const notification: INotifyJobData = {
+      userId: SYSTEM_USER_ID,
+      category: totalFailed > 0 ? 'alert' : 'quota',
+      title:
+        totalFailed > 0 ? 'Auto-generation completed with errors' : 'Auto-generation completed',
+      body: `Quotas created: ${totalCreated}. Failed: ${totalFailed}.`,
+      data: { totalCreated, totalFailed, errors, schedulesProcessed: dueSchedules.length },
+    }
+    await boss.send(QUEUES.NOTIFY, notification)
+  } catch (notifyError) {
+    logger.error({ error: notifyError }, '[AutoGen] Failed to enqueue notification')
   }
-  await boss.send(QUEUES.NOTIFY, notification)
 
   const elapsed = ((Date.now() - start) / 1000).toFixed(1)
   logger.info({ elapsedSeconds: elapsed, totalCreated, totalFailed }, '[AutoGen] Cycle completed')
 }
 
-function calculateTargetPeriod(periodsInAdvance: number): { periodYear: number; periodMonth: number } {
+function calculateTargetPeriod(periodsInAdvance: number): {
+  periodYear: number
+  periodMonth: number
+} {
   const now = new Date()
   const target = new Date(now.getFullYear(), now.getMonth() + periodsInAdvance, 1)
   return {
@@ -159,15 +169,7 @@ function calculateNextGenerationDate(frequencyType: string, generationDay: numbe
 
 async function markOverdueQuotas(quotasRepo: QuotasRepository, today: string): Promise<void> {
   try {
-    const overdueQuotas = await quotasRepo.getOverdue(today)
-    let markedCount = 0
-
-    for (const quota of overdueQuotas) {
-      if (quota.status === 'pending') {
-        await quotasRepo.update(quota.id, { status: 'overdue' })
-        markedCount++
-      }
-    }
+    const markedCount = await quotasRepo.markOverdue(today)
 
     if (markedCount > 0) {
       logger.info({ count: markedCount }, '[AutoGen] Marked quotas as overdue')

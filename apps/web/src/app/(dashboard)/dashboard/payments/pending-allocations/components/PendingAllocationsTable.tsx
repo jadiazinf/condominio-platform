@@ -1,28 +1,10 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
-import {
-  AlertTriangle,
-  FileCheck,
-  Banknote,
-  Eye,
-  MoreVertical,
-} from 'lucide-react'
 import type { TPaymentPendingAllocation } from '@packages/domain'
 
-import { Typography } from '@/ui/components/typography'
-import { Button } from '@/ui/components/button'
-import { Chip } from '@/ui/components/chip'
-import { Spinner } from '@/ui/components/spinner'
-import { Select, type ISelectItem } from '@/ui/components/select'
-import { Textarea } from '@/ui/components/textarea'
-import { Table, type ITableColumn } from '@/ui/components/table'
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@/ui/components/modal'
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
-import { ClearFiltersButton } from '@/ui/components/filters'
-import { useTranslation } from '@/contexts'
-import { useToast } from '@/ui/components/toast'
+import { useState, useCallback, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
+import { AlertTriangle, FileCheck, Banknote, Eye, MoreVertical } from 'lucide-react'
 import {
   usePendingAllocations,
   allocatePending,
@@ -34,7 +16,33 @@ import {
   useQuotasPendingByUnit,
 } from '@packages/http-client'
 
-type TStatusFilter = 'all' | 'pending' | 'allocated' | 'refunded' | 'refund_pending' | 'refund_failed'
+import { Typography } from '@/ui/components/typography'
+import { Button } from '@/ui/components/button'
+import { Chip } from '@/ui/components/chip'
+import { Spinner } from '@/ui/components/spinner'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Textarea } from '@/ui/components/textarea'
+import { Table, type ITableColumn } from '@/ui/components/table'
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from '@/ui/components/modal'
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
+import { ClearFiltersButton } from '@/ui/components/filters'
+import { useTranslation } from '@/contexts'
+import { useToast } from '@/ui/components/toast'
+
+type TStatusFilter =
+  | 'all'
+  | 'pending'
+  | 'allocated'
+  | 'refunded'
+  | 'refund_pending'
+  | 'refund_failed'
 
 export function PendingAllocationsTable() {
   const { t } = useTranslation()
@@ -54,7 +62,9 @@ export function PendingAllocationsTable() {
   // Modal state
   const allocateModal = useDisclosure()
   const refundModal = useDisclosure()
-  const [selectedAllocation, setSelectedAllocation] = useState<TPaymentPendingAllocation | null>(null)
+  const [selectedAllocation, setSelectedAllocation] = useState<TPaymentPendingAllocation | null>(
+    null
+  )
   const [selectedQuotaId, setSelectedQuotaId] = useState('')
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -74,7 +84,10 @@ export function PendingAllocationsTable() {
       { key: 'pending', label: t('admin.payments.pendingAllocations.status.pending') },
       { key: 'allocated', label: t('admin.payments.pendingAllocations.status.allocated') },
       { key: 'refunded', label: t('admin.payments.pendingAllocations.status.refunded') },
-      { key: 'refund_pending', label: t('admin.payments.pendingAllocations.status.refund_pending') },
+      {
+        key: 'refund_pending',
+        label: t('admin.payments.pendingAllocations.status.refund_pending'),
+      },
       { key: 'refund_failed', label: t('admin.payments.pendingAllocations.status.refund_failed') },
     ],
     [t]
@@ -82,10 +95,9 @@ export function PendingAllocationsTable() {
 
   const quotaSelectItems: ISelectItem[] = useMemo(
     () =>
-      pendingQuotas.map((q) => {
-        const period = q.periodMonth
-          ? `${q.periodMonth}/${q.periodYear}`
-          : `${q.periodYear}`
+      pendingQuotas.map(q => {
+        const period = q.periodMonth ? `${q.periodMonth}/${q.periodYear}` : `${q.periodYear}`
+
         return {
           key: q.id,
           label: `${period} — Saldo: ${parseFloat(q.balance).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
@@ -109,12 +121,14 @@ export function PendingAllocationsTable() {
   const formatAmount = (amount: string | null) => {
     if (!amount) return '-'
     const num = parseFloat(amount)
+
     return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
   const formatDate = (date: Date | string | null) => {
     if (!date) return '-'
     const d = typeof date === 'string' ? new Date(date) : date
+
     return d.toLocaleDateString()
   }
 
@@ -171,20 +185,12 @@ export function PendingAllocationsTable() {
     (alloc: TPaymentPendingAllocation, columnKey: string) => {
       switch (columnKey) {
         case 'payment':
-          return (
-            <span className="text-sm font-medium">
-              {alloc.paymentId.slice(0, 8)}...
-            </span>
-          )
+          return <span className="text-sm font-medium">{alloc.paymentId.slice(0, 8)}...</span>
         case 'amount':
-          return (
-            <span className="text-sm font-medium">
-              {formatAmount(alloc.pendingAmount)}
-            </span>
-          )
+          return <span className="text-sm font-medium">{formatAmount(alloc.pendingAmount)}</span>
         case 'status':
           return (
-            <Chip color={getAllocationStatusColor(alloc.status)} variant="flat" size="sm">
+            <Chip color={getAllocationStatusColor(alloc.status)} size="sm" variant="flat">
               {t(`admin.payments.pendingAllocations.status.${alloc.status}`)}
             </Chip>
           )
@@ -192,12 +198,14 @@ export function PendingAllocationsTable() {
           return <span className="text-sm">{formatDate(alloc.createdAt)}</span>
         case 'actions': {
           const canAct = alloc.status === 'pending' || alloc.status === 'refund_failed'
+
           if (!canAct) return null
+
           return (
             <div onClick={e => e.stopPropagation()}>
               <Dropdown>
                 <DropdownTrigger>
-                  <Button isIconOnly variant="light" size="sm">
+                  <Button isIconOnly size="sm" variant="light">
                     <MoreVertical size={16} />
                   </Button>
                 </DropdownTrigger>
@@ -266,8 +274,8 @@ export function PendingAllocationsTable() {
           className="w-full sm:w-48"
           items={statusFilterItems}
           value={statusFilter}
-          onChange={(key) => key && setStatusFilter(key as TStatusFilter)}
           variant="bordered"
+          onChange={key => key && setStatusFilter(key as TStatusFilter)}
         />
         {statusFilter !== 'pending' && (
           <ClearFiltersButton onClear={() => setStatusFilter('pending')} />
@@ -292,25 +300,25 @@ export function PendingAllocationsTable() {
       ) : (
         <Table<TPaymentPendingAllocation>
           aria-label={t('admin.payments.pendingAllocations.title')}
-          columns={columns}
-          rows={allocations}
-          renderCell={renderCell}
-          onRowClick={(alloc) => router.push(`/dashboard/payments/${alloc.paymentId}`)}
           classNames={{
             tr: 'cursor-pointer transition-colors hover:bg-default-100',
           }}
+          columns={columns}
+          renderCell={renderCell}
+          rows={allocations}
+          onRowClick={alloc => router.push(`/dashboard/payments/${alloc.paymentId}`)}
         />
       )}
 
       {/* ── Modal: Allocate to Quota ──────────────────────────────────────── */}
-      <Modal isOpen={allocateModal.isOpen} onOpenChange={allocateModal.onOpenChange} size="lg">
+      <Modal isOpen={allocateModal.isOpen} size="lg" onOpenChange={allocateModal.onOpenChange}>
         <ModalContent>
           <ModalHeader>{t('admin.payments.pendingAllocations.allocateModal.title')}</ModalHeader>
           <ModalBody>
             <div className="space-y-4">
               {selectedAllocation && (
                 <div className="rounded-md bg-default-100 p-3">
-                  <Typography variant="body2" color="muted">
+                  <Typography color="muted" variant="body2">
                     {t('admin.payments.pendingAllocations.table.amount')}
                   </Typography>
                   <Typography variant="h4">
@@ -324,15 +332,15 @@ export function PendingAllocationsTable() {
                 items={quotaSelectItems}
                 label={t('admin.payments.pendingAllocations.allocateModal.selectQuota')}
                 value={selectedQuotaId}
-                onChange={(key) => setSelectedQuotaId(key ?? '')}
+                onChange={key => setSelectedQuotaId(key ?? '')}
               />
 
               <Textarea
                 label={t('admin.payments.pendingAllocations.allocateModal.notes')}
+                minRows={2}
                 placeholder={t('admin.payments.pendingAllocations.allocateModal.notesPlaceholder')}
                 value={notes}
                 onValueChange={setNotes}
-                minRows={2}
               />
             </div>
           </ModalBody>
@@ -353,17 +361,17 @@ export function PendingAllocationsTable() {
       </Modal>
 
       {/* ── Modal: Refund ─────────────────────────────────────────────────── */}
-      <Modal isOpen={refundModal.isOpen} onOpenChange={refundModal.onOpenChange} size="md">
+      <Modal isOpen={refundModal.isOpen} size="md" onOpenChange={refundModal.onOpenChange}>
         <ModalContent>
           <ModalHeader>{t('admin.payments.pendingAllocations.refundModal.title')}</ModalHeader>
           <ModalBody>
             <Textarea
               isRequired
               label={t('admin.payments.pendingAllocations.refundModal.notes')}
+              minRows={3}
               placeholder={t('admin.payments.pendingAllocations.refundModal.notesPlaceholder')}
               value={notes}
               onValueChange={setNotes}
-              minRows={3}
             />
           </ModalBody>
           <ModalFooter>
@@ -391,11 +399,17 @@ export function PendingAllocationsTable() {
 
 function getAllocationStatusColor(status: string) {
   switch (status) {
-    case 'pending': return 'warning' as const
-    case 'allocated': return 'success' as const
-    case 'refunded': return 'default' as const
-    case 'refund_pending': return 'secondary' as const
-    case 'refund_failed': return 'danger' as const
-    default: return 'default' as const
+    case 'pending':
+      return 'warning' as const
+    case 'allocated':
+      return 'success' as const
+    case 'refunded':
+      return 'default' as const
+    case 'refund_pending':
+      return 'secondary' as const
+    case 'refund_failed':
+      return 'danger' as const
+    default:
+      return 'default' as const
   }
 }

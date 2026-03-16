@@ -19,13 +19,22 @@ import { GenerateDebtorsReportService } from '@services/reports/generate-debtors
 const AccountStatementQuerySchema = z.object({
   unitId: z.string().uuid(),
   format: z.enum(['csv', 'pdf']).default('csv'),
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
 })
 
 const DebtorsReportQuerySchema = z.object({
   format: z.enum(['csv', 'pdf']).default('csv'),
-  asOfDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  asOfDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
 })
 
 type TAccountStatementQuery = z.infer<typeof AccountStatementQuerySchema>
@@ -47,10 +56,18 @@ export class ReportsController {
     quotasRepo: QuotasRepository,
     paymentsRepo: PaymentsRepository,
     unitsRepo: UnitsRepository,
-    buildingsRepo: BuildingsRepository,
+    buildingsRepo: BuildingsRepository
   ) {
-    this.accountStatementService = new GenerateAccountStatementService(quotasRepo, paymentsRepo, unitsRepo)
-    this.debtorsReportService = new GenerateDebtorsReportService(quotasRepo, unitsRepo, buildingsRepo)
+    this.accountStatementService = new GenerateAccountStatementService(
+      quotasRepo,
+      paymentsRepo,
+      unitsRepo
+    )
+    this.debtorsReportService = new GenerateDebtorsReportService(
+      quotasRepo,
+      unitsRepo,
+      buildingsRepo
+    )
   }
 
   /**

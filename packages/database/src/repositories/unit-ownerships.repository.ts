@@ -51,13 +51,49 @@ export class UnitOwnershipsRepository
   }
 
   /**
+   * Retrieves ownerships scoped to a condominium via unit → building → condominium.
+   */
+  async listByCondominiumId(condominiumId: string): Promise<TUnitOwnership[]> {
+    const condominiumUnitIds = this.db
+      .select({ id: units.id })
+      .from(units)
+      .innerJoin(buildings, eq(units.buildingId, buildings.id))
+      .where(eq(buildings.condominiumId, condominiumId))
+
+    const results = await this.db
+      .select()
+      .from(unitOwnerships)
+      .where(
+        and(inArray(unitOwnerships.unitId, condominiumUnitIds), eq(unitOwnerships.isActive, true))
+      )
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
    * Retrieves ownerships by unit.
    * Derives isRegistered from user_invitations.status (matched by userId + unitId):
    * - No invitation → directly added user → verified
    * - Invitation with status='accepted' → verified
    * - Invitation with any other status → not verified
    */
-  async getByUnitId(unitId: string, includeInactive = false): Promise<TUnitOwnership[]> {
+  async getByUnitId(
+    unitId: string,
+    includeInactive = false,
+    condominiumId?: string
+  ): Promise<TUnitOwnership[]> {
+    const conditions = [eq(unitOwnerships.unitId, unitId)]
+
+    if (condominiumId) {
+      const condominiumUnitIds = this.db
+        .select({ id: units.id })
+        .from(units)
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(eq(buildings.condominiumId, condominiumId))
+
+      conditions.push(inArray(unitOwnerships.unitId, condominiumUnitIds))
+    }
+
     const results = await this.db
       .select({
         ownership: unitOwnerships,
@@ -75,7 +111,7 @@ export class UnitOwnershipsRepository
       })
       .from(unitOwnerships)
       .leftJoin(users, eq(unitOwnerships.userId, users.id))
-      .where(eq(unitOwnerships.unitId, unitId))
+      .where(and(...conditions))
 
     const mapped = results.map(row => {
       const entity = this.mapToEntity(row.ownership)
@@ -98,12 +134,7 @@ export class UnitOwnershipsRepository
           status: userInvitations.status,
         })
         .from(userInvitations)
-        .where(
-          and(
-            inArray(userInvitations.userId, userIds),
-            eq(userInvitations.unitId, unitId)
-          )
-        )
+        .where(and(inArray(userInvitations.userId, userIds), eq(userInvitations.unitId, unitId)))
 
       // Build a map: userId → has any accepted invitation (by status)
       const invitationMap = new Map<string, boolean>()
@@ -137,11 +168,27 @@ export class UnitOwnershipsRepository
   /**
    * Retrieves ownerships by user.
    */
-  async getByUserId(userId: string, includeInactive = false): Promise<TUnitOwnership[]> {
+  async getByUserId(
+    userId: string,
+    includeInactive = false,
+    condominiumId?: string
+  ): Promise<TUnitOwnership[]> {
+    const conditions = [eq(unitOwnerships.userId, userId)]
+
+    if (condominiumId) {
+      const condominiumUnitIds = this.db
+        .select({ id: units.id })
+        .from(units)
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(eq(buildings.condominiumId, condominiumId))
+
+      conditions.push(inArray(unitOwnerships.unitId, condominiumUnitIds))
+    }
+
     const results = await this.db
       .select()
       .from(unitOwnerships)
-      .where(eq(unitOwnerships.userId, userId))
+      .where(and(...conditions))
 
     const mapped = results.map(record => this.mapToEntity(record))
 
@@ -155,11 +202,26 @@ export class UnitOwnershipsRepository
   /**
    * Retrieves ownership by unit and user.
    */
-  async getByUnitAndUser(unitId: string, userId: string): Promise<TUnitOwnership | null> {
+  async getByUnitAndUser(
+    unitId: string,
+    userId: string,
+    condominiumId?: string
+  ): Promise<TUnitOwnership | null> {
+    const conditions = [eq(unitOwnerships.unitId, unitId), eq(unitOwnerships.userId, userId)]
+
+    if (condominiumId) {
+      const condominiumUnitIds = this.db
+        .select({ id: units.id })
+        .from(units)
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(eq(buildings.condominiumId, condominiumId))
+      conditions.push(inArray(unitOwnerships.unitId, condominiumUnitIds))
+    }
+
     const results = await this.db
       .select()
       .from(unitOwnerships)
-      .where(and(eq(unitOwnerships.unitId, unitId), eq(unitOwnerships.userId, userId)))
+      .where(and(...conditions))
       .limit(1)
 
     if (results.length === 0) {
@@ -235,17 +297,29 @@ export class UnitOwnershipsRepository
   /**
    * Retrieves the primary residence for a user.
    */
-  async getPrimaryResidenceByUser(userId: string): Promise<TUnitOwnership | null> {
+  async getPrimaryResidenceByUser(
+    userId: string,
+    condominiumId?: string
+  ): Promise<TUnitOwnership | null> {
+    const conditions = [
+      eq(unitOwnerships.userId, userId),
+      eq(unitOwnerships.isPrimaryResidence, true),
+      eq(unitOwnerships.isActive, true),
+    ]
+
+    if (condominiumId) {
+      const condominiumUnitIds = this.db
+        .select({ id: units.id })
+        .from(units)
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(eq(buildings.condominiumId, condominiumId))
+      conditions.push(inArray(unitOwnerships.unitId, condominiumUnitIds))
+    }
+
     const results = await this.db
       .select()
       .from(unitOwnerships)
-      .where(
-        and(
-          eq(unitOwnerships.userId, userId),
-          eq(unitOwnerships.isPrimaryResidence, true),
-          eq(unitOwnerships.isActive, true)
-        )
-      )
+      .where(and(...conditions))
       .limit(1)
 
     if (results.length === 0) {

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+
 import { AuthPageContent } from '../components/AuthPageContent'
 
 export const metadata: Metadata = {

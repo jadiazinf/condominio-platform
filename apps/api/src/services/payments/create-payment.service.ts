@@ -9,6 +9,7 @@ import type {
 } from '@database/repositories'
 import type { PaymentGatewayManager } from '../payment-gateways/gateway-manager'
 import { type TServiceResult, success, failure } from '../base.service'
+import { parseAmount } from '@packages/utils/money'
 import logger from '@packages/logger'
 
 export interface ICreatePaymentInput {
@@ -48,7 +49,7 @@ export class CreatePaymentService {
     private readonly currenciesRepository: CurrenciesRepository,
     private readonly paymentGatewaysRepository?: PaymentGatewaysRepository,
     private readonly gatewayTransactionsRepository?: GatewayTransactionsRepository,
-    private readonly gatewayManager?: PaymentGatewayManager,
+    private readonly gatewayManager?: PaymentGatewayManager
   ) {}
 
   async execute(input: ICreatePaymentInput): Promise<TServiceResult<ICreatePaymentOutput>> {
@@ -80,24 +81,21 @@ export class CreatePaymentService {
       if (existing.length > 0) {
         return failure(
           `Ya existe un pago registrado con la referencia "${input.receiptNumber}". ` +
-          `Si este es un pago diferente, por favor verifica el número de referencia.`,
+            `Si este es un pago diferente, por favor verifica el número de referencia.`,
           'CONFLICT'
         )
       }
     }
 
     // 5. Validate amount is positive
-    const amount = parseFloat(input.amount)
-    if (isNaN(amount) || amount <= 0) {
+    const amount = parseAmount(input.amount)
+    if (amount <= 0) {
       return failure('Amount must be a positive number', 'BAD_REQUEST')
     }
 
     // 6. Validate gateway payment method requires a paymentGatewayId
     if (input.paymentMethod === 'gateway' && !input.paymentGatewayId) {
-      return failure(
-        'Payment method "gateway" requires a paymentGatewayId',
-        'BAD_REQUEST'
-      )
+      return failure('Payment method "gateway" requires a paymentGatewayId', 'BAD_REQUEST')
     }
 
     // 8. Determine initial status based on payment method
@@ -157,7 +155,11 @@ export class CreatePaymentService {
           const configValidation = adapter.validateConfiguration(config)
           if (!configValidation.valid) {
             logger.warn(
-              { paymentId: payment.id, gatewayType: gateway.gatewayType, missingFields: configValidation.missingFields },
+              {
+                paymentId: payment.id,
+                gatewayType: gateway.gatewayType,
+                missingFields: configValidation.missingFields,
+              },
               '[CreatePayment] Gateway configuration incomplete — skipping initiation'
             )
           } else {

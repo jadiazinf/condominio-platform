@@ -1,7 +1,8 @@
 'use client'
 
-import { Button } from '@/ui/components/button'
 import { XCircle } from 'lucide-react'
+
+import { Button } from '@/ui/components/button'
 
 interface ITicketCloseActionProps {
   label: string

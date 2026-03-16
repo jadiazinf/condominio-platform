@@ -1,12 +1,12 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useDeleteBuilding } from '@packages/http-client/hooks'
 
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
 import { Typography } from '@/ui/components/typography'
 import { useToast } from '@/ui/components/toast'
-import { useDeleteBuilding } from '@packages/http-client/hooks'
 
 interface IDeleteBuildingModalProps {
   isOpen: boolean
@@ -57,13 +57,13 @@ export function DeleteBuildingModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="md">
+    <Modal isOpen={isOpen} size="md" onClose={handleClose}>
       <ModalContent>
         <ModalHeader>
           <Typography variant="h4">{translations.title}</Typography>
         </ModalHeader>
         <ModalBody>
-          <Typography variant="body1" className="mb-2">
+          <Typography className="mb-2" variant="body1">
             {translations.confirm} <strong>{buildingName}</strong>?
           </Typography>
           <Typography color="danger" variant="body2">
@@ -71,10 +71,10 @@ export function DeleteBuildingModal({
           </Typography>
         </ModalBody>
         <ModalFooter>
-          <Button variant="bordered" onPress={handleClose} isDisabled={deleteMutation.isPending}>
+          <Button isDisabled={deleteMutation.isPending} variant="bordered" onPress={handleClose}>
             {translations.cancel}
           </Button>
-          <Button color="danger" onPress={handleDelete} isLoading={deleteMutation.isPending}>
+          <Button color="danger" isLoading={deleteMutation.isPending} onPress={handleDelete}>
             {deleteMutation.isPending ? translations.deleting : translations.delete}
           </Button>
         </ModalFooter>

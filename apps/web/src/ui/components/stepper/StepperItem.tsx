@@ -1,15 +1,42 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
-import { Check } from 'lucide-react'
-import { cn } from '@/ui/utils'
-import { StepperConnector } from './StepperConnector'
 import type { IStepperItemProps, TStepperColor, TStepperSize, TStepStatus } from './stepper.types'
 
-const sizeMap: Record<TStepperSize, { circle: string; circleH: string; icon: number; text: string; title: string; desc: string }> = {
-  sm: { circle: 'h-6 w-6', circleH: 'h-6', icon: 12, text: 'text-xs', title: 'text-xs', desc: 'text-[10px]' },
-  md: { circle: 'h-8 w-8', circleH: 'h-8', icon: 14, text: 'text-sm', title: 'text-sm', desc: 'text-xs' },
-  lg: { circle: 'h-10 w-10', circleH: 'h-10', icon: 16, text: 'text-base', title: 'text-base', desc: 'text-sm' },
+import { motion, AnimatePresence } from 'framer-motion'
+import { Check } from 'lucide-react'
+
+import { StepperConnector } from './StepperConnector'
+
+import { cn } from '@/ui/utils'
+
+const sizeMap: Record<
+  TStepperSize,
+  { circle: string; circleH: string; icon: number; text: string; title: string; desc: string }
+> = {
+  sm: {
+    circle: 'h-6 w-6',
+    circleH: 'h-6',
+    icon: 12,
+    text: 'text-xs',
+    title: 'text-xs',
+    desc: 'text-[10px]',
+  },
+  md: {
+    circle: 'h-8 w-8',
+    circleH: 'h-8',
+    icon: 14,
+    text: 'text-sm',
+    title: 'text-sm',
+    desc: 'text-xs',
+  },
+  lg: {
+    circle: 'h-10 w-10',
+    circleH: 'h-10',
+    icon: 16,
+    text: 'text-base',
+    title: 'text-base',
+    desc: 'text-sm',
+  },
 }
 
 // Completed = solid fill + check. Current/upcoming = bordered outline.
@@ -81,7 +108,7 @@ export function StepperItem<T extends string>({
       className={cn(
         'flex shrink-0 items-center justify-center rounded-full transition-colors',
         sizes.circle,
-        indicatorColors[color][status],
+        indicatorColors[color][status]
       )}
     >
       {disableAnimation ? (
@@ -90,11 +117,11 @@ export function StepperItem<T extends string>({
         <AnimatePresence mode="wait">
           <motion.span
             key={status === 'completed' ? 'check' : 'number'}
-            initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.5, opacity: 0 }}
-            transition={{ duration: 0.15 }}
             className="flex items-center justify-center"
+            exit={{ scale: 0.5, opacity: 0 }}
+            initial={{ scale: 0.5, opacity: 0 }}
+            transition={{ duration: 0.15 }}
           >
             {indicatorContent}
           </motion.span>
@@ -107,10 +134,14 @@ export function StepperItem<T extends string>({
     <div
       className={cn(
         isHorizontal ? 'text-center' : 'text-left',
-        hideLabelsOnMobile && 'hidden sm:block',
+        hideLabelsOnMobile && 'hidden sm:block'
       )}
     >
-      <div className={cn(sizes.title, titleColors[status], isHorizontal && 'break-words line-clamp-2')}>{step.title}</div>
+      <div
+        className={cn(sizes.title, titleColors[status], isHorizontal && 'break-words line-clamp-2')}
+      >
+        {step.title}
+      </div>
       {step.description && (
         <div className={cn(sizes.desc, 'mt-0.5 text-default-400')}>{step.description}</div>
       )}
@@ -137,12 +168,12 @@ export function StepperItem<T extends string>({
         {/* Step column: circle + label centered together */}
         <div
           {...clickProps}
+          aria-current={status === 'current' ? 'step' : undefined}
           className={cn(
             'flex min-w-0 flex-col items-center gap-1.5 transition-opacity',
             canClick && 'cursor-pointer hover:opacity-80',
-            !canClick && 'cursor-default',
+            !canClick && 'cursor-default'
           )}
-          aria-current={status === 'current' ? 'step' : undefined}
         >
           {indicator}
           {labels}
@@ -151,10 +182,10 @@ export function StepperItem<T extends string>({
         {showConnector && (
           <div className={cn('flex flex-1 items-center', sizes.circleH)}>
             <StepperConnector
-              isCompleted={isConnectorCompleted}
               color={color}
-              orientation={orientation}
               disableAnimation={disableAnimation}
+              isCompleted={isConnectorCompleted}
+              orientation={orientation}
             />
           </div>
         )}
@@ -167,22 +198,22 @@ export function StepperItem<T extends string>({
     <div className={cn('flex flex-col', isDisabled && 'opacity-50')}>
       <div
         {...clickProps}
+        aria-current={status === 'current' ? 'step' : undefined}
         className={cn(
           'flex items-center gap-3 transition-opacity',
           canClick && 'cursor-pointer hover:opacity-80',
-          !canClick && 'cursor-default',
+          !canClick && 'cursor-default'
         )}
-        aria-current={status === 'current' ? 'step' : undefined}
       >
         {indicator}
         {labels}
       </div>
       {showConnector && (
         <StepperConnector
-          isCompleted={isConnectorCompleted}
           color={color}
-          orientation={orientation}
           disableAnimation={disableAnimation}
+          isCompleted={isConnectorCompleted}
+          orientation={orientation}
         />
       )}
     </div>

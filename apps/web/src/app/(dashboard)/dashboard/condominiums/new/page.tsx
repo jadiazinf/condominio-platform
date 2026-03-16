@@ -2,12 +2,12 @@ import { Suspense } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { redirect } from 'next/navigation'
 
+import { CreateCondominiumForm } from './components'
+
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
-
-import { CreateCondominiumForm } from './components'
 
 async function CreateCondominiumContent() {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
@@ -15,7 +15,9 @@ async function CreateCondominiumContent() {
   const isSuperadmin = session.superadmin?.isActive
   const isAdmin = session.activeRole === 'management_company'
   const adminCompanyId = isAdmin ? session.managementCompanies?.[0]?.managementCompanyId : undefined
-  const adminCompanyName = isAdmin ? session.managementCompanies?.[0]?.managementCompanyName : undefined
+  const adminCompanyName = isAdmin
+    ? session.managementCompanies?.[0]?.managementCompanyName
+    : undefined
 
   // Only superadmins and management company admins can access this page
   if (!isSuperadmin && !isAdmin) {
@@ -28,7 +30,7 @@ async function CreateCondominiumContent() {
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header */}
       <div className="flex items-start gap-4">
-        <Button className="mt-1" href="/dashboard/condominiums" isIconOnly variant="flat">
+        <Button isIconOnly className="mt-1" href="/dashboard/condominiums" variant="flat">
           <ArrowLeft size={18} />
         </Button>
         <div>
@@ -40,10 +42,7 @@ async function CreateCondominiumContent() {
       </div>
 
       {/* Form */}
-      <CreateCondominiumForm
-        adminCompanyId={adminCompanyId}
-        adminCompanyName={adminCompanyName}
-      />
+      <CreateCondominiumForm adminCompanyId={adminCompanyId} adminCompanyName={adminCompanyName} />
     </div>
   )
 }

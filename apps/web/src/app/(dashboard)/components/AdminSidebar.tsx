@@ -2,9 +2,10 @@
 
 import { useRouter, usePathname } from 'next/navigation'
 
+import { adminSidebarItems } from '../config/sidebar-items'
+
 import { Sidebar, type TSidebarItem } from '@/ui/components/sidebar'
 import { useTranslation } from '@/contexts'
-import { adminSidebarItems } from '../config/sidebar-items'
 
 interface AdminSidebarProps {
   isCompact?: boolean

@@ -1,11 +1,23 @@
 'use client'
 
-import { Link } from '@/ui/components/link'
-import { usePathname } from 'next/navigation'
-import { cn } from '@/ui/utils'
-import { Info, Building2, Users, ToggleLeft, Receipt, CreditCard, FileText, UserPlus, Wrench, PiggyBank } from 'lucide-react'
-
 import type { TCondominiumDetailIconName } from '../config/sidebar-items'
+
+import { usePathname } from 'next/navigation'
+import {
+  Info,
+  Building2,
+  Users,
+  ToggleLeft,
+  Receipt,
+  CreditCard,
+  FileText,
+  UserPlus,
+  Wrench,
+  PiggyBank,
+} from 'lucide-react'
+
+import { Link } from '@/ui/components/link'
+import { cn } from '@/ui/utils'
 
 const ICONS = {
   info: Info,

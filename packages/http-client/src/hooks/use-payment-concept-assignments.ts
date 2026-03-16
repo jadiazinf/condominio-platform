@@ -1,8 +1,5 @@
 import { useApiQuery, useApiMutation } from './use-api-query'
-import type {
-  TPaymentConceptAssignment,
-  TPaymentConceptAssignmentUpdate,
-} from '@packages/domain'
+import type { TPaymentConceptAssignment, TPaymentConceptAssignmentUpdate } from '@packages/domain'
 import type { TApiDataResponse } from '../types/api-responses'
 import type { ApiResponse } from '../types/http'
 import { paymentConceptKeys } from './use-payment-concepts'
@@ -74,13 +71,9 @@ export function usePaymentConceptAssignments(options: IUsePaymentConceptAssignme
   })
 }
 
-export function useCreateAssignment(
-  companyId: string,
-  options?: ICreateAssignmentOptions
-) {
+export function useCreateAssignment(companyId: string, options?: ICreateAssignmentOptions) {
   return useApiMutation<TApiDataResponse<TPaymentConceptAssignment>, ICreateAssignmentVariables>({
-    path: (variables) =>
-      `/${companyId}/me/payment-concepts/${variables.conceptId}/assignments`,
+    path: variables => `/${companyId}/me/payment-concepts/${variables.conceptId}/assignments`,
     method: 'POST',
     onSuccess: options?.onSuccess,
     onError: options?.onError,
@@ -94,7 +87,7 @@ export function useUpdateAssignment(
   options?: IUpdateAssignmentOptions
 ) {
   return useApiMutation<TApiDataResponse<TPaymentConceptAssignment>, IUpdateAssignmentVariables>({
-    path: (variables) =>
+    path: variables =>
       `/${companyId}/me/payment-concepts/${conceptId}/assignments/${variables.assignmentId}`,
     method: 'PATCH',
     onSuccess: options?.onSuccess,
@@ -108,8 +101,11 @@ export function useDeactivateAssignment(
   conceptId: string,
   options?: IDeactivateAssignmentOptions
 ) {
-  return useApiMutation<TApiDataResponse<TPaymentConceptAssignment>, IDeactivateAssignmentVariables>({
-    path: (variables) =>
+  return useApiMutation<
+    TApiDataResponse<TPaymentConceptAssignment>,
+    IDeactivateAssignmentVariables
+  >({
+    path: variables =>
       `/${companyId}/me/payment-concepts/${conceptId}/assignments/${variables.assignmentId}/deactivate`,
     method: 'PATCH',
     onSuccess: options?.onSuccess,

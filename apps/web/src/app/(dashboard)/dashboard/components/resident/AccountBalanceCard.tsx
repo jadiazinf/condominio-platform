@@ -1,7 +1,8 @@
+import { Wallet, TrendingUp, TrendingDown, CreditCard } from 'lucide-react'
+
 import { Card, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
-import { Wallet, TrendingUp, TrendingDown, CreditCard } from 'lucide-react'
 
 interface AccountBalanceCardProps {
   totalPending: number

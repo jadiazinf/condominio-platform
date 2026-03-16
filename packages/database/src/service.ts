@@ -29,7 +29,9 @@ export class DatabaseService {
 
   public static getInstance(): DatabaseService {
     if (!DatabaseService.instance) {
-      throw new Error('DatabaseService not initialized. Call createInstance(connectionString) first.')
+      throw new Error(
+        'DatabaseService not initialized. Call createInstance(connectionString) first.'
+      )
     }
     return DatabaseService.instance
   }

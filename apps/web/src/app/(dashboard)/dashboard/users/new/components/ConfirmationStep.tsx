@@ -1,11 +1,13 @@
 'use client'
 
+import type { TUserType } from '../hooks/useCreateUserForm'
+
+import { CheckCircle2, XCircle } from 'lucide-react'
+
 import { Tabs, Tab } from '@/ui/components/tabs'
 import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
-import { CheckCircle2, XCircle } from 'lucide-react'
 import { useTranslation } from '@/contexts'
-import type { TUserType } from '../hooks/useCreateUserForm'
 
 interface ICondominium {
   id: string
@@ -87,38 +89,33 @@ export function ConfirmationStep({
   }
 
   // Count enabled permissions
-  const enabledPermissionsCount = permissions?.reduce(
-    (count, module) =>
-      count + module.permissions.filter(p => p.granted).length,
-    0
-  ) ?? 0
+  const enabledPermissionsCount =
+    permissions?.reduce(
+      (count, module) => count + module.permissions.filter(p => p.granted).length,
+      0
+    ) ?? 0
 
-  const totalPermissionsCount = permissions?.reduce(
-    (count, module) => count + module.permissions.length,
-    0
-  ) ?? 0
+  const totalPermissionsCount =
+    permissions?.reduce((count, module) => count + module.permissions.length, 0) ?? 0
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <Typography variant="subtitle1" className="font-semibold">
+        <Typography className="font-semibold" variant="subtitle1">
           {t('superadmin.companies.form.confirmation.title')}
         </Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
+        <Typography className="mt-1" color="muted" variant="body2">
           {t('superadmin.companies.form.confirmation.description')}
         </Typography>
       </div>
 
       {/* Tabs */}
-      <Tabs aria-label="Confirmation tabs" variant="underlined" color="primary">
+      <Tabs aria-label="Confirmation tabs" color="primary" variant="underlined">
         {/* Basic Information Tab */}
         <Tab key="basic" title={t('superadmin.users.create.steps.basic')}>
           <div className="space-y-4 pt-4">
-            <InfoRow
-              label={t('superadmin.users.create.fields.email')}
-              value={basicInfo.email}
-            />
+            <InfoRow label={t('superadmin.users.create.fields.email')} value={basicInfo.email} />
             <InfoRow
               label={t('superadmin.users.create.fields.firstName')}
               value={basicInfo.firstName}
@@ -211,7 +208,7 @@ export function ConfirmationStep({
               {/* Permission Summary */}
               <div className="rounded-lg border border-default-200 p-4">
                 <div className="flex items-center justify-between">
-                  <Typography variant="subtitle2" className="font-medium">
+                  <Typography className="font-medium" variant="subtitle2">
                     {t('superadmin.users.create.permissions')}
                   </Typography>
                   <Chip color={enabledPermissionsCount > 0 ? 'success' : 'default'} size="sm">
@@ -222,16 +219,13 @@ export function ConfirmationStep({
 
               {/* Permissions by Module */}
               <div className="space-y-3">
-                {permissions.map((module) => {
+                {permissions.map(module => {
                   const enabledInModule = module.permissions.filter(p => p.granted).length
 
                   return (
-                    <div
-                      key={module.module}
-                      className="rounded-lg border border-default-200 p-4"
-                    >
+                    <div key={module.module} className="rounded-lg border border-default-200 p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <Typography variant="subtitle2" className="font-medium">
+                        <Typography className="font-medium" variant="subtitle2">
                           {getModuleLabel(module.module)}
                         </Typography>
                         <Chip size="sm" variant="flat">
@@ -240,11 +234,8 @@ export function ConfirmationStep({
                       </div>
 
                       <div className="space-y-2">
-                        {module.permissions.map((permission) => (
-                          <div
-                            key={permission.id}
-                            className="flex items-start gap-2 text-sm"
-                          >
+                        {module.permissions.map(permission => (
+                          <div key={permission.id} className="flex items-start gap-2 text-sm">
                             {permission.granted ? (
                               <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />
                             ) : (
@@ -252,17 +243,13 @@ export function ConfirmationStep({
                             )}
                             <div className="flex-1 min-w-0">
                               <Typography
-                                variant="body2"
                                 className={permission.granted ? '' : 'text-default-400'}
+                                variant="body2"
                               >
                                 {permission.name || getActionLabel(permission.action)}
                               </Typography>
                               {permission.description && (
-                                <Typography
-                                  color="muted"
-                                  variant="caption"
-                                  className="mt-0.5"
-                                >
+                                <Typography className="mt-0.5" color="muted" variant="caption">
                                   {permission.description}
                                 </Typography>
                               )}
@@ -281,7 +268,7 @@ export function ConfirmationStep({
 
       {/* Warning about invitation */}
       <div className="rounded-lg bg-warning-50 border border-warning-200 p-4">
-        <Typography variant="body2" className="text-warning-800">
+        <Typography className="text-warning-800" variant="body2">
           {t('superadmin.companies.form.confirmation.warning')}
         </Typography>
       </div>
@@ -293,14 +280,10 @@ export function ConfirmationStep({
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <Typography color="muted" variant="caption" className="uppercase tracking-wide">
+      <Typography className="uppercase tracking-wide" color="muted" variant="caption">
         {label}
       </Typography>
-      {typeof value === 'string' ? (
-        <Typography variant="body1">{value}</Typography>
-      ) : (
-        value
-      )}
+      {typeof value === 'string' ? <Typography variant="body1">{value}</Typography> : value}
     </div>
   )
 }

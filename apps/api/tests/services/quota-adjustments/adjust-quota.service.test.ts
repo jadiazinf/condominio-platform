@@ -13,7 +13,13 @@ type TMockQuotaAdjustmentsRepository = {
     quotaId: string
     previousAmount: string
     newAmount: string
-    adjustmentType: 'discount' | 'increase' | 'correction' | 'waiver'
+    adjustmentType:
+      | 'discount'
+      | 'increase'
+      | 'correction'
+      | 'waiver'
+      | 'exoneration'
+      | 'credit_note'
     reason: string
     createdBy: string
   }) => Promise<TQuotaAdjustment>
@@ -47,6 +53,7 @@ describe('AdjustQuotaService', function () {
     issueDate: '2025-01-01',
     dueDate: '2025-01-10',
     status: 'pending',
+    adjustmentsTotal: '0',
     paidAmount: '0',
     balance: '50.00',
     notes: null,
@@ -77,6 +84,14 @@ describe('AdjustQuotaService', function () {
     balance: '55.00',
   }
 
+  const exoneratedQuota: TQuota = {
+    ...pendingQuota,
+    id: '550e8400-e29b-41d4-a716-446655440005',
+    status: 'exonerated',
+    baseAmount: '0',
+    balance: '0',
+  }
+
   let lastCreatedAdjustment: TQuotaAdjustment | null = null
   let lastUpdatedQuota: { id: string; data: Partial<TQuota> } | null = null
 
@@ -90,6 +105,7 @@ describe('AdjustQuotaService', function () {
         if (id === partiallyPaidQuota.id) return partiallyPaidQuota
         if (id === cancelledQuota.id) return cancelledQuota
         if (id === overdueQuota.id) return overdueQuota
+        if (id === exoneratedQuota.id) return exoneratedQuota
         return null
       },
       update: async function (id: string, data: Partial<TQuota>) {
@@ -98,7 +114,9 @@ describe('AdjustQuotaService', function () {
         if (!quota) return null
         return { ...quota, ...data }
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     mockQuotaAdjustmentsRepository = {
@@ -116,7 +134,9 @@ describe('AdjustQuotaService', function () {
         lastCreatedAdjustment = adjustment
         return adjustment
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     service = new AdjustQuotaService(
@@ -147,7 +167,7 @@ describe('AdjustQuotaService', function () {
       }
 
       expect(lastUpdatedQuota).not.toBeNull()
-      expect(lastUpdatedQuota?.data.baseAmount).toBe('40.00')
+      expect(lastUpdatedQuota?.data.adjustmentsTotal).toBe('-10.00')
       expect(lastUpdatedQuota?.data.balance).toBe('40.00')
     })
 
@@ -166,7 +186,7 @@ describe('AdjustQuotaService', function () {
         expect(result.data.message).toContain('+10.00')
       }
 
-      expect(lastUpdatedQuota?.data.baseAmount).toBe('60.00')
+      expect(lastUpdatedQuota?.data.adjustmentsTotal).toBe('10.00')
       expect(lastUpdatedQuota?.data.balance).toBe('60.00')
     })
 
@@ -200,7 +220,7 @@ describe('AdjustQuotaService', function () {
         expect(result.data.adjustment.newAmount).toBe('0')
       }
 
-      expect(lastUpdatedQuota?.data.baseAmount).toBe('0')
+      expect(lastUpdatedQuota?.data.adjustmentsTotal).toBe('-50.00')
       expect(lastUpdatedQuota?.data.status).toBe('cancelled')
     })
 
@@ -309,6 +329,75 @@ describe('AdjustQuotaService', function () {
       if (!result.success) {
         expect(result.code).toBe('BAD_REQUEST')
         expect(result.error).toBe('Waiver adjustment must set amount to 0')
+      }
+    })
+
+    it('should apply exoneration adjustment and set status to exonerated', async function () {
+      const result = await service.execute({
+        quotaId: pendingQuota.id,
+        newAmount: '0',
+        adjustmentType: 'exoneration',
+        reason: 'Exoneración aprobada por junta de condominio',
+        adjustedByUserId: adminUserId,
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.adjustment.adjustmentType).toBe('exoneration')
+        expect(result.data.adjustment.newAmount).toBe('0')
+      }
+
+      expect(lastUpdatedQuota?.data.adjustmentsTotal).toBe('-50.00')
+      expect(lastUpdatedQuota?.data.status).toBe('exonerated')
+      expect(lastUpdatedQuota?.data.interestAmount).toBe('0')
+      expect(lastUpdatedQuota?.data.balance).toBe('0.00')
+    })
+
+    it('should apply exoneration on overdue quota and clear interest', async function () {
+      const result = await service.execute({
+        quotaId: overdueQuota.id,
+        newAmount: '0',
+        adjustmentType: 'exoneration',
+        reason: 'Exoneración de cuota vencida con intereses',
+        adjustedByUserId: adminUserId,
+      })
+
+      expect(result.success).toBe(true)
+      expect(lastUpdatedQuota?.data.status).toBe('exonerated')
+      expect(lastUpdatedQuota?.data.interestAmount).toBe('0')
+      // Balance = 0 (base) + 0 (interest cleared) - 0 (paid) = 0
+      expect(lastUpdatedQuota?.data.balance).toBe('0.00')
+    })
+
+    it('should return BAD_REQUEST when exoneration has non-zero amount', async function () {
+      const result = await service.execute({
+        quotaId: pendingQuota.id,
+        newAmount: '10.00',
+        adjustmentType: 'exoneration',
+        reason: 'Exoneración con monto inválido',
+        adjustedByUserId: adminUserId,
+      })
+
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.code).toBe('BAD_REQUEST')
+        expect(result.error).toBe('Exoneration adjustment must set amount to 0')
+      }
+    })
+
+    it('should return BAD_REQUEST when trying to adjust exonerated quota', async function () {
+      const result = await service.execute({
+        quotaId: exoneratedQuota.id,
+        newAmount: '40.00',
+        adjustmentType: 'discount',
+        reason: 'Intento de ajuste en cuota exonerada',
+        adjustedByUserId: adminUserId,
+      })
+
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.code).toBe('BAD_REQUEST')
+        expect(result.error).toBe('Cannot adjust an exonerated quota')
       }
     })
 

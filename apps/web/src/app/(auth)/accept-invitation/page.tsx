@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 
-import { DashboardTheme } from '@/app/(dashboard)/components/DashboardTheme'
 import { AcceptInvitationContent } from './components/AcceptInvitationContent'
+
+import { DashboardTheme } from '@/app/(dashboard)/components/DashboardTheme'
 
 export const metadata: Metadata = {
   title: 'Aceptar Invitación',

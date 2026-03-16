@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { Power } from 'lucide-react'
+import {
+  useManagementCompany,
+  toggleManagementCompanyActive,
+  useQueryClient,
+} from '@packages/http-client'
+import { useRouter } from 'next/navigation'
+
 import { Card } from '@/ui/components/card'
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
@@ -9,9 +16,7 @@ import { Switch } from '@/ui/components/switch'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { useToast } from '@/ui/components/toast'
 import { useTranslation, useAuth } from '@/contexts'
-import { useManagementCompany, toggleManagementCompanyActive, useQueryClient } from '@packages/http-client'
 import { Spinner } from '@/ui/components/spinner'
-import { useRouter } from 'next/navigation'
 
 interface CompanyActionsProps {
   companyId: string
@@ -88,7 +93,7 @@ export function CompanyActions({ companyId }: CompanyActionsProps) {
       <div className="space-y-6">
         <div>
           <Typography variant="h3">{t('superadmin.companies.detail.tabs.status')}</Typography>
-          <Typography color="muted" variant="body2" className="mt-1">
+          <Typography className="mt-1" color="muted" variant="body2">
             Gestiona el estado y acciones de la administradora
           </Typography>
         </div>
@@ -100,7 +105,7 @@ export function CompanyActions({ companyId }: CompanyActionsProps) {
                 <Power className="h-5 w-5 text-primary-600" />
               </div>
               <div>
-                <Typography variant="h4" className="mb-1">
+                <Typography className="mb-1" variant="h4">
                   Estado de la Administradora
                 </Typography>
                 <Typography color="muted" variant="body2">
@@ -111,17 +116,17 @@ export function CompanyActions({ companyId }: CompanyActionsProps) {
               </div>
             </div>
             <Switch
-              isSelected={company.isActive}
-              onValueChange={handleToggleClick}
               color="success"
               isDisabled={isToggling}
+              isSelected={company.isActive}
+              onValueChange={handleToggleClick}
             />
           </div>
         </Card>
       </div>
 
       {/* Confirmation Modal */}
-      <Modal isOpen={isConfirmModalOpen} onClose={handleCancel} size="md">
+      <Modal isOpen={isConfirmModalOpen} size="md" onClose={handleCancel}>
         <ModalContent>
           <ModalHeader>
             <Typography variant="h4">
@@ -138,13 +143,13 @@ export function CompanyActions({ companyId }: CompanyActionsProps) {
             </Typography>
           </ModalBody>
           <ModalFooter>
-            <Button variant="bordered" onPress={handleCancel} isDisabled={isToggling}>
+            <Button isDisabled={isToggling} variant="bordered" onPress={handleCancel}>
               {t('common.cancel')}
             </Button>
             <Button
               color={pendingStatus ? 'success' : 'warning'}
-              onPress={handleConfirm}
               isLoading={isToggling}
+              onPress={handleConfirm}
             >
               {t('common.confirm')}
             </Button>

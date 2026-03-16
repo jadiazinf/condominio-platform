@@ -103,7 +103,11 @@ describe('UnitsController', function () {
     }
 
     // Create controller with mock repository
-    const controller = new UnitsController(mockRepository as unknown as UnitsRepository, {} as unknown as TDrizzleClient)
+    const controller = new UnitsController(
+      mockRepository as unknown as UnitsRepository,
+      {} as unknown as TDrizzleClient,
+      {} as any
+    )
 
     // Create Hono app with controller routes
     app = createTestApp()

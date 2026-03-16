@@ -52,11 +52,11 @@ beforeEach(async () => {
   `)
 
   // 2. Insert management company
-  const companyResult = await db.execute(sql`
+  const companyResult = (await db.execute(sql`
     INSERT INTO management_companies (name, created_by)
     VALUES ('Test Company', ${MOCK_USER_ID})
     RETURNING id
-  `) as unknown as { id: string }[]
+  `)) as unknown as { id: string }[]
   companyId = companyResult[0]!.id
 
   // 3. Set up controller + app
@@ -102,13 +102,15 @@ function ticketBody(overrides: Record<string, unknown> = {}) {
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 
-async function createTicket(overrides: Record<string, unknown> = {}): Promise<{ id: string; ticketNumber: string; status: string }> {
+async function createTicket(
+  overrides: Record<string, unknown> = {}
+): Promise<{ id: string; ticketNumber: string; status: string }> {
   const res = await request(`/platform/management-companies/${companyId}/tickets`, {
     method: 'POST',
     headers: JSON_HEADERS,
     body: JSON.stringify(ticketBody(overrides)),
   })
-  const json = await res.json() as { data: { id: string; ticketNumber: string; status: string } }
+  const json = (await res.json()) as { data: { id: string; ticketNumber: string; status: string } }
   return json.data
 }
 
@@ -126,7 +128,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.subject).toBe('Test ticket subject')
       expect(json.data.description).toBe('Test ticket description with details')
       expect(json.data.status).toBe('open')
@@ -145,16 +147,18 @@ describe('Support Ticket Flow', () => {
       const res = await request(`/platform/management-companies/${companyId}/tickets`, {
         method: 'POST',
         headers: JSON_HEADERS,
-        body: JSON.stringify(ticketBody({
-          priority: 'urgent',
-          category: 'technical',
-          tags: ['server', 'critical'],
-          metadata: { source: 'dashboard' },
-        })),
+        body: JSON.stringify(
+          ticketBody({
+            priority: 'urgent',
+            category: 'technical',
+            tags: ['server', 'critical'],
+            metadata: { source: 'dashboard' },
+          })
+        ),
       })
 
       expect(res.status).toBe(201)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.priority).toBe('urgent')
       expect(json.data.category).toBe('technical')
       expect(json.data.tags).toEqual(['server', 'critical'])
@@ -200,7 +204,7 @@ describe('Support Ticket Flow', () => {
       const res = await request('/platform/support-tickets', { headers: JSON_HEADERS })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[]; pagination: { total: number } }
+      const json = (await res.json()) as { data: unknown[]; pagination: { total: number } }
       expect(json.data.length).toBe(2)
       expect(json.pagination.total).toBe(2)
     })
@@ -213,7 +217,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: unknown[]; pagination: { total: number } }
+      const json = (await res.json()) as { data: unknown[]; pagination: { total: number } }
       expect(json.data.length).toBe(1)
       expect(json.pagination.total).toBe(1)
     })
@@ -233,7 +237,10 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown>[]; pagination: { total: number } }
+      const json = (await res.json()) as {
+        data: Record<string, unknown>[]
+        pagination: { total: number }
+      }
       expect(json.data.length).toBe(1)
       expect((json.data[0] as Record<string, unknown>).subject).toBe('Open ticket')
     })
@@ -247,7 +254,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown>[] }
+      const json = (await res.json()) as { data: Record<string, unknown>[] }
       expect(json.data.length).toBe(1)
       expect((json.data[0] as Record<string, unknown>).subject).toBe('Urgent')
     })
@@ -261,7 +268,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown>[] }
+      const json = (await res.json()) as { data: Record<string, unknown>[] }
       expect(json.data.length).toBe(1)
       expect((json.data[0] as Record<string, unknown>).subject).toBe('Login issue')
     })
@@ -282,7 +289,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.subject).toBe('Updated subject')
       expect(json.data.description).toBe('Updated description')
     })
@@ -297,7 +304,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.priority).toBe('high')
     })
 
@@ -311,7 +318,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.category).toBe('billing')
     })
   })
@@ -331,7 +338,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.status).toBe('in_progress')
     })
 
@@ -353,7 +360,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.status).toBe('in_progress')
     })
 
@@ -425,7 +432,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.status).toBe('resolved')
       expect(json.data.resolvedBy).toBe(MOCK_USER_ID)
       expect(json.data.resolvedAt).toBeTruthy()
@@ -507,7 +514,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.status).toBe('closed')
       expect(json.data.closedBy).toBe(MOCK_USER_ID)
       expect(json.data.closedAt).toBeTruthy()
@@ -524,7 +531,7 @@ describe('Support Ticket Flow', () => {
 
       // CloseTicketService allows closing any ticket that isn't already closed or cancelled
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.status).toBe('closed')
     })
 
@@ -578,7 +585,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.status).toBe('in_progress')
     })
 
@@ -592,7 +599,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.status).toBe('waiting_customer')
     })
 
@@ -606,7 +613,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.status).toBe('cancelled')
     })
 
@@ -625,7 +632,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.status).toBe('resolved')
     })
 
@@ -649,7 +656,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.status).toBe('closed')
     })
 
@@ -673,7 +680,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.status).toBe('in_progress')
     })
 
@@ -764,7 +771,7 @@ describe('Support Ticket Flow', () => {
         body: JSON.stringify({ assignedTo: SECOND_USER_ID }),
       })
       expect(assignRes.status).toBe(200)
-      const assigned = (await assignRes.json() as { data: Record<string, unknown> }).data
+      const assigned = ((await assignRes.json()) as { data: Record<string, unknown> }).data
       expect(assigned.status).toBe('in_progress')
 
       // 3. Resolve
@@ -774,7 +781,7 @@ describe('Support Ticket Flow', () => {
         body: JSON.stringify({ resolvedBy: MOCK_USER_ID }),
       })
       expect(resolveRes.status).toBe(200)
-      const resolved = (await resolveRes.json() as { data: Record<string, unknown> }).data
+      const resolved = ((await resolveRes.json()) as { data: Record<string, unknown> }).data
       expect(resolved.status).toBe('resolved')
       expect(resolved.resolvedBy).toBe(MOCK_USER_ID)
 
@@ -785,7 +792,7 @@ describe('Support Ticket Flow', () => {
         body: JSON.stringify({ closedBy: MOCK_USER_ID }),
       })
       expect(closeRes.status).toBe(200)
-      const closed = (await closeRes.json() as { data: Record<string, unknown> }).data
+      const closed = ((await closeRes.json()) as { data: Record<string, unknown> }).data
       expect(closed.status).toBe('closed')
       expect(closed.closedBy).toBe(MOCK_USER_ID)
     })
@@ -801,7 +808,7 @@ describe('Support Ticket Flow', () => {
       })
 
       expect(res.status).toBe(200)
-      const json = await res.json() as { data: Record<string, unknown> }
+      const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.status).toBe('cancelled')
     })
   })

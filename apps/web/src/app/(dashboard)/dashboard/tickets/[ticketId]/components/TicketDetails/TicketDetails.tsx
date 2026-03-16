@@ -1,11 +1,9 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import type { TSupportTicket, TUser, TTicketStatus, TTicketPriority } from '@packages/domain'
-import { Card, CardHeader, CardBody } from '@/ui/components/card'
-import { Divider } from '@/ui/components/divider'
-import { Typography } from '@/ui/components/typography'
-import { useSuperadmin, useUser } from '@/stores/session-store'
+import type { ITicketPriorityActionTranslations } from '../TicketPriorityAction'
+import type { ITicketStatusActionTranslations } from '../TicketStatusAction'
+
 import {
   useAssignTicket,
   useResolveTicket,
@@ -13,12 +11,12 @@ import {
   useUpdateTicketStatus,
   useUpdateTicket,
 } from '@packages/http-client'
-import { useToast } from '@/ui/components/toast'
-import type { ITicketPriorityActionTranslations } from '../TicketPriorityAction'
-import type { ITicketStatusActionTranslations } from '../TicketStatusAction'
+import { useRouter } from 'next/navigation'
+
 import { CloseTicketModal, type ICloseTicketModalTranslations } from '../CloseTicketModal'
 import { TicketResolveAction } from '../TicketResolveAction'
 import { CancelTicketAction } from '../CancelTicketAction'
+
 import { TicketStatusSection } from './TicketStatusSection'
 import { TicketPrioritySection } from './TicketPrioritySection'
 import { TicketCategorySection } from './TicketCategorySection'
@@ -27,6 +25,12 @@ import { TicketCreatedBySection } from './TicketCreatedBySection'
 import { TicketAssignmentSection } from './TicketAssignmentSection'
 import { TicketResolutionSection } from './TicketResolutionSection'
 import { TicketActionsSection } from './TicketActionsSection'
+
+import { useToast } from '@/ui/components/toast'
+import { useSuperadmin, useUser } from '@/stores/session-store'
+import { Typography } from '@/ui/components/typography'
+import { Divider } from '@/ui/components/divider'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
 
 export interface ITicketDetailsTranslations {
   title: string
@@ -222,10 +226,10 @@ export function TicketDetails({
       <Divider />
       <CardBody className="space-y-4">
         <TicketStatusSection
-          status={ticket.status}
-          statusLabel={statusLabel}
           canManage={canManageTicket}
           isLoading={updateStatusMutation.isPending}
+          status={ticket.status}
+          statusLabel={statusLabel}
           translations={{
             state: translations.state,
             changeStatus: translations.changeStatus,
@@ -235,10 +239,10 @@ export function TicketDetails({
         />
 
         <TicketPrioritySection
-          priority={ticket.priority}
-          priorityLabel={priorityLabel}
           canManage={canManageTicket}
           isLoading={updateTicketMutation.isPending}
+          priority={ticket.priority}
+          priorityLabel={priorityLabel}
           translations={{
             priority: translations.priority,
             changePriority: translations.changePriority,
@@ -259,8 +263,8 @@ export function TicketDetails({
 
         <TicketDatesSection
           createdAt={ticket.createdAt}
-          resolvedAt={ticket.resolvedAt}
           locale={locale}
+          resolvedAt={ticket.resolvedAt}
           translations={{
             created: translations.created,
             resolved: translations.resolved,
@@ -299,12 +303,13 @@ export function TicketDetails({
         />
 
         <TicketResolutionSection
-          resolvedByUser={ticket.resolvedByUser ?? null}
-          resolvedAt={ticket.resolvedAt}
-          solution={ticket.solution}
           canManage={canManageTicket}
-          status={ticket.status}
           isLoading={resolveMutation.isPending}
+          resolvedAt={ticket.resolvedAt}
+          resolvedByUser={ticket.resolvedByUser ?? null}
+          showResolveButton={false}
+          solution={ticket.solution}
+          status={ticket.status}
           translations={{
             resolvedBy: translations.resolvedBy,
             viewProfile: translations.viewProfile,
@@ -314,15 +319,15 @@ export function TicketDetails({
           }}
           onResolve={handleResolve}
           onSaveSolution={handleSaveSolution}
-          showResolveButton={false}
         />
 
         <TicketActionsSection
+          canManage={canManageTicket}
           closedAt={ticket.closedAt}
           closedByUser={ticket.closedByUser ?? null}
-          canManage={canManageTicket}
           isLoading={closeMutation.isPending}
           locale={locale}
+          showCloseButton={false}
           translations={{
             closed: translations.closed,
             closedBy: translations.closedBy,
@@ -330,7 +335,6 @@ export function TicketDetails({
             closeTicketModal: translations.closeTicketModal,
           }}
           onClose={handleClose}
-          showCloseButton={false}
         />
 
         {/* Action buttons grouped at the bottom */}

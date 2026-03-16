@@ -108,7 +108,7 @@ export class SupportTicketsController extends BaseController<
   constructor(
     repository: SupportTicketsRepository,
     private readonly db: TDrizzleClient,
-    sendNotificationService: SendNotificationService,
+    sendNotificationService: SendNotificationService
   ) {
     super(repository)
     this.createService = new CreateTicketService(repository)
@@ -126,7 +126,11 @@ export class SupportTicketsController extends BaseController<
         method: 'get',
         path: '/platform/support-tickets',
         handler: this.getAllTickets,
-        middlewares: [isUserAuthenticated, requireRole(ESystemRole.SUPERADMIN), queryValidator(TicketsQuerySchema)],
+        middlewares: [
+          isUserAuthenticated,
+          requireRole(ESystemRole.SUPERADMIN),
+          queryValidator(TicketsQuerySchema),
+        ],
       },
       // Superadmin: Get tickets by company
       {
@@ -145,7 +149,12 @@ export class SupportTicketsController extends BaseController<
         method: 'get',
         path: '/platform/support-tickets/:id',
         handler: this.getById,
-        middlewares: [isUserAuthenticated, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema), canAccessTicket],
+        middlewares: [
+          isUserAuthenticated,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+          canAccessTicket,
+        ],
       },
       // Superadmin: Create new ticket
       {
@@ -342,14 +351,16 @@ export class SupportTicketsController extends BaseController<
 
       // Fire-and-forget: notify ticket creator
       if (result.data.createdByUserId) {
-        this.sendNotificationService.execute({
-          userId: result.data.createdByUserId,
-          category: 'system',
-          title: 'Ticket Resolved',
-          body: `Your support ticket #${result.data.ticketNumber} has been resolved.`,
-          channels: ['in_app', 'push'],
-          data: { ticketId: result.data.id, action: 'ticket_resolved' },
-        }).catch(() => {})
+        this.sendNotificationService
+          .execute({
+            userId: result.data.createdByUserId,
+            category: 'system',
+            title: 'Ticket Resolved',
+            body: `Your support ticket #${result.data.ticketNumber} has been resolved.`,
+            channels: ['in_app', 'push'],
+            data: { ticketId: result.data.id, action: 'ticket_resolved' },
+          })
+          .catch(() => {})
       }
 
       return ctx.ok({ data: result.data })
@@ -373,14 +384,16 @@ export class SupportTicketsController extends BaseController<
 
       // Fire-and-forget: notify ticket creator
       if (result.data.createdByUserId) {
-        this.sendNotificationService.execute({
-          userId: result.data.createdByUserId,
-          category: 'system',
-          title: 'Ticket Closed',
-          body: `Your support ticket #${result.data.ticketNumber} has been closed.`,
-          channels: ['in_app', 'push'],
-          data: { ticketId: result.data.id, action: 'ticket_closed' },
-        }).catch(() => {})
+        this.sendNotificationService
+          .execute({
+            userId: result.data.createdByUserId,
+            category: 'system',
+            title: 'Ticket Closed',
+            body: `Your support ticket #${result.data.ticketNumber} has been closed.`,
+            channels: ['in_app', 'push'],
+            data: { ticketId: result.data.id, action: 'ticket_closed' },
+          })
+          .catch(() => {})
       }
 
       return ctx.ok({ data: result.data })
@@ -412,14 +425,20 @@ export class SupportTicketsController extends BaseController<
 
       // Fire-and-forget: notify ticket creator of status change
       if (result.data.createdByUserId) {
-        this.sendNotificationService.execute({
-          userId: result.data.createdByUserId,
-          category: 'system',
-          title: 'Ticket Status Updated',
-          body: `Your support ticket #${result.data.ticketNumber} status has been updated to ${ctx.body.status.replace('_', ' ')}.`,
-          channels: ['in_app', 'push'],
-          data: { ticketId: result.data.id, action: 'ticket_status_updated', newStatus: ctx.body.status },
-        }).catch(() => {})
+        this.sendNotificationService
+          .execute({
+            userId: result.data.createdByUserId,
+            category: 'system',
+            title: 'Ticket Status Updated',
+            body: `Your support ticket #${result.data.ticketNumber} status has been updated to ${ctx.body.status.replace('_', ' ')}.`,
+            channels: ['in_app', 'push'],
+            data: {
+              ticketId: result.data.id,
+              action: 'ticket_status_updated',
+              newStatus: ctx.body.status,
+            },
+          })
+          .catch(() => {})
       }
 
       return ctx.ok({ data: result.data })

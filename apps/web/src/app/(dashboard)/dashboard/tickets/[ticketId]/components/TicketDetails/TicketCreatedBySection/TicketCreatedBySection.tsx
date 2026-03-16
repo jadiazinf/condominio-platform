@@ -1,8 +1,10 @@
 'use client'
 
 import type { TUser } from '@packages/domain'
-import { Typography } from '@/ui/components/typography'
+
 import { UserInfo } from '../../UserInfo'
+
+import { Typography } from '@/ui/components/typography'
 
 interface ITicketCreatedBySectionProps {
   createdByUser: TUser | null
@@ -25,8 +27,8 @@ export function TicketCreatedBySection({
       </Typography>
       <div className="mt-1">
         <UserInfo
-          user={createdByUser}
           showViewProfile
+          user={createdByUser}
           viewProfileLabel={translations.viewProfile}
         />
       </div>

@@ -31,6 +31,7 @@ export const interestTypeEnum = pgEnum('interest_type', ['simple', 'compound', '
 
 export const quotaStatusEnum = pgEnum('quota_status', [
   'pending',
+  'partial',
   'paid',
   'overdue',
   'cancelled',
@@ -45,7 +46,14 @@ export const gatewayTypeEnum = pgEnum('gateway_type', [
   'other',
 ])
 
-export const paymentMethodEnum = pgEnum('payment_method', ['transfer', 'cash', 'card', 'gateway'])
+export const paymentMethodEnum = pgEnum('payment_method', [
+  'transfer',
+  'cash',
+  'card',
+  'mobile_payment',
+  'gateway',
+  'other',
+])
 
 export const paymentStatusEnum = pgEnum('payment_status', [
   'pending',
@@ -295,7 +303,10 @@ export const serviceProviderTypeEnum = pgEnum('service_provider_type', [
 // BANK ACCOUNT ENUMS
 // ============================================================================
 
-export const bankAccountCategoryEnum = pgEnum('bank_account_category', ['national', 'international'])
+export const bankAccountCategoryEnum = pgEnum('bank_account_category', [
+  'national',
+  'international',
+])
 
 export const veAccountTypeEnum = pgEnum('ve_account_type', ['corriente', 'ahorro', 'divisas'])
 
@@ -311,7 +322,11 @@ export const distributionMethodEnum = pgEnum('distribution_method', [
   'fixed_per_unit',
 ])
 
-export const chargeAdjustmentTypeEnum = pgEnum('charge_adjustment_type', ['percentage', 'fixed', 'none'])
+export const chargeAdjustmentTypeEnum = pgEnum('charge_adjustment_type', [
+  'percentage',
+  'fixed',
+  'none',
+])
 
 export const chargeGenerationStrategyEnum = pgEnum('charge_generation_strategy', [
   'auto',

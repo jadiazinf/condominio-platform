@@ -1,5 +1,7 @@
 'use client'
 
+import type { TUserFullDetails } from '@packages/http-client/hooks'
+
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 
@@ -8,7 +10,6 @@ import { Avatar } from '@/ui/components/avatar-base'
 import { Button } from '@/ui/components/button'
 import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
-import type { TUserFullDetails } from '@packages/http-client/hooks'
 
 interface IUserDetailHeaderProps {
   user: TUserFullDetails
@@ -26,19 +27,24 @@ export function UserDetailHeader({ user }: IUserDetailHeaderProps) {
   return (
     <div className="mb-6">
       <Button
-        variant="light"
-        startContent={<ArrowLeft size={16} />}
         className="mb-4"
+        startContent={<ArrowLeft size={16} />}
+        variant="light"
         onPress={() => router.push('/dashboard/users')}
       >
         {t('superadmin.users.detail.backToList')}
       </Button>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <Avatar name={displayName} size="lg" src={user.photoUrl || undefined} className="shrink-0" />
+        <Avatar
+          className="shrink-0"
+          name={displayName}
+          size="lg"
+          src={user.photoUrl || undefined}
+        />
         <div className="flex-1 min-w-0 w-full">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
-            <Typography variant="h2" className="text-2xl sm:text-3xl truncate">
+            <Typography className="text-2xl sm:text-3xl truncate" variant="h2">
               {displayName}
             </Typography>
             <div className="flex items-center gap-2 flex-wrap">
@@ -54,7 +60,7 @@ export function UserDetailHeader({ user }: IUserDetailHeaderProps) {
               </Chip>
             </div>
           </div>
-          <Typography color="muted" variant="body2" className="break-all sm:break-normal">
+          <Typography className="break-all sm:break-normal" color="muted" variant="body2">
             {user.email}
           </Typography>
         </div>

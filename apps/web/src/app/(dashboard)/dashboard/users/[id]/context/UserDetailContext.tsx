@@ -1,9 +1,9 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { useUserFullDetails, type TUserFullDetails } from '@packages/http-client/hooks'
 
 import { useAuth, useTranslation } from '@/contexts'
-import { useUserFullDetails, type TUserFullDetails } from '@packages/http-client/hooks'
 import { Spinner } from '@/ui/components/spinner'
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
@@ -67,8 +67,10 @@ export function UserDetailProvider({ userId, children }: IUserDetailProviderProp
 
 export function useUserDetail() {
   const context = useContext(UserDetailContext)
+
   if (!context) {
     throw new Error('useUserDetail must be used within a UserDetailProvider')
   }
+
   return context
 }

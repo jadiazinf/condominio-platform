@@ -1,5 +1,20 @@
 import type { TUnit, TUnitOwnership, TQuota, TPayment } from '@packages/domain'
 
+import { ArrowLeft, Home } from 'lucide-react'
+import { getUnitDetail } from '@packages/http-client/hooks'
+import { getUnitOwnerships } from '@packages/http-client/hooks'
+import { getQuotasByUnitServer } from '@packages/http-client/hooks'
+import { getPaymentsByUnitServer } from '@packages/http-client/hooks'
+import { formatAmount } from '@packages/utils/currency'
+import { formatFullDate } from '@packages/utils/dates'
+
+import {
+  ViewAllQuotasButton,
+  ViewAllPaymentsButton,
+  AddOwnershipButton,
+  OwnersTable,
+} from './components/UnitDetailClient'
+
 import { getTranslations } from '@/libs/i18n/server'
 import { getServerAuthToken, getFullSession } from '@/libs/session'
 import { Typography } from '@/ui/components/typography'
@@ -8,17 +23,6 @@ import { Chip } from '@/ui/components/chip'
 import { Link } from '@/ui/components/link'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Divider } from '@/ui/components/divider'
-import { ArrowLeft, Home } from 'lucide-react'
-
-import { getUnitDetail } from '@packages/http-client/hooks'
-import { getUnitOwnerships } from '@packages/http-client/hooks'
-import { getQuotasByUnitServer } from '@packages/http-client/hooks'
-import { getPaymentsByUnitServer } from '@packages/http-client/hooks'
-
-import { formatAmount } from '@packages/utils/currency'
-import { formatFullDate } from '@packages/utils/dates'
-
-import { ViewAllQuotasButton, ViewAllPaymentsButton, AddOwnershipButton, OwnersTable } from './components/UnitDetailClient'
 
 interface PageProps {
   params: Promise<{ id: string; buildingId: string; unitId: string }>
@@ -26,11 +30,16 @@ interface PageProps {
 
 export default async function UnitDetailPage({ params }: PageProps) {
   const { id: condominiumId, buildingId, unitId } = await params
-  const [{ t }, token, session] = await Promise.all([getTranslations(), getServerAuthToken(), getFullSession()])
+  const [{ t }, token, session] = await Promise.all([
+    getTranslations(),
+    getServerAuthToken(),
+    getFullSession(),
+  ])
 
-  const managementCompanyId = session?.activeRole === 'management_company'
-    ? session.managementCompanies?.[0]?.managementCompanyId
-    : undefined
+  const managementCompanyId =
+    session?.activeRole === 'management_company'
+      ? session.managementCompanies?.[0]?.managementCompanyId
+      : undefined
 
   const ud = 'superadmin.condominiums.detail.unitDetail'
 
@@ -62,8 +71,8 @@ export default async function UnitDetailPage({ params }: PageProps) {
     return (
       <div className="space-y-6">
         <Link
-          href={backHref}
           className="inline-flex items-center gap-1 text-sm text-default-500 hover:text-default-700"
+          href={backHref}
         >
           <ArrowLeft size={14} />
           {t(`${ud}.back`)}
@@ -76,8 +85,8 @@ export default async function UnitDetailPage({ params }: PageProps) {
   // Financial calculations
   const pendingQuotas = quotas.filter(q => q.status === 'pending' || q.status === 'overdue')
   const totalDebt = pendingQuotas.reduce((sum, q) => sum + parseFloat(q.balance || '0'), 0)
-  const sortedPayments = [...payments].sort((a, b) =>
-    new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime()
+  const sortedPayments = [...payments].sort(
+    (a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime()
   )
   const lastPayment = sortedPayments[0]
   const recentQuotas = [...quotas]
@@ -92,11 +101,13 @@ export default async function UnitDetailPage({ params }: PageProps) {
 
   // Specs line
   const specs: string[] = []
+
   if (unit.floor != null) specs.push(`${t(`${ud}.floor`)} ${unit.floor}`)
   if (unit.areaM2) specs.push(`${unit.areaM2} m²`)
   if (unit.bedrooms != null) specs.push(`${unit.bedrooms} ${t(`${ud}.bedrooms`).toLowerCase()}`)
   if (unit.bathrooms != null) specs.push(`${unit.bathrooms} ${t(`${ud}.bathrooms`).toLowerCase()}`)
-  if (unit.parkingSpaces != null && unit.parkingSpaces > 0) specs.push(`${unit.parkingSpaces} ${t(`${ud}.parking`).toLowerCase()}`)
+  if (unit.parkingSpaces != null && unit.parkingSpaces > 0)
+    specs.push(`${unit.parkingSpaces} ${t(`${ud}.parking`).toLowerCase()}`)
   if (aliquotFormatted) specs.push(`${t(`${ud}.aliquot`)} ${aliquotFormatted}%`)
 
   // Labels
@@ -108,14 +119,22 @@ export default async function UnitDetailPage({ params }: PageProps) {
     authorized: t(`${ud}.ownershipTypes.authorized`),
   }
 
-  const quotaStatusColors: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
+  const quotaStatusColors: Record<
+    string,
+    'success' | 'warning' | 'danger' | 'default' | 'secondary' | 'primary'
+  > = {
     paid: 'success',
     pending: 'warning',
+    partial: 'primary',
     overdue: 'danger',
     cancelled: 'default',
+    exonerated: 'secondary',
   }
 
-  const paymentStatusColors: Record<string, 'success' | 'warning' | 'danger' | 'default' | 'primary'> = {
+  const paymentStatusColors: Record<
+    string,
+    'success' | 'warning' | 'danger' | 'default' | 'primary'
+  > = {
     completed: 'success',
     pending: 'warning',
     pending_verification: 'primary',
@@ -126,9 +145,11 @@ export default async function UnitDetailPage({ params }: PageProps) {
 
   const quotaStatusLabels: Record<string, string> = {
     pending: t(`${ud}.quotaStatuses.pending`),
+    partial: t(`${ud}.quotaStatuses.partial`),
     paid: t(`${ud}.quotaStatuses.paid`),
     overdue: t(`${ud}.quotaStatuses.overdue`),
     cancelled: t(`${ud}.quotaStatuses.cancelled`),
+    exonerated: t(`${ud}.quotaStatuses.exonerated`),
   }
 
   const paymentStatusLabels: Record<string, string> = {
@@ -176,9 +197,14 @@ export default async function UnitDetailPage({ params }: PageProps) {
         return quota.paymentConcept?.name || quota.periodDescription || '-'
       case 'period': {
         if (quota.periodMonth) {
-          const monthName = new Date(quota.periodYear, quota.periodMonth - 1).toLocaleDateString('es-VE', { month: 'short' })
+          const monthName = new Date(quota.periodYear, quota.periodMonth - 1).toLocaleDateString(
+            'es-VE',
+            { month: 'short' }
+          )
+
           return `${monthName} ${quota.periodYear}`
         }
+
         return quota.periodDescription || `${quota.periodYear}`
       }
       case 'amount':
@@ -193,7 +219,7 @@ export default async function UnitDetailPage({ params }: PageProps) {
         )
       case 'status':
         return (
-          <Chip color={quotaStatusColors[quota.status] || 'default'} variant="flat" size="sm">
+          <Chip color={quotaStatusColors[quota.status] || 'default'} size="sm" variant="flat">
             {quotaStatusLabels[quota.status] || quota.status}
           </Chip>
         )
@@ -214,7 +240,7 @@ export default async function UnitDetailPage({ params }: PageProps) {
         return paymentMethodLabels[payment.paymentMethod] || payment.paymentMethod
       case 'status':
         return (
-          <Chip color={paymentStatusColors[payment.status] || 'default'} variant="flat" size="sm">
+          <Chip color={paymentStatusColors[payment.status] || 'default'} size="sm" variant="flat">
             {paymentStatusLabels[payment.status] || payment.status}
           </Chip>
         )
@@ -236,8 +262,8 @@ export default async function UnitDetailPage({ params }: PageProps) {
     <div className="space-y-5">
       {/* Back link */}
       <Link
-        href={backHref}
         className="inline-flex items-center gap-1 text-sm text-default-500 hover:text-default-700"
+        href={backHref}
       >
         <ArrowLeft size={14} />
         {t(`${ud}.back`)}
@@ -254,20 +280,20 @@ export default async function UnitDetailPage({ params }: PageProps) {
               </div>
               <Typography variant="h3">{unit.unitNumber}</Typography>
             </div>
-            <Chip color={unit.isActive ? 'success' : 'default'} variant="flat" size="sm">
+            <Chip color={unit.isActive ? 'success' : 'default'} size="sm" variant="flat">
               {unit.isActive ? t('common.status.active') : t('common.status.inactive')}
             </Chip>
           </div>
 
           {/* Row 2: Specs inline */}
           {specs.length > 0 && (
-            <Typography variant="body2" color="muted" className="mt-1.5 ml-12">
+            <Typography className="mt-1.5 ml-12" color="muted" variant="body2">
               {specs.join(' · ')}
             </Typography>
           )}
 
           {/* Row 3: Registration date */}
-          <Typography variant="body2" color="muted" className="mt-0.5 ml-12 text-xs">
+          <Typography className="mt-0.5 ml-12 text-xs" color="muted" variant="body2">
             {t(`${ud}.registered`)} {formatFullDate(unit.createdAt)}
           </Typography>
 
@@ -275,20 +301,29 @@ export default async function UnitDetailPage({ params }: PageProps) {
           <Divider className="my-3" />
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="text-center">
-              <Typography variant="body2" color="muted" className="text-xs">{t(`${ud}.totalDebt`)}</Typography>
-              <Typography variant="h4" className={`mt-0.5 ${totalDebt > 0 ? 'text-danger' : 'text-success'}`}>
+              <Typography className="text-xs" color="muted" variant="body2">
+                {t(`${ud}.totalDebt`)}
+              </Typography>
+              <Typography
+                className={`mt-0.5 ${totalDebt > 0 ? 'text-danger' : 'text-success'}`}
+                variant="h4"
+              >
                 ${formatAmount(totalDebt)}
               </Typography>
             </div>
             <div className="text-center">
-              <Typography variant="body2" color="muted" className="text-xs">{t(`${ud}.pendingQuotas`)}</Typography>
-              <Typography variant="h4" className="mt-0.5">
+              <Typography className="text-xs" color="muted" variant="body2">
+                {t(`${ud}.pendingQuotas`)}
+              </Typography>
+              <Typography className="mt-0.5" variant="h4">
                 {pendingQuotas.length}
               </Typography>
             </div>
             <div className="text-center">
-              <Typography variant="body2" color="muted" className="text-xs">{t(`${ud}.lastPayment`)}</Typography>
-              <Typography variant="h4" className="mt-0.5 text-base">
+              <Typography className="text-xs" color="muted" variant="body2">
+                {t(`${ud}.lastPayment`)}
+              </Typography>
+              <Typography className="mt-0.5 text-base" variant="h4">
                 {lastPayment ? formatFullDate(lastPayment.paymentDate) : t(`${ud}.noPayments`)}
               </Typography>
             </div>
@@ -300,9 +335,10 @@ export default async function UnitDetailPage({ params }: PageProps) {
       <Card>
         <CardBody className="py-3">
           <div className="flex items-center justify-between mb-2">
-            <Typography variant="body1" className="font-semibold text-sm">{t(`${ud}.recentQuotas`)}</Typography>
+            <Typography className="font-semibold text-sm" variant="body1">
+              {t(`${ud}.recentQuotas`)}
+            </Typography>
             <ViewAllQuotasButton
-              unitId={unitId}
               label={t(`${ud}.viewAll`)}
               translations={{
                 title: t(`${ud}.allQuotasTitle`),
@@ -318,22 +354,25 @@ export default async function UnitDetailPage({ params }: PageProps) {
                 statuses: quotaStatusLabels,
                 noResults: t(`${ud}.noQuotas`),
               }}
+              unitId={unitId}
             />
           </div>
           {recentQuotas.length === 0 ? (
-            <Typography variant="body2" color="muted" className="text-xs">{t(`${ud}.noQuotas`)}</Typography>
+            <Typography className="text-xs" color="muted" variant="body2">
+              {t(`${ud}.noQuotas`)}
+            </Typography>
           ) : (
             <Table<TQuotaRow>
               aria-label={t(`${ud}.recentQuotas`)}
-              columns={quotaColumns}
-              rows={recentQuotas}
-              renderCell={renderQuotaCell}
               classNames={{
                 wrapper: 'shadow-none border-none p-0',
                 tr: 'hover:bg-default-50',
                 th: 'text-xs',
                 td: 'text-sm py-1.5',
               }}
+              columns={quotaColumns}
+              renderCell={renderQuotaCell}
+              rows={recentQuotas}
             />
           )}
         </CardBody>
@@ -343,9 +382,10 @@ export default async function UnitDetailPage({ params }: PageProps) {
       <Card>
         <CardBody className="py-3">
           <div className="flex items-center justify-between mb-2">
-            <Typography variant="body1" className="font-semibold text-sm">{t(`${ud}.recentPayments`)}</Typography>
+            <Typography className="font-semibold text-sm" variant="body1">
+              {t(`${ud}.recentPayments`)}
+            </Typography>
             <ViewAllPaymentsButton
-              unitId={unitId}
               label={t(`${ud}.viewAll`)}
               translations={{
                 title: t(`${ud}.allPaymentsTitle`),
@@ -361,22 +401,25 @@ export default async function UnitDetailPage({ params }: PageProps) {
                 methods: paymentMethodLabels,
                 noResults: t(`${ud}.noPaymentsRegistered`),
               }}
+              unitId={unitId}
             />
           </div>
           {recentPayments.length === 0 ? (
-            <Typography variant="body2" color="muted" className="text-xs">{t(`${ud}.noPaymentsRegistered`)}</Typography>
+            <Typography className="text-xs" color="muted" variant="body2">
+              {t(`${ud}.noPaymentsRegistered`)}
+            </Typography>
           ) : (
             <Table<TPaymentRow>
               aria-label={t(`${ud}.recentPayments`)}
-              columns={paymentColumns}
-              rows={recentPayments}
-              renderCell={renderPaymentCell}
               classNames={{
                 wrapper: 'shadow-none border-none p-0',
                 tr: 'hover:bg-default-50',
                 th: 'text-xs',
                 td: 'text-sm py-1.5',
               }}
+              columns={paymentColumns}
+              renderCell={renderPaymentCell}
+              rows={recentPayments}
             />
           )}
         </CardBody>
@@ -386,9 +429,10 @@ export default async function UnitDetailPage({ params }: PageProps) {
       <Card>
         <CardBody className="py-3">
           <div className="flex items-center justify-between mb-2">
-            <Typography variant="body1" className="font-semibold text-sm">{t(`${ud}.owners`)}</Typography>
+            <Typography className="font-semibold text-sm" variant="body1">
+              {t(`${ud}.owners`)}
+            </Typography>
             <AddOwnershipButton
-              unitId={unitId}
               label={t(`${ud}.addOwner`)}
               translations={{
                 title: t(`${ud}.addOwnerTitle`),
@@ -431,6 +475,7 @@ export default async function UnitDetailPage({ params }: PageProps) {
                   'validation.email': t(`${ud}.ownerValidation.email`),
                 },
               }}
+              unitId={unitId}
             />
           </div>
           <OwnersTable

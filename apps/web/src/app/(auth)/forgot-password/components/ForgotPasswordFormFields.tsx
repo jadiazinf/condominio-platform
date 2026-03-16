@@ -84,13 +84,13 @@ export function ForgotPasswordFormFields({
             {t('auth.forgotPassword.email')}
           </Typography>
           <InputField
+            isRequired
             name="email"
-            type="email"
             placeholder={t('auth.forgotPassword.emailPlaceholder')}
             size="lg"
             startContent={<Mail className="w-5 h-5 text-default-400" />}
-            isRequired
             translateError={translateError}
+            type="email"
           />
         </div>
 

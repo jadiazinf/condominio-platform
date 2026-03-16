@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-
 import { useManagementCompany } from '@packages/http-client'
+
 import { useAuth } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 

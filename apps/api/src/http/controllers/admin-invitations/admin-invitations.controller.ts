@@ -175,7 +175,11 @@ export class AdminInvitationsController {
         method: 'post',
         path: '/create-with-admin',
         handler: this.createWithAdmin,
-        middlewares: [isUserAuthenticated, requireRole(ESystemRole.SUPERADMIN), bodyValidator(CreateCompanyWithAdminSchema)],
+        middlewares: [
+          isUserAuthenticated,
+          requireRole(ESystemRole.SUPERADMIN),
+          bodyValidator(CreateCompanyWithAdminSchema),
+        ],
       },
       {
         method: 'post',
@@ -191,7 +195,11 @@ export class AdminInvitationsController {
         method: 'post',
         path: '/:id/resend-email',
         handler: this.resendEmail,
-        middlewares: [isUserAuthenticated, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          isUserAuthenticated,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'get',
@@ -209,7 +217,11 @@ export class AdminInvitationsController {
         method: 'delete',
         path: '/:id',
         handler: this.cancelInvitation,
-        middlewares: [isUserAuthenticated, requireRole(ESystemRole.SUPERADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          isUserAuthenticated,
+          requireRole(ESystemRole.SUPERADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }
@@ -242,12 +254,18 @@ export class AdminInvitationsController {
         if (result.code === 'CONFLICT') {
           const error = result.error as string
           if (error.includes('pending user')) {
-            throw AppError.conflict(t(LocaleDictionary.http.controllers.adminInvitations.pendingUserEmailExists))
+            throw AppError.conflict(
+              t(LocaleDictionary.http.controllers.adminInvitations.pendingUserEmailExists)
+            )
           }
           if (error.includes('management company')) {
-            throw AppError.conflict(t(LocaleDictionary.http.controllers.adminInvitations.companyEmailExists))
+            throw AppError.conflict(
+              t(LocaleDictionary.http.controllers.adminInvitations.companyEmailExists)
+            )
           }
-          throw AppError.conflict(t(LocaleDictionary.http.controllers.adminInvitations.userEmailExistsUseExisting))
+          throw AppError.conflict(
+            t(LocaleDictionary.http.controllers.adminInvitations.userEmailExistsUseExisting)
+          )
         }
         throw AppError.validation(result.error)
       }
@@ -353,13 +371,19 @@ export class AdminInvitationsController {
 
       if (!result.success) {
         if (result.code === 'NOT_FOUND') {
-          throw AppError.notFound(t(LocaleDictionary.http.controllers.adminInvitations.userNotFound))
+          throw AppError.notFound(
+            t(LocaleDictionary.http.controllers.adminInvitations.userNotFound)
+          )
         }
         if (result.code === 'BAD_REQUEST') {
-          throw AppError.validation(t(LocaleDictionary.http.controllers.adminInvitations.userNotActive))
+          throw AppError.validation(
+            t(LocaleDictionary.http.controllers.adminInvitations.userNotActive)
+          )
         }
         if (result.code === 'CONFLICT') {
-          throw AppError.conflict(t(LocaleDictionary.http.controllers.adminInvitations.companyEmailExists))
+          throw AppError.conflict(
+            t(LocaleDictionary.http.controllers.adminInvitations.companyEmailExists)
+          )
         }
         throw AppError.validation(result.error)
       }
@@ -473,16 +497,23 @@ export class AdminInvitationsController {
     const invitation = await this.invitationsRepository.getById(ctx.params.id)
 
     if (!invitation) {
-      throw AppError.notFound(t(LocaleDictionary.http.controllers.adminInvitations.invitationNotFound))
+      throw AppError.notFound(
+        t(LocaleDictionary.http.controllers.adminInvitations.invitationNotFound)
+      )
     }
 
     if (invitation.status !== 'pending') {
-      throw AppError.validation(t(LocaleDictionary.http.controllers.adminInvitations.cannotResendNonPending))
+      throw AppError.validation(
+        t(LocaleDictionary.http.controllers.adminInvitations.cannotResendNonPending)
+      )
     }
 
     // Get the user and company (include inactive — invitation users/companies are inactive until accepted)
     const user = await this.usersRepository.getById(invitation.userId, true)
-    const company = await this.managementCompaniesRepository.getById(invitation.managementCompanyId, true)
+    const company = await this.managementCompaniesRepository.getById(
+      invitation.managementCompanyId,
+      true
+    )
 
     if (!user || !company) {
       throw AppError.notFound(t(LocaleDictionary.http.controllers.adminInvitations.userNotFound))
@@ -515,7 +546,9 @@ export class AdminInvitationsController {
 
       await this.invitationsRepository.recordEmailError(invitation.id, emailResult.error)
 
-      throw AppError.validation(t(LocaleDictionary.http.controllers.adminInvitations.failedToResendEmail))
+      throw AppError.validation(
+        t(LocaleDictionary.http.controllers.adminInvitations.failedToResendEmail)
+      )
     }
 
     return ctx.ok({
@@ -540,7 +573,9 @@ export class AdminInvitationsController {
 
     if (!result.success) {
       if (result.code === 'NOT_FOUND') {
-        throw AppError.notFound(t(LocaleDictionary.http.controllers.adminInvitations.invitationNotFound))
+        throw AppError.notFound(
+          t(LocaleDictionary.http.controllers.adminInvitations.invitationNotFound)
+        )
       }
       throw AppError.validation(result.error)
     }

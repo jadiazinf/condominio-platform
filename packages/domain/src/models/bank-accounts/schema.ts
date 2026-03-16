@@ -19,11 +19,18 @@ const d = DomainLocaleDictionary.validation.models.bankAccounts
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const bankAccountNationalDetailsSchema = z.object({
-  accountNumber: z.string({ error: d.national.accountNumber.required }).length(20, { error: d.national.accountNumber.length }),
-  bankCode: z.string({ error: d.national.bankCode.required }).length(4, { error: d.national.bankCode.length }),
+  accountNumber: z
+    .string({ error: d.national.accountNumber.required })
+    .length(20, { error: d.national.accountNumber.length }),
+  bankCode: z
+    .string({ error: d.national.bankCode.required })
+    .length(4, { error: d.national.bankCode.length }),
   accountType: z.enum(VE_ACCOUNT_TYPES, { error: d.national.accountType.required }),
   identityDocType: z.enum(VE_IDENTITY_DOC_TYPES, { error: d.national.identityDocType.required }),
-  identityDocNumber: z.string({ error: d.national.identityDocNumber.required }).min(1).max(20, { error: d.national.identityDocNumber.max }),
+  identityDocNumber: z
+    .string({ error: d.national.identityDocNumber.required })
+    .min(1)
+    .max(20, { error: d.national.identityDocNumber.max }),
   phoneNumber: z.string().max(15, { error: d.national.phoneNumber.max }).optional(),
 })
 
@@ -35,7 +42,10 @@ export const bankAccountInternationalDetailsSchema = z.object({
   accountNumber: z.string().max(50, { error: d.international.accountNumber.max }).optional(),
   bankAddress: z.string().max(500, { error: d.international.bankAddress.max }).optional(),
   bankCountry: z.string().length(2, { error: d.international.bankCountry.length }).optional(),
-  beneficiaryAddress: z.string().max(500, { error: d.international.beneficiaryAddress.max }).optional(),
+  beneficiaryAddress: z
+    .string()
+    .max(500, { error: d.international.beneficiaryAddress.max })
+    .optional(),
   accountType: z.enum(INTERNATIONAL_ACCOUNT_TYPES).optional(),
   accountHolderType: z.enum(INTERNATIONAL_HOLDER_TYPES).optional(),
   // Zelle
@@ -50,7 +60,10 @@ export const bankAccountInternationalDetailsSchema = z.object({
   cryptoCurrency: z.enum(CRYPTO_CURRENCIES).optional(),
   // Stripe (future)
   stripeAccountId: z.string().max(255, { error: d.international.stripeAccountId.max }).optional(),
-  stripeExternalAccountId: z.string().max(255, { error: d.international.stripeExternalAccountId.max }).optional(),
+  stripeExternalAccountId: z
+    .string()
+    .max(255, { error: d.international.stripeExternalAccountId.max })
+    .optional(),
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -66,7 +79,10 @@ export const bankAccountSchema = baseModelSchema.extend({
   accountHolderName: z.string().max(255),
   currency: z.string().length(3),
   currencyId: z.uuid().nullable(),
-  accountDetails: z.union([bankAccountNationalDetailsSchema, bankAccountInternationalDetailsSchema]),
+  accountDetails: z.union([
+    bankAccountNationalDetailsSchema,
+    bankAccountInternationalDetailsSchema,
+  ]),
   acceptedPaymentMethods: z.array(z.enum(ALL_BANK_PAYMENT_METHODS)).min(1),
   appliesToAllCondominiums: z.boolean().default(false),
   isActive: z.boolean().default(true),
@@ -78,8 +94,12 @@ export const bankAccountSchema = baseModelSchema.extend({
   // Relations (populated optionally)
   condominiumIds: z.array(z.uuid()).optional(),
   bank: z.object({ id: z.uuid(), name: z.string(), code: z.string().nullable() }).optional(),
-  creator: z.object({ id: z.uuid(), displayName: z.string().nullable(), email: z.string() }).optional(),
-  deactivator: z.object({ id: z.uuid(), displayName: z.string().nullable(), email: z.string() }).optional(),
+  creator: z
+    .object({ id: z.uuid(), displayName: z.string().nullable(), email: z.string() })
+    .optional(),
+  deactivator: z
+    .object({ id: z.uuid(), displayName: z.string().nullable(), email: z.string() })
+    .optional(),
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -90,13 +110,21 @@ export const bankAccountCreateSchema = z
   .object({
     bankId: z.uuid().optional(),
     accountCategory: z.enum(EBankAccountCategories, { error: d.accountCategory.invalid }),
-    displayName: z.string({ error: d.displayName.required }).min(1).max(255, { error: d.displayName.max }),
+    displayName: z
+      .string({ error: d.displayName.required })
+      .min(1)
+      .max(255, { error: d.displayName.max }),
     bankName: z.string({ error: d.bankName.required }).min(1).max(255, { error: d.bankName.max }),
-    accountHolderName: z.string({ error: d.accountHolderName.required }).min(1).max(255, { error: d.accountHolderName.max }),
+    accountHolderName: z
+      .string({ error: d.accountHolderName.required })
+      .min(1)
+      .max(255, { error: d.accountHolderName.max }),
     currency: z.string({ error: d.currency.required }).length(3, { error: d.currency.length }),
     currencyId: z.uuid().optional(),
     accountDetails: z.record(z.string(), z.unknown()),
-    acceptedPaymentMethods: z.array(z.enum(ALL_BANK_PAYMENT_METHODS)).min(1, { error: d.acceptedPaymentMethods.required }),
+    acceptedPaymentMethods: z
+      .array(z.enum(ALL_BANK_PAYMENT_METHODS))
+      .min(1, { error: d.acceptedPaymentMethods.required }),
     appliesToAllCondominiums: z.boolean().default(false),
     condominiumIds: z.array(z.uuid()).optional(),
     notes: z.string().optional(),
@@ -164,7 +192,10 @@ export const bankAccountCreateSchema = z
             message: d.international.routingNumber.required,
             path: ['accountDetails', 'routingNumber'],
           })
-        } else if (typeof details.routingNumber === 'string' && details.routingNumber.length !== 9) {
+        } else if (
+          typeof details.routingNumber === 'string' &&
+          details.routingNumber.length !== 9
+        ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: d.international.routingNumber.length,

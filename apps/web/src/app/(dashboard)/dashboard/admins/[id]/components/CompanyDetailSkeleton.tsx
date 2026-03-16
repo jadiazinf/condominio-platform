@@ -20,7 +20,7 @@ export function CompanyDetailSkeleton() {
           <Divider />
           <CardBody className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              {[1, 2, 3, 4].map((i) => (
+              {[1, 2, 3, 4].map(i => (
                 <div key={i} className="flex items-center gap-3">
                   <div className="h-5 w-5 animate-pulse rounded bg-default-200" />
                   <div>

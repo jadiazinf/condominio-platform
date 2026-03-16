@@ -375,7 +375,7 @@ export function useRefundPayment(id: string, options?: IRefundPaymentOptions) {
 
 export function useDeletePayment(options?: IDeletePaymentOptions) {
   return useApiMutation<TApiDataResponse<TPayment>, { id: string }>({
-    path: (data) => `/condominium/payments/${data.id}`,
+    path: data => `/condominium/payments/${data.id}`,
     method: 'DELETE',
     config: {},
     onSuccess: options?.onSuccess,
@@ -396,7 +396,9 @@ export async function getPayments(): Promise<TPayment[]> {
 
 export async function getPaymentsPendingVerification(): Promise<TPayment[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TPayment[]>>('/condominium/payments/pending-verification')
+  const response = await client.get<TApiDataResponse<TPayment[]>>(
+    '/condominium/payments/pending-verification'
+  )
   return response.data.data
 }
 
@@ -410,13 +412,17 @@ export async function getPaymentByNumber(paymentNumber: string): Promise<TPaymen
 
 export async function getPaymentsByUser(userId: string): Promise<TPayment[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TPayment[]>>(`/condominium/payments/user/${userId}`)
+  const response = await client.get<TApiDataResponse<TPayment[]>>(
+    `/condominium/payments/user/${userId}`
+  )
   return response.data.data
 }
 
 export async function getPaymentsByUnit(unitId: string): Promise<TPayment[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TPayment[]>>(`/condominium/payments/unit/${unitId}`)
+  const response = await client.get<TApiDataResponse<TPayment[]>>(
+    `/condominium/payments/unit/${unitId}`
+  )
   return response.data.data
 }
 
@@ -436,13 +442,18 @@ export async function getPaymentsByUnitServer(
   if (managementCompanyId) {
     headers['x-management-company-id'] = managementCompanyId
   }
-  const response = await client.get<TApiDataResponse<TPayment[]>>(`/condominium/payments/unit/${unitId}`, { headers })
+  const response = await client.get<TApiDataResponse<TPayment[]>>(
+    `/condominium/payments/unit/${unitId}`,
+    { headers }
+  )
   return response.data.data
 }
 
 export async function getPaymentsByStatus(status: string): Promise<TPayment[]> {
   const client = getHttpClient()
-  const response = await client.get<TApiDataResponse<TPayment[]>>(`/condominium/payments/status/${status}`)
+  const response = await client.get<TApiDataResponse<TPayment[]>>(
+    `/condominium/payments/status/${status}`
+  )
   return response.data.data
 }
 
@@ -474,7 +485,10 @@ export async function createPayment(data: TPaymentCreate): Promise<TPayment> {
 
 export async function reportPayment(data: TPaymentCreate): Promise<TPayment> {
   const client = getHttpClient()
-  const response = await client.post<TApiDataResponse<TPayment>>('/condominium/payments/report', data)
+  const response = await client.post<TApiDataResponse<TPayment>>(
+    '/condominium/payments/report',
+    data
+  )
   return response.data.data
 }
 
@@ -498,7 +512,10 @@ export async function rejectPayment(id: string, data?: IRejectPaymentData): Prom
 
 export async function updatePayment(id: string, data: TPaymentUpdate): Promise<TPayment> {
   const client = getHttpClient()
-  const response = await client.patch<TApiDataResponse<TPayment>>(`/condominium/payments/${id}`, data)
+  const response = await client.patch<TApiDataResponse<TPayment>>(
+    `/condominium/payments/${id}`,
+    data
+  )
   return response.data.data
 }
 
@@ -508,7 +525,10 @@ export async function deletePayment(id: string): Promise<TPayment> {
   return response.data.data
 }
 
-export async function refundPayment(id: string, data: IRefundPaymentData): Promise<IRefundPaymentResponse> {
+export async function refundPayment(
+  id: string,
+  data: IRefundPaymentData
+): Promise<IRefundPaymentResponse> {
   const client = getHttpClient()
   const response = await client.post<IRefundPaymentResponse>(
     `/condominium/payments/${id}/refund`,
@@ -536,7 +556,9 @@ export interface IVerifyReferenceResponse {
   externalTransactionId: string | null
 }
 
-export async function verifyPaymentReference(data: IVerifyReferenceData): Promise<IVerifyReferenceResponse> {
+export async function verifyPaymentReference(
+  data: IVerifyReferenceData
+): Promise<IVerifyReferenceResponse> {
   const client = getHttpClient()
   const response = await client.post<TApiDataResponse<IVerifyReferenceResponse>>(
     '/condominium/payments/verify-reference',

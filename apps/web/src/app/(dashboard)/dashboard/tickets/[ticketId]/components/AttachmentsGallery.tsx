@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Accordion, AccordionItem } from '@/ui/components/accordion'
 import { Paperclip, FileText, Download, X, Play } from 'lucide-react'
 import {
   type TAttachment,
@@ -10,6 +9,7 @@ import {
   formatFileSize,
 } from '@packages/domain'
 
+import { Accordion, AccordionItem } from '@/ui/components/accordion'
 import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
 
@@ -65,7 +65,7 @@ function MediaModal({ item, onClose }: { item: IAttachmentWithMeta | null; onClo
         )}
 
         {category === 'video' && (
-          <video autoPlay className="max-h-[85vh] max-w-[90vw] rounded-lg" controls>
+          <video autoPlay controls className="max-h-[85vh] max-w-[90vw] rounded-lg">
             <source src={item.attachment.url} type={item.attachment.mimeType} />
           </video>
         )}
@@ -161,7 +161,7 @@ export function AttachmentsGallery({ messages, locale, translations }: IAttachme
           type="button"
           onClick={() => setSelectedItem(item)}
         >
-          <video className="h-full w-full object-cover" muted preload="metadata">
+          <video muted className="h-full w-full object-cover" preload="metadata">
             <source src={item.attachment.url} type={item.attachment.mimeType} />
           </video>
           <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-colors group-hover:bg-black/50">

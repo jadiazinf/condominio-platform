@@ -1,13 +1,14 @@
 'use client'
 
+import type { TCreateManagementCompanyWithAdminForm, TUser } from '@packages/domain'
+
 import { useEffect, useMemo, useState } from 'react'
 import { useFormContext, Controller } from 'react-hook-form'
-import type { TCreateManagementCompanyWithAdminForm, TUser } from '@packages/domain'
 import { getUserByEmail, HttpError } from '@packages/http-client'
-import { Tooltip } from '@/ui/components/tooltip'
-import { RadioGroup, Radio } from '@/ui/components/radio'
 import { Info, Search, User } from 'lucide-react'
 
+import { Tooltip } from '@/ui/components/tooltip'
+import { RadioGroup, Radio } from '@/ui/components/radio'
 import { useAuth, useTranslation } from '@/contexts'
 import { InputField } from '@/ui/components/input'
 import { Typography } from '@/ui/components/typography'
@@ -23,16 +24,16 @@ interface AdminStepFormProps {
 function SectionHeader({ title, tooltip }: { title: string; tooltip: string }) {
   return (
     <div className="flex items-center gap-2">
-      <Typography variant="subtitle1" className="font-semibold">
+      <Typography className="font-semibold" variant="subtitle1">
         {title}
       </Typography>
       <Tooltip
-        content={tooltip}
-        placement="right"
         showArrow
         classNames={{
           content: 'max-w-xs text-sm',
         }}
+        content={tooltip}
+        placement="right"
       >
         <Info className="h-4 w-4 text-default-400 cursor-help" />
       </Tooltip>
@@ -40,17 +41,22 @@ function SectionHeader({ title, tooltip }: { title: string; tooltip: string }) {
   )
 }
 
-export function AdminStepForm({
-  translateError,
-  shouldShowError,
-}: AdminStepFormProps) {
+export function AdminStepForm({ translateError, shouldShowError }: AdminStepFormProps) {
   const { t } = useTranslation()
   const { user: firebaseUser } = useAuth()
   const toast = useToast()
   const [isSearching, setIsSearching] = useState(false)
   const [selectedUser, setSelectedUser] = useState<TUser | null>(null)
 
-  const { control, watch, getValues, setValue, setError, clearErrors, formState: { errors } } = useFormContext<TCreateManagementCompanyWithAdminForm>()
+  const {
+    control,
+    watch,
+    getValues,
+    setValue,
+    setError,
+    clearErrors,
+    formState: { errors },
+  } = useFormContext<TCreateManagementCompanyWithAdminForm>()
 
   const adminMode = watch('admin.mode')
   const adminFirstName = watch('admin.firstName')
@@ -97,6 +103,7 @@ export function AdminStepForm({
         type: 'manual',
         message: 'validation.models.auth.email.required',
       })
+
       return
     }
 
@@ -172,23 +179,23 @@ export function AdminStepForm({
           <div className="space-y-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
               <InputField
-                name="admin.existingUserEmail"
-                type="email"
                 isRequired
-                tooltip={t('superadmin.companies.form.adminSearch.description')}
-                label={t('superadmin.companies.form.adminSearch.email')}
-                placeholder={t('superadmin.companies.form.adminSearch.emailPlaceholder')}
-                translateError={translateError}
                 errorMessage={translateError(
                   adminErrors?.existingUserEmail?.message || adminErrors?.existingUserId?.message
                 )}
+                label={t('superadmin.companies.form.adminSearch.email')}
+                name="admin.existingUserEmail"
+                placeholder={t('superadmin.companies.form.adminSearch.emailPlaceholder')}
+                tooltip={t('superadmin.companies.form.adminSearch.description')}
+                translateError={translateError}
+                type="email"
               />
               <Button
                 className="sm:mt-6"
                 isLoading={isSearching}
-                onPress={handleSearchUser}
                 startContent={<Search size={16} />}
                 type="button"
+                onPress={handleSearchUser}
               >
                 {t('superadmin.companies.form.adminSearch.button')}
               </Button>
@@ -199,7 +206,7 @@ export function AdminStepForm({
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <User className="text-default-400" size={16} />
-                      <Typography variant="subtitle2" className="font-semibold">
+                      <Typography className="font-semibold" variant="subtitle2">
                         {t('superadmin.companies.form.adminSearch.selectedTitle')}
                       </Typography>
                     </div>
@@ -213,7 +220,7 @@ export function AdminStepForm({
                       </Typography>
                     )}
                   </div>
-                  <Button variant="light" onPress={handleClearSelection} type="button">
+                  <Button type="button" variant="light" onPress={handleClearSelection}>
                     {t('superadmin.companies.form.adminSearch.clear')}
                   </Button>
                 </div>
@@ -225,8 +232,6 @@ export function AdminStepForm({
         {adminMode !== 'existing' && (
           <UserBasicInfoFields
             fieldPrefix="admin."
-            translateError={translateError}
-            showDocumentFields={true}
             labels={{
               email: t('superadmin.companies.form.fields.adminEmail'),
               emailPlaceholder: t('superadmin.companies.form.fields.adminEmailPlaceholder'),
@@ -237,10 +242,16 @@ export function AdminStepForm({
               lastNamePlaceholder: t('superadmin.companies.form.fields.adminLastNamePlaceholder'),
               phone: t('superadmin.companies.form.fields.adminPhone'),
               idDocument: t('superadmin.companies.form.fields.adminIdDocument'),
-              idDocumentTypePlaceholder: t('superadmin.companies.form.fields.adminIdDocumentTypePlaceholder'),
-              idDocumentNumberPlaceholder: t('superadmin.companies.form.fields.adminIdDocumentNumberPlaceholder'),
+              idDocumentTypePlaceholder: t(
+                'superadmin.companies.form.fields.adminIdDocumentTypePlaceholder'
+              ),
+              idDocumentNumberPlaceholder: t(
+                'superadmin.companies.form.fields.adminIdDocumentNumberPlaceholder'
+              ),
               idDocumentTooltip: t('superadmin.companies.form.fields.adminIdDocumentDescription'),
             }}
+            showDocumentFields={true}
+            translateError={translateError}
           />
         )}
       </div>

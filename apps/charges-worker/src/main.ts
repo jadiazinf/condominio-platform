@@ -1,9 +1,13 @@
 import { env } from '@config/environment'
 import { createBossClient } from '@worker/boss/client'
 import {
-  QUEUES, CRON_SCHEDULES, JOB_OPTIONS,
-  type IAutoGenerateJobData, type IBulkGenerateJobData,
-  type ICalculateInterestJobData, type INotifyJobData,
+  QUEUES,
+  CRON_SCHEDULES,
+  JOB_OPTIONS,
+  type IAutoGenerateJobData,
+  type IBulkGenerateJobData,
+  type ICalculateInterestJobData,
+  type INotifyJobData,
 } from '@worker/boss/queues'
 import { processAutoGeneration } from '@worker/processors/auto-generation.processor'
 import { processBulkGeneration } from '@worker/processors/bulk-generation.processor'
@@ -28,39 +32,35 @@ async function main() {
   logger.info('[charges-worker] Queues created')
 
   // Register job handlers (pg-boss v10 passes Job[] batches; batchSize:1 for sequential processing)
-  await boss.work<IAutoGenerateJobData>(
-    QUEUES.AUTO_GENERATE,
-    { batchSize: 1 },
-    async (jobs) => { for (const job of jobs) await processAutoGeneration(job) },
-  )
-  await boss.work<IBulkGenerateJobData>(
-    QUEUES.BULK_GENERATE,
-    { batchSize: 1 },
-    async (jobs) => { for (const job of jobs) await processBulkGeneration(job) },
-  )
+  await boss.work<IAutoGenerateJobData>(QUEUES.AUTO_GENERATE, { batchSize: 1 }, async jobs => {
+    for (const job of jobs) await processAutoGeneration(job)
+  })
+  await boss.work<IBulkGenerateJobData>(QUEUES.BULK_GENERATE, { batchSize: 1 }, async jobs => {
+    for (const job of jobs) await processBulkGeneration(job)
+  })
   await boss.work<ICalculateInterestJobData>(
     QUEUES.CALCULATE_INTEREST,
     { batchSize: 1 },
-    async (jobs) => { for (const job of jobs) await processInterestCalculation(job) },
+    async jobs => {
+      for (const job of jobs) await processInterestCalculation(job)
+    }
   )
-  await boss.work<INotifyJobData>(
-    QUEUES.NOTIFY,
-    { batchSize: 1 },
-    async (jobs) => { for (const job of jobs) await processNotification(job) },
-  )
+  await boss.work<INotifyJobData>(QUEUES.NOTIFY, { batchSize: 1 }, async jobs => {
+    for (const job of jobs) await processNotification(job)
+  })
 
   // Schedule cron jobs
   await boss.schedule(
     QUEUES.AUTO_GENERATE,
     CRON_SCHEDULES.AUTO_GENERATE,
     {},
-    { ...JOB_OPTIONS[QUEUES.AUTO_GENERATE] },
+    { ...JOB_OPTIONS[QUEUES.AUTO_GENERATE] }
   )
   await boss.schedule(
     QUEUES.CALCULATE_INTEREST,
     CRON_SCHEDULES.CALCULATE_INTEREST,
     {},
-    { ...JOB_OPTIONS[QUEUES.CALCULATE_INTEREST] },
+    { ...JOB_OPTIONS[QUEUES.CALCULATE_INTEREST] }
   )
 
   logger.info('[charges-worker] All handlers registered and cron jobs scheduled')
@@ -77,7 +77,7 @@ async function main() {
   process.on('SIGINT', () => shutdown('SIGINT'))
 }
 
-main().catch((error) => {
+main().catch(error => {
   logger.fatal({ error }, '[charges-worker] Fatal error during startup')
   process.exit(1)
 })

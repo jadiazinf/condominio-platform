@@ -44,7 +44,9 @@ export class AddMemberService {
   async execute(input: IAddMemberInput): Promise<TServiceResult<TManagementCompanyMember>> {
     // Check if primary admin already exists (if trying to add as primary)
     if (input.isPrimary) {
-      const existingPrimary = await this.membersRepository.getPrimaryAdmin(input.managementCompanyId)
+      const existingPrimary = await this.membersRepository.getPrimaryAdmin(
+        input.managementCompanyId
+      )
 
       if (existingPrimary) {
         return failure('Management company already has a primary admin', 'CONFLICT')

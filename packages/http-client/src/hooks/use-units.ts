@@ -9,7 +9,8 @@ import { getHttpClient } from '../client'
 export const unitsKeys = {
   all: ['units'] as const,
   list: (buildingId: string) => [...unitsKeys.all, 'list', buildingId] as const,
-  byCondominium: (condominiumId: string) => [...unitsKeys.all, 'condominium', condominiumId] as const,
+  byCondominium: (condominiumId: string) =>
+    [...unitsKeys.all, 'condominium', condominiumId] as const,
   detail: (id: string) => [...unitsKeys.all, 'detail', id] as const,
 }
 
@@ -209,7 +210,8 @@ export function useToggleUnitStatus(options: UseToggleUnitStatusOptions = {}) {
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiMessageResponse, TToggleUnitStatusVariables>({
-    path: (variables: TToggleUnitStatusVariables) => `/condominium/units/${variables.unitId}/status`,
+    path: (variables: TToggleUnitStatusVariables) =>
+      `/condominium/units/${variables.unitId}/status`,
     method: 'PATCH',
     invalidateKeys: [unitsKeys.all],
     onSuccess: (response: ApiResponse<TApiMessageResponse>) => {
@@ -233,15 +235,11 @@ export async function createUnitDirect(
   data: TCreateUnitVariables
 ): Promise<TUnit> {
   const client = getHttpClient()
-  const response = await client.post<TApiDataResponse<TUnit>>(
-    '/condominium/units',
-    data,
-    {
-      headers: {
-        'x-condominium-id': condominiumId,
-      },
-    }
-  )
+  const response = await client.post<TApiDataResponse<TUnit>>('/condominium/units', data, {
+    headers: {
+      'x-condominium-id': condominiumId,
+    },
+  })
   return response.data.data
 }
 
@@ -292,9 +290,12 @@ export async function getBuildingUnits(
     headers['x-management-company-id'] = managementCompanyId
   }
 
-  const response = await client.get<TApiDataResponse<TUnit[]>>(`/condominium/units/building/${buildingId}`, {
-    headers,
-  })
+  const response = await client.get<TApiDataResponse<TUnit[]>>(
+    `/condominium/units/building/${buildingId}`,
+    {
+      headers,
+    }
+  )
 
   return response.data.data
 }

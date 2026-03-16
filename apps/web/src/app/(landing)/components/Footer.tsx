@@ -2,6 +2,7 @@
 
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
+
 import { Link } from '@/ui/components/link'
 import { useTranslation } from '@/contexts'
 
@@ -13,16 +14,16 @@ export function Footer() {
 
   return (
     <footer
-      id="footer"
       className="snap-section flex flex-col justify-end bg-background border-t border-divider"
+      id="footer"
     >
       <div ref={ref} className="w-full max-w-7xl mx-auto px-8 md:px-16 py-16">
         {/* Top: Logo + tagline */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
           className="mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
         >
           <div className="h-[2px] w-12 bg-brick mb-6" />
           <h3 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
@@ -35,10 +36,10 @@ export function Footer() {
 
         {/* Middle: Links grid */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.6, delay: 0.15, ease: 'easeOut' }}
           className="grid grid-cols-2 md:grid-cols-3 gap-8 mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.6, delay: 0.15, ease: 'easeOut' }}
         >
           {/* Product */}
           <div>
@@ -47,17 +48,26 @@ export function Footer() {
             </h4>
             <ul className="space-y-3">
               <li>
-                <Link className="text-sm text-foreground/60 hover:text-brick transition-colors font-light" href="#benefits">
+                <Link
+                  className="text-sm text-foreground/60 hover:text-brick transition-colors font-light"
+                  href="#benefits"
+                >
                   {t('footer.benefits')}
                 </Link>
               </li>
               <li>
-                <Link className="text-sm text-foreground/60 hover:text-brick transition-colors font-light" href="#residents">
+                <Link
+                  className="text-sm text-foreground/60 hover:text-brick transition-colors font-light"
+                  href="#residents"
+                >
                   {t('footer.residents')}
                 </Link>
               </li>
               <li>
-                <Link className="text-sm text-foreground/60 hover:text-brick transition-colors font-light" href="#how-it-works">
+                <Link
+                  className="text-sm text-foreground/60 hover:text-brick transition-colors font-light"
+                  href="#how-it-works"
+                >
                   {t('footer.howItWorks')}
                 </Link>
               </li>
@@ -71,12 +81,18 @@ export function Footer() {
             </h4>
             <ul className="space-y-3">
               <li>
-                <Link className="text-sm text-foreground/60 hover:text-brick transition-colors font-light" href="/help">
+                <Link
+                  className="text-sm text-foreground/60 hover:text-brick transition-colors font-light"
+                  href="/help"
+                >
                   {t('footer.helpCenter')}
                 </Link>
               </li>
               <li>
-                <Link className="text-sm text-foreground/60 hover:text-brick transition-colors font-light" href="/contact">
+                <Link
+                  className="text-sm text-foreground/60 hover:text-brick transition-colors font-light"
+                  href="/contact"
+                >
                   {t('footer.contact')}
                 </Link>
               </li>
@@ -90,12 +106,18 @@ export function Footer() {
             </h4>
             <ul className="space-y-3">
               <li>
-                <Link className="text-sm text-foreground/60 hover:text-brick transition-colors font-light" href="/privacy">
+                <Link
+                  className="text-sm text-foreground/60 hover:text-brick transition-colors font-light"
+                  href="/privacy"
+                >
                   {t('footer.privacy')}
                 </Link>
               </li>
               <li>
-                <Link className="text-sm text-foreground/60 hover:text-brick transition-colors font-light" href="/terms">
+                <Link
+                  className="text-sm text-foreground/60 hover:text-brick transition-colors font-light"
+                  href="/terms"
+                >
                   {t('footer.terms')}
                 </Link>
               </li>
@@ -105,17 +127,13 @@ export function Footer() {
 
         {/* Bottom: Copyright */}
         <motion.div
-          initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
           className="border-t border-foreground/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4"
+          initial={{ opacity: 0 }}
+          transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
         >
-          <p className="text-xs text-foreground/25 font-light">
-            {t('footer.copyright', { year })}
-          </p>
-          <p className="text-xs text-foreground/25 font-light">
-            {t('footer.madeWith')}
-          </p>
+          <p className="text-xs text-foreground/25 font-light">{t('footer.copyright', { year })}</p>
+          <p className="text-xs text-foreground/25 font-light">{t('footer.madeWith')}</p>
         </motion.div>
       </div>
     </footer>

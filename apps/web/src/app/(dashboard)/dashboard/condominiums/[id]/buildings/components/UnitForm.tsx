@@ -22,46 +22,46 @@ export function UnitForm({ translateError, translations }: IUnitFormProps) {
       {/* Basic Information */}
       <div className="grid gap-x-4 gap-y-8 sm:grid-cols-2">
         <InputField
-          name="unitNumber"
-          label={translations.unitNumber}
-          placeholder={translations.unitNumberPlaceholder}
           isRequired
+          label={translations.unitNumber}
+          name="unitNumber"
+          placeholder={translations.unitNumberPlaceholder}
           translateError={translateError}
         />
         <InputField
-          name="floor"
           label={translations.floor}
-          type="number"
+          name="floor"
           translateError={translateError}
+          type="number"
         />
       </div>
 
       <div className="grid gap-x-4 gap-y-8 sm:grid-cols-3">
-        <InputField name="areaM2" label={translations.area} translateError={translateError} />
+        <InputField label={translations.area} name="areaM2" translateError={translateError} />
         <InputField
-          name="bedrooms"
           label={translations.bedrooms}
-          type="number"
+          name="bedrooms"
           translateError={translateError}
+          type="number"
         />
         <InputField
-          name="bathrooms"
           label={translations.bathrooms}
-          type="number"
+          name="bathrooms"
           translateError={translateError}
+          type="number"
         />
       </div>
 
       <div className="grid gap-x-4 gap-y-8 sm:grid-cols-2">
         <InputField
-          name="parkingSpaces"
           label={translations.parkingSpaces}
-          type="number"
+          name="parkingSpaces"
           translateError={translateError}
+          type="number"
         />
         <InputField
-          name="aliquotPercentage"
           label={translations.aliquotPercentage}
+          name="aliquotPercentage"
           translateError={translateError}
         />
       </div>

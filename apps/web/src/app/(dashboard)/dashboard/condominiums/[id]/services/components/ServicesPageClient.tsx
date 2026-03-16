@@ -1,7 +1,14 @@
 'use client'
 
+import type { TCondominiumService, TCondominiumServicesQuery } from '@packages/domain'
+
 import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { Wrench, Plus, X, Search, ChevronRight } from 'lucide-react'
+import { useCondominiumServicesPaginated } from '@packages/http-client/hooks'
+
+import { CreateServiceModal } from './CreateServiceModal'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Input } from '@/ui/components/input'
@@ -12,11 +19,6 @@ import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
 import { Card, CardBody } from '@/ui/components/card'
 import { useDisclosure } from '@/ui/components/modal'
-import { Wrench, Plus, X, Search, ChevronRight } from 'lucide-react'
-import type { TCondominiumService, TCondominiumServicesQuery } from '@packages/domain'
-
-import { CreateServiceModal } from './CreateServiceModal'
-import { useCondominiumServicesPaginated } from '@packages/http-client/hooks'
 
 type TProviderFilter = 'all' | 'individual' | 'company' | 'cooperative' | 'government' | 'internal'
 type TStatusFilter = 'all' | 'active' | 'inactive'
@@ -193,8 +195,8 @@ export function ServicesPageClient({
                 PROVIDER_TYPE_COLORS[service.providerType as keyof typeof PROVIDER_TYPE_COLORS] ||
                 'default'
               }
-              variant="flat"
               size="sm"
+              variant="flat"
             >
               {t.providerTypes[service.providerType as keyof typeof t.providerTypes] ||
                 service.providerType}
@@ -217,14 +219,14 @@ export function ServicesPageClient({
           )
         case 'isActive':
           return (
-            <Chip color={service.isActive ? 'success' : 'default'} variant="dot" size="sm">
+            <Chip color={service.isActive ? 'success' : 'default'} size="sm" variant="dot">
               {service.isActive ? t.status.active : t.status.inactive}
             </Chip>
           )
         case 'actions':
           return (
             <div className="flex justify-end">
-              <ChevronRight size={16} className="text-default-400" />
+              <ChevronRight className="text-default-400" size={16} />
             </div>
           )
         default:
@@ -242,7 +244,7 @@ export function ServicesPageClient({
         <div className="flex items-center justify-between">
           <div>
             <Typography variant="h3">{t.title}</Typography>
-            <Typography color="muted" variant="body2" className="mt-1">
+            <Typography className="mt-1" color="muted" variant="body2">
               {t.subtitle}
             </Typography>
           </div>
@@ -265,7 +267,7 @@ export function ServicesPageClient({
       <div className="flex items-center justify-between">
         <div>
           <Typography variant="h3">{t.title}</Typography>
-          <Typography color="muted" variant="body2" className="mt-1">
+          <Typography className="mt-1" color="muted" variant="body2">
             {t.subtitle}
           </Typography>
         </div>
@@ -277,30 +279,30 @@ export function ServicesPageClient({
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:flex-wrap">
         <Input
-          placeholder={t.filters.searchPlaceholder}
-          value={search}
-          onValueChange={handleSearchChange}
-          startContent={<Search size={16} className="text-default-400" />}
-          className="w-full sm:w-64"
-          variant="bordered"
           isClearable
+          className="w-full sm:w-64"
+          placeholder={t.filters.searchPlaceholder}
+          startContent={<Search className="text-default-400" size={16} />}
+          value={search}
+          variant="bordered"
           onClear={() => handleSearchChange('')}
+          onValueChange={handleSearchChange}
         />
         <Select
           aria-label={t.table.providerType}
           className="w-full sm:w-44"
           items={providerFilterItems}
           value={providerFilter}
-          onChange={handleProviderChange}
           variant="bordered"
+          onChange={handleProviderChange}
         />
         <Select
           aria-label={t.table.status}
           className="w-full sm:w-36"
           items={statusFilterItems}
           value={statusFilter}
-          onChange={handleStatusChange}
           variant="bordered"
+          onChange={handleStatusChange}
         />
         {hasActiveFilters && (
           <Button startContent={<X size={14} />} variant="flat" onPress={handleClearFilters}>
@@ -331,8 +333,8 @@ export function ServicesPageClient({
             {services.map(service => (
               <Card
                 key={service.id}
-                className="w-full cursor-pointer hover:bg-default-50 transition-colors"
                 isPressable
+                className="w-full cursor-pointer hover:bg-default-50 transition-colors"
                 onPress={() => handleRowClick(service)}
               >
                 <CardBody className="space-y-2">
@@ -344,10 +346,14 @@ export function ServicesPageClient({
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <Chip color={service.isActive ? 'success' : 'default'} variant="dot" size="sm">
+                      <Chip
+                        color={service.isActive ? 'success' : 'default'}
+                        size="sm"
+                        variant="dot"
+                      >
                         {service.isActive ? t.status.active : t.status.inactive}
                       </Chip>
-                      <ChevronRight size={14} className="text-default-400" />
+                      <ChevronRight className="text-default-400" size={14} />
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -357,8 +363,8 @@ export function ServicesPageClient({
                           service.providerType as keyof typeof PROVIDER_TYPE_COLORS
                         ] || 'default'
                       }
-                      variant="flat"
                       size="sm"
+                      variant="flat"
                     >
                       {t.providerTypes[service.providerType as keyof typeof t.providerTypes] ||
                         service.providerType}
@@ -372,15 +378,15 @@ export function ServicesPageClient({
           {/* Desktop Table */}
           <div className="hidden md:block">
             <Table<TCondominiumService>
-              mobileCards={false}
               aria-label={t.title}
-              columns={tableColumns}
-              rows={services}
-              renderCell={renderCell}
-              onRowClick={handleRowClick}
               classNames={{
                 tr: 'hover:bg-default-100 transition-colors cursor-pointer',
               }}
+              columns={tableColumns}
+              mobileCards={false}
+              renderCell={renderCell}
+              rows={services}
+              onRowClick={handleRowClick}
             />
           </div>
 
@@ -402,10 +408,10 @@ export function ServicesPageClient({
 
       {/* Create Modal */}
       <CreateServiceModal
-        isOpen={createModal.isOpen}
-        onClose={createModal.onClose}
         condominiumId={condominiumId}
+        isOpen={createModal.isOpen}
         managementCompanyId={managementCompanyId}
+        onClose={createModal.onClose}
       />
     </div>
   )

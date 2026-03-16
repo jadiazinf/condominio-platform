@@ -1,13 +1,13 @@
 import { ArrowLeft } from 'lucide-react'
 import { redirect, notFound } from 'next/navigation'
-
-import { Button } from '@/ui/components/button'
-import { getTranslations } from '@/libs/i18n/server'
-import { getFullSession, getServerAuthToken } from '@/libs/session'
 import { getManagementCompanyById } from '@packages/http-client/hooks'
 
 import { CompanySidebar } from './components/CompanySidebar'
 import { CompanyDetailHeader } from './components/CompanyDetailHeader'
+
+import { Button } from '@/ui/components/button'
+import { getTranslations } from '@/libs/i18n/server'
+import { getFullSession, getServerAuthToken } from '@/libs/session'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -16,7 +16,11 @@ interface LayoutProps {
 
 export default async function CompanyDetailLayout({ children, params }: LayoutProps) {
   const { id } = await params
-  const [{ t }, session, token] = await Promise.all([getTranslations(), getFullSession(), getServerAuthToken()])
+  const [{ t }, session, token] = await Promise.all([
+    getTranslations(),
+    getFullSession(),
+    getServerAuthToken(),
+  ])
 
   // Only superadmins can access this page
   if (!session.superadmin?.isActive) {
@@ -32,10 +36,10 @@ export default async function CompanyDetailLayout({ children, params }: LayoutPr
   return (
     <div className="max-w-6xl mx-auto">
       <Button
-        variant="light"
-        startContent={<ArrowLeft size={16} />}
         className="mb-4"
         href="/dashboard/admins"
+        startContent={<ArrowLeft size={16} />}
+        variant="light"
       >
         {t('common.backToList')}
       </Button>

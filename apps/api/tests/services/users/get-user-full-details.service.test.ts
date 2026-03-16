@@ -45,9 +45,30 @@ describe('GetUserFullDetailsService', function () {
     ],
     isSuperadmin: true,
     superadminPermissions: [
-      { id: 'perm-1', permissionId: 'perm-1', module: 'platform_superadmins', action: 'read', description: 'View superadmins', isEnabled: true },
-      { id: 'perm-2', permissionId: 'perm-2', module: 'platform_superadmins', action: 'write', description: 'Manage superadmins', isEnabled: true },
-      { id: 'perm-3', permissionId: 'perm-3', module: 'management_companies', action: 'read', description: 'View companies', isEnabled: true },
+      {
+        id: 'perm-1',
+        permissionId: 'perm-1',
+        module: 'platform_superadmins',
+        action: 'read',
+        description: 'View superadmins',
+        isEnabled: true,
+      },
+      {
+        id: 'perm-2',
+        permissionId: 'perm-2',
+        module: 'platform_superadmins',
+        action: 'write',
+        description: 'Manage superadmins',
+        isEnabled: true,
+      },
+      {
+        id: 'perm-3',
+        permissionId: 'perm-3',
+        module: 'management_companies',
+        action: 'read',
+        description: 'View companies',
+        isEnabled: true,
+      },
     ],
     condominiums: null, // Superadmins don't have condominiums
   }

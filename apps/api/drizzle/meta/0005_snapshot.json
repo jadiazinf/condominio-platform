@@ -171,12 +171,8 @@
           "name": "fk_locations_parent",
           "tableFrom": "locations",
           "tableTo": "locations",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -311,9 +307,7 @@
         "currencies_code_unique": {
           "name": "currencies_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
+          "columns": ["code"]
         }
       },
       "policies": {},
@@ -492,12 +486,8 @@
           "name": "exchange_rates_from_currency_id_currencies_id_fk",
           "tableFrom": "exchange_rates",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "from_currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["from_currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -505,12 +495,8 @@
           "name": "exchange_rates_to_currency_id_currencies_id_fk",
           "tableFrom": "exchange_rates",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "to_currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["to_currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -745,12 +731,8 @@
           "name": "fk_users_location",
           "tableFrom": "users",
           "tableTo": "locations",
-          "columnsFrom": [
-            "location_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["location_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -758,12 +740,8 @@
           "name": "fk_users_preferred_currency",
           "tableFrom": "users",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "preferred_currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["preferred_currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -773,16 +751,12 @@
         "users_firebase_uid_unique": {
           "name": "users_firebase_uid_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "firebase_uid"
-          ]
+          "columns": ["firebase_uid"]
         },
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -903,12 +877,8 @@
           "name": "permissions_registered_by_users_id_fk",
           "tableFrom": "permissions",
           "tableTo": "users",
-          "columnsFrom": [
-            "registered_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["registered_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -918,9 +888,7 @@
         "permissions_name_unique": {
           "name": "permissions_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -1030,12 +998,8 @@
           "name": "roles_registered_by_users_id_fk",
           "tableFrom": "roles",
           "tableTo": "users",
-          "columnsFrom": [
-            "registered_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["registered_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1045,9 +1009,7 @@
         "roles_name_unique": {
           "name": "roles_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -1164,12 +1126,8 @@
           "name": "role_permissions_role_id_roles_id_fk",
           "tableFrom": "role_permissions",
           "tableTo": "roles",
-          "columnsFrom": [
-            "role_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["role_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1177,12 +1135,8 @@
           "name": "role_permissions_permission_id_permissions_id_fk",
           "tableFrom": "role_permissions",
           "tableTo": "permissions",
-          "columnsFrom": [
-            "permission_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["permission_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1190,12 +1144,8 @@
           "name": "role_permissions_registered_by_users_id_fk",
           "tableFrom": "role_permissions",
           "tableTo": "users",
-          "columnsFrom": [
-            "registered_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["registered_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1330,12 +1280,8 @@
           "name": "user_permissions_user_id_users_id_fk",
           "tableFrom": "user_permissions",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1343,12 +1289,8 @@
           "name": "user_permissions_permission_id_permissions_id_fk",
           "tableFrom": "user_permissions",
           "tableTo": "permissions",
-          "columnsFrom": [
-            "permission_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["permission_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1356,12 +1298,8 @@
           "name": "user_permissions_assigned_by_users_id_fk",
           "tableFrom": "user_permissions",
           "tableTo": "users",
-          "columnsFrom": [
-            "assigned_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["assigned_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1550,12 +1488,8 @@
           "name": "management_companies_location_id_locations_id_fk",
           "tableFrom": "management_companies",
           "tableTo": "locations",
-          "columnsFrom": [
-            "location_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["location_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -1563,12 +1497,8 @@
           "name": "management_companies_created_by_users_id_fk",
           "tableFrom": "management_companies",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1578,9 +1508,7 @@
         "management_companies_email_unique": {
           "name": "management_companies_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -1762,12 +1690,8 @@
           "name": "condominiums_location_id_locations_id_fk",
           "tableFrom": "condominiums",
           "tableTo": "locations",
-          "columnsFrom": [
-            "location_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["location_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -1775,12 +1699,8 @@
           "name": "condominiums_default_currency_id_currencies_id_fk",
           "tableFrom": "condominiums",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "default_currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["default_currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -1788,12 +1708,8 @@
           "name": "condominiums_created_by_users_id_fk",
           "tableFrom": "condominiums",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1803,9 +1719,7 @@
         "condominiums_code_unique": {
           "name": "condominiums_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
+          "columns": ["code"]
         }
       },
       "policies": {},
@@ -1936,12 +1850,8 @@
           "name": "condominium_management_companies_condominium_id_condominiums_id_fk",
           "tableFrom": "condominium_management_companies",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1949,12 +1859,8 @@
           "name": "condominium_management_companies_management_company_id_management_companies_id_fk",
           "tableFrom": "condominium_management_companies",
           "tableTo": "management_companies",
-          "columnsFrom": [
-            "management_company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["management_company_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1962,12 +1868,8 @@
           "name": "condominium_management_companies_assigned_by_users_id_fk",
           "tableFrom": "condominium_management_companies",
           "tableTo": "users",
-          "columnsFrom": [
-            "assigned_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["assigned_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -2171,12 +2073,8 @@
           "name": "buildings_condominium_id_condominiums_id_fk",
           "tableFrom": "buildings",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2184,12 +2082,8 @@
           "name": "buildings_created_by_users_id_fk",
           "tableFrom": "buildings",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -2446,12 +2340,8 @@
           "name": "user_roles_user_id_users_id_fk",
           "tableFrom": "user_roles",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2459,12 +2349,8 @@
           "name": "user_roles_role_id_roles_id_fk",
           "tableFrom": "user_roles",
           "tableTo": "roles",
-          "columnsFrom": [
-            "role_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["role_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2472,12 +2358,8 @@
           "name": "user_roles_condominium_id_condominiums_id_fk",
           "tableFrom": "user_roles",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2485,12 +2367,8 @@
           "name": "user_roles_building_id_buildings_id_fk",
           "tableFrom": "user_roles",
           "tableTo": "buildings",
-          "columnsFrom": [
-            "building_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["building_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2498,12 +2376,8 @@
           "name": "user_roles_management_company_id_management_companies_id_fk",
           "tableFrom": "user_roles",
           "tableTo": "management_companies",
-          "columnsFrom": [
-            "management_company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["management_company_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2511,12 +2385,8 @@
           "name": "user_roles_assigned_by_users_id_fk",
           "tableFrom": "user_roles",
           "tableTo": "users",
-          "columnsFrom": [
-            "assigned_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["assigned_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -2524,12 +2394,8 @@
           "name": "user_roles_registered_by_users_id_fk",
           "tableFrom": "user_roles",
           "tableTo": "users",
-          "columnsFrom": [
-            "registered_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["registered_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -2734,12 +2600,8 @@
           "name": "units_building_id_buildings_id_fk",
           "tableFrom": "units",
           "tableTo": "buildings",
-          "columnsFrom": [
-            "building_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["building_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2747,12 +2609,8 @@
           "name": "units_created_by_users_id_fk",
           "tableFrom": "units",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -2983,12 +2841,8 @@
           "name": "unit_ownerships_unit_id_units_id_fk",
           "tableFrom": "unit_ownerships",
           "tableTo": "units",
-          "columnsFrom": [
-            "unit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["unit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2996,12 +2850,8 @@
           "name": "unit_ownerships_user_id_users_id_fk",
           "tableFrom": "unit_ownerships",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3275,12 +3125,8 @@
           "name": "payment_concepts_condominium_id_condominiums_id_fk",
           "tableFrom": "payment_concepts",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3288,12 +3134,8 @@
           "name": "payment_concepts_building_id_buildings_id_fk",
           "tableFrom": "payment_concepts",
           "tableTo": "buildings",
-          "columnsFrom": [
-            "building_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["building_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3301,12 +3143,8 @@
           "name": "payment_concepts_currency_id_currencies_id_fk",
           "tableFrom": "payment_concepts",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -3314,12 +3152,8 @@
           "name": "payment_concepts_created_by_users_id_fk",
           "tableFrom": "payment_concepts",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -3543,12 +3377,8 @@
           "name": "payment_concept_assignments_payment_concept_id_payment_concepts_id_fk",
           "tableFrom": "payment_concept_assignments",
           "tableTo": "payment_concepts",
-          "columnsFrom": [
-            "payment_concept_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_concept_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3556,12 +3386,8 @@
           "name": "payment_concept_assignments_condominium_id_condominiums_id_fk",
           "tableFrom": "payment_concept_assignments",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3569,12 +3395,8 @@
           "name": "payment_concept_assignments_building_id_buildings_id_fk",
           "tableFrom": "payment_concept_assignments",
           "tableTo": "buildings",
-          "columnsFrom": [
-            "building_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["building_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3582,12 +3404,8 @@
           "name": "payment_concept_assignments_unit_id_units_id_fk",
           "tableFrom": "payment_concept_assignments",
           "tableTo": "units",
-          "columnsFrom": [
-            "unit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["unit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3595,12 +3413,8 @@
           "name": "payment_concept_assignments_assigned_by_users_id_fk",
           "tableFrom": "payment_concept_assignments",
           "tableTo": "users",
-          "columnsFrom": [
-            "assigned_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["assigned_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -3706,12 +3520,8 @@
           "name": "payment_concept_bank_accounts_payment_concept_id_payment_concepts_id_fk",
           "tableFrom": "payment_concept_bank_accounts",
           "tableTo": "payment_concepts",
-          "columnsFrom": [
-            "payment_concept_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_concept_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3719,12 +3529,8 @@
           "name": "payment_concept_bank_accounts_bank_account_id_bank_accounts_id_fk",
           "tableFrom": "payment_concept_bank_accounts",
           "tableTo": "bank_accounts",
-          "columnsFrom": [
-            "bank_account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["bank_account_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3732,12 +3538,8 @@
           "name": "payment_concept_bank_accounts_assigned_by_users_id_fk",
           "tableFrom": "payment_concept_bank_accounts",
           "tableTo": "users",
-          "columnsFrom": [
-            "assigned_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["assigned_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -3855,12 +3657,8 @@
           "name": "payment_concept_changes_payment_concept_id_payment_concepts_id_fk",
           "tableFrom": "payment_concept_changes",
           "tableTo": "payment_concepts",
-          "columnsFrom": [
-            "payment_concept_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_concept_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3868,12 +3666,8 @@
           "name": "payment_concept_changes_condominium_id_condominiums_id_fk",
           "tableFrom": "payment_concept_changes",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3881,12 +3675,8 @@
           "name": "payment_concept_changes_changed_by_users_id_fk",
           "tableFrom": "payment_concept_changes",
           "tableTo": "users",
-          "columnsFrom": [
-            "changed_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["changed_by"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -4125,12 +3915,8 @@
           "name": "interest_configurations_condominium_id_condominiums_id_fk",
           "tableFrom": "interest_configurations",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -4138,12 +3924,8 @@
           "name": "interest_configurations_building_id_buildings_id_fk",
           "tableFrom": "interest_configurations",
           "tableTo": "buildings",
-          "columnsFrom": [
-            "building_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["building_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -4151,12 +3933,8 @@
           "name": "interest_configurations_payment_concept_id_payment_concepts_id_fk",
           "tableFrom": "interest_configurations",
           "tableTo": "payment_concepts",
-          "columnsFrom": [
-            "payment_concept_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_concept_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -4164,12 +3942,8 @@
           "name": "interest_configurations_currency_id_currencies_id_fk",
           "tableFrom": "interest_configurations",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -4177,12 +3951,8 @@
           "name": "interest_configurations_created_by_users_id_fk",
           "tableFrom": "interest_configurations",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -4301,12 +4071,8 @@
           "name": "quota_adjustments_quota_id_quotas_id_fk",
           "tableFrom": "quota_adjustments",
           "tableTo": "quotas",
-          "columnsFrom": [
-            "quota_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["quota_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -4314,12 +4080,8 @@
           "name": "quota_adjustments_created_by_users_id_fk",
           "tableFrom": "quota_adjustments",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -4591,12 +4353,8 @@
           "name": "quotas_unit_id_units_id_fk",
           "tableFrom": "quotas",
           "tableTo": "units",
-          "columnsFrom": [
-            "unit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["unit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -4604,12 +4362,8 @@
           "name": "quotas_payment_concept_id_payment_concepts_id_fk",
           "tableFrom": "quotas",
           "tableTo": "payment_concepts",
-          "columnsFrom": [
-            "payment_concept_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_concept_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -4617,12 +4371,8 @@
           "name": "quotas_currency_id_currencies_id_fk",
           "tableFrom": "quotas",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -4630,12 +4380,8 @@
           "name": "quotas_created_by_users_id_fk",
           "tableFrom": "quotas",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -4788,12 +4534,8 @@
           "name": "payment_pending_allocations_currency_id_currencies_id_fk",
           "tableFrom": "payment_pending_allocations",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -4801,12 +4543,8 @@
           "name": "payment_pending_allocations_allocated_to_quota_id_quotas_id_fk",
           "tableFrom": "payment_pending_allocations",
           "tableTo": "quotas",
-          "columnsFrom": [
-            "allocated_to_quota_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["allocated_to_quota_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -4814,12 +4552,8 @@
           "name": "payment_pending_allocations_allocated_by_users_id_fk",
           "tableFrom": "payment_pending_allocations",
           "tableTo": "users",
-          "columnsFrom": [
-            "allocated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["allocated_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -5003,12 +4737,8 @@
           "name": "quota_formulas_condominium_id_condominiums_id_fk",
           "tableFrom": "quota_formulas",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -5016,12 +4746,8 @@
           "name": "quota_formulas_currency_id_currencies_id_fk",
           "tableFrom": "quota_formulas",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -5029,12 +4755,8 @@
           "name": "quota_formulas_created_by_users_id_fk",
           "tableFrom": "quota_formulas",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -5042,12 +4764,8 @@
           "name": "quota_formulas_updated_by_users_id_fk",
           "tableFrom": "quota_formulas",
           "tableTo": "users",
-          "columnsFrom": [
-            "updated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["updated_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -5316,12 +5034,8 @@
           "name": "quota_generation_logs_generation_rule_id_quota_generation_rules_id_fk",
           "tableFrom": "quota_generation_logs",
           "tableTo": "quota_generation_rules",
-          "columnsFrom": [
-            "generation_rule_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["generation_rule_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -5329,12 +5043,8 @@
           "name": "quota_generation_logs_generation_schedule_id_quota_generation_schedules_id_fk",
           "tableFrom": "quota_generation_logs",
           "tableTo": "quota_generation_schedules",
-          "columnsFrom": [
-            "generation_schedule_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["generation_schedule_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -5342,12 +5052,8 @@
           "name": "quota_generation_logs_quota_formula_id_quota_formulas_id_fk",
           "tableFrom": "quota_generation_logs",
           "tableTo": "quota_formulas",
-          "columnsFrom": [
-            "quota_formula_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["quota_formula_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -5355,12 +5061,8 @@
           "name": "quota_generation_logs_currency_id_currencies_id_fk",
           "tableFrom": "quota_generation_logs",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -5368,12 +5070,8 @@
           "name": "quota_generation_logs_generated_by_users_id_fk",
           "tableFrom": "quota_generation_logs",
           "tableTo": "users",
-          "columnsFrom": [
-            "generated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["generated_by"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -5601,12 +5299,8 @@
           "name": "quota_generation_rules_condominium_id_condominiums_id_fk",
           "tableFrom": "quota_generation_rules",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -5614,12 +5308,8 @@
           "name": "quota_generation_rules_building_id_buildings_id_fk",
           "tableFrom": "quota_generation_rules",
           "tableTo": "buildings",
-          "columnsFrom": [
-            "building_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["building_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -5627,12 +5317,8 @@
           "name": "quota_generation_rules_payment_concept_id_payment_concepts_id_fk",
           "tableFrom": "quota_generation_rules",
           "tableTo": "payment_concepts",
-          "columnsFrom": [
-            "payment_concept_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_concept_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -5640,12 +5326,8 @@
           "name": "quota_generation_rules_quota_formula_id_quota_formulas_id_fk",
           "tableFrom": "quota_generation_rules",
           "tableTo": "quota_formulas",
-          "columnsFrom": [
-            "quota_formula_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["quota_formula_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -5653,12 +5335,8 @@
           "name": "quota_generation_rules_created_by_users_id_fk",
           "tableFrom": "quota_generation_rules",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -5666,12 +5344,8 @@
           "name": "quota_generation_rules_updated_by_users_id_fk",
           "tableFrom": "quota_generation_rules",
           "tableTo": "users",
-          "columnsFrom": [
-            "updated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["updated_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -5890,12 +5564,8 @@
           "name": "quota_generation_schedules_quota_generation_rule_id_quota_generation_rules_id_fk",
           "tableFrom": "quota_generation_schedules",
           "tableTo": "quota_generation_rules",
-          "columnsFrom": [
-            "quota_generation_rule_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["quota_generation_rule_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -5903,12 +5573,8 @@
           "name": "quota_generation_schedules_created_by_users_id_fk",
           "tableFrom": "quota_generation_schedules",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -5916,12 +5582,8 @@
           "name": "quota_generation_schedules_updated_by_users_id_fk",
           "tableFrom": "quota_generation_schedules",
           "tableTo": "users",
-          "columnsFrom": [
-            "updated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["updated_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -6055,12 +5717,8 @@
           "name": "entity_payment_gateways_payment_gateway_id_payment_gateways_id_fk",
           "tableFrom": "entity_payment_gateways",
           "tableTo": "payment_gateways",
-          "columnsFrom": [
-            "payment_gateway_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_gateway_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -6068,12 +5726,8 @@
           "name": "entity_payment_gateways_condominium_id_condominiums_id_fk",
           "tableFrom": "entity_payment_gateways",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -6081,12 +5735,8 @@
           "name": "entity_payment_gateways_building_id_buildings_id_fk",
           "tableFrom": "entity_payment_gateways",
           "tableTo": "buildings",
-          "columnsFrom": [
-            "building_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["building_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -6094,12 +5744,8 @@
           "name": "entity_payment_gateways_registered_by_users_id_fk",
           "tableFrom": "entity_payment_gateways",
           "tableTo": "users",
-          "columnsFrom": [
-            "registered_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["registered_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -6239,12 +5885,8 @@
           "name": "payment_gateways_registered_by_users_id_fk",
           "tableFrom": "payment_gateways",
           "tableTo": "users",
-          "columnsFrom": [
-            "registered_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["registered_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -6254,9 +5896,7 @@
         "payment_gateways_name_unique": {
           "name": "payment_gateways_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -6447,12 +6087,8 @@
           "name": "gateway_transactions_payment_id_payments_id_fk",
           "tableFrom": "gateway_transactions",
           "tableTo": "payments",
-          "columnsFrom": [
-            "payment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -6593,12 +6229,8 @@
           "name": "payment_applications_payment_id_payments_id_fk",
           "tableFrom": "payment_applications",
           "tableTo": "payments",
-          "columnsFrom": [
-            "payment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -6606,12 +6238,8 @@
           "name": "payment_applications_quota_id_quotas_id_fk",
           "tableFrom": "payment_applications",
           "tableTo": "quotas",
-          "columnsFrom": [
-            "quota_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["quota_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -6619,12 +6247,8 @@
           "name": "payment_applications_registered_by_users_id_fk",
           "tableFrom": "payment_applications",
           "tableTo": "users",
-          "columnsFrom": [
-            "registered_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["registered_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -6939,12 +6563,8 @@
           "name": "payments_user_id_users_id_fk",
           "tableFrom": "payments",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -6952,12 +6572,8 @@
           "name": "payments_unit_id_units_id_fk",
           "tableFrom": "payments",
           "tableTo": "units",
-          "columnsFrom": [
-            "unit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["unit_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -6965,12 +6581,8 @@
           "name": "payments_currency_id_currencies_id_fk",
           "tableFrom": "payments",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -6978,12 +6590,8 @@
           "name": "payments_paid_currency_id_currencies_id_fk",
           "tableFrom": "payments",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "paid_currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["paid_currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -6991,12 +6599,8 @@
           "name": "payments_payment_gateway_id_payment_gateways_id_fk",
           "tableFrom": "payments",
           "tableTo": "payment_gateways",
-          "columnsFrom": [
-            "payment_gateway_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_gateway_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -7004,12 +6608,8 @@
           "name": "payments_registered_by_users_id_fk",
           "tableFrom": "payments",
           "tableTo": "users",
-          "columnsFrom": [
-            "registered_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["registered_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -7017,12 +6617,8 @@
           "name": "payments_verified_by_users_id_fk",
           "tableFrom": "payments",
           "tableTo": "users",
-          "columnsFrom": [
-            "verified_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["verified_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -7032,9 +6628,7 @@
         "payments_payment_number_unique": {
           "name": "payments_payment_number_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "payment_number"
-          ]
+          "columns": ["payment_number"]
         }
       },
       "policies": {},
@@ -7143,12 +6737,8 @@
           "name": "expense_categories_registered_by_users_id_fk",
           "tableFrom": "expense_categories",
           "tableTo": "users",
-          "columnsFrom": [
-            "registered_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["registered_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -7156,12 +6746,8 @@
           "name": "fk_expense_categories_parent",
           "tableFrom": "expense_categories",
           "tableTo": "expense_categories",
-          "columnsFrom": [
-            "parent_category_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_category_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -7399,12 +6985,8 @@
           "name": "expenses_condominium_id_condominiums_id_fk",
           "tableFrom": "expenses",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -7412,12 +6994,8 @@
           "name": "expenses_building_id_buildings_id_fk",
           "tableFrom": "expenses",
           "tableTo": "buildings",
-          "columnsFrom": [
-            "building_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["building_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -7425,12 +7003,8 @@
           "name": "expenses_expense_category_id_expense_categories_id_fk",
           "tableFrom": "expenses",
           "tableTo": "expense_categories",
-          "columnsFrom": [
-            "expense_category_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["expense_category_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -7438,12 +7012,8 @@
           "name": "expenses_currency_id_currencies_id_fk",
           "tableFrom": "expenses",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -7451,12 +7021,8 @@
           "name": "expenses_approved_by_users_id_fk",
           "tableFrom": "expenses",
           "tableTo": "users",
-          "columnsFrom": [
-            "approved_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["approved_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -7464,12 +7030,8 @@
           "name": "expenses_created_by_users_id_fk",
           "tableFrom": "expenses",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -7749,12 +7311,8 @@
           "name": "documents_condominium_id_condominiums_id_fk",
           "tableFrom": "documents",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -7762,12 +7320,8 @@
           "name": "documents_building_id_buildings_id_fk",
           "tableFrom": "documents",
           "tableTo": "buildings",
-          "columnsFrom": [
-            "building_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["building_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -7775,12 +7329,8 @@
           "name": "documents_unit_id_units_id_fk",
           "tableFrom": "documents",
           "tableTo": "units",
-          "columnsFrom": [
-            "unit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["unit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -7788,12 +7338,8 @@
           "name": "documents_user_id_users_id_fk",
           "tableFrom": "documents",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -7801,12 +7347,8 @@
           "name": "documents_payment_id_payments_id_fk",
           "tableFrom": "documents",
           "tableTo": "payments",
-          "columnsFrom": [
-            "payment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -7814,12 +7356,8 @@
           "name": "documents_quota_id_quotas_id_fk",
           "tableFrom": "documents",
           "tableTo": "quotas",
-          "columnsFrom": [
-            "quota_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["quota_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -7827,12 +7365,8 @@
           "name": "documents_expense_id_expenses_id_fk",
           "tableFrom": "documents",
           "tableTo": "expenses",
-          "columnsFrom": [
-            "expense_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["expense_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -7840,12 +7374,8 @@
           "name": "documents_created_by_users_id_fk",
           "tableFrom": "documents",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -8113,12 +7643,8 @@
           "name": "messages_sender_id_users_id_fk",
           "tableFrom": "messages",
           "tableTo": "users",
-          "columnsFrom": [
-            "sender_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["sender_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -8126,12 +7652,8 @@
           "name": "messages_recipient_user_id_users_id_fk",
           "tableFrom": "messages",
           "tableTo": "users",
-          "columnsFrom": [
-            "recipient_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recipient_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -8139,12 +7661,8 @@
           "name": "messages_recipient_condominium_id_condominiums_id_fk",
           "tableFrom": "messages",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "recipient_condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recipient_condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -8152,12 +7670,8 @@
           "name": "messages_recipient_building_id_buildings_id_fk",
           "tableFrom": "messages",
           "tableTo": "buildings",
-          "columnsFrom": [
-            "recipient_building_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recipient_building_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -8165,12 +7679,8 @@
           "name": "messages_recipient_unit_id_units_id_fk",
           "tableFrom": "messages",
           "tableTo": "units",
-          "columnsFrom": [
-            "recipient_unit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recipient_unit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -8178,12 +7688,8 @@
           "name": "messages_registered_by_users_id_fk",
           "tableFrom": "messages",
           "tableTo": "users",
-          "columnsFrom": [
-            "registered_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["registered_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -8350,12 +7856,8 @@
           "name": "notification_deliveries_notification_id_notifications_id_fk",
           "tableFrom": "notification_deliveries",
           "tableTo": "notifications",
-          "columnsFrom": [
-            "notification_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["notification_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -8522,12 +8024,8 @@
           "name": "notification_templates_created_by_users_id_fk",
           "tableFrom": "notification_templates",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -8537,9 +8035,7 @@
         "notification_templates_code_unique": {
           "name": "notification_templates_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
+          "columns": ["code"]
         }
       },
       "policies": {},
@@ -8723,12 +8219,8 @@
           "name": "notifications_user_id_users_id_fk",
           "tableFrom": "notifications",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -8736,12 +8228,8 @@
           "name": "notifications_template_id_notification_templates_id_fk",
           "tableFrom": "notifications",
           "tableTo": "notification_templates",
-          "columnsFrom": [
-            "template_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["template_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -8901,12 +8389,8 @@
           "name": "user_fcm_tokens_user_id_users_id_fk",
           "tableFrom": "user_fcm_tokens",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -9067,12 +8551,8 @@
           "name": "user_notification_preferences_user_id_users_id_fk",
           "tableFrom": "user_notification_preferences",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -9239,12 +8719,8 @@
           "name": "audit_logs_user_id_users_id_fk",
           "tableFrom": "audit_logs",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -9455,12 +8931,8 @@
           "name": "admin_invitations_user_id_users_id_fk",
           "tableFrom": "admin_invitations",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -9468,12 +8940,8 @@
           "name": "admin_invitations_management_company_id_management_companies_id_fk",
           "tableFrom": "admin_invitations",
           "tableTo": "management_companies",
-          "columnsFrom": [
-            "management_company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["management_company_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -9481,12 +8949,8 @@
           "name": "admin_invitations_created_by_users_id_fk",
           "tableFrom": "admin_invitations",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -9496,9 +8960,7 @@
         "admin_invitations_token_unique": {
           "name": "admin_invitations_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -9747,12 +9209,8 @@
           "name": "user_invitations_user_id_users_id_fk",
           "tableFrom": "user_invitations",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -9760,12 +9218,8 @@
           "name": "user_invitations_condominium_id_condominiums_id_fk",
           "tableFrom": "user_invitations",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -9773,12 +9227,8 @@
           "name": "user_invitations_unit_id_units_id_fk",
           "tableFrom": "user_invitations",
           "tableTo": "units",
-          "columnsFrom": [
-            "unit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["unit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -9786,12 +9236,8 @@
           "name": "user_invitations_role_id_roles_id_fk",
           "tableFrom": "user_invitations",
           "tableTo": "roles",
-          "columnsFrom": [
-            "role_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["role_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -9799,12 +9245,8 @@
           "name": "user_invitations_created_by_users_id_fk",
           "tableFrom": "user_invitations",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -9814,9 +9256,7 @@
         "user_invitations_token_unique": {
           "name": "user_invitations_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -10135,12 +9575,8 @@
           "name": "management_company_subscriptions_management_company_id_management_companies_id_fk",
           "tableFrom": "management_company_subscriptions",
           "tableTo": "management_companies",
-          "columnsFrom": [
-            "management_company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["management_company_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -10148,12 +9584,8 @@
           "name": "management_company_subscriptions_currency_id_currencies_id_fk",
           "tableFrom": "management_company_subscriptions",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -10161,12 +9593,8 @@
           "name": "management_company_subscriptions_rate_id_subscription_rates_id_fk",
           "tableFrom": "management_company_subscriptions",
           "tableTo": "subscription_rates",
-          "columnsFrom": [
-            "rate_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["rate_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -10174,12 +9602,8 @@
           "name": "management_company_subscriptions_created_by_users_id_fk",
           "tableFrom": "management_company_subscriptions",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -10187,12 +9611,8 @@
           "name": "management_company_subscriptions_updated_by_users_id_fk",
           "tableFrom": "management_company_subscriptions",
           "tableTo": "users",
-          "columnsFrom": [
-            "updated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["updated_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -10200,12 +9620,8 @@
           "name": "management_company_subscriptions_cancelled_by_users_id_fk",
           "tableFrom": "management_company_subscriptions",
           "tableTo": "users",
-          "columnsFrom": [
-            "cancelled_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cancelled_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -10439,12 +9855,8 @@
           "name": "subscription_invoices_subscription_id_management_company_subscriptions_id_fk",
           "tableFrom": "subscription_invoices",
           "tableTo": "management_company_subscriptions",
-          "columnsFrom": [
-            "subscription_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subscription_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -10452,12 +9864,8 @@
           "name": "subscription_invoices_management_company_id_management_companies_id_fk",
           "tableFrom": "subscription_invoices",
           "tableTo": "management_companies",
-          "columnsFrom": [
-            "management_company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["management_company_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -10465,12 +9873,8 @@
           "name": "subscription_invoices_currency_id_currencies_id_fk",
           "tableFrom": "subscription_invoices",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -10478,12 +9882,8 @@
           "name": "subscription_invoices_payment_id_payments_id_fk",
           "tableFrom": "subscription_invoices",
           "tableTo": "payments",
-          "columnsFrom": [
-            "payment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -10493,9 +9893,7 @@
         "subscription_invoices_invoice_number_unique": {
           "name": "subscription_invoices_invoice_number_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "invoice_number"
-          ]
+          "columns": ["invoice_number"]
         }
       },
       "policies": {},
@@ -10707,12 +10105,8 @@
           "name": "management_company_members_management_company_id_management_companies_id_fk",
           "tableFrom": "management_company_members",
           "tableTo": "management_companies",
-          "columnsFrom": [
-            "management_company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["management_company_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -10720,12 +10114,8 @@
           "name": "management_company_members_user_id_users_id_fk",
           "tableFrom": "management_company_members",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -10733,12 +10123,8 @@
           "name": "management_company_members_user_role_id_user_roles_id_fk",
           "tableFrom": "management_company_members",
           "tableTo": "user_roles",
-          "columnsFrom": [
-            "user_role_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_role_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -10746,12 +10132,8 @@
           "name": "management_company_members_invited_by_users_id_fk",
           "tableFrom": "management_company_members",
           "tableTo": "users",
-          "columnsFrom": [
-            "invited_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["invited_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -10759,12 +10141,8 @@
           "name": "management_company_members_deactivated_by_users_id_fk",
           "tableFrom": "management_company_members",
           "tableTo": "users",
-          "columnsFrom": [
-            "deactivated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["deactivated_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -10916,12 +10294,8 @@
           "name": "subscription_audit_history_subscription_id_management_company_subscriptions_id_fk",
           "tableFrom": "subscription_audit_history",
           "tableTo": "management_company_subscriptions",
-          "columnsFrom": [
-            "subscription_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subscription_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -10929,12 +10303,8 @@
           "name": "subscription_audit_history_performed_by_users_id_fk",
           "tableFrom": "subscription_audit_history",
           "tableTo": "users",
-          "columnsFrom": [
-            "performed_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["performed_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -11072,12 +10442,8 @@
           "name": "subscription_terms_conditions_created_by_users_id_fk",
           "tableFrom": "subscription_terms_conditions",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -11242,12 +10608,8 @@
           "name": "subscription_acceptances_subscription_id_management_company_subscriptions_id_fk",
           "tableFrom": "subscription_acceptances",
           "tableTo": "management_company_subscriptions",
-          "columnsFrom": [
-            "subscription_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subscription_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -11255,12 +10617,8 @@
           "name": "subscription_acceptances_terms_conditions_id_subscription_terms_conditions_id_fk",
           "tableFrom": "subscription_acceptances",
           "tableTo": "subscription_terms_conditions",
-          "columnsFrom": [
-            "terms_conditions_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["terms_conditions_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -11268,12 +10626,8 @@
           "name": "subscription_acceptances_accepted_by_users_id_fk",
           "tableFrom": "subscription_acceptances",
           "tableTo": "users",
-          "columnsFrom": [
-            "accepted_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["accepted_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -11492,12 +10846,8 @@
           "name": "subscription_rates_created_by_users_id_fk",
           "tableFrom": "subscription_rates",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -11505,12 +10855,8 @@
           "name": "subscription_rates_updated_by_users_id_fk",
           "tableFrom": "subscription_rates",
           "tableTo": "users",
-          "columnsFrom": [
-            "updated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["updated_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -11752,12 +11098,8 @@
           "name": "support_tickets_management_company_id_management_companies_id_fk",
           "tableFrom": "support_tickets",
           "tableTo": "management_companies",
-          "columnsFrom": [
-            "management_company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["management_company_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -11765,12 +11107,8 @@
           "name": "support_tickets_created_by_user_id_users_id_fk",
           "tableFrom": "support_tickets",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -11778,12 +11116,8 @@
           "name": "support_tickets_created_by_member_id_management_company_members_id_fk",
           "tableFrom": "support_tickets",
           "tableTo": "management_company_members",
-          "columnsFrom": [
-            "created_by_member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by_member_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -11791,12 +11125,8 @@
           "name": "support_tickets_resolved_by_users_id_fk",
           "tableFrom": "support_tickets",
           "tableTo": "users",
-          "columnsFrom": [
-            "resolved_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["resolved_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -11804,12 +11134,8 @@
           "name": "support_tickets_closed_by_users_id_fk",
           "tableFrom": "support_tickets",
           "tableTo": "users",
-          "columnsFrom": [
-            "closed_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["closed_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -11819,9 +11145,7 @@
         "support_tickets_ticket_number_unique": {
           "name": "support_tickets_ticket_number_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "ticket_number"
-          ]
+          "columns": ["ticket_number"]
         }
       },
       "policies": {},
@@ -11944,12 +11268,8 @@
           "name": "support_ticket_messages_ticket_id_support_tickets_id_fk",
           "tableFrom": "support_ticket_messages",
           "tableTo": "support_tickets",
-          "columnsFrom": [
-            "ticket_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["ticket_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -11957,12 +11277,8 @@
           "name": "support_ticket_messages_user_id_users_id_fk",
           "tableFrom": "support_ticket_messages",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -12043,12 +11359,8 @@
           "name": "support_ticket_assignment_history_ticket_id_support_tickets_id_fk",
           "tableFrom": "support_ticket_assignment_history",
           "tableTo": "support_tickets",
-          "columnsFrom": [
-            "ticket_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["ticket_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -12056,12 +11368,8 @@
           "name": "support_ticket_assignment_history_assigned_to_users_id_fk",
           "tableFrom": "support_ticket_assignment_history",
           "tableTo": "users",
-          "columnsFrom": [
-            "assigned_to"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["assigned_to"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -12069,12 +11377,8 @@
           "name": "support_ticket_assignment_history_assigned_by_users_id_fk",
           "tableFrom": "support_ticket_assignment_history",
           "tableTo": "users",
-          "columnsFrom": [
-            "assigned_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["assigned_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -12240,12 +11544,8 @@
           "name": "amenities_condominium_id_condominiums_id_fk",
           "tableFrom": "amenities",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -12253,12 +11553,8 @@
           "name": "amenities_created_by_users_id_fk",
           "tableFrom": "amenities",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -12445,12 +11741,8 @@
           "name": "amenity_reservations_amenity_id_amenities_id_fk",
           "tableFrom": "amenity_reservations",
           "tableTo": "amenities",
-          "columnsFrom": [
-            "amenity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["amenity_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -12458,12 +11750,8 @@
           "name": "amenity_reservations_user_id_users_id_fk",
           "tableFrom": "amenity_reservations",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -12471,12 +11759,8 @@
           "name": "amenity_reservations_approved_by_users_id_fk",
           "tableFrom": "amenity_reservations",
           "tableTo": "users",
-          "columnsFrom": [
-            "approved_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["approved_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -12611,12 +11895,8 @@
           "name": "condominium_access_codes_condominium_id_condominiums_id_fk",
           "tableFrom": "condominium_access_codes",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -12624,12 +11904,8 @@
           "name": "condominium_access_codes_created_by_users_id_fk",
           "tableFrom": "condominium_access_codes",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -12639,9 +11915,7 @@
         "condominium_access_codes_code_unique": {
           "name": "condominium_access_codes_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
+          "columns": ["code"]
         }
       },
       "policies": {},
@@ -12813,12 +12087,8 @@
           "name": "access_requests_condominium_id_condominiums_id_fk",
           "tableFrom": "access_requests",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -12826,12 +12096,8 @@
           "name": "access_requests_unit_id_units_id_fk",
           "tableFrom": "access_requests",
           "tableTo": "units",
-          "columnsFrom": [
-            "unit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["unit_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -12839,12 +12105,8 @@
           "name": "access_requests_user_id_users_id_fk",
           "tableFrom": "access_requests",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -12852,12 +12114,8 @@
           "name": "access_requests_access_code_id_condominium_access_codes_id_fk",
           "tableFrom": "access_requests",
           "tableTo": "condominium_access_codes",
-          "columnsFrom": [
-            "access_code_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["access_code_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -12865,12 +12123,8 @@
           "name": "access_requests_reviewed_by_users_id_fk",
           "tableFrom": "access_requests",
           "tableTo": "users",
-          "columnsFrom": [
-            "reviewed_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["reviewed_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -13283,12 +12537,8 @@
           "name": "bank_accounts_management_company_id_management_companies_id_fk",
           "tableFrom": "bank_accounts",
           "tableTo": "management_companies",
-          "columnsFrom": [
-            "management_company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["management_company_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -13296,12 +12546,8 @@
           "name": "bank_accounts_bank_id_banks_id_fk",
           "tableFrom": "bank_accounts",
           "tableTo": "banks",
-          "columnsFrom": [
-            "bank_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["bank_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -13309,12 +12555,8 @@
           "name": "bank_accounts_currency_id_currencies_id_fk",
           "tableFrom": "bank_accounts",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -13322,12 +12564,8 @@
           "name": "bank_accounts_created_by_users_id_fk",
           "tableFrom": "bank_accounts",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -13335,12 +12573,8 @@
           "name": "bank_accounts_deactivated_by_users_id_fk",
           "tableFrom": "bank_accounts",
           "tableTo": "users",
-          "columnsFrom": [
-            "deactivated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["deactivated_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -13453,12 +12687,8 @@
           "name": "bank_account_condominiums_bank_account_id_bank_accounts_id_fk",
           "tableFrom": "bank_account_condominiums",
           "tableTo": "bank_accounts",
-          "columnsFrom": [
-            "bank_account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["bank_account_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -13466,12 +12696,8 @@
           "name": "bank_account_condominiums_condominium_id_condominiums_id_fk",
           "tableFrom": "bank_account_condominiums",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -13479,12 +12705,8 @@
           "name": "bank_account_condominiums_assigned_by_users_id_fk",
           "tableFrom": "bank_account_condominiums",
           "tableTo": "users",
-          "columnsFrom": [
-            "assigned_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["assigned_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -13715,12 +12937,8 @@
           "name": "condominium_services_condominium_id_condominiums_id_fk",
           "tableFrom": "condominium_services",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -13728,12 +12946,8 @@
           "name": "condominium_services_location_id_locations_id_fk",
           "tableFrom": "condominium_services",
           "tableTo": "locations",
-          "columnsFrom": [
-            "location_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["location_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -13741,12 +12955,8 @@
           "name": "condominium_services_created_by_users_id_fk",
           "tableFrom": "condominium_services",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -13937,12 +13147,8 @@
           "name": "service_executions_service_id_condominium_services_id_fk",
           "tableFrom": "service_executions",
           "tableTo": "condominium_services",
-          "columnsFrom": [
-            "service_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["service_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -13950,12 +13156,8 @@
           "name": "service_executions_condominium_id_condominiums_id_fk",
           "tableFrom": "service_executions",
           "tableTo": "condominiums",
-          "columnsFrom": [
-            "condominium_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["condominium_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -13963,12 +13165,8 @@
           "name": "service_executions_payment_concept_id_payment_concepts_id_fk",
           "tableFrom": "service_executions",
           "tableTo": "payment_concepts",
-          "columnsFrom": [
-            "payment_concept_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_concept_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -13976,12 +13174,8 @@
           "name": "service_executions_currency_id_currencies_id_fk",
           "tableFrom": "service_executions",
           "tableTo": "currencies",
-          "columnsFrom": [
-            "currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -13989,12 +13183,8 @@
           "name": "service_executions_created_by_users_id_fk",
           "tableFrom": "service_executions",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -14114,12 +13304,8 @@
           "name": "payment_concept_services_payment_concept_id_payment_concepts_id_fk",
           "tableFrom": "payment_concept_services",
           "tableTo": "payment_concepts",
-          "columnsFrom": [
-            "payment_concept_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_concept_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -14127,12 +13313,8 @@
           "name": "payment_concept_services_service_id_condominium_services_id_fk",
           "tableFrom": "payment_concept_services",
           "tableTo": "condominium_services",
-          "columnsFrom": [
-            "service_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["service_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -14148,78 +13330,42 @@
     "public.acceptance_status": {
       "name": "acceptance_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "accepted",
-        "expired",
-        "cancelled"
-      ]
+      "values": ["pending", "accepted", "expired", "cancelled"]
     },
     "public.access_request_status": {
       "name": "access_request_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "approved",
-        "rejected"
-      ]
+      "values": ["pending", "approved", "rejected"]
     },
     "public.adjustment_type": {
       "name": "adjustment_type",
       "schema": "public",
-      "values": [
-        "discount",
-        "increase",
-        "correction",
-        "waiver",
-        "exoneration",
-        "credit_note"
-      ]
+      "values": ["discount", "increase", "correction", "waiver", "exoneration", "credit_note"]
     },
     "public.admin_invitation_status": {
       "name": "admin_invitation_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "accepted",
-        "expired",
-        "cancelled"
-      ]
+      "values": ["pending", "accepted", "expired", "cancelled"]
     },
     "public.allocation_status": {
       "name": "allocation_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "allocated",
-        "refunded"
-      ]
+      "values": ["pending", "allocated", "refunded"]
     },
     "public.assignment_scope": {
       "name": "assignment_scope",
       "schema": "public",
-      "values": [
-        "condominium",
-        "building",
-        "unit"
-      ]
+      "values": ["condominium", "building", "unit"]
     },
     "public.audit_action": {
       "name": "audit_action",
       "schema": "public",
-      "values": [
-        "INSERT",
-        "UPDATE",
-        "DELETE"
-      ]
+      "values": ["INSERT", "UPDATE", "DELETE"]
     },
     "public.bank_account_category": {
       "name": "bank_account_category",
       "schema": "public",
-      "values": [
-        "national",
-        "international"
-      ]
+      "values": ["national", "international"]
     },
     "public.bank_payment_method": {
       "name": "bank_payment_method",
@@ -14240,310 +13386,152 @@
     "public.billing_cycle": {
       "name": "billing_cycle",
       "schema": "public",
-      "values": [
-        "monthly",
-        "quarterly",
-        "semi_annual",
-        "annual",
-        "custom"
-      ]
+      "values": ["monthly", "quarterly", "semi_annual", "annual", "custom"]
     },
     "public.charge_adjustment_type": {
       "name": "charge_adjustment_type",
       "schema": "public",
-      "values": [
-        "percentage",
-        "fixed",
-        "none"
-      ]
+      "values": ["percentage", "fixed", "none"]
     },
     "public.charge_generation_strategy": {
       "name": "charge_generation_strategy",
       "schema": "public",
-      "values": [
-        "auto",
-        "bulk",
-        "manual"
-      ]
+      "values": ["auto", "bulk", "manual"]
     },
     "public.concept_type": {
       "name": "concept_type",
       "schema": "public",
-      "values": [
-        "maintenance",
-        "condominium_fee",
-        "extraordinary",
-        "fine",
-        "reserve_fund",
-        "other"
-      ]
+      "values": ["maintenance", "condominium_fee", "extraordinary", "fine", "reserve_fund", "other"]
     },
     "public.delivery_status": {
       "name": "delivery_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "sent",
-        "delivered",
-        "failed",
-        "bounced"
-      ]
+      "values": ["pending", "sent", "delivered", "failed", "bounced"]
     },
     "public.device_platform": {
       "name": "device_platform",
       "schema": "public",
-      "values": [
-        "web",
-        "ios",
-        "android"
-      ]
+      "values": ["web", "ios", "android"]
     },
     "public.discount_type": {
       "name": "discount_type",
       "schema": "public",
-      "values": [
-        "percentage",
-        "fixed"
-      ]
+      "values": ["percentage", "fixed"]
     },
     "public.distribution_method": {
       "name": "distribution_method",
       "schema": "public",
-      "values": [
-        "by_aliquot",
-        "equal_split",
-        "fixed_per_unit"
-      ]
+      "values": ["by_aliquot", "equal_split", "fixed_per_unit"]
     },
     "public.document_type": {
       "name": "document_type",
       "schema": "public",
-      "values": [
-        "invoice",
-        "receipt",
-        "statement",
-        "contract",
-        "regulation",
-        "minutes",
-        "other"
-      ]
+      "values": ["invoice", "receipt", "statement", "contract", "regulation", "minutes", "other"]
     },
     "public.expense_status": {
       "name": "expense_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "approved",
-        "rejected",
-        "paid"
-      ]
+      "values": ["pending", "approved", "rejected", "paid"]
     },
     "public.formula_type": {
       "name": "formula_type",
       "schema": "public",
-      "values": [
-        "fixed",
-        "expression",
-        "per_unit"
-      ]
+      "values": ["fixed", "expression", "per_unit"]
     },
     "public.frequency_type": {
       "name": "frequency_type",
       "schema": "public",
-      "values": [
-        "days",
-        "monthly",
-        "quarterly",
-        "semi_annual",
-        "annual"
-      ]
+      "values": ["days", "monthly", "quarterly", "semi_annual", "annual"]
     },
     "public.gateway_type": {
       "name": "gateway_type",
       "schema": "public",
-      "values": [
-        "stripe",
-        "banco_plaza",
-        "paypal",
-        "zelle",
-        "other"
-      ]
+      "values": ["stripe", "banco_plaza", "paypal", "zelle", "other"]
     },
     "public.generation_method": {
       "name": "generation_method",
       "schema": "public",
-      "values": [
-        "manual_single",
-        "manual_batch",
-        "scheduled",
-        "range",
-        "bulk"
-      ]
+      "values": ["manual_single", "manual_batch", "scheduled", "range", "bulk"]
     },
     "public.generation_status": {
       "name": "generation_status",
       "schema": "public",
-      "values": [
-        "completed",
-        "partial",
-        "failed"
-      ]
+      "values": ["completed", "partial", "failed"]
     },
     "public.interest_type": {
       "name": "interest_type",
       "schema": "public",
-      "values": [
-        "simple",
-        "compound",
-        "fixed_amount"
-      ]
+      "values": ["simple", "compound", "fixed_amount"]
     },
     "public.invoice_status": {
       "name": "invoice_status",
       "schema": "public",
-      "values": [
-        "draft",
-        "sent",
-        "pending",
-        "paid",
-        "overdue",
-        "cancelled",
-        "refunded"
-      ]
+      "values": ["draft", "sent", "pending", "paid", "overdue", "cancelled", "refunded"]
     },
     "public.location_type": {
       "name": "location_type",
       "schema": "public",
-      "values": [
-        "country",
-        "province",
-        "city"
-      ]
+      "values": ["country", "province", "city"]
     },
     "public.member_role": {
       "name": "member_role",
       "schema": "public",
-      "values": [
-        "admin",
-        "accountant",
-        "support",
-        "viewer"
-      ]
+      "values": ["admin", "accountant", "support", "viewer"]
     },
     "public.message_type": {
       "name": "message_type",
       "schema": "public",
-      "values": [
-        "message",
-        "notification",
-        "announcement"
-      ]
+      "values": ["message", "notification", "announcement"]
     },
     "public.notification_category": {
       "name": "notification_category",
       "schema": "public",
-      "values": [
-        "payment",
-        "quota",
-        "announcement",
-        "reminder",
-        "alert",
-        "system"
-      ]
+      "values": ["payment", "quota", "announcement", "reminder", "alert", "system"]
     },
     "public.notification_channel": {
       "name": "notification_channel",
       "schema": "public",
-      "values": [
-        "in_app",
-        "email",
-        "push"
-      ]
+      "values": ["in_app", "email", "push"]
     },
     "public.ownership_type": {
       "name": "ownership_type",
       "schema": "public",
-      "values": [
-        "owner",
-        "co-owner",
-        "tenant",
-        "family_member",
-        "authorized"
-      ]
+      "values": ["owner", "co-owner", "tenant", "family_member", "authorized"]
     },
     "public.payment_method": {
       "name": "payment_method",
       "schema": "public",
-      "values": [
-        "transfer",
-        "cash",
-        "card",
-        "gateway"
-      ]
+      "values": ["transfer", "cash", "card", "gateway"]
     },
     "public.payment_status": {
       "name": "payment_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "pending_verification",
-        "completed",
-        "failed",
-        "refunded",
-        "rejected"
-      ]
+      "values": ["pending", "pending_verification", "completed", "failed", "refunded", "rejected"]
     },
     "public.priority": {
       "name": "priority",
       "schema": "public",
-      "values": [
-        "low",
-        "normal",
-        "high",
-        "urgent"
-      ]
+      "values": ["low", "normal", "high", "urgent"]
     },
     "public.quota_status": {
       "name": "quota_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "paid",
-        "overdue",
-        "cancelled",
-        "exonerated"
-      ]
+      "values": ["pending", "paid", "overdue", "cancelled", "exonerated"]
     },
     "public.recipient_type": {
       "name": "recipient_type",
       "schema": "public",
-      "values": [
-        "user",
-        "condominium",
-        "building",
-        "unit"
-      ]
+      "values": ["user", "condominium", "building", "unit"]
     },
     "public.reservation_status": {
       "name": "reservation_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "approved",
-        "rejected",
-        "cancelled"
-      ]
+      "values": ["pending", "approved", "rejected", "cancelled"]
     },
     "public.service_provider_type": {
       "name": "service_provider_type",
       "schema": "public",
-      "values": [
-        "individual",
-        "company",
-        "cooperative",
-        "government",
-        "internal"
-      ]
+      "values": ["individual", "company", "cooperative", "government", "internal"]
     },
     "public.subscription_audit_action": {
       "name": "subscription_audit_action",
@@ -14562,55 +13550,27 @@
     "public.subscription_status": {
       "name": "subscription_status",
       "schema": "public",
-      "values": [
-        "trial",
-        "active",
-        "inactive",
-        "cancelled",
-        "suspended"
-      ]
+      "values": ["trial", "active", "inactive", "cancelled", "suspended"]
     },
     "public.ticket_category": {
       "name": "ticket_category",
       "schema": "public",
-      "values": [
-        "technical",
-        "billing",
-        "feature_request",
-        "general",
-        "bug"
-      ]
+      "values": ["technical", "billing", "feature_request", "general", "bug"]
     },
     "public.ticket_priority": {
       "name": "ticket_priority",
       "schema": "public",
-      "values": [
-        "low",
-        "medium",
-        "high",
-        "urgent"
-      ]
+      "values": ["low", "medium", "high", "urgent"]
     },
     "public.ticket_status": {
       "name": "ticket_status",
       "schema": "public",
-      "values": [
-        "open",
-        "in_progress",
-        "waiting_customer",
-        "resolved",
-        "closed",
-        "cancelled"
-      ]
+      "values": ["open", "in_progress", "waiting_customer", "resolved", "closed", "cancelled"]
     },
     "public.ve_account_type": {
       "name": "ve_account_type",
       "schema": "public",
-      "values": [
-        "corriente",
-        "ahorro",
-        "divisas"
-      ]
+      "values": ["corriente", "ahorro", "divisas"]
     }
   },
   "schemas": {},

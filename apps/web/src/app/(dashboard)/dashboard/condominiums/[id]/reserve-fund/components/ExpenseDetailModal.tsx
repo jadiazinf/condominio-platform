@@ -1,16 +1,18 @@
 'use client'
 
+import type { TDocument, TCondominiumService } from '@packages/domain'
+import type { TExpensesTranslations } from './types'
+
 import { useMemo } from 'react'
+import { FileText, ImageIcon, ExternalLink } from 'lucide-react'
+import { useReserveFundExpenseDetail } from '@packages/http-client/hooks'
+import { formatFileSize } from '@packages/domain'
+
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { Accordion, AccordionItem } from '@/ui/components/accordion'
-import { FileText, ImageIcon, ExternalLink } from 'lucide-react'
-import { useReserveFundExpenseDetail } from '@packages/http-client/hooks'
-import type { TDocument, TCondominiumService } from '@packages/domain'
-import { formatFileSize } from '@packages/domain'
-import type { TExpensesTranslations } from './types'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -65,7 +67,9 @@ export function ExpenseDetailModal({
   const { name, description } = useMemo(() => {
     if (!expense?.description) return { name: '', description: '' }
     const newlineIndex = expense.description.indexOf('\n')
+
     if (newlineIndex === -1) return { name: expense.description, description: '' }
+
     return {
       name: expense.description.slice(0, newlineIndex),
       description: expense.description.slice(newlineIndex + 1),
@@ -76,12 +80,14 @@ export function ExpenseDetailModal({
   const currencyDisplay = useMemo(() => {
     if (!expense?.currencyId) return ''
     const cur = currencies.find(c => c.id === expense.currencyId)
+
     return cur ? `${cur.symbol ?? ''} ${cur.code}`.trim() : ''
   }, [expense?.currencyId, currencies])
 
   // Format amount
   const formattedAmount = useMemo(() => {
     if (!expense?.amount) return '0,00'
+
     return parseFloat(expense.amount).toLocaleString('es-ES', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -91,6 +97,7 @@ export function ExpenseDetailModal({
   // Format date
   const formattedDate = useMemo(() => {
     if (!expense?.expenseDate) return '-'
+
     return new Date(expense.expenseDate).toLocaleDateString('es-ES', {
       day: '2-digit',
       month: 'long',
@@ -101,6 +108,7 @@ export function ExpenseDetailModal({
   // Format created at
   const formattedCreatedAt = useMemo(() => {
     if (!expense?.createdAt) return '-'
+
     return new Date(expense.createdAt).toLocaleDateString('es-ES', {
       day: '2-digit',
       month: 'long',
@@ -117,11 +125,12 @@ export function ExpenseDetailModal({
   // Translate provider type
   const translateProviderType = (type: string): string => {
     const key = type as keyof typeof t.providerTypes
+
     return t.providerTypes[key] ?? type
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="2xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader>
           <Typography variant="h4">{t.title}</Typography>
@@ -133,11 +142,15 @@ export function ExpenseDetailModal({
               <Spinner size="lg" />
             </div>
           ) : !expense ? (
-            <Typography color="muted" className="py-8 text-center">
+            <Typography className="py-8 text-center" color="muted">
               Not found
             </Typography>
           ) : (
-            <Accordion variant="bordered" selectionMode="multiple" defaultExpandedKeys={['chargeInfo', 'vendorInfo', 'documents']}>
+            <Accordion
+              defaultExpandedKeys={['chargeInfo', 'vendorInfo', 'documents']}
+              selectionMode="multiple"
+              variant="bordered"
+            >
               {/* ── Charge Info ── */}
               <AccordionItem
                 key="chargeInfo"
@@ -156,7 +169,9 @@ export function ExpenseDetailModal({
                   )}
 
                   <span className="text-default-500">{t.amount}:</span>
-                  <span className="font-medium">{currencyDisplay} {formattedAmount}</span>
+                  <span className="font-medium">
+                    {currencyDisplay} {formattedAmount}
+                  </span>
 
                   <span className="text-default-500">{t.date}:</span>
                   <span>{formattedDate}</span>
@@ -196,7 +211,7 @@ export function ExpenseDetailModal({
                       <div key={service.id} className="rounded-lg bg-default-100 p-3 space-y-2">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">{service.name}</span>
-                          <Chip variant="flat" size="sm" color="primary">
+                          <Chip color="primary" size="sm" variant="flat">
                             {translateProviderType(service.providerType)}
                           </Chip>
                         </div>
@@ -207,13 +222,20 @@ export function ExpenseDetailModal({
                           {service.taxIdNumber && (
                             <>
                               <span className="text-default-500">{t.vendorTaxId}:</span>
-                              <span>{service.taxIdType ? `${service.taxIdType}-${service.taxIdNumber}` : service.taxIdNumber}</span>
+                              <span>
+                                {service.taxIdType
+                                  ? `${service.taxIdType}-${service.taxIdNumber}`
+                                  : service.taxIdNumber}
+                              </span>
                             </>
                           )}
                           {service.phone && (
                             <>
                               <span className="text-default-500">{t.vendorPhone}:</span>
-                              <span>{service.phoneCountryCode ? `${service.phoneCountryCode} ` : ''}{service.phone}</span>
+                              <span>
+                                {service.phoneCountryCode ? `${service.phoneCountryCode} ` : ''}
+                                {service.phone}
+                              </span>
                             </>
                           )}
                           {service.email && (
@@ -272,7 +294,7 @@ export function ExpenseDetailModal({
                     )}
                   </div>
                 ) : (
-                  <Typography variant="body2" color="muted" className="pb-2">
+                  <Typography className="pb-2" color="muted" variant="body2">
                     {t.noVendor}
                   </Typography>
                 )}
@@ -289,15 +311,15 @@ export function ExpenseDetailModal({
                     {documents.map(doc => (
                       <a
                         key={doc.id}
-                        href={doc.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
                         className="flex items-center gap-3 rounded-lg bg-default-100 p-3 transition-colors hover:bg-default-200"
+                        href={doc.fileUrl}
+                        rel="noopener noreferrer"
+                        target="_blank"
                       >
                         {doc.fileType?.startsWith('image/') ? (
-                          <ImageIcon size={18} className="text-primary shrink-0" />
+                          <ImageIcon className="text-primary shrink-0" size={18} />
                         ) : (
-                          <FileText size={18} className="text-warning shrink-0" />
+                          <FileText className="text-warning shrink-0" size={18} />
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
@@ -309,12 +331,12 @@ export function ExpenseDetailModal({
                             </p>
                           )}
                         </div>
-                        <ExternalLink size={14} className="text-default-400 shrink-0" />
+                        <ExternalLink className="text-default-400 shrink-0" size={14} />
                       </a>
                     ))}
                   </div>
                 ) : (
-                  <Typography variant="body2" color="muted" className="pb-2">
+                  <Typography className="pb-2" color="muted" variant="body2">
                     {t.noDocs}
                   </Typography>
                 )}

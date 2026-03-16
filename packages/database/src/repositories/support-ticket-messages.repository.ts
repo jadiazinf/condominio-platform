@@ -21,7 +21,8 @@ export class SupportTicketMessagesRepository
     TSupportTicketMessageCreate,
     TSupportTicketMessageUpdate
   >
-  implements IRepository<TSupportTicketMessage, TSupportTicketMessageCreate, TSupportTicketMessageUpdate>
+  implements
+    IRepository<TSupportTicketMessage, TSupportTicketMessageCreate, TSupportTicketMessageUpdate>
 {
   constructor(db: TDrizzleClient) {
     super(db, supportTicketMessages)
@@ -71,14 +72,16 @@ export class SupportTicketMessagesRepository
 
     return results.map(({ message, user }) => ({
       ...this.mapToEntity(message),
-      user: user ? {
-        id: user.id,
-        email: user.email,
-        displayName: user.displayName,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        photoUrl: user.photoUrl,
-      } : null,
+      user: user
+        ? {
+            id: user.id,
+            email: user.email,
+            displayName: user.displayName,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            photoUrl: user.photoUrl,
+          }
+        : null,
     }))
   }
 

@@ -1,6 +1,15 @@
 'use client'
 
+import type { TQuota } from '@packages/domain'
+import type { TReportFormat } from '@packages/http-client'
+
 import { useState, useCallback, useMemo } from 'react'
+import { Receipt, MoreVertical, Eye, Download } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
+import { useQuotas, useQueryClient, downloadDebtorsReport } from '@packages/http-client'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
@@ -8,33 +17,40 @@ import { Button } from '@/ui/components/button'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
 import { Spinner } from '@/ui/components/spinner'
 import { ClearFiltersButton } from '@/ui/components/filters'
-import { Receipt, MoreVertical, Eye, Download } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import type { TQuota } from '@packages/domain'
-import { formatCurrency } from '@packages/utils/currency'
-import { formatShortDate } from '@packages/utils/dates'
-
 import { useTranslation, useCondominium } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
 import { Typography } from '@/ui/components/typography'
 import { Pagination } from '@/ui/components/pagination'
-import { useQuotas, quotaKeys, useQueryClient, downloadDebtorsReport } from '@packages/http-client'
-import type { TReportFormat } from '@packages/http-client'
 
-type TStatusFilter = 'all' | 'pending' | 'paid' | 'overdue' | 'cancelled'
+type TStatusFilter = 'all' | 'pending' | 'partial' | 'paid' | 'overdue' | 'cancelled' | 'exonerated'
 
 type TQuotaRow = TQuota & { id: string }
 
-const STATUS_COLOR_MAP: Record<string, 'warning' | 'success' | 'danger' | 'default'> = {
+const STATUS_COLOR_MAP: Record<
+  string,
+  'warning' | 'success' | 'danger' | 'default' | 'secondary' | 'primary'
+> = {
   pending: 'warning',
+  partial: 'primary',
   paid: 'success',
   overdue: 'danger',
   cancelled: 'default',
+  exonerated: 'secondary',
 }
 
 const MONTH_NAMES = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ]
 
 export function QuotasTable() {
@@ -58,6 +74,7 @@ export function QuotasTable() {
   // Client-side filtering by status
   const filteredQuotas = useMemo(() => {
     if (statusFilter === 'all') return allQuotas
+
     return allQuotas.filter(q => q.status === statusFilter)
   }, [allQuotas, statusFilter])
 
@@ -66,6 +83,7 @@ export function QuotasTable() {
   const totalPages = Math.max(1, Math.ceil(total / limit))
   const paginatedQuotas = useMemo(() => {
     const start = (page - 1) * limit
+
     return filteredQuotas.slice(start, start + limit)
   }, [filteredQuotas, page, limit])
 
@@ -76,9 +94,11 @@ export function QuotasTable() {
     () => [
       { key: 'all', label: t('admin.quotas.status.all') },
       { key: 'pending', label: t('admin.quotas.status.pending') },
+      { key: 'partial', label: t('admin.quotas.status.partial') },
       { key: 'paid', label: t('admin.quotas.status.paid') },
       { key: 'overdue', label: t('admin.quotas.status.overdue') },
       { key: 'cancelled', label: t('admin.quotas.status.cancelled') },
+      { key: 'exonerated', label: t('admin.quotas.status.exonerated') },
     ],
     [t]
   )
@@ -114,6 +134,7 @@ export function QuotasTable() {
   const handleExport = useCallback(
     async (format: TReportFormat) => {
       const condominiumId = selectedCondominium?.condominium?.id
+
       if (!condominiumId) return
 
       setExporting(format)
@@ -140,6 +161,7 @@ export function QuotasTable() {
     if (month && month >= 1 && month <= 12) {
       return `${MONTH_NAMES[month - 1]} ${year}`
     }
+
     return `${year}`
   }
 
@@ -149,17 +171,13 @@ export function QuotasTable() {
         case 'unit':
           return (
             <div className="flex flex-col">
-              <span className="font-medium">
-                {quota.unit?.unitNumber ?? '-'}
-              </span>
+              <span className="font-medium">{quota.unit?.unitNumber ?? '-'}</span>
             </div>
           )
         case 'concept':
           return (
             <div className="flex flex-col">
-              <span className="font-medium">
-                {quota.paymentConcept?.name ?? '-'}
-              </span>
+              <span className="font-medium">{quota.paymentConcept?.name ?? '-'}</span>
               {quota.periodDescription && (
                 <span className="text-xs text-default-500">{quota.periodDescription}</span>
               )}
@@ -167,9 +185,7 @@ export function QuotasTable() {
           )
         case 'period':
           return (
-            <span className="text-sm">
-              {formatPeriod(quota.periodYear, quota.periodMonth)}
-            </span>
+            <span className="text-sm">{formatPeriod(quota.periodYear, quota.periodMonth)}</span>
           )
         case 'amount':
           return (
@@ -181,10 +197,7 @@ export function QuotasTable() {
           return <span className="text-sm">{formatShortDate(quota.dueDate)}</span>
         case 'status':
           return (
-            <Chip
-              color={STATUS_COLOR_MAP[quota.status] || 'default'}
-              variant="flat"
-            >
+            <Chip color={STATUS_COLOR_MAP[quota.status] || 'default'} variant="flat">
               {t(`admin.quotas.status.${quota.status}`)}
             </Chip>
           )
@@ -246,30 +259,28 @@ export function QuotasTable() {
             className="w-full sm:w-40"
             items={statusFilterItems}
             value={statusFilter}
-            onChange={handleStatusChange}
             variant="bordered"
+            onChange={handleStatusChange}
           />
-          {statusFilter !== 'all' && (
-            <ClearFiltersButton onClear={handleClearFilters} />
-          )}
+          {statusFilter !== 'all' && <ClearFiltersButton onClear={handleClearFilters} />}
         </div>
         <div className="flex gap-2">
           <Button
-            size="sm"
-            variant="bordered"
-            startContent={<Download size={16} />}
-            isLoading={exporting === 'csv'}
             isDisabled={exporting !== null}
+            isLoading={exporting === 'csv'}
+            size="sm"
+            startContent={<Download size={16} />}
+            variant="bordered"
             onPress={() => handleExport('csv')}
           >
             {t('admin.quotas.export.csv')}
           </Button>
           <Button
-            size="sm"
-            variant="bordered"
-            startContent={<Download size={16} />}
-            isLoading={exporting === 'pdf'}
             isDisabled={exporting !== null}
+            isLoading={exporting === 'pdf'}
+            size="sm"
+            startContent={<Download size={16} />}
+            variant="bordered"
             onPress={() => handleExport('pdf')}
           >
             {t('admin.quotas.export.pdf')}
@@ -296,13 +307,13 @@ export function QuotasTable() {
         <>
           <Table<TQuotaRow>
             aria-label={t('admin.quotas.title')}
-            columns={tableColumns}
-            rows={paginatedQuotas}
-            renderCell={renderCell}
-            onRowClick={quota => handleViewDetails(quota.id)}
             classNames={{
               tr: 'cursor-pointer transition-colors hover:bg-default-100',
             }}
+            columns={tableColumns}
+            renderCell={renderCell}
+            rows={paginatedQuotas}
+            onRowClick={quota => handleViewDetails(quota.id)}
           />
 
           {/* Pagination */}

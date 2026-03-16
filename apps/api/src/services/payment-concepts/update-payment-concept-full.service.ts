@@ -1,4 +1,9 @@
-import type { TPaymentConcept, TPaymentConceptChange, TPaymentConceptAssignment, TPaymentConceptBankAccount } from '@packages/domain'
+import type {
+  TPaymentConcept,
+  TPaymentConceptChange,
+  TPaymentConceptAssignment,
+  TPaymentConceptBankAccount,
+} from '@packages/domain'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
 
@@ -27,14 +32,27 @@ type TAssignmentsRepo = {
 
 type TBankAccountsRepo = {
   listByConceptId: (conceptId: string) => Promise<TPaymentConceptBankAccount[]>
-  linkBankAccount: (conceptId: string, bankAccountId: string, assignedBy: string | null) => Promise<TPaymentConceptBankAccount>
+  linkBankAccount: (
+    conceptId: string,
+    bankAccountId: string,
+    assignedBy: string | null
+  ) => Promise<TPaymentConceptBankAccount>
   unlinkBankAccount: (conceptId: string, bankAccountId: string) => Promise<boolean>
+  withTx: (tx: TDrizzleClient) => TBankAccountsRepo
 }
 
 type TConceptServicesRepo = {
-  listByConceptId: (conceptId: string) => Promise<Array<{ id: string; serviceId: string; amount: number; useDefaultAmount: boolean }>>
-  linkService: (conceptId: string, serviceId: string, amount: number, useDefault: boolean) => Promise<unknown>
+  listByConceptId: (
+    conceptId: string
+  ) => Promise<Array<{ id: string; serviceId: string; amount: number; useDefaultAmount: boolean }>>
+  linkService: (
+    conceptId: string,
+    serviceId: string,
+    amount: number,
+    useDefault: boolean
+  ) => Promise<unknown>
   unlinkService: (conceptId: string, serviceId: string) => Promise<boolean>
+  withTx: (tx: TDrizzleClient) => TConceptServicesRepo
 }
 
 type TChangesRepo = {
@@ -59,6 +77,32 @@ type TCurrenciesRepo = {
 
 type TCondominiumMCRepo = {
   getByCondominiumAndMC: (condominiumId: string, mcId: string) => Promise<{ id: string } | null>
+}
+
+type TCondominiumServicesRepo = {
+  getById: (id: string) => Promise<{ id: string; condominiumId: string; name: string } | null>
+}
+
+type TInterestConfigRecord = {
+  id: string
+  interestType: string
+  interestRate: string | null
+  fixedAmount: string | null
+  calculationPeriod: string | null
+  gracePeriodDays: number
+  effectiveFrom: string | Date
+  effectiveTo: string | Date | null
+  isActive: boolean
+  [key: string]: unknown
+}
+
+type TInterestConfigsRepo = {
+  getByPaymentConceptId: (id: string, includeInactive?: boolean) => Promise<TInterestConfigRecord[]>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  create: (data: any) => Promise<any>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  update: (id: string, data: any) => Promise<any>
+  withTx: (tx: TDrizzleClient) => TInterestConfigsRepo
 }
 
 interface IAssignmentInput {
@@ -106,16 +150,39 @@ export interface IUpdatePaymentConceptFullInput {
   assignments?: IAssignmentInput[]
   bankAccountIds?: string[]
   services?: IServiceInput[]
+  interestConfiguration?: {
+    interestType: 'simple' | 'compound' | 'fixed_amount'
+    interestRate: string | null
+    fixedAmount: string | null
+    calculationPeriod: string | null
+    gracePeriodDays: number
+    effectiveFrom: string
+    effectiveTo: string | null
+  } | null // null means explicitly remove
 }
 
 // Fields to compare for diff detection
 const DIFF_FIELDS = [
-  'name', 'description', 'conceptType', 'isRecurring', 'recurrencePeriod',
-  'currencyId', 'allowsPartialPayment',
-  'latePaymentType', 'latePaymentValue', 'latePaymentGraceDays',
-  'earlyPaymentType', 'earlyPaymentValue', 'earlyPaymentDaysBeforeDue',
-  'issueDay', 'dueDay', 'effectiveFrom', 'effectiveUntil',
-  'chargeGenerationStrategy', 'isActive', 'metadata',
+  'name',
+  'description',
+  'conceptType',
+  'isRecurring',
+  'recurrencePeriod',
+  'currencyId',
+  'allowsPartialPayment',
+  'latePaymentType',
+  'latePaymentValue',
+  'latePaymentGraceDays',
+  'earlyPaymentType',
+  'earlyPaymentValue',
+  'earlyPaymentDaysBeforeDue',
+  'issueDay',
+  'dueDay',
+  'effectiveFrom',
+  'effectiveUntil',
+  'chargeGenerationStrategy',
+  'isActive',
+  'metadata',
 ] as const
 
 export class UpdatePaymentConceptFullService {
@@ -128,7 +195,9 @@ export class UpdatePaymentConceptFullService {
     private readonly changesRepo: TChangesRepo,
     private readonly condominiumsRepo: TCondominiumsRepo,
     private readonly currenciesRepo: TCurrenciesRepo,
-    private readonly condominiumMCRepo: TCondominiumMCRepo
+    private readonly condominiumMCRepo: TCondominiumMCRepo,
+    private readonly condominiumServicesRepo?: TCondominiumServicesRepo,
+    private readonly interestConfigsRepo?: TInterestConfigsRepo
   ) {}
 
   async execute(input: IUpdatePaymentConceptFullInput): Promise<TServiceResult<TPaymentConcept>> {
@@ -147,9 +216,12 @@ export class UpdatePaymentConceptFullService {
 
     // Validate scheduling for recurring concepts
     if (input.isRecurring) {
-      if (!input.recurrencePeriod) return failure('Recurrence period is required for recurring concepts', 'BAD_REQUEST')
-      if (input.issueDay == null) return failure('Issue day is required for recurring concepts', 'BAD_REQUEST')
-      if (input.dueDay == null) return failure('Due day is required for recurring concepts', 'BAD_REQUEST')
+      if (!input.recurrencePeriod)
+        return failure('Recurrence period is required for recurring concepts', 'BAD_REQUEST')
+      if (input.issueDay == null)
+        return failure('Issue day is required for recurring concepts', 'BAD_REQUEST')
+      if (input.dueDay == null)
+        return failure('Due day is required for recurring concepts', 'BAD_REQUEST')
     }
 
     if (input.issueDay != null && (input.issueDay < 1 || input.issueDay > 28)) {
@@ -175,7 +247,10 @@ export class UpdatePaymentConceptFullService {
         return failure('Early payment value must be greater than 0', 'BAD_REQUEST')
       }
       if (input.earlyPaymentDaysBeforeDue <= 0) {
-        return failure('Days before due must be greater than 0 for early payment discounts', 'BAD_REQUEST')
+        return failure(
+          'Days before due must be greater than 0 for early payment discounts',
+          'BAD_REQUEST'
+        )
       }
       if (input.earlyPaymentType === 'percentage' && input.earlyPaymentValue > 100) {
         return failure('Early payment percentage cannot exceed 100%', 'BAD_REQUEST')
@@ -201,6 +276,26 @@ export class UpdatePaymentConceptFullService {
     const currency = await this.currenciesRepo.getById(input.currencyId)
     if (!currency) {
       return failure('CURRENCY_NOT_FOUND', 'NOT_FOUND')
+    }
+
+    // Validate services exist (if being updated)
+    if (input.services && this.condominiumServicesRepo) {
+      for (const svc of input.services) {
+        const service = await this.condominiumServicesRepo.getById(svc.serviceId)
+        if (!service) {
+          return failure('SERVICE_NOT_FOUND', 'NOT_FOUND')
+        }
+      }
+    }
+
+    // Validate bulk generation strategy requirements
+    if (input.isRecurring && input.chargeGenerationStrategy === 'bulk') {
+      if (!input.effectiveFrom)
+        return failure('Start date is required for bulk generation', 'BAD_REQUEST')
+      if (!input.effectiveUntil)
+        return failure('End date is required for bulk generation', 'BAD_REQUEST')
+      if (input.effectiveUntil <= input.effectiveFrom)
+        return failure('End date must be after start date', 'BAD_REQUEST')
     }
 
     // ── Compute diff ──────────────────────────────────────────────────────
@@ -230,9 +325,12 @@ export class UpdatePaymentConceptFullService {
       assignmentsDiff = this.assignmentsChanged(currentAssignments, input.assignments!)
       if (assignmentsDiff) {
         previousValues.assignments = currentAssignments.map(a => ({
-          scopeType: a.scopeType, condominiumId: a.condominiumId,
-          buildingId: a.buildingId, unitId: a.unitId,
-          distributionMethod: a.distributionMethod, amount: a.amount,
+          scopeType: a.scopeType,
+          condominiumId: a.condominiumId,
+          buildingId: a.buildingId,
+          unitId: a.unitId,
+          distributionMethod: a.distributionMethod,
+          amount: a.amount,
         }))
         newValues.assignments = input.assignments
       }
@@ -256,28 +354,83 @@ export class UpdatePaymentConceptFullService {
       servicesDiff = this.servicesChanged(currentServices, input.services!)
       if (servicesDiff) {
         previousValues.services = currentServices.map(s => ({
-          serviceId: s.serviceId, amount: s.amount, useDefaultAmount: s.useDefaultAmount,
+          serviceId: s.serviceId,
+          amount: s.amount,
+          useDefaultAmount: s.useDefaultAmount,
         }))
         newValues.services = input.services
       }
     }
 
+    // Interest configuration diff
+    let interestConfigDiff = false
+    if (input.interestConfiguration !== undefined && this.interestConfigsRepo) {
+      const currentConfigs = await this.interestConfigsRepo.getByPaymentConceptId(input.conceptId)
+      const currentActive = currentConfigs.find(c => c.isActive)
+
+      if (input.interestConfiguration === null) {
+        // Removing: diff if there's an active config
+        interestConfigDiff = !!currentActive
+        if (interestConfigDiff) {
+          previousValues.interestConfiguration = {
+            interestType: currentActive!.interestType,
+            interestRate: currentActive!.interestRate,
+            calculationPeriod: currentActive!.calculationPeriod,
+            gracePeriodDays: currentActive!.gracePeriodDays,
+          }
+          newValues.interestConfiguration = null
+        }
+      } else {
+        // Creating or updating
+        const ic = input.interestConfiguration
+        if (!currentActive) {
+          interestConfigDiff = true
+          previousValues.interestConfiguration = null
+          newValues.interestConfiguration = ic
+        } else {
+          // Compare fields
+          const changed =
+            currentActive.interestType !== ic.interestType ||
+            currentActive.interestRate !== ic.interestRate ||
+            currentActive.fixedAmount !== ic.fixedAmount ||
+            currentActive.calculationPeriod !== ic.calculationPeriod ||
+            currentActive.gracePeriodDays !== ic.gracePeriodDays ||
+            String(currentActive.effectiveFrom) !== ic.effectiveFrom ||
+            String(currentActive.effectiveTo) !== ic.effectiveTo
+          if (changed) {
+            interestConfigDiff = true
+            previousValues.interestConfiguration = {
+              interestType: currentActive.interestType,
+              interestRate: currentActive.interestRate,
+              calculationPeriod: currentActive.calculationPeriod,
+              gracePeriodDays: currentActive.gracePeriodDays,
+            }
+            newValues.interestConfiguration = ic
+          }
+        }
+      }
+    }
+
     // No changes at all
     const hasBaseChanges = Object.keys(newValues).length > 0
-    if (!hasBaseChanges && !assignmentsDiff && !bankAccountsDiff && !servicesDiff) {
+    if (
+      !hasBaseChanges &&
+      !assignmentsDiff &&
+      !bankAccountsDiff &&
+      !servicesDiff &&
+      !interestConfigDiff
+    ) {
       return failure('NO_CHANGES_DETECTED', 'BAD_REQUEST')
     }
 
     // ── Transaction ───────────────────────────────────────────────────────
 
-    const result = await this.db.transaction(async (tx) => {
+    const result = await this.db.transaction(async tx => {
       const txConceptsRepo = this.paymentConceptsRepo.withTx(tx)
       const txAssignmentsRepo = this.assignmentsRepo.withTx(tx)
       const txChangesRepo = this.changesRepo.withTx(tx)
-      // bankAccountsRepo and conceptServicesRepo don't extend BaseRepository,
-      // so they use direct operations (still within the transaction scope)
-      const txBankAccountsRepo = this.bankAccountsRepo
-      const txConceptServicesRepo = this.conceptServicesRepo
+      const txBankAccountsRepo = this.bankAccountsRepo.withTx(tx)
+      const txConceptServicesRepo = this.conceptServicesRepo.withTx(tx)
 
       // 1. Update concept base fields (only if there are base changes)
       let updatedConcept = existing
@@ -310,7 +463,7 @@ export class UpdatePaymentConceptFullService {
 
       // 3. Sync bank accounts (diff-based: add new, remove old)
       if (hasBankAccountChanges && bankAccountsDiff) {
-        const currentBankAccounts = await this.bankAccountsRepo.listByConceptId(input.conceptId)
+        const currentBankAccounts = await txBankAccountsRepo.listByConceptId(input.conceptId)
         const currentIds = new Set(currentBankAccounts.map(ba => ba.bankAccountId))
         const newIds = new Set(input.bankAccountIds!)
 
@@ -331,7 +484,7 @@ export class UpdatePaymentConceptFullService {
 
       // 4. Sync services (diff-based: add new, remove old)
       if (hasServiceChanges && servicesDiff) {
-        const currentServices = await this.conceptServicesRepo.listByConceptId(input.conceptId)
+        const currentServices = await txConceptServicesRepo.listByConceptId(input.conceptId)
         const currentServiceIds = new Set(currentServices.map(s => s.serviceId))
         const newServiceIds = new Set(input.services!.map(s => s.serviceId))
 
@@ -351,6 +504,68 @@ export class UpdatePaymentConceptFullService {
               newSvc.amount,
               newSvc.useDefaultAmount
             )
+          }
+        }
+
+        // Update existing services with changed amounts
+        for (const newSvc of input.services!) {
+          if (currentServiceIds.has(newSvc.serviceId)) {
+            const current = currentServices.find(s => s.serviceId === newSvc.serviceId)
+            if (
+              current &&
+              (current.amount !== newSvc.amount ||
+                current.useDefaultAmount !== newSvc.useDefaultAmount)
+            ) {
+              await txConceptServicesRepo.unlinkService(input.conceptId, newSvc.serviceId)
+              await txConceptServicesRepo.linkService(
+                input.conceptId,
+                newSvc.serviceId,
+                newSvc.amount,
+                newSvc.useDefaultAmount
+              )
+            }
+          }
+        }
+      }
+
+      // 4.5. Sync interest configuration
+      if (
+        input.interestConfiguration !== undefined &&
+        this.interestConfigsRepo &&
+        interestConfigDiff
+      ) {
+        const txInterestRepo = this.interestConfigsRepo.withTx(tx)
+        const existingConfigs = await txInterestRepo.getByPaymentConceptId(input.conceptId)
+        const activeConfig = existingConfigs.find(c => c.isActive)
+
+        if (input.interestConfiguration === null && activeConfig) {
+          await txInterestRepo.update(activeConfig.id, { isActive: false })
+        } else if (input.interestConfiguration !== null) {
+          if (activeConfig) {
+            await txInterestRepo.update(activeConfig.id, {
+              interestType: input.interestConfiguration.interestType,
+              interestRate: input.interestConfiguration.interestRate,
+              fixedAmount: input.interestConfiguration.fixedAmount,
+              calculationPeriod: input.interestConfiguration.calculationPeriod,
+              gracePeriodDays: input.interestConfiguration.gracePeriodDays,
+              effectiveFrom: input.interestConfiguration.effectiveFrom,
+              effectiveTo: input.interestConfiguration.effectiveTo,
+            })
+          } else {
+            await txInterestRepo.create({
+              condominiumId: existing.condominiumId,
+              paymentConceptId: input.conceptId,
+              name: `Interest for ${existing.name}`,
+              interestType: input.interestConfiguration.interestType,
+              interestRate: input.interestConfiguration.interestRate,
+              fixedAmount: input.interestConfiguration.fixedAmount,
+              calculationPeriod: input.interestConfiguration.calculationPeriod,
+              gracePeriodDays: input.interestConfiguration.gracePeriodDays,
+              effectiveFrom: input.interestConfiguration.effectiveFrom,
+              effectiveTo: input.interestConfiguration.effectiveTo,
+              isActive: true,
+              createdBy: input.changedBy,
+            })
           }
         }
       }
@@ -376,8 +591,10 @@ export class UpdatePaymentConceptFullService {
     if (a == null && b == null) return true
     if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
     if (a instanceof Date || b instanceof Date) {
-      const aTime = a instanceof Date ? a.getTime() : a == null ? null : new Date(a as string).getTime()
-      const bTime = b instanceof Date ? b.getTime() : b == null ? null : new Date(b as string).getTime()
+      const aTime =
+        a instanceof Date ? a.getTime() : a == null ? null : new Date(a as string).getTime()
+      const bTime =
+        b instanceof Date ? b.getTime() : b == null ? null : new Date(b as string).getTime()
       return aTime === bTime
     }
     if (typeof a === 'object' && typeof b === 'object') {
@@ -387,11 +604,25 @@ export class UpdatePaymentConceptFullService {
   }
 
   private assignmentsChanged(
-    current: Array<{ scopeType: string; condominiumId: string; buildingId: string | null; unitId: string | null; distributionMethod: string; amount: number }>,
+    current: Array<{
+      scopeType: string
+      condominiumId: string
+      buildingId: string | null
+      unitId: string | null
+      distributionMethod: string
+      amount: number
+    }>,
     incoming: IAssignmentInput[]
   ): boolean {
     if (current.length !== incoming.length) return true
-    const serialize = (a: { scopeType: string; condominiumId: string; buildingId?: string | null; unitId?: string | null; distributionMethod: string; amount: number }) =>
+    const serialize = (a: {
+      scopeType: string
+      condominiumId: string
+      buildingId?: string | null
+      unitId?: string | null
+      distributionMethod: string
+      amount: number
+    }) =>
       `${a.scopeType}|${a.condominiumId}|${a.buildingId ?? ''}|${a.unitId ?? ''}|${a.distributionMethod}|${a.amount}`
     const currentSet = new Set(current.map(serialize))
     return incoming.some(a => !currentSet.has(serialize(a)))

@@ -1,12 +1,13 @@
 import type { TBuilding } from '@packages/domain'
 
-import { getTranslations } from '@/libs/i18n/server'
-import { getServerAuthToken, getFullSession } from '@/libs/session'
-import { Typography } from '@/ui/components/typography'
+import { getCondominiumBuildings } from '@packages/http-client/hooks'
 
 import { BuildingsTable } from './components'
 import { BuildingsPageClient } from './BuildingsPageClient'
-import { getCondominiumBuildings } from '@packages/http-client/hooks'
+
+import { getTranslations } from '@/libs/i18n/server'
+import { getServerAuthToken, getFullSession } from '@/libs/session'
+import { Typography } from '@/ui/components/typography'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -14,14 +15,20 @@ interface PageProps {
 
 export default async function CondominiumBuildingsPage({ params }: PageProps) {
   const { id } = await params
-  const [{ t }, token, session] = await Promise.all([getTranslations(), getServerAuthToken(), getFullSession()])
+  const [{ t }, token, session] = await Promise.all([
+    getTranslations(),
+    getServerAuthToken(),
+    getFullSession(),
+  ])
 
-  const managementCompanyId = session?.activeRole === 'management_company'
-    ? session.managementCompanies?.[0]?.managementCompanyId
-    : undefined
+  const managementCompanyId =
+    session?.activeRole === 'management_company'
+      ? session.managementCompanies?.[0]?.managementCompanyId
+      : undefined
 
   // Fetch buildings server-side
   let buildings: TBuilding[] = []
+
   try {
     buildings = await getCondominiumBuildings(token, id, managementCompanyId)
   } catch (error) {
@@ -80,7 +87,7 @@ export default async function CondominiumBuildingsPage({ params }: PageProps) {
       <div className="flex items-center justify-between">
         <div>
           <Typography variant="h3">{translations.title}</Typography>
-          <Typography color="muted" variant="body2" className="mt-1">
+          <Typography className="mt-1" color="muted" variant="body2">
             {translations.subtitle}
           </Typography>
         </div>
@@ -89,11 +96,7 @@ export default async function CondominiumBuildingsPage({ params }: PageProps) {
         )}
       </div>
 
-      <BuildingsTable
-        buildings={buildings}
-        condominiumId={id}
-        translations={translations}
-      />
+      <BuildingsTable buildings={buildings} condominiumId={id} translations={translations} />
     </div>
   )
 }

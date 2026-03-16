@@ -4,6 +4,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
+import { useCreateCurrency } from '@packages/http-client'
 
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
@@ -12,7 +13,6 @@ import { Switch } from '@/ui/components/switch'
 import { Card, CardBody } from '@/ui/components/card'
 import { useToast } from '@/ui/components/toast'
 import { useTranslation } from '@/contexts'
-import { useCreateCurrency } from '@packages/http-client'
 
 const createCurrencySchema = z.object({
   code: z.string().min(1).max(10),
@@ -71,42 +71,42 @@ export function CreateCurrencyForm() {
   return (
     <Card>
       <CardBody>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
           {/* Basic Information */}
           <div className="space-y-4 flex flex-col gap-2">
-            <Typography variant="h4" className="text-default-700">
+            <Typography className="text-default-700" variant="h4">
               {t('superadmin.currencies.form.createSubtitle')}
             </Typography>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <Controller
-                name="code"
                 control={control}
+                name="code"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    label={t('superadmin.currencies.form.fields.code.label')}
-                    placeholder={t('superadmin.currencies.form.fields.code.placeholder')}
+                    isRequired
                     errorMessage={
                       errors.code ? t('superadmin.currencies.form.validation.code') : undefined
                     }
-                    isRequired
+                    label={t('superadmin.currencies.form.fields.code.label')}
+                    placeholder={t('superadmin.currencies.form.fields.code.placeholder')}
                   />
                 )}
               />
 
               <Controller
-                name="name"
                 control={control}
+                name="name"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    label={t('superadmin.currencies.form.fields.name.label')}
-                    placeholder={t('superadmin.currencies.form.fields.name.placeholder')}
+                    isRequired
                     errorMessage={
                       errors.name ? t('superadmin.currencies.form.validation.name') : undefined
                     }
-                    isRequired
+                    label={t('superadmin.currencies.form.fields.name.label')}
+                    placeholder={t('superadmin.currencies.form.fields.name.placeholder')}
                   />
                 )}
               />
@@ -114,27 +114,27 @@ export function CreateCurrencyForm() {
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <Controller
-                name="symbol"
                 control={control}
+                name="symbol"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    value={field.value || ''}
                     label={t('superadmin.currencies.form.fields.symbol.label')}
                     placeholder={t('superadmin.currencies.form.fields.symbol.placeholder')}
+                    value={field.value || ''}
                   />
                 )}
               />
 
               <Controller
-                name="decimals"
                 control={control}
+                name="decimals"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    type="number"
                     label={t('superadmin.currencies.form.fields.decimals.label')}
                     placeholder={t('superadmin.currencies.form.fields.decimals.placeholder')}
+                    type="number"
                   />
                 )}
               />
@@ -144,8 +144,8 @@ export function CreateCurrencyForm() {
           {/* Base Currency toggle */}
           <div className="flex items-center gap-3">
             <Controller
-              name="isBaseCurrency"
               control={control}
+              name="isBaseCurrency"
               render={({ field }) => (
                 <Switch isSelected={field.value} onValueChange={field.onChange} />
               )}
@@ -158,16 +158,16 @@ export function CreateCurrencyForm() {
           {/* Submit */}
           <div className="flex justify-end gap-3">
             <Button
+              isDisabled={isSubmitting || createMutation.isPending}
               variant="flat"
               onPress={() => router.push('/dashboard/currencies')}
-              isDisabled={isSubmitting || createMutation.isPending}
             >
               {t('common.cancel')}
             </Button>
             <Button
               color="primary"
-              type="submit"
               isLoading={isSubmitting || createMutation.isPending}
+              type="submit"
             >
               {createMutation.isPending
                 ? t('superadmin.currencies.form.submitting')

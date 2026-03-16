@@ -1,14 +1,22 @@
 'use client'
 
-import { Controller, useFormContext } from 'react-hook-form'
-import { TaxIdInput, type ITaxIdInputProps } from './TaxIdInput'
-import { getTranslatedError } from '@/utils/formErrors'
 import type { TTaxIdType } from '@packages/domain'
+
+import { Controller, useFormContext } from 'react-hook-form'
+
+import { TaxIdInput, type ITaxIdInputProps } from './TaxIdInput'
+
+import { getTranslatedError } from '@/utils/formErrors'
 
 interface ITaxIdInputFieldProps
   extends Omit<
     ITaxIdInputProps,
-    'taxIdType' | 'taxIdNumber' | 'onTaxIdTypeChange' | 'onTaxIdNumberChange' | 'taxIdTypeError' | 'taxIdNumberError'
+    | 'taxIdType'
+    | 'taxIdNumber'
+    | 'onTaxIdTypeChange'
+    | 'onTaxIdNumberChange'
+    | 'taxIdTypeError'
+    | 'taxIdNumberError'
   > {
   taxIdTypeFieldName: string
   taxIdNumberFieldName: string
@@ -31,7 +39,10 @@ export function TaxIdInputField({
   translateError,
   ...props
 }: ITaxIdInputFieldProps) {
-  const { control, formState: { errors } } = useFormContext()
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext()
 
   return (
     <Controller
@@ -43,12 +54,12 @@ export function TaxIdInputField({
           name={taxIdNumberFieldName}
           render={({ field: numberField }) => (
             <TaxIdInput
-              taxIdType={typeField.value as TTaxIdType | null}
               taxIdNumber={numberField.value || ''}
-              onTaxIdTypeChange={(value) => typeField.onChange(value)}
-              onTaxIdNumberChange={(value) => numberField.onChange(value)}
-              taxIdTypeError={getTranslatedError(errors, taxIdTypeFieldName, translateError)}
               taxIdNumberError={getTranslatedError(errors, taxIdNumberFieldName, translateError)}
+              taxIdType={typeField.value as TTaxIdType | null}
+              taxIdTypeError={getTranslatedError(errors, taxIdTypeFieldName, translateError)}
+              onTaxIdNumberChange={value => numberField.onChange(value)}
+              onTaxIdTypeChange={value => typeField.onChange(value)}
               {...props}
             />
           )}

@@ -1,11 +1,13 @@
 'use client'
 
+import type { TSummaryTranslations } from './types'
+
+import { DollarSign, TrendingUp, Clock, FileText, Receipt } from 'lucide-react'
+import { useReserveFundSummary } from '@packages/http-client/hooks'
+
 import { Card, CardBody } from '@/ui/components/card'
 import { Typography } from '@/ui/components/typography'
 import { Spinner } from '@/ui/components/spinner'
-import { DollarSign, TrendingUp, Clock, FileText, Receipt } from 'lucide-react'
-import { useReserveFundSummary } from '@packages/http-client/hooks'
-import type { TSummaryTranslations } from './types'
 
 interface ReserveFundSummaryCardsProps {
   condominiumId: string
@@ -15,7 +17,9 @@ interface ReserveFundSummaryCardsProps {
 
 function formatCurrency(value: string): string {
   const num = parseFloat(value)
+
   if (isNaN(num)) return '0,00'
+
   return num.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
@@ -80,10 +84,10 @@ export function ReserveFundSummaryCards({
             <DollarSign className="h-8 w-8 text-success" />
           </div>
           <div>
-            <Typography variant="body2" color="muted">
+            <Typography color="muted" variant="body2">
               {t.totalPaid}
             </Typography>
-            <Typography variant="h2" className="mt-1">
+            <Typography className="mt-1" variant="h2">
               {formatCurrency(summary?.totalPaid ?? '0')}
             </Typography>
           </div>
@@ -99,10 +103,10 @@ export function ReserveFundSummaryCards({
                 <card.icon className={`h-5 w-5 ${card.color}`} />
               </div>
               <div>
-                <Typography variant="caption" color="muted">
+                <Typography color="muted" variant="caption">
                   {card.label}
                 </Typography>
-                <Typography variant="h4" className="mt-0.5">
+                <Typography className="mt-0.5" variant="h4">
                   {card.value}
                 </Typography>
               </div>

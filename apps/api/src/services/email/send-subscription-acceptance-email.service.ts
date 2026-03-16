@@ -3,7 +3,14 @@ import logger from '@utils/logger'
 import type { IService, TServiceResult } from '../base.service'
 import { success, failure } from '../base.service'
 import { EmailService } from './email.service'
-import { buildEmailHtml, buildEmailText, formatDateES, formatCurrency, translateBillingCycle, p } from './email-template'
+import {
+  buildEmailHtml,
+  buildEmailText,
+  formatDateES,
+  formatCurrency,
+  translateBillingCycle,
+  p,
+} from './email-template'
 
 export interface ISendSubscriptionAcceptanceEmailInput {
   to: string
@@ -33,22 +40,37 @@ export interface ISendSubscriptionAcceptanceEmailResult {
   emailId: string
 }
 
-export class SendSubscriptionAcceptanceEmailService
-  implements IService<ISendSubscriptionAcceptanceEmailInput, TServiceResult<ISendSubscriptionAcceptanceEmailResult>>
-{
+export class SendSubscriptionAcceptanceEmailService implements IService<
+  ISendSubscriptionAcceptanceEmailInput,
+  TServiceResult<ISendSubscriptionAcceptanceEmailResult>
+> {
   constructor(private readonly emailService: EmailService = EmailService.getInstance()) {}
 
   async execute(
     input: ISendSubscriptionAcceptanceEmailInput
   ): Promise<TServiceResult<ISendSubscriptionAcceptanceEmailResult>> {
     const {
-      to, recipientName, companyName, subscriptionName, basePrice, billingCycle,
-      startDate, pricingDetails, termsContent, termsVersion, acceptanceToken, expiresAt,
+      to,
+      recipientName,
+      companyName,
+      subscriptionName,
+      basePrice,
+      billingCycle,
+      startDate,
+      pricingDetails,
+      termsContent,
+      termsVersion,
+      acceptanceToken,
+      expiresAt,
     } = input
 
     const acceptanceLink = `${env.APP_URL}/accept-subscription?token=${acceptanceToken}`
     const expiresAtFormatted = formatDateES(expiresAt)
-    const startDateFormatted = startDate.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
+    const startDateFormatted = startDate.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
     const billingCycleTranslated = translateBillingCycle(billingCycle)
     const subject = `Confirmación de suscripción para ${companyName}`
 
@@ -79,7 +101,9 @@ export class SendSubscriptionAcceptanceEmailService
       headerTitle: 'Confirmación de Suscripción',
       greeting: recipientName,
       bodyHtml: [
-        p(`Se ha creado una nueva suscripción para <strong style="color: #006FEE;">${companyName}</strong>. Por favor revisa los detalles a continuación y acepta los términos y condiciones para activar la suscripción.`),
+        p(
+          `Se ha creado una nueva suscripción para <strong style="color: #006FEE;">${companyName}</strong>. Por favor revisa los detalles a continuación y acepta los términos y condiciones para activar la suscripción.`
+        ),
         detailsHtml,
         pricingHtml,
         termsHtml,
@@ -91,7 +115,10 @@ export class SendSubscriptionAcceptanceEmailService
       footerNote: 'Si no solicitaste esta suscripción, puedes ignorar este correo.',
     }
 
-    logger.info({ to, companyName, expiresAt: expiresAtFormatted }, 'Sending subscription acceptance email')
+    logger.info(
+      { to, companyName, expiresAt: expiresAtFormatted },
+      'Sending subscription acceptance email'
+    )
 
     const result = await this.emailService.execute({
       to,
@@ -128,10 +155,17 @@ export class SendSubscriptionAcceptanceEmailService
       html += `<tr style="border-top: 1px solid #e4e4e7;"><td style="padding: 12px 0 8px; font-weight: 600; color: #18181b;">Subtotal</td><td style="padding: 12px 0 8px; text-align: right; font-weight: 600; color: #18181b;">${formatCurrency(details.calculatedPrice)}</td></tr>`
     }
     if (details.discountAmount && details.discountAmount > 0) {
-      const discountLabel = details.discountType === 'percentage' ? `Descuento (${details.discountValue}%)` : 'Descuento'
+      const discountLabel =
+        details.discountType === 'percentage'
+          ? `Descuento (${details.discountValue}%)`
+          : 'Descuento'
       html += `<tr><td style="padding: 8px 0; color: #22c55e;">${discountLabel}</td><td style="padding: 8px 0; text-align: right; color: #22c55e;">-${formatCurrency(details.discountAmount)}</td></tr>`
     }
-    if (basePrice !== undefined && details.calculatedPrice && basePrice !== details.calculatedPrice) {
+    if (
+      basePrice !== undefined &&
+      details.calculatedPrice &&
+      basePrice !== details.calculatedPrice
+    ) {
       html += `<tr style="border-top: 2px solid #e4e4e7;"><td style="padding: 12px 0 8px; font-weight: 700; font-size: 15px; color: #18181b;">Precio final</td><td style="padding: 12px 0 8px; text-align: right; font-weight: 700; font-size: 15px; color: #18181b;">${formatCurrency(basePrice)}</td></tr>`
     }
 

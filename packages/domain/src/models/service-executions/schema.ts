@@ -35,7 +35,10 @@ export const serviceExecutionCreateSchema = z.object({
   title: z.string().min(1).max(255),
   description: z.string().max(2000).optional(),
   executionDate: z.string(),
-  totalAmount: z.string().or(z.number()).transform(v => String(v)),
+  totalAmount: z
+    .string()
+    .or(z.number())
+    .transform(v => String(v)),
   currencyId: z.string().uuid(),
   invoiceNumber: z.string().max(100).optional(),
   items: z.array(serviceExecutionItemSchema).default([]),

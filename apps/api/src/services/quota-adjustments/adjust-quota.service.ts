@@ -2,6 +2,7 @@ import type { TQuotaAdjustment, TAdjustmentType, TQuotaStatus } from '@packages/
 import type { QuotasRepository, QuotaAdjustmentsRepository } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
+import { parseAmount, toDecimal } from '@packages/utils/money'
 
 type TAdjustQuotaInput = {
   quotaId: string
@@ -36,66 +37,83 @@ export class AdjustQuotaService {
       return failure('Quota not found', 'NOT_FOUND')
     }
 
-    // 2. Validate: can't adjust cancelled quotas
+    // 2. Validate: can't adjust cancelled or exonerated quotas
     if (quota.status === 'cancelled') {
       return failure('Cannot adjust a cancelled quota', 'BAD_REQUEST')
     }
+    if (quota.status === 'exonerated') {
+      return failure('Cannot adjust an exonerated quota', 'BAD_REQUEST')
+    }
 
-    // 3. Validate: new amount must be different
-    if (quota.baseAmount === newAmount) {
+    // 3. Validate: new amount must be different from current effective amount
+    const currentAdjTotal = parseAmount(quota.adjustmentsTotal)
+    const currentEffective = toDecimal(parseAmount(quota.baseAmount) + currentAdjTotal)
+    if (currentEffective === toDecimal(parseAmount(newAmount))) {
       return failure('New amount must be different from current amount', 'BAD_REQUEST')
     }
 
-    // 4. Validate: new amount must be positive (unless waiver)
-    const newAmountNum = parseFloat(newAmount)
-    if (adjustmentType !== 'waiver' && newAmountNum < 0) {
+    // 4. Validate: new amount must be positive (unless waiver or exoneration)
+    const newAmountNum = parseAmount(newAmount)
+    if (adjustmentType !== 'waiver' && adjustmentType !== 'exoneration' && newAmountNum < 0) {
       return failure('New amount cannot be negative', 'BAD_REQUEST')
     }
 
-    // 5. For waiver, new amount must be 0
+    // 5. For waiver or exoneration, new amount must be 0
     if (adjustmentType === 'waiver' && newAmountNum !== 0) {
       return failure('Waiver adjustment must set amount to 0', 'BAD_REQUEST')
     }
+    if (adjustmentType === 'exoneration' && newAmountNum !== 0) {
+      return failure('Exoneration adjustment must set amount to 0', 'BAD_REQUEST')
+    }
 
     // 6. Calculate new balance
-    const paidAmount = parseFloat(quota.paidAmount || '0')
-    const interestAmount = parseFloat(quota.interestAmount || '0')
-    const newBalance = newAmountNum + interestAmount - paidAmount
+    const paidAmount = parseAmount(quota.paidAmount)
+    const interestAmount = parseAmount(quota.interestAmount)
+    // For exoneration, wipe interest so balance goes to 0
+    const effectiveInterest = adjustmentType === 'exoneration' ? 0 : interestAmount
+    const newBalance = newAmountNum + effectiveInterest - paidAmount
 
     // 7. Determine new status
     let newStatus: TQuotaStatus = quota.status
-    if (adjustmentType === 'waiver') {
+    if (adjustmentType === 'exoneration') {
+      newStatus = 'exonerated'
+    } else if (adjustmentType === 'waiver') {
       newStatus = 'cancelled'
     } else if (newBalance <= 0) {
       newStatus = 'paid'
     }
 
     // 8. All writes inside a transaction for atomicity
-    return await this.db.transaction(async (tx) => {
+    return await this.db.transaction(async tx => {
       const txAdjustmentsRepo = this.quotaAdjustmentsRepository.withTx(tx)
       const txQuotasRepo = this.quotasRepository.withTx(tx)
 
-      // Create the adjustment record
+      // Create the adjustment record (previousAmount/newAmount are effective amounts)
       const adjustment = await txAdjustmentsRepo.create({
         quotaId,
-        previousAmount: quota.baseAmount,
+        previousAmount: currentEffective,
         newAmount,
         adjustmentType,
         reason,
         createdBy: adjustedByUserId,
       })
 
-      // Update the quota
-      await txQuotasRepo.update(quotaId, {
-        baseAmount: newAmount,
-        balance: newBalance.toFixed(2),
+      // Update the quota (baseAmount is NEVER mutated — use adjustmentsTotal)
+      const newAdjTotal = newAmountNum - parseAmount(quota.baseAmount)
+      const quotaUpdate: Record<string, string> = {
+        adjustmentsTotal: toDecimal(newAdjTotal),
+        balance: toDecimal(newBalance),
         status: newStatus,
-      })
+      }
+      if (adjustmentType === 'exoneration') {
+        quotaUpdate.interestAmount = '0'
+      }
+      await txQuotasRepo.update(quotaId, quotaUpdate)
 
       // Build message
-      const diff = newAmountNum - parseFloat(quota.baseAmount)
-      const diffStr = diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2)
-      const message = `Quota adjusted from ${quota.baseAmount} to ${newAmount} (${diffStr}). Reason: ${reason}`
+      const diff = newAmountNum - parseAmount(currentEffective)
+      const diffStr = diff > 0 ? `+${toDecimal(diff)}` : toDecimal(diff)
+      const message = `Quota adjusted from ${currentEffective} to ${newAmount} (${diffStr}). Reason: ${reason}`
 
       return success({ adjustment, message })
     })

@@ -90,9 +90,7 @@ export async function createCompanyWithAdmin(
  * Returns invitation details and validity status.
  * This endpoint does NOT require authentication.
  */
-export async function validateInvitationToken(
-  token: string
-): Promise<TValidateInvitationResult> {
+export async function validateInvitationToken(token: string): Promise<TValidateInvitationResult> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TValidateInvitationResult>>(
     `/platform/admin-invitations/validate/${token}`

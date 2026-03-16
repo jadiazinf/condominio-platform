@@ -136,7 +136,10 @@ export interface IUseReserveFundExpenseDetailOptions {
   enabled?: boolean
 }
 
-export type TExpenseWithDocuments = TExpense & { documents: TDocument[]; services: TCondominiumService[] }
+export type TExpenseWithDocuments = TExpense & {
+  documents: TDocument[]
+  services: TCondominiumService[]
+}
 
 export function useReserveFundExpenseDetail(options: IUseReserveFundExpenseDetailOptions) {
   const { companyId, expenseId, enabled = true } = options

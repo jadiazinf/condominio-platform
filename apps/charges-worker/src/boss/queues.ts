@@ -47,6 +47,7 @@ export const JOB_OPTIONS = {
     retryDelay: 30,
     retryBackoff: true,
     expireInMinutes: 30,
+    singletonKey: 'auto-generate-singleton',
   },
   [QUEUES.BULK_GENERATE]: {
     retryLimit: 3,
@@ -59,12 +60,13 @@ export const JOB_OPTIONS = {
     retryDelay: 30,
     retryBackoff: true,
     expireInMinutes: 30,
+    singletonKey: 'calculate-interest-singleton',
   },
   [QUEUES.NOTIFY]: {
     retryLimit: 3,
     retryDelay: 10,
     retryBackoff: true,
-    expireInMinutes: 5,
+    expireInMinutes: 15,
   },
 } as const
 

@@ -132,7 +132,7 @@ export function useUpdateCurrency(id: string, options?: IUpdateCurrencyOptions) 
 
 export function useDeleteCurrency(options?: IDeleteCurrencyOptions) {
   return useApiMutation<TApiDataResponse<TCurrency>, { id: string }>({
-    path: (data) => `/platform/currencies/${data.id}`,
+    path: data => `/platform/currencies/${data.id}`,
     method: 'DELETE',
     config: {},
     onSuccess: options?.onSuccess,

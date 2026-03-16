@@ -1,8 +1,8 @@
 'use client'
 
-import { Card, CardBody } from '@/ui/components/card'
 import { AlertCircle } from 'lucide-react'
 
+import { Card, CardBody } from '@/ui/components/card'
 import { useTranslation } from '@/contexts'
 import { Button } from '@/ui/components/button'
 
@@ -28,7 +28,7 @@ export function InvalidTokenView({ message }: InvalidTokenViewProps) {
           <Button href="/auth" variant="flat">
             {t('auth.acceptInvitation.goToSignIn')}
           </Button>
-          <Button href="/" color="primary">
+          <Button color="primary" href="/">
             {t('auth.acceptInvitation.goToHome')}
           </Button>
         </div>

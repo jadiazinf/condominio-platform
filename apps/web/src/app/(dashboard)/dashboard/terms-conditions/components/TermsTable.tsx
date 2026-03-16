@@ -1,7 +1,17 @@
 'use client'
 
+import type { TSubscriptionTermsConditions } from '@packages/domain'
+
 import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { ScrollText, MoreVertical, Plus, Power, Pencil } from 'lucide-react'
+import {
+  useSubscriptionTermsList,
+  useDeactivateSubscriptionTerms,
+  subscriptionTermsKeys,
+  useQueryClient,
+} from '@packages/http-client'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
@@ -9,17 +19,8 @@ import { Button } from '@/ui/components/button'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
 import { Spinner } from '@/ui/components/spinner'
 import { ClearFiltersButton } from '@/ui/components/filters'
-import { ScrollText, MoreVertical, Plus, Power, Pencil } from 'lucide-react'
-import type { TSubscriptionTermsConditions } from '@packages/domain'
-
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
-import {
-  useSubscriptionTermsList,
-  useDeactivateSubscriptionTerms,
-  subscriptionTermsKeys,
-  useQueryClient,
-} from '@packages/http-client'
 import { useToast } from '@/ui/components/toast'
 
 type TStatusFilter = 'all' | 'active' | 'inactive'
@@ -36,8 +37,10 @@ export function TermsTable() {
 
   const queryParams = useMemo(() => {
     const params: { isActive?: boolean } = {}
+
     if (statusFilter === 'active') params.isActive = true
     else if (statusFilter === 'inactive') params.isActive = false
+
     return params
   }, [statusFilter])
 
@@ -62,6 +65,7 @@ export function TermsTable() {
   const formatDate = (date: Date | string | null) => {
     if (!date) return '—'
     const d = new Date(date)
+
     return d.toLocaleDateString('es-VE', {
       year: 'numeric',
       month: 'short',
@@ -126,7 +130,7 @@ export function TermsTable() {
           )
         case 'actions':
           return (
-            <div onClick={(e) => e.stopPropagation()}>
+            <div onClick={e => e.stopPropagation()}>
               <Dropdown>
                 <DropdownTrigger>
                   <Button isIconOnly variant="light">
@@ -194,12 +198,10 @@ export function TermsTable() {
             className="w-full sm:w-40"
             items={statusFilterItems}
             value={statusFilter}
-            onChange={handleStatusChange}
             variant="bordered"
+            onChange={handleStatusChange}
           />
-          {statusFilter !== 'all' && (
-            <ClearFiltersButton onClear={handleClearFilters} />
-          )}
+          {statusFilter !== 'all' && <ClearFiltersButton onClear={handleClearFilters} />}
         </div>
         <Button
           color="primary"
@@ -229,8 +231,8 @@ export function TermsTable() {
         <Table<TTermsRow>
           aria-label={t('superadmin.terms.title')}
           columns={tableColumns}
-          rows={terms}
           renderCell={renderCell}
+          rows={terms}
         />
       )}
     </div>

@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { useMemo } from 'react'
+import { useCreateExchangeRate, useCurrencies } from '@packages/http-client'
 
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
@@ -13,7 +14,6 @@ import { Select, type ISelectItem } from '@/ui/components/select'
 import { Card, CardBody } from '@/ui/components/card'
 import { useToast } from '@/ui/components/toast'
 import { useTranslation } from '@/contexts'
-import { useCreateExchangeRate, useCurrencies } from '@packages/http-client'
 
 const createExchangeRateSchema = z
   .object({
@@ -23,7 +23,7 @@ const createExchangeRateSchema = z
     effectiveDate: z.string().min(1),
     source: z.string().max(100).optional(),
   })
-  .refine((data) => data.fromCurrencyId !== data.toCurrencyId, {
+  .refine(data => data.fromCurrencyId !== data.toCurrencyId, {
     path: ['toCurrencyId'],
     message: 'sameCurrency',
   })
@@ -38,8 +38,8 @@ export function CreateExchangeRateForm() {
   const currencyItems: ISelectItem[] = useMemo(
     () =>
       (currenciesData?.data ?? [])
-        .filter((c) => c.isActive)
-        .map((c) => ({
+        .filter(c => c.isActive)
+        .map(c => ({
           key: c.id,
           label: `${c.code} - ${c.name}`,
         })),
@@ -89,45 +89,42 @@ export function CreateExchangeRateForm() {
   return (
     <Card>
       <CardBody>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4 flex flex-col gap-2">
-            <Typography variant="h4" className="text-default-700">
+            <Typography className="text-default-700" variant="h4">
               {t('superadmin.currencies.exchangeRates.form.createSubtitle')}
             </Typography>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <Controller
-                name="fromCurrencyId"
                 control={control}
+                name="fromCurrencyId"
                 render={({ field }) => (
                   <Select
-                    items={currencyItems}
-                    label={t('superadmin.currencies.exchangeRates.form.fields.fromCurrency.label')}
-                    placeholder={t('superadmin.currencies.exchangeRates.form.fields.fromCurrency.placeholder')}
-                    value={field.value}
-                    onChange={(key) => field.onChange(key ?? '')}
-                    isLoading={currenciesLoading}
+                    isRequired
                     errorMessage={
                       errors.fromCurrencyId
                         ? t('superadmin.currencies.exchangeRates.form.validation.fromCurrency')
                         : undefined
                     }
-                    isRequired
+                    isLoading={currenciesLoading}
+                    items={currencyItems}
+                    label={t('superadmin.currencies.exchangeRates.form.fields.fromCurrency.label')}
+                    placeholder={t(
+                      'superadmin.currencies.exchangeRates.form.fields.fromCurrency.placeholder'
+                    )}
+                    value={field.value}
+                    onChange={key => field.onChange(key ?? '')}
                   />
                 )}
               />
 
               <Controller
-                name="toCurrencyId"
                 control={control}
+                name="toCurrencyId"
                 render={({ field }) => (
                   <Select
-                    items={currencyItems}
-                    label={t('superadmin.currencies.exchangeRates.form.fields.toCurrency.label')}
-                    placeholder={t('superadmin.currencies.exchangeRates.form.fields.toCurrency.placeholder')}
-                    value={field.value}
-                    onChange={(key) => field.onChange(key ?? '')}
-                    isLoading={currenciesLoading}
+                    isRequired
                     errorMessage={
                       errors.toCurrencyId
                         ? t(
@@ -137,7 +134,14 @@ export function CreateExchangeRateForm() {
                           )
                         : undefined
                     }
-                    isRequired
+                    isLoading={currenciesLoading}
+                    items={currencyItems}
+                    label={t('superadmin.currencies.exchangeRates.form.fields.toCurrency.label')}
+                    placeholder={t(
+                      'superadmin.currencies.exchangeRates.form.fields.toCurrency.placeholder'
+                    )}
+                    value={field.value}
+                    onChange={key => field.onChange(key ?? '')}
                   />
                 )}
               />
@@ -145,39 +149,43 @@ export function CreateExchangeRateForm() {
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <Controller
-                name="rate"
                 control={control}
+                name="rate"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    type="number"
-                    label={t('superadmin.currencies.exchangeRates.form.fields.rate.label')}
-                    placeholder={t('superadmin.currencies.exchangeRates.form.fields.rate.placeholder')}
+                    isRequired
                     errorMessage={
                       errors.rate
                         ? t('superadmin.currencies.exchangeRates.form.validation.rate')
                         : undefined
                     }
-                    isRequired
+                    label={t('superadmin.currencies.exchangeRates.form.fields.rate.label')}
+                    placeholder={t(
+                      'superadmin.currencies.exchangeRates.form.fields.rate.placeholder'
+                    )}
+                    type="number"
                   />
                 )}
               />
 
               <Controller
-                name="effectiveDate"
                 control={control}
+                name="effectiveDate"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    type="date"
-                    label={t('superadmin.currencies.exchangeRates.form.fields.effectiveDate.label')}
-                    placeholder={t('superadmin.currencies.exchangeRates.form.fields.effectiveDate.placeholder')}
+                    isRequired
                     errorMessage={
                       errors.effectiveDate
                         ? t('superadmin.currencies.exchangeRates.form.validation.effectiveDate')
                         : undefined
                     }
-                    isRequired
+                    label={t('superadmin.currencies.exchangeRates.form.fields.effectiveDate.label')}
+                    placeholder={t(
+                      'superadmin.currencies.exchangeRates.form.fields.effectiveDate.placeholder'
+                    )}
+                    type="date"
                   />
                 )}
               />
@@ -185,14 +193,16 @@ export function CreateExchangeRateForm() {
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <Controller
-                name="source"
                 control={control}
+                name="source"
                 render={({ field }) => (
                   <Input
                     {...field}
-                    value={field.value || ''}
                     label={t('superadmin.currencies.exchangeRates.form.fields.source.label')}
-                    placeholder={t('superadmin.currencies.exchangeRates.form.fields.source.placeholder')}
+                    placeholder={t(
+                      'superadmin.currencies.exchangeRates.form.fields.source.placeholder'
+                    )}
+                    value={field.value || ''}
                   />
                 )}
               />
@@ -202,16 +212,16 @@ export function CreateExchangeRateForm() {
           {/* Submit */}
           <div className="flex justify-end gap-3">
             <Button
+              isDisabled={isSubmitting || createMutation.isPending}
               variant="flat"
               onPress={() => router.push('/dashboard/currencies/exchange-rates')}
-              isDisabled={isSubmitting || createMutation.isPending}
             >
               {t('common.cancel')}
             </Button>
             <Button
               color="primary"
-              type="submit"
               isLoading={isSubmitting || createMutation.isPending}
+              type="submit"
             >
               {createMutation.isPending
                 ? t('superadmin.currencies.exchangeRates.form.submitting')

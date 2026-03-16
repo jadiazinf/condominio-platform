@@ -11,7 +11,16 @@ const d = DomainLocaleDictionary.validation.models.interestConfigurations
 
 export const EInterestTypes = ['simple', 'compound', 'fixed_amount'] as const
 
-export const ECalculationPeriods = ['monthly', 'daily', 'per_overdue_quota'] as const
+export const ECalculationPeriods = [
+  'daily',
+  'weekly',
+  'biweekly',
+  'monthly',
+  'quarterly',
+  'semi_annual',
+  'annual',
+  'per_overdue_quota',
+] as const
 
 export const interestConfigurationSchema = baseModelSchema.extend({
   condominiumId: z.uuid({ error: d.condominiumId.invalid }).nullable(),

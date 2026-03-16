@@ -1,5 +1,8 @@
 import type { TPaymentConceptAssignment } from '@packages/domain'
-import type { PaymentConceptsRepository, PaymentConceptAssignmentsRepository } from '@database/repositories'
+import type {
+  PaymentConceptsRepository,
+  PaymentConceptAssignmentsRepository,
+} from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 
 type TBuildingsRepo = {
@@ -7,9 +10,18 @@ type TBuildingsRepo = {
 }
 
 type TUnitsRepo = {
-  getById: (id: string) => Promise<{ id: string; buildingId: string; isActive: boolean; aliquotPercentage: string | null } | null>
-  getByBuildingId: (buildingId: string) => Promise<{ id: string; aliquotPercentage: string | null; isActive: boolean }[]>
-  getByCondominiumId: (condominiumId: string) => Promise<{ id: string; aliquotPercentage: string | null; isActive: boolean }[]>
+  getById: (id: string) => Promise<{
+    id: string
+    buildingId: string
+    isActive: boolean
+    aliquotPercentage: string | null
+  } | null>
+  getByBuildingId: (
+    buildingId: string
+  ) => Promise<{ id: string; aliquotPercentage: string | null; isActive: boolean }[]>
+  getByCondominiumId: (
+    condominiumId: string
+  ) => Promise<{ id: string; aliquotPercentage: string | null; isActive: boolean }[]>
 }
 
 export interface IAssignPaymentConceptInput {
@@ -31,7 +43,9 @@ export class AssignPaymentConceptService {
     private readonly unitsRepo: TUnitsRepo
   ) {}
 
-  async execute(input: IAssignPaymentConceptInput): Promise<TServiceResult<TPaymentConceptAssignment>> {
+  async execute(
+    input: IAssignPaymentConceptInput
+  ): Promise<TServiceResult<TPaymentConceptAssignment>> {
     // Validate amount
     if (input.amount <= 0) {
       return failure('Amount must be greater than 0', 'BAD_REQUEST')
@@ -102,7 +116,10 @@ export class AssignPaymentConceptService {
           u => u.aliquotPercentage != null && Number(u.aliquotPercentage) > 0
         )
         if (unitsWithAliquot.length === 0) {
-          return failure('No units have aliquot percentage set for proportional distribution', 'BAD_REQUEST')
+          return failure(
+            'No units have aliquot percentage set for proportional distribution',
+            'BAD_REQUEST'
+          )
         }
       }
     }

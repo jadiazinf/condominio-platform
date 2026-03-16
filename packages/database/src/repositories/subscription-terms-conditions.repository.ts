@@ -1,4 +1,4 @@
-import { eq, desc, and, isNull, lte, sql } from 'drizzle-orm'
+import { eq, desc, and, lte, sql } from 'drizzle-orm'
 import type {
   TSubscriptionTermsConditions,
   TSubscriptionTermsConditionsCreate,
@@ -117,7 +117,9 @@ export class SubscriptionTermsConditionsRepository
   /**
    * Get all terms with pagination
    */
-  async getAllPaginated(query: ITermsQuery): Promise<TPaginatedResponse<TSubscriptionTermsConditions>> {
+  async getAllPaginated(
+    query: ITermsQuery
+  ): Promise<TPaginatedResponse<TSubscriptionTermsConditions>> {
     const page = query.page ?? 1
     const limit = query.limit ?? 10
     const offset = (page - 1) * limit

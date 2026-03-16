@@ -1,5 +1,8 @@
 import type { TSupportTicketMessage, TSupportTicketMessageCreate } from '@packages/domain'
-import type { SupportTicketMessagesRepository, SupportTicketsRepository } from '@database/repositories'
+import type {
+  SupportTicketMessagesRepository,
+  SupportTicketsRepository,
+} from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
 import { WebSocketManager } from '@libs/websocket'
@@ -32,7 +35,7 @@ export class CreateMessageService {
     }
 
     // All writes inside a transaction for atomicity
-    const createdMessage = await this.db.transaction(async (tx) => {
+    const createdMessage = await this.db.transaction(async tx => {
       const txMessagesRepo = this.messagesRepository.withTx(tx)
       const txTicketsRepo = this.ticketsRepository.withTx(tx)
 

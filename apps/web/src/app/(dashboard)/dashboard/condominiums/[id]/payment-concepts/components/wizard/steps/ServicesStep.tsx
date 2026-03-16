@@ -1,6 +1,15 @@
 'use client'
 
+import type { TWizardExecutionData } from '@packages/domain'
+import type { IWizardFormData, IWizardService } from '../CreatePaymentConceptWizard'
+
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
+import { Plus, Trash2, Wrench, Search, Receipt, CheckCircle2 } from 'lucide-react'
+import { useCondominiumServicesPaginated } from '@packages/http-client/hooks'
+
+import { CreateServiceModal } from '../../../../services/components/CreateServiceModal'
+import { ExecutionModal } from '../../../../services/components/ExecutionModal'
+
 import { CurrencyInput } from '@/ui/components/input'
 import { Input } from '@/ui/components/input'
 import { Button } from '@/ui/components/button'
@@ -18,13 +27,7 @@ import {
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Pagination } from '@/ui/components/pagination'
 import { Divider } from '@/ui/components/divider'
-import { Plus, Trash2, Wrench, Search, Receipt, CheckCircle2 } from 'lucide-react'
 import { useTranslation } from '@/contexts'
-import type { TWizardExecutionData } from '@packages/domain'
-import type { IWizardFormData, IWizardService } from '../CreatePaymentConceptWizard'
-import { CreateServiceModal } from '../../../../services/components/CreateServiceModal'
-import { ExecutionModal } from '../../../../services/components/ExecutionModal'
-import { useCondominiumServicesPaginated } from '@packages/http-client/hooks'
 
 export interface ServicesStepProps {
   formData: IWizardFormData
@@ -46,7 +49,10 @@ interface IApiService {
   isActive?: boolean
 }
 
-const PROVIDER_TYPE_COLORS: Record<string, 'primary' | 'secondary' | 'warning' | 'danger' | 'default'> = {
+const PROVIDER_TYPE_COLORS: Record<
+  string,
+  'primary' | 'secondary' | 'warning' | 'danger' | 'default'
+> = {
   individual: 'primary',
   company: 'secondary',
   cooperative: 'warning',
@@ -88,13 +94,18 @@ export function ServicesStep({
     debounceRef.current = setTimeout(() => {
       setDebouncedSearch(selectorSearch)
     }, 350)
+
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
   }, [selectorSearch])
 
   // Fetch services for selector modal
-  const { data: selectorData, isLoading: selectorLoading, refetch } = useCondominiumServicesPaginated({
+  const {
+    data: selectorData,
+    isLoading: selectorLoading,
+    refetch,
+  } = useCondominiumServicesPaginated({
     companyId: managementCompanyId,
     condominiumId,
     query: {
@@ -107,8 +118,16 @@ export function ServicesStep({
     enabled: !!managementCompanyId && selectorModal.isOpen,
   })
 
-  const selectorServices = useMemo(() => (selectorData?.data ?? []) as IApiService[], [selectorData])
-  const selectorPagination = selectorData?.pagination ?? { page: 1, limit: SELECTOR_LIMIT, total: 0, totalPages: 0 }
+  const selectorServices = useMemo(
+    () => (selectorData?.data ?? []) as IApiService[],
+    [selectorData]
+  )
+  const selectorPagination = selectorData?.pagination ?? {
+    page: 1,
+    limit: SELECTOR_LIMIT,
+    total: 0,
+    totalPages: 0,
+  }
 
   const addedServiceIds = useMemo(
     () => new Set(formData.services.map(s => s.serviceId)),
@@ -118,6 +137,7 @@ export function ServicesStep({
   const currencySymbol = useMemo(() => {
     if (!formData.currencyId) return ''
     const cur = currencies.find(c => c.id === formData.currencyId)
+
     return cur?.symbol || cur?.code || ''
   }, [formData.currencyId, currencies])
 
@@ -128,10 +148,19 @@ export function ServicesStep({
   const providerTypeItems: ISelectItem[] = useMemo(
     () => [
       { key: 'all', label: t('admin.condominiums.detail.services.filters.allTypes') },
-      { key: 'individual', label: t('admin.condominiums.detail.services.providerTypes.individual') },
+      {
+        key: 'individual',
+        label: t('admin.condominiums.detail.services.providerTypes.individual'),
+      },
       { key: 'company', label: t('admin.condominiums.detail.services.providerTypes.company') },
-      { key: 'cooperative', label: t('admin.condominiums.detail.services.providerTypes.cooperative') },
-      { key: 'government', label: t('admin.condominiums.detail.services.providerTypes.government') },
+      {
+        key: 'cooperative',
+        label: t('admin.condominiums.detail.services.providerTypes.cooperative'),
+      },
+      {
+        key: 'government',
+        label: t('admin.condominiums.detail.services.providerTypes.government'),
+      },
       { key: 'internal', label: t('admin.condominiums.detail.services.providerTypes.internal') },
     ],
     [t]
@@ -157,8 +186,10 @@ export function ServicesStep({
   const handleDeselectService = useCallback(
     (serviceId: string) => {
       const index = formData.services.findIndex(s => s.serviceId === serviceId)
+
       if (index !== -1) {
         const updated = formData.services.filter((_, i) => i !== index)
+
         onUpdate({ services: updated })
       }
     },
@@ -170,6 +201,7 @@ export function ServicesStep({
   const handleRemoveService = useCallback(
     (index: number) => {
       const updated = formData.services.filter((_, i) => i !== index)
+
       onUpdate({ services: updated })
     },
     [formData.services, onUpdate]
@@ -191,6 +223,7 @@ export function ServicesStep({
           ? { ...s, execution: data, amount: Number(data.totalAmount) || 0 }
           : s
       )
+
       onUpdate({ services: updated })
     },
     [executionTarget, formData.services, onUpdate]
@@ -229,7 +262,7 @@ export function ServicesStep({
 
   return (
     <div className="flex flex-col gap-5">
-      <Typography variant="body2" color="muted">
+      <Typography color="muted" variant="body2">
         {t(`${w}.description`)}
       </Typography>
 
@@ -238,20 +271,20 @@ export function ServicesStep({
         <>
           <div className="flex flex-col gap-3 rounded-lg border border-default-200 p-4">
             <CurrencyInput
-              label={t(`${w}.fixedAmountLabel`)}
-              value={String(formData.fixedAmount || '')}
-              onValueChange={handleFixedAmountChange}
               currencySymbol={currencySymbolNode}
-              showCurrencySymbol={!!currencySymbol}
-              variant="bordered"
-              isDisabled={formData.services.length > 0}
               description={t(`${w}.fixedAmountDescription`)}
+              isDisabled={formData.services.length > 0}
+              label={t(`${w}.fixedAmountLabel`)}
+              showCurrencySymbol={!!currencySymbol}
+              value={String(formData.fixedAmount || '')}
+              variant="bordered"
+              onValueChange={handleFixedAmountChange}
             />
           </div>
 
           <div className="flex items-center gap-3">
             <Divider className="flex-1" />
-            <Typography variant="caption" color="muted">
+            <Typography color="muted" variant="caption">
               {t(`${w}.orLinkServices`)}
             </Typography>
             <Divider className="flex-1" />
@@ -262,13 +295,13 @@ export function ServicesStep({
       {/* Add service button */}
       <div className="flex flex-col gap-4 rounded-lg border border-default-200 p-4">
         <div className="flex items-center justify-between">
-          <Typography variant="body2" className="font-semibold">
+          <Typography className="font-semibold" variant="body2">
             {t(`${w}.addService`)}
           </Typography>
           <Button
             color="primary"
-            variant="flat"
             startContent={<Plus size={16} />}
+            variant="flat"
             onPress={handleOpenSelector}
           >
             {t(`${w}.addService`)}
@@ -278,7 +311,7 @@ export function ServicesStep({
         {formData.services.length === 0 && (
           <div className="flex flex-col items-center gap-2 py-6">
             <Wrench className="text-default-300" size={36} />
-            <Typography variant="body2" color="muted" className="text-center">
+            <Typography className="text-center" color="muted" variant="body2">
               {t(`${w}.empty`)}
             </Typography>
           </div>
@@ -288,13 +321,14 @@ export function ServicesStep({
       {/* Added services list */}
       {formData.services.length > 0 && (
         <div className="flex flex-col gap-3">
-          <Typography variant="body2" className="font-semibold">
+          <Typography className="font-semibold" variant="body2">
             {t(`${w}.title`)} ({formData.services.length})
           </Typography>
 
           <div className="flex flex-col gap-2">
             {formData.services.map((service, index) => {
               const hasExecution = !!service.execution
+
               return (
                 <div
                   key={service.serviceId}
@@ -306,11 +340,16 @@ export function ServicesStep({
                         : 'border-default-200 hover:border-default-300'
                   }`}
                 >
-                  <Wrench size={18} className="shrink-0 text-default-400" />
+                  <Wrench className="shrink-0 text-default-400" size={18} />
                   <div className="flex min-w-0 flex-1 items-center gap-3">
                     <span className="text-sm font-medium truncate">{service.serviceName}</span>
                     {hasExecution && (
-                      <Chip size="sm" variant="flat" color="success" startContent={<CheckCircle2 size={12} />}>
+                      <Chip
+                        color="success"
+                        size="sm"
+                        startContent={<CheckCircle2 size={12} />}
+                        variant="flat"
+                      >
                         {t(`${w}.executionRegistered`)}
                       </Chip>
                     )}
@@ -319,25 +358,27 @@ export function ServicesStep({
                     {service.amount > 0 ? formatAmount(service.amount) : '—'}
                   </span>
                   <Button
-                    size="sm"
-                    variant="flat"
-                    color={hasExecution ? 'success' : 'primary'}
                     className="shrink-0"
+                    color={hasExecution ? 'success' : 'primary'}
+                    size="sm"
                     startContent={hasExecution ? <CheckCircle2 size={14} /> : <Receipt size={14} />}
-                    onPress={() => setExecutionTarget({
-                      serviceId: service.serviceId,
-                      serviceName: service.serviceName,
-                      existingExecution: service.execution,
-                    })}
+                    variant="flat"
+                    onPress={() =>
+                      setExecutionTarget({
+                        serviceId: service.serviceId,
+                        serviceName: service.serviceName,
+                        existingExecution: service.execution,
+                      })
+                    }
                   >
                     {hasExecution ? t(`${w}.editExecution`) : t(`${w}.addExecution`)}
                   </Button>
                   <Button
                     isIconOnly
+                    className="shrink-0"
+                    color="danger"
                     size="sm"
                     variant="light"
-                    color="danger"
-                    className="shrink-0"
                     onPress={() => handleRemoveService(index)}
                   >
                     <Trash2 size={14} />
@@ -349,39 +390,46 @@ export function ServicesStep({
 
           {/* Total */}
           <div className="flex items-center justify-end gap-2 rounded-lg bg-default-100 p-3">
-            <Typography variant="body2" className="font-semibold">
+            <Typography className="font-semibold" variant="body2">
               {t(`${w}.total`)}:
             </Typography>
-            <Typography variant="body1" className="font-bold">
+            <Typography className="font-bold" variant="body1">
               {formatAmount(totalAmount)}
             </Typography>
           </div>
         </div>
       )}
 
-      {showErrors && formData.services.length === 0 && (servicesRequired || formData.fixedAmount <= 0) && (
-        <Typography variant="caption" color="danger">
-          {servicesRequired ? t(`${w}.required`) : t(`${w}.fixedAmountOrServicesRequired`)}
-        </Typography>
-      )}
+      {showErrors &&
+        formData.services.length === 0 &&
+        (servicesRequired || formData.fixedAmount <= 0) && (
+          <Typography color="danger" variant="caption">
+            {servicesRequired ? t(`${w}.required`) : t(`${w}.fixedAmountOrServicesRequired`)}
+          </Typography>
+        )}
 
       {showErrors && formData.services.length > 0 && formData.services.some(s => !s.execution) && (
-        <Typography variant="caption" color="danger">
+        <Typography color="danger" variant="caption">
           {t(`${w}.executionRequired`)}
         </Typography>
       )}
 
       {/* ─── Service Selector Modal ─────────────────────────────────────────── */}
-      <Modal isOpen={selectorModal.isOpen} onClose={selectorModal.onClose} size="2xl" scrollBehavior="inside">
+      <Modal
+        isOpen={selectorModal.isOpen}
+        scrollBehavior="inside"
+        size="2xl"
+        onClose={selectorModal.onClose}
+      >
         <ModalContent>
           <ModalHeader className="flex flex-col gap-3 px-8">
             <div className="flex items-center justify-between">
               <Typography variant="h4">{t(`${w}.addService`)}</Typography>
               <Button
                 color="primary"
-                variant="flat"
                 size="sm"
                 startContent={<Plus size={14} />}
+                variant="flat"
                 onPress={createModal.onOpen}
               >
                 {t('admin.condominiums.detail.services.wizard.title')}
@@ -389,24 +437,24 @@ export function ServicesStep({
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Input
-                placeholder={t('admin.condominiums.detail.services.filters.searchPlaceholder')}
-                value={selectorSearch}
-                onValueChange={handleSelectorSearchChange}
-                startContent={<Search size={16} className="text-default-400" />}
-                className="flex-1"
-                variant="bordered"
                 isClearable
-                onClear={() => handleSelectorSearchChange('')}
+                className="flex-1"
+                placeholder={t('admin.condominiums.detail.services.filters.searchPlaceholder')}
                 size="sm"
+                startContent={<Search className="text-default-400" size={16} />}
+                value={selectorSearch}
+                variant="bordered"
+                onClear={() => handleSelectorSearchChange('')}
+                onValueChange={handleSelectorSearchChange}
               />
               <Select
                 aria-label={t('admin.condominiums.detail.services.table.providerType')}
                 className="w-full sm:w-44"
                 items={providerTypeItems}
-                value={selectorProviderType}
-                onChange={handleSelectorProviderTypeChange}
-                variant="bordered"
                 size="sm"
+                value={selectorProviderType}
+                variant="bordered"
+                onChange={handleSelectorProviderTypeChange}
               />
             </div>
           </ModalHeader>
@@ -440,16 +488,18 @@ export function ServicesStep({
                           : 'border-default-200 hover:border-default-300'
                       }`}
                     >
-                      <Wrench size={16} className="shrink-0 text-default-400" />
+                      <Wrench className="shrink-0 text-default-400" size={16} />
                       <div className="flex min-w-0 flex-1 flex-col gap-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-sm font-semibold">{service.name}</span>
                           <Chip
+                            color={PROVIDER_TYPE_COLORS[service.providerType] || 'default'}
                             size="sm"
                             variant="flat"
-                            color={PROVIDER_TYPE_COLORS[service.providerType] || 'default'}
                           >
-                            {t(`admin.condominiums.detail.services.providerTypes.${service.providerType}`)}
+                            {t(
+                              `admin.condominiums.detail.services.providerTypes.${service.providerType}`
+                            )}
                           </Chip>
                         </div>
                         {service.legalName && (
@@ -460,8 +510,8 @@ export function ServicesStep({
                       {isAdded ? (
                         <Button
                           isIconOnly
-                          size="sm"
                           color="default"
+                          size="sm"
                           variant="solid"
                           onPress={() => handleDeselectService(service.id)}
                         >
@@ -469,11 +519,11 @@ export function ServicesStep({
                         </Button>
                       ) : (
                         <Button
-                          size="sm"
                           color="primary"
+                          size="sm"
+                          startContent={<Plus size={14} />}
                           variant="flat"
                           onPress={() => handleSelectService(service)}
-                          startContent={<Plus size={14} />}
                         >
                           {t('common.add')}
                         </Button>
@@ -484,10 +534,10 @@ export function ServicesStep({
 
                 {selectorPagination.totalPages > 1 && (
                   <Pagination
+                    limit={selectorPagination.limit}
                     page={selectorPagination.page}
                     total={selectorPagination.total}
                     totalPages={selectorPagination.totalPages}
-                    limit={selectorPagination.limit}
                     onPageChange={setSelectorPage}
                   />
                 )}
@@ -505,26 +555,26 @@ export function ServicesStep({
 
       {/* Create Service Modal */}
       <CreateServiceModal
-        isOpen={createModal.isOpen}
-        onClose={createModal.onClose}
         condominiumId={condominiumId}
+        isOpen={createModal.isOpen}
         managementCompanyId={managementCompanyId}
+        onClose={createModal.onClose}
         onCreated={handleServiceCreated}
       />
 
       {/* Execution Modal — wizard mode: saves data locally */}
       {executionTarget && (
         <ExecutionModal
+          condominiumId={condominiumId}
+          currencies={currencies}
+          currencyId={formData.currencyId}
           isOpen={!!executionTarget}
-          onClose={() => setExecutionTarget(null)}
           managementCompanyId={managementCompanyId}
           serviceId={executionTarget.serviceId}
           serviceName={executionTarget.serviceName}
-          condominiumId={condominiumId}
-          currencyId={formData.currencyId}
-          currencies={currencies}
-          onSaveLocal={handleSaveExecution}
           wizardExecution={executionTarget.existingExecution}
+          onClose={() => setExecutionTarget(null)}
+          onSaveLocal={handleSaveExecution}
         />
       )}
     </div>

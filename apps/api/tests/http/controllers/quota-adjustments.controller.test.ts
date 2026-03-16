@@ -27,10 +27,11 @@ type TMockQuotasRepository = {
 
 type TMockQuotaAdjustmentsRepository = {
   listAll: () => Promise<TQuotaAdjustment[]>
+  listByCondominiumId: (condominiumId: string) => Promise<TQuotaAdjustment[]>
   getById: (id: string) => Promise<TQuotaAdjustment | null>
-  getByQuotaId: (quotaId: string) => Promise<TQuotaAdjustment[]>
-  getByCreatedBy: (userId: string) => Promise<TQuotaAdjustment[]>
-  getByType: (type: TAdjustmentType) => Promise<TQuotaAdjustment[]>
+  getByQuotaId: (quotaId: string, condominiumId?: string) => Promise<TQuotaAdjustment[]>
+  getByCreatedBy: (userId: string, condominiumId?: string) => Promise<TQuotaAdjustment[]>
+  getByType: (type: TAdjustmentType, condominiumId?: string) => Promise<TQuotaAdjustment[]>
   create: (data: TQuotaAdjustmentCreate) => Promise<TQuotaAdjustment>
   withTx: (tx: unknown) => TMockQuotaAdjustmentsRepository
 }
@@ -51,6 +52,7 @@ function createTestQuota(overrides: Partial<TQuota> = {}): TQuota {
     periodYear: 2024,
     periodMonth: 1,
     periodDescription: 'Monthly maintenance',
+    adjustmentsTotal: '0',
     paidAmount: '0',
     balance: '100.00',
     notes: null,
@@ -115,11 +117,16 @@ describe('QuotaAdjustmentsController', function () {
         }
         return null
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     mockAdjustmentsRepository = {
       listAll: async function () {
+        return testAdjustments
+      },
+      listByCondominiumId: async function () {
         return testAdjustments
       },
       getById: async function (id: string) {
@@ -137,7 +144,9 @@ describe('QuotaAdjustmentsController', function () {
       create: async function (data: TQuotaAdjustmentCreate) {
         return withId(data, crypto.randomUUID()) as TQuotaAdjustment
       },
-      withTx() { return this },
+      withTx() {
+        return this
+      },
     }
 
     const controller = new QuotaAdjustmentsController(
@@ -233,6 +242,58 @@ describe('QuotaAdjustmentsController', function () {
       const res = await request('/quota-adjustments/type/invalid-type')
 
       expect(res.status).toBe(StatusCodes.BAD_REQUEST)
+    })
+  })
+
+  describe('Tenant isolation', function () {
+    const condominiumId = '550e8400-e29b-41d4-a716-446655440090'
+
+    it('should pass condominiumId to getByQuotaId', async function () {
+      let calledWithCondoId: string | undefined
+      mockAdjustmentsRepository.getByQuotaId = async function (_quotaId: string, condoId?: string) {
+        calledWithCondoId = condoId
+        return []
+      }
+
+      await request(`/quota-adjustments/quota/${testQuota.id}`, {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+
+      expect(calledWithCondoId).toBe(condominiumId)
+    })
+
+    it('should pass condominiumId to getByCreatedBy', async function () {
+      let calledWithCondoId: string | undefined
+      mockAdjustmentsRepository.getByCreatedBy = async function (
+        _userId: string,
+        condoId?: string
+      ) {
+        calledWithCondoId = condoId
+        return []
+      }
+
+      await request(`/quota-adjustments/user/${adminUserId}`, {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+
+      expect(calledWithCondoId).toBe(condominiumId)
+    })
+
+    it('should pass condominiumId to getByType', async function () {
+      let calledWithCondoId: string | undefined
+      mockAdjustmentsRepository.getByType = async function (
+        _type: TAdjustmentType,
+        condoId?: string
+      ) {
+        calledWithCondoId = condoId
+        return []
+      }
+
+      await request('/quota-adjustments/type/discount', {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+
+      expect(calledWithCondoId).toBe(condominiumId)
     })
   })
 

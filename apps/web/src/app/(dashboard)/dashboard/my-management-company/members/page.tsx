@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
-import { getFullSession } from '@/libs/session'
+
 import { MyCompanyMembersPage } from './components/MyCompanyMembersPage'
+
+import { getFullSession } from '@/libs/session'
 
 export default async function MembersPage() {
   const session = await getFullSession()

@@ -1,9 +1,10 @@
 import { cookies } from 'next/headers'
 import { getSupportTicket, fetchActiveSuperadminUsers } from '@packages/http-client'
 
+import { TicketDetailClient } from './TicketDetailClient'
+
 import { getTranslations } from '@/libs/i18n/server'
 import { SESSION_COOKIE_NAME } from '@/libs/cookies'
-import { TicketDetailClient } from './TicketDetailClient'
 
 interface TicketDetailPageProps {
   params: Promise<{
@@ -163,10 +164,10 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
 
   return (
     <TicketDetailClient
-      ticket={ticket}
-      locale={locale}
-      translations={translations}
       availableUsers={availableUsers}
+      locale={locale}
+      ticket={ticket}
+      translations={translations}
     />
   )
 }

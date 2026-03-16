@@ -32,9 +32,7 @@ export class CheckAvailabilityService {
       input.endTime
     )
 
-    const conflicts = overlapping.filter(
-      r => r.status === 'pending' || r.status === 'approved'
-    )
+    const conflicts = overlapping.filter(r => r.status === 'pending' || r.status === 'approved')
 
     return success({
       available: conflicts.length === 0,

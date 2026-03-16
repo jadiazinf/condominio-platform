@@ -20,10 +20,7 @@ export class ApproveReservationService {
       return failure('Only pending reservations can be approved', 'BAD_REQUEST')
     }
 
-    const approved = await this.repository.markAsApproved(
-      input.reservationId,
-      input.approvedBy
-    )
+    const approved = await this.repository.markAsApproved(input.reservationId, input.approvedBy)
 
     if (!approved) {
       return failure('Failed to approve reservation', 'INTERNAL_ERROR')

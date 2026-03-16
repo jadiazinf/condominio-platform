@@ -91,26 +91,32 @@ export class AccessRequestsRepository
 
     return results.map(row => ({
       ...this.mapToEntity(row.request),
-      user: row.user ? {
-        id: row.user.id,
-        email: row.user.email,
-        firstName: row.user.firstName,
-        lastName: row.user.lastName,
-        displayName: row.user.displayName,
-        phoneCountryCode: row.user.phoneCountryCode,
-        phoneNumber: row.user.phoneNumber,
-        idDocumentType: row.user.idDocumentType,
-        idDocumentNumber: row.user.idDocumentNumber,
-      } : undefined,
-      unit: row.unit ? {
-        id: row.unit.id,
-        unitNumber: row.unit.unitNumber,
-        buildingId: row.unit.buildingId,
-      } : undefined,
-      building: row.building ? {
-        id: row.building.id,
-        name: row.building.name,
-      } : undefined,
+      user: row.user
+        ? {
+            id: row.user.id,
+            email: row.user.email,
+            firstName: row.user.firstName,
+            lastName: row.user.lastName,
+            displayName: row.user.displayName,
+            phoneCountryCode: row.user.phoneCountryCode,
+            phoneNumber: row.user.phoneNumber,
+            idDocumentType: row.user.idDocumentType,
+            idDocumentNumber: row.user.idDocumentNumber,
+          }
+        : undefined,
+      unit: row.unit
+        ? {
+            id: row.unit.id,
+            unitNumber: row.unit.unitNumber,
+            buildingId: row.unit.buildingId,
+          }
+        : undefined,
+      building: row.building
+        ? {
+            id: row.building.id,
+            name: row.building.name,
+          }
+        : undefined,
     })) as TAccessRequest[]
   }
 
@@ -194,26 +200,32 @@ export class AccessRequestsRepository
 
     const data = results.map(row => ({
       ...this.mapToEntity(row.request),
-      user: row.user ? {
-        id: row.user.id,
-        email: row.user.email,
-        firstName: row.user.firstName,
-        lastName: row.user.lastName,
-        displayName: row.user.displayName,
-        phoneCountryCode: row.user.phoneCountryCode,
-        phoneNumber: row.user.phoneNumber,
-        idDocumentType: row.user.idDocumentType,
-        idDocumentNumber: row.user.idDocumentNumber,
-      } : undefined,
-      unit: row.unit ? {
-        id: row.unit.id,
-        unitNumber: row.unit.unitNumber,
-        buildingId: row.unit.buildingId,
-      } : undefined,
-      building: row.building ? {
-        id: row.building.id,
-        name: row.building.name,
-      } : undefined,
+      user: row.user
+        ? {
+            id: row.user.id,
+            email: row.user.email,
+            firstName: row.user.firstName,
+            lastName: row.user.lastName,
+            displayName: row.user.displayName,
+            phoneCountryCode: row.user.phoneCountryCode,
+            phoneNumber: row.user.phoneNumber,
+            idDocumentType: row.user.idDocumentType,
+            idDocumentNumber: row.user.idDocumentNumber,
+          }
+        : undefined,
+      unit: row.unit
+        ? {
+            id: row.unit.id,
+            unitNumber: row.unit.unitNumber,
+            buildingId: row.unit.buildingId,
+          }
+        : undefined,
+      building: row.building
+        ? {
+            id: row.building.id,
+            name: row.building.name,
+          }
+        : undefined,
     })) as TAccessRequest[]
 
     return {
@@ -257,19 +269,25 @@ export class AccessRequestsRepository
 
     return results.map(row => ({
       ...this.mapToEntity(row.request),
-      condominium: row.condominium ? {
-        id: row.condominium.id,
-        name: row.condominium.name,
-      } : undefined,
-      unit: row.unit ? {
-        id: row.unit.id,
-        unitNumber: row.unit.unitNumber,
-        buildingId: row.unit.buildingId,
-      } : undefined,
-      building: row.building ? {
-        id: row.building.id,
-        name: row.building.name,
-      } : undefined,
+      condominium: row.condominium
+        ? {
+            id: row.condominium.id,
+            name: row.condominium.name,
+          }
+        : undefined,
+      unit: row.unit
+        ? {
+            id: row.unit.id,
+            unitNumber: row.unit.unitNumber,
+            buildingId: row.unit.buildingId,
+          }
+        : undefined,
+      building: row.building
+        ? {
+            id: row.building.id,
+            name: row.building.name,
+          }
+        : undefined,
     })) as TAccessRequest[]
   }
 
@@ -318,30 +336,38 @@ export class AccessRequestsRepository
     const row = results[0]!
     return {
       ...this.mapToEntity(row.request),
-      user: row.user ? {
-        id: row.user.id,
-        email: row.user.email,
-        firstName: row.user.firstName,
-        lastName: row.user.lastName,
-        displayName: row.user.displayName,
-        phoneCountryCode: row.user.phoneCountryCode,
-        phoneNumber: row.user.phoneNumber,
-        idDocumentType: row.user.idDocumentType,
-        idDocumentNumber: row.user.idDocumentNumber,
-      } : undefined,
-      condominium: row.condominium ? {
-        id: row.condominium.id,
-        name: row.condominium.name,
-      } : undefined,
-      unit: row.unit ? {
-        id: row.unit.id,
-        unitNumber: row.unit.unitNumber,
-        buildingId: row.unit.buildingId,
-      } : undefined,
-      building: row.building ? {
-        id: row.building.id,
-        name: row.building.name,
-      } : undefined,
+      user: row.user
+        ? {
+            id: row.user.id,
+            email: row.user.email,
+            firstName: row.user.firstName,
+            lastName: row.user.lastName,
+            displayName: row.user.displayName,
+            phoneCountryCode: row.user.phoneCountryCode,
+            phoneNumber: row.user.phoneNumber,
+            idDocumentType: row.user.idDocumentType,
+            idDocumentNumber: row.user.idDocumentNumber,
+          }
+        : undefined,
+      condominium: row.condominium
+        ? {
+            id: row.condominium.id,
+            name: row.condominium.name,
+          }
+        : undefined,
+      unit: row.unit
+        ? {
+            id: row.unit.id,
+            unitNumber: row.unit.unitNumber,
+            buildingId: row.unit.buildingId,
+          }
+        : undefined,
+      building: row.building
+        ? {
+            id: row.building.id,
+            name: row.building.name,
+          }
+        : undefined,
     } as TAccessRequest
   }
 
@@ -400,19 +426,25 @@ export class AccessRequestsRepository
 
     const data = results.map(row => ({
       ...this.mapToEntity(row.request),
-      condominium: row.condominium ? {
-        id: row.condominium.id,
-        name: row.condominium.name,
-      } : undefined,
-      unit: row.unit ? {
-        id: row.unit.id,
-        unitNumber: row.unit.unitNumber,
-        buildingId: row.unit.buildingId,
-      } : undefined,
-      building: row.building ? {
-        id: row.building.id,
-        name: row.building.name,
-      } : undefined,
+      condominium: row.condominium
+        ? {
+            id: row.condominium.id,
+            name: row.condominium.name,
+          }
+        : undefined,
+      unit: row.unit
+        ? {
+            id: row.unit.id,
+            unitNumber: row.unit.unitNumber,
+            buildingId: row.unit.buildingId,
+          }
+        : undefined,
+      building: row.building
+        ? {
+            id: row.building.id,
+            name: row.building.name,
+          }
+        : undefined,
     })) as TAccessRequest[]
 
     return {
@@ -448,10 +480,7 @@ export class AccessRequestsRepository
       .select({ count: sql<number>`count(*)::int` })
       .from(accessRequests)
       .where(
-        and(
-          eq(accessRequests.condominiumId, condominiumId),
-          eq(accessRequests.status, 'pending')
-        )
+        and(eq(accessRequests.condominiumId, condominiumId), eq(accessRequests.status, 'pending'))
       )
 
     return result[0]?.count ?? 0

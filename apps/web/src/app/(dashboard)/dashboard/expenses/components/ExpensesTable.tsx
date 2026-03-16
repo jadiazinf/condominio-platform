@@ -1,6 +1,15 @@
 'use client'
 
+import type { TExpense } from '@packages/domain'
+import type { TReportFormat } from '@packages/http-client'
+
 import { useState, useCallback, useMemo } from 'react'
+import { Receipt, MoreVertical, Eye, Download } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
+import { useExpenses, downloadDebtorsReport } from '@packages/http-client'
+
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
@@ -8,18 +17,10 @@ import { Button } from '@/ui/components/button'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
 import { Spinner } from '@/ui/components/spinner'
 import { ClearFiltersButton } from '@/ui/components/filters'
-import { Receipt, MoreVertical, Eye, Download } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import type { TExpense } from '@packages/domain'
-import { formatCurrency } from '@packages/utils/currency'
-import { formatShortDate } from '@packages/utils/dates'
-
 import { useTranslation, useCondominium } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
 import { Typography } from '@/ui/components/typography'
 import { Pagination } from '@/ui/components/pagination'
-import { useExpenses, downloadDebtorsReport } from '@packages/http-client'
-import type { TReportFormat } from '@packages/http-client'
 
 type TStatusFilter = 'all' | 'pending' | 'approved' | 'rejected' | 'paid'
 
@@ -52,6 +53,7 @@ export function ExpensesTable() {
   // Client-side filtering by status
   const filteredExpenses = useMemo(() => {
     if (statusFilter === 'all') return allExpenses
+
     return allExpenses.filter(e => e.status === statusFilter)
   }, [allExpenses, statusFilter])
 
@@ -60,6 +62,7 @@ export function ExpensesTable() {
   const totalPages = Math.max(1, Math.ceil(total / limit))
   const paginatedExpenses = useMemo(() => {
     const start = (page - 1) * limit
+
     return filteredExpenses.slice(start, start + limit)
   }, [filteredExpenses, page, limit])
 
@@ -107,6 +110,7 @@ export function ExpensesTable() {
   const handleExport = useCallback(
     async (format: TReportFormat) => {
       const condominiumId = selectedCondominium?.condominium?.id
+
       if (!condominiumId) return
 
       setExporting(format)
@@ -135,20 +139,14 @@ export function ExpensesTable() {
         case 'description':
           return (
             <div className="flex flex-col">
-              <span className="font-medium">
-                {expense.description}
-              </span>
+              <span className="font-medium">{expense.description}</span>
               {expense.invoiceNumber && (
                 <span className="text-xs text-default-500">#{expense.invoiceNumber}</span>
               )}
             </div>
           )
         case 'category':
-          return (
-            <span className="text-sm">
-              {expense.expenseCategory?.name ?? '-'}
-            </span>
-          )
+          return <span className="text-sm">{expense.expenseCategory?.name ?? '-'}</span>
         case 'amount':
           return (
             <span className="text-sm font-medium">
@@ -158,17 +156,10 @@ export function ExpensesTable() {
         case 'expenseDate':
           return <span className="text-sm">{formatShortDate(expense.expenseDate)}</span>
         case 'vendor':
-          return (
-            <span className="text-sm">
-              {expense.vendorName ?? '-'}
-            </span>
-          )
+          return <span className="text-sm">{expense.vendorName ?? '-'}</span>
         case 'status':
           return (
-            <Chip
-              color={STATUS_COLOR_MAP[expense.status] || 'default'}
-              variant="flat"
-            >
+            <Chip color={STATUS_COLOR_MAP[expense.status] || 'default'} variant="flat">
               {t(`admin.expenses.status.${expense.status}`)}
             </Chip>
           )
@@ -224,30 +215,28 @@ export function ExpensesTable() {
             className="w-full sm:w-40"
             items={statusFilterItems}
             value={statusFilter}
-            onChange={handleStatusChange}
             variant="bordered"
+            onChange={handleStatusChange}
           />
-          {statusFilter !== 'all' && (
-            <ClearFiltersButton onClear={handleClearFilters} />
-          )}
+          {statusFilter !== 'all' && <ClearFiltersButton onClear={handleClearFilters} />}
         </div>
         <div className="flex gap-2">
           <Button
-            size="sm"
-            variant="bordered"
-            startContent={<Download size={16} />}
-            isLoading={exporting === 'csv'}
             isDisabled={exporting !== null}
+            isLoading={exporting === 'csv'}
+            size="sm"
+            startContent={<Download size={16} />}
+            variant="bordered"
             onPress={() => handleExport('csv')}
           >
             {t('admin.expenses.export.csv')}
           </Button>
           <Button
-            size="sm"
-            variant="bordered"
-            startContent={<Download size={16} />}
-            isLoading={exporting === 'pdf'}
             isDisabled={exporting !== null}
+            isLoading={exporting === 'pdf'}
+            size="sm"
+            startContent={<Download size={16} />}
+            variant="bordered"
             onPress={() => handleExport('pdf')}
           >
             {t('admin.expenses.export.pdf')}
@@ -274,13 +263,13 @@ export function ExpensesTable() {
         <>
           <Table<TExpenseRow>
             aria-label={t('admin.expenses.title')}
-            columns={tableColumns}
-            rows={paginatedExpenses}
-            renderCell={renderCell}
-            onRowClick={expense => handleViewDetails(expense.id)}
             classNames={{
               tr: 'cursor-pointer transition-colors hover:bg-default-100',
             }}
+            columns={tableColumns}
+            renderCell={renderCell}
+            rows={paginatedExpenses}
+            onRowClick={expense => handleViewDetails(expense.id)}
           />
 
           {/* Pagination */}

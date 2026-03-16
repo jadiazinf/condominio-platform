@@ -11,7 +11,8 @@ import type { TAmenity, TAmenityCreate, TAmenityUpdate } from '@packages/domain'
 export const amenityKeys = {
   all: ['amenities'] as const,
   lists: () => [...amenityKeys.all, 'list'] as const,
-  byCondominium: (condominiumId: string) => [...amenityKeys.all, 'condominium', condominiumId] as const,
+  byCondominium: (condominiumId: string) =>
+    [...amenityKeys.all, 'condominium', condominiumId] as const,
   details: () => [...amenityKeys.all, 'detail'] as const,
   detail: (id: string) => [...amenityKeys.details(), id] as const,
 }
@@ -118,7 +119,7 @@ export function useUpdateAmenity(id: string, options?: IUpdateAmenityOptions) {
 
 export function useDeleteAmenity(options?: IDeleteAmenityOptions) {
   return useApiMutation<TApiDataResponse<TAmenity>, { id: string }>({
-    path: (data) => `/condominium/amenities/${data.id}`,
+    path: data => `/condominium/amenities/${data.id}`,
     method: 'DELETE',
     config: {},
     onSuccess: options?.onSuccess,
@@ -159,7 +160,10 @@ export async function createAmenity(data: TAmenityCreate): Promise<TAmenity> {
 
 export async function updateAmenity(id: string, data: TAmenityUpdate): Promise<TAmenity> {
   const client = getHttpClient()
-  const response = await client.patch<TApiDataResponse<TAmenity>>(`/condominium/amenities/${id}`, data)
+  const response = await client.patch<TApiDataResponse<TAmenity>>(
+    `/condominium/amenities/${id}`,
+    data
+  )
   return response.data.data
 }
 

@@ -88,11 +88,7 @@ export function CardBody({ children, className }: ICardBodyProps) {
 }
 
 export function CardFooter({ children, className }: ICardFooterProps) {
-  return (
-    <HeroUICardFooter className={cn(className)}>
-      {children}
-    </HeroUICardFooter>
-  )
+  return <HeroUICardFooter className={cn(className)}>{children}</HeroUICardFooter>
 }
 
 export type {

@@ -27,12 +27,10 @@ export function PermissionModuleTab({
 
   return (
     <div className="space-y-4 pt-4">
-      {module.permissions.map((permission) => {
+      {module.permissions.map(permission => {
         const permissionKey = `${module.module}:${permission.action}`
         const isCustomized = permissionKey in customPermissions
-        const isGranted = isCustomized
-          ? customPermissions[permissionKey]
-          : permission.granted
+        const isGranted = isCustomized ? customPermissions[permissionKey] : permission.granted
 
         return (
           <div
@@ -40,20 +38,18 @@ export function PermissionModuleTab({
             className="flex items-center justify-between rounded-lg border border-default-200 p-4 hover:bg-default-50"
           >
             <div className="flex-1">
-              <Typography variant="subtitle2" className="font-medium">
+              <Typography className="font-medium" variant="subtitle2">
                 {t(`superadmin.permissions.actions.${permission.action}`)}
               </Typography>
               <Typography color="muted" variant="caption">
                 {permissionKey}
-                {isCustomized && (
-                  <span className="ml-2 text-warning">(Customized)</span>
-                )}
+                {isCustomized && <span className="ml-2 text-warning">(Customized)</span>}
               </Typography>
             </div>
             <Switch
+              color="primary"
               isSelected={isGranted}
               onValueChange={() => onTogglePermission(permissionKey)}
-              color="primary"
             />
           </div>
         )

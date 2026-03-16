@@ -1,4 +1,11 @@
-import type { TUser, TUserCondominiumAccess, TUserRole, TPermission, TUserManagementCompanyAccess, TActiveRoleType } from '@packages/domain'
+import type {
+  TUser,
+  TUserCondominiumAccess,
+  TUserRole,
+  TPermission,
+  TUserManagementCompanyAccess,
+  TActiveRoleType,
+} from '@packages/domain'
 
 import { cookies } from 'next/headers'
 
@@ -174,7 +181,9 @@ export async function getSuperadminPermissionsCookieServer(): Promise<TPermissio
 // Management Companies Cookie (Server-side)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function getManagementCompaniesCookieServer(): Promise<TUserManagementCompanyAccess[] | null> {
+export async function getManagementCompaniesCookieServer(): Promise<
+  TUserManagementCompanyAccess[] | null
+> {
   const cookieStore = await cookies()
   const cookie = cookieStore.get(MANAGEMENT_COMPANIES_COOKIE_NAME)
 
@@ -204,6 +213,7 @@ export async function getActiveRoleCookieServer(): Promise<TActiveRoleType | nul
   }
 
   const value = cookie.value
+
   if (value === 'superadmin' || value === 'management_company' || value === 'condominium') {
     return value
   }

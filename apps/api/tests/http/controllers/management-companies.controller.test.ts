@@ -8,7 +8,12 @@ import type {
   TManagementCompanyUpdate,
 } from '@packages/domain'
 import { ManagementCompaniesController } from '@http/controllers/management-companies'
-import type { ManagementCompaniesRepository, ManagementCompanySubscriptionsRepository, LocationsRepository, UsersRepository } from '@database/repositories'
+import type {
+  ManagementCompaniesRepository,
+  ManagementCompanySubscriptionsRepository,
+  LocationsRepository,
+  UsersRepository,
+} from '@database/repositories'
 import { ManagementCompanyFactory } from '../../setup/factories'
 import {
   withId,
@@ -296,7 +301,10 @@ describe('ManagementCompaniesController', function () {
         throw new Error('duplicate key value violates unique constraint')
       }
 
-      const newCompany = ManagementCompanyFactory.create({ taxIdType: 'J', taxIdNumber: '12345678-9' })
+      const newCompany = ManagementCompanyFactory.create({
+        taxIdType: 'J',
+        taxIdNumber: '12345678-9',
+      })
 
       const res = await request('/management-companies', {
         method: 'POST',

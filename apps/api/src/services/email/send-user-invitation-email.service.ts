@@ -23,15 +23,24 @@ export interface ISendUserInvitationEmailResult {
   emailId: string
 }
 
-export class SendUserInvitationEmailService
-  implements IService<ISendUserInvitationEmailInput, TServiceResult<ISendUserInvitationEmailResult>>
-{
+export class SendUserInvitationEmailService implements IService<
+  ISendUserInvitationEmailInput,
+  TServiceResult<ISendUserInvitationEmailResult>
+> {
   constructor(private readonly emailService: EmailService = EmailService.getInstance()) {}
 
   async execute(
     input: ISendUserInvitationEmailInput
   ): Promise<TServiceResult<ISendUserInvitationEmailResult>> {
-    const { to, recipientName, condominiumName, unitIdentifier, roleName, invitationToken, expiresAt } = input
+    const {
+      to,
+      recipientName,
+      condominiumName,
+      unitIdentifier,
+      roleName,
+      invitationToken,
+      expiresAt,
+    } = input
 
     const invitationLink = `${env.APP_URL}/accept-user-invitation?token=${invitationToken}`
     const expiresAtFormatted = formatDateES(expiresAt)
@@ -68,7 +77,10 @@ export class SendUserInvitationEmailService
       footerNote: 'Si no esperabas esta invitación, puedes ignorar este correo.',
     }
 
-    logger.info({ to, condominiumName, roleName, expiresAt: expiresAtFormatted }, 'Sending user invitation email')
+    logger.info(
+      { to, condominiumName, roleName, expiresAt: expiresAtFormatted },
+      'Sending user invitation email'
+    )
 
     const result = await this.emailService.execute({
       to,

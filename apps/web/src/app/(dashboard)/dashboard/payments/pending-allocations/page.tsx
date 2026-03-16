@@ -1,14 +1,17 @@
 import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
+
+import { PendingAllocationsTable } from './components/PendingAllocationsTable'
+
 import { Typography } from '@/ui/components/typography'
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
-import { redirect } from 'next/navigation'
-import { PendingAllocationsTable } from './components/PendingAllocationsTable'
 
 async function PendingAllocationsContent() {
   const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
 
   const isAdmin = session.activeRole === 'management_company'
+
   if (!isAdmin && !session.condominiums?.length) {
     redirect('/dashboard')
   }

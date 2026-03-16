@@ -8,8 +8,10 @@
  * directly with the Zustand store.
  */
 
-import { useEffect } from 'react'
 import type { TUser, TUserCondominiumAccess } from '@packages/domain'
+
+import { useEffect } from 'react'
+
 import { useSessionStore } from '@/stores/session-store'
 
 interface SessionInitializerProps {
@@ -25,7 +27,7 @@ export function SessionInitializer({
   initialCondominiums,
   initialSelectedCondominium,
 }: SessionInitializerProps) {
-  const hydrateFromServer = useSessionStore((state) => state.hydrateFromServer)
+  const hydrateFromServer = useSessionStore(state => state.hydrateFromServer)
 
   useEffect(() => {
     // Hydrate store with server-side data on mount

@@ -424,23 +424,22 @@ export async function renewSubscription(
  * Hook to calculate subscription pricing for a management company
  * Uses placeholderData to keep previous data while fetching new data (prevents UI flicker)
  */
-export function useSubscriptionPricing(
-  companyId: string,
-  options: IUseSubscriptionPricingOptions
-) {
+export function useSubscriptionPricing(companyId: string, options: IUseSubscriptionPricingOptions) {
   const { query, enabled = true } = options
 
   // Build query string
   const params = new URLSearchParams()
   if (query.rateId) params.set('rateId', query.rateId)
-  if (query.condominiumRate !== undefined) params.set('condominiumRate', String(query.condominiumRate))
+  if (query.condominiumRate !== undefined)
+    params.set('condominiumRate', String(query.condominiumRate))
   if (query.unitRate !== undefined) params.set('unitRate', String(query.unitRate))
   if (query.userRate !== undefined) params.set('userRate', String(query.userRate))
   if (query.billingCycle) params.set('billingCycle', query.billingCycle)
   if (query.discountType) params.set('discountType', query.discountType)
   if (query.discountValue !== undefined) params.set('discountValue', String(query.discountValue))
   // Subscription limits
-  if (query.condominiumCount !== undefined) params.set('condominiumCount', String(query.condominiumCount))
+  if (query.condominiumCount !== undefined)
+    params.set('condominiumCount', String(query.condominiumCount))
   if (query.unitCount !== undefined) params.set('unitCount', String(query.unitCount))
   if (query.userCount !== undefined) params.set('userCount', String(query.userCount))
 
@@ -453,7 +452,7 @@ export function useSubscriptionPricing(
     config: {},
     enabled: enabled && !!companyId,
     // Keep previous data while fetching new data to prevent UI flicker
-    placeholderData: (previousData) => previousData,
+    placeholderData: previousData => previousData,
   })
 }
 
@@ -469,14 +468,16 @@ export async function getSubscriptionPricing(
   // Build query string
   const params = new URLSearchParams()
   if (query.rateId) params.set('rateId', query.rateId)
-  if (query.condominiumRate !== undefined) params.set('condominiumRate', String(query.condominiumRate))
+  if (query.condominiumRate !== undefined)
+    params.set('condominiumRate', String(query.condominiumRate))
   if (query.unitRate !== undefined) params.set('unitRate', String(query.unitRate))
   if (query.userRate !== undefined) params.set('userRate', String(query.userRate))
   if (query.billingCycle) params.set('billingCycle', query.billingCycle)
   if (query.discountType) params.set('discountType', query.discountType)
   if (query.discountValue !== undefined) params.set('discountValue', String(query.discountValue))
   // Subscription limits
-  if (query.condominiumCount !== undefined) params.set('condominiumCount', String(query.condominiumCount))
+  if (query.condominiumCount !== undefined)
+    params.set('condominiumCount', String(query.condominiumCount))
   if (query.unitCount !== undefined) params.set('unitCount', String(query.unitCount))
   if (query.userCount !== undefined) params.set('userCount', String(query.userCount))
 

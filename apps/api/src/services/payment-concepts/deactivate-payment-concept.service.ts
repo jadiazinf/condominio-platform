@@ -1,5 +1,8 @@
 import type { TPaymentConcept } from '@packages/domain'
-import type { PaymentConceptsRepository, PaymentConceptAssignmentsRepository } from '@database/repositories'
+import type {
+  PaymentConceptsRepository,
+  PaymentConceptAssignmentsRepository,
+} from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
 
@@ -25,10 +28,12 @@ export class DeactivatePaymentConceptService {
     private readonly db: TDrizzleClient,
     private readonly conceptsRepo: PaymentConceptsRepository,
     private readonly assignmentsRepo: PaymentConceptAssignmentsRepository,
-    private readonly quotasRepo: TQuotasRepo,
+    private readonly quotasRepo: TQuotasRepo
   ) {}
 
-  async execute(input: IDeactivatePaymentConceptInput): Promise<TServiceResult<IDeactivatePaymentConceptResult>> {
+  async execute(
+    input: IDeactivatePaymentConceptInput
+  ): Promise<TServiceResult<IDeactivatePaymentConceptResult>> {
     const concept = await this.conceptsRepo.getById(input.conceptId)
 
     if (!concept) {
@@ -44,6 +49,7 @@ export class DeactivatePaymentConceptService {
     }
 
     // Execute all operations in a single transaction
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await (this.db as any).transaction(async (tx: TDrizzleClient) => {
       const txConcepts = this.conceptsRepo.withTx(tx)
       const txAssignments = this.assignmentsRepo.withTx(tx)
@@ -56,6 +62,7 @@ export class DeactivatePaymentConceptService {
       const deactivatedAssignments = await txAssignments.deactivateAllByConceptId(input.conceptId)
 
       // 3. Deactivate the concept itself
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updatedConcept = await txConcepts.update(input.conceptId, { isActive: false } as any)
 
       return {

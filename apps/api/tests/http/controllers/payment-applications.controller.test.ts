@@ -16,6 +16,7 @@ import type {
   QuotasRepository,
   QuotaAdjustmentsRepository,
   InterestConfigurationsRepository,
+  PaymentConceptsRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import {
@@ -84,6 +85,7 @@ function makeQuota(id: string, overrides: Partial<TQuota> = {}): TQuota {
     issueDate: '2025-01-01',
     dueDate: '2025-01-31',
     status: 'pending',
+    adjustmentsTotal: '0',
     paidAmount: '0',
     balance: '100.00',
     notes: null,
@@ -101,31 +103,42 @@ function makeQuota(id: string, overrides: Partial<TQuota> = {}): TQuota {
 
 function createMockDb() {
   return {
-    transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn({}),
+    transaction: async (fn: (tx: unknown) => Promise<unknown>) => {
+      const txProxy = { execute: async () => ({ rows: [{ id: 'lock' }] }) }
+      return fn(txProxy)
+    },
   } as unknown as TDrizzleClient
 }
 
 function createMockPaymentApplicationsRepo(testApplications: TPaymentApplication[]) {
   return {
     listAll: async () => testApplications,
+    listByCondominiumId: async () => testApplications,
     getById: async (id: string) => testApplications.find(a => a.id === id) || null,
-    create: async (data: TPaymentApplicationCreate) => withId(data, crypto.randomUUID()) as TPaymentApplication,
+    create: async (data: TPaymentApplicationCreate) =>
+      withId(data, crypto.randomUUID()) as TPaymentApplication,
     update: async (id: string, data: TPaymentApplicationUpdate) => {
       const a = testApplications.find(item => item.id === id)
       if (!a) return null
       return { ...a, ...data } as TPaymentApplication
     },
     delete: async (id: string) => testApplications.some(a => a.id === id),
-    getByPaymentId: async (paymentId: string) => testApplications.filter(a => a.paymentId === paymentId),
-    getByQuotaId: async (quotaId: string) => testApplications.filter(a => a.quotaId === quotaId),
-    withTx: function () { return this },
+    getByPaymentId: async (paymentId: string, _condominiumId?: string) =>
+      testApplications.filter(a => a.paymentId === paymentId),
+    getByQuotaId: async (quotaId: string, _condominiumId?: string) =>
+      testApplications.filter(a => a.quotaId === quotaId),
+    withTx: function () {
+      return this
+    },
   } as unknown as PaymentApplicationsRepository
 }
 
 function createMockPaymentsRepo(payments: TPayment[]) {
   return {
     getById: async (id: string) => payments.find(p => p.id === id) || null,
-    withTx: function () { return this },
+    withTx: function () {
+      return this
+    },
   } as unknown as PaymentsRepository
 }
 
@@ -134,22 +147,38 @@ function createMockQuotasRepo(quotas: TQuota[]) {
     getById: async (id: string) => quotas.find(q => q.id === id) || null,
     getUnpaidByConceptAndUnit: async () => [],
     update: async () => null,
-    withTx: function () { return this },
+    withTx: function () {
+      return this
+    },
   } as unknown as QuotasRepository
 }
 
 function createMockAdjustmentsRepo() {
   return {
     create: async () => ({}),
-    withTx: function () { return this },
+    getByQuotaId: async () => [],
+    withTx: function () {
+      return this
+    },
   } as unknown as QuotaAdjustmentsRepository
 }
 
 function createMockInterestConfigsRepo() {
   return {
     getActiveForDate: async () => null,
-    withTx: function () { return this },
+    withTx: function () {
+      return this
+    },
   } as unknown as InterestConfigurationsRepository
+}
+
+function createMockPaymentConceptsRepo() {
+  return {
+    getById: async () => null,
+    withTx: function () {
+      return this
+    },
+  } as unknown as PaymentConceptsRepository
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -162,28 +191,34 @@ describe('PaymentApplicationsController', function () {
   let mockAppsRepo: ReturnType<typeof createMockPaymentApplicationsRepo>
   let testApplications: TPaymentApplication[]
 
-  const testPayments = [
-    makePayment(paymentId1),
-    makePayment(paymentId2),
-  ]
+  const testPayments = [makePayment(paymentId1), makePayment(paymentId2)]
 
-  const testQuotas = [
-    makeQuota(quotaId1),
-    makeQuota(quotaId2),
-  ]
+  const testQuotas = [makeQuota(quotaId1), makeQuota(quotaId2)]
 
   beforeEach(function () {
     const app1Data: TPaymentApplicationCreate = {
-      paymentId: paymentId1, quotaId: quotaId1, appliedAmount: '100.00',
-      appliedToPrincipal: '100.00', appliedToInterest: '0', registeredBy: null,
+      paymentId: paymentId1,
+      quotaId: quotaId1,
+      appliedAmount: '100.00',
+      appliedToPrincipal: '100.00',
+      appliedToInterest: '0',
+      registeredBy: null,
     }
     const app2Data: TPaymentApplicationCreate = {
-      paymentId: paymentId1, quotaId: quotaId2, appliedAmount: '50.00',
-      appliedToPrincipal: '50.00', appliedToInterest: '0', registeredBy: null,
+      paymentId: paymentId1,
+      quotaId: quotaId2,
+      appliedAmount: '50.00',
+      appliedToPrincipal: '50.00',
+      appliedToInterest: '0',
+      registeredBy: null,
     }
     const app3Data: TPaymentApplicationCreate = {
-      paymentId: paymentId2, quotaId: quotaId1, appliedAmount: '25.00',
-      appliedToPrincipal: '25.00', appliedToInterest: '0', registeredBy: null,
+      paymentId: paymentId2,
+      quotaId: quotaId1,
+      appliedAmount: '25.00',
+      appliedToPrincipal: '25.00',
+      appliedToInterest: '0',
+      registeredBy: null,
     }
 
     testApplications = [
@@ -201,6 +236,7 @@ describe('PaymentApplicationsController', function () {
       createMockQuotasRepo(testQuotas),
       createMockAdjustmentsRepo(),
       createMockInterestConfigsRepo(),
+      createMockPaymentConceptsRepo()
     )
 
     app = createTestApp()
@@ -257,7 +293,9 @@ describe('PaymentApplicationsController', function () {
 
     it('should return empty array when no applications for payment', async function () {
       mockAppsRepo.getByPaymentId = async () => []
-      const res = await request('/payment-applications/payment/550e8400-e29b-41d4-a716-446655440099')
+      const res = await request(
+        '/payment-applications/payment/550e8400-e29b-41d4-a716-446655440099'
+      )
       expect(res.status).toBe(StatusCodes.OK)
       const json = (await res.json()) as IApiResponse
       expect(json.data).toHaveLength(0)
@@ -348,6 +386,7 @@ describe('PaymentApplicationsController', function () {
         createMockQuotasRepo(testQuotas),
         createMockAdjustmentsRepo(),
         createMockInterestConfigsRepo(),
+        createMockPaymentConceptsRepo()
       )
       const testApp = createTestApp()
       testApp.route('/pa', controller.createRouter())
@@ -389,6 +428,7 @@ describe('PaymentApplicationsController', function () {
         mockQuotasWithOlder,
         createMockAdjustmentsRepo(),
         createMockInterestConfigsRepo(),
+        createMockPaymentConceptsRepo()
       )
       const testApp = createTestApp()
       testApp.route('/pa', controller.createRouter())
@@ -425,6 +465,7 @@ describe('PaymentApplicationsController', function () {
         mockQuotasOldest,
         createMockAdjustmentsRepo(),
         createMockInterestConfigsRepo(),
+        createMockPaymentConceptsRepo()
       )
       const testApp = createTestApp()
       testApp.route('/pa', controller.createRouter())
@@ -486,9 +527,43 @@ describe('PaymentApplicationsController', function () {
     })
   })
 
+  describe('Tenant isolation', function () {
+    const condominiumId = '550e8400-e29b-41d4-a716-446655440090'
+
+    it('should pass condominiumId to getByPaymentId', async function () {
+      let calledWithCondoId: string | undefined
+      mockAppsRepo.getByPaymentId = async function (_paymentId: string, condoId?: string) {
+        calledWithCondoId = condoId
+        return []
+      }
+
+      await request(`/payment-applications/payment/${paymentId1}`, {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+
+      expect(calledWithCondoId).toBe(condominiumId)
+    })
+
+    it('should pass condominiumId to getByQuotaId', async function () {
+      let calledWithCondoId: string | undefined
+      mockAppsRepo.getByQuotaId = async function (_quotaId: string, condoId?: string) {
+        calledWithCondoId = condoId
+        return []
+      }
+
+      await request(`/payment-applications/quota/${quotaId1}`, {
+        headers: { 'x-condominium-id': condominiumId },
+      })
+
+      expect(calledWithCondoId).toBe(condominiumId)
+    })
+  })
+
   describe('Error handling', function () {
     it('should return 500 for unexpected errors', async function () {
-      mockAppsRepo.listAll = async () => { throw new Error('Unexpected database error') }
+      mockAppsRepo.listAll = async () => {
+        throw new Error('Unexpected database error')
+      }
       const res = await request('/payment-applications')
       expect(res.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR)
       const json = (await res.json()) as IApiResponse

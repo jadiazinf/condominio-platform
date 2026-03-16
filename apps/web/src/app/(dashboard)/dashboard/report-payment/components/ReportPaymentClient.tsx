@@ -1,7 +1,13 @@
 'use client'
 
+import type { TPaymentCreate } from '@packages/domain'
+
 import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useReportPayment, useCurrencies } from '@packages/http-client'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
@@ -11,10 +17,6 @@ import { Select, type ISelectItem } from '@/ui/components/select'
 import { Textarea } from '@/ui/components/textarea'
 import { Spinner } from '@/ui/components/spinner'
 import { useToast } from '@/ui/components/toast'
-import { useReportPayment, useCurrencies } from '@packages/http-client'
-import type { TPaymentCreate } from '@packages/domain'
-import { ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -44,7 +46,9 @@ export function ReportPaymentClient({ userId, unitOptions }: IReportPaymentClien
   const toast = useToast()
 
   // Form state
-  const [unitId, setUnitId] = useState<string>(unitOptions.length === 1 ? unitOptions[0].unitId : '')
+  const [unitId, setUnitId] = useState<string>(
+    unitOptions.length === 1 ? unitOptions[0].unitId : ''
+  )
   const [amount, setAmount] = useState('')
   const [currencyId, setCurrencyId] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<TPaymentMethodOption | ''>('')
@@ -71,7 +75,7 @@ export function ReportPaymentClient({ userId, unitOptions }: IReportPaymentClien
   // Memoized select items
   const unitSelectItems: ISelectItem[] = useMemo(
     () =>
-      unitOptions.map((u) => ({
+      unitOptions.map(u => ({
         key: u.unitId,
         label: `${u.unitNumber} - ${u.buildingName} (${u.condominiumName})`,
       })),
@@ -92,8 +96,8 @@ export function ReportPaymentClient({ userId, unitOptions }: IReportPaymentClien
   const currencySelectItems: ISelectItem[] = useMemo(
     () =>
       currencies
-        .filter((c) => c.isActive)
-        .map((c) => ({
+        .filter(c => c.isActive)
+        .map(c => ({
           key: c.id,
           label: `${c.code}${c.symbol ? ` (${c.symbol})` : ''}`,
         })),
@@ -188,18 +192,18 @@ export function ReportPaymentClient({ userId, unitOptions }: IReportPaymentClien
               label={t('resident.reportPayment.fields.unit')}
               placeholder={t('resident.reportPayment.fields.unitPlaceholder')}
               value={unitId}
-              onChange={(key) => setUnitId(key ?? '')}
+              onChange={key => setUnitId(key ?? '')}
             />
 
             {/* Amount */}
             <Input
               isRequired
+              inputMode="decimal"
               label={t('resident.reportPayment.fields.amount')}
               placeholder="0.00"
               type="number"
               value={amount}
               onValueChange={setAmount}
-              inputMode="decimal"
             />
 
             {/* Currency */}
@@ -217,7 +221,7 @@ export function ReportPaymentClient({ userId, unitOptions }: IReportPaymentClien
                 label={t('resident.reportPayment.fields.currency')}
                 placeholder={t('resident.reportPayment.fields.currencyPlaceholder')}
                 value={currencyId}
-                onChange={(key) => setCurrencyId(key ?? '')}
+                onChange={key => setCurrencyId(key ?? '')}
               />
             )}
 
@@ -228,7 +232,7 @@ export function ReportPaymentClient({ userId, unitOptions }: IReportPaymentClien
               label={t('resident.reportPayment.fields.paymentMethod')}
               placeholder={t('resident.reportPayment.fields.paymentMethodPlaceholder')}
               value={paymentMethod}
-              onChange={(key) => setPaymentMethod((key ?? '') as TPaymentMethodOption | '')}
+              onChange={key => setPaymentMethod((key ?? '') as TPaymentMethodOption | '')}
             />
 
             {/* Payment Date */}
@@ -250,9 +254,9 @@ export function ReportPaymentClient({ userId, unitOptions }: IReportPaymentClien
 
             {/* External Reference (optional - for auto-verification) */}
             <Input
+              description={t('resident.reportPayment.fields.externalReferenceHelp')}
               label={t('resident.reportPayment.fields.externalReference')}
               placeholder={t('resident.reportPayment.fields.externalReferencePlaceholder')}
-              description={t('resident.reportPayment.fields.externalReferenceHelp')}
               value={externalReference}
               onValueChange={setExternalReference}
             />
@@ -260,20 +264,16 @@ export function ReportPaymentClient({ userId, unitOptions }: IReportPaymentClien
             {/* Notes (optional) */}
             <Textarea
               label={t('resident.reportPayment.fields.notes')}
+              maxRows={6}
+              minRows={3}
               placeholder={t('resident.reportPayment.fields.notesPlaceholder')}
               value={notes}
               onValueChange={setNotes}
-              minRows={3}
-              maxRows={6}
             />
 
             {/* Submit */}
             <div className="flex justify-end gap-3 pt-2">
-              <Button
-                as={Link}
-                href="/dashboard/my-payments"
-                variant="flat"
-              >
+              <Button as={Link} href="/dashboard/my-payments" variant="flat">
                 {t('common.cancel')}
               </Button>
               <Button

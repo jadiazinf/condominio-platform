@@ -57,13 +57,9 @@ export function usePaymentConceptBankAccounts(options: IUsePaymentConceptBankAcc
   })
 }
 
-export function useLinkBankAccount(
-  companyId: string,
-  options?: ILinkBankAccountOptions
-) {
+export function useLinkBankAccount(companyId: string, options?: ILinkBankAccountOptions) {
   return useApiMutation<TApiDataResponse<TPaymentConceptBankAccount>, ILinkBankAccountVariables>({
-    path: (variables) =>
-      `/${companyId}/me/payment-concepts/${variables.conceptId}/bank-accounts`,
+    path: variables => `/${companyId}/me/payment-concepts/${variables.conceptId}/bank-accounts`,
     method: 'POST',
     onSuccess: options?.onSuccess,
     onError: options?.onError,
@@ -77,7 +73,7 @@ export function useUnlinkBankAccount(
   options?: IUnlinkBankAccountOptions
 ) {
   return useApiMutation<TApiDataResponse<{ success: boolean }>, IUnlinkBankAccountVariables>({
-    path: (variables) =>
+    path: variables =>
       `/${companyId}/me/payment-concepts/${conceptId}/bank-accounts/${variables.bankAccountId}`,
     method: 'DELETE',
     onSuccess: options?.onSuccess,

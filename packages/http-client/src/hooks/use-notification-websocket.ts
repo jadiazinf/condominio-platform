@@ -82,7 +82,7 @@ export function useNotificationWebSocket({
         reconnectAttemptsRef.current = 0
       }
 
-      ws.onmessage = (event) => {
+      ws.onmessage = event => {
         try {
           const message: IWebSocketMessage = JSON.parse(event.data)
 
@@ -141,7 +141,7 @@ export function useNotificationWebSocket({
         setError('WebSocket connection error')
       }
 
-      ws.onclose = (event) => {
+      ws.onclose = event => {
         setIsConnected(false)
 
         // Attempt reconnection if not a normal closure and under max attempts

@@ -2,9 +2,11 @@
 
 import type { ReactNode } from 'react'
 import type { TCondominium, TActiveRoleType } from '@packages/domain'
+
+import { CondominiumDetailProvider } from '../context/CondominiumDetailContext'
+
 import { CondominiumDetailHeader } from './CondominiumDetailHeader'
 import { CondominiumDetailSidebar } from './CondominiumDetailSidebar'
-import { CondominiumDetailProvider } from '../context/CondominiumDetailContext'
 
 interface ICondominiumDetailLayoutProps {
   children: ReactNode
@@ -20,7 +22,11 @@ export function CondominiumDetailLayout({
   userRole,
 }: ICondominiumDetailLayoutProps) {
   return (
-    <CondominiumDetailProvider condominium={condominium} currentUserId={currentUserId} userRole={userRole}>
+    <CondominiumDetailProvider
+      condominium={condominium}
+      currentUserId={currentUserId}
+      userRole={userRole}
+    >
       <div className="max-w-6xl mx-auto">
         <CondominiumDetailHeader condominium={condominium} />
         <div className="flex flex-col md:flex-row gap-8 mt-6">

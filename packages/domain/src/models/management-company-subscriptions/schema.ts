@@ -4,9 +4,14 @@ import { managementCompanySchema } from '../management-companies/schema'
 import { currencySchema } from '../currencies/schema'
 import { userSchema } from '../users/schema'
 
-
 // Subscription status options
-export const ESubscriptionStatus = ['trial', 'active', 'inactive', 'cancelled', 'suspended'] as const
+export const ESubscriptionStatus = [
+  'trial',
+  'active',
+  'inactive',
+  'cancelled',
+  'suspended',
+] as const
 
 // Billing cycle options
 export const EBillingCycle = ['monthly', 'quarterly', 'semi_annual', 'annual', 'custom'] as const

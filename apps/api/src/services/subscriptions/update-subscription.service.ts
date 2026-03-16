@@ -1,4 +1,7 @@
-import type { TManagementCompanySubscription, TManagementCompanySubscriptionUpdate } from '@packages/domain'
+import type {
+  TManagementCompanySubscription,
+  TManagementCompanySubscriptionUpdate,
+} from '@packages/domain'
 import type { ManagementCompanySubscriptionsRepository } from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 
@@ -13,7 +16,9 @@ export interface IUpdateSubscriptionInput {
 export class UpdateSubscriptionService {
   constructor(private readonly subscriptionsRepository: ManagementCompanySubscriptionsRepository) {}
 
-  async execute(input: IUpdateSubscriptionInput): Promise<TServiceResult<TManagementCompanySubscription>> {
+  async execute(
+    input: IUpdateSubscriptionInput
+  ): Promise<TServiceResult<TManagementCompanySubscription>> {
     // Check if subscription exists
     const existing = await this.subscriptionsRepository.getById(input.subscriptionId)
 

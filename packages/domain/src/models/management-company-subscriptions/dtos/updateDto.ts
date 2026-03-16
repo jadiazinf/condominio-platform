@@ -1,3 +1,4 @@
 import { managementCompanySubscriptionCreateSchema } from './createDto'
 
-export const managementCompanySubscriptionUpdateSchema = managementCompanySubscriptionCreateSchema.partial()
+export const managementCompanySubscriptionUpdateSchema =
+  managementCompanySubscriptionCreateSchema.partial()

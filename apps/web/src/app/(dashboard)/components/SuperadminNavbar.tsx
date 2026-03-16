@@ -2,15 +2,21 @@
 
 import type { TUser } from '@packages/domain'
 
-import { HeroUINavbar, NavbarBrandPrimitive, NavbarContent, NavbarItem } from '@/ui/components/navbar'
+import { Menu, Shield } from 'lucide-react'
+
+import { SwitchRoleButton } from './SwitchRoleButton'
+
+import {
+  HeroUINavbar,
+  NavbarBrandPrimitive,
+  NavbarContent,
+  NavbarItem,
+} from '@/ui/components/navbar'
 import { Button } from '@/ui/components/button'
 import { Link } from '@/ui/components/link'
 import { Chip } from '@/ui/components/chip'
-import { Menu, Shield } from 'lucide-react'
-
 import { NotificationPanel } from '@/ui/components/notifications'
 import { CurrentUserAvatar } from '@/ui/components/avatar'
-import { SwitchRoleButton } from './SwitchRoleButton'
 
 interface SuperadminNavbarProps {
   onToggleSidebar?: () => void
@@ -49,7 +55,7 @@ export function SuperadminNavbar({ onToggleSidebar, initialUser }: SuperadminNav
           <NotificationPanel />
         </NavbarItem>
         <NavbarItem className="flex ml-2">
-          <CurrentUserAvatar initialUser={initialUser} isClickable />
+          <CurrentUserAvatar isClickable initialUser={initialUser} />
         </NavbarItem>
       </NavbarContent>
     </HeroUINavbar>

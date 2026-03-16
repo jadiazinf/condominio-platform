@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 
-import { DashboardTheme } from '@/app/(dashboard)/components/DashboardTheme'
 import { AcceptSubscriptionContent } from './components/AcceptSubscriptionContent'
+
+import { DashboardTheme } from '@/app/(dashboard)/components/DashboardTheme'
 
 export const metadata: Metadata = {
   title: 'Aceptar Suscripción',
@@ -16,7 +17,9 @@ interface AcceptSubscriptionPageProps {
   searchParams: Promise<{ token?: string }>
 }
 
-export default async function AcceptSubscriptionPage({ searchParams }: AcceptSubscriptionPageProps) {
+export default async function AcceptSubscriptionPage({
+  searchParams,
+}: AcceptSubscriptionPageProps) {
   const { token } = await searchParams
 
   return (

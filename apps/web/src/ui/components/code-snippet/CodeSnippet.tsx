@@ -2,9 +2,10 @@
 
 import { useCallback } from 'react'
 import { Copy, Check } from 'lucide-react'
+import { useState } from 'react'
+
 import { Button } from '@/ui/components/button'
 import { useToast } from '@/ui/components/toast'
-import { useState } from 'react'
 
 interface ICodeSnippetProps {
   code: string
@@ -35,6 +36,7 @@ export function CodeSnippet({
     } catch {
       // Fallback for older browsers
       const textarea = document.createElement('textarea')
+
       textarea.value = code
       textarea.style.position = 'fixed'
       textarea.style.opacity = '0'
@@ -60,25 +62,23 @@ export function CodeSnippet({
 
   return (
     <div className={`inline-flex flex-col gap-1.5 ${className}`}>
-      {label && (
-        <span className="text-xs font-medium text-default-500">{label}</span>
-      )}
+      {label && <span className="text-xs font-medium text-default-500">{label}</span>}
       <div className="inline-flex items-center gap-2 rounded-lg bg-default-100 border border-default-200 px-4 py-2.5">
         <code className="font-mono text-lg font-bold tracking-widest text-foreground select-all">
           {code}
         </code>
         <Button
           isIconOnly
+          aria-label="Copy code"
+          className="ml-2"
           size="sm"
           variant="light"
           onPress={handleCopy}
-          aria-label="Copy code"
-          className="ml-2"
         >
           {copied ? (
-            <Check size={16} className="text-success" />
+            <Check className="text-success" size={16} />
           ) : (
-            <Copy size={16} className="text-default-500" />
+            <Copy className="text-default-500" size={16} />
           )}
         </Button>
       </div>

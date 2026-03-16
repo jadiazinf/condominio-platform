@@ -1,3 +1,4 @@
 import { subscriptionTermsConditionsCreateSchema } from './createDto'
 
-export const subscriptionTermsConditionsUpdateSchema = subscriptionTermsConditionsCreateSchema.partial()
+export const subscriptionTermsConditionsUpdateSchema =
+  subscriptionTermsConditionsCreateSchema.partial()

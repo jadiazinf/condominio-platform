@@ -1,4 +1,10 @@
-import type { TUserInvitation, TUser, TUserCreate, TUserRole, TUserRoleCreate } from '@packages/domain'
+import type {
+  TUserInvitation,
+  TUser,
+  TUserCreate,
+  TUserRole,
+  TUserRoleCreate,
+} from '@packages/domain'
 import type {
   UserInvitationsRepository,
   UsersRepository,
@@ -109,7 +115,8 @@ export class CreateUserInvitationService {
       firstName: input.firstName ?? null,
       lastName: input.lastName ?? null,
       displayName:
-        input.displayName ?? (input.firstName && input.lastName ? `${input.firstName} ${input.lastName}` : null),
+        input.displayName ??
+        (input.firstName && input.lastName ? `${input.firstName} ${input.lastName}` : null),
       phoneCountryCode: input.phoneCountryCode ?? null,
       phoneNumber: input.phoneNumber ?? null,
       idDocumentType: input.idDocumentType ?? null,

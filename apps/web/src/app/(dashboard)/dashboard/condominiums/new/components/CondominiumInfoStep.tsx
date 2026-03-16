@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback } from 'react'
+import type { TUseCreateCondominiumWizard } from '../hooks/useCreateCondominiumWizard'
+
 import { Controller } from 'react-hook-form'
 import { Info, Wand2 } from 'lucide-react'
 import { Button } from '@heroui/button'
@@ -12,21 +13,20 @@ import { LocationSelector } from '@/ui/components/location-selector'
 import { Typography } from '@/ui/components/typography'
 import { Tooltip } from '@/ui/components/tooltip'
 import { ManagementCompanyMultiSelect } from '@/ui/components/management-company-autocomplete'
-import type { TUseCreateCondominiumWizard } from '../hooks/useCreateCondominiumWizard'
 
 function SectionHeader({ title, tooltip }: { title: string; tooltip: string }) {
   return (
     <div className="flex items-center gap-2">
-      <Typography variant="subtitle1" className="font-semibold">
+      <Typography className="font-semibold" variant="subtitle1">
         {title}
       </Typography>
       <Tooltip
-        content={tooltip}
-        placement="right"
         showArrow
         classNames={{
           content: 'max-w-xs text-sm',
         }}
+        content={tooltip}
+        placement="right"
       >
         <Info className="h-4 w-4 text-default-400 cursor-help" />
       </Tooltip>
@@ -58,25 +58,25 @@ export function CondominiumInfoStep({ wizard, adminCompanyName }: CondominiumInf
 
         <div className="flex flex-col gap-8 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-8">
           <InputField
-            name="name"
             isRequired
-            tooltip={t('superadmin.condominiums.form.fields.nameDescription')}
-            label={t('superadmin.condominiums.form.fields.name')}
-            placeholder={t('superadmin.condominiums.form.fields.namePlaceholder')}
-            translateError={translateError}
             errorMessage={translateError(errors?.name?.message)}
+            label={t('superadmin.condominiums.form.fields.name')}
+            name="name"
+            placeholder={t('superadmin.condominiums.form.fields.namePlaceholder')}
+            tooltip={t('superadmin.condominiums.form.fields.nameDescription')}
+            translateError={translateError}
           />
 
           <div className="flex gap-2">
             <div className="flex-1">
               <InputField
-                name="code"
                 isRequired
-                tooltip={t('superadmin.condominiums.form.fields.codeDescription')}
-                label={t('superadmin.condominiums.form.fields.code')}
-                placeholder={t('superadmin.condominiums.form.fields.codePlaceholder')}
-                translateError={translateError}
                 errorMessage={translateError(errors?.code?.message)}
+                label={t('superadmin.condominiums.form.fields.code')}
+                name="code"
+                placeholder={t('superadmin.condominiums.form.fields.codePlaceholder')}
+                tooltip={t('superadmin.condominiums.form.fields.codeDescription')}
+                translateError={translateError}
               />
             </div>
             <div className="pt-[26px]">
@@ -85,12 +85,12 @@ export function CondominiumInfoStep({ wizard, adminCompanyName }: CondominiumInf
                 placement="top"
               >
                 <Button
+                  isIconOnly
+                  color="primary"
+                  isLoading={isGeneratingCode}
+                  size="sm"
                   type="button"
                   variant="flat"
-                  color="primary"
-                  size="sm"
-                  isIconOnly
-                  isLoading={isGeneratingCode}
                   onPress={handleGenerateCode}
                 >
                   <Wand2 size={14} />
@@ -101,7 +101,7 @@ export function CondominiumInfoStep({ wizard, adminCompanyName }: CondominiumInf
 
           {isAdminMode ? (
             <div className="flex flex-col gap-1.5">
-              <Typography variant="body2" className="font-medium">
+              <Typography className="font-medium" variant="body2">
                 {t('superadmin.condominiums.form.fields.managementCompanies')}
               </Typography>
               <div className="flex items-center h-10 px-3 rounded-medium bg-default-100 text-default-700 text-sm">
@@ -114,15 +114,15 @@ export function CondominiumInfoStep({ wizard, adminCompanyName }: CondominiumInf
               name="managementCompanyIds"
               render={({ field }) => (
                 <ManagementCompanyMultiSelect
-                  value={field.value}
-                  onChange={field.onChange}
                   isRequired
                   errorMessage={translateError(errors?.managementCompanyIds?.message)}
                   label={t('superadmin.condominiums.form.fields.managementCompanies')}
-                  tooltip={t('superadmin.condominiums.form.fields.managementCompaniesDescription')}
                   placeholder={t(
                     'superadmin.condominiums.form.fields.managementCompanyPlaceholder'
                   )}
+                  tooltip={t('superadmin.condominiums.form.fields.managementCompaniesDescription')}
+                  value={field.value}
+                  onChange={field.onChange}
                 />
               )}
             />
@@ -139,21 +139,21 @@ export function CondominiumInfoStep({ wizard, adminCompanyName }: CondominiumInf
 
         <div className="flex flex-col gap-8 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-8">
           <InputField
-            name="email"
-            type="email"
             isRequired
-            tooltip={t('superadmin.condominiums.form.fields.emailDescription')}
-            label={t('superadmin.condominiums.form.fields.email')}
-            placeholder={t('superadmin.condominiums.form.fields.emailPlaceholder')}
-            translateError={translateError}
             errorMessage={translateError(errors?.email?.message)}
+            label={t('superadmin.condominiums.form.fields.email')}
+            name="email"
+            placeholder={t('superadmin.condominiums.form.fields.emailPlaceholder')}
+            tooltip={t('superadmin.condominiums.form.fields.emailDescription')}
+            translateError={translateError}
+            type="email"
           />
 
           <PhoneInputField
-            countryCodeFieldName="phoneCountryCode"
-            phoneNumberFieldName="phone"
             isRequired
+            countryCodeFieldName="phoneCountryCode"
             label={t('superadmin.condominiums.form.fields.phone')}
+            phoneNumberFieldName="phone"
             tooltip={t('superadmin.condominiums.form.fields.phoneDescription')}
             translateError={translateError}
           />
@@ -173,30 +173,30 @@ export function CondominiumInfoStep({ wizard, adminCompanyName }: CondominiumInf
             name="locationId"
             render={({ field }) => (
               <LocationSelector
-                value={field.value}
-                onChange={(locationId) => field.onChange(locationId)}
                 isRequired
-                errorMessage={translateError(errors?.locationId?.message)}
-                label={t('superadmin.condominiums.form.fields.location')}
-                tooltip={t('superadmin.condominiums.form.fields.locationDescription')}
-                countryLabel={t('common.country')}
-                countryPlaceholder={t('common.countryPlaceholder')}
-                provinceLabel={t('common.province')}
-                provincePlaceholder={t('common.provincePlaceholder')}
                 cityLabel={t('common.city')}
                 cityPlaceholder={t('common.cityPlaceholder')}
+                countryLabel={t('common.country')}
+                countryPlaceholder={t('common.countryPlaceholder')}
+                errorMessage={translateError(errors?.locationId?.message)}
+                label={t('superadmin.condominiums.form.fields.location')}
+                provinceLabel={t('common.province')}
+                provincePlaceholder={t('common.provincePlaceholder')}
+                tooltip={t('superadmin.condominiums.form.fields.locationDescription')}
+                value={field.value}
+                onChange={locationId => field.onChange(locationId)}
               />
             )}
           />
 
           <InputField
-            name="address"
             isRequired
-            tooltip={t('superadmin.condominiums.form.fields.addressDescription')}
-            label={t('superadmin.condominiums.form.fields.address')}
-            placeholder={t('superadmin.condominiums.form.fields.addressPlaceholder')}
-            translateError={translateError}
             errorMessage={translateError(errors?.address?.message)}
+            label={t('superadmin.condominiums.form.fields.address')}
+            name="address"
+            placeholder={t('superadmin.condominiums.form.fields.addressPlaceholder')}
+            tooltip={t('superadmin.condominiums.form.fields.addressDescription')}
+            translateError={translateError}
           />
         </div>
       </div>

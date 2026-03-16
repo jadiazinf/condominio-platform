@@ -2,14 +2,15 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useExpenseDetail } from '@packages/http-client'
+import { ArrowLeft } from 'lucide-react'
+import { formatCurrency } from '@packages/utils/currency'
+import { formatShortDate } from '@packages/utils/dates'
+
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
-import { ArrowLeft } from 'lucide-react'
-import { formatCurrency } from '@packages/utils/currency'
-import { formatShortDate } from '@packages/utils/dates'
 
 const STATUS_COLOR_MAP: Record<string, 'warning' | 'success' | 'danger' | 'primary' | 'default'> = {
   pending: 'warning',
@@ -38,8 +39,8 @@ export default function ExpenseDetailPage() {
     return (
       <div className="space-y-4">
         <Button
-          variant="light"
           startContent={<ArrowLeft size={16} />}
+          variant="light"
           onPress={() => router.push('/dashboard/expenses')}
         >
           {t('admin.expenses.actions.backToList')}
@@ -60,8 +61,8 @@ export default function ExpenseDetailPage() {
       {/* Back button and header */}
       <div className="flex items-center gap-4">
         <Button
-          variant="light"
           startContent={<ArrowLeft size={16} />}
+          variant="light"
           onPress={() => router.push('/dashboard/expenses')}
         >
           {t('admin.expenses.actions.backToList')}
@@ -75,18 +76,14 @@ export default function ExpenseDetailPage() {
             {expense.description}
           </Typography>
         </div>
-        <Chip
-          color={STATUS_COLOR_MAP[expense.status] || 'default'}
-          variant="flat"
-          size="lg"
-        >
+        <Chip color={STATUS_COLOR_MAP[expense.status] || 'default'} size="lg" variant="flat">
           {t(`admin.expenses.status.${expense.status}`)}
         </Chip>
       </div>
 
       {/* Description & Category */}
       <div className="rounded-lg border border-default-200 p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('admin.expenses.detail.descriptionInfo')}
         </Typography>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -94,26 +91,20 @@ export default function ExpenseDetailPage() {
             <Typography color="muted" variant="body2">
               {t('admin.expenses.table.description')}
             </Typography>
-            <Typography variant="body1">
-              {expense.description}
-            </Typography>
+            <Typography variant="body1">{expense.description}</Typography>
           </div>
           <div>
             <Typography color="muted" variant="body2">
               {t('admin.expenses.table.category')}
             </Typography>
-            <Typography variant="body1">
-              {expense.expenseCategory?.name ?? '-'}
-            </Typography>
+            <Typography variant="body1">{expense.expenseCategory?.name ?? '-'}</Typography>
           </div>
           {expense.condominium?.name && (
             <div>
               <Typography color="muted" variant="body2">
                 {t('admin.expenses.detail.condominium')}
               </Typography>
-              <Typography variant="body1">
-                {expense.condominium.name}
-              </Typography>
+              <Typography variant="body1">{expense.condominium.name}</Typography>
             </div>
           )}
         </div>
@@ -121,7 +112,7 @@ export default function ExpenseDetailPage() {
 
       {/* Amount & Currency */}
       <div className="rounded-lg border border-default-200 p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('admin.expenses.detail.amountInfo')}
         </Typography>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -129,7 +120,7 @@ export default function ExpenseDetailPage() {
             <Typography color="muted" variant="body2">
               {t('admin.expenses.table.amount')}
             </Typography>
-            <Typography variant="body1" className="font-semibold">
+            <Typography className="font-semibold" variant="body1">
               {formatCurrency(expense.amount, { currency: currencyCode })}
             </Typography>
           </div>
@@ -137,16 +128,14 @@ export default function ExpenseDetailPage() {
             <Typography color="muted" variant="body2">
               {t('admin.expenses.detail.currency')}
             </Typography>
-            <Typography variant="body1">
-              {expense.currency?.code ?? '-'}
-            </Typography>
+            <Typography variant="body1">{expense.currency?.code ?? '-'}</Typography>
           </div>
         </div>
       </div>
 
       {/* Vendor Information */}
       <div className="rounded-lg border border-default-200 p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('admin.expenses.detail.vendorInfo')}
         </Typography>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -154,24 +143,20 @@ export default function ExpenseDetailPage() {
             <Typography color="muted" variant="body2">
               {t('admin.expenses.table.vendor')}
             </Typography>
-            <Typography variant="body1">
-              {expense.vendorName ?? '-'}
-            </Typography>
+            <Typography variant="body1">{expense.vendorName ?? '-'}</Typography>
           </div>
           <div>
             <Typography color="muted" variant="body2">
               {t('admin.expenses.detail.invoiceNumber')}
             </Typography>
-            <Typography variant="body1">
-              {expense.invoiceNumber ?? '-'}
-            </Typography>
+            <Typography variant="body1">{expense.invoiceNumber ?? '-'}</Typography>
           </div>
         </div>
       </div>
 
       {/* Date Information */}
       <div className="rounded-lg border border-default-200 p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('admin.expenses.detail.dateInfo')}
         </Typography>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -179,33 +164,27 @@ export default function ExpenseDetailPage() {
             <Typography color="muted" variant="body2">
               {t('admin.expenses.detail.expenseDate')}
             </Typography>
-            <Typography variant="body1">
-              {formatShortDate(expense.expenseDate)}
-            </Typography>
+            <Typography variant="body1">{formatShortDate(expense.expenseDate)}</Typography>
           </div>
         </div>
       </div>
 
       {/* Status */}
       <div className="rounded-lg border border-default-200 p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('admin.expenses.detail.statusInfo')}
         </Typography>
-        <Chip
-          color={STATUS_COLOR_MAP[expense.status] || 'default'}
-          variant="flat"
-          size="lg"
-        >
+        <Chip color={STATUS_COLOR_MAP[expense.status] || 'default'} size="lg" variant="flat">
           {t(`admin.expenses.status.${expense.status}`)}
         </Chip>
       </div>
 
       {/* Notes */}
       <div className="rounded-lg border border-default-200 p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('admin.expenses.detail.notes')}
         </Typography>
-        <Typography variant="body1" color={expense.notes ? undefined : 'muted'}>
+        <Typography color={expense.notes ? undefined : 'muted'} variant="body1">
           {expense.notes ?? t('admin.expenses.detail.noNotes')}
         </Typography>
       </div>

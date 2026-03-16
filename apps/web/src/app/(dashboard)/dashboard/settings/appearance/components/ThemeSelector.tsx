@@ -1,12 +1,12 @@
 'use client'
 
-import { RadioGroup, Radio } from '@/ui/components/radio'
+import type { LucideIcon } from 'lucide-react'
+
 import { useTheme } from 'next-themes'
 import { Sun, Moon, Monitor } from 'lucide-react'
 
+import { RadioGroup, Radio } from '@/ui/components/radio'
 import { useTranslation } from '@/contexts'
-
-import type { LucideIcon } from 'lucide-react'
 
 interface IThemeOption {
   value: string
@@ -45,9 +45,9 @@ export function ThemeSelector() {
       {THEME_OPTIONS.map(option => (
         <ThemeOption
           key={option.value}
+          description={t(option.descriptionKey)}
           icon={option.icon}
           label={t(option.labelKey)}
-          description={t(option.descriptionKey)}
           value={option.value}
         />
       ))}

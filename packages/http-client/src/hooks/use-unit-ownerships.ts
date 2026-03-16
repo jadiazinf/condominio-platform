@@ -51,7 +51,7 @@ export function useResendOwnerInvitation(options: UseResendOwnerInvitationOption
   const { onSuccess, onError } = options
 
   return useApiMutation<TApiDataResponse<unknown>, ResendOwnerInvitationVariables>({
-    path: (variables) => `/condominium/unit-ownerships/${variables.ownershipId}/resend-invitation`,
+    path: variables => `/condominium/unit-ownerships/${variables.ownershipId}/resend-invitation`,
     method: 'POST',
     invalidateKeys: [unitOwnershipKeys.all],
     onSuccess: () => {

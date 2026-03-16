@@ -9,6 +9,7 @@ import type {
   EntityPaymentGatewaysRepository,
 } from '@database/repositories'
 import type { GatewayTransactionsRepository } from '@database/repositories/gateway-transactions.repository'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import type { PaymentGatewayManager } from '@src/services/payment-gateways/gateway-manager'
 import { HttpContext } from '../../context'
 import {
@@ -21,6 +22,7 @@ import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { createRouter } from '../create-router'
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
+import { CONDOMINIUM_ID_PROP } from '../../middlewares/utils/auth/require-role'
 import {
   AllocatePendingToQuotaService,
   RefundPendingAllocationService,
@@ -77,29 +79,36 @@ export class PaymentPendingAllocationsController {
   constructor(
     private readonly paymentPendingAllocationsRepository: PaymentPendingAllocationsRepository,
     private readonly quotasRepository: QuotasRepository,
+    db: TDrizzleClient,
     paymentsRepo?: PaymentsRepository,
     paymentGatewaysRepo?: PaymentGatewaysRepository,
     entityPaymentGatewaysRepo?: EntityPaymentGatewaysRepository,
     gatewayTransactionsRepo?: GatewayTransactionsRepository,
-    gatewayManager?: PaymentGatewayManager,
+    gatewayManager?: PaymentGatewayManager
   ) {
     this.allocatePendingToQuotaService = new AllocatePendingToQuotaService(
+      db,
       paymentPendingAllocationsRepository,
       quotasRepository
     )
     this.refundPendingAllocationService = new RefundPendingAllocationService(
       paymentPendingAllocationsRepository
     )
-    this.refundExcessViaBankService = (paymentsRepo && paymentGatewaysRepo && entityPaymentGatewaysRepo && gatewayTransactionsRepo && gatewayManager)
-      ? new RefundExcessViaBankService(
-          paymentPendingAllocationsRepository,
-          paymentsRepo,
-          paymentGatewaysRepo,
-          entityPaymentGatewaysRepo,
-          gatewayTransactionsRepo,
-          gatewayManager,
-        )
-      : null
+    this.refundExcessViaBankService =
+      paymentsRepo &&
+      paymentGatewaysRepo &&
+      entityPaymentGatewaysRepo &&
+      gatewayTransactionsRepo &&
+      gatewayManager
+        ? new RefundExcessViaBankService(
+            paymentPendingAllocationsRepository,
+            paymentsRepo,
+            paymentGatewaysRepo,
+            entityPaymentGatewaysRepo,
+            gatewayTransactionsRepo,
+            gatewayManager
+          )
+        : null
   }
 
   get routes(): TRouteDefinition[] {
@@ -108,19 +117,31 @@ export class PaymentPendingAllocationsController {
         method: 'get',
         path: '/',
         handler: this.listPending,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), queryValidator(StatusQuerySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          queryValidator(StatusQuerySchema),
+        ],
       },
       {
         method: 'get',
         path: '/payment/:paymentId',
         handler: this.getByPaymentId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(PaymentIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(PaymentIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
@@ -172,7 +193,17 @@ export class PaymentPendingAllocationsController {
 
   private listPending = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TStatusQuery>(c)
-    // TODO: Filter by condominiumId via JOIN through payment → unit → building.condominiumId
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+
+    if (condominiumId) {
+      // Tenant-scoped: only show allocations for this condominium
+      const allocations =
+        await this.paymentPendingAllocationsRepository.listByCondominiumId(condominiumId)
+      if (ctx.query.status) {
+        return ctx.ok({ data: allocations.filter(a => a.status === ctx.query.status) })
+      }
+      return ctx.ok({ data: allocations.filter(a => a.status === 'pending') })
+    }
 
     if (ctx.query.status) {
       const allocations = await this.paymentPendingAllocationsRepository.getByStatus(
@@ -203,9 +234,11 @@ export class PaymentPendingAllocationsController {
 
   private getByPaymentId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPaymentIdParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     const allocations = await this.paymentPendingAllocationsRepository.getByPaymentId(
-      ctx.params.paymentId
+      ctx.params.paymentId,
+      condominiumId
     )
     return ctx.ok({ data: allocations })
   }
@@ -270,7 +303,9 @@ export class PaymentPendingAllocationsController {
     const user = c.get(AUTHENTICATED_USER_PROP)
 
     if (!this.refundExcessViaBankService) {
-      return ctx.badRequest({ error: 'Bank refund is not configured. Gateway dependencies are missing.' })
+      return ctx.badRequest({
+        error: 'Bank refund is not configured. Gateway dependencies are missing.',
+      })
     }
 
     try {

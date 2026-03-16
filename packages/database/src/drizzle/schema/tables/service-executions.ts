@@ -24,8 +24,9 @@ export const serviceExecutions = pgTable(
     condominiumId: uuid('condominium_id')
       .notNull()
       .references(() => condominiums.id, { onDelete: 'cascade' }),
-    paymentConceptId: uuid('payment_concept_id')
-      .references(() => paymentConcepts.id, { onDelete: 'set null' }),
+    paymentConceptId: uuid('payment_concept_id').references(() => paymentConcepts.id, {
+      onDelete: 'set null',
+    }),
     title: varchar('title', { length: 255 }).notNull(),
     description: text('description'),
     executionDate: date('execution_date').notNull(),

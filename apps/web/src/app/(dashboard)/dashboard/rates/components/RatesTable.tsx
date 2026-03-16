@@ -1,22 +1,11 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
-import { Table, type ITableColumn } from '@/ui/components/table'
-import { Input } from '@/ui/components/input'
-import { Select, type ISelectItem } from '@/ui/components/select'
-import { Chip } from '@/ui/components/chip'
-import { Button } from '@/ui/components/button'
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
-import { Spinner } from '@/ui/components/spinner'
-import { ClearFiltersButton } from '@/ui/components/filters'
-import { DollarSign, Search, MoreVertical, Power } from 'lucide-react'
 import type { TSubscriptionRate } from '@packages/domain'
+
+import { useState, useCallback, useMemo } from 'react'
+import { DollarSign, MoreVertical, Power } from 'lucide-react'
 import { formatCurrency } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
-
-import { useTranslation } from '@/contexts'
-import { Typography } from '@/ui/components/typography'
-import { Pagination } from '@/ui/components/pagination'
 import {
   useSubscriptionRates,
   useActivateSubscriptionRate,
@@ -24,6 +13,17 @@ import {
   subscriptionRateKeys,
   useQueryClient,
 } from '@packages/http-client'
+
+import { Table, type ITableColumn } from '@/ui/components/table'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
+import { Spinner } from '@/ui/components/spinner'
+import { ClearFiltersButton } from '@/ui/components/filters'
+import { useTranslation } from '@/contexts'
+import { Typography } from '@/ui/components/typography'
+import { Pagination } from '@/ui/components/pagination'
 import { useToast } from '@/ui/components/toast'
 
 type TStatusFilter = 'all' | 'active' | 'inactive'
@@ -216,12 +216,10 @@ export function RatesTable() {
           className="w-full sm:w-40"
           items={statusFilterItems}
           value={statusFilter}
-          onChange={handleStatusChange}
           variant="bordered"
+          onChange={handleStatusChange}
         />
-        {statusFilter !== 'active' && (
-          <ClearFiltersButton onClear={handleClearFilters} />
-        )}
+        {statusFilter !== 'active' && <ClearFiltersButton onClear={handleClearFilters} />}
       </div>
 
       {/* Table */}
@@ -244,8 +242,8 @@ export function RatesTable() {
           <Table<TRateRow>
             aria-label={t('superadmin.rates.title')}
             columns={tableColumns}
-            rows={rates}
             renderCell={renderCell}
+            rows={rates}
           />
 
           {/* Pagination */}

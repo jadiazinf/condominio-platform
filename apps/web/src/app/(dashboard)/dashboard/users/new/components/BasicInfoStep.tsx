@@ -1,6 +1,7 @@
 'use client'
 
 import { Info } from 'lucide-react'
+
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Tooltip } from '@/ui/components/tooltip'
@@ -17,16 +18,16 @@ export function BasicInfoStep({ translateError }: BasicInfoStepProps) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-2">
-        <Typography variant="subtitle1" className="font-semibold">
+        <Typography className="font-semibold" variant="subtitle1">
           {t('superadmin.users.create.basicInfo')}
         </Typography>
         <Tooltip
-          content={t('superadmin.users.create.basicInfoDescription')}
-          placement="right"
           showArrow
           classNames={{
             content: 'max-w-xs text-sm',
           }}
+          content={t('superadmin.users.create.basicInfoDescription')}
+          placement="right"
         >
           <Info className="h-4 w-4 text-default-400 cursor-help" />
         </Tooltip>
@@ -34,7 +35,6 @@ export function BasicInfoStep({ translateError }: BasicInfoStepProps) {
 
       {/* Shared user fields */}
       <UserBasicInfoFields
-        translateError={translateError}
         labels={{
           email: t('superadmin.users.create.fields.email'),
           emailPlaceholder: t('superadmin.users.create.fields.emailPlaceholder'),
@@ -49,10 +49,13 @@ export function BasicInfoStep({ translateError }: BasicInfoStepProps) {
           phoneTooltip: t('superadmin.users.create.fields.phoneDescription'),
           idDocument: t('superadmin.users.create.fields.idDocument'),
           idDocumentTypePlaceholder: t('superadmin.users.create.fields.idDocumentTypePlaceholder'),
-          idDocumentNumberPlaceholder: t('superadmin.users.create.fields.idDocumentNumberPlaceholder'),
+          idDocumentNumberPlaceholder: t(
+            'superadmin.users.create.fields.idDocumentNumberPlaceholder'
+          ),
           idDocumentTooltip: t('superadmin.users.create.fields.idDocumentDescription'),
         }}
         showDocumentFields={true}
+        translateError={translateError}
       />
     </div>
   )

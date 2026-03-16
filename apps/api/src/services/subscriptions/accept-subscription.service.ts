@@ -1,6 +1,9 @@
 import crypto from 'crypto'
 import type { TSubscriptionAcceptance, TManagementCompanySubscription } from '@packages/domain'
-import type { SubscriptionAcceptancesRepository, ManagementCompanySubscriptionsRepository } from '@database/repositories'
+import type {
+  SubscriptionAcceptancesRepository,
+  ManagementCompanySubscriptionsRepository,
+} from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 import type { SubscriptionAuditService } from './subscription-audit.service'
 
@@ -35,7 +38,9 @@ export class AcceptSubscriptionService {
   /**
    * Validate an acceptance token
    */
-  async validateToken(input: IValidateAcceptanceTokenInput): Promise<TServiceResult<TSubscriptionAcceptance>> {
+  async validateToken(
+    input: IValidateAcceptanceTokenInput
+  ): Promise<TServiceResult<TSubscriptionAcceptance>> {
     const tokenHash = this.hashToken(input.token)
     const acceptance = await this.acceptancesRepository.getByTokenHash(tokenHash)
 
@@ -59,7 +64,9 @@ export class AcceptSubscriptionService {
   /**
    * Accept a subscription using a valid token
    */
-  async accept(input: IAcceptSubscriptionInput): Promise<TServiceResult<IAcceptSubscriptionResult>> {
+  async accept(
+    input: IAcceptSubscriptionInput
+  ): Promise<TServiceResult<IAcceptSubscriptionResult>> {
     // Validate token first
     const validationResult = await this.validateToken({ token: input.token })
 
@@ -90,7 +97,10 @@ export class AcceptSubscriptionService {
     }
 
     // Activate the subscription
-    const updatedSubscription = await this.subscriptionsRepository.updateStatus(subscription.id, 'active')
+    const updatedSubscription = await this.subscriptionsRepository.updateStatus(
+      subscription.id,
+      'active'
+    )
 
     if (!updatedSubscription) {
       return failure('Failed to activate subscription', 'INTERNAL_ERROR')
@@ -113,7 +123,9 @@ export class AcceptSubscriptionService {
   /**
    * Get a subscription by ID (used by controller for authorization checks)
    */
-  async getSubscriptionById(subscriptionId: string): Promise<TManagementCompanySubscription | null> {
+  async getSubscriptionById(
+    subscriptionId: string
+  ): Promise<TManagementCompanySubscription | null> {
     const subscription = await this.subscriptionsRepository.getById(subscriptionId)
     return subscription ?? null
   }

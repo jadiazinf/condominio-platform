@@ -203,10 +203,6 @@ export const quotaGenerationLogs = pgTable(
   ]
 )
 
-// Forward declaration for payments (will be imported from payments.ts)
-// This is needed because paymentPendingAllocations references payments
-declare const payments: { id: ReturnType<typeof uuid> }
-
 /**
  * Excedentes de pagos pendientes de asignación administrativa.
  */

@@ -1,10 +1,10 @@
 'use client'
 
 import React from 'react'
+
 import { Button } from '@/ui/components/button'
 import { Card, CardBody } from '@/ui/components/card'
 import { Link } from '@/ui/components/link'
-
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 

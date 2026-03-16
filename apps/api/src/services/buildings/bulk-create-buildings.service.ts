@@ -15,9 +15,9 @@ export class BulkCreateBuildingsService {
   ) {}
 
   async execute(input: TBulkCreateBuildingsInput): Promise<TServiceResult<TBuilding[]>> {
-    return await this.db.transaction(async (tx) => {
+    return await this.db.transaction(async tx => {
       const txRepo = this.buildingsRepository.withTx(tx)
-      const toCreate = input.buildings.map((b) => ({
+      const toCreate = input.buildings.map(b => ({
         ...b,
         condominiumId: input.condominiumId,
       })) as TBuildingCreate[]

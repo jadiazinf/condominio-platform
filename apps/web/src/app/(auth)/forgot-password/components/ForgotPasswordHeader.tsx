@@ -1,8 +1,8 @@
 'use client'
 
-import { Link } from '@/ui/components/link'
 import { KeyRound } from 'lucide-react'
 
+import { Link } from '@/ui/components/link'
 import { useTranslation } from '@/contexts'
 import { AuthControls } from '@/ui/components/auth-controls'
 import { BackToHomeButton } from '@/ui/components/backToHomeButton/BackToHomeButton'

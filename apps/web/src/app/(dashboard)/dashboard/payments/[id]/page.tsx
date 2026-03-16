@@ -13,20 +13,6 @@ import {
   Banknote,
   ShieldCheck,
 } from 'lucide-react'
-import type { TPaymentStatus, TQuota } from '@packages/domain'
-
-import { getPaymentStatusColor } from '@/utils/status-colors'
-import { Typography } from '@/ui/components/typography'
-import { Button } from '@/ui/components/button'
-import { Chip } from '@/ui/components/chip'
-import { Spinner } from '@/ui/components/spinner'
-import { Skeleton } from '@/ui/components/skeleton'
-import { Input } from '@/ui/components/input'
-import { Select, type ISelectItem } from '@/ui/components/select'
-import { Textarea } from '@/ui/components/textarea'
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@/ui/components/modal'
-import { useTranslation } from '@/contexts'
-import { useToast } from '@/ui/components/toast'
 import {
   usePaymentDetail,
   usePaymentApplicationsByPayment,
@@ -44,6 +30,25 @@ import {
   quotaKeys,
   useQueryClient,
 } from '@packages/http-client'
+
+import { getPaymentStatusColor } from '@/utils/status-colors'
+import { Typography } from '@/ui/components/typography'
+import { Button } from '@/ui/components/button'
+import { Chip } from '@/ui/components/chip'
+import { Skeleton } from '@/ui/components/skeleton'
+import { Input } from '@/ui/components/input'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Textarea } from '@/ui/components/textarea'
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from '@/ui/components/modal'
+import { useTranslation } from '@/contexts'
+import { useToast } from '@/ui/components/toast'
 
 export default function PaymentDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -67,10 +72,9 @@ export default function PaymentDetailPage() {
   const allocations = allocationsData?.data ?? []
 
   // Fetch pending quotas for the payment's unit (for the apply modal)
-  const { data: pendingQuotasData } = useQuotasPendingByUnit(
-    payment?.unitId ?? '',
-    { enabled: !!payment?.unitId && payment?.status === 'completed' }
-  )
+  const { data: pendingQuotasData } = useQuotasPendingByUnit(payment?.unitId ?? '', {
+    enabled: !!payment?.unitId && payment?.status === 'completed',
+  })
   const pendingQuotas = pendingQuotasData?.data ?? []
 
   // Modals
@@ -91,14 +95,15 @@ export default function PaymentDetailPage() {
 
   // Computed
   const totalApplied = useMemo(() => {
-    return applications.reduce(
-      (sum, app) => sum + Math.round(parseFloat(app.appliedAmount) * 100),
-      0
-    ) / 100
+    return (
+      applications.reduce((sum, app) => sum + Math.round(parseFloat(app.appliedAmount) * 100), 0) /
+      100
+    )
   }, [applications])
 
   const availableBalance = useMemo(() => {
     if (!payment) return 0
+
     return Math.round((parseFloat(payment.amount) - totalApplied) * 100) / 100
   }, [payment, totalApplied])
 
@@ -106,12 +111,14 @@ export default function PaymentDetailPage() {
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return t('admin.payments.detail.notAvailable')
     const d = typeof date === 'string' ? new Date(date) : date
+
     return d.toLocaleString()
   }
 
   const formatAmount = (amount: string | null | undefined) => {
     if (!amount) return t('admin.payments.detail.notAvailable')
     const num = parseFloat(amount)
+
     return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
@@ -131,10 +138,9 @@ export default function PaymentDetailPage() {
   // Quota select items
   const quotaSelectItems: ISelectItem[] = useMemo(
     () =>
-      pendingQuotas.map((q) => {
-        const period = q.periodMonth
-          ? `${q.periodMonth}/${q.periodYear}`
-          : `${q.periodYear}`
+      pendingQuotas.map(q => {
+        const period = q.periodMonth ? `${q.periodMonth}/${q.periodYear}` : `${q.periodYear}`
+
         return {
           key: q.id,
           label: `${period} — ${t('admin.payments.applications.quotaBalance')}: ${formatAmount(q.balance)}`,
@@ -146,10 +152,9 @@ export default function PaymentDetailPage() {
   // Allocation select items (reuse same pending quotas)
   const allocationQuotaItems: ISelectItem[] = useMemo(
     () =>
-      pendingQuotas.map((q) => {
-        const period = q.periodMonth
-          ? `${q.periodMonth}/${q.periodYear}`
-          : `${q.periodYear}`
+      pendingQuotas.map(q => {
+        const period = q.periodMonth ? `${q.periodMonth}/${q.periodYear}` : `${q.periodYear}`
+
         return {
           key: q.id,
           label: `${period} — ${t('admin.payments.applications.quotaBalance')}: ${formatAmount(q.balance)}`,
@@ -203,7 +208,9 @@ export default function PaymentDetailPage() {
       setSelectedQuotaId('')
       setApplyAmount('')
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : t('admin.payments.actions.applyToQuotaError')
+      const message =
+        err instanceof Error ? err.message : t('admin.payments.actions.applyToQuotaError')
+
       toast.error(message)
     } finally {
       setIsSubmitting(false)
@@ -228,7 +235,8 @@ export default function PaymentDetailPage() {
   }, [payment, refundReason, invalidateAll, t, toast, refundModal])
 
   const handleAllocateExcess = useCallback(async () => {
-    const allocation = allocations.find((a) => a.status === 'pending')
+    const allocation = allocations.find(a => a.status === 'pending')
+
     if (!allocation || !allocationQuotaId) return
 
     setIsSubmitting(true)
@@ -279,11 +287,7 @@ export default function PaymentDetailPage() {
         <Typography color="danger" variant="body1">
           {t('admin.payments.error')}
         </Typography>
-        <Button
-          className="mt-4"
-          color="primary"
-          onPress={() => router.push('/dashboard/payments')}
-        >
+        <Button className="mt-4" color="primary" onPress={() => router.push('/dashboard/payments')}>
           {t('admin.payments.actions.back')}
         </Button>
       </div>
@@ -293,14 +297,16 @@ export default function PaymentDetailPage() {
   const isCompleted = payment.status === 'completed'
   const isPendingVerification = payment.status === 'pending_verification'
   const isAutoVerified = payment.verifiedBy === '00000000-0000-0000-0000-000000000000'
-  const pendingAllocations = allocations.filter((a) => a.status === 'pending' || a.status === 'refund_failed')
+  const pendingAllocations = allocations.filter(
+    a => a.status === 'pending' || a.status === 'refund_failed'
+  )
 
   return (
     <div className="space-y-6">
       {/* Auto-verified banner */}
       {isAutoVerified && (
         <div className="flex items-center gap-3 rounded-lg border border-success-200 bg-success-50 p-4">
-          <ShieldCheck size={20} className="shrink-0 text-success" />
+          <ShieldCheck className="shrink-0 text-success" size={20} />
           <div>
             <p className="text-sm font-medium text-success-700">
               {t('admin.payments.detail.autoVerified')}
@@ -315,11 +321,7 @@ export default function PaymentDetailPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <Button
-            isIconOnly
-            variant="light"
-            onPress={() => router.push('/dashboard/payments')}
-          >
+          <Button isIconOnly variant="light" onPress={() => router.push('/dashboard/payments')}>
             <ArrowLeft size={20} />
           </Button>
           <div>
@@ -341,8 +343,8 @@ export default function PaymentDetailPage() {
               </Button>
               <Button
                 color="danger"
-                variant="bordered"
                 startContent={<XCircle size={18} />}
+                variant="bordered"
                 onPress={handleReject}
               >
                 {t('admin.payments.actions.reject')}
@@ -361,8 +363,8 @@ export default function PaymentDetailPage() {
           {isCompleted && (
             <Button
               color="warning"
-              variant="bordered"
               startContent={<RotateCcw size={18} />}
+              variant="bordered"
               onPress={refundModal.onOpen}
             >
               {t('admin.payments.actions.refund')}
@@ -401,7 +403,8 @@ export default function PaymentDetailPage() {
             label={t('admin.payments.detail.userName')}
             value={
               payment.user
-                ? `${payment.user.firstName || ''} ${payment.user.lastName || ''}`.trim() || payment.user.email
+                ? `${payment.user.firstName || ''} ${payment.user.lastName || ''}`.trim() ||
+                  payment.user.email
                 : t('admin.payments.detail.notAvailable')
             }
           />
@@ -484,8 +487,8 @@ export default function PaymentDetailPage() {
               <a
                 className="inline-flex items-center gap-1 text-primary hover:underline"
                 href={payment.receiptUrl}
-                target="_blank"
                 rel="noopener noreferrer"
+                target="_blank"
               >
                 {t('admin.payments.detail.receiptUrl')}
                 <ExternalLink size={14} />
@@ -499,7 +502,12 @@ export default function PaymentDetailPage() {
           <DetailSection title={t('admin.payments.detail.verification')}>
             <DetailRow label={t('admin.payments.detail.verifiedBy')}>
               {isAutoVerified ? (
-                <Chip color="success" size="sm" variant="flat" startContent={<ShieldCheck size={12} />}>
+                <Chip
+                  color="success"
+                  size="sm"
+                  startContent={<ShieldCheck size={12} />}
+                  variant="flat"
+                >
                   {t('admin.payments.detail.verifiedBySystem')}
                 </Chip>
               ) : payment.verifiedByUser ? (
@@ -508,7 +516,9 @@ export default function PaymentDetailPage() {
                     payment.verifiedByUser.email}
                 </span>
               ) : (
-                <span className="text-sm font-medium">{t('admin.payments.detail.notAvailable')}</span>
+                <span className="text-sm font-medium">
+                  {t('admin.payments.detail.notAvailable')}
+                </span>
               )}
             </DetailRow>
             {payment.verificationNotes && (
@@ -535,7 +545,7 @@ export default function PaymentDetailPage() {
             {t('admin.payments.applications.title')}
           </Typography>
           <div className="space-y-2">
-            {applications.map((app) => (
+            {applications.map(app => (
               <div
                 key={app.id}
                 className="flex flex-col gap-1 rounded-md bg-default-50 p-3 sm:flex-row sm:items-center sm:justify-between"
@@ -566,13 +576,11 @@ export default function PaymentDetailPage() {
       {allocations.length > 0 && (
         <div className="rounded-lg border border-warning-200 bg-warning-50 p-4">
           <div className="mb-3 flex items-center gap-2">
-            <AlertTriangle size={18} className="text-warning" />
-            <Typography variant="h4">
-              {t('admin.payments.pendingAllocations.title')}
-            </Typography>
+            <AlertTriangle className="text-warning" size={18} />
+            <Typography variant="h4">{t('admin.payments.pendingAllocations.title')}</Typography>
           </div>
           <div className="space-y-2">
-            {allocations.map((alloc) => (
+            {allocations.map(alloc => (
               <div
                 key={alloc.id}
                 className="flex flex-col gap-2 rounded-md bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
@@ -581,21 +589,17 @@ export default function PaymentDetailPage() {
                   <span className="text-sm font-medium">
                     {formatAmount(alloc.pendingAmount)} {payment.currency?.code ?? ''}
                   </span>
-                  <Chip
-                    color={getAllocationStatusColor(alloc.status)}
-                    size="sm"
-                    variant="flat"
-                  >
+                  <Chip color={getAllocationStatusColor(alloc.status)} size="sm" variant="flat">
                     {t(`admin.payments.pendingAllocations.status.${alloc.status}`)}
                   </Chip>
                 </div>
                 {(alloc.status === 'pending' || alloc.status === 'refund_failed') && (
                   <div className="flex gap-2">
                     <Button
-                      size="sm"
                       color="primary"
-                      variant="flat"
+                      size="sm"
                       startContent={<FileCheck size={14} />}
+                      variant="flat"
                       onPress={() => {
                         allocateModal.onOpen()
                       }}
@@ -603,10 +607,10 @@ export default function PaymentDetailPage() {
                       {t('admin.payments.pendingAllocations.actions.allocate')}
                     </Button>
                     <Button
-                      size="sm"
                       color="warning"
-                      variant="flat"
+                      size="sm"
                       startContent={<Banknote size={14} />}
+                      variant="flat"
                       onPress={() => {
                         setRefundAllocationId(alloc.id)
                         refundAllocationModal.onOpen()
@@ -626,13 +630,13 @@ export default function PaymentDetailPage() {
       )}
 
       {/* ── Modal: Apply Payment to Quota ─────────────────────────────────── */}
-      <Modal isOpen={applyModal.isOpen} onOpenChange={applyModal.onOpenChange} size="lg">
+      <Modal isOpen={applyModal.isOpen} size="lg" onOpenChange={applyModal.onOpenChange}>
         <ModalContent>
           <ModalHeader>{t('admin.payments.actions.applyToQuota')}</ModalHeader>
           <ModalBody>
             <div className="space-y-4">
               <div className="rounded-md bg-default-100 p-3">
-                <Typography variant="body2" color="muted">
+                <Typography color="muted" variant="body2">
                   {t('admin.payments.applications.availableBalance')}
                 </Typography>
                 <Typography variant="h4">
@@ -651,17 +655,17 @@ export default function PaymentDetailPage() {
                     items={quotaSelectItems}
                     label={t('admin.payments.applications.selectQuota')}
                     value={selectedQuotaId}
-                    onChange={(key) => setSelectedQuotaId(key ?? '')}
+                    onChange={key => setSelectedQuotaId(key ?? '')}
                   />
 
                   <Input
                     isRequired
+                    inputMode="decimal"
                     label={t('admin.payments.applications.amount')}
                     placeholder={t('admin.payments.applications.amountPlaceholder')}
                     type="number"
                     value={applyAmount}
                     onValueChange={setApplyAmount}
-                    inputMode="decimal"
                   />
                 </>
               )}
@@ -684,17 +688,17 @@ export default function PaymentDetailPage() {
       </Modal>
 
       {/* ── Modal: Refund Payment ─────────────────────────────────────────── */}
-      <Modal isOpen={refundModal.isOpen} onOpenChange={refundModal.onOpenChange} size="md">
+      <Modal isOpen={refundModal.isOpen} size="md" onOpenChange={refundModal.onOpenChange}>
         <ModalContent>
           <ModalHeader>{t('admin.payments.actions.refund')}</ModalHeader>
           <ModalBody>
             <Textarea
               isRequired
               label={t('admin.payments.actions.refundReason')}
+              minRows={3}
               placeholder={t('admin.payments.actions.refundReasonPlaceholder')}
               value={refundReason}
               onValueChange={setRefundReason}
-              minRows={3}
             />
           </ModalBody>
           <ModalFooter>
@@ -714,7 +718,7 @@ export default function PaymentDetailPage() {
       </Modal>
 
       {/* ── Modal: Allocate Excess to Quota ───────────────────────────────── */}
-      <Modal isOpen={allocateModal.isOpen} onOpenChange={allocateModal.onOpenChange} size="lg">
+      <Modal isOpen={allocateModal.isOpen} size="lg" onOpenChange={allocateModal.onOpenChange}>
         <ModalContent>
           <ModalHeader>{t('admin.payments.pendingAllocations.allocateModal.title')}</ModalHeader>
           <ModalBody>
@@ -724,14 +728,14 @@ export default function PaymentDetailPage() {
                 items={allocationQuotaItems}
                 label={t('admin.payments.pendingAllocations.allocateModal.selectQuota')}
                 value={allocationQuotaId}
-                onChange={(key) => setAllocationQuotaId(key ?? '')}
+                onChange={key => setAllocationQuotaId(key ?? '')}
               />
               <Textarea
                 label={t('admin.payments.pendingAllocations.allocateModal.notes')}
+                minRows={2}
                 placeholder={t('admin.payments.pendingAllocations.allocateModal.notesPlaceholder')}
                 value={allocationNotes}
                 onValueChange={setAllocationNotes}
-                minRows={2}
               />
             </div>
           </ModalBody>
@@ -752,17 +756,21 @@ export default function PaymentDetailPage() {
       </Modal>
 
       {/* ── Modal: Refund Allocation ──────────────────────────────────────── */}
-      <Modal isOpen={refundAllocationModal.isOpen} onOpenChange={refundAllocationModal.onOpenChange} size="md">
+      <Modal
+        isOpen={refundAllocationModal.isOpen}
+        size="md"
+        onOpenChange={refundAllocationModal.onOpenChange}
+      >
         <ModalContent>
           <ModalHeader>{t('admin.payments.pendingAllocations.refundModal.title')}</ModalHeader>
           <ModalBody>
             <Textarea
               isRequired
               label={t('admin.payments.pendingAllocations.refundModal.notes')}
+              minRows={3}
               placeholder={t('admin.payments.pendingAllocations.refundModal.notesPlaceholder')}
               value={refundAllocationNotes}
               onValueChange={setRefundAllocationNotes}
-              minRows={3}
             />
           </ModalBody>
           <ModalFooter>
@@ -790,12 +798,18 @@ export default function PaymentDetailPage() {
 
 function getAllocationStatusColor(status: string) {
   switch (status) {
-    case 'pending': return 'warning' as const
-    case 'allocated': return 'success' as const
-    case 'refunded': return 'default' as const
-    case 'refund_pending': return 'secondary' as const
-    case 'refund_failed': return 'danger' as const
-    default: return 'default' as const
+    case 'pending':
+      return 'warning' as const
+    case 'allocated':
+      return 'success' as const
+    case 'refunded':
+      return 'default' as const
+    case 'refund_pending':
+      return 'secondary' as const
+    case 'refund_failed':
+      return 'danger' as const
+    default:
+      return 'default' as const
   }
 }
 
@@ -803,13 +817,7 @@ function getAllocationStatusColor(status: string) {
 // Sub-components
 // ─────────────────────────────────────────────────────────────────────────────
 
-function DetailSection({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
+function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border border-default-200 p-4">
       <Typography className="mb-3" variant="h4">

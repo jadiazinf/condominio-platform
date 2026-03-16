@@ -1,7 +1,14 @@
 import type { TPayment } from '@packages/domain'
-import type { PaymentsRepository, PaymentApplicationsRepository, QuotasRepository } from '@database/repositories'
+import type {
+  PaymentsRepository,
+  PaymentApplicationsRepository,
+  QuotasRepository,
+  QuotaAdjustmentsRepository,
+  PaymentPendingAllocationsRepository,
+} from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
+import { parseAmount, toDecimal } from '@packages/utils/money'
 import logger from '@utils/logger'
 
 export interface IRefundPaymentInput {
@@ -26,7 +33,9 @@ export class RefundPaymentService {
     private readonly db: TDrizzleClient,
     private readonly repository: PaymentsRepository,
     private readonly paymentApplicationsRepository: PaymentApplicationsRepository,
-    private readonly quotasRepository: QuotasRepository
+    private readonly quotasRepository: QuotasRepository,
+    private readonly quotaAdjustmentsRepository?: QuotaAdjustmentsRepository,
+    private readonly paymentPendingAllocationsRepository?: PaymentPendingAllocationsRepository
   ) {}
 
   async execute(input: IRefundPaymentInput): Promise<TServiceResult<IRefundPaymentOutput>> {
@@ -55,36 +64,91 @@ export class RefundPaymentService {
     const applications = await this.paymentApplicationsRepository.getByPaymentId(paymentId)
 
     // 5. All writes inside a transaction
-    return await this.db.transaction(async (tx) => {
+    return await this.db.transaction(async tx => {
       const txPaymentsRepo = this.repository.withTx(tx)
       const txApplicationsRepo = this.paymentApplicationsRepository.withTx(tx)
       const txQuotasRepo = this.quotasRepository.withTx(tx)
+      const txAdjustmentsRepo = this.quotaAdjustmentsRepository?.withTx(tx)
+      const txPendingAllocationsRepo = this.paymentPendingAllocationsRepository?.withTx(tx)
 
       // 5a. Reverse each payment application
       for (const application of applications) {
         // Restore quota balance
         const quota = await txQuotasRepo.getById(application.quotaId)
         if (quota) {
-          const currentPaid = parseFloat(quota.paidAmount ?? '0')
-          const appliedAmount = parseFloat(application.appliedAmount)
-          const newPaid = Math.max(0, currentPaid - appliedAmount)
-          const baseAmount = parseFloat(quota.baseAmount)
-          const interestAmount = parseFloat(quota.interestAmount ?? '0')
-          const totalDue = baseAmount + interestAmount
-          const newBalance = (totalDue - newPaid).toFixed(2)
+          // Reverse discount/surcharge adjustments via adjustmentsTotal
+          // baseAmount is NEVER mutated — only adjustmentsTotal tracks changes
+          let currentAdjTotal = parseAmount(quota.adjustmentsTotal)
+          let adjTotalChanged = false
+          if (txAdjustmentsRepo) {
+            const adjustments = await txAdjustmentsRepo.getByQuotaId(application.quotaId)
+            const reversibleTags = ['early_discount', 'late_surcharge']
+            const existingReversalTags = new Set(
+              adjustments.filter(a => a.tag?.startsWith('reversal_')).map(a => a.tag)
+            )
 
-          await txQuotasRepo.update(quota.id, {
-            paidAmount: newPaid.toFixed(2),
+            for (const adj of adjustments) {
+              if (!adj.tag || !reversibleTags.includes(adj.tag)) continue
+              if (existingReversalTags.has(`reversal_${adj.tag}`)) continue
+
+              // Reverse the adjustment effect on adjustmentsTotal
+              const delta = parseAmount(adj.newAmount) - parseAmount(adj.previousAmount)
+              currentAdjTotal -= delta
+              adjTotalChanged = true
+
+              // Create reversal record
+              await txAdjustmentsRepo.create({
+                quotaId: adj.quotaId,
+                previousAmount: adj.newAmount,
+                newAmount: adj.previousAmount,
+                adjustmentType: adj.adjustmentType === 'discount' ? 'increase' : 'discount',
+                reason: `Reversión por reembolso de pago (original: ${adj.reason})`,
+                tag: `reversal_${adj.tag}`,
+                createdBy: refundedByUserId,
+              })
+            }
+          }
+
+          const baseAmount = parseAmount(quota.baseAmount)
+          const effectiveAmount = baseAmount + currentAdjTotal
+          const currentPaid = parseAmount(quota.paidAmount)
+          const appliedAmount = parseAmount(application.appliedAmount)
+          const newPaid = Math.max(0, currentPaid - appliedAmount)
+          const interestAmount = parseAmount(quota.interestAmount)
+          const totalDue = effectiveAmount + interestAmount
+          const newBalance = toDecimal(totalDue - newPaid)
+
+          const updateData: Record<string, unknown> = {
+            paidAmount: toDecimal(newPaid),
             balance: newBalance,
-            status: newPaid === 0 ? 'pending' : 'pending',
-          })
+            status: newPaid === 0 ? 'pending' : 'partial',
+          }
+
+          // Only include adjustmentsTotal if it was actually changed
+          if (adjTotalChanged) {
+            updateData.adjustmentsTotal = toDecimal(currentAdjTotal)
+          }
+
+          await txQuotasRepo.update(quota.id, updateData)
         }
 
         // Delete the payment application
         await txApplicationsRepo.hardDelete(application.id)
       }
 
-      // 5b. Update payment status (atomic: only if still 'completed')
+      // 5b. Mark pending allocations as refunded
+      if (txPendingAllocationsRepo) {
+        const pendingAllocations = await txPendingAllocationsRepo.getPendingByPaymentId(paymentId)
+        for (const allocation of pendingAllocations) {
+          await txPendingAllocationsRepo.update(allocation.id, {
+            status: 'refunded',
+            resolutionType: 'refunded',
+            resolutionNotes: `Refunded as part of payment refund: ${refundReason}`,
+          })
+        }
+      }
+
+      // 5c. Update payment status (atomic: only if still 'completed')
       const payment = await txPaymentsRepo.update(paymentId, {
         status: 'refunded',
         notes: `[REFUND] ${refundReason} | Refunded by: ${refundedByUserId} | ${new Date().toISOString()}`,

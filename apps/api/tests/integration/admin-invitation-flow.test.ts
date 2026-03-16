@@ -167,7 +167,7 @@ async function acceptInvitation(invitationToken: string) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer test-firebase-token',
+      Authorization: 'Bearer test-firebase-token',
     },
   })
 }
@@ -187,7 +187,7 @@ describe('Admin Invitation Flow — Integration Tests', function () {
       const createRes = await createInvitation()
       expect(createRes.status).toBe(201)
 
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: {
           company: { id: string; name: string; isActive: boolean }
           admin: { id: string; email: string; isActive: boolean }
@@ -216,12 +216,10 @@ describe('Admin Invitation Flow — Integration Tests', function () {
       expect(diffDays).toBeLessThan(8)
 
       // ── Step 2: Validate token (simulates clicking email link) ──
-      const validateRes = await request(
-        `/platform/admin-invitations/validate/${invitationToken}`
-      )
+      const validateRes = await request(`/platform/admin-invitations/validate/${invitationToken}`)
       expect(validateRes.status).toBe(200)
 
-      const validateJson = await validateRes.json() as {
+      const validateJson = (await validateRes.json()) as {
         data: {
           isValid: boolean
           isExpired: boolean
@@ -242,7 +240,7 @@ describe('Admin Invitation Flow — Integration Tests', function () {
       const acceptRes = await acceptInvitation(invitationToken)
       expect(acceptRes.status).toBe(200)
 
-      const acceptJson = await acceptRes.json() as {
+      const acceptJson = (await acceptRes.json()) as {
         data: {
           user: { id: string; isActive: boolean; isEmailVerified: boolean }
           managementCompany: { id: string; isActive: boolean }
@@ -292,7 +290,9 @@ describe('Admin Invitation Flow — Integration Tests', function () {
       // ADMIN MC-scoped role — verify it was created in user_roles
       const adminRole = await rolesRepo.getByName(ESystemRole.ADMIN)
       expect(adminRole).not.toBeNull()
-      const mcAdminRole = userRoles.find(ur => ur.roleId === adminRole!.id && ur.managementCompanyId === company.id)
+      const mcAdminRole = userRoles.find(
+        ur => ur.roleId === adminRole!.id && ur.managementCompanyId === company.id
+      )
       expect(mcAdminRole).toBeDefined()
       expect(mcAdminRole!.isActive).toBe(true)
     })
@@ -306,19 +306,17 @@ describe('Admin Invitation Flow — Integration Tests', function () {
     it('cannot validate an already-accepted token as valid', async function () {
       // Create and accept invitation
       const createRes = await createInvitation()
-      const createJson = await createRes.json() as { data: { invitationToken: string } }
+      const createJson = (await createRes.json()) as { data: { invitationToken: string } }
       const { invitationToken } = createJson.data
 
       // Accept
       await acceptInvitation(invitationToken)
 
       // Validate again — should return isValid: false
-      const validateRes = await request(
-        `/platform/admin-invitations/validate/${invitationToken}`
-      )
+      const validateRes = await request(`/platform/admin-invitations/validate/${invitationToken}`)
       expect(validateRes.status).toBe(200)
 
-      const validateJson = await validateRes.json() as {
+      const validateJson = (await validateRes.json()) as {
         data: { isValid: boolean; isExpired: boolean }
       }
       expect(validateJson.data.isValid).toBe(false)
@@ -326,7 +324,7 @@ describe('Admin Invitation Flow — Integration Tests', function () {
 
     it('cannot accept an already-accepted token again', async function () {
       const createRes = await createInvitation()
-      const createJson = await createRes.json() as { data: { invitationToken: string } }
+      const createJson = (await createRes.json()) as { data: { invitationToken: string } }
       const { invitationToken } = createJson.data
 
       // Accept first time
@@ -363,12 +361,15 @@ describe('Admin Invitation Flow — Integration Tests', function () {
 
   describe('Expired token', function () {
     it('validates as expired', async function () {
-      const createRes = await createInvitation({}, {
-        email: 'expired-admin@test.com',
-      })
+      const createRes = await createInvitation(
+        {},
+        {
+          email: 'expired-admin@test.com',
+        }
+      )
       expect(createRes.status).toBe(201)
 
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: { invitation: { id: string }; invitationToken: string }
       }
 
@@ -383,7 +384,7 @@ describe('Admin Invitation Flow — Integration Tests', function () {
       )
       expect(validateRes.status).toBe(200)
 
-      const validateJson = await validateRes.json() as {
+      const validateJson = (await validateRes.json()) as {
         data: { isValid: boolean; isExpired: boolean }
       }
       expect(validateJson.data.isExpired).toBe(true)
@@ -391,10 +392,13 @@ describe('Admin Invitation Flow — Integration Tests', function () {
     })
 
     it('cannot accept expired token', async function () {
-      const createRes = await createInvitation({}, {
-        email: 'expired-accept@test.com',
-      })
-      const createJson = await createRes.json() as {
+      const createRes = await createInvitation(
+        {},
+        {
+          email: 'expired-accept@test.com',
+        }
+      )
+      const createJson = (await createRes.json()) as {
         data: { invitation: { id: string }; invitationToken: string }
       }
 
@@ -415,11 +419,14 @@ describe('Admin Invitation Flow — Integration Tests', function () {
 
   describe('Cancelled invitation', function () {
     it('cannot accept cancelled invitation', async function () {
-      const createRes = await createInvitation({}, {
-        email: 'cancelled-admin@test.com',
-      })
+      const createRes = await createInvitation(
+        {},
+        {
+          email: 'cancelled-admin@test.com',
+        }
+      )
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: { invitation: { id: string }; invitationToken: string }
       }
 
@@ -435,7 +442,7 @@ describe('Admin Invitation Flow — Integration Tests', function () {
         `/platform/admin-invitations/validate/${createJson.data.invitationToken}`
       )
       expect(validateRes.status).toBe(200)
-      const validateJson = await validateRes.json() as {
+      const validateJson = (await validateRes.json()) as {
         data: { isValid: boolean }
       }
       expect(validateJson.data.isValid).toBe(false)
@@ -472,11 +479,14 @@ describe('Admin Invitation Flow — Integration Tests', function () {
 
   describe('Resend email', function () {
     it('regenerates token and keeps invitation pending', async function () {
-      const createRes = await createInvitation({}, {
-        email: 'resend-admin@test.com',
-      })
+      const createRes = await createInvitation(
+        {},
+        {
+          email: 'resend-admin@test.com',
+        }
+      )
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: { invitation: { id: string }; invitationToken: string }
       }
       const originalToken = createJson.data.invitationToken
@@ -489,9 +499,7 @@ describe('Admin Invitation Flow — Integration Tests', function () {
       expect(resendRes.status).toBe(200)
 
       // Old token should no longer work
-      const oldValidateRes = await request(
-        `/platform/admin-invitations/validate/${originalToken}`
-      )
+      const oldValidateRes = await request(`/platform/admin-invitations/validate/${originalToken}`)
       expect(oldValidateRes.status).toBe(404)
 
       // Invitation should still be pending
@@ -509,11 +517,14 @@ describe('Admin Invitation Flow — Integration Tests', function () {
 
   describe('Token encoding', function () {
     it('base64url tokens work correctly in URL path params', async function () {
-      const createRes = await createInvitation({}, {
-        email: 'encoding-admin@test.com',
-      })
+      const createRes = await createInvitation(
+        {},
+        {
+          email: 'encoding-admin@test.com',
+        }
+      )
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: { invitationToken: string }
       }
       const token = createJson.data.invitationToken
@@ -526,11 +537,9 @@ describe('Admin Invitation Flow — Integration Tests', function () {
       const encoded = encodeURIComponent(token)
 
       // Validate with encoded token
-      const validateRes = await request(
-        `/platform/admin-invitations/validate/${encoded}`
-      )
+      const validateRes = await request(`/platform/admin-invitations/validate/${encoded}`)
       expect(validateRes.status).toBe(200)
-      const validateJson = await validateRes.json() as {
+      const validateJson = (await validateRes.json()) as {
         data: { isValid: boolean }
       }
       expect(validateJson.data.isValid).toBe(true)
@@ -544,11 +553,14 @@ describe('Admin Invitation Flow — Integration Tests', function () {
   describe('Create with existing admin', function () {
     it('creates company with existing active user as admin', async function () {
       // First create a user via the invitation flow
-      const createRes = await createInvitation({}, {
-        email: 'existing-admin@test.com',
-      })
+      const createRes = await createInvitation(
+        {},
+        {
+          email: 'existing-admin@test.com',
+        }
+      )
       expect(createRes.status).toBe(201)
-      const createJson = await createRes.json() as {
+      const createJson = (await createRes.json()) as {
         data: { admin: { id: string }; invitationToken: string }
       }
 
@@ -557,24 +569,21 @@ describe('Admin Invitation Flow — Integration Tests', function () {
       expect(acceptRes.status).toBe(200)
 
       // Now create a second company with this existing user
-      const secondRes = await request(
-        '/platform/admin-invitations/create-with-existing-admin',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            company: {
-              ...validCompanyData,
-              name: 'Second Company',
-              email: 'second@test.com',
-            },
-            existingUserId: createJson.data.admin.id,
-          }),
-        }
-      )
+      const secondRes = await request('/platform/admin-invitations/create-with-existing-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          company: {
+            ...validCompanyData,
+            name: 'Second Company',
+            email: 'second@test.com',
+          },
+          existingUserId: createJson.data.admin.id,
+        }),
+      })
       expect(secondRes.status).toBe(201)
 
-      const secondJson = await secondRes.json() as {
+      const secondJson = (await secondRes.json()) as {
         data: {
           company: { name: string; isActive: boolean }
           admin: { id: string; isActive: boolean }

@@ -1,5 +1,5 @@
 import { eq, and, or, ilike, sql, desc, inArray, isNull } from 'drizzle-orm'
-import type { TUser, TUserCreate, TUserUpdate, TPaginatedResponse, TPermission } from '@packages/domain'
+import type { TUser, TUserCreate, TUserUpdate, TPaginatedResponse } from '@packages/domain'
 import {
   users,
   userRoles,
@@ -326,7 +326,7 @@ export class UsersRepository
     const whereClause = userConditions.length > 0 ? and(...userConditions) : undefined
 
     // Get paginated users
-    let usersQuery = this.db
+    const usersQuery = this.db
       .select({
         id: users.id,
         email: users.email,
@@ -351,9 +351,7 @@ export class UsersRepository
     if (whereClause) {
       if (userIdsWithRole) {
         // Filter by role AND other conditions
-        usersResults = await usersQuery.where(
-          and(whereClause, inArray(users.id, userIdsWithRole))
-        )
+        usersResults = await usersQuery.where(and(whereClause, inArray(users.id, userIdsWithRole)))
       } else {
         usersResults = await usersQuery.where(whereClause)
       }
@@ -393,7 +391,7 @@ export class UsersRepository
     // Get roles for all users in the result
     const userIds = usersResults.map(u => u.id)
 
-    let userRolesMap = new Map<string, TUserRoleSummary[]>()
+    const userRolesMap = new Map<string, TUserRoleSummary[]>()
 
     if (userIds.length > 0) {
       const rolesResults = await this.db
@@ -534,7 +532,10 @@ export class UsersRepository
 
       // Create a map of user permissions for quick lookup
       const userPermsMap = new Map(
-        userPermsResults.map(up => [up.permissionId, { id: up.id, isEnabled: up.isEnabled ?? true }])
+        userPermsResults.map(up => [
+          up.permissionId,
+          { id: up.id, isEnabled: up.isEnabled ?? true },
+        ])
       )
 
       // Merge role permissions with user permissions

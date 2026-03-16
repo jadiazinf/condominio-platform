@@ -111,11 +111,7 @@ export function useAllocatePending(id: string, options?: IAllocatePendingOptions
     config: {},
     onSuccess: options?.onSuccess,
     onError: options?.onError,
-    invalidateKeys: [
-      pendingAllocationKeys.all,
-      paymentKeys.all,
-      quotaKeys.all,
-    ],
+    invalidateKeys: [pendingAllocationKeys.all, paymentKeys.all, quotaKeys.all],
   })
 }
 
@@ -163,7 +159,9 @@ export async function getPendingAllocations(status?: string): Promise<TPaymentPe
   return response.data.data
 }
 
-export async function getPendingAllocationsByPayment(paymentId: string): Promise<TPaymentPendingAllocation[]> {
+export async function getPendingAllocationsByPayment(
+  paymentId: string
+): Promise<TPaymentPendingAllocation[]> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TPaymentPendingAllocation[]>>(
     `/condominium/payment-pending-allocations/payment/${paymentId}`

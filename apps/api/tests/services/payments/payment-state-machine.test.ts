@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
 import type { TPayment, TPaymentApplication, TQuota } from '@packages/domain'
-import { VerifyPaymentService, RejectPaymentService, RefundPaymentService } from '@src/services/payments'
+import {
+  VerifyPaymentService,
+  RejectPaymentService,
+  RefundPaymentService,
+} from '@src/services/payments'
 
 type TMockPaymentsRepository = {
   getById: (id: string) => Promise<TPayment | null>
@@ -71,7 +75,10 @@ describe('Payment State Machine', function () {
 
   // Payment fixtures for different states
   const pendingPayment = createPayment('550e8400-e29b-41d4-a716-446655440001', 'pending')
-  const pendingVerificationPayment = createPayment('550e8400-e29b-41d4-a716-446655440002', 'pending_verification')
+  const pendingVerificationPayment = createPayment(
+    '550e8400-e29b-41d4-a716-446655440002',
+    'pending_verification'
+  )
   const completedPayment = createPayment('550e8400-e29b-41d4-a716-446655440003', 'completed')
   const rejectedPayment = createPayment('550e8400-e29b-41d4-a716-446655440004', 'rejected')
   const refundedPayment = createPayment('550e8400-e29b-41d4-a716-446655440005', 'refunded')
@@ -92,6 +99,7 @@ describe('Payment State Machine', function () {
     issueDate: '2025-01-01',
     dueDate: '2025-01-15',
     status: 'paid',
+    adjustmentsTotal: '0',
     paidAmount: '150.00',
     balance: '0.00',
     notes: null,
@@ -591,8 +599,16 @@ describe('Payment State Machine', function () {
       ]
 
       expect(validTransitions.length).toBe(3)
-      expect(validTransitions).toContainEqual({ from: 'pending_verification', to: 'completed', via: 'verify' })
-      expect(validTransitions).toContainEqual({ from: 'pending_verification', to: 'rejected', via: 'reject' })
+      expect(validTransitions).toContainEqual({
+        from: 'pending_verification',
+        to: 'completed',
+        via: 'verify',
+      })
+      expect(validTransitions).toContainEqual({
+        from: 'pending_verification',
+        to: 'rejected',
+        via: 'reject',
+      })
       expect(validTransitions).toContainEqual({ from: 'completed', to: 'refunded', via: 'refund' })
     })
 

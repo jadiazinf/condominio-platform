@@ -1,5 +1,5 @@
-import type { TAccessRequest, TAccessCodeValidity, TPaginatedResponse } from '@packages/domain'
-import type { TApiDataResponse, TApiMessageResponse } from '../types'
+import type { TAccessRequest, TPaginatedResponse } from '@packages/domain'
+import type { TApiDataResponse } from '../types'
 import type { ApiResponse } from '../types/http'
 
 import { useApiQuery, useApiMutation } from './use-api-query'
@@ -37,7 +37,15 @@ export interface UseCondominiumAccessRequestsOptions {
  * Hook to get paginated access requests for a condominium (admin).
  */
 export function useCondominiumAccessRequests(options: UseCondominiumAccessRequestsOptions) {
-  const { condominiumId, managementCompanyId, page = 1, limit = 20, status, search, enabled = true } = options
+  const {
+    condominiumId,
+    managementCompanyId,
+    page = 1,
+    limit = 20,
+    status,
+    search,
+    enabled = true,
+  } = options
 
   const params = new URLSearchParams()
   params.set('page', String(page))
@@ -56,7 +64,12 @@ export function useCondominiumAccessRequests(options: UseCondominiumAccessReques
 
   return useApiQuery<TPaginatedResponse<TAccessRequest>>({
     path,
-    queryKey: accessRequestsKeys.byCondominiumFiltered(condominiumId, { page, limit, status, search }),
+    queryKey: accessRequestsKeys.byCondominiumFiltered(condominiumId, {
+      page,
+      limit,
+      status,
+      search,
+    }),
     config: { headers },
     enabled,
   })
@@ -199,7 +212,10 @@ export interface TValidateAccessCodeVariables {
 export function useValidateAccessCode(options: UseValidateAccessCodeOptions = {}) {
   const { onSuccess, onError } = options
 
-  return useApiMutation<TApiDataResponse<TValidateAccessCodeResponse>, TValidateAccessCodeVariables>({
+  return useApiMutation<
+    TApiDataResponse<TValidateAccessCodeResponse>,
+    TValidateAccessCodeVariables
+  >({
     path: '/me/access-requests/validate-code',
     method: 'POST',
     onSuccess: (response: ApiResponse<TApiDataResponse<TValidateAccessCodeResponse>>) => {

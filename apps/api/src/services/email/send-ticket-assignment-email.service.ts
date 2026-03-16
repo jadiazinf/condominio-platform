@@ -32,7 +32,10 @@ const PRIORITY_COLORS: Record<string, { bg: string; text: string; border: string
 }
 
 const PRIORITY_LABELS: Record<string, string> = {
-  urgent: 'Urgente', high: 'Alta', medium: 'Media', low: 'Baja',
+  urgent: 'Urgente',
+  high: 'Alta',
+  medium: 'Media',
+  low: 'Baja',
 }
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -45,39 +48,60 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  open: 'Abierto', in_progress: 'En progreso', waiting_customer: 'Esperando cliente',
-  resolved: 'Resuelto', closed: 'Cerrado', cancelled: 'Cancelado',
+  open: 'Abierto',
+  in_progress: 'En progreso',
+  waiting_customer: 'Esperando cliente',
+  resolved: 'Resuelto',
+  closed: 'Cerrado',
+  cancelled: 'Cancelado',
 }
 
-export class SendTicketAssignmentEmailService
-  implements IService<ISendTicketAssignmentEmailInput, TServiceResult<ISendTicketAssignmentEmailResult>>
-{
+export class SendTicketAssignmentEmailService implements IService<
+  ISendTicketAssignmentEmailInput,
+  TServiceResult<ISendTicketAssignmentEmailResult>
+> {
   constructor(private readonly emailService: EmailService = EmailService.getInstance()) {}
 
   async execute(
     input: ISendTicketAssignmentEmailInput
   ): Promise<TServiceResult<ISendTicketAssignmentEmailResult>> {
     const {
-      to, recipientName, ticketId, ticketNumber, ticketSubject, ticketDescription,
-      ticketPriority, ticketStatus, ticketCategory, ticketCreatedAt, assignedByName, assignedToName,
+      to,
+      recipientName,
+      ticketId,
+      ticketNumber,
+      ticketSubject,
+      ticketDescription,
+      ticketPriority,
+      ticketStatus,
+      ticketCategory,
+      ticketCreatedAt,
+      assignedByName,
+      assignedToName,
     } = input
 
     const ticketLink = `${env.APP_URL}/dashboard/tickets/${ticketId}`
     const subject = `Se te ha asignado el ticket #${ticketNumber}`
 
     const defaultColors = { bg: '#f4f4f5', text: '#71717a', border: '#71717a' }
-    const priorityColors = PRIORITY_COLORS[ticketPriority.toLowerCase()] ?? PRIORITY_COLORS.low ?? defaultColors
+    const priorityColors =
+      PRIORITY_COLORS[ticketPriority.toLowerCase()] ?? PRIORITY_COLORS.low ?? defaultColors
     const priorityLabel = PRIORITY_LABELS[ticketPriority.toLowerCase()] ?? 'Baja'
     const statusColors = STATUS_COLORS[ticketStatus.toLowerCase()] ?? defaultColors
     const statusLabel = STATUS_LABELS[ticketStatus.toLowerCase()] ?? ticketStatus
 
     const formattedDate = new Intl.DateTimeFormat('es-ES', {
-      day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     }).format(ticketCreatedAt)
 
-    const truncatedDesc = ticketDescription.length > 300
-      ? ticketDescription.substring(0, 300).trim() + '...'
-      : ticketDescription
+    const truncatedDesc =
+      ticketDescription.length > 300
+        ? ticketDescription.substring(0, 300).trim() + '...'
+        : ticketDescription
 
     const categoryCell = ticketCategory
       ? `<td style="padding-top: 16px; width: 50%;"><span style="font-size: 12px; color: #71717a; text-transform: uppercase; letter-spacing: 0.5px;">Categoría</span><p style="margin: 4px 0 0; font-size: 14px; color: #3f3f46;">${ticketCategory}</p></td>`
@@ -110,7 +134,9 @@ export class SendTicketAssignmentEmailService
       headerTitle: 'Nuevo ticket asignado',
       greeting: recipientName,
       bodyHtml: [
-        p(`<strong>${assignedByName}</strong> te ha asignado un nuevo ticket de soporte para que lo gestiones.`),
+        p(
+          `<strong>${assignedByName}</strong> te ha asignado un nuevo ticket de soporte para que lo gestiones.`
+        ),
         ticketCardHtml,
       ].join('\n'),
       bodyText: `${assignedByName} te ha asignado un nuevo ticket de soporte.\n\nDETALLES DEL TICKET\n-------------------\nNúmero: #${ticketNumber}\nAsunto: ${ticketSubject}\nDescripción: ${truncatedDesc}\nEstado: ${statusLabel}\nPrioridad: ${priorityLabel}${ticketCategory ? `\nCategoría: ${ticketCategory}` : ''}\nFecha de creación: ${formattedDate}\nAsignado por: ${assignedByName}\nAsignado a: ${assignedToName}\n\nPara ver y gestionar este ticket, visita el enlace.`,

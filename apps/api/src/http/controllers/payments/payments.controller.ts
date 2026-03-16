@@ -14,18 +14,23 @@ import type {
   PaymentGatewaysRepository,
   EntityPaymentGatewaysRepository,
   BankAccountsRepository,
+  QuotaAdjustmentsRepository,
+  PaymentPendingAllocationsRepository,
+  UnitsRepository,
+  BuildingsRepository,
 } from '@database/repositories'
 import type { GatewayTransactionsRepository } from '@database/repositories/gateway-transactions.repository'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import type { SendNotificationService } from '@src/services/notifications'
 import type { PaymentGatewayManager } from '@src/services/payment-gateways/gateway-manager'
+import { AppError } from '@errors/index'
 import { BaseController } from '../base.controller'
 import {
   bodyValidator,
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
-import { authMiddleware, requireRole } from '../../middlewares/auth'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -71,9 +76,17 @@ type TStatusParam = z.infer<typeof StatusParamSchema>
 const PaginatedByUnitQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(100).optional(),
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)').optional(),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)').optional(),
-  status: z.enum(['pending', 'pending_verification', 'completed', 'failed', 'refunded', 'rejected']).optional(),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
+    .optional(),
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
+    .optional(),
+  status: z
+    .enum(['pending', 'pending_verification', 'completed', 'failed', 'refunded', 'rejected'])
+    .optional(),
 })
 
 type TPaginatedByUnitQuery = z.infer<typeof PaginatedByUnitQuerySchema>
@@ -101,7 +114,10 @@ const VerifyReferenceBodySchema = z.object({
   externalReference: z.string().min(1, 'External reference is required'),
   bankAccountId: z.string().uuid('Invalid bank account ID'),
   senderBankCode: z.string().optional(),
-  transactionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)').optional(),
+  transactionDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
+    .optional(),
 })
 
 type TVerifyReferenceBody = z.infer<typeof VerifyReferenceBodySchema>
@@ -152,11 +168,15 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
     paymentApplicationsRepo: PaymentApplicationsRepository,
     quotasRepo: QuotasRepository,
     sendNotificationService: SendNotificationService,
+    private readonly unitsRepo: UnitsRepository,
+    private readonly buildingsRepo: BuildingsRepository,
     paymentGatewaysRepo?: PaymentGatewaysRepository,
     entityPaymentGatewaysRepo?: EntityPaymentGatewaysRepository,
     gatewayTransactionsRepo?: GatewayTransactionsRepository,
     gatewayManager?: PaymentGatewayManager,
     bankAccountsRepo?: BankAccountsRepository,
+    quotaAdjustmentsRepo?: QuotaAdjustmentsRepository,
+    paymentPendingAllocationsRepo?: PaymentPendingAllocationsRepository
   ) {
     super(repository)
 
@@ -172,16 +192,28 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
       paymentGatewaysRepo,
       entityPaymentGatewaysRepo,
       gatewayTransactionsRepo,
-      gatewayManager,
+      gatewayManager
     )
     this.verifyPaymentService = new VerifyPaymentService(repository)
     this.rejectPaymentService = new RejectPaymentService(repository)
-    this.refundPaymentService = new RefundPaymentService(db, repository, paymentApplicationsRepo, quotasRepo)
+    this.refundPaymentService = new RefundPaymentService(
+      db,
+      repository,
+      paymentApplicationsRepo,
+      quotasRepo,
+      quotaAdjustmentsRepo,
+      paymentPendingAllocationsRepo
+    )
   }
 
   get routes(): TRouteDefinition[] {
     return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)] },
+      {
+        method: 'get',
+        path: '/',
+        handler: this.list,
+        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT)],
+      },
       {
         method: 'get',
         path: '/pending-verification',
@@ -192,19 +224,31 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         method: 'get',
         path: '/number/:paymentNumber',
         handler: this.getByPaymentNumber,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(PaymentNumberParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(PaymentNumberParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/user/:userId',
         handler: this.getByUserId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(UserIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(UserIdParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/unit/:unitId',
         handler: this.getByUnitId,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(UnitIdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(UnitIdParamSchema),
+        ],
       },
       {
         method: 'get',
@@ -212,7 +256,12 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         handler: this.getByUnitIdPaginated,
         middlewares: [
           authMiddleware,
-          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.SUPPORT, ESystemRole.USER),
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.USER
+          ),
           paramsValidator(UnitIdParamSchema),
           queryValidator(PaginatedByUnitQuerySchema),
         ],
@@ -221,25 +270,41 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         method: 'get',
         path: '/status/:status',
         handler: this.getByStatus,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), paramsValidator(StatusParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          paramsValidator(StatusParamSchema),
+        ],
       },
       {
         method: 'get',
         path: '/date-range',
         handler: this.getByDateRange,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), queryValidator(DateRangeQuerySchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          queryValidator(DateRangeQuerySchema),
+        ],
       },
       {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.USER), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.USER),
+          paramsValidator(IdParamSchema),
+        ],
       },
       {
         method: 'post',
         path: '/',
         handler: this.create,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT), bodyValidator(paymentCreateSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          bodyValidator(paymentCreateSchema),
+        ],
       },
       {
         method: 'post',
@@ -305,7 +370,11 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         method: 'delete',
         path: '/:id',
         handler: this.delete,
-        middlewares: [authMiddleware, requireRole(ESystemRole.ADMIN), paramsValidator(IdParamSchema)],
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN),
+          paramsValidator(IdParamSchema),
+        ],
       },
     ]
   }
@@ -314,10 +383,28 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
   // Overridden Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
+  protected override getById = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, { id: string }>(c)
+    const entity = await this.repository.getById(ctx.params.id)
+    if (!entity) throw AppError.notFound('Resource', ctx.params.id)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    if (condominiumId) {
+      const unit = await this.unitsRepo.getById(entity.unitId)
+      if (!unit) throw AppError.notFound('Resource', ctx.params.id)
+      const building = await this.buildingsRepo.getById(unit.buildingId)
+      if (!building || building.condominiumId !== condominiumId) {
+        throw AppError.notFound('Resource', ctx.params.id)
+      }
+    }
+    return ctx.ok({ data: entity })
+  }
+
   protected override list = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-    // TODO: Filter by condominiumId via JOIN through unit → building.condominiumId
-    const entities = await this.repository.listAll()
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const entities = condominiumId
+      ? await this.paymentsRepository.listByCondominiumId(condominiumId)
+      : await this.repository.listAll()
     return ctx.ok({ data: entities })
   }
 
@@ -327,7 +414,11 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
 
   private getByPaymentNumber = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TPaymentNumberParam>(c)
-    const payment = await this.paymentsRepository.getByPaymentNumber(ctx.params.paymentNumber)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const payment = await this.paymentsRepository.getByPaymentNumber(
+      ctx.params.paymentNumber,
+      condominiumId
+    )
 
     if (!payment) {
       return ctx.notFound({ error: 'Payment not found' })
@@ -338,38 +429,51 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
 
   private getByUserId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUserIdParam>(c)
-    const payments = await this.paymentsRepository.getByUserId(ctx.params.userId)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const payments = await this.paymentsRepository.getByUserId(ctx.params.userId, condominiumId)
     return ctx.ok({ data: payments })
   }
 
   private getByUnitIdPaginated = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TPaginatedByUnitQuery, TUnitIdParam>(c)
-    const result = await this.paymentsRepository.listPaginatedByUnit(ctx.params.unitId, {
-      page: ctx.query.page,
-      limit: ctx.query.limit,
-      startDate: ctx.query.startDate,
-      endDate: ctx.query.endDate,
-      status: ctx.query.status,
-    })
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const result = await this.paymentsRepository.listPaginatedByUnit(
+      ctx.params.unitId,
+      {
+        page: ctx.query.page,
+        limit: ctx.query.limit,
+        startDate: ctx.query.startDate,
+        endDate: ctx.query.endDate,
+        status: ctx.query.status,
+      },
+      condominiumId
+    )
 
     return ctx.ok(result)
   }
 
   private getByUnitId = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)
-    const payments = await this.paymentsRepository.getByUnitId(ctx.params.unitId)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const payments = await this.paymentsRepository.getByUnitId(ctx.params.unitId, condominiumId)
     return ctx.ok({ data: payments })
   }
 
   private getByStatus = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TStatusParam>(c)
-    const payments = await this.paymentsRepository.getByStatus(ctx.params.status)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const payments = await this.paymentsRepository.getByStatus(ctx.params.status, condominiumId)
     return ctx.ok({ data: payments })
   }
 
   private getByDateRange = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TDateRangeQuery>(c)
-    const payments = await this.paymentsRepository.getByDateRange(ctx.query.startDate, ctx.query.endDate)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const payments = await this.paymentsRepository.getByDateRange(
+      ctx.query.startDate,
+      ctx.query.endDate,
+      condominiumId
+    )
     return ctx.ok({ data: payments })
   }
 
@@ -379,7 +483,8 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
 
   private getPendingVerification = async (c: Context): Promise<Response> => {
     const ctx = this.ctx(c)
-    const payments = await this.paymentsRepository.getPendingVerification()
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const payments = await this.paymentsRepository.getPendingVerification(condominiumId)
     return ctx.ok({ data: payments })
   }
 
@@ -437,14 +542,16 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
       }
 
       // Fire-and-forget: notify payer
-      this.sendNotificationService.execute({
-        userId: result.data.payment.userId,
-        category: 'payment',
-        title: 'Payment Verified',
-        body: `Your payment has been verified and approved.`,
-        channels: ['in_app', 'push'],
-        data: { paymentId: result.data.payment.id, action: 'payment_verified' },
-      }).catch(() => {})
+      this.sendNotificationService
+        .execute({
+          userId: result.data.payment.userId,
+          category: 'payment',
+          title: 'Payment Verified',
+          body: `Your payment has been verified and approved.`,
+          channels: ['in_app', 'push'],
+          data: { paymentId: result.data.payment.id, action: 'payment_verified' },
+        })
+        .catch(() => {})
 
       return ctx.ok({ data: result.data.payment, message: result.data.message })
     } catch (error) {
@@ -479,15 +586,17 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
       }
 
       // Fire-and-forget: notify payer
-      this.sendNotificationService.execute({
-        userId: result.data.payment.userId,
-        category: 'payment',
-        title: 'Payment Rejected',
-        body: `Your payment has been rejected.${ctx.body.notes ? ` Reason: ${ctx.body.notes}` : ''}`,
-        channels: ['in_app', 'push'],
-        priority: 'high',
-        data: { paymentId: result.data.payment.id, action: 'payment_rejected' },
-      }).catch(() => {})
+      this.sendNotificationService
+        .execute({
+          userId: result.data.payment.userId,
+          category: 'payment',
+          title: 'Payment Rejected',
+          body: `Your payment has been rejected.${ctx.body.notes ? ` Reason: ${ctx.body.notes}` : ''}`,
+          channels: ['in_app', 'push'],
+          priority: 'high',
+          data: { paymentId: result.data.payment.id, action: 'payment_rejected' },
+        })
+        .catch(() => {})
 
       return ctx.ok({ data: result.data.payment, message: result.data.message })
     } catch (error) {
@@ -522,19 +631,21 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
       }
 
       // Fire-and-forget: notify payer about refund
-      this.sendNotificationService.execute({
-        userId: result.data.payment.userId,
-        category: 'payment',
-        title: 'Payment Refunded',
-        body: `Your payment has been refunded. ${result.data.reversedApplications} quota(s) have been restored.`,
-        channels: ['in_app', 'push'],
-        priority: 'high',
-        data: {
-          paymentId: result.data.payment.id,
-          action: 'payment_refunded',
-          reversedApplications: result.data.reversedApplications,
-        },
-      }).catch(() => {})
+      this.sendNotificationService
+        .execute({
+          userId: result.data.payment.userId,
+          category: 'payment',
+          title: 'Payment Refunded',
+          body: `Your payment has been refunded. ${result.data.reversedApplications} quota(s) have been restored.`,
+          channels: ['in_app', 'push'],
+          priority: 'high',
+          data: {
+            paymentId: result.data.payment.id,
+            action: 'payment_refunded',
+            reversedApplications: result.data.reversedApplications,
+          },
+        })
+        .catch(() => {})
 
       return ctx.ok({
         data: result.data.payment,
@@ -554,7 +665,11 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
     const ctx = this.ctx<TVerifyReferenceBody>(c)
 
     try {
-      if (!this.bankAccountsRepository || !this.paymentGatewaysRepository || !this.gatewayManagerInstance) {
+      if (
+        !this.bankAccountsRepository ||
+        !this.paymentGatewaysRepository ||
+        !this.gatewayManagerInstance
+      ) {
         return ctx.badRequest({ error: 'Gateway verification is not configured' })
       }
 

@@ -45,19 +45,23 @@ export function useServiceExecutionAttachmentUpload(
 
   const validateFile = useCallback((file: File): IFileValidationError | null => {
     const mimeType = file.type
+
     if (!ALLOWED_MIME_TYPES.includes(mimeType as (typeof ALLOWED_MIME_TYPES)[number])) {
       return { file, reason: 'invalid_type' }
     }
     if (!validateFileSize(mimeType, file.size)) {
       const maxSize = getFileSizeLimit(mimeType)
+
       return { file, reason: 'file_too_large', maxSize: maxSize ?? undefined }
     }
+
     return null
   }, [])
 
   const uploadFile = useCallback(
     async (uploadingFile: IUploadingFile) => {
       const { id, file } = uploadingFile
+
       try {
         const storage = getFirebaseStorage()
         const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
@@ -69,12 +73,14 @@ export function useServiceExecutionAttachmentUpload(
         )
 
         const uploadTask = uploadBytesResumable(storageRef, file)
+
         uploadTasksRef.current.set(id, uploadTask)
 
         uploadTask.on(
           'state_changed',
           snapshot => {
             const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
+
             setUploadingFiles(prev => prev.map(f => (f.id === id ? { ...f, progress } : f)))
           },
           error => {
@@ -94,6 +100,7 @@ export function useServiceExecutionAttachmentUpload(
                 size: file.size,
                 mimeType: file.type as TAttachment['mimeType'],
               }
+
               setUploadingFiles(prev =>
                 prev.map(f =>
                   f.id === id
@@ -132,6 +139,7 @@ export function useServiceExecutionAttachmentUpload(
 
       for (const file of fileArray) {
         const error = validateFile(file)
+
         if (error) {
           validationErrors.push(error)
         } else {
@@ -150,6 +158,7 @@ export function useServiceExecutionAttachmentUpload(
           progress: 0,
           status: 'pending' as const,
         }))
+
         setUploadingFiles(prev => [...prev, ...newUploadingFiles])
         for (const uf of newUploadingFiles) {
           uploadFile(uf)
@@ -161,6 +170,7 @@ export function useServiceExecutionAttachmentUpload(
 
   const removeFile = useCallback((id: string) => {
     const uploadTask = uploadTasksRef.current.get(id)
+
     if (uploadTask) {
       uploadTask.cancel()
       uploadTasksRef.current.delete(id)
@@ -170,6 +180,7 @@ export function useServiceExecutionAttachmentUpload(
 
   const clearAll = useCallback(() => {
     const entries = Array.from(uploadTasksRef.current.entries())
+
     for (const [id, uploadTask] of entries) {
       uploadTask.cancel()
       uploadTasksRef.current.delete(id)
@@ -180,6 +191,7 @@ export function useServiceExecutionAttachmentUpload(
   const retryFile = useCallback(
     (id: string) => {
       const fileToRetry = uploadingFiles.find(f => f.id === id)
+
       if (fileToRetry && fileToRetry.status === 'error') {
         setUploadingFiles(prev =>
           prev.map(f =>
@@ -196,17 +208,13 @@ export function useServiceExecutionAttachmentUpload(
     .filter(f => f.status === 'completed' && f.attachment)
     .map(f => f.attachment!)
 
-  const isUploading = uploadingFiles.some(
-    f => f.status === 'uploading' || f.status === 'pending'
-  )
+  const isUploading = uploadingFiles.some(f => f.status === 'uploading' || f.status === 'pending')
 
   const hasErrors = uploadingFiles.some(f => f.status === 'error')
 
   const totalProgress =
     uploadingFiles.length > 0
-      ? Math.round(
-          uploadingFiles.reduce((sum, f) => sum + f.progress, 0) / uploadingFiles.length
-        )
+      ? Math.round(uploadingFiles.reduce((sum, f) => sum + f.progress, 0) / uploadingFiles.length)
       : 0
 
   return {

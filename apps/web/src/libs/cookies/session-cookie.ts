@@ -1,4 +1,5 @@
 import type { User } from 'firebase/auth'
+
 import { clearUserCookie } from './user-cookie'
 
 export const SESSION_COOKIE_NAME = '__session'
@@ -17,9 +18,11 @@ export async function setSessionCookie(user: User, forceRefresh = false): Promis
 export function getSessionCookie(): string | undefined {
   const value = `; ${document.cookie}`
   const parts = value.split(`; ${SESSION_COOKIE_NAME}=`)
+
   if (parts.length === 2) {
     return parts.pop()?.split(';').shift()
   }
+
   return undefined
 }
 
@@ -30,6 +33,7 @@ export async function waitForSessionCookie(maxAttempts = 10, delayMs = 50): Prom
     }
     await new Promise(resolve => setTimeout(resolve, delayMs))
   }
+
   return false
 }
 

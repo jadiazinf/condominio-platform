@@ -29,6 +29,7 @@ export class QuotaFactory {
       issueDate: faker.date.recent().toISOString().split('T')[0]!,
       dueDate: faker.date.soon({ days: 15 }).toISOString().split('T')[0]!,
       status: 'pending',
+      adjustmentsTotal: '0',
       paidAmount: '0.00',
       balance: baseAmount,
       notes: null,

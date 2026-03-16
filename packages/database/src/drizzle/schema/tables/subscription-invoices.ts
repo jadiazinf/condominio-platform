@@ -1,13 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  varchar,
-  decimal,
-  jsonb,
-  timestamp,
-  text,
-  index,
-} from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, decimal, jsonb, timestamp, index } from 'drizzle-orm/pg-core'
 import { managementCompanySubscriptions } from './management-company-subscriptions'
 import { managementCompanies } from './management-companies'
 import { currencies } from './currencies'

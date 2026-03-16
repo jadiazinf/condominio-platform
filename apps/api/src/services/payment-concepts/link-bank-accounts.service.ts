@@ -1,5 +1,8 @@
 import type { TPaymentConceptBankAccount } from '@packages/domain'
-import type { PaymentConceptsRepository, PaymentConceptBankAccountsRepository } from '@database/repositories'
+import type {
+  PaymentConceptsRepository,
+  PaymentConceptBankAccountsRepository,
+} from '@database/repositories'
 import { type TServiceResult, success, failure } from '../base.service'
 
 type TBankAccountsRepo = {
@@ -12,7 +15,10 @@ type TBankAccountsRepo = {
 }
 
 type TBankAccountCondominiumsRepo = {
-  getByBankAccountAndCondominium: (bankAccountId: string, condominiumId: string) => Promise<{ id: string } | null>
+  getByBankAccountAndCondominium: (
+    bankAccountId: string,
+    condominiumId: string
+  ) => Promise<{ id: string } | null>
 }
 
 export interface ILinkBankAccountInput {

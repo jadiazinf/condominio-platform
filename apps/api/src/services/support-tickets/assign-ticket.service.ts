@@ -65,7 +65,7 @@ export class AssignTicketService {
     }
 
     // Send email notification to the assigned user (non-blocking)
-    this.sendAssignmentEmail(updated, input.assignedTo, input.assignedBy).catch((error) => {
+    this.sendAssignmentEmail(updated, input.assignedTo, input.assignedBy).catch(error => {
       logger.error({ error, ticketId: input.ticketId }, 'Failed to send ticket assignment email')
     })
 
@@ -88,17 +88,22 @@ export class AssignTicketService {
     ])
 
     if (!assignedToUser?.email) {
-      logger.warn({ ticketId: ticket.id, assignedToId }, 'Cannot send assignment email: assigned user not found or has no email')
+      logger.warn(
+        { ticketId: ticket.id, assignedToId },
+        'Cannot send assignment email: assigned user not found or has no email'
+      )
       return
     }
 
-    const recipientName = assignedToUser.firstName && assignedToUser.lastName
-      ? `${assignedToUser.firstName} ${assignedToUser.lastName}`
-      : assignedToUser.displayName || assignedToUser.email
+    const recipientName =
+      assignedToUser.firstName && assignedToUser.lastName
+        ? `${assignedToUser.firstName} ${assignedToUser.lastName}`
+        : assignedToUser.displayName || assignedToUser.email
 
-    const assignedToName = assignedToUser.firstName && assignedToUser.lastName
-      ? `${assignedToUser.firstName} ${assignedToUser.lastName}`
-      : assignedToUser.displayName || assignedToUser.email
+    const assignedToName =
+      assignedToUser.firstName && assignedToUser.lastName
+        ? `${assignedToUser.firstName} ${assignedToUser.lastName}`
+        : assignedToUser.displayName || assignedToUser.email
 
     const assignedByName = assignedByUser
       ? assignedByUser.firstName && assignedByUser.lastName

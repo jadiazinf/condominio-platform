@@ -1,9 +1,11 @@
-import { getTranslations } from '@/libs/i18n/server'
 import { getCondominiumDetail } from '@packages/http-client/hooks'
+
+import { ManagementCompaniesTable } from './components/ManagementCompaniesTable'
+
+import { getTranslations } from '@/libs/i18n/server'
 import { getServerAuthToken, getFullSession } from '@/libs/session'
 import { Card } from '@/ui/components/card'
 import { Typography } from '@/ui/components/typography'
-import { ManagementCompaniesTable } from './components/ManagementCompaniesTable'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -11,7 +13,11 @@ interface PageProps {
 
 export default async function CondominiumGeneralPage({ params }: PageProps) {
   const { id } = await params
-  const [{ t }, token, session] = await Promise.all([getTranslations(), getServerAuthToken(), getFullSession()])
+  const [{ t }, token, session] = await Promise.all([
+    getTranslations(),
+    getServerAuthToken(),
+    getFullSession(),
+  ])
   const isAdmin = session?.activeRole === 'management_company'
 
   const managementCompanyId = isAdmin
@@ -22,6 +28,7 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
 
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return t('superadmin.condominiums.detail.general.noData')
+
     return new Date(date).toLocaleDateString('es', {
       day: '2-digit',
       month: 'long',
@@ -35,6 +42,7 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
     if (!condominium.location) return { city: '', state: '', country: '' }
 
     const parts: string[] = []
+
     type TLocation = typeof condominium.location
     let current: TLocation | undefined = condominium.location
 
@@ -52,7 +60,9 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
   }
 
   const locationParts = getLocationParts()
-  const locationString = [locationParts.city, locationParts.state, locationParts.country].filter(Boolean).join(', ')
+  const locationString = [locationParts.city, locationParts.state, locationParts.country]
+    .filter(Boolean)
+    .join(', ')
 
   const getCreatedByDisplay = () => {
     if (!condominium.createdByUser) return noDataText
@@ -68,18 +78,21 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
     <div className="space-y-6">
       <div>
         <Typography variant="h3">{t('superadmin.condominiums.detail.general.title')}</Typography>
-        <Typography color="muted" variant="body2" className="mt-1">
+        <Typography className="mt-1" color="muted" variant="body2">
           {t('superadmin.condominiums.detail.general.subtitle')}
         </Typography>
       </div>
 
       {/* Basic Information */}
       <Card className="p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('superadmin.condominiums.detail.general.basicInfo')}
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoRow label={t('superadmin.condominiums.detail.general.name')} value={condominium.name} />
+          <InfoRow
+            label={t('superadmin.condominiums.detail.general.name')}
+            value={condominium.name}
+          />
           <InfoRow
             label={t('superadmin.condominiums.detail.general.code')}
             value={condominium.code || noDataText}
@@ -106,27 +119,18 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
 
       {/* Contact Information */}
       <Card className="p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('superadmin.condominiums.detail.general.contactInfo')}
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoRow
+            className="md:col-span-2"
             label={t('superadmin.condominiums.detail.general.address')}
             value={condominium.address || noDataText}
-            className="md:col-span-2"
           />
-          <InfoRow
-            label={t('common.country')}
-            value={locationParts.country || noDataText}
-          />
-          <InfoRow
-            label={t('common.province')}
-            value={locationParts.state || noDataText}
-          />
-          <InfoRow
-            label={t('common.city')}
-            value={locationParts.city || noDataText}
-          />
+          <InfoRow label={t('common.country')} value={locationParts.country || noDataText} />
+          <InfoRow label={t('common.province')} value={locationParts.state || noDataText} />
+          <InfoRow label={t('common.city')} value={locationParts.city || noDataText} />
           <InfoRow
             label={t('superadmin.condominiums.detail.general.email')}
             value={condominium.email || noDataText}
@@ -147,7 +151,7 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
       {/* Management Companies — superadmin only */}
       {!isAdmin && (
         <Card className="p-6">
-          <Typography variant="h4" className="mb-4">
+          <Typography className="mb-4" variant="h4">
             {t('superadmin.condominiums.detail.general.managementCompanies')}
           </Typography>
           {condominium.managementCompanies && condominium.managementCompanies.length > 0 ? (
@@ -162,7 +166,7 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
 
       {/* Metadata */}
       <Card className="p-6">
-        <Typography variant="h4" className="mb-4">
+        <Typography className="mb-4" variant="h4">
           {t('superadmin.condominiums.detail.general.metadata')}
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -199,7 +203,7 @@ function InfoRow({ label, value, valueClassName, className }: IInfoRowProps) {
       <Typography color="muted" variant="body2">
         {label}
       </Typography>
-      <Typography variant="body1" className={valueClassName}>
+      <Typography className={valueClassName} variant="body1">
         {value}
       </Typography>
     </div>

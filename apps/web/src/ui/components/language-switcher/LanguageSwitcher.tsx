@@ -1,9 +1,9 @@
 'use client'
 
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
-import { Button } from '@/ui/components/button'
 import { Globe } from 'lucide-react'
 
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
+import { Button } from '@/ui/components/button'
 import { useI18n } from '@/contexts'
 import { EAppLanguages, SUPPORTED_LANGUAGES, type TAppLanguages } from '@/locales'
 

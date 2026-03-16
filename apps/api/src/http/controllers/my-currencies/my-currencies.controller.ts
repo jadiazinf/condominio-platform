@@ -8,14 +8,16 @@ import type { TCurrency, TCurrencyCreate, TCurrencyUpdate } from '@packages/doma
  * Public-facing currencies controller.
  * Any authenticated user can list active currencies.
  */
-export class MyCurrenciesController extends BaseController<TCurrency, TCurrencyCreate, TCurrencyUpdate> {
+export class MyCurrenciesController extends BaseController<
+  TCurrency,
+  TCurrencyCreate,
+  TCurrencyUpdate
+> {
   constructor(repository: CurrenciesRepository) {
     super(repository)
   }
 
   get routes(): TRouteDefinition[] {
-    return [
-      { method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] },
-    ]
+    return [{ method: 'get', path: '/', handler: this.list, middlewares: [authMiddleware] }]
   }
 }

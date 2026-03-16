@@ -1,3 +1,5 @@
+import type { TCondominiumsQuery } from '@packages/domain'
+
 import {
   getCondominiumsPaginated,
   getPlatformCondominiumsPaginated,
@@ -5,12 +7,12 @@ import {
   getMyCompanySubscription,
   getMyCompanyUsageStats,
 } from '@packages/http-client'
-import type { TCondominiumsQuery } from '@packages/domain'
+import { redirect } from 'next/navigation'
+
+import { CondominiumsPageClient } from './CondominiumsPageClient'
 
 import { getFullSession } from '@/libs/session'
-import { CondominiumsPageClient } from './CondominiumsPageClient'
 import { getSelectedCondominiumCookieServer } from '@/libs/cookies/server'
-import { redirect } from 'next/navigation'
 
 interface CondominiumsPageProps {
   searchParams: Promise<{
@@ -45,7 +47,8 @@ export default async function CondominiumsPage({ searchParams }: CondominiumsPag
     page: params.page ? parseInt(params.page, 10) : 1,
     limit: params.limit ? parseInt(params.limit, 10) : 10,
     search: params.search || undefined,
-    isActive: params.isActive === 'true' ? true : params.isActive === 'false' ? false : defaultIsActive,
+    isActive:
+      params.isActive === 'true' ? true : params.isActive === 'false' ? false : defaultIsActive,
     locationId: params.locationId || undefined,
   }
 
@@ -61,6 +64,7 @@ export default async function CondominiumsPage({ searchParams }: CondominiumsPag
 
     // For admin users, also fetch subscription + usage stats to check creation limits
     let canCreateCondominium: boolean | undefined
+
     if (isAdmin && companyId) {
       const [response, subscription, usageStats] = await Promise.all([
         condominiumsPromise,
@@ -69,17 +73,18 @@ export default async function CondominiumsPage({ searchParams }: CondominiumsPag
       ])
 
       if (subscription && usageStats) {
-        canCreateCondominium = subscription.maxCondominiums === null
-          || usageStats.condominiumsCount < subscription.maxCondominiums
+        canCreateCondominium =
+          subscription.maxCondominiums === null ||
+          usageStats.condominiumsCount < subscription.maxCondominiums
       }
 
       return (
         <CondominiumsPageClient
-          condominiums={response.data}
-          pagination={response.pagination}
-          initialQuery={query}
-          role={session.activeRole}
           canCreateCondominium={canCreateCondominium}
+          condominiums={response.data}
+          initialQuery={query}
+          pagination={response.pagination}
+          role={session.activeRole}
         />
       )
     }
@@ -89,18 +94,19 @@ export default async function CondominiumsPage({ searchParams }: CondominiumsPag
     return (
       <CondominiumsPageClient
         condominiums={response.data}
-        pagination={response.pagination}
         initialQuery={query}
+        pagination={response.pagination}
         role={session.activeRole}
       />
     )
   } catch (error) {
     console.error('Failed to fetch condominiums:', error)
+
     return (
       <CondominiumsPageClient
         condominiums={[]}
-        pagination={{ total: 0, page: 1, limit: 10, totalPages: 0 }}
         initialQuery={query}
+        pagination={{ total: 0, page: 1, limit: 10, totalPages: 0 }}
         role={session.activeRole}
       />
     )

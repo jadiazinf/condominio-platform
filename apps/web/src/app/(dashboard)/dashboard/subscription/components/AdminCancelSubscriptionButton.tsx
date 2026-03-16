@@ -2,16 +2,22 @@
 
 import { useState } from 'react'
 import { AlertTriangle, Eye, EyeOff } from 'lucide-react'
-
-import { Button } from '@/ui/components/button'
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@/ui/components/modal'
-import { Input } from '@/ui/components/input'
-import { Textarea } from '@/ui/components/textarea'
-import { Typography } from '@/ui/components/typography'
-import { useTranslation, useAuth } from '@/contexts'
-import { useToast } from '@/ui/components/toast'
 import { cancelMyCompanySubscription } from '@packages/http-client'
 import { useRouter } from 'next/navigation'
+
+import { Button } from '@/ui/components/button'
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from '@/ui/components/modal'
+import { Input } from '@/ui/components/input'
+import { Textarea } from '@/ui/components/textarea'
+import { useTranslation, useAuth } from '@/contexts'
+import { useToast } from '@/ui/components/toast'
 
 interface AdminCancelSubscriptionButtonProps {
   companyId: string
@@ -46,6 +52,7 @@ export function AdminCancelSubscriptionButton({
   const handleConfirm = async () => {
     if (!password) {
       setPasswordError(t(`${tp}.cancel.passwordRequired`))
+
       return
     }
 
@@ -54,13 +61,16 @@ export function AdminCancelSubscriptionButton({
 
     try {
       const isValid = await verifyPassword(password)
+
       if (!isValid) {
         setPasswordError(t(`${tp}.cancel.passwordInvalid`))
         setIsVerifying(false)
+
         return
       }
 
       const token = await user?.getIdToken()
+
       if (!token) throw new Error('No token')
 
       await cancelMyCompanySubscription(token, companyId, {
@@ -80,16 +90,11 @@ export function AdminCancelSubscriptionButton({
 
   return (
     <>
-      <Button
-        color="danger"
-        variant="flat"
-        size="sm"
-        onPress={onOpen}
-      >
+      <Button color="danger" size="sm" variant="flat" onPress={onOpen}>
         {t(`${tp}.cancel.button`)}
       </Button>
 
-      <Modal isOpen={isOpen} onClose={handleClose} size="md">
+      <Modal isOpen={isOpen} size="md" onClose={handleClose}>
         <ModalContent>
           <ModalHeader className="flex items-center gap-2">
             <AlertTriangle className="text-danger" size={20} />
@@ -112,35 +117,31 @@ export function AdminCancelSubscriptionButton({
             </div>
 
             <Input
-              label={t(`${tp}.cancel.passwordLabel`)}
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onValueChange={(val) => {
-                setPassword(val)
-                setPasswordError('')
-              }}
-              isInvalid={!!passwordError}
-              errorMessage={passwordError}
               endContent={
                 <button
+                  className="text-default-400 hover:text-default-600"
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-default-400 hover:text-default-600"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               }
+              errorMessage={passwordError}
+              isInvalid={!!passwordError}
+              label={t(`${tp}.cancel.passwordLabel`)}
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onValueChange={val => {
+                setPassword(val)
+                setPasswordError('')
+              }}
             />
           </ModalBody>
           <ModalFooter>
             <Button variant="flat" onPress={handleClose}>
               {t(`${tp}.cancel.back`)}
             </Button>
-            <Button
-              color="danger"
-              onPress={handleConfirm}
-              isLoading={isVerifying}
-            >
+            <Button color="danger" isLoading={isVerifying} onPress={handleConfirm}>
               {t(`${tp}.cancel.confirm`)}
             </Button>
           </ModalFooter>

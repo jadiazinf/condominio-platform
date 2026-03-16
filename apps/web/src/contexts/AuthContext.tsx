@@ -24,12 +24,7 @@ import {
 } from 'firebase/auth'
 
 import { getFirebaseAuth, getFirebaseErrorMessage } from '@/libs/firebase'
-import {
-  setSessionCookie,
-  waitForSessionCookie,
-  clearSessionCookie,
-  clearUserCookie,
-} from '@/libs/cookies'
+import { setSessionCookie, waitForSessionCookie, clearSessionCookie } from '@/libs/cookies'
 import { tokenRefreshManager } from '@/libs/auth'
 import { useSessionStore } from '@/stores/session-store'
 
@@ -56,6 +51,7 @@ interface AuthProviderProps {
 function hasSessionIssueInUrl(): boolean {
   if (typeof window === 'undefined') return false
   const params = new URLSearchParams(window.location.search)
+
   return (
     params.get('notfound') === 'true' ||
     params.get('expired') === 'true' ||
@@ -114,6 +110,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Refresh function: gets a fresh token from Firebase and saves to cookies
     const handleRefresh = async () => {
       const currentUser = auth.currentUser
+
       if (!currentUser) {
         throw new Error('No user available for token refresh')
       }
@@ -164,6 +161,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Track meaningful user activity
     const events = ['mousedown', 'keydown', 'touchstart', 'scroll']
+
     events.forEach(event => {
       window.addEventListener(event, updateActivity, { passive: true })
     })
@@ -186,6 +184,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const refreshToken = async () => {
       // Don't refresh if user has been inactive for too long
       const timeSinceActivity = Date.now() - lastActivityRef.current
+
       if (timeSinceActivity > ACTIVITY_THRESHOLD) {
         return
       }
@@ -235,6 +234,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         checkAndRefresh()
       }
     }
+
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
     // Refresh on route changes (navigation)
@@ -262,10 +262,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const auth = getFirebaseAuth()
 
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
+
       await setSessionCookie(userCredential.user)
       await waitForSessionCookie()
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
+
       setError(errorMessage)
       throw err
     } finally {
@@ -281,9 +283,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const auth = getFirebaseAuth()
 
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+
       await setSessionCookie(userCredential.user)
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
+
       setError(errorMessage)
       throw err
     } finally {
@@ -303,10 +307,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         prompt: 'select_account',
       })
       const userCredential = await signInWithPopup(auth, provider)
+
       await setSessionCookie(userCredential.user)
       await waitForSessionCookie()
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
+
       setError(errorMessage)
       throw err
     } finally {
@@ -332,6 +338,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clearSessionCookie()
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
+
       setError(errorMessage)
       throw err
     }
@@ -370,6 +377,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         window.location.href = '/auth?inactivity=true'
       } else {
         const errorMessage = getFirebaseErrorMessage(err)
+
         setError(errorMessage)
         throw err
       }
@@ -388,6 +396,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clearSessionCookie()
     } catch (err) {
       const errorMessage = getFirebaseErrorMessage(err)
+
       setError(errorMessage)
       throw err
     }
@@ -397,23 +406,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
    * Verify the current user's password using Firebase reauthentication.
    * Useful for sensitive operations that require password confirmation.
    */
-  const verifyPassword = useCallback(async (password: string): Promise<boolean> => {
-    try {
-      setError(null)
+  const verifyPassword = useCallback(
+    async (password: string): Promise<boolean> => {
+      try {
+        setError(null)
 
-      if (!user || !user.email) {
-        throw new Error('No user available for password verification')
+        if (!user || !user.email) {
+          throw new Error('No user available for password verification')
+        }
+
+        const credential = EmailAuthProvider.credential(user.email, password)
+
+        await reauthenticateWithCredential(user, credential)
+
+        return true
+      } catch (err) {
+        const errorMessage = getFirebaseErrorMessage(err)
+
+        setError(errorMessage)
+
+        return false
       }
-
-      const credential = EmailAuthProvider.credential(user.email, password)
-      await reauthenticateWithCredential(user, credential)
-      return true
-    } catch (err) {
-      const errorMessage = getFirebaseErrorMessage(err)
-      setError(errorMessage)
-      return false
-    }
-  }, [user])
+    },
+    [user]
+  )
 
   const clearError = useCallback(() => {
     setError(null)

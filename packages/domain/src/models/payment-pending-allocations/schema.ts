@@ -4,7 +4,13 @@ import { DomainLocaleDictionary } from '../../i18n/dictionary'
 
 const d = DomainLocaleDictionary.validation.models.paymentPendingAllocations
 
-export const EAllocationStatuses = ['pending', 'allocated', 'refunded', 'refund_pending', 'refund_failed'] as const
+export const EAllocationStatuses = [
+  'pending',
+  'allocated',
+  'refunded',
+  'refund_pending',
+  'refund_failed',
+] as const
 
 export const paymentPendingAllocationSchema = z.object({
   id: z.uuid(),
