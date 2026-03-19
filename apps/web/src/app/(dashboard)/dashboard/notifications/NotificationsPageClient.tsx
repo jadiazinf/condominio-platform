@@ -54,7 +54,7 @@ export function NotificationsPageClient({ translations }: INotificationsPageClie
   const userId = user?.id
 
   const [categoryFilter, setCategoryFilter] = useState<TCategoryFilter>('all')
-  const [readFilter, setReadFilter] = useState<TReadFilter>('all')
+  const [readFilter, setReadFilter] = useState<TReadFilter>('unread')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(20)
 

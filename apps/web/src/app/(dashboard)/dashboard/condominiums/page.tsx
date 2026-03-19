@@ -21,6 +21,7 @@ interface CondominiumsPageProps {
     search?: string
     isActive?: string
     locationId?: string
+    limitReached?: string
   }>
 }
 
@@ -82,7 +83,10 @@ export default async function CondominiumsPage({ searchParams }: CondominiumsPag
         <CondominiumsPageClient
           canCreateCondominium={canCreateCondominium}
           condominiums={response.data}
+          currentCondominiums={usageStats?.condominiumsCount}
           initialQuery={query}
+          limitReached={params.limitReached === 'true'}
+          maxCondominiums={subscription?.maxCondominiums ?? undefined}
           pagination={response.pagination}
           role={session.activeRole}
         />

@@ -30,7 +30,14 @@ import { Tooltip } from '@/ui/components/tooltip'
 import { Button } from '@/ui/components/button'
 import { useToast } from '@/ui/components/toast'
 import { useTranslation } from '@/contexts'
-import { Modal, ModalContent, ModalHeader, ModalBody, useDisclosure } from '@/ui/components/modal'
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from '@/ui/components/modal'
 import { CreateRateForm } from '@/app/(dashboard)/dashboard/rates/create/components/CreateRateForm'
 
 interface PricingStepFormProps {
@@ -938,7 +945,7 @@ export function PricingStepForm({
           {() => (
             <>
               <ModalHeader>Nueva Tarifa de Suscripción</ModalHeader>
-              <ModalBody className="pb-6">
+              <ModalBody>
                 <CreateRateForm
                   isEmbedded
                   onCancel={onCloseCreateRate}
@@ -949,6 +956,19 @@ export function PricingStepForm({
                   }}
                 />
               </ModalBody>
+              <ModalFooter>
+                <Button variant="flat" onPress={onCloseCreateRate}>
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  className="text-white"
+                  color="success"
+                  form="create-rate-form"
+                  type="submit"
+                >
+                  {t('superadmin.rates.form.submit')}
+                </Button>
+              </ModalFooter>
             </>
           )}
         </ModalContent>

@@ -10,7 +10,7 @@ import { useReserveFundExpensesPaginated, useActiveCurrencies } from '@packages/
 import { CreateReserveFundExpenseModal } from './CreateReserveFundExpenseModal'
 import { ExpenseDetailModal } from './ExpenseDetailModal'
 
-import { Input } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Spinner } from '@/ui/components/spinner'
 import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
@@ -126,25 +126,17 @@ export function ReserveFundExpensesSection({
 
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:flex-wrap">
-        <Input
-          isClearable
+        <DatePicker
           className="w-full sm:w-44"
           label={t.filters.startDate}
-          type="date"
           value={startDate}
-          variant="bordered"
-          onClear={() => handleStartDateChange('')}
-          onValueChange={handleStartDateChange}
+          onChange={handleStartDateChange}
         />
-        <Input
-          isClearable
+        <DatePicker
           className="w-full sm:w-44"
           label={t.filters.endDate}
-          type="date"
           value={endDate}
-          variant="bordered"
-          onClear={() => handleEndDateChange('')}
-          onValueChange={handleEndDateChange}
+          onChange={handleEndDateChange}
         />
       </div>
 

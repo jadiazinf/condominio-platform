@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Users, Building2, Building as BuildingIcon } from 'lucide-react'
 import {
   useManagementCompaniesPaginated,
-  useCondominiumsPaginated,
+  usePlatformCondominiumsPaginated,
   useSuperadminUsersPaginated,
 } from '@packages/http-client'
 
@@ -40,11 +40,12 @@ export function SuperadminDashboardClient({ displayName }: SuperadminDashboardCl
     enabled: isTokenReady,
   })
 
-  const { data: condominiumsData, isLoading: isLoadingCondominiums } = useCondominiumsPaginated({
-    token,
-    query: { page: 1, limit: 1 },
-    enabled: isTokenReady,
-  })
+  const { data: condominiumsData, isLoading: isLoadingCondominiums } =
+    usePlatformCondominiumsPaginated({
+      token,
+      query: { page: 1, limit: 1 },
+      enabled: isTokenReady,
+    })
 
   const { data: usersData, isLoading: isLoadingUsers } = useSuperadminUsersPaginated({
     token,

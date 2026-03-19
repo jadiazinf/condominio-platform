@@ -12,8 +12,8 @@ import { Typography } from '@/ui/components/typography'
 import { Divider } from '@/ui/components/divider'
 import { Chip } from '@/ui/components/chip'
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
-import { getSessionCookie } from '@/libs/cookies'
-import { useUser } from '@/contexts'
+import { setSessionCookie } from '@/libs/cookies'
+import { useUser, useAuth } from '@/contexts'
 
 export interface ITicketMessagesTranslations {
   title: string
@@ -147,35 +147,38 @@ export function TicketMessages({
   locale,
   translations,
 }: ITicketMessagesProps) {
-  const isTicketClosed = ticketStatus === 'closed' || ticketStatus === 'cancelled'
+  const isTicketClosed =
+    ticketStatus === 'closed' || ticketStatus === 'cancelled' || ticketStatus === 'resolved'
   const { data, isLoading } = useTicketMessages(ticketId)
   const messages = data?.data
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { user: currentUser } = useUser()
+  const { user: firebaseUser } = useAuth()
 
-  // Connect to WebSocket for real-time updates
-  // Initialize token synchronously to avoid race condition
-  const [token, setToken] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return getSessionCookie() || ''
-    }
+  // Get a fresh token from Firebase to avoid connecting with an expired cookie token
+  const [token, setToken] = useState('')
+  const [tokenReady, setTokenReady] = useState(false)
 
-    return ''
-  })
-
-  // Keep token updated if it changes (e.g., token refresh)
   useEffect(() => {
-    const sessionToken = getSessionCookie()
+    if (!firebaseUser) return
 
-    if (sessionToken && sessionToken !== token) {
-      setToken(sessionToken)
-    }
-  }, [token])
+    // Force refresh to ensure we get a valid token, not a cached expired one
+    firebaseUser
+      .getIdToken(true)
+      .then(freshToken => {
+        setToken(freshToken)
+        setSessionCookie(firebaseUser)
+        setTokenReady(true)
+      })
+      .catch(() => {
+        setTokenReady(false)
+      })
+  }, [firebaseUser])
 
   const { isConnected } = useTicketWebSocket({
     ticketId,
     token,
-    enabled: !!token,
+    enabled: !!token && tokenReady,
   })
 
   // Format message timestamp
@@ -228,8 +231,8 @@ export function TicketMessages({
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="flex h-full flex-col">
+      <CardHeader className="shrink-0">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <MessageSquare size={20} />
@@ -250,23 +253,23 @@ export function TicketMessages({
         </div>
       </CardHeader>
       <Divider />
-      <CardBody>
-        <div className="space-y-6">
+      <CardBody className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col gap-6">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
               <Typography color="muted" variant="body2">
                 {translations.loadingMessages}
               </Typography>
             </div>
           ) : !messages || messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
               <MessageSquare className="mb-2 text-default-300" size={48} />
               <Typography color="muted" variant="body2">
                 {translations.noMessages}
               </Typography>
             </div>
           ) : (
-            <div className="h-[204px] space-y-2 overflow-y-auto px-2 py-4">
+            <div className="min-h-[204px] flex-1 space-y-2 overflow-y-auto px-2 py-4">
               {sortedMessages?.map(message => {
                 const isCurrentUser = currentUser?.id === message.userId
                 const userName =
@@ -284,23 +287,21 @@ export function TicketMessages({
                         message.isInternal
                           ? 'rounded-2xl border-2 border-warning-400 bg-warning-100'
                           : isCurrentUser
-                            ? 'rounded-2xl rounded-br-md bg-[#4CAF50] text-white'
-                            : 'rounded-2xl rounded-bl-md bg-default-200 text-default-900'
+                            ? 'rounded-2xl rounded-br-sm bg-primary text-primary-foreground'
+                            : 'rounded-2xl rounded-bl-sm bg-default-200 text-default-900'
                       }`}
                     >
                       {!isCurrentUser && (
-                        <Typography className="mb-0.5 text-xs font-semibold text-primary-600">
-                          {userName}
-                        </Typography>
+                        <p className="mb-0.5 text-xs font-semibold text-primary-600">{userName}</p>
                       )}
                       {message.isInternal && (
                         <Chip className="mb-1" color="warning" variant="flat">
                           {translations.internalMessage}
                         </Chip>
                       )}
-                      <Typography className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                      <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
                         {message.message}
-                      </Typography>
+                      </p>
                       {message.attachments && message.attachments.length > 0 && (
                         <div className="mt-2 space-y-2">
                           {message.attachments.map((attachment, idx) => (
@@ -314,14 +315,14 @@ export function TicketMessages({
                         </div>
                       )}
                       <div className="mt-1 flex items-center justify-end gap-1">
-                        <Typography
-                          className={`text-[10px] ${isCurrentUser ? 'text-white/80' : 'text-default-500'}`}
+                        <span
+                          className={`text-[10px] ${isCurrentUser ? 'text-primary-foreground/60' : 'text-default-500'}`}
                         >
                           {formatMessageTime(message.createdAt)}
-                        </Typography>
+                        </span>
                         {isCurrentUser && (
                           <svg
-                            className="h-4 w-4 text-white/80"
+                            className="h-4 w-4 text-primary-foreground/60"
                             fill="currentColor"
                             viewBox="0 0 16 16"
                           >
@@ -337,7 +338,8 @@ export function TicketMessages({
             </div>
           )}
 
-          <Divider />
+          <div className="mt-auto shrink-0" />
+          <Divider className="shrink-0" />
 
           <SendMessageForm
             isTicketClosed={isTicketClosed}

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
 import {
+  type TAdminInvitation,
   type TUser,
   type TUserRole,
   type TManagementCompany,
@@ -9,6 +10,11 @@ import {
   ESystemRole,
 } from '@packages/domain'
 import { CreateCompanyWithExistingAdminService } from '@src/services/admin-invitations'
+
+type TMockInvitationsRepository = {
+  create: (data: unknown) => Promise<TAdminInvitation>
+  withTx: (tx: unknown) => TMockInvitationsRepository
+}
 
 type TMockUsersRepository = {
   getById: (id: string) => Promise<TUser | null>
@@ -26,18 +32,13 @@ type TMockMembersRepository = {
 }
 
 type TMockUserRolesRepository = {
-  create: (data: any) => Promise<TUserRole>
   createManagementCompanyRole: (
     userId: string,
     roleId: string,
     managementCompanyId: string,
     assignedBy?: string
   ) => Promise<TUserRole>
-  getByUserAndRole: (
-    userId: string,
-    roleId: string,
-    condominiumId: string | null
-  ) => Promise<TUserRole[]>
+  update: (id: string, data: unknown) => Promise<TUserRole>
   withTx: (tx: unknown) => TMockUserRolesRepository
 }
 
@@ -52,6 +53,7 @@ const mockDb = {
 
 describe('CreateCompanyWithExistingAdminService', function () {
   let service: CreateCompanyWithExistingAdminService
+  let mockInvitationsRepository: TMockInvitationsRepository
   let mockUsersRepository: TMockUsersRepository
   let mockCompaniesRepository: TMockCompaniesRepository
   let mockMembersRepository: TMockMembersRepository
@@ -103,17 +105,6 @@ describe('CreateCompanyWithExistingAdminService', function () {
     metadata: null,
   }
 
-  const userRoleId = '550e8400-e29b-41d4-a716-446655440020'
-  const mockUserRole: TRole = {
-    id: '550e8400-e29b-41d4-a716-446655440030',
-    name: ESystemRole.USER,
-    description: 'Standard user role',
-    isSystemRole: true,
-    registeredBy: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }
-
   let lastMemberCreateData: unknown = null
 
   beforeEach(function () {
@@ -124,7 +115,7 @@ describe('CreateCompanyWithExistingAdminService', function () {
       id: '550e8400-e29b-41d4-a716-446655440002',
       ...companyInput,
       createdBy: creatorId,
-      isActive: true,
+      isActive: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as TManagementCompany
@@ -141,15 +132,38 @@ describe('CreateCompanyWithExistingAdminService', function () {
         can_view_invoices: true,
       },
       isPrimaryAdmin: true,
-      joinedAt: new Date(),
+      joinedAt: null,
       invitedAt: new Date(),
       invitedBy: creatorId,
-      isActive: true,
+      isActive: false,
       deactivatedAt: null,
       deactivatedBy: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as TManagementCompanyMember
+
+    mockInvitationsRepository = {
+      create: async function (data: any) {
+        return {
+          id: '550e8400-e29b-41d4-a716-446655440070',
+          userId: data.userId,
+          managementCompanyId: data.managementCompanyId,
+          token: data.token,
+          tokenHash: data.tokenHash,
+          status: 'pending',
+          email: data.email,
+          expiresAt: data.expiresAt,
+          acceptedAt: null,
+          emailError: null,
+          createdBy: data.createdBy,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as TAdminInvitation
+      },
+      withTx() {
+        return this
+      },
+    }
 
     mockUsersRepository = {
       getById: async function () {
@@ -196,22 +210,6 @@ describe('CreateCompanyWithExistingAdminService', function () {
     const mcRoleId = '550e8400-e29b-41d4-a716-446655440050'
 
     mockUserRolesRepository = {
-      create: async function (data: any) {
-        return {
-          id: userRoleId,
-          userId: data.userId,
-          roleId: data.roleId,
-          condominiumId: data.condominiumId,
-          buildingId: data.buildingId,
-          managementCompanyId: data.managementCompanyId ?? null,
-          isActive: data.isActive,
-          notes: data.notes,
-          assignedAt: new Date(),
-          assignedBy: data.assignedBy,
-          registeredBy: data.registeredBy,
-          expiresAt: data.expiresAt,
-        }
-      },
       createManagementCompanyRole: async function (
         userId: string,
         roleId: string,
@@ -233,8 +231,11 @@ describe('CreateCompanyWithExistingAdminService', function () {
           expiresAt: null,
         }
       },
-      getByUserAndRole: async function () {
-        return [] // No existing role by default
+      update: async function (_id: string, _data: unknown) {
+        return {
+          id: mcRoleId,
+          isActive: false,
+        } as TUserRole
       },
       withTx() {
         return this
@@ -243,7 +244,6 @@ describe('CreateCompanyWithExistingAdminService', function () {
 
     mockRolesRepository = {
       getByName: async function (name: string) {
-        if (name === ESystemRole.USER) return mockUserRole
         if (name === ESystemRole.ADMIN) return mockAdminRole
         return null
       },
@@ -251,6 +251,7 @@ describe('CreateCompanyWithExistingAdminService', function () {
 
     service = new CreateCompanyWithExistingAdminService(
       mockDb,
+      mockInvitationsRepository as never,
       mockUsersRepository as never,
       mockCompaniesRepository as never,
       mockMembersRepository as never,
@@ -260,7 +261,7 @@ describe('CreateCompanyWithExistingAdminService', function () {
   })
 
   describe('execute', function () {
-    it('should create company with existing admin successfully', async function () {
+    it('should create company with existing admin and invitation successfully', async function () {
       const result = await service.execute({
         company: companyInput,
         existingUserId,
@@ -269,60 +270,29 @@ describe('CreateCompanyWithExistingAdminService', function () {
 
       expect(result.success).toBe(true)
       if (result.success) {
-        // Verify company is active
+        // Company should be inactive (pending confirmation)
         expect(result.data.company).toBeDefined()
-        expect(result.data.company.isActive).toBe(true)
+        expect(result.data.company.isActive).toBe(false)
         expect(result.data.company.name).toBe(companyInput.name)
 
-        // Verify admin is the existing user
+        // Admin is the existing user
         expect(result.data.admin).toBeDefined()
         expect(result.data.admin.id).toBe(existingUserId)
         expect(result.data.admin.isActive).toBe(true)
 
-        // Verify member was created
+        // Member was created (inactive)
         expect(result.data.member).toBeDefined()
         expect(result.data.member.isPrimaryAdmin).toBe(true)
         expect(result.data.member.roleName).toBe('admin')
 
-        // Verify user role was assigned
-        expect(result.data.userRole).toBeDefined()
-        expect(result.data.userRole.userId).toBe(existingUserId)
-        expect(result.data.userRole.roleId).toBe(mockUserRole.id)
-        expect(result.data.userRole.isActive).toBe(true)
-        expect(result.data.userRole.condominiumId).toBeNull()
-      }
-    })
+        // Invitation was created
+        expect(result.data.invitation).toBeDefined()
+        expect(result.data.invitation.status).toBe('pending')
+        expect(result.data.invitation.email).toBe(activeUser.email)
 
-    it('should reuse existing user role if user already has USER role', async function () {
-      const existingUserRole: TUserRole = {
-        id: '550e8400-e29b-41d4-a716-446655440040',
-        userId: existingUserId,
-        roleId: mockUserRole.id,
-        condominiumId: null,
-        buildingId: null,
-        managementCompanyId: null,
-        isActive: true,
-        notes: 'Previously assigned',
-        assignedAt: new Date(),
-        assignedBy: creatorId,
-        registeredBy: creatorId,
-        expiresAt: null,
-      }
-
-      mockUserRolesRepository.getByUserAndRole = async function () {
-        return [existingUserRole]
-      }
-
-      const result = await service.execute({
-        company: companyInput,
-        existingUserId,
-        createdBy: creatorId,
-      })
-
-      expect(result.success).toBe(true)
-      if (result.success) {
-        // Should reuse the existing role, not create a new one
-        expect(result.data.userRole.id).toBe(existingUserRole.id)
+        // Invitation token is returned for email sending
+        expect(result.data.invitationToken).toBeDefined()
+        expect(result.data.invitationToken.length).toBeGreaterThan(0)
       }
     })
 
@@ -393,7 +363,7 @@ describe('CreateCompanyWithExistingAdminService', function () {
       }
     })
 
-    it('should create member with full admin permissions', async function () {
+    it('should create member as inactive with admin permissions', async function () {
       const result = await service.execute({
         company: companyInput,
         existingUserId,
@@ -407,7 +377,8 @@ describe('CreateCompanyWithExistingAdminService', function () {
       expect(memberData).toBeDefined()
       expect(memberData.isPrimaryAdmin).toBe(true)
       expect(memberData.roleName).toBe('admin')
-      expect(memberData.isActive).toBe(true)
+      expect(memberData.isActive).toBe(false)
+      expect(memberData.joinedAt).toBeNull()
 
       const permissions = memberData.permissions as Record<string, boolean>
       expect(permissions.can_change_subscription).toBe(true)

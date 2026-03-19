@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useUsersPaginated, useAddMember } from '@packages/http-client/hooks'
 
+import { useDebouncedValue } from '@/hooks'
 import { Autocomplete, type IAutocompleteItem } from '@/ui/components/autocomplete'
 import { Button } from '@/ui/components/button'
 import { Avatar } from '@/ui/components/avatar-base'
@@ -28,6 +29,7 @@ export function ExistingUserSearch({ companyId, onSuccess, onClose }: ExistingUs
   const toast = useToast()
   const [token, setToken] = useState('')
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 300)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -38,8 +40,8 @@ export function ExistingUserSearch({ companyId, onSuccess, onClose }: ExistingUs
 
   const { data, isLoading } = useUsersPaginated({
     token,
-    query: { search, limit: 10, isActive: true },
-    enabled: !!token && search.length >= 2,
+    query: { search: debouncedSearch, limit: 10, isActive: true },
+    enabled: !!token && debouncedSearch.length >= 2,
   })
 
   const users = data?.data || []

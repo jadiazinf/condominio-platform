@@ -1,12 +1,13 @@
 import {
+  type TAdminInvitation,
   type TUser,
-  type TUserRole,
   type TManagementCompany,
   type TManagementCompanyCreate,
   type TManagementCompanyMember,
   ESystemRole,
 } from '@packages/domain'
 import type {
+  AdminInvitationsRepository,
   UsersRepository,
   ManagementCompaniesRepository,
   ManagementCompanyMembersRepository,
@@ -15,34 +16,44 @@ import type {
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
+import { generateSecureToken, hashToken, calculateExpirationDate } from '../../utils/token'
+import logger from '@utils/logger'
 
 export interface ICreateCompanyWithExistingAdminInput {
   company: Omit<TManagementCompanyCreate, 'createdBy' | 'isActive'>
   existingUserId: string
   createdBy: string // Superadmin user ID
+  expirationDays?: number
 }
 
 export interface ICreateCompanyWithExistingAdminResult {
   company: TManagementCompany
   admin: TUser
   member: TManagementCompanyMember
-  userRole: TUserRole
+  invitation: TAdminInvitation
+  invitationToken: string // Plain text token to send via email
 }
 
 /**
  * Service for creating a management company with an existing user as admin.
  *
- * Unlike CreateCompanyWithAdminService (which creates a new user + invitation flow),
- * this service handles the case where the admin user already exists in the system.
+ * Like CreateCompanyWithAdminService, this service requires the admin to confirm
+ * via an invitation email before the company becomes active.
  *
  * Flow:
  * 1. Validates the existing user is active
- * 2. Creates the management company (isActive=true, since admin is already confirmed)
- * 3. Creates the member with primary admin role and full permissions
+ * 2. Creates the management company with isActive=false (pending confirmation)
+ * 3. Creates an invitation with a secure token
+ * 4. Creates the member and role as inactive (pending confirmation)
+ * 5. Returns the token to be sent via email
+ *
+ * When the user confirms via the email link, the AcceptInvitationService
+ * will activate the company, member, and role.
  */
 export class CreateCompanyWithExistingAdminService {
   constructor(
     private readonly db: TDrizzleClient,
+    private readonly invitationsRepository: AdminInvitationsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly managementCompaniesRepository: ManagementCompaniesRepository,
     private readonly membersRepository: ManagementCompanyMembersRepository,
@@ -74,13 +85,13 @@ export class CreateCompanyWithExistingAdminService {
       }
     }
 
-    // Look up roles before starting the transaction (read-only, avoids
-    // acquiring a second connection inside the tx which can deadlock in test containers)
-    const userRole = await this.rolesRepository.getByName(ESystemRole.USER)
-    if (!userRole) {
-      return failure('USER role not found in system', 'INTERNAL_ERROR')
-    }
+    // Generate invitation token before transaction (pure computation)
+    const token = generateSecureToken()
+    const tokenHash = hashToken(token)
+    const expiresAt = calculateExpirationDate(input.expirationDays ?? 7)
 
+    // Look up ADMIN role before starting the transaction (read-only, avoids
+    // acquiring a second connection inside the tx which can deadlock in test containers)
     const adminRole = await this.rolesRepository.getByName(ESystemRole.ADMIN)
     if (!adminRole) {
       return failure('ADMIN role not found in system', 'INTERNAL_ERROR')
@@ -89,14 +100,15 @@ export class CreateCompanyWithExistingAdminService {
     // All writes inside a transaction for atomicity
     return await this.db.transaction(async tx => {
       const txCompaniesRepo = this.managementCompaniesRepository.withTx(tx)
+      const txInvitationsRepo = this.invitationsRepository.withTx(tx)
       const txMembersRepo = this.membersRepository.withTx(tx)
       const txUserRolesRepo = this.userRolesRepository.withTx(tx)
 
-      // Create management company (active from the start since admin already exists)
+      // Create management company with isActive=false (pending confirmation)
       const companyData: TManagementCompanyCreate = {
         ...input.company,
         createdBy: input.createdBy,
-        isActive: true,
+        isActive: false,
       }
 
       const company = await txCompaniesRepo.create(companyData)
@@ -105,15 +117,31 @@ export class CreateCompanyWithExistingAdminService {
         return failure('Failed to create management company', 'INTERNAL_ERROR')
       }
 
-      // Create MC-scoped ADMIN role in user_roles (unified role system)
+      // Create invitation
+      const invitation = await txInvitationsRepo.create({
+        userId: user.id,
+        managementCompanyId: company.id,
+        token,
+        tokenHash,
+        status: 'pending',
+        email: user.email,
+        expiresAt,
+        acceptedAt: null,
+        emailError: null,
+        createdBy: input.createdBy,
+      })
+
+      // Create MC-scoped ADMIN role (inactive — activated when invitation is accepted)
       const mcRoleAssignment = await txUserRolesRepo.createManagementCompanyRole(
         user.id,
         adminRole.id,
         company.id,
         input.createdBy
       )
+      // Mark as inactive until invitation is accepted
+      await txUserRolesRepo.update(mcRoleAssignment.id, { isActive: false })
 
-      // Create member with primary admin role, linked to unified user_role
+      // Create member with primary admin role (inactive until invitation is accepted)
       const member = await txMembersRepo.create({
         managementCompanyId: company.id,
         userId: user.id,
@@ -126,10 +154,10 @@ export class CreateCompanyWithExistingAdminService {
           can_view_invoices: true,
         },
         isPrimaryAdmin: true,
-        joinedAt: new Date(),
+        joinedAt: null,
         invitedAt: new Date(),
         invitedBy: input.createdBy,
-        isActive: true,
+        isActive: false,
         deactivatedAt: null,
         deactivatedBy: null,
       })
@@ -138,36 +166,24 @@ export class CreateCompanyWithExistingAdminService {
         return failure('Failed to create member', 'INTERNAL_ERROR')
       }
 
-      // Assign system-level USER role (no scope)
-      const existingRoles = await txUserRolesRepo.getByUserAndRole(user.id, userRole.id, null)
-      let userRoleAssignment: TUserRole
-
-      if (existingRoles.length > 0) {
-        userRoleAssignment = existingRoles[0]!
-      } else {
-        userRoleAssignment = await txUserRolesRepo.create({
+      logger.info(
+        {
+          invitationId: invitation.id,
           userId: user.id,
-          roleId: userRole.id,
-          condominiumId: null,
-          buildingId: null,
-          managementCompanyId: null,
-          isActive: true,
-          notes: 'Assigned via management company creation with existing admin',
-          assignedBy: input.createdBy,
-          registeredBy: input.createdBy,
-          expiresAt: null,
-        })
-      }
-
-      if (!userRoleAssignment) {
-        return failure('Failed to assign user role', 'INTERNAL_ERROR')
-      }
+          companyId: company.id,
+          memberId: member.id,
+          email: user.email,
+          tokenPrefix: token.substring(0, 8),
+        },
+        'Admin invitation created for existing user'
+      )
 
       return success({
         company,
         admin: user,
         member,
-        userRole: userRoleAssignment,
+        invitation,
+        invitationToken: token,
       })
     })
   }

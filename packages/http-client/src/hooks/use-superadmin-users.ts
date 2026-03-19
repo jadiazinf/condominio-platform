@@ -64,7 +64,7 @@ export function useSuperadminUsersPaginated(options: UseSuperadminUsersPaginated
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
 
   const queryString = params.toString()
-  const path = `/platform/users/superadmin${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/users/paginated${queryString ? `?${queryString}` : ''}`
 
   return useApiQuery<TApiPaginatedResponse<TSuperadminUserWithDetails>>({
     path,
@@ -99,7 +99,7 @@ export async function getSuperadminUsersPaginated(
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
 
   const queryString = params.toString()
-  const path = `/platform/users/superadmin${queryString ? `?${queryString}` : ''}`
+  const path = `/platform/users/paginated${queryString ? `?${queryString}` : ''}`
 
   const response = await client.get<TApiPaginatedResponse<TSuperadminUserWithDetails>>(path, {
     headers: {

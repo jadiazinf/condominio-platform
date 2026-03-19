@@ -31,7 +31,7 @@ async function checkSuperadminUsers() {
       return
     }
 
-    const superadminRole = superadminRoleResult[0]
+    const superadminRole = superadminRoleResult[0]!
     console.log('✅ SUPERADMIN role found:')
     console.log(`  ID: ${superadminRole.id}`)
     console.log(`  Name: ${superadminRole.name}`)

@@ -9,7 +9,12 @@ export const signUpSchema = z
     email: z.email({ error: d.email.invalid }),
     firstName: z.string().min(1, { error: d.firstName.required }),
     lastName: z.string().min(1, { error: d.lastName.required }),
-    password: z.string().min(8, { error: d.password.min }),
+    password: z
+      .string()
+      .min(8, { error: d.password.min })
+      .regex(/[A-Z]/, { error: d.password.uppercase })
+      .regex(/[a-z]/, { error: d.password.lowercase })
+      .regex(/[0-9]/, { error: d.password.number }),
     confirmPassword: z.string(),
     acceptTerms: z.boolean().refine(val => val === true, {
       message: d.acceptTerms.required,

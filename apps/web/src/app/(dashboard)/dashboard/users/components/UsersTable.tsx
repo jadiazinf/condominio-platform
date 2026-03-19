@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Users, Search, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
@@ -16,6 +16,7 @@ import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
 import { Spinner } from '@/ui/components/spinner'
+import { useDebouncedValue } from '@/hooks'
 import { useTranslation, useAuth } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Pagination } from '@/ui/components/pagination'
@@ -39,11 +40,23 @@ export function UsersTable() {
   }, [firebaseUser])
 
   // Filter state
-  const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const debouncedSearch = useDebouncedValue(searchInput)
   const [statusFilter, setStatusFilter] = useState<TStatusFilter>('active')
   const [roleFilter, setRoleFilter] = useState<string>('all')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(20)
+  const isFirstRender = useRef(true)
+
+  // Reset page when debounced search changes (skip first render)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+
+      return
+    }
+    setPage(1)
+  }, [debouncedSearch])
 
   // Fetch roles for filter dropdown
   const { data: rolesData } = useRoles({
@@ -56,11 +69,11 @@ export function UsersTable() {
     () => ({
       page,
       limit,
-      search: search || undefined,
+      search: debouncedSearch || undefined,
       isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
       roleId: roleFilter === 'all' ? undefined : roleFilter,
     }),
-    [page, limit, search, statusFilter, roleFilter]
+    [page, limit, debouncedSearch, statusFilter, roleFilter]
   )
 
   // Fetch data from API
@@ -125,11 +138,6 @@ export function UsersTable() {
   )
 
   // Handlers
-  const handleSearchChange = useCallback((value: string) => {
-    setSearch(value)
-    setPage(1) // Reset to first page on search
-  }, [])
-
   const handleStatusChange = useCallback((key: string | null) => {
     if (key) {
       setStatusFilter(key as TStatusFilter)
@@ -145,7 +153,7 @@ export function UsersTable() {
   }, [])
 
   const handleClearFilters = useCallback(() => {
-    setSearch('')
+    setSearchInput('')
     setStatusFilter('active')
     setRoleFilter('all')
     setPage(1)
@@ -259,7 +267,7 @@ export function UsersTable() {
     )
   }
 
-  const hasFiltersApplied = search || statusFilter !== 'active' || roleFilter !== 'all'
+  const hasFiltersApplied = searchInput || statusFilter !== 'active' || roleFilter !== 'all'
 
   return (
     <div className="space-y-4">
@@ -269,8 +277,8 @@ export function UsersTable() {
           className="w-full sm:max-w-xs"
           placeholder={t('superadmin.users.filters.searchPlaceholder')}
           startContent={<Search className="text-default-400" size={16} />}
-          value={search}
-          onValueChange={handleSearchChange}
+          value={searchInput}
+          onValueChange={setSearchInput}
         />
         <Select
           aria-label={t('superadmin.users.filters.status')}

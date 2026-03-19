@@ -123,7 +123,9 @@ export function TicketDetails({
     ? categoryLabels[ticket.category.toLowerCase()] || ticket.category
     : categoryLabels.general
 
-  const canManageTicket = isSuperadmin
+  const isTerminal =
+    ticket.status === 'closed' || ticket.status === 'cancelled' || ticket.status === 'resolved'
+  const canManageTicket = isSuperadmin && !isTerminal
 
   // Mutation hooks
   const assignMutation = useAssignTicket(ticket.id, ticket.managementCompanyId)
@@ -338,7 +340,7 @@ export function TicketDetails({
         />
 
         {/* Action buttons grouped at the bottom */}
-        {canManageTicket && ticket.status !== 'closed' && ticket.status !== 'cancelled' && (
+        {canManageTicket && (
           <>
             <Divider />
             <div className="flex flex-col gap-2">

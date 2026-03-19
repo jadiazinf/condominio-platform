@@ -31,6 +31,7 @@ export {
 export {
   useCondominiums,
   useCondominiumsPaginated,
+  usePlatformCondominiumsPaginated,
   useCreateCondominium,
   useUpdateCondominium,
   useGenerateCondominiumCode,
@@ -420,6 +421,21 @@ export {
   type IDeleteTicketMessageOptions,
 } from './use-support-ticket-messages'
 export { useTicketWebSocket } from './use-ticket-websocket'
+export {
+  useMyTickets,
+  useCreateUserTicket,
+  useUserTicket,
+  useUserTicketMessages,
+  useCreateUserTicketMessage,
+  useUserUpdateTicketStatus,
+  useUserResolveTicket,
+  useUserCloseTicket,
+  userTicketKeys,
+  type IUserTicketFilters,
+  type ICreateUserTicketInput,
+  type IUseMyTicketsOptions,
+  type TCreateUserTicketMessageInput,
+} from './use-user-tickets'
 export { useNotificationWebSocket } from './use-notification-websocket'
 export {
   useSuperadminUsersPaginated,
@@ -969,6 +985,18 @@ export {
   type ICreateReserveFundExpenseVariables,
   type TExpenseWithDocuments,
 } from './use-reserve-fund'
+
+// Wizard Drafts
+export {
+  useWizardDraft,
+  useSaveWizardDraft,
+  useDeleteWizardDraft,
+  wizardDraftKeys,
+  type IUseWizardDraftOptions,
+  type ISaveWizardDraftVariables,
+  type ISaveWizardDraftOptions,
+  type IDeleteWizardDraftOptions,
+} from './use-wizard-drafts'
 
 // Re-export commonly used TanStack Query hooks
 export {

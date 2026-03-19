@@ -9,7 +9,7 @@ import { Checkbox } from '@/ui/components/checkbox'
 import { Spinner } from '@/ui/components/spinner'
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { useToast } from '@/ui/components/toast'
-import { useTranslation, useAuth } from '@/contexts'
+import { useTranslation, useAuth, getApiErrorKey } from '@/contexts'
 
 interface AcceptSubscriptionFormProps {
   token: string
@@ -50,7 +50,9 @@ export function AcceptSubscriptionForm({
       onSuccess()
     } catch (err) {
       if (HttpError.isHttpError(err)) {
-        toast.error(err.message || t('subscription.accept.errors.failed'))
+        const errorKey = getApiErrorKey(err)
+
+        toast.error(t(errorKey))
       } else {
         toast.error(t('subscription.accept.errors.unknown'))
       }

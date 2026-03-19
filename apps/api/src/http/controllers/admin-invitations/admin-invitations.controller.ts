@@ -145,6 +145,7 @@ export class AdminInvitationsController {
     )
     this.createCompanyWithExistingAdminService = new CreateCompanyWithExistingAdminService(
       db,
+      invitationsRepository,
       usersRepository,
       managementCompaniesRepository,
       membersRepository,
@@ -388,11 +389,52 @@ export class AdminInvitationsController {
         throw AppError.validation(result.error)
       }
 
+      // Send invitation email
+      const recipientName =
+        result.data.admin.displayName ||
+        `${result.data.admin.firstName || ''} ${result.data.admin.lastName || ''}`.trim() ||
+        result.data.admin.email
+
+      const emailResult = await this.sendInvitationEmailService.execute({
+        to: result.data.admin.email,
+        recipientName,
+        companyName: result.data.company.name,
+        invitationToken: result.data.invitationToken,
+        expiresAt: result.data.invitation.expiresAt,
+      })
+
+      if (!emailResult.success) {
+        logger.error(
+          {
+            err: emailResult.error,
+            invitationId: result.data.invitation.id,
+            email: result.data.admin.email,
+          },
+          'Failed to send invitation email for existing admin'
+        )
+
+        await this.invitationsRepository.recordEmailError(
+          result.data.invitation.id,
+          emailResult.error
+        )
+      } else {
+        logger.info(
+          {
+            invitationId: result.data.invitation.id,
+            email: result.data.admin.email,
+          },
+          'Invitation email sent successfully for existing admin'
+        )
+      }
+
       return ctx.created({
         data: {
           company: result.data.company,
           admin: result.data.admin,
           member: result.data.member,
+          invitation: result.data.invitation,
+          emailSent: emailResult.success,
+          invitationToken: result.data.invitationToken,
         },
       })
     } catch (error) {
@@ -445,6 +487,7 @@ export class AdminInvitationsController {
           lastName: result.data.user.lastName,
           phoneCountryCode: result.data.user.phoneCountryCode,
           phoneNumber: result.data.user.phoneNumber,
+          isActive: result.data.user.isActive,
         },
         managementCompany: {
           name: result.data.managementCompany.name,

@@ -335,7 +335,7 @@ export function SendMessageForm({
         </div>
 
         <Button
-          className="bg-[#25D366] text-white hover:bg-[#20BA5A]"
+          color="primary"
           isDisabled={!canSubmit}
           isLoading={isPending || isUploading}
           startContent={!isPending && !isUploading ? <Send size={16} /> : null}

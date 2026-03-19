@@ -121,6 +121,8 @@ export function useManagementCompaniesPaginated(options: UseManagementCompaniesP
   if (query.limit) params.set('limit', String(query.limit))
   if (query.search) params.set('search', query.search)
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
+  if (query.hasActiveSubscription !== undefined)
+    params.set('hasActiveSubscription', String(query.hasActiveSubscription))
 
   const queryString = params.toString()
   const path = `/platform/management-companies${queryString ? `?${queryString}` : ''}`
@@ -317,6 +319,8 @@ export async function getManagementCompaniesPaginated(
   if (query.limit) params.set('limit', String(query.limit))
   if (query.search) params.set('search', query.search)
   if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
+  if (query.hasActiveSubscription !== undefined)
+    params.set('hasActiveSubscription', String(query.hasActiveSubscription))
 
   const queryString = params.toString()
   const path = `/platform/management-companies${queryString ? `?${queryString}` : ''}`

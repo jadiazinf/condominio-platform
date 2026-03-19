@@ -60,6 +60,7 @@ import {
 } from '@database/repositories'
 import { GatewayTransactionsRepository } from '@database/repositories/gateway-transactions.repository'
 import { PaymentConceptChangesRepository } from '@database/repositories/payment-concept-changes.repository'
+import { WizardDraftsRepository } from '@database/repositories'
 
 import {
   AuthController,
@@ -110,8 +111,10 @@ import {
   SubscriptionRatesController,
   SupportTicketsController,
   SupportTicketMessagesController,
+  UserTicketsController,
   AmenitiesController,
   AmenityReservationsController,
+  WizardDraftsController,
 } from '../controllers'
 
 import { BanksController } from '../controllers/banks/banks.controller'
@@ -194,6 +197,7 @@ export function createRepositories(db: TDrizzleClient) {
     userPermissions: new UserPermissionsRepository(db),
     userRoles: new UserRolesRepository(db),
     users: new UsersRepository(db),
+    wizardDrafts: new WizardDraftsRepository(db),
   }
 }
 
@@ -632,7 +636,21 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
       router: new SupportTicketMessagesController(
         db,
         r.supportTicketMessages,
-        r.supportTickets
+        r.supportTickets,
+        r.managementCompanyMembers,
+        sendNotificationService,
+        r.userRoles
+      ).createRouter(),
+    },
+    {
+      path: '',
+      router: new UserTicketsController(
+        db,
+        r.supportTickets,
+        r.supportTicketMessages,
+        r.managementCompanyMembers,
+        sendNotificationService,
+        r.userRoles
       ).createRouter(),
     },
 
@@ -647,6 +665,12 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
     {
       path: '/condominium/reports',
       router: new ReportsController(r.quotas, r.payments, r.units, r.buildings).createRouter(),
+    },
+
+    // Wizard Drafts
+    {
+      path: '/wizard-drafts',
+      router: new WizardDraftsController(r.wizardDrafts).createRouter(),
     },
 
     // Health check

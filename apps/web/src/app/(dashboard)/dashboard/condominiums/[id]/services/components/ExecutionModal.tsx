@@ -33,6 +33,7 @@ import { CurrencyCalculatorModal } from '../../payment-concepts/components/wizar
 
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Input } from '@/ui/components/input'
 import { CurrencyInput } from '@/ui/components/input'
 import { Textarea } from '@/ui/components/textarea'
@@ -643,14 +644,18 @@ export function ExecutionModal({
                   />
 
                   <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      isRequired
-                      label={t(`${d}.executionDate`)}
-                      type="date"
-                      {...methods.register('executionDate')}
-                      errorMessage={methods.formState.errors.executionDate?.message}
-                      isInvalid={!!methods.formState.errors.executionDate}
-                      variant="bordered"
+                    <Controller
+                      control={methods.control}
+                      name="executionDate"
+                      render={({ field }) => (
+                        <DatePicker
+                          isRequired
+                          errorMessage={methods.formState.errors.executionDate?.message}
+                          label={t(`${d}.executionDate`)}
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      )}
                     />
                     <Input
                       label={t(`${d}.invoiceNumber`)}

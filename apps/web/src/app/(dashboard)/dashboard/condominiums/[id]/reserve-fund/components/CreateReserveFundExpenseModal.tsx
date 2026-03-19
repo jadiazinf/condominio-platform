@@ -23,6 +23,7 @@ import { formatFileSize } from '@packages/domain'
 
 import { useExpenseDocumentUpload, EXPENSE_ACCEPT_STRING } from '../hooks/useExpenseDocumentUpload'
 
+import { DatePicker } from '@/ui/components/date-picker'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Input, CurrencyInput } from '@/ui/components/input'
 import { Textarea } from '@/ui/components/textarea'
@@ -498,13 +499,11 @@ export function CreateReserveFundExpenseModal({
           />
         </div>
       </div>
-      <Input
+      <DatePicker
         isRequired
         label={t.expenseDate}
-        type="date"
         value={formData.expenseDate}
-        variant="bordered"
-        onValueChange={v => updateForm({ expenseDate: v })}
+        onChange={v => updateForm({ expenseDate: v })}
       />
     </div>
   )

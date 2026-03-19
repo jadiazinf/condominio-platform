@@ -5,14 +5,14 @@ import { Eye, EyeOff, Lock, Building2, Mail, User } from 'lucide-react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
 import { acceptInvitation, type TValidateInvitationResult, HttpError } from '@packages/http-client'
 import { useActiveSubscriptionTerms } from '@packages/http-client/hooks'
 
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Divider } from '@/ui/components/divider'
 import { Card, CardBody, CardHeader } from '@/ui/components/card'
-import { useTranslation, useUser, getFirebaseErrorKey } from '@/contexts'
+import { useTranslation, useUser, getFirebaseErrorKey, getApiErrorKey } from '@/contexts'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
 import { InputField } from '@/ui/components/input'
@@ -26,7 +26,6 @@ import { getErrorMessage } from '@/utils/formErrors'
 interface AcceptInvitationFormProps {
   token: string
   invitationData: TValidateInvitationResult
-  onSuccess: () => void
 }
 
 // Schema for the accept invitation form
@@ -82,7 +81,7 @@ export function AcceptInvitationForm({ token, invitationData }: AcceptInvitation
     try {
       setIsSubmitting(true)
 
-      // Step 1: Create or sign into Firebase account
+      // Step 1: Create Firebase account
       const auth = getAuth()
       let firebaseUser
 
@@ -91,14 +90,17 @@ export function AcceptInvitationForm({ token, invitationData }: AcceptInvitation
 
         firebaseUser = userCredential.user
       } catch (firebaseErr) {
-        // If email already has a Firebase account, sign in with the provided password
         if ((firebaseErr as any).code === 'auth/email-already-in-use') {
-          const userCredential = await signInWithEmailAndPassword(auth, user.email, data.password)
+          // User already has a Firebase account — they need to sign in first
+          toast.error(t('auth.acceptInvitation.errors.emailAlreadyHasAccount'))
+          const returnUrl = encodeURIComponent(`/accept-invitation?token=${token}`)
 
-          firebaseUser = userCredential.user
-        } else {
-          throw firebaseErr
+          window.location.href = `/auth?redirect=${returnUrl}`
+
+          return
         }
+
+        throw firebaseErr
       }
 
       // Step 2: Accept the invitation with the Firebase UID
@@ -107,8 +109,6 @@ export function AcceptInvitationForm({ token, invitationData }: AcceptInvitation
       })
 
       // Step 3: Set session cookie and user cookie
-      const idToken = await firebaseUser.getIdToken()
-
       await setSessionCookie(firebaseUser)
       setUser(result.user)
       setUserCookie(result.user)
@@ -119,14 +119,14 @@ export function AcceptInvitationForm({ token, invitationData }: AcceptInvitation
       setActiveRoleCookie('management_company')
       window.location.href = '/dashboard'
     } catch (err) {
-      // Check if it's an HTTP error from the API
       if (HttpError.isHttpError(err)) {
-        toast.error(err.message)
+        const errorKey = getApiErrorKey(err)
+
+        toast.error(t(errorKey))
 
         return
       }
 
-      // Check if it's a Firebase error
       const errorKey = getFirebaseErrorKey(err)
 
       toast.error(t(errorKey))

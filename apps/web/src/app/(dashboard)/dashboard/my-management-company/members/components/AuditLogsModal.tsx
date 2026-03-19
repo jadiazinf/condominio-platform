@@ -11,7 +11,7 @@ import {
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
-import { Input } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Select } from '@/ui/components/select'
 import { Button } from '@/ui/components/button'
 import { Pagination } from '@/ui/components/pagination'
@@ -142,25 +142,21 @@ export function AuditLogsModal({
           {/* Filters */}
           <div className="mb-4 flex flex-wrap items-end gap-3">
             <div className="min-w-[140px]">
-              <Input
+              <DatePicker
                 label={t(`${T_PREFIX}.auditLogsModal.filters.dateFrom`)}
-                size="sm"
-                type="date"
                 value={dateFrom}
-                onChange={e => {
-                  setDateFrom(e.target.value)
+                onChange={value => {
+                  setDateFrom(value)
                   setPage(1)
                 }}
               />
             </div>
             <div className="min-w-[140px]">
-              <Input
+              <DatePicker
                 label={t(`${T_PREFIX}.auditLogsModal.filters.dateTo`)}
-                size="sm"
-                type="date"
                 value={dateTo}
-                onChange={e => {
-                  setDateTo(e.target.value)
+                onChange={value => {
+                  setDateTo(value)
                   setPage(1)
                 }}
               />

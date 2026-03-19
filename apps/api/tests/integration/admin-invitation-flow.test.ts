@@ -592,7 +592,8 @@ describe('Admin Invitation Flow — Integration Tests', function () {
       }
 
       expect(secondJson.data.company.name).toBe('Second Company')
-      expect(secondJson.data.company.isActive).toBe(true)
+      // Company is created as inactive — pending invitation acceptance
+      expect(secondJson.data.company.isActive).toBe(false)
       expect(secondJson.data.admin.isActive).toBe(true)
       expect(secondJson.data.member.isPrimaryAdmin).toBe(true)
     })

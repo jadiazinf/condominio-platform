@@ -2,7 +2,13 @@ import { pgTable, uuid, varchar, text, timestamp, jsonb, boolean, index } from '
 import { managementCompanies } from './management-companies'
 import { managementCompanyMembers } from './management-company-members'
 import { users } from './users'
-import { ticketPriorityEnum, ticketStatusEnum, ticketCategoryEnum } from '../enums'
+import {
+  ticketPriorityEnum,
+  ticketStatusEnum,
+  ticketCategoryEnum,
+  ticketChannelEnum,
+} from '../enums'
+import { condominiums } from './condominiums'
 
 export const supportTickets = pgTable(
   'support_tickets',
@@ -12,6 +18,10 @@ export const supportTickets = pgTable(
     managementCompanyId: uuid('management_company_id')
       .notNull()
       .references(() => managementCompanies.id, { onDelete: 'cascade' }),
+
+    // Canal de comunicación
+    channel: ticketChannelEnum('channel').notNull(),
+    condominiumId: uuid('condominium_id').references(() => condominiums.id),
 
     // Creador del ticket
     createdByUserId: uuid('created_by_user_id')
@@ -51,5 +61,7 @@ export const supportTickets = pgTable(
     index('idx_tickets_priority').on(table.priority),
     index('idx_tickets_number').on(table.ticketNumber),
     index('idx_tickets_created_at').on(table.createdAt),
+    index('idx_tickets_channel').on(table.channel),
+    index('idx_tickets_condominium').on(table.condominiumId),
   ]
 )

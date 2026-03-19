@@ -117,3 +117,6 @@ export { PaymentConceptChangesRepository } from './payment-concept-changes.repos
 export { CondominiumServicesRepository } from './condominium-services.repository'
 export { ServiceExecutionsRepository } from './service-executions.repository'
 export { PaymentConceptServicesRepository } from './payment-concept-services.repository'
+
+// Wizard Drafts
+export { WizardDraftsRepository } from './wizard-drafts.repository'

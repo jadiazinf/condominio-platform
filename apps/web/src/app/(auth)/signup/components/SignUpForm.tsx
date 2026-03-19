@@ -9,7 +9,7 @@ import { registerWithGoogle, ApiErrorCodes, HttpError } from '@packages/http-cli
 import { SignUpFormFields } from './SignUpFormFields'
 import { SignUpHeader } from './SignUpHeader'
 
-import { useAuth, useTranslation, useUser, getFirebaseErrorKey } from '@/contexts'
+import { useAuth, useTranslation, useUser, getFirebaseErrorKey, getApiErrorKey } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
 import { setUserCookie } from '@/libs/cookies'
 import { savePendingRegistration } from '@/libs/storage'
@@ -87,8 +87,9 @@ export function SignUpForm() {
           return
         }
 
-        // Show API error message (already translated from backend)
-        toast.error(err.message)
+        const errorKey = getApiErrorKey(err)
+
+        toast.error(t(errorKey))
 
         return
       }

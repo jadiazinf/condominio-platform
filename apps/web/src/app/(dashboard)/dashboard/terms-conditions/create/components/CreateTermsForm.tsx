@@ -8,6 +8,7 @@ import { useCreateSubscriptionTerms } from '@packages/http-client'
 
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Textarea } from '@/ui/components/textarea'
 import { Typography } from '@/ui/components/typography'
 import { Switch } from '@/ui/components/switch'
@@ -157,13 +158,12 @@ export function CreateTermsForm() {
                 control={control}
                 name="effectiveFrom"
                 render={({ field }) => (
-                  <Input
-                    {...field}
+                  <DatePicker
                     isRequired
                     errorMessage={errors.effectiveFrom?.message}
-                    isInvalid={!!errors.effectiveFrom}
                     label={t('superadmin.terms.form.effectiveFrom')}
-                    type="date"
+                    value={field.value}
+                    onChange={field.onChange}
                   />
                 )}
               />
@@ -172,11 +172,10 @@ export function CreateTermsForm() {
                 control={control}
                 name="effectiveUntil"
                 render={({ field }) => (
-                  <Input
-                    {...field}
+                  <DatePicker
                     label={t('superadmin.terms.form.effectiveUntil')}
-                    type="date"
                     value={field.value || ''}
+                    onChange={field.onChange}
                   />
                 )}
               />

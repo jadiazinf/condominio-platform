@@ -42,6 +42,7 @@ export type TPaginationQuerySchema = z.infer<typeof paginationQuerySchema>
 export type TManagementCompaniesQuery = TPaginationQuery & {
   search?: string
   isActive?: boolean
+  hasActiveSubscription?: boolean
 }
 
 /**
@@ -50,6 +51,13 @@ export type TManagementCompaniesQuery = TPaginationQuery & {
 export const managementCompaniesQuerySchema = paginationQuerySchema.extend({
   search: z.string().optional(),
   isActive: z
+    .string()
+    .optional()
+    .transform(val => {
+      if (val === undefined || val === '') return undefined
+      return val === 'true'
+    }),
+  hasActiveSubscription: z
     .string()
     .optional()
     .transform(val => {

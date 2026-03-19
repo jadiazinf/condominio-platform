@@ -22,9 +22,11 @@ import { Typography } from '@/ui/components/typography'
 
 interface BuildingsStepProps {
   wizard: TUseCreateCondominiumWizard
+  maxUnits?: number | null
+  currentUnitsCount?: number
 }
 
-export function BuildingsStep({ wizard }: BuildingsStepProps) {
+export function BuildingsStep({ wizard, maxUnits, currentUnitsCount }: BuildingsStepProps) {
   const { t } = useTranslation()
   const {
     buildings,
@@ -265,8 +267,10 @@ export function BuildingsStep({ wizard }: BuildingsStepProps) {
       )}
 
       <BulkBuildingGeneratorModal
+        currentUnitsCount={currentUnitsCount}
         initialConfig={bulkEditMode ? bulkConfig : null}
         isOpen={isBulkModalOpen}
+        maxUnits={maxUnits}
         onClose={() => {
           setIsBulkModalOpen(false)
           setBulkEditMode(false)

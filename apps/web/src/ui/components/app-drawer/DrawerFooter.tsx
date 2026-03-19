@@ -23,7 +23,7 @@ export function DrawerFooter({ onClose }: IDrawerFooterProps) {
     <HeroUIDrawerFooter className="flex-col gap-0 p-0">
       <div className="h-px w-full bg-divider" />
       <button
-        className="flex items-center gap-3 w-full px-5 py-3.5 text-danger/70 hover:text-danger hover:bg-danger/5 transition-colors"
+        className="flex items-center gap-3 w-full px-5 py-3.5 text-danger/70 hover:text-danger hover:bg-danger/5 transition-colors cursor-pointer"
         onClick={handleLogout}
       >
         <LogOut size={18} />

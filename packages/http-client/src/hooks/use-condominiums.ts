@@ -72,6 +72,36 @@ export function useCondominiumsPaginated(options: UseCondominiumsPaginatedOption
 }
 
 /**
+ * Hook to fetch ALL condominiums (SUPERADMIN only).
+ * Uses /platform/condominiums which doesn't require x-condominium-id.
+ */
+export function usePlatformCondominiumsPaginated(options: UseCondominiumsPaginatedOptions) {
+  const { token, query, enabled = true } = options
+
+  // Build query string
+  const params = new URLSearchParams()
+  if (query.page) params.set('page', String(query.page))
+  if (query.limit) params.set('limit', String(query.limit))
+  if (query.search) params.set('search', query.search)
+  if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
+  if (query.locationId) params.set('locationId', query.locationId)
+
+  const queryString = params.toString()
+  const path = `/platform/condominiums${queryString ? `?${queryString}` : ''}`
+
+  return useApiQuery<TApiPaginatedResponse<TCondominium>>({
+    path,
+    queryKey: [...condominiumsKeys.all, 'platform', 'paginated', query],
+    config: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    enabled,
+  })
+}
+
+/**
  * Server-side function to get all condominiums.
  * @deprecated Use getCondominiumsPaginated instead
  */

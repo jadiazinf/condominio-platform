@@ -88,3 +88,6 @@ export * from './bank-accounts'
 export * from './condominium-services'
 export * from './service-executions'
 export * from './payment-concept-services'
+
+// Wizard Drafts
+export * from './wizard-drafts'

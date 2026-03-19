@@ -1,6 +1,7 @@
 'use client'
 
 import type { TManagementCompanySubscription } from '@packages/domain'
+import type { TManagementCompanyUsageStats } from '@packages/http-client'
 
 import { CreditCard, Calendar, Clock, RefreshCw, FileText, AlertTriangle } from 'lucide-react'
 import { formatCurrency } from '@packages/utils/currency'
@@ -9,6 +10,7 @@ import { formatFullDate } from '@packages/utils/dates'
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
+import { Progress } from '@/ui/components/progress'
 import { useTranslation } from '@/contexts'
 
 function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
@@ -43,12 +45,14 @@ const billingCycleLabels: Record<string, string> = {
 
 interface SubscriptionDetailModalProps {
   subscription: TManagementCompanySubscription | null
+  usageStats?: TManagementCompanyUsageStats | null
   isOpen: boolean
   onClose: () => void
 }
 
 export function SubscriptionDetailModal({
   subscription,
+  usageStats,
   isOpen,
   onClose,
 }: SubscriptionDetailModalProps) {
@@ -58,7 +62,7 @@ export function SubscriptionDetailModal({
   if (!subscription) return null
 
   return (
-    <Modal isOpen={isOpen} scrollBehavior="inside" size="lg" onClose={onClose}>
+    <Modal isOpen={isOpen} scrollBehavior="inside" size="2xl" onClose={onClose}>
       <ModalContent>
         <ModalHeader className="flex items-center gap-2">
           <CreditCard className="text-primary" size={20} />
@@ -125,36 +129,86 @@ export function SubscriptionDetailModal({
             />
           </div>
 
-          {/* Limits */}
-          <div className="space-y-2">
+          {/* Limits & Usage */}
+          <div className="space-y-3">
             <Typography
               className="text-sm font-semibold uppercase tracking-wide text-default-500"
               variant="h4"
             >
               {t(`${tp}.limits`)}
             </Typography>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <div className="text-sm">
-                <span className="text-default-500">{t(`${tp}.condominiums`)}:</span>{' '}
-                <span className="font-medium">
-                  {subscription.maxCondominiums?.toLocaleString()}
-                </span>
+            {usageStats ? (
+              <div className="space-y-3">
+                {[
+                  {
+                    label: t(`${tp}.condominiums`),
+                    current: usageStats.condominiumsCount,
+                    max: subscription.maxCondominiums,
+                  },
+                  {
+                    label: t(`${tp}.units`),
+                    current: usageStats.unitsCount,
+                    max: subscription.maxUnits,
+                  },
+                  {
+                    label: t(`${tp}.users`),
+                    current: usageStats.usersCount,
+                    max: subscription.maxUsers,
+                  },
+                  {
+                    label: t(`${tp}.storage`),
+                    current: usageStats.storageGb ?? 0,
+                    max: subscription.maxStorageGb,
+                  },
+                ].map(({ label, current, max }) => {
+                  const isUnlimited = max === null || max === undefined
+                  const percentage = isUnlimited
+                    ? 0
+                    : max > 0
+                      ? Math.min((current / max) * 100, 100)
+                      : 0
+                  const isNearLimit = !isUnlimited && percentage >= 80
+
+                  return (
+                    <div key={label} className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-default-600">{label}</span>
+                        <span
+                          className={isNearLimit ? 'text-warning font-medium' : 'text-default-500'}
+                        >
+                          {current.toLocaleString()} / {isUnlimited ? '∞' : max.toLocaleString()}
+                        </span>
+                      </div>
+                      {!isUnlimited && (
+                        <Progress
+                          color={isNearLimit ? 'warning' : 'primary'}
+                          size="sm"
+                          value={percentage}
+                        />
+                      )}
+                    </div>
+                  )
+                })}
               </div>
-              <div className="text-sm">
-                <span className="text-default-500">{t(`${tp}.units`)}:</span>{' '}
-                <span className="font-medium">{subscription.maxUnits?.toLocaleString()}</span>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {[
+                  { label: t(`${tp}.condominiums`), value: subscription.maxCondominiums },
+                  { label: t(`${tp}.units`), value: subscription.maxUnits },
+                  { label: t(`${tp}.users`), value: subscription.maxUsers },
+                  { label: t(`${tp}.storage`), value: subscription.maxStorageGb, suffix: ' GB' },
+                ].map(({ label, value, suffix }) => (
+                  <div key={label} className="text-sm">
+                    <span className="text-default-500">{label}:</span>{' '}
+                    <span className="font-medium">
+                      {value !== null && value !== undefined
+                        ? `${value.toLocaleString()}${suffix || ''}`
+                        : '∞'}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <div className="text-sm">
-                <span className="text-default-500">{t(`${tp}.users`)}:</span>{' '}
-                <span className="font-medium">{subscription.maxUsers?.toLocaleString()}</span>
-              </div>
-              <div className="text-sm">
-                <span className="text-default-500">{t(`${tp}.storage`)}:</span>{' '}
-                <span className="font-medium">
-                  {subscription.maxStorageGb?.toLocaleString()} GB
-                </span>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Features */}

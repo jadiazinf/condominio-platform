@@ -8,6 +8,7 @@ import { useCreateSubscriptionRate } from '@packages/http-client'
 
 import { Button } from '@/ui/components/button'
 import { Input, CurrencyInput } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Typography } from '@/ui/components/typography'
 import { Switch } from '@/ui/components/switch'
 import { Card, CardBody } from '@/ui/components/card'
@@ -98,8 +99,10 @@ export function CreateRateForm({ onSuccess, onCancel, isEmbedded }: CreateRateFo
     createMutation.mutate(payload as any)
   }
 
+  const formId = isEmbedded ? 'create-rate-form' : undefined
+
   const formContent = (
-    <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-8" id={formId} onSubmit={handleSubmit(onSubmit)}>
       {/* Basic Information */}
       <div className="space-y-4 flex flex-col gap-2">
         <Typography className="text-default-700" variant="h4">
@@ -215,11 +218,10 @@ export function CreateRateForm({ onSuccess, onCancel, isEmbedded }: CreateRateFo
             control={control}
             name="annualDiscountPercentage"
             render={({ field }) => (
-              <Input
-                endContent={<span className="text-default-400 text-sm">%</span>}
+              <CurrencyInput
+                currencySymbol={<span className="text-default-400 text-sm">%</span>}
                 label={t('superadmin.rates.form.fields.annualDiscountPercentage.label')}
                 placeholder={t('superadmin.rates.form.fields.annualDiscountPercentage.placeholder')}
-                type="number"
                 value={field.value || ''}
                 onValueChange={field.onChange}
               />
@@ -230,12 +232,11 @@ export function CreateRateForm({ onSuccess, onCancel, isEmbedded }: CreateRateFo
             control={control}
             name="taxRate"
             render={({ field }) => (
-              <Input
-                description="Deja vacío si esta tarifa no incluye IVA"
-                endContent={<span className="text-default-400 text-sm">%</span>}
-                label="Tasa de IVA"
-                placeholder="Ej: 16"
-                type="number"
+              <CurrencyInput
+                currencySymbol={<span className="text-default-400 text-sm">%</span>}
+                description={t('superadmin.rates.form.fields.taxRate.description')}
+                label={t('superadmin.rates.form.fields.taxRate.label')}
+                placeholder={t('superadmin.rates.form.fields.taxRate.placeholder')}
                 value={field.value || ''}
                 onValueChange={field.onChange}
               />
@@ -255,8 +256,7 @@ export function CreateRateForm({ onSuccess, onCancel, isEmbedded }: CreateRateFo
             control={control}
             name="effectiveFrom"
             render={({ field }) => (
-              <Input
-                {...field}
+              <DatePicker
                 isRequired
                 errorMessage={
                   errors.effectiveFrom
@@ -264,8 +264,8 @@ export function CreateRateForm({ onSuccess, onCancel, isEmbedded }: CreateRateFo
                     : undefined
                 }
                 label={t('superadmin.rates.form.fields.effectiveFrom.label')}
-                placeholder={t('superadmin.rates.form.fields.effectiveFrom.placeholder')}
-                type="date"
+                value={field.value}
+                onChange={field.onChange}
               />
             )}
           />
@@ -274,12 +274,10 @@ export function CreateRateForm({ onSuccess, onCancel, isEmbedded }: CreateRateFo
             control={control}
             name="effectiveUntil"
             render={({ field }) => (
-              <Input
-                {...field}
+              <DatePicker
                 label={t('superadmin.rates.form.fields.effectiveUntil.label')}
-                placeholder={t('superadmin.rates.form.fields.effectiveUntil.placeholder')}
-                type="date"
                 value={field.value || ''}
+                onChange={field.onChange}
               />
             )}
           />
@@ -298,26 +296,28 @@ export function CreateRateForm({ onSuccess, onCancel, isEmbedded }: CreateRateFo
         <Typography variant="body2">{t('superadmin.rates.form.fields.isActive.label')}</Typography>
       </div>
 
-      {/* Submit */}
-      <div className="flex justify-end gap-3">
-        <Button
-          isDisabled={isSubmitting || createMutation.isPending}
-          variant="flat"
-          onPress={() => (onCancel ? onCancel() : router.push('/dashboard/rates'))}
-        >
-          {t('common.cancel')}
-        </Button>
-        <Button
-          className="text-white"
-          color="success"
-          isLoading={isSubmitting || createMutation.isPending}
-          type="submit"
-        >
-          {createMutation.isPending
-            ? t('superadmin.rates.form.submitting')
-            : t('superadmin.rates.form.submit')}
-        </Button>
-      </div>
+      {/* Submit - only show when not embedded (embedded uses ModalFooter) */}
+      {!isEmbedded && (
+        <div className="flex justify-end gap-3">
+          <Button
+            isDisabled={isSubmitting || createMutation.isPending}
+            variant="flat"
+            onPress={() => (onCancel ? onCancel() : router.push('/dashboard/rates'))}
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            className="text-white"
+            color="success"
+            isLoading={isSubmitting || createMutation.isPending}
+            type="submit"
+          >
+            {createMutation.isPending
+              ? t('superadmin.rates.form.submitting')
+              : t('superadmin.rates.form.submit')}
+          </Button>
+        </div>
+      )}
     </form>
   )
 

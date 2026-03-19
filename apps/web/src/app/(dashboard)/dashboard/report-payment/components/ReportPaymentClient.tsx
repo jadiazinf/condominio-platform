@@ -13,6 +13,7 @@ import { Typography } from '@/ui/components/typography'
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Textarea } from '@/ui/components/textarea'
 import { Spinner } from '@/ui/components/spinner'
@@ -236,12 +237,11 @@ export function ReportPaymentClient({ userId, unitOptions }: IReportPaymentClien
             />
 
             {/* Payment Date */}
-            <Input
+            <DatePicker
               isRequired
               label={t('resident.reportPayment.fields.paymentDate')}
-              type="date"
               value={paymentDate}
-              onValueChange={setPaymentDate}
+              onChange={setPaymentDate}
             />
 
             {/* Receipt Number (optional) */}

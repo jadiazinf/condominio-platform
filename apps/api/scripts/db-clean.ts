@@ -161,7 +161,7 @@ function parseDbUrl(url: string): { host: string; database: string; user: string
     // postgresql://user:pass@host:port/database
     const match = url.match(/postgresql:\/\/([^:]+):[^@]+@([^:\/]+)[:\d]*\/([^?]+)/)
     if (match) {
-      return { user: match[1], host: match[2], database: match[3] }
+      return { user: match[1]!, host: match[2]!, database: match[3]! }
     }
   } catch {
     // Ignore parsing errors

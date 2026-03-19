@@ -34,6 +34,7 @@ export {
   companyCondominiumsKeys,
   useCondominiums,
   useCondominiumsPaginated,
+  usePlatformCondominiumsPaginated,
   useCreateCondominium,
   useUpdateCondominium,
   useGenerateCondominiumCode,
@@ -197,6 +198,16 @@ export {
   deleteTicketMessage,
   supportTicketMessageKeys,
   useTicketWebSocket,
+  // User Tickets (resident-facing)
+  useMyTickets,
+  useCreateUserTicket,
+  useUserTicket,
+  useUserTicketMessages,
+  useCreateUserTicketMessage,
+  useUserUpdateTicketStatus,
+  useUserResolveTicket,
+  useUserCloseTicket,
+  userTicketKeys,
   useSuperadminUsersPaginated,
   getSuperadminUsersPaginated,
   useActiveSubscriptionRate,
@@ -435,6 +446,11 @@ export {
   useInfiniteQuery,
   useIsFetching,
   useIsMutating,
+  // Wizard Drafts
+  useWizardDraft,
+  useSaveWizardDraft,
+  useDeleteWizardDraft,
+  wizardDraftKeys,
 } from './hooks/index'
 export type {
   QueryProviderProps,
@@ -554,6 +570,10 @@ export type {
   IUseTicketMessagesOptions,
   ICreateTicketMessageOptions,
   IDeleteTicketMessageOptions,
+  // User Tickets types
+  IUserTicketFilters,
+  ICreateUserTicketInput,
+  IUseMyTicketsOptions,
   UseSuperadminUsersPaginatedOptions,
   TSuperadminUserWithDetails,
   TSuperadminUsersQuery,
@@ -653,6 +673,11 @@ export type {
   // Payment Concept Services
   ILinkServiceToConceptVariables,
   IUnlinkServiceFromConceptVariables,
+  // Wizard Drafts
+  IUseWizardDraftOptions,
+  ISaveWizardDraftVariables,
+  ISaveWizardDraftOptions,
+  IDeleteWizardDraftOptions,
 } from './hooks/index'
 
 // Types
@@ -845,5 +870,6 @@ export {
   fetchSuperadminPermissions,
   fetchSuperadminSession,
   fetchActiveSuperadminUsers,
+  fetchNotificationsPaginated,
 } from './server/index'
-export type { TSuperadminSession } from './server/index'
+export type { TSuperadminSession, IFetchNotificationsParams } from './server/index'

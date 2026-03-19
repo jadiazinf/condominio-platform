@@ -2,13 +2,21 @@
 
 import type { TPaymentConcept, TPaymentConceptsQuery } from '@packages/domain'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, X, Search, FileText } from 'lucide-react'
-import { useMyCompanyPaymentConceptsPaginated } from '@packages/http-client/hooks'
+import { Plus, X, Search, FileText, FilePen } from 'lucide-react'
+import {
+  useMyCompanyPaymentConceptsPaginated,
+  useWizardDraft,
+  useDeleteWizardDraft,
+  wizardDraftKeys,
+} from '@packages/http-client/hooks'
+import { useQueryClient } from '@packages/http-client'
 
 import { PaymentConceptsTable } from './PaymentConceptsTable'
 
+import { useTranslation } from '@/contexts'
+import { useDebouncedValue } from '@/hooks'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
 import { Select, type ISelectItem } from '@/ui/components/select'
@@ -80,25 +88,53 @@ export function PaymentConceptsPageClient({
   translations: t,
 }: PaymentConceptsPageClientProps) {
   const router = useRouter()
+  const { t: tr } = useTranslation()
+  const queryClient = useQueryClient()
+  const draftW = 'admin.condominiums.detail.paymentConcepts.wizard'
+
+  // Check for pending draft (draftResponse is null when no draft, object with .data when exists)
+  const { data: draftResponse } = useWizardDraft('payment_concept', condominiumId, {
+    enabled: !!condominiumId,
+  })
+  const deleteDraftMutation = useDeleteWizardDraft('payment_concept', condominiumId)
+  const hasPendingDraft = !!draftResponse?.data
+
+  const handleDiscardDraft = useCallback(() => {
+    // Optimistically remove draft from cache so banner disappears immediately
+    queryClient.setQueryData(wizardDraftKeys.detail('payment_concept', condominiumId), null)
+    deleteDraftMutation.mutate()
+  }, [queryClient, condominiumId, deleteDraftMutation])
 
   // Filter state
   const [typeFilter, setTypeFilter] = useState<TTypeFilter>('all')
   const [statusFilter, setStatusFilter] = useState<TStatusFilter>('active')
-  const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const debouncedSearch = useDebouncedValue(searchInput)
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
+  const isFirstRender = useRef(true)
+
+  // Reset page when debounced search changes (skip first render)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+
+      return
+    }
+    setPage(1)
+  }, [debouncedSearch])
 
   // Build query for API
   const query: TPaymentConceptsQuery = useMemo(
     () => ({
       page,
       limit,
-      search: search || undefined,
+      search: debouncedSearch || undefined,
       conceptType: typeFilter === 'all' ? undefined : typeFilter,
       condominiumId,
       isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
     }),
-    [page, limit, search, typeFilter, statusFilter, condominiumId]
+    [page, limit, debouncedSearch, typeFilter, statusFilter, condominiumId]
   )
 
   // Type filter items
@@ -150,15 +186,10 @@ export function PaymentConceptsPageClient({
     }
   }, [])
 
-  const handleSearchChange = useCallback((value: string) => {
-    setSearch(value)
-    setPage(1)
-  }, [])
-
   const handleClearFilters = useCallback(() => {
     setTypeFilter('all')
     setStatusFilter('active')
-    setSearch('')
+    setSearchInput('')
     setPage(1)
   }, [])
 
@@ -169,7 +200,7 @@ export function PaymentConceptsPageClient({
     [condominiumId, router]
   )
 
-  const hasActiveFilters = typeFilter !== 'all' || statusFilter !== 'active' || search !== ''
+  const hasActiveFilters = typeFilter !== 'all' || statusFilter !== 'active' || searchInput !== ''
 
   if (error) {
     return (
@@ -213,6 +244,30 @@ export function PaymentConceptsPageClient({
         </Button>
       </div>
 
+      {/* Pending draft banner */}
+      {hasPendingDraft && (
+        <div className="flex items-center justify-between rounded-lg border border-warning-200 bg-warning-50 p-4">
+          <div className="flex items-center gap-3">
+            <FilePen className="text-warning-600" size={20} />
+            <Typography color="default" variant="body2">
+              {tr(`${draftW}.pendingDraft`)}
+            </Typography>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" variant="flat" onPress={handleDiscardDraft}>
+              {tr(`${draftW}.discardDraft`)}
+            </Button>
+            <Button
+              color="primary"
+              href={`/dashboard/condominiums/${condominiumId}/payment-concepts/create`}
+              size="sm"
+            >
+              {tr(`${draftW}.continueDraft`)}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:flex-wrap">
         <Input
@@ -220,10 +275,10 @@ export function PaymentConceptsPageClient({
           className="w-full sm:w-64"
           placeholder={t.filters.searchPlaceholder}
           startContent={<Search className="text-default-400" size={16} />}
-          value={search}
+          value={searchInput}
           variant="bordered"
-          onClear={() => handleSearchChange('')}
-          onValueChange={handleSearchChange}
+          onClear={() => setSearchInput('')}
+          onValueChange={setSearchInput}
         />
         <Select
           aria-label={t.table.type}

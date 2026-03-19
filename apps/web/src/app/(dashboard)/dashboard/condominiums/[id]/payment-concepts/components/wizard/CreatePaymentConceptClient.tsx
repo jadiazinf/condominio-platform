@@ -2,7 +2,7 @@
 
 import type { IWizardFormData } from './CreatePaymentConceptWizard'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   useCreatePaymentConceptFull,
@@ -27,6 +27,8 @@ import { useTranslation } from '@/contexts'
 import { Stepper, type IStepItem } from '@/ui/components/stepper'
 import { Card, CardBody } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
+import { Spinner } from '@/ui/components/spinner'
+import { useWizardAutoDraft } from '@/hooks/useWizardAutoDraft'
 
 const INITIAL_FORM_DATA: IWizardFormData = {
   name: '',
@@ -100,11 +102,44 @@ export function CreatePaymentConceptClient({
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showErrors, setShowErrors] = useState(false)
+  const [draftRestored, setDraftRestored] = useState(false)
+  const draftInitializedRef = useRef(false)
+  const skipNextSaveRef = useRef(false)
+
+  const { draft, isLoadingDraft, hasDraft, saveDraft, clearDraft } =
+    useWizardAutoDraft<IWizardFormData>({
+      wizardType: 'payment_concept',
+      entityId: condominiumId,
+    })
 
   const { mutateAsync: createConceptFull } = useCreatePaymentConceptFull(managementCompanyId)
   const { mutateAsync: createAssignment } = useCreateAssignment(managementCompanyId)
   const { mutateAsync: linkBankAccount } = useLinkBankAccount(managementCompanyId)
   const { mutateAsync: createInterestConfig } = useCreateInterestConfiguration()
+
+  // Restore draft when loaded
+  useEffect(() => {
+    if (draftInitializedRef.current || isLoadingDraft) return
+    draftInitializedRef.current = true
+
+    if (draft) {
+      skipNextSaveRef.current = true
+      setFormData({ ...INITIAL_FORM_DATA, ...draft.data })
+      setCurrentStep(draft.currentStep)
+      setDraftRestored(true)
+    }
+  }, [isLoadingDraft, draft])
+
+  // Auto-save draft on formData/currentStep changes
+  useEffect(() => {
+    if (!draftInitializedRef.current) return
+    if (skipNextSaveRef.current) {
+      skipNextSaveRef.current = false
+
+      return
+    }
+    saveDraft(formData, currentStep)
+  }, [formData, currentStep, saveDraft])
 
   // Default to VES currency when currencies load
   useEffect(() => {
@@ -251,6 +286,7 @@ export function CreatePaymentConceptClient({
         } as any)
       }
 
+      clearDraft()
       await queryClient.invalidateQueries({ queryKey: paymentConceptKeys.all })
       toast.success(t(`${w}.success`))
       router.push(`/dashboard/condominiums/${condominiumId}/payment-concepts`)
@@ -280,6 +316,7 @@ export function CreatePaymentConceptClient({
     createAssignment,
     linkBankAccount,
     createInterestConfig,
+    clearDraft,
     queryClient,
     router,
     toast,
@@ -365,8 +402,38 @@ export function CreatePaymentConceptClient({
     }
   }
 
+  if (isLoadingDraft) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Spinner size="lg" />
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-6">
+      {/* Draft restored banner */}
+      {draftRestored && (
+        <Card>
+          <CardBody className="flex flex-row items-center justify-between p-4">
+            <span className="text-sm text-default-600">{t(`${w}.draftRestored`)}</span>
+            <Button
+              size="sm"
+              variant="flat"
+              onPress={() => {
+                clearDraft()
+                skipNextSaveRef.current = true
+                setFormData({ ...INITIAL_FORM_DATA, conceptType: initialConceptType })
+                setCurrentStep(0)
+                setDraftRestored(false)
+              }}
+            >
+              {t(`${w}.discardDraft`)}
+            </Button>
+          </CardBody>
+        </Card>
+      )}
+
       {/* Stepper */}
       <Stepper
         color="primary"

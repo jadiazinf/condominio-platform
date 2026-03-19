@@ -1,14 +1,20 @@
 /**
  * Database Seed Script
  *
- * This script populates the database with dummy data for testing.
- * It has multiple safety measures to prevent accidental data corruption.
+ * This script populates the database with essential catalog data.
+ *
+ * What it seeds:
+ * - Locations: All Venezuelan states and their major cities
+ * - Permissions: Platform and admin permission modules
+ * - Roles: System roles (superadmin, admin, user, etc.)
+ * - Superadmin user and role assignment
+ * - Subscription terms & conditions
+ * - Currencies and Banks catalogs
  *
  * Safety features:
  * - Cannot run on production environment
  * - Validates database URL against production blocklist
  * - Requires URL to contain safe patterns (localhost, dev, staging, etc.)
- * - Requires environment selection via CLI prompt
  * - Requires typing database name to confirm
  * - Requires typing "SEED" to confirm
  *
@@ -20,8 +26,7 @@
 
 import { Pool } from 'pg'
 import { drizzle } from 'drizzle-orm/node-postgres'
-import { faker } from '@faker-js/faker/locale/es_MX'
-import { eq, and, isNull } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import * as readline from 'readline'
 import * as schema from '@database/drizzle/schema'
 import { ESystemRole } from '@packages/domain'
@@ -36,7 +41,7 @@ const DATABASE_URL = process.env.DATABASE_URL || ''
 
 // Superadmin configuration
 const SUPERADMIN_EMAIL = 'jadiaz.inf@gmail.com'
-const SUPERADMIN_FIREBASE_UID = 'du7YtYB3Xeet88oTLNHUX20DACt2'
+const SUPERADMIN_FIREBASE_UID = 'JEUhC83eg1RZvkOn3NWDjAKScbq2'
 
 // const SUPERADMIN_EMAIL = 'jesusdesk@gmail.com'
 // const SUPERADMIN_FIREBASE_UID = 'mbh2opMCerYPGwLNFDSGhL372aN2'
@@ -98,14 +103,6 @@ const ACTION_NAMES: Record<string, string> = {
 
 type Database = ReturnType<typeof drizzle<typeof schema>>
 type UserInsert = typeof schema.users.$inferInsert
-type ManagementCompanyInsert = typeof schema.managementCompanies.$inferInsert
-type CondominiumInsert = typeof schema.condominiums.$inferInsert
-type CondominiumManagementCompanyInsert = typeof schema.condominiumManagementCompanies.$inferInsert
-type BuildingInsert = typeof schema.buildings.$inferInsert
-type UnitInsert = typeof schema.units.$inferInsert
-type UnitOwnershipInsert = typeof schema.unitOwnerships.$inferInsert
-type SupportTicketInsert = typeof schema.supportTickets.$inferInsert
-type SupportTicketMessageInsert = typeof schema.supportTicketMessages.$inferInsert
 type PermissionInsert = typeof schema.permissions.$inferInsert
 type RoleInsert = typeof schema.roles.$inferInsert
 type RolePermissionInsert = typeof schema.rolePermissions.$inferInsert
@@ -132,7 +129,7 @@ function printHeader() {
   console.log('\n' + '='.repeat(60))
   console.log('  DATABASE SEED SCRIPT')
   console.log('='.repeat(60))
-  console.log('\n  This will populate the database with dummy data.')
+  console.log('\n  This will populate the database with catalog data.')
   console.log('  Existing data may be affected.\n')
 }
 
@@ -175,7 +172,7 @@ function parseDbUrl(url: string): { host: string; database: string; user: string
   try {
     const match = url.match(/postgresql:\/\/([^:]+):[^@]+@([^:\/]+)[:\d]*\/([^?]+)/)
     if (match) {
-      return { user: match[1], host: match[2], database: match[3] }
+      return { user: match[1]!, host: match[2]!, database: match[3]! }
     }
   } catch {
     // Ignore parsing errors
@@ -221,47 +218,358 @@ function validateDatabaseUrl(url: string): boolean {
 }
 
 // ============================================================================
+// Venezuelan Locations Data
+// ============================================================================
+
+const VENEZUELAN_STATES: {
+  name: string
+  code: string
+  cities: { name: string; code: string }[]
+}[] = [
+  {
+    name: 'Distrito Capital',
+    code: 'DC',
+    cities: [{ name: 'Caracas', code: 'CCS' }],
+  },
+  {
+    name: 'Amazonas',
+    code: 'AM',
+    cities: [
+      { name: 'Puerto Ayacucho', code: 'PYH' },
+      { name: 'San Fernando de Atabapo', code: 'SFA' },
+    ],
+  },
+  {
+    name: 'Anzoátegui',
+    code: 'AN',
+    cities: [
+      { name: 'Barcelona', code: 'BLA' },
+      { name: 'Puerto La Cruz', code: 'PLC' },
+      { name: 'El Tigre', code: 'ETG' },
+      { name: 'Anaco', code: 'ANC' },
+      { name: 'Cantaura', code: 'CTR' },
+      { name: 'Lechería', code: 'LCH' },
+      { name: 'Guanta', code: 'GNT' },
+      { name: 'Píritu', code: 'PIR' },
+    ],
+  },
+  {
+    name: 'Apure',
+    code: 'AP',
+    cities: [
+      { name: 'San Fernando de Apure', code: 'SFD' },
+      { name: 'Guasdualito', code: 'GSD' },
+      { name: 'Achaguas', code: 'ACH' },
+      { name: 'Biruaca', code: 'BIR' },
+      { name: 'Elorza', code: 'ELZ' },
+    ],
+  },
+  {
+    name: 'Aragua',
+    code: 'AR',
+    cities: [
+      { name: 'Maracay', code: 'MCY' },
+      { name: 'Turmero', code: 'TRM' },
+      { name: 'La Victoria', code: 'LVC' },
+      { name: 'Cagua', code: 'CGU' },
+      { name: 'Villa de Cura', code: 'VDC' },
+      { name: 'Santa Rita', code: 'SRT' },
+      { name: 'El Limón', code: 'ELM' },
+      { name: 'Palo Negro', code: 'PNO' },
+      { name: 'San Mateo', code: 'SMT' },
+    ],
+  },
+  {
+    name: 'Barinas',
+    code: 'BA',
+    cities: [
+      { name: 'Barinas', code: 'BNS' },
+      { name: 'Socopó', code: 'SCP' },
+      { name: 'Ciudad Bolivia', code: 'CBL' },
+      { name: 'Barinitas', code: 'BRT' },
+      { name: 'Santa Bárbara de Barinas', code: 'SBB' },
+      { name: 'Sabaneta', code: 'SBN' },
+    ],
+  },
+  {
+    name: 'Bolívar',
+    code: 'BO',
+    cities: [
+      { name: 'Ciudad Bolívar', code: 'CBV' },
+      { name: 'Ciudad Guayana', code: 'CGY' },
+      { name: 'Upata', code: 'UPT' },
+      { name: 'Caicara del Orinoco', code: 'CCO' },
+      { name: 'Santa Elena de Uairén', code: 'SEU' },
+      { name: 'Tumeremo', code: 'TMR' },
+      { name: 'El Callao', code: 'ECL' },
+      { name: 'Guasipati', code: 'GSP' },
+    ],
+  },
+  {
+    name: 'Carabobo',
+    code: 'CA',
+    cities: [
+      { name: 'Valencia', code: 'VLC' },
+      { name: 'Puerto Cabello', code: 'PCB' },
+      { name: 'Guacara', code: 'GCR' },
+      { name: 'Los Guayos', code: 'LGY' },
+      { name: 'San Diego', code: 'SDG' },
+      { name: 'Naguanagua', code: 'NGN' },
+      { name: 'Bejuma', code: 'BJM' },
+      { name: 'Mariara', code: 'MRA' },
+      { name: 'Morón', code: 'MRN' },
+      { name: 'Tocuyito', code: 'TCY' },
+      { name: 'San Joaquín', code: 'SJQ' },
+      { name: 'Diego Ibarra', code: 'DIB' },
+    ],
+  },
+  {
+    name: 'Cojedes',
+    code: 'CO',
+    cities: [
+      { name: 'San Carlos', code: 'SCA' },
+      { name: 'Tinaquillo', code: 'TNQ' },
+      { name: 'Tinaco', code: 'TNC' },
+      { name: 'El Baúl', code: 'EBL' },
+    ],
+  },
+  {
+    name: 'Delta Amacuro',
+    code: 'DA',
+    cities: [
+      { name: 'Tucupita', code: 'TUC' },
+      { name: 'Pedernales', code: 'PED' },
+      { name: 'Curiapo', code: 'CRP' },
+    ],
+  },
+  {
+    name: 'Falcón',
+    code: 'FA',
+    cities: [
+      { name: 'Coro', code: 'COR' },
+      { name: 'Punto Fijo', code: 'PFJ' },
+      { name: 'Tucacas', code: 'TCS' },
+      { name: 'La Vela de Coro', code: 'LVL' },
+      { name: 'Dabajuro', code: 'DBJ' },
+      { name: 'Churuguara', code: 'CHG' },
+      { name: 'Judibana', code: 'JDB' },
+      { name: 'Chichiriviche', code: 'CHV' },
+    ],
+  },
+  {
+    name: 'Guárico',
+    code: 'GU',
+    cities: [
+      { name: 'San Juan de los Morros', code: 'SJM' },
+      { name: 'Calabozo', code: 'CLB' },
+      { name: 'Valle de la Pascua', code: 'VLP' },
+      { name: 'Zaraza', code: 'ZRZ' },
+      { name: 'Altagracia de Orituco', code: 'AGO' },
+      { name: 'Tucupido', code: 'TCP' },
+      { name: 'El Sombrero', code: 'ESB' },
+    ],
+  },
+  {
+    name: 'La Guaira',
+    code: 'LG',
+    cities: [
+      { name: 'La Guaira', code: 'LGR' },
+      { name: 'Catia La Mar', code: 'CLM' },
+      { name: 'Macuto', code: 'MCT' },
+      { name: 'Caraballeda', code: 'CBD' },
+      { name: 'Maiquetía', code: 'MQT' },
+      { name: 'Naiguatá', code: 'NGT' },
+    ],
+  },
+  {
+    name: 'Lara',
+    code: 'LA',
+    cities: [
+      { name: 'Barquisimeto', code: 'BRM' },
+      { name: 'Cabudare', code: 'CBD' },
+      { name: 'Carora', code: 'CRR' },
+      { name: 'El Tocuyo', code: 'ETC' },
+      { name: 'Quíbor', code: 'QBR' },
+      { name: 'Duaca', code: 'DCA' },
+      { name: 'Los Rastrojos', code: 'LRS' },
+    ],
+  },
+  {
+    name: 'Mérida',
+    code: 'ME',
+    cities: [
+      { name: 'Mérida', code: 'MRD' },
+      { name: 'El Vigía', code: 'EVG' },
+      { name: 'Ejido', code: 'EJD' },
+      { name: 'Tovar', code: 'TVR' },
+      { name: 'Mucuchíes', code: 'MCC' },
+      { name: 'Lagunillas', code: 'LGM' },
+      { name: 'Tabay', code: 'TBY' },
+      { name: 'Santa Cruz de Mora', code: 'SCM' },
+    ],
+  },
+  {
+    name: 'Miranda',
+    code: 'MI',
+    cities: [
+      { name: 'Los Teques', code: 'LTQ' },
+      { name: 'Guarenas', code: 'GUA' },
+      { name: 'Guatire', code: 'GTI' },
+      { name: 'Baruta', code: 'BRT' },
+      { name: 'Chacao', code: 'CHC' },
+      { name: 'Petare', code: 'PTR' },
+      { name: 'Ocumare del Tuy', code: 'OCT' },
+      { name: 'Charallave', code: 'CRV' },
+      { name: 'Cúa', code: 'CUA' },
+      { name: 'Santa Teresa del Tuy', code: 'STT' },
+      { name: 'Higuerote', code: 'HGR' },
+      { name: 'San Antonio de los Altos', code: 'SAA' },
+      { name: 'Carrizal', code: 'CRZ' },
+      { name: 'Santa Lucía', code: 'SLC' },
+      { name: 'Caucagua', code: 'CCG' },
+      { name: 'Río Chico', code: 'RCH' },
+    ],
+  },
+  {
+    name: 'Monagas',
+    code: 'MO',
+    cities: [
+      { name: 'Maturín', code: 'MTR' },
+      { name: 'Punta de Mata', code: 'PDM' },
+      { name: 'Temblador', code: 'TMB' },
+      { name: 'Caripito', code: 'CRP' },
+      { name: 'Barrancas del Orinoco', code: 'BDO' },
+      { name: 'Caripe', code: 'CRI' },
+    ],
+  },
+  {
+    name: 'Nueva Esparta',
+    code: 'NE',
+    cities: [
+      { name: 'La Asunción', code: 'LAS' },
+      { name: 'Porlamar', code: 'PMR' },
+      { name: 'Juan Griego', code: 'JGR' },
+      { name: 'Pampatar', code: 'PPT' },
+      { name: 'El Valle del Espíritu Santo', code: 'EVS' },
+      { name: 'San Juan Bautista', code: 'SJB' },
+    ],
+  },
+  {
+    name: 'Portuguesa',
+    code: 'PO',
+    cities: [
+      { name: 'Guanare', code: 'GNR' },
+      { name: 'Acarigua', code: 'ACR' },
+      { name: 'Araure', code: 'ARR' },
+      { name: 'Ospino', code: 'OSP' },
+      { name: 'Turén', code: 'TRN' },
+      { name: 'Biscucuy', code: 'BSC' },
+    ],
+  },
+  {
+    name: 'Sucre',
+    code: 'SU',
+    cities: [
+      { name: 'Cumaná', code: 'CUM' },
+      { name: 'Carúpano', code: 'CRU' },
+      { name: 'Güiria', code: 'GRI' },
+      { name: 'Cariaco', code: 'CRC' },
+      { name: 'Araya', code: 'ARY' },
+      { name: 'Casanay', code: 'CSN' },
+    ],
+  },
+  {
+    name: 'Táchira',
+    code: 'TA',
+    cities: [
+      { name: 'San Cristóbal', code: 'SCR' },
+      { name: 'Táriba', code: 'TRB' },
+      { name: 'Rubio', code: 'RBI' },
+      { name: 'San Antonio del Táchira', code: 'SAT' },
+      { name: 'La Fría', code: 'LFR' },
+      { name: 'Capacho', code: 'CPC' },
+      { name: 'Colón', code: 'CLN' },
+      { name: 'Palmira', code: 'PLM' },
+      { name: 'La Grita', code: 'LGT' },
+      { name: 'Ureña', code: 'URN' },
+    ],
+  },
+  {
+    name: 'Trujillo',
+    code: 'TR',
+    cities: [
+      { name: 'Trujillo', code: 'TRJ' },
+      { name: 'Valera', code: 'VLR' },
+      { name: 'Boconó', code: 'BCN' },
+      { name: 'Betijoque', code: 'BTJ' },
+      { name: 'Sabana de Mendoza', code: 'SDM' },
+      { name: 'Carvajal', code: 'CVJ' },
+    ],
+  },
+  {
+    name: 'Yaracuy',
+    code: 'YA',
+    cities: [
+      { name: 'San Felipe', code: 'SFP' },
+      { name: 'Yaritagua', code: 'YRT' },
+      { name: 'Chivacoa', code: 'CHI' },
+      { name: 'Nirgua', code: 'NRG' },
+      { name: 'Cocorote', code: 'CCR' },
+      { name: 'Independencia', code: 'IND' },
+    ],
+  },
+  {
+    name: 'Zulia',
+    code: 'ZU',
+    cities: [
+      { name: 'Maracaibo', code: 'MAR' },
+      { name: 'Cabimas', code: 'CAB' },
+      { name: 'Ciudad Ojeda', code: 'COJ' },
+      { name: 'Machiques', code: 'MCH' },
+      { name: 'Santa Bárbara del Zulia', code: 'SBZ' },
+      { name: 'Los Puertos de Altagracia', code: 'LPA' },
+      { name: 'Lagunillas', code: 'LGN' },
+      { name: 'San Francisco', code: 'SFR' },
+      { name: 'Villa del Rosario', code: 'VDR' },
+      { name: 'La Cañada de Urdaneta', code: 'LCU' },
+      { name: 'Mara', code: 'MRR' },
+      { name: 'San Rafael del Moján', code: 'SRM' },
+      { name: 'Santa Rita', code: 'SRZ' },
+    ],
+  },
+]
+
+// ============================================================================
 // Seed Functions
 // ============================================================================
 
 async function seedLocations(db: Database): Promise<void> {
-  console.log('\n  Step 1: Creating locations...')
+  console.log('\n  Step 1: Creating locations (Venezuela)...')
 
   // Venezuela
-  const venezuelaData = {
-    name: 'Venezuela',
-    locationType: 'country' as const,
-    parentId: null,
-    code: 'VE',
-    isActive: true,
-  }
-
   let venezuela = await db.query.locations.findFirst({
     where: (l, { eq }) => eq(l.code, 'VE'),
   })
 
   if (!venezuela) {
-    const [inserted] = await db.insert(schema.locations).values(venezuelaData).returning()
-    venezuela = inserted
+    const [inserted] = await db
+      .insert(schema.locations)
+      .values({
+        name: 'Venezuela',
+        locationType: 'country' as const,
+        parentId: null,
+        code: 'VE',
+        isActive: true,
+      })
+      .returning()
+    venezuela = inserted!
   }
 
-  // Venezuelan states with their codes
-  const states = [
-    { name: 'Distrito Capital', code: 'DC' },
-    { name: 'Miranda', code: 'MI' },
-    { name: 'Carabobo', code: 'CA' },
-    { name: 'Zulia', code: 'ZU' },
-    { name: 'Aragua', code: 'AR' },
-    { name: 'Lara', code: 'LA' },
-    { name: 'Anzoátegui', code: 'AN' },
-    { name: 'Bolívar', code: 'BO' },
-    { name: 'Táchira', code: 'TA' },
-    { name: 'Mérida', code: 'ME' },
-  ]
-
+  // States
   const stateIds: Record<string, string> = {}
+  let stateCount = 0
 
-  for (const state of states) {
+  for (const state of VENEZUELAN_STATES) {
     let existing = await db.query.locations.findFirst({
       where: (l, { and, eq }) => and(eq(l.code, state.code), eq(l.locationType, 'province')),
     })
@@ -272,73 +580,46 @@ async function seedLocations(db: Database): Promise<void> {
         .values({
           name: state.name,
           locationType: 'province',
-          parentId: venezuela.id,
+          parentId: venezuela!.id,
           code: state.code,
           isActive: true,
         })
         .returning()
-      existing = inserted
+      existing = inserted!
     }
 
-    stateIds[state.code] = existing.id
+    stateIds[state.code] = existing!.id
+    stateCount++
   }
 
-  // Major cities for each state
-  const cities = [
-    // Distrito Capital
-    { name: 'Caracas', code: 'CCS', stateCode: 'DC' },
-    // Miranda
-    { name: 'Los Teques', code: 'LTQ', stateCode: 'MI' },
-    { name: 'Guarenas', code: 'GUA', stateCode: 'MI' },
-    { name: 'Guatire', code: 'GTI', stateCode: 'MI' },
-    // Carabobo
-    { name: 'Valencia', code: 'VLC', stateCode: 'CA' },
-    { name: 'Puerto Cabello', code: 'PCB', stateCode: 'CA' },
-    // Zulia
-    { name: 'Maracaibo', code: 'MAR', stateCode: 'ZU' },
-    { name: 'Cabimas', code: 'CAB', stateCode: 'ZU' },
-    // Aragua
-    { name: 'Maracay', code: 'MCY', stateCode: 'AR' },
-    { name: 'La Victoria', code: 'LVC', stateCode: 'AR' },
-    // Lara
-    { name: 'Barquisimeto', code: 'BRM', stateCode: 'LA' },
-    // Anzoátegui
-    { name: 'Barcelona', code: 'BLA', stateCode: 'AN' },
-    { name: 'Puerto La Cruz', code: 'PLC', stateCode: 'AN' },
-    // Bolívar
-    { name: 'Ciudad Bolívar', code: 'CBV', stateCode: 'BO' },
-    { name: 'Ciudad Guayana', code: 'CGY', stateCode: 'BO' },
-    // Táchira
-    { name: 'San Cristóbal', code: 'SCR', stateCode: 'TA' },
-    // Mérida
-    { name: 'Mérida', code: 'MER', stateCode: 'ME' },
-  ]
-
+  // Cities
   let cityCount = 0
 
-  for (const city of cities) {
-    const parentId = stateIds[city.stateCode]
+  for (const state of VENEZUELAN_STATES) {
+    const parentId = stateIds[state.code]
     if (!parentId) continue
 
-    const existing = await db.query.locations.findFirst({
-      where: (l, { and, eq }) => and(eq(l.code, city.code), eq(l.locationType, 'city')),
-    })
-
-    if (!existing) {
-      await db.insert(schema.locations).values({
-        name: city.name,
-        locationType: 'city',
-        parentId,
-        code: city.code,
-        isActive: true,
+    for (const city of state.cities) {
+      const existing = await db.query.locations.findFirst({
+        where: (l, { and, eq }) =>
+          and(eq(l.name, city.name), eq(l.locationType, 'city'), eq(l.parentId, parentId)),
       })
-      cityCount++
-    } else {
+
+      if (!existing) {
+        await db.insert(schema.locations).values({
+          name: city.name,
+          locationType: 'city',
+          parentId,
+          code: city.code,
+          isActive: true,
+        })
+      }
+
       cityCount++
     }
   }
 
-  console.log(`    1 country, ${states.length} states, ${cityCount} cities ready.`)
+  console.log(`    1 country, ${stateCount} states, ${cityCount} cities ready.`)
 }
 
 async function seedPermissions(db: Database): Promise<string[]> {
@@ -368,7 +649,7 @@ async function seedPermissions(db: Database): Promise<string[]> {
       }
 
       const [inserted] = await db.insert(schema.permissions).values(permissionData).returning()
-      permissionIds.push(inserted.id)
+      permissionIds.push(inserted!.id)
     }
   }
 
@@ -460,7 +741,7 @@ async function seedRoles(db: Database): Promise<string> {
     const [inserted] = await db.insert(schema.roles).values(role).returning()
 
     if (role.name === ESystemRole.SUPERADMIN) {
-      superadminRoleId = inserted.id
+      superadminRoleId = inserted!.id
     }
   }
 
@@ -522,7 +803,7 @@ async function seedSuperadmin(db: Database, superadminRoleId: string): Promise<s
     }
 
     const [inserted] = await db.insert(schema.users).values(userData).returning()
-    user = inserted
+    user = inserted!
   }
 
   const existingUserRole = await db
@@ -530,7 +811,7 @@ async function seedSuperadmin(db: Database, superadminRoleId: string): Promise<s
     .from(schema.userRoles)
     .where(
       and(
-        eq(schema.userRoles.userId, user.id),
+        eq(schema.userRoles.userId, user!.id),
         eq(schema.userRoles.roleId, superadminRoleId),
         isNull(schema.userRoles.condominiumId),
         isNull(schema.userRoles.buildingId)
@@ -540,7 +821,7 @@ async function seedSuperadmin(db: Database, superadminRoleId: string): Promise<s
 
   if (existingUserRole.length === 0) {
     const userRoleData: Omit<UserRoleInsert, 'id'> = {
-      userId: user.id,
+      userId: user!.id,
       roleId: superadminRoleId,
       condominiumId: null,
       buildingId: null,
@@ -552,370 +833,28 @@ async function seedSuperadmin(db: Database, superadminRoleId: string): Promise<s
     }
 
     await db.insert(schema.userRoles).values(userRoleData)
-  } else if (!existingUserRole[0].isActive) {
+  } else if (!existingUserRole[0]!.isActive) {
     await db
       .update(schema.userRoles)
       .set({ isActive: true })
-      .where(eq(schema.userRoles.id, existingUserRole[0].id))
+      .where(eq(schema.userRoles.id, existingUserRole[0]!.id))
   }
 
   console.log(`    Superadmin ready: ${SUPERADMIN_EMAIL}`)
-  return user.id
-}
-
-async function seedUsers(db: Database, count: number = 20): Promise<string[]> {
-  console.log(`\n  Step 6: Creating ${count} dummy users...`)
-
-  const userIds: string[] = []
-
-  for (let i = 0; i < count; i++) {
-    const firstName = faker.person.firstName()
-    const lastName = faker.person.lastName()
-    const email = faker.internet.email({ firstName, lastName }).toLowerCase()
-
-    const existing = await db.query.users.findFirst({
-      where: (u, { eq }) => eq(u.email, email),
-    })
-
-    if (existing) {
-      userIds.push(existing.id)
-      continue
-    }
-
-    const userData: UserInsert = {
-      firebaseUid: `firebase-uid-${faker.string.uuid()}`,
-      email,
-      displayName: `${firstName} ${lastName}`,
-      firstName,
-      lastName,
-      phoneCountryCode: '+58',
-      phoneNumber: faker.string.numeric(10),
-      idDocumentType: faker.helpers.arrayElement(['V', 'E', 'P']),
-      idDocumentNumber: faker.string.numeric(8),
-      address: faker.location.streetAddress(),
-      preferredLanguage: 'es',
-      isActive: true,
-      isEmailVerified: faker.datatype.boolean(),
-    }
-
-    const [inserted] = await db.insert(schema.users).values(userData).returning()
-    userIds.push(inserted.id)
-  }
-
-  console.log(`    ${userIds.length} users ready.`)
-  return userIds
-}
-
-async function seedManagementCompanies(db: Database, superadminId: string): Promise<string[]> {
-  console.log('\n  Step 7: Creating management companies...')
-
-  const companies: Omit<ManagementCompanyInsert, 'id'>[] = [
-    {
-      name: 'Gestión Integral de Condominios C.A.',
-      legalName: 'Gestión Integral de Condominios, Compañía Anónima',
-      taxIdType: 'J',
-      taxIdNumber: '301234567',
-      email: 'contacto@gestionintegral.com',
-      phoneCountryCode: '+58',
-      phone: '4121234567',
-      website: 'https://www.gestionintegral.com',
-      address: 'Av. Principal de Las Mercedes, Torre Empresarial, Piso 5',
-      isActive: true,
-      createdBy: superadminId,
-    },
-    {
-      name: 'Administradora Metropolitana',
-      legalName: 'Administradora Metropolitana de Propiedades S.A.',
-      taxIdType: 'J',
-      taxIdNumber: '309876543',
-      email: 'info@adminmetropolitana.com',
-      phoneCountryCode: '+58',
-      phone: '4149876543',
-      website: 'https://www.adminmetropolitana.com',
-      address: 'Calle Los Samanes, Edificio Profesional, Torre B, Piso 3',
-      isActive: true,
-      createdBy: superadminId,
-    },
-    {
-      name: 'Condominium Services Pro',
-      legalName: 'Condominium Services Professional, Sociedad Anónima',
-      taxIdType: 'J',
-      taxIdNumber: '305555555',
-      email: 'servicios@condopro.com',
-      phoneCountryCode: '+58',
-      phone: '4125556789',
-      website: 'https://www.condopro.com',
-      address: 'Av. Francisco de Miranda, Centro Comercial Lido, Local 205',
-      isActive: true,
-      createdBy: superadminId,
-    },
-    {
-      name: 'Soluciones Habitacionales del Este',
-      legalName: 'Soluciones Habitacionales del Este, C.A.',
-      taxIdType: 'J',
-      taxIdNumber: '307778889',
-      email: 'contacto@soleste.com',
-      phoneCountryCode: '+58',
-      phone: '4147778889',
-      website: null,
-      address: 'Av. Principal de El Hatillo, Centro Empresarial El Hatillo',
-      isActive: false,
-      createdBy: superadminId,
-    },
-  ]
-
-  const companyIds: string[] = []
-
-  for (const company of companies) {
-    const existing = await db.query.managementCompanies.findFirst({
-      where: (c, { eq }) => eq(c.taxIdNumber, company.taxIdNumber || ''),
-    })
-
-    if (existing) {
-      companyIds.push(existing.id)
-      continue
-    }
-
-    const [inserted] = await db.insert(schema.managementCompanies).values(company).returning()
-    companyIds.push(inserted.id)
-  }
-
-  console.log(`    ${companyIds.length} management companies ready.`)
-  return companyIds
-}
-
-async function seedCondominiums(
-  db: Database,
-  companyIds: string[],
-  superadminId: string
-): Promise<string[]> {
-  console.log('\n  Step 8: Creating condominiums...')
-
-  const condominiumNames = [
-    'Residencias Vista al Parque',
-    'Torre Altamira',
-    'Conjunto Residencial Las Palmas',
-    'Edificio El Sol',
-    'Condominio Los Jardines',
-    'Residencias del Este',
-    'Torre Mirador',
-    'Conjunto Residencial Montaña Verde',
-  ]
-
-  const condominiumIds: string[] = []
-
-  for (let i = 0; i < condominiumNames.length; i++) {
-    const name = condominiumNames[i]
-    const code = `COND-${String(i + 1).padStart(3, '0')}`
-
-    const existing = await db.query.condominiums.findFirst({
-      where: (c, { eq }) => eq(c.code, code),
-    })
-
-    if (existing) {
-      condominiumIds.push(existing.id)
-      continue
-    }
-
-    const condominiumData: CondominiumInsert = {
-      name,
-      code,
-      address: faker.location.streetAddress(),
-      email: faker.internet.email({ firstName: name.split(' ')[0] }).toLowerCase(),
-      phone: faker.string.numeric(10),
-      phoneCountryCode: '+58',
-      isActive: true,
-      createdBy: superadminId,
-    }
-
-    const [inserted] = await db.insert(schema.condominiums).values(condominiumData).returning()
-    condominiumIds.push(inserted.id)
-
-    // Assign management companies via junction table (many-to-many)
-    // Each condominium gets 1-2 management companies
-    const numCompanies = faker.number.int({ min: 1, max: Math.min(2, companyIds.length) })
-    const shuffledCompanyIds = faker.helpers.shuffle([...companyIds])
-    const assignedCompanyIds = shuffledCompanyIds.slice(0, numCompanies)
-
-    for (const companyId of assignedCompanyIds) {
-      // Check if assignment already exists
-      const existingAssignment = await db.query.condominiumManagementCompanies.findFirst({
-        where: (cmc, { and, eq }) =>
-          and(eq(cmc.condominiumId, inserted.id), eq(cmc.managementCompanyId, companyId)),
-      })
-
-      if (!existingAssignment) {
-        await db.insert(schema.condominiumManagementCompanies).values({
-          condominiumId: inserted.id,
-          managementCompanyId: companyId,
-          assignedBy: superadminId,
-        })
-      }
-    }
-  }
-
-  console.log(`    ${condominiumIds.length} condominiums ready.`)
-  return condominiumIds
-}
-
-async function seedBuildings(
-  db: Database,
-  condominiumIds: string[],
-  superadminId: string
-): Promise<string[]> {
-  console.log('\n  Step 9: Creating buildings...')
-
-  const buildingIds: string[] = []
-
-  for (const condominiumId of condominiumIds) {
-    const numBuildings = faker.number.int({ min: 1, max: 3 })
-
-    for (let i = 0; i < numBuildings; i++) {
-      const buildingCode = `TORRE-${String.fromCharCode(65 + i)}`
-      const floorsCount = faker.number.int({ min: 5, max: 20 })
-      const unitsPerFloor = faker.number.int({ min: 2, max: 8 })
-
-      const existing = await db.query.buildings.findFirst({
-        where: (b, { and, eq }) =>
-          and(eq(b.condominiumId, condominiumId), eq(b.code, buildingCode)),
-      })
-
-      if (existing) {
-        buildingIds.push(existing.id)
-        continue
-      }
-
-      const buildingData: BuildingInsert = {
-        condominiumId,
-        name: `Torre ${String.fromCharCode(65 + i)}`,
-        code: buildingCode,
-        address: faker.location.streetAddress(),
-        floorsCount,
-        unitsCount: floorsCount * unitsPerFloor,
-        bankAccountHolder: faker.company.name(),
-        bankName: faker.helpers.arrayElement(['Banesco', 'Mercantil', 'Provincial', 'Venezuela']),
-        bankAccountNumber: faker.string.numeric(20),
-        bankAccountType: faker.helpers.arrayElement(['corriente', 'ahorro']),
-        isActive: true,
-        createdBy: superadminId,
-      }
-
-      const [inserted] = await db.insert(schema.buildings).values(buildingData).returning()
-      buildingIds.push(inserted.id)
-    }
-  }
-
-  console.log(`    ${buildingIds.length} buildings ready.`)
-  return buildingIds
-}
-
-async function seedUnits(
-  db: Database,
-  buildingIds: string[],
-  userIds: string[],
-  superadminId: string
-): Promise<void> {
-  console.log('\n  Step 10: Creating units and ownerships...')
-
-  let unitCount = 0
-  let ownershipCount = 0
-
-  for (const buildingId of buildingIds) {
-    const building = await db.query.buildings.findFirst({
-      where: (b, { eq }) => eq(b.id, buildingId),
-    })
-
-    if (!building) continue
-
-    const floorsCount = building.floorsCount || 10
-    const unitsPerFloor = Math.ceil((building.unitsCount || 20) / floorsCount)
-
-    for (let floor = 1; floor <= floorsCount; floor++) {
-      for (let unit = 1; unit <= unitsPerFloor; unit++) {
-        const unitNumber = `${floor}${String(unit).padStart(2, '0')}`
-
-        const existing = await db.query.units.findFirst({
-          where: (u, { and, eq }) =>
-            and(eq(u.buildingId, buildingId), eq(u.unitNumber, unitNumber)),
-        })
-
-        if (existing) {
-          unitCount++
-          continue
-        }
-
-        const unitData: UnitInsert = {
-          buildingId,
-          unitNumber,
-          floor,
-          areaM2: String(faker.number.float({ min: 60, max: 200, fractionDigits: 2 })),
-          bedrooms: faker.number.int({ min: 1, max: 4 }),
-          bathrooms: faker.number.int({ min: 1, max: 3 }),
-          parkingSpaces: faker.number.int({ min: 0, max: 2 }),
-          aliquotPercentage: String(faker.number.float({ min: 0.5, max: 5, fractionDigits: 6 })),
-          isActive: true,
-          createdBy: superadminId,
-        }
-
-        const [insertedUnit] = await db.insert(schema.units).values(unitData).returning()
-        unitCount++
-
-        if (faker.datatype.boolean({ probability: 0.7 })) {
-          const isRegistered = faker.datatype.boolean({ probability: 0.7 })
-
-          let ownershipData: UnitOwnershipInsert
-
-          if (isRegistered) {
-            // Registered resident — linked to a user
-            const randomUserId = userIds[faker.number.int({ min: 0, max: userIds.length - 1 })]
-            const ownerUser = await db.query.users.findFirst({
-              where: (u, { eq }) => eq(u.id, randomUserId),
-            })
-
-            ownershipData = {
-              unitId: insertedUnit.id,
-              userId: randomUserId,
-              fullName: `${ownerUser?.firstName ?? ''} ${ownerUser?.lastName ?? ''}`.trim(),
-              email: ownerUser?.email,
-              phone: ownerUser?.phoneNumber,
-              phoneCountryCode: ownerUser?.phoneCountryCode,
-              isRegistered: true,
-              ownershipType: faker.helpers.arrayElement(['owner', 'tenant', 'co-owner']),
-              ownershipPercentage: '100.00',
-              startDate: faker.date.past({ years: 2 }).toISOString().split('T')[0],
-              isActive: true,
-              isPrimaryResidence: true,
-            }
-          } else {
-            // Unregistered resident — no user account yet
-            ownershipData = {
-              unitId: insertedUnit.id,
-              userId: null,
-              fullName: faker.person.fullName(),
-              email: faker.internet.email().toLowerCase(),
-              phone: faker.string.numeric(10),
-              phoneCountryCode: '+58',
-              isRegistered: false,
-              ownershipType: faker.helpers.arrayElement(['owner', 'tenant', 'co-owner']),
-              ownershipPercentage: '100.00',
-              startDate: faker.date.past({ years: 2 }).toISOString().split('T')[0],
-              isActive: true,
-              isPrimaryResidence: faker.datatype.boolean({ probability: 0.5 }),
-            }
-          }
-
-          await db.insert(schema.unitOwnerships).values(ownershipData)
-          ownershipCount++
-        }
-      }
-    }
-  }
-
-  console.log(`    ${unitCount} units and ${ownershipCount} ownerships ready.`)
+  return user!.id
 }
 
 async function seedSubscriptionTerms(db: Database, superadminId: string): Promise<void> {
-  console.log('\n  Step 11: Creating subscription terms & conditions...')
+  console.log('\n  Step 6: Creating subscription terms & conditions...')
+
+  const existing = await db.query.subscriptionTermsConditions.findFirst({
+    where: (t, { eq }) => eq(t.version, '1.0'),
+  })
+
+  if (existing) {
+    console.log('    Terms & conditions v1.0 already exist.')
+    return
+  }
 
   await db.insert(schema.subscriptionTermsConditions).values({
     version: '1.0',
@@ -961,137 +900,14 @@ CondominioApp proporciona una plataforma de gestión para administradoras de con
   console.log('    1 active terms & conditions (v1.0) ready.')
 }
 
-async function seedSupportTickets(
-  db: Database,
-  companyIds: string[],
-  superadminId: string
-): Promise<void> {
-  console.log('\n  Step 12: Creating support tickets...')
-
-  const ticketTemplates = [
-    {
-      subject: 'Error al procesar pago con tarjeta de crédito',
-      description:
-        'Al intentar realizar el pago de la cuota de condominio con tarjeta de crédito, el sistema muestra un error y no procesa la transacción.',
-      priority: 'high' as const,
-      status: 'open' as const,
-      category: 'technical' as const,
-    },
-    {
-      subject: 'Factura duplicada en el estado de cuenta',
-      description:
-        'Al revisar el estado de cuenta del mes actual, observo que aparece una factura duplicada por el mismo concepto.',
-      priority: 'medium' as const,
-      status: 'in_progress' as const,
-      category: 'billing' as const,
-    },
-    {
-      subject: 'Solicitud de integración con WhatsApp Business',
-      description:
-        'Me gustaría solicitar una funcionalidad que permita enviar notificaciones automáticas a los residentes mediante WhatsApp Business.',
-      priority: 'low' as const,
-      status: 'open' as const,
-      category: 'feature_request' as const,
-    },
-    {
-      subject: 'No puedo generar reporte de morosidad',
-      description:
-        'Cuando intento exportar el reporte de morosidad del mes, el sistema se queda cargando indefinidamente.',
-      priority: 'urgent' as const,
-      status: 'in_progress' as const,
-      category: 'bug' as const,
-    },
-    {
-      subject: 'Consulta sobre cambio de plan de suscripción',
-      description:
-        'Deseo información sobre los planes de suscripción disponibles y el proceso para actualizar nuestro plan actual.',
-      priority: 'low' as const,
-      status: 'waiting_customer' as const,
-      category: 'general' as const,
-    },
-    {
-      subject: 'Error 500 al cargar el dashboard de métricas',
-      description:
-        'Al acceder al dashboard de métricas del superadmin, aparece un error 500 Internal Server Error.',
-      priority: 'high' as const,
-      status: 'open' as const,
-      category: 'bug' as const,
-    },
-    {
-      subject: 'Necesito capacitación para el módulo de cuotas',
-      description:
-        'Somos una administradora nueva en la plataforma y necesitamos capacitación sobre cómo funciona el módulo de generación automática de cuotas.',
-      priority: 'medium' as const,
-      status: 'resolved' as const,
-      category: 'general' as const,
-    },
-    {
-      subject: 'Funcionalidad para envío masivo de correos',
-      description:
-        'Sería muy útil contar con una funcionalidad que permita enviar correos electrónicos masivos a todos los residentes.',
-      priority: 'medium' as const,
-      status: 'open' as const,
-      category: 'feature_request' as const,
-    },
-  ]
-
-  let ticketCount = 0
-
-  for (const companyId of companyIds) {
-    const numTickets = faker.number.int({ min: 2, max: 5 })
-
-    for (let i = 0; i < numTickets; i++) {
-      const template =
-        ticketTemplates[faker.number.int({ min: 0, max: ticketTemplates.length - 1 })]
-      const ticketNumber = `TKT-${Date.now()}-${faker.string.numeric(4)}`
-
-      const createdAt = faker.date.recent({ days: 30 })
-
-      const ticketData: SupportTicketInsert = {
-        ticketNumber,
-        managementCompanyId: companyId,
-        createdByUserId: superadminId,
-        subject: template.subject,
-        description: template.description,
-        priority: template.priority,
-        status: template.status,
-        category: template.category,
-        resolvedAt: template.status === 'resolved' ? new Date() : null,
-        resolvedBy: template.status === 'resolved' ? superadminId : null,
-        tags: ['seed', 'dummy'],
-        metadata: { source: 'seed', environment: process.env.NODE_ENV || 'development' },
-        createdAt,
-        updatedAt: createdAt,
-      }
-
-      const [insertedTicket] = await db.insert(schema.supportTickets).values(ticketData).returning()
-      ticketCount++
-
-      if (faker.datatype.boolean({ probability: 0.6 })) {
-        const messageData: SupportTicketMessageInsert = {
-          ticketId: insertedTicket.id,
-          userId: superadminId,
-          message: faker.lorem.paragraph(),
-          isInternal: faker.datatype.boolean({ probability: 0.3 }),
-          createdAt: faker.date.between({ from: createdAt, to: new Date() }),
-        }
-
-        await db.insert(schema.supportTicketMessages).values(messageData)
-      }
-    }
-  }
-
-  console.log(`    ${ticketCount} support tickets ready.`)
-}
-
 async function seedCurrenciesCatalog(db: Database): Promise<void> {
-  console.log('\n  Step 13: Seeding currencies catalog...')
+  console.log('\n  Step 7: Seeding currencies catalog...')
   await seedCurrencies(db as any)
   console.log('    Currencies catalog ready.')
 }
 
 async function seedBanksCatalog(db: Database): Promise<void> {
-  console.log('\n  Step 14: Seeding banks catalog...')
+  console.log('\n  Step 8: Seeding banks catalog...')
   await seedBanks(db as any)
   console.log('    Banks catalog ready.')
 }
@@ -1113,13 +929,7 @@ async function seedDatabase(databaseUrl: string): Promise<void> {
     const superadminRoleId = await seedRoles(db)
     await seedRolePermissions(db, superadminRoleId, platformPermissionIds)
     const superadminId = await seedSuperadmin(db, superadminRoleId)
-    const userIds = await seedUsers(db, 25)
-    const companyIds = await seedManagementCompanies(db, superadminId)
-    const condominiumIds = await seedCondominiums(db, companyIds, superadminId)
-    const buildingIds = await seedBuildings(db, condominiumIds, superadminId)
-    await seedUnits(db, buildingIds, userIds, superadminId)
     await seedSubscriptionTerms(db, superadminId)
-    await seedSupportTickets(db, companyIds, superadminId)
     await seedCurrenciesCatalog(db)
     await seedBanksCatalog(db)
 

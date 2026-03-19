@@ -17,6 +17,7 @@ import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { Typography } from '@/ui/components/typography'
 import { Input } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Textarea } from '@/ui/components/textarea'
 import {
   Modal,
@@ -308,13 +309,11 @@ export function ReservationsClient() {
               </ModalHeader>
               <ModalBody>
                 <div className="flex flex-col gap-4">
-                  <Input
+                  <DatePicker
                     isRequired
                     label={t('resident.reservations.date')}
-                    type="date"
                     value={formData.date}
-                    variant="bordered"
-                    onValueChange={value => setFormData(prev => ({ ...prev, date: value }))}
+                    onChange={value => setFormData(prev => ({ ...prev, date: value }))}
                   />
                   <div className="grid grid-cols-2 gap-4">
                     <Input

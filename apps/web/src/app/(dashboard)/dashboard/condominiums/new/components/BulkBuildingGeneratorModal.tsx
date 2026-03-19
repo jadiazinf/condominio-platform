@@ -65,6 +65,10 @@ interface BulkBuildingGeneratorModalProps {
   onClose: () => void
   onGenerate: (result: TBulkGenerationResult) => void
   initialConfig?: TBulkGenerationConfig | null
+  /** Max units allowed by subscription (null = unlimited) */
+  maxUnits?: number | null
+  /** Current units already used */
+  currentUnitsCount?: number
 }
 
 interface BulkBuildingFormValues {
@@ -276,6 +280,8 @@ export function BulkBuildingGeneratorModal({
   onClose,
   onGenerate,
   initialConfig,
+  maxUnits,
+  currentUnitsCount = 0,
 }: BulkBuildingGeneratorModalProps) {
   const { t } = useTranslation()
 
@@ -295,6 +301,12 @@ export function BulkBuildingGeneratorModal({
   const [selectedUnitPattern, setSelectedUnitPattern] = useState<TUnitNamingPattern>('floor_letter')
   const [floorGroups, setFloorGroups] = useState<TFloorGroup[]>([createDefaultFloorGroup()])
   const [floorGroupError, setFloorGroupError] = useState<string | null>(null)
+  const [unitLimitDetails, setUnitLimitDetails] = useState<{
+    total: number
+    remaining: number
+    max: number
+    current: number
+  } | null>(null)
   const [aliquotMode, setAliquotMode] = useState<TAliquotMode>('none')
 
   useEffect(() => {
@@ -329,6 +341,7 @@ export function BulkBuildingGeneratorModal({
         setAliquotMode('none')
       }
       setFloorGroupError(null)
+      setUnitLimitDetails(null)
     }
   }, [isOpen, form, initialConfig])
 
@@ -509,6 +522,34 @@ export function BulkBuildingGeneratorModal({
     }
 
     if (hasError) return
+
+    // Validate subscription unit limit
+    if (generateUnitsEnabled && maxUnits !== null && maxUnits !== undefined) {
+      let totalUnitsToGenerate = 0
+
+      for (const group of floorGroups) {
+        const gFrom = Number(group.fromFloor) || 0
+        const gTo = Number(group.toFloor) || 0
+        const gPer = Number(group.unitsPerFloor) || 0
+
+        totalUnitsToGenerate += (gTo - gFrom + 1) * gPer
+      }
+      totalUnitsToGenerate *= countNum
+
+      const remaining = maxUnits - currentUnitsCount
+
+      if (totalUnitsToGenerate > remaining) {
+        setFloorGroupError('superadmin.condominiums.wizard.bulk.unitLimitExceeded')
+        setUnitLimitDetails({
+          total: totalUnitsToGenerate,
+          remaining,
+          max: maxUnits,
+          current: currentUnitsCount,
+        })
+
+        return
+      }
+    }
 
     // Derive floorsCount from floor groups
     const derivedFloorsCount = generateUnitsEnabled
@@ -727,6 +768,7 @@ export function BulkBuildingGeneratorModal({
                   label={t('superadmin.condominiums.wizard.bulkBuildings.prefix')}
                   name="prefix"
                   placeholder="Torre"
+                  tooltip={t('superadmin.condominiums.wizard.bulkBuildings.prefixHint')}
                   translateError={translateError}
                 />
                 <InputField
@@ -734,6 +776,7 @@ export function BulkBuildingGeneratorModal({
                   inputMode="numeric"
                   label={t('superadmin.condominiums.wizard.bulkBuildings.count')}
                   name="count"
+                  tooltip={t('superadmin.condominiums.wizard.bulkBuildings.countHint')}
                   translateError={translateError}
                   type="number"
                 />
@@ -850,14 +893,14 @@ export function BulkBuildingGeneratorModal({
                           />
                         ))}
                       </div>
-                      <div className="mt-5 w-32">
-                        <InputField
-                          label={t('superadmin.condominiums.wizard.bulk.separator')}
-                          name="unitSeparator"
-                          placeholder="-"
-                          translateError={translateError}
-                        />
-                      </div>
+                    </div>
+                    <div className="w-32">
+                      <InputField
+                        label={t('superadmin.condominiums.wizard.bulk.separator')}
+                        name="unitSeparator"
+                        placeholder="-"
+                        translateError={translateError}
+                      />
                     </div>
 
                     <Divider />
@@ -1053,9 +1096,21 @@ export function BulkBuildingGeneratorModal({
                       </div>
 
                       {floorGroupError && (
-                        <Typography className="text-danger mt-2 block" variant="caption">
-                          {t(floorGroupError)}
-                        </Typography>
+                        <div className="mt-2 rounded-lg bg-danger-50 p-3">
+                          <Typography className="text-danger block" variant="caption">
+                            {t(floorGroupError)}
+                          </Typography>
+                          {unitLimitDetails && (
+                            <Typography className="text-danger-600 mt-1 block" variant="caption">
+                              {t('superadmin.condominiums.wizard.bulk.unitLimitDetail', {
+                                total: unitLimitDetails.total,
+                                current: unitLimitDetails.current,
+                                max: unitLimitDetails.max,
+                                remaining: unitLimitDetails.remaining,
+                              })}
+                            </Typography>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>

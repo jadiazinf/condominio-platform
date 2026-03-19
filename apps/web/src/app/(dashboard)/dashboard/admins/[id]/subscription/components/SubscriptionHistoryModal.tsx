@@ -13,6 +13,7 @@ import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/mod
 import { Card, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Input } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Button } from '@/ui/components/button'
 import { Typography } from '@/ui/components/typography'
 import { Spinner } from '@/ui/components/spinner'
@@ -87,13 +88,13 @@ export function SubscriptionHistoryModal({
     setSearchName(value)
   }, [])
 
-  const handleStartDateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setStartDateFilter(e.target.value)
+  const handleStartDateChange = useCallback((value: string) => {
+    setStartDateFilter(value)
     setCurrentPage(1)
   }, [])
 
-  const handleEndDateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setEndDateFilter(e.target.value)
+  const handleEndDateChange = useCallback((value: string) => {
+    setEndDateFilter(value)
     setCurrentPage(1)
   }, [])
 
@@ -148,25 +149,17 @@ export function SubscriptionHistoryModal({
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-              <div className="flex-1 space-y-1.5">
-                <label className="text-sm font-medium">
-                  {t('superadmin.companies.subscription.history.fromDate')}
-                </label>
-                <input
-                  className="w-full rounded-md border border-default-200 bg-default-100 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  type="date"
+              <div className="flex-1">
+                <DatePicker
+                  label={t('superadmin.companies.subscription.history.fromDate')}
                   value={startDateFilter}
                   onChange={handleStartDateChange}
                 />
               </div>
 
-              <div className="flex-1 space-y-1.5">
-                <label className="text-sm font-medium">
-                  {t('superadmin.companies.subscription.history.toDate')}
-                </label>
-                <input
-                  className="w-full rounded-md border border-default-200 bg-default-100 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  type="date"
+              <div className="flex-1">
+                <DatePicker
+                  label={t('superadmin.companies.subscription.history.toDate')}
                   value={endDateFilter}
                   onChange={handleEndDateChange}
                 />

@@ -242,6 +242,16 @@ export const ticketCategoryEnum = pgEnum('ticket_category', [
   'feature_request',
   'general',
   'bug',
+  'maintenance',
+  'payment_issue',
+  'access_request',
+  'noise_complaint',
+])
+
+export const ticketChannelEnum = pgEnum('ticket_channel', [
+  'resident_to_admin',
+  'resident_to_support',
+  'admin_to_support',
 ])
 
 // ============================================================================
@@ -333,6 +343,12 @@ export const chargeGenerationStrategyEnum = pgEnum('charge_generation_strategy',
   'bulk',
   'manual',
 ])
+
+// ============================================================================
+// WIZARD DRAFT ENUMS
+// ============================================================================
+
+export const wizardTypeEnum = pgEnum('wizard_type', ['payment_concept'])
 
 export const bankPaymentMethodEnum = pgEnum('bank_payment_method', [
   // National (Venezuela)

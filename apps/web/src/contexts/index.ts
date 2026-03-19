@@ -1,5 +1,5 @@
 export { AuthProvider, useAuth } from './AuthContext'
-export { getFirebaseErrorKey } from '@/libs/firebase'
+export { getFirebaseErrorKey, getApiErrorKey } from '@/libs/firebase'
 export { I18nProvider, useI18n, useTranslation } from './I18nContext'
 export { HttpClientProvider } from './HttpClientProvider'
 

@@ -7,6 +7,7 @@ import { useFormContext, Controller } from 'react-hook-form'
 import { HelpCircle } from 'lucide-react'
 
 import { Input } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Switch } from '@/ui/components/switch'
 import { Typography } from '@/ui/components/typography'
@@ -32,30 +33,41 @@ export function BasicStepForm({ shouldShowError, translateError }: BasicStepForm
   // Auto-calculate end date based on billing cycle
   useEffect(() => {
     if (startDate && billingCycle) {
-      const start = new Date(startDate)
-      const end = new Date(start)
+      // Parse YYYY-MM-DD parts directly to avoid timezone issues
+      const [yearStr, monthStr, dayStr] = startDate.split('-')
+      let year = Number(yearStr)
+      let month = Number(monthStr) // 1-based
+      const day = Number(dayStr)
 
       switch (billingCycle) {
         case 'monthly':
-          end.setMonth(end.getMonth() + 1)
+          month += 1
           break
         case 'quarterly':
-          end.setMonth(end.getMonth() + 3)
+          month += 3
           break
         case 'semi_annual':
-          end.setMonth(end.getMonth() + 6)
+          month += 6
           break
         case 'annual':
-          end.setFullYear(end.getFullYear() + 1)
+          year += 1
           break
         case 'custom':
-          end.setMonth(end.getMonth() + 1)
+          month += 1
           break
         default:
           return
       }
 
-      setValue('endDate', end.toISOString().split('T')[0])
+      // Handle month overflow (e.g. month 13 → next year month 1)
+      while (month > 12) {
+        month -= 12
+        year += 1
+      }
+
+      const endDate = `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+
+      setValue('endDate', endDate)
     }
   }, [startDate, billingCycle, setValue])
 
@@ -103,12 +115,6 @@ export function BasicStepForm({ shouldShowError, translateError }: BasicStepForm
     { key: 'active', label: t('superadmin.companies.subscription.form.statuses.active') },
     { key: 'inactive', label: t('superadmin.companies.subscription.form.statuses.inactive') },
   ]
-
-  const dateInputClass =
-    'w-full rounded-md border border-default-200 bg-default-100 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary'
-
-  const dateInputDisabledClass =
-    'w-full rounded-md border border-default-200 bg-default-50 px-3 py-2 text-sm text-default-500 cursor-not-allowed'
 
   return (
     <div className="space-y-8 pb-8">
@@ -267,32 +273,26 @@ export function BasicStepForm({ shouldShowError, translateError }: BasicStepForm
             control={control}
             name="startDate"
             render={({ field }) => (
-              <div className="space-y-3">
-                <label className="flex items-center gap-1 text-sm font-medium" htmlFor="startDate">
-                  <span className="text-danger">* </span>
-                  {t('superadmin.companies.subscription.form.fields.startDate')}
-                  <Tooltip
-                    content={t(
-                      'superadmin.companies.subscription.form.fields.startDateDescription'
-                    )}
-                  >
-                    <HelpCircle className="text-default-400 cursor-help" size={14} />
-                  </Tooltip>
-                </label>
-                <input
-                  required
-                  aria-label={t('superadmin.companies.subscription.form.fields.startDate')}
-                  className={`${dateInputClass} ${shouldShowError('startDate') ? 'border-danger' : ''}`}
-                  id="startDate"
-                  type="date"
-                  value={field.value}
-                  onBlur={field.onBlur}
-                  onChange={e => field.onChange(e.target.value)}
-                />
-                {shouldShowError('startDate') && (
-                  <p className="text-xs text-danger">{translateError('startDate')}</p>
-                )}
-              </div>
+              <DatePicker
+                isRequired
+                errorMessage={
+                  shouldShowError('startDate') ? translateError('startDate') : undefined
+                }
+                label={
+                  <span className="flex items-center gap-1">
+                    {t('superadmin.companies.subscription.form.fields.startDate')}
+                    <Tooltip
+                      content={t(
+                        'superadmin.companies.subscription.form.fields.startDateDescription'
+                      )}
+                    >
+                      <HelpCircle className="text-default-400 cursor-help" size={14} />
+                    </Tooltip>
+                  </span>
+                }
+                value={field.value}
+                onChange={field.onChange}
+              />
             )}
             rules={{
               required: t('superadmin.companies.subscription.form.validation.startDate.required'),
@@ -303,31 +303,27 @@ export function BasicStepForm({ shouldShowError, translateError }: BasicStepForm
             control={control}
             name="endDate"
             render={({ field }) => (
-              <div className="space-y-3">
-                <label className="flex items-center gap-1 text-sm font-medium" htmlFor="endDate">
-                  <span className="text-danger">* </span>
-                  {t('superadmin.companies.subscription.form.fields.endDate')}
-                  <Tooltip
-                    content={t(
-                      'superadmin.companies.subscription.form.fields.endDateCalculatedDescription'
-                    )}
-                  >
-                    <HelpCircle className="text-default-400 cursor-help" size={14} />
-                  </Tooltip>
-                </label>
-                <input
-                  disabled
-                  readOnly
-                  aria-label={t('superadmin.companies.subscription.form.fields.endDate')}
-                  className={dateInputDisabledClass}
-                  id="endDate"
-                  type="date"
-                  value={field.value}
-                />
-                <p className="text-xs text-default-400">
-                  {t('superadmin.companies.subscription.form.fields.endDateAutoCalculated')}
-                </p>
-              </div>
+              <DatePicker
+                isDisabled
+                isReadOnly
+                description={t(
+                  'superadmin.companies.subscription.form.fields.endDateAutoCalculated'
+                )}
+                label={
+                  <span className="flex items-center gap-1">
+                    {t('superadmin.companies.subscription.form.fields.endDate')}
+                    <Tooltip
+                      content={t(
+                        'superadmin.companies.subscription.form.fields.endDateCalculatedDescription'
+                      )}
+                    >
+                      <HelpCircle className="text-default-400 cursor-help" size={14} />
+                    </Tooltip>
+                  </span>
+                }
+                value={field.value}
+                onChange={field.onChange}
+              />
             )}
           />
 
@@ -336,35 +332,26 @@ export function BasicStepForm({ shouldShowError, translateError }: BasicStepForm
               control={control}
               name="trialEndsAt"
               render={({ field }) => (
-                <div className="space-y-3">
-                  <label
-                    className="flex items-center gap-1 text-sm font-medium"
-                    htmlFor="trialEndsAt"
-                  >
-                    <span className="text-danger">* </span>
-                    {t('superadmin.companies.subscription.form.fields.trialEndsAt')}
-                    <Tooltip
-                      content={t(
-                        'superadmin.companies.subscription.form.fields.trialEndsAtDescription'
-                      )}
-                    >
-                      <HelpCircle className="text-default-400 cursor-help" size={14} />
-                    </Tooltip>
-                  </label>
-                  <input
-                    required
-                    aria-label={t('superadmin.companies.subscription.form.fields.trialEndsAt')}
-                    className={`${dateInputClass} ${shouldShowError('trialEndsAt') ? 'border-danger' : ''}`}
-                    id="trialEndsAt"
-                    type="date"
-                    value={field.value}
-                    onBlur={field.onBlur}
-                    onChange={e => field.onChange(e.target.value)}
-                  />
-                  {shouldShowError('trialEndsAt') && (
-                    <p className="text-xs text-danger">{translateError('trialEndsAt')}</p>
-                  )}
-                </div>
+                <DatePicker
+                  isRequired
+                  errorMessage={
+                    shouldShowError('trialEndsAt') ? translateError('trialEndsAt') : undefined
+                  }
+                  label={
+                    <span className="flex items-center gap-1">
+                      {t('superadmin.companies.subscription.form.fields.trialEndsAt')}
+                      <Tooltip
+                        content={t(
+                          'superadmin.companies.subscription.form.fields.trialEndsAtDescription'
+                        )}
+                      >
+                        <HelpCircle className="text-default-400 cursor-help" size={14} />
+                      </Tooltip>
+                    </span>
+                  }
+                  value={field.value}
+                  onChange={field.onChange}
+                />
               )}
               rules={{
                 required:

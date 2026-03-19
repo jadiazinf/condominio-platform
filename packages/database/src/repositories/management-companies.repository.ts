@@ -1,4 +1,4 @@
-import { eq, and, or, ilike, sql, desc } from 'drizzle-orm'
+import { eq, and, or, ilike, sql, desc, inArray } from 'drizzle-orm'
 import type {
   TManagementCompany,
   TManagementCompanyCreate,
@@ -13,6 +13,7 @@ import {
   buildings,
   units,
   managementCompanyMembers,
+  managementCompanySubscriptions,
 } from '../drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
@@ -111,7 +112,7 @@ export class ManagementCompaniesRepository
   override async listPaginated(
     query: TManagementCompaniesQuerySchema
   ): Promise<TPaginatedResponse<TManagementCompany>> {
-    const { page = 1, limit = 20, search, isActive } = query
+    const { page = 1, limit = 20, search, isActive, hasActiveSubscription } = query
     const offset = (page - 1) * limit
 
     // Build conditions array
@@ -132,6 +133,21 @@ export class ManagementCompaniesRepository
           ilike(managementCompanies.taxIdNumber, searchTerm)
         )
       )
+    }
+
+    // Filter by active subscription existence
+    if (hasActiveSubscription !== undefined) {
+      // Subquery: company IDs that have at least one active/trial subscription
+      const companiesWithActiveSub = this.db
+        .select({ id: managementCompanySubscriptions.managementCompanyId })
+        .from(managementCompanySubscriptions)
+        .where(inArray(managementCompanySubscriptions.status, ['active', 'trial']))
+
+      if (hasActiveSubscription) {
+        conditions.push(inArray(managementCompanies.id, companiesWithActiveSub))
+      } else {
+        conditions.push(sql`${managementCompanies.id} NOT IN (${companiesWithActiveSub})`)
+      }
     }
 
     // Build where clause

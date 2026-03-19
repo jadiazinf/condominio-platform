@@ -14,6 +14,7 @@ import { ExpiredTokenView } from '../../accept-invitation/components/ExpiredToke
 
 import { AcceptUserInvitationForm } from './AcceptUserInvitationForm'
 
+import { getApiErrorKey } from '@/libs/firebase'
 import { Card, CardBody } from '@/ui/components/card'
 import { Spinner } from '@/ui/components/spinner'
 import { useTranslation } from '@/contexts'
@@ -122,7 +123,9 @@ export function AcceptUserInvitationContent({ token }: AcceptUserInvitationConte
         window.location.href = '/dashboard'
       } catch (err) {
         if (HttpError.isHttpError(err)) {
-          toast.error(err.message)
+          const errorKey = getApiErrorKey(err)
+
+          toast.error(t(errorKey))
         } else {
           toast.error(t('auth.acceptInvitation.errors.unknown'))
         }
@@ -185,13 +188,5 @@ export function AcceptUserInvitationContent({ token }: AcceptUserInvitationConte
   }
 
   // Valid token, new user - show the password form
-  return (
-    <AcceptUserInvitationForm
-      invitationData={viewState.data}
-      token={token!}
-      onSuccess={() => {
-        window.location.href = '/dashboard'
-      }}
-    />
-  )
+  return <AcceptUserInvitationForm invitationData={viewState.data} token={token!} />
 }

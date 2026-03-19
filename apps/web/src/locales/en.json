@@ -343,12 +343,17 @@
     },
     "acceptInvitation": {
       "title": "Complete your registration",
+      "registeredTitle": "Confirm invitation",
       "subtitle": "You've been invited to manage {companyName}",
       "validating": "Validating invitation...",
       "accepting": "Accepting invitation...",
       "yourEmail": "Your email",
       "setPassword": "Create a password to access your account",
       "submit": "Complete registration",
+      "registeredSubmit": "Accept invitation",
+      "loginAndAccept": "Sign in and accept",
+      "loginRequired": "To accept this invitation, you need to sign in with your existing account.",
+      "loginToAccept": "Enter your password to sign in and accept the invitation",
       "success": "Invitation accepted successfully",
       "invalidTitle": "Invalid invitation",
       "expiredTitle": "Invitation expired",
@@ -360,7 +365,8 @@
         "noToken": "No invitation token provided.",
         "invalid": "This invitation is not valid or has already been used.",
         "unknown": "An error occurred while validating the invitation.",
-        "firebaseCreateFailed": "Error creating account. Please try again."
+        "firebaseCreateFailed": "Error creating account. Please try again.",
+        "emailAlreadyHasAccount": "This email already has an account. Please sign in first to accept the invitation."
       }
     },
     "acceptUserInvitation": {
@@ -386,7 +392,10 @@
         },
         "password": {
           "required": "Password is required.",
-          "min": "Password must be at least 8 characters."
+          "min": "Password must be at least 8 characters.",
+          "uppercase": "Password must contain at least one uppercase letter.",
+          "lowercase": "Password must contain at least one lowercase letter.",
+          "number": "Password must contain at least one number."
         },
         "firstName": {
           "required": "First name is required."
@@ -462,7 +471,8 @@
       "reportPayment": "Report Payment",
       "reservations": "Reservations",
       "joinCondominium": "Join Condominium",
-      "myRequests": "My Requests"
+      "myRequests": "My Requests",
+      "support": "Support"
     },
     "joinCondominium": {
       "title": "Join a Condominium",
@@ -782,6 +792,73 @@
         "rejected": "Rejected",
         "cancelled": "Cancelled"
       }
+    },
+    "support": {
+      "title": "Support",
+      "subtitle": "Manage your requests and inquiries",
+      "newTicket": "New ticket",
+      "searchPlaceholder": "Search by subject or number...",
+      "emptyTitle": "No tickets yet",
+      "emptyDescription": "Create a new ticket to get assistance",
+      "channels": {
+        "all": "All",
+        "resident_to_admin": "Management",
+        "resident_to_support": "Support",
+        "admin_to_support": "Support"
+      },
+      "statuses": {
+        "all": "All",
+        "open": "Open",
+        "in_progress": "In progress",
+        "waiting_customer": "Waiting for response",
+        "resolved": "Resolved",
+        "closed": "Closed",
+        "cancelled": "Cancelled"
+      },
+      "priorities": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "urgent": "Urgent"
+      },
+      "categories": {
+        "maintenance": "Maintenance",
+        "payment_issue": "Payment issue",
+        "access_request": "Access request",
+        "noise_complaint": "Noise complaint",
+        "general": "General",
+        "technical": "Technical",
+        "billing": "Billing",
+        "feature_request": "Feature request",
+        "bug": "Bug"
+      },
+      "create": {
+        "title": "New Ticket",
+        "subtitle": "Describe your problem or inquiry",
+        "channelLabel": "Who would you like to contact?",
+        "channelAdmin": "Management",
+        "channelAdminDesc": "For condominium-related topics",
+        "channelSupport": "Platform Support",
+        "channelSupportDesc": "For platform-related issues",
+        "category": "Category",
+        "subject": "Subject",
+        "subjectPlaceholder": "Briefly describe your issue",
+        "description": "Description",
+        "descriptionPlaceholder": "Detail your problem or inquiry",
+        "priority": "Priority",
+        "submit": "Create Ticket",
+        "submitting": "Creating...",
+        "success": "Ticket created successfully",
+        "error": "Error creating ticket",
+        "back": "Back"
+      },
+      "detail": {
+        "back": "Back",
+        "noMessages": "No messages yet. Send the first message.",
+        "messagePlaceholder": "Write a message...",
+        "ticketClosed": "This ticket is closed. No more messages can be sent.",
+        "sendError": "Error sending message"
+      }
     }
   },
   "superadmin": {
@@ -801,7 +878,8 @@
       "payments": "Payments",
       "expenses": "Expenses",
       "amenities": "Amenities",
-      "terms": "Terms & Conditions"
+      "terms": "Terms & Conditions",
+      "noSubscription": "No Subscription"
     },
     "dashboard": {
       "title": "Superadmin Dashboard",
@@ -1339,6 +1417,13 @@
         }
       }
     },
+    "noSubscription": {
+      "title": "Companies without Subscription",
+      "subtitle": "Management companies that do not have an active or trial subscription",
+      "empty": "No companies without subscription",
+      "emptyDescription": "All management companies have an active subscription",
+      "count": "{total} companies without subscription"
+    },
     "condominiums": {
       "title": "Condominiums",
       "subtitle": "Manage all registered condominiums in the system",
@@ -1526,7 +1611,9 @@
           "title": "Generate buildings",
           "generate": "Generate {count} buildings",
           "prefix": "Prefix",
+          "prefixHint": "Base text for each building name. It will be combined with the selected pattern (e.g.: Tower → Tower A, Tower B...)",
           "count": "Count",
+          "countHint": "Number of buildings to generate. Each one will have the same floor and unit structure",
           "namingPattern": "Naming pattern",
           "patternPrefixLetter": "Prefix + Letter",
           "patternPrefixNumber": "Prefix + Number",
@@ -1620,7 +1707,9 @@
           "aliquotByAreaMissingArea": "All floor groups must have the area (m²) field to calculate proportional aliquot",
           "aliquotCustom": "Custom per group",
           "aliquotCustomHint": "Define a fixed percentage per floor group",
-          "aliquotAuto": "Auto"
+          "aliquotAuto": "Auto",
+          "unitLimitExceeded": "The number of units to generate exceeds your subscription limit",
+          "unitLimitDetail": "You are trying to create {total} units, but your plan allows {max} (you currently have {current}, {remaining} remaining)"
         },
         "csv": {
           "title": "Import units from CSV",
@@ -2417,6 +2506,11 @@
           "annualDiscountPercentage": {
             "label": "Annual Discount (%)",
             "placeholder": "15"
+          },
+          "taxRate": {
+            "label": "Tax Rate",
+            "placeholder": "E.g.: 16",
+            "description": "Leave empty if this rate does not include tax"
           },
           "version": {
             "label": "Version",
@@ -3712,6 +3806,7 @@
         "subscription": "Subscription",
         "history": "History"
       },
+      "viewPlan": "View current plan",
       "currentPlan": "Current Plan",
       "noPlan": "No Active Subscription",
       "noPlanDescription": "Your company does not have an active subscription. Contact support for more information.",
@@ -4175,6 +4270,11 @@
             "save": "Save Changes",
             "creating": "Creating...",
             "create": "Create Concept",
+            "draftRestored": "Draft restored",
+            "discardDraft": "Discard draft",
+            "pendingDraft": "You have a pending draft",
+            "continueDraft": "Continue",
+            "draftLoading": "Loading draft...",
             "cancel": "Cancel",
             "confirm": "Confirm",
             "addAssignment": "Add Assignment",
@@ -5082,18 +5182,30 @@
     }
   },
   "apiErrors": {
-    "ALREADY_EXISTS": "A record with this value already exists",
-    "ALREADY_EXISTS.Condominium.email": "A condominium with this email already exists",
-    "ALREADY_EXISTS.Condominium.code": "A condominium with this code already exists",
-    "ALREADY_EXISTS.Condominium.name": "A condominium with this name already exists",
-    "ALREADY_EXISTS.Building.name": "A building with this name already exists",
-    "ALREADY_EXISTS.Building.code": "A building with this code already exists",
-    "ALREADY_EXISTS.Unit.unitNumber": "A unit with this number already exists",
-    "ALREADY_EXISTS.User.email": "A user with this email already exists",
-    "NOT_FOUND": "Resource not found",
-    "NOT_FOUND.Condominium": "Condominium not found",
-    "NOT_FOUND.Building": "Building not found",
-    "NOT_FOUND.Unit": "Unit not found",
+    "ALREADY_EXISTS": {
+      "_default": "A record with this value already exists",
+      "Condominium": {
+        "email": "A condominium with this email already exists",
+        "code": "A condominium with this code already exists",
+        "name": "A condominium with this name already exists"
+      },
+      "Building": {
+        "name": "A building with this name already exists",
+        "code": "A building with this code already exists"
+      },
+      "Unit": {
+        "unitNumber": "A unit with this number already exists"
+      },
+      "User": {
+        "email": "A user with this email already exists"
+      }
+    },
+    "NOT_FOUND": {
+      "_default": "Resource not found",
+      "Condominium": "Condominium not found",
+      "Building": "Building not found",
+      "Unit": "Unit not found"
+    },
     "VALIDATION_ERROR": "Validation error in the submitted data",
     "DUPLICATE_KEY": "A record with this value already exists",
     "UNAUTHORIZED": "Authentication required",
@@ -5106,9 +5218,11 @@
     "SERVICE_UNAVAILABLE": "Service is temporarily unavailable",
     "FOREIGN_KEY_VIOLATION": "Cannot perform the operation: related records exist",
     "DATABASE_ERROR": "Database error",
-    "SUBSCRIPTION_LIMIT_REACHED": "Subscription limit reached",
-    "SUBSCRIPTION_LIMIT_REACHED.condominium": "You have reached the condominium limit for your subscription ({currentCount}/{maxAllowed})",
-    "SUBSCRIPTION_LIMIT_REACHED.unit": "You have reached the unit limit for your subscription ({currentCount}/{maxAllowed}). You tried to add {requested}",
+    "SUBSCRIPTION_LIMIT_REACHED": {
+      "_default": "Subscription limit reached",
+      "condominium": "You have reached the condominium limit for your subscription ({currentCount}/{maxAllowed})",
+      "unit": "You have reached the unit limit for your subscription ({currentCount}/{maxAllowed}). You tried to add {requested}"
+    },
     "NO_ACTIVE_SUBSCRIPTION": "Your management company does not have an active subscription",
     "unknown": "An unexpected error occurred"
   }

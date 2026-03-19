@@ -48,7 +48,7 @@
     },
     "activeRoles": {
       "superadmin": "Superadministrador",
-      "management_company": "Administradora",
+      "management_company": "Administrador",
       "condominium": "Residente"
     },
     "goHome": "Ir al Inicio",
@@ -352,12 +352,17 @@
     },
     "acceptInvitation": {
       "title": "Completa tu registro",
+      "registeredTitle": "Confirmar invitación",
       "subtitle": "Has sido invitado a administrar {companyName}",
       "validating": "Validando invitación...",
       "accepting": "Aceptando invitación...",
       "yourEmail": "Tu correo electrónico",
       "setPassword": "Crea una contraseña para acceder a tu cuenta",
       "submit": "Completar registro",
+      "registeredSubmit": "Aceptar invitación",
+      "loginAndAccept": "Iniciar sesión y aceptar",
+      "loginRequired": "Para aceptar esta invitación, necesitas iniciar sesión con tu cuenta existente.",
+      "loginToAccept": "Ingresa tu contraseña para iniciar sesión y aceptar la invitación",
       "success": "Invitación aceptada exitosamente",
       "invalidTitle": "Invitación no válida",
       "expiredTitle": "Invitación expirada",
@@ -369,7 +374,8 @@
         "noToken": "No se proporcionó un token de invitación.",
         "invalid": "Esta invitación no es válida o ya ha sido utilizada.",
         "unknown": "Ocurrió un error al validar la invitación.",
-        "firebaseCreateFailed": "Error al crear la cuenta. Por favor intenta de nuevo."
+        "firebaseCreateFailed": "Error al crear la cuenta. Por favor intenta de nuevo.",
+        "emailAlreadyHasAccount": "Este correo ya tiene una cuenta. Por favor inicia sesión primero para aceptar la invitación."
       }
     },
     "acceptUserInvitation": {
@@ -395,7 +401,10 @@
         },
         "password": {
           "required": "La contraseña es requerida.",
-          "min": "La contraseña debe tener al menos 8 caracteres."
+          "min": "La contraseña debe tener al menos 8 caracteres.",
+          "uppercase": "La contraseña debe contener al menos una letra mayúscula.",
+          "lowercase": "La contraseña debe contener al menos una letra minúscula.",
+          "number": "La contraseña debe contener al menos un número."
         },
         "firstName": {
           "required": "El nombre es requerido."
@@ -471,7 +480,8 @@
       "reportPayment": "Reportar Pago",
       "reservations": "Reservaciones",
       "joinCondominium": "Unirme a Condominio",
-      "myRequests": "Mis Solicitudes"
+      "myRequests": "Mis Solicitudes",
+      "support": "Soporte"
     },
     "joinCondominium": {
       "title": "Unirme a un Condominio",
@@ -791,6 +801,73 @@
         "rejected": "Rechazada",
         "cancelled": "Cancelada"
       }
+    },
+    "support": {
+      "title": "Soporte",
+      "subtitle": "Gestiona tus solicitudes y consultas",
+      "newTicket": "Nuevo ticket",
+      "searchPlaceholder": "Buscar por asunto o número...",
+      "emptyTitle": "No tienes tickets",
+      "emptyDescription": "Crea un nuevo ticket para recibir asistencia",
+      "channels": {
+        "all": "Todos",
+        "resident_to_admin": "Administradora",
+        "resident_to_support": "Soporte",
+        "admin_to_support": "Soporte"
+      },
+      "statuses": {
+        "all": "Todos",
+        "open": "Abierto",
+        "in_progress": "En progreso",
+        "waiting_customer": "Esperando respuesta",
+        "resolved": "Resuelto",
+        "closed": "Cerrado",
+        "cancelled": "Cancelado"
+      },
+      "priorities": {
+        "low": "Baja",
+        "medium": "Media",
+        "high": "Alta",
+        "urgent": "Urgente"
+      },
+      "categories": {
+        "maintenance": "Mantenimiento",
+        "payment_issue": "Problema de pago",
+        "access_request": "Solicitud de acceso",
+        "noise_complaint": "Queja por ruido",
+        "general": "General",
+        "technical": "Técnico",
+        "billing": "Facturación",
+        "feature_request": "Solicitud de función",
+        "bug": "Error"
+      },
+      "create": {
+        "title": "Nuevo Ticket",
+        "subtitle": "Describe tu problema o consulta",
+        "channelLabel": "¿A quién deseas contactar?",
+        "channelAdmin": "Administradora",
+        "channelAdminDesc": "Para temas del condominio",
+        "channelSupport": "Soporte Plataforma",
+        "channelSupportDesc": "Para problemas con la plataforma",
+        "category": "Categoría",
+        "subject": "Asunto",
+        "subjectPlaceholder": "Describe brevemente tu problema",
+        "description": "Descripción",
+        "descriptionPlaceholder": "Detalla tu problema o consulta",
+        "priority": "Prioridad",
+        "submit": "Crear Ticket",
+        "submitting": "Creando...",
+        "success": "Ticket creado exitosamente",
+        "error": "Error al crear el ticket",
+        "back": "Volver"
+      },
+      "detail": {
+        "back": "Volver",
+        "noMessages": "No hay mensajes aún. Envía el primer mensaje.",
+        "messagePlaceholder": "Escribe un mensaje...",
+        "ticketClosed": "Este ticket está cerrado. No se pueden enviar más mensajes.",
+        "sendError": "Error al enviar el mensaje"
+      }
     }
   },
   "superadmin": {
@@ -810,7 +887,8 @@
       "payments": "Pagos",
       "expenses": "Gastos",
       "amenities": "Amenidades",
-      "terms": "Términos y Condiciones"
+      "terms": "Términos y Condiciones",
+      "noSubscription": "Sin Suscripción"
     },
     "dashboard": {
       "title": "Panel de Superadmin",
@@ -1352,6 +1430,13 @@
         }
       }
     },
+    "noSubscription": {
+      "title": "Administradoras sin Suscripción",
+      "subtitle": "Administradoras que no tienen una suscripción activa o de prueba",
+      "empty": "No hay administradoras sin suscripción",
+      "emptyDescription": "Todas las administradoras tienen una suscripción activa",
+      "count": "{total} administradoras sin suscripción"
+    },
     "condominiums": {
       "title": "Condominios",
       "subtitle": "Gestiona todos los condominios registrados en el sistema",
@@ -1539,7 +1624,9 @@
           "title": "Generar edificios",
           "generate": "Generar {count} edificios",
           "prefix": "Prefijo",
+          "prefixHint": "Texto base para el nombre de cada edificio. Se combinará con el patrón seleccionado (ej: Torre → Torre A, Torre B...)",
           "count": "Cantidad",
+          "countHint": "Número de edificios a generar. Cada uno tendrá la misma estructura de pisos y unidades",
           "namingPattern": "Patrón de nombres",
           "patternPrefixLetter": "Prefijo + Letra",
           "patternPrefixNumber": "Prefijo + Número",
@@ -1633,7 +1720,9 @@
           "aliquotByAreaMissingArea": "Todos los grupos de pisos deben tener el campo de área (m²) para calcular la alícuota proporcional",
           "aliquotCustom": "Personalizado por grupo",
           "aliquotCustomHint": "Define un porcentaje fijo por grupo de pisos",
-          "aliquotAuto": "Auto"
+          "aliquotAuto": "Auto",
+          "unitLimitExceeded": "La cantidad de unidades a generar excede el límite de tu suscripción",
+          "unitLimitDetail": "Intentas crear {total} unidades, pero tu plan permite {max} (actualmente tienes {current}, quedan {remaining} disponibles)"
         },
         "csv": {
           "title": "Importar unidades desde CSV",
@@ -2421,6 +2510,11 @@
           "annualDiscountPercentage": {
             "label": "Descuento Anual (%)",
             "placeholder": "15"
+          },
+          "taxRate": {
+            "label": "Tasa de IVA",
+            "placeholder": "Ej: 16",
+            "description": "Deja vacío si esta tarifa no incluye IVA"
           },
           "version": {
             "label": "Versión",
@@ -3749,6 +3843,7 @@
         "subscription": "Suscripción",
         "history": "Historial"
       },
+      "viewPlan": "Ver plan actual",
       "currentPlan": "Plan Actual",
       "noPlan": "Sin Suscripción Activa",
       "noPlanDescription": "Tu administradora no tiene una suscripción activa. Contacta al soporte para más información.",
@@ -4225,6 +4320,11 @@
             "save": "Guardar Cambios",
             "creating": "Creando...",
             "create": "Crear Concepto",
+            "draftRestored": "Borrador restaurado",
+            "discardDraft": "Descartar borrador",
+            "pendingDraft": "Tienes un borrador pendiente",
+            "continueDraft": "Continuar",
+            "draftLoading": "Cargando borrador...",
             "cancel": "Cancelar",
             "confirm": "Confirmar",
             "addAssignment": "Agregar Asignación",
@@ -5114,18 +5214,30 @@
     }
   },
   "apiErrors": {
-    "ALREADY_EXISTS": "Ya existe un registro con este dato",
-    "ALREADY_EXISTS.Condominium.email": "Ya existe un condominio con este correo electrónico",
-    "ALREADY_EXISTS.Condominium.code": "Ya existe un condominio con este código",
-    "ALREADY_EXISTS.Condominium.name": "Ya existe un condominio con este nombre",
-    "ALREADY_EXISTS.Building.name": "Ya existe un edificio con este nombre",
-    "ALREADY_EXISTS.Building.code": "Ya existe un edificio con este código",
-    "ALREADY_EXISTS.Unit.unitNumber": "Ya existe una unidad con este número",
-    "ALREADY_EXISTS.User.email": "Ya existe un usuario con este correo electrónico",
-    "NOT_FOUND": "Recurso no encontrado",
-    "NOT_FOUND.Condominium": "Condominio no encontrado",
-    "NOT_FOUND.Building": "Edificio no encontrado",
-    "NOT_FOUND.Unit": "Unidad no encontrada",
+    "ALREADY_EXISTS": {
+      "_default": "Ya existe un registro con este dato",
+      "Condominium": {
+        "email": "Ya existe un condominio con este correo electrónico",
+        "code": "Ya existe un condominio con este código",
+        "name": "Ya existe un condominio con este nombre"
+      },
+      "Building": {
+        "name": "Ya existe un edificio con este nombre",
+        "code": "Ya existe un edificio con este código"
+      },
+      "Unit": {
+        "unitNumber": "Ya existe una unidad con este número"
+      },
+      "User": {
+        "email": "Ya existe un usuario con este correo electrónico"
+      }
+    },
+    "NOT_FOUND": {
+      "_default": "Recurso no encontrado",
+      "Condominium": "Condominio no encontrado",
+      "Building": "Edificio no encontrado",
+      "Unit": "Unidad no encontrada"
+    },
     "VALIDATION_ERROR": "Error de validación en los datos enviados",
     "DUPLICATE_KEY": "Ya existe un registro con este valor",
     "UNAUTHORIZED": "Autenticación requerida",
@@ -5138,9 +5250,11 @@
     "SERVICE_UNAVAILABLE": "El servicio no está disponible temporalmente",
     "FOREIGN_KEY_VIOLATION": "No se puede realizar la operación: existen registros relacionados",
     "DATABASE_ERROR": "Error en la base de datos",
-    "SUBSCRIPTION_LIMIT_REACHED": "Se ha alcanzado el límite de tu suscripción",
-    "SUBSCRIPTION_LIMIT_REACHED.condominium": "Has alcanzado el límite de condominios de tu suscripción ({currentCount}/{maxAllowed})",
-    "SUBSCRIPTION_LIMIT_REACHED.unit": "Has alcanzado el límite de unidades de tu suscripción ({currentCount}/{maxAllowed}). Intentaste agregar {requested}",
+    "SUBSCRIPTION_LIMIT_REACHED": {
+      "_default": "Se ha alcanzado el límite de tu suscripción",
+      "condominium": "Has alcanzado el límite de condominios de tu suscripción ({currentCount}/{maxAllowed})",
+      "unit": "Has alcanzado el límite de unidades de tu suscripción ({currentCount}/{maxAllowed}). Intentaste agregar {requested}"
+    },
     "NO_ACTIVE_SUBSCRIPTION": "Tu empresa administradora no tiene una suscripción activa",
     "unknown": "Ocurrió un error inesperado"
   }

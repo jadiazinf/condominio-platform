@@ -29,7 +29,7 @@ async function checkUserRoles() {
       return
     }
 
-    const user = userResult[0]
+    const user = userResult[0]!
     console.log('User:', user.email, '-', user.displayName)
     console.log('')
 

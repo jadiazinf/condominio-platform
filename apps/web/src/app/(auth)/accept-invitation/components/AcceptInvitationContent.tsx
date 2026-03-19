@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   validateInvitationToken,
   type TValidateInvitationResult,
@@ -11,6 +10,7 @@ import {
 import { InvalidTokenView } from './InvalidTokenView'
 import { ExpiredTokenView } from './ExpiredTokenView'
 import { AcceptInvitationForm } from './AcceptInvitationForm'
+import { AcceptInvitationRegisteredForm } from './AcceptInvitationRegisteredForm'
 
 import { Spinner } from '@/ui/components/spinner'
 import { Card, CardBody } from '@/ui/components/card'
@@ -25,14 +25,15 @@ type TViewState =
   | { type: 'no-token' }
   | { type: 'invalid' }
   | { type: 'expired'; data: TValidateInvitationResult }
-  | { type: 'valid'; data: TValidateInvitationResult }
+  | { type: 'valid-new-user'; data: TValidateInvitationResult }
+  | { type: 'valid-registered'; data: TValidateInvitationResult }
   | { type: 'error'; message: string }
 
 export function AcceptInvitationContent({ token }: AcceptInvitationContentProps) {
   const { t } = useTranslation()
-  const router = useRouter()
   const [viewState, setViewState] = useState<TViewState>({ type: 'loading' })
 
+  // Validate the token
   useEffect(() => {
     if (!token) {
       setViewState({ type: 'no-token' })
@@ -42,40 +43,26 @@ export function AcceptInvitationContent({ token }: AcceptInvitationContentProps)
 
     async function validateToken() {
       try {
-        console.log('[AcceptInvitation] Validating token:', {
-          tokenLength: token!.length,
-          tokenPrefix: token!.substring(0, 12),
-          fullToken: token,
-        })
-
         const result = await validateInvitationToken(token!)
-
-        console.log('[AcceptInvitation] Validation result:', {
-          isValid: result.isValid,
-          isExpired: result.isExpired,
-          user: result.user,
-          company: result.managementCompany,
-        })
 
         if (!result.isValid) {
           if (result.isExpired) {
             setViewState({ type: 'expired', data: result })
           } else {
-            // Invitation already used or cancelled
             setViewState({ type: 'invalid' })
           }
 
           return
         }
 
-        setViewState({ type: 'valid', data: result })
+        if (result.user.isActive) {
+          // User already has an account — show confirmation form
+          setViewState({ type: 'valid-registered', data: result })
+        } else {
+          // New user — show password creation form
+          setViewState({ type: 'valid-new-user', data: result })
+        }
       } catch (err) {
-        console.error('[AcceptInvitation] Validation error:', {
-          isHttpError: HttpError.isHttpError(err),
-          status: HttpError.isHttpError(err) ? err.status : undefined,
-          message: err instanceof Error ? err.message : String(err),
-        })
-
         if (HttpError.isHttpError(err) && err.status === 404) {
           setViewState({ type: 'invalid' })
         } else {
@@ -122,12 +109,11 @@ export function AcceptInvitationContent({ token }: AcceptInvitationContentProps)
     )
   }
 
-  // Valid token - show the form
-  return (
-    <AcceptInvitationForm
-      invitationData={viewState.data}
-      token={token!}
-      onSuccess={() => router.push('/dashboard')}
-    />
-  )
+  // Valid token, registered user — show confirmation form with terms
+  if (viewState.type === 'valid-registered') {
+    return <AcceptInvitationRegisteredForm invitationData={viewState.data} token={token!} />
+  }
+
+  // Valid token, new user — show password creation form
+  return <AcceptInvitationForm invitationData={viewState.data} token={token!} />
 }

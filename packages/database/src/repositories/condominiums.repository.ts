@@ -6,7 +6,7 @@ import type {
   TPaginatedResponse,
   TCondominiumsQuerySchema,
 } from '@packages/domain'
-import { condominiums, condominiumManagementCompanies } from '../drizzle/schema'
+import { condominiums, condominiumManagementCompanies, buildings, units } from '../drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -327,6 +327,32 @@ export class CondominiumsRepository
   }
 
   /**
+   * Counts units per condominium for a list of condominium IDs.
+   * Joins buildings → units to get total unit count per condominium.
+   */
+  private async getUnitsCountForCondominiums(
+    condominiumIds: string[]
+  ): Promise<Map<string, number>> {
+    if (condominiumIds.length === 0) return new Map()
+
+    const results = await this.db
+      .select({
+        condominiumId: buildings.condominiumId,
+        count: sql<number>`count(${units.id})::int`,
+      })
+      .from(buildings)
+      .leftJoin(units, eq(units.buildingId, buildings.id))
+      .where(inArray(buildings.condominiumId, condominiumIds))
+      .groupBy(buildings.condominiumId)
+
+    const map = new Map<string, number>()
+    for (const r of results) {
+      map.set(r.condominiumId, r.count)
+    }
+    return map
+  }
+
+  /**
    * Retrieves condominiums by management company with pagination and filtering.
    */
   async listByManagementCompanyPaginated(
@@ -394,14 +420,18 @@ export class CondominiumsRepository
     const total = countResult[0]?.count ?? 0
     const totalPages = Math.ceil(total / limit)
 
-    // Get management company IDs for all results
+    // Get management company IDs and unit counts for all results
     const resultIds = results.map(r => r.id)
-    const managementCompanyMap = await this.getManagementCompanyIdsForCondominiums(resultIds)
+    const [managementCompanyMap, unitsCountMap] = await Promise.all([
+      this.getManagementCompanyIdsForCondominiums(resultIds),
+      this.getUnitsCountForCondominiums(resultIds),
+    ])
 
     return {
-      data: results.map(record =>
-        this.mapToEntity(record, managementCompanyMap.get(record.id) || [])
-      ),
+      data: results.map(record => ({
+        ...this.mapToEntity(record, managementCompanyMap.get(record.id) || []),
+        unitsCount: unitsCountMap.get(record.id) ?? 0,
+      })),
       pagination: {
         page,
         limit,

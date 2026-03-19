@@ -3,7 +3,7 @@
 import type { TPayment, TPaymentStatus } from '@packages/domain'
 import type { TReportFormat } from '@packages/http-client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { CreditCard, Search, MoreVertical, Eye, CheckCircle, XCircle, Download } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
@@ -19,6 +19,7 @@ import {
 
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Input } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
@@ -26,6 +27,7 @@ import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/comp
 import { Spinner } from '@/ui/components/spinner'
 import { ClearFiltersButton } from '@/ui/components/filters'
 import { getPaymentStatusColor } from '@/utils/status-colors'
+import { useDebouncedValue } from '@/hooks'
 import { useTranslation, useCondominium } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Pagination } from '@/ui/components/pagination'
@@ -46,7 +48,8 @@ export function PaymentsTable() {
   const managementCompanyId = managementCompanies?.[0]?.managementCompanyId ?? ''
 
   // Filter state
-  const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const debouncedSearch = useDebouncedValue(searchInput)
   const [statusFilter, setStatusFilter] = useState<TStatusFilter>('pending_verification')
   const [condominiumFilter, setCondominiumFilter] = useState('')
   const [bankAccountFilter, setBankAccountFilter] = useState('')
@@ -56,6 +59,17 @@ export function PaymentsTable() {
   const [limit, setLimit] = useState(20)
   const [actionInProgress, setActionInProgress] = useState<string | null>(null)
   const [exporting, setExporting] = useState<TReportFormat | null>(null)
+  const isFirstRender = useRef(true)
+
+  // Reset page when debounced search changes (skip first render)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+
+      return
+    }
+    setPage(1)
+  }, [debouncedSearch])
 
   // Fetch condominiums for filter
   const { data: condominiumsData } = useCompanyCondominiumsPaginated({
@@ -132,11 +146,6 @@ export function PaymentsTable() {
   )
 
   // Handlers
-  const handleSearchChange = useCallback((value: string) => {
-    setSearch(value)
-    setPage(1)
-  }, [])
-
   const handleStatusChange = useCallback((key: string | null) => {
     if (key) {
       setStatusFilter(key as TStatusFilter)
@@ -174,7 +183,7 @@ export function PaymentsTable() {
   )
 
   const handleClearFilters = useCallback(() => {
-    setSearch('')
+    setSearchInput('')
     setStatusFilter('pending_verification')
     setCondominiumFilter('')
     setBankAccountFilter('')
@@ -413,8 +422,8 @@ export function PaymentsTable() {
           placeholder={t('admin.payments.filters.searchPlaceholder')}
           size="lg"
           startContent={<Search className="text-default-400" size={16} />}
-          value={search}
-          onValueChange={handleSearchChange}
+          value={searchInput}
+          onValueChange={setSearchInput}
         />
         <Select
           aria-label={t('admin.payments.filters.status')}
@@ -448,31 +457,25 @@ export function PaymentsTable() {
             onChange={handleBankAccountChange}
           />
         )}
-        <Input
+        <DatePicker
           className="w-full sm:w-36"
           label={t('admin.payments.filters.startDate')}
-          labelPlacement="inside"
-          size="sm"
-          type="date"
           value={startDate}
-          onValueChange={v => {
+          onChange={v => {
             setStartDate(v)
             setPage(1)
           }}
         />
-        <Input
+        <DatePicker
           className="w-full sm:w-36"
           label={t('admin.payments.filters.endDate')}
-          labelPlacement="inside"
-          size="sm"
-          type="date"
           value={endDate}
-          onValueChange={v => {
+          onChange={v => {
             setEndDate(v)
             setPage(1)
           }}
         />
-        {(search ||
+        {(searchInput ||
           statusFilter !== 'pending_verification' ||
           condominiumFilter ||
           bankAccountFilter ||

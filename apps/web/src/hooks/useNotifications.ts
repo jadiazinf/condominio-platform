@@ -7,8 +7,8 @@ import { useState, useEffect } from 'react'
 import { useApiQuery, useApiMutation, useQueryClient } from '@packages/http-client'
 import { useNotificationWebSocket } from '@packages/http-client/hooks'
 
-import { useUser } from '@/contexts'
-import { getSessionCookie } from '@/libs/cookies'
+import { useUser, useAuth } from '@/contexts'
+import { getSessionCookie, setSessionCookie } from '@/libs/cookies'
 
 export interface UseNotificationsOptions {
   enabled?: boolean
@@ -20,30 +20,41 @@ export interface UnreadCountResponse {
 
 export function useNotifications(options: UseNotificationsOptions = {}) {
   const { user } = useUser()
+  const { user: firebaseUser } = useAuth()
   const queryClient = useQueryClient()
   const userId = user?.id
 
   // Get auth token for WebSocket connection
-  const [token, setToken] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return getSessionCookie() || ''
-    }
-
-    return ''
-  })
+  // Always get a fresh token from Firebase to avoid connecting with an expired cookie token
+  const [token, setToken] = useState('')
+  const [tokenReady, setTokenReady] = useState(false)
 
   useEffect(() => {
-    const sessionToken = getSessionCookie()
+    if (!firebaseUser) return
 
-    if (sessionToken && sessionToken !== token) {
-      setToken(sessionToken)
-    }
-  }, [token])
+    // Force refresh to ensure we get a valid token, not a cached expired one
+    firebaseUser
+      .getIdToken(true)
+      .then(freshToken => {
+        setToken(freshToken)
+        setSessionCookie(firebaseUser)
+        setTokenReady(true)
+      })
+      .catch(() => {
+        // Fallback to cookie if Firebase refresh fails
+        const cookieToken = getSessionCookie()
+
+        if (cookieToken) {
+          setToken(cookieToken)
+          setTokenReady(true)
+        }
+      })
+  }, [firebaseUser])
 
   // Real-time WebSocket connection
   const { isConnected } = useNotificationWebSocket({
     token,
-    enabled: !!token && !!userId && options.enabled !== false,
+    enabled: !!token && tokenReady && !!userId && options.enabled !== false,
   })
 
   const {

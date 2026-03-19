@@ -5,6 +5,7 @@ import type { IWizardFormData, TChargeGenerationStrategy } from '../CreatePaymen
 import { Info } from 'lucide-react'
 import { useMemo } from 'react'
 
+import { DatePicker } from '@/ui/components/date-picker'
 import { Input } from '@/ui/components/input'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Switch } from '@/ui/components/switch'
@@ -112,25 +113,18 @@ export function BasicInfoStep({ formData, onUpdate, currencies, showErrors }: Ba
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Input
+        <DatePicker
           isRequired
           errorMessage={showErrors && !formData.effectiveFrom ? t('common.required') : undefined}
-          isInvalid={showErrors && !formData.effectiveFrom}
           label={t(`${w}.effectiveFrom`)}
-          placeholder={t(`${w}.effectiveFromPlaceholder`)}
-          tooltip={t(`${w}.tooltips.effectiveFrom`)}
-          type="date"
           value={formData.effectiveFrom}
-          onValueChange={val => onUpdate({ effectiveFrom: val })}
+          onChange={val => onUpdate({ effectiveFrom: val })}
         />
 
-        <Input
+        <DatePicker
           label={t(`${w}.effectiveUntil`)}
-          placeholder={t(`${w}.effectiveUntilPlaceholder`)}
-          tooltip={t(`${w}.tooltips.effectiveUntil`)}
-          type="date"
           value={formData.effectiveUntil}
-          onValueChange={val => onUpdate({ effectiveUntil: val })}
+          onChange={val => onUpdate({ effectiveUntil: val })}
         />
       </div>
 

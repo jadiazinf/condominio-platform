@@ -17,6 +17,13 @@ export const ETicketStatus = [
   'cancelled',
 ] as const
 
+// Ticket channel options
+export const ETicketChannel = [
+  'resident_to_admin',
+  'resident_to_support',
+  'admin_to_support',
+] as const
+
 // Ticket category options
 export const ETicketCategory = [
   'technical',
@@ -24,11 +31,17 @@ export const ETicketCategory = [
   'feature_request',
   'general',
   'bug',
+  'maintenance',
+  'payment_issue',
+  'access_request',
+  'noise_complaint',
 ] as const
 
 export const supportTicketSchema = baseModelSchema.extend({
   ticketNumber: z.string().max(50),
   managementCompanyId: z.uuid(),
+  channel: z.enum(ETicketChannel),
+  condominiumId: z.uuid().nullable(),
   createdByUserId: z.uuid(),
   createdByMemberId: z.uuid().nullable(),
 
@@ -80,6 +93,7 @@ export const supportTicketSchema = baseModelSchema.extend({
     .optional(),
 })
 
+export type TTicketChannel = (typeof ETicketChannel)[number]
 export type TTicketPriority = (typeof ETicketPriority)[number]
 export type TTicketStatus = (typeof ETicketStatus)[number]
 export type TTicketCategory = (typeof ETicketCategory)[number]

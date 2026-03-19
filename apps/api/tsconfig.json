@@ -23,6 +23,6 @@
       "@services/*": ["./src/services/*"]
     }
   },
-  "include": ["src", "tests", "drizzle.config.ts", "eslint.config.mjs"],
+  "include": ["src", "tests", "scripts", "drizzle.config.ts", "eslint.config.mjs"],
   "exclude": ["node_modules"]
 }

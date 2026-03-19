@@ -17,6 +17,7 @@ import { Typography } from '@/ui/components/typography'
 import { Pagination } from '@/ui/components/pagination'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Spinner } from '@/ui/components/spinner'
 import { useTranslation } from '@/contexts'
 import { useAuth } from '@/contexts'
@@ -85,13 +86,13 @@ export function SubscriptionHistoryPage({ companyId }: SubscriptionHistoryPagePr
     setPage(1)
   }, [])
 
-  const handleDateFromChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setDateFrom(typeof e === 'string' ? e : ((e?.target as HTMLInputElement)?.value ?? ''))
+  const handleDateFromChange = useCallback((value: string) => {
+    setDateFrom(value)
     setPage(1)
   }, [])
 
-  const handleDateToChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setDateTo(typeof e === 'string' ? e : ((e?.target as HTMLInputElement)?.value ?? ''))
+  const handleDateToChange = useCallback((value: string) => {
+    setDateTo(value)
     setPage(1)
   }, [])
 
@@ -174,17 +175,15 @@ export function SubscriptionHistoryPage({ companyId }: SubscriptionHistoryPagePr
           value={search}
           onValueChange={handleSearchChange}
         />
-        <Input
+        <DatePicker
           className="w-full sm:w-44"
           label={t(`${tp}.dateFrom`)}
-          type="date"
           value={dateFrom}
           onChange={handleDateFromChange}
         />
-        <Input
+        <DatePicker
           className="w-full sm:w-44"
           label={t(`${tp}.dateTo`)}
-          type="date"
           value={dateTo}
           onChange={handleDateToChange}
         />

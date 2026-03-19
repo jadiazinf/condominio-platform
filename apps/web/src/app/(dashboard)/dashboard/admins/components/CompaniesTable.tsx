@@ -2,7 +2,7 @@
 
 import type { TManagementCompany, TManagementCompaniesQuery } from '@packages/domain'
 
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Building2, Search, MoreVertical, Eye, Power } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
@@ -19,6 +19,7 @@ import { Button } from '@/ui/components/button'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
 import { Spinner } from '@/ui/components/spinner'
 import { ClearFiltersButton } from '@/ui/components/filters'
+import { useDebouncedValue } from '@/hooks'
 import { useTranslation, useAuth } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Pagination } from '@/ui/components/pagination'
@@ -44,21 +45,33 @@ export function CompaniesTable() {
   }, [firebaseUser])
 
   // Filter state
-  const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const debouncedSearch = useDebouncedValue(searchInput)
   const [statusFilter, setStatusFilter] = useState<TStatusFilter>('active')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(20)
   const [isToggling, setIsToggling] = useState<string | null>(null)
+  const isFirstRender = useRef(true)
+
+  // Reset page when debounced search changes (skip first render)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+
+      return
+    }
+    setPage(1)
+  }, [debouncedSearch])
 
   // Build query
   const query: TManagementCompaniesQuery = useMemo(
     () => ({
       page,
       limit,
-      search: search || undefined,
+      search: debouncedSearch || undefined,
       isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
     }),
-    [page, limit, search, statusFilter]
+    [page, limit, debouncedSearch, statusFilter]
   )
 
   // Fetch data from API
@@ -94,11 +107,6 @@ export function CompaniesTable() {
   )
 
   // Handlers
-  const handleSearchChange = useCallback((value: string) => {
-    setSearch(value)
-    setPage(1) // Reset to first page on search
-  }, [])
-
   const handleStatusChange = useCallback((key: string | null) => {
     if (key) {
       setStatusFilter(key as TStatusFilter)
@@ -107,7 +115,7 @@ export function CompaniesTable() {
   }, [])
 
   const handleClearFilters = useCallback(() => {
-    setSearch('')
+    setSearchInput('')
     setStatusFilter('active')
     setPage(1)
   }, [])
@@ -230,8 +238,8 @@ export function CompaniesTable() {
           className="w-full sm:max-w-xs"
           placeholder={t('superadmin.companies.filters.searchPlaceholder')}
           startContent={<Search className="text-default-400" size={16} />}
-          value={search}
-          onValueChange={handleSearchChange}
+          value={searchInput}
+          onValueChange={setSearchInput}
         />
         <Select
           aria-label={t('superadmin.companies.filters.status')}
@@ -241,7 +249,7 @@ export function CompaniesTable() {
           variant="bordered"
           onChange={handleStatusChange}
         />
-        {(search || statusFilter !== 'active') && (
+        {(searchInput || statusFilter !== 'active') && (
           <ClearFiltersButton onClear={handleClearFilters} />
         )}
       </div>

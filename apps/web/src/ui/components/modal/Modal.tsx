@@ -9,7 +9,16 @@ import {
   useDisclosure as useHeroUIDisclosure,
 } from '@heroui/modal'
 import { cn } from '@heroui/theme'
-import { ReactNode } from 'react'
+import { ReactNode, createContext, useContext, useRef } from 'react'
+
+// Context to share the modal body ref with child components (e.g., DatePicker)
+// so they can render their popovers inside the modal DOM and avoid
+// triggering the modal's "interact outside" dismiss behavior.
+const ModalPortalContext = createContext<React.RefObject<HTMLElement | null> | null>(null)
+
+export function useModalPortalContainer() {
+  return useContext(ModalPortalContext)
+}
 
 type TModalSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | 'full'
 type TModalPlacement = 'auto' | 'top' | 'center' | 'bottom'
@@ -91,7 +100,16 @@ export function ModalHeader({ children, className }: IModalHeaderProps) {
 }
 
 export function ModalBody({ children, className }: IModalBodyProps) {
-  return <HeroUIModalBody className={cn(className)}>{children}</HeroUIModalBody>
+  const portalRef = useRef<HTMLDivElement>(null)
+
+  return (
+    <ModalPortalContext.Provider value={portalRef}>
+      <HeroUIModalBody className={cn(className)}>
+        {children}
+        <div ref={portalRef} />
+      </HeroUIModalBody>
+    </ModalPortalContext.Provider>
+  )
 }
 
 export function ModalFooter({ children, className }: IModalFooterProps) {

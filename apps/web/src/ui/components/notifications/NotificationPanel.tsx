@@ -1,25 +1,18 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Popover, PopoverTrigger, PopoverContent } from '@heroui/popover'
 import { Badge } from '@heroui/badge'
 import { Button as HeroUIButton } from '@heroui/button'
-import { Tabs, Tab } from '@heroui/tabs'
 import { ScrollShadow } from '@heroui/scroll-shadow'
 import { Bell, CheckCheck } from 'lucide-react'
 
 import { NotificationList } from './NotificationList'
 
 import { Button } from '@/ui/components/button'
-import { Chip } from '@/ui/components/chip'
 import { Link } from '@/ui/components/link'
 import { useNotifications } from '@/hooks'
 import { useTranslation } from '@/contexts'
-
-enum ENotificationTab {
-  All = 'all',
-  Unread = 'unread',
-}
 
 interface INotificationPanelProps {
   maxNotifications?: number
@@ -30,14 +23,10 @@ export function NotificationPanel({ maxNotifications = 10 }: INotificationPanelP
   const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, deleteNotification } =
     useNotifications()
 
-  const [activeTab, setActiveTab] = useState<ENotificationTab>(ENotificationTab.All)
-
-  const filteredNotifications = useMemo(() => {
-    const list =
-      activeTab === ENotificationTab.Unread ? notifications.filter(n => !n.isRead) : notifications
-
-    return list.slice(0, maxNotifications)
-  }, [notifications, activeTab, maxNotifications])
+  const unreadNotifications = useMemo(
+    () => notifications.filter(n => !n.isRead).slice(0, maxNotifications),
+    [notifications, maxNotifications]
+  )
 
   const hasUnread = unreadCount > 0
 
@@ -63,17 +52,10 @@ export function NotificationPanel({ maxNotifications = 10 }: INotificationPanelP
         </HeroUIButton>
       </PopoverTrigger>
       <PopoverContent className="w-[380px] p-0">
-        <div className="flex flex-col">
+        <div className="flex h-[460px] flex-col">
           {/* Header */}
-          <div className="flex w-full items-center justify-between px-4 py-3">
-            <div className="flex items-center gap-2">
-              <h4 className="text-large font-medium">{t('notifications.title')}</h4>
-              {hasUnread && (
-                <Chip size="sm" variant="flat">
-                  {unreadCount}
-                </Chip>
-              )}
-            </div>
+          <div className="flex w-full shrink-0 items-center justify-between border-b border-divider px-4 py-3">
+            <h4 className="text-large font-medium">{t('notifications.title')}</h4>
             {hasUnread && (
               <Button
                 className="h-7 text-xs"
@@ -88,58 +70,18 @@ export function NotificationPanel({ maxNotifications = 10 }: INotificationPanelP
             )}
           </div>
 
-          {/* Tabs */}
-          <Tabs
-            aria-label={t('notifications.title')}
-            classNames={{
-              base: 'w-full',
-              tabList: 'gap-4 px-4 py-0 w-full relative rounded-none border-b border-divider',
-              cursor: 'w-full',
-              tab: 'max-w-fit px-2 h-10',
-            }}
-            color="success"
-            selectedKey={activeTab}
-            variant="underlined"
-            onSelectionChange={key => setActiveTab(key as ENotificationTab)}
-          >
-            <Tab
-              key={ENotificationTab.All}
-              title={
-                <div className="flex items-center gap-1.5">
-                  <span>{t('notifications.tabs.all')}</span>
-                  <Chip size="sm" variant="flat">
-                    {notifications.length}
-                  </Chip>
-                </div>
-              }
-            />
-            <Tab
-              key={ENotificationTab.Unread}
-              title={
-                <div className="flex items-center gap-1.5">
-                  <span>{t('notifications.tabs.unread')}</span>
-                  {hasUnread && (
-                    <Chip size="sm" variant="flat">
-                      {unreadCount}
-                    </Chip>
-                  )}
-                </div>
-              }
-            />
-          </Tabs>
-
-          {/* Notification list */}
-          <ScrollShadow className="h-[350px] max-h-[350px] w-full">
+          {/* Notification list — only unread */}
+          <ScrollShadow className="min-h-0 flex-1">
             <NotificationList
               isLoading={isLoading}
-              notifications={filteredNotifications}
+              notifications={unreadNotifications}
               onDelete={deleteNotification}
               onMarkAsRead={markAsRead}
             />
           </ScrollShadow>
 
           {/* Footer */}
-          <div className="border-t border-divider px-4 py-2 text-center">
+          <div className="shrink-0 border-t border-divider px-4 py-2 text-center">
             <Link className="text-sm text-primary hover:underline" href="/dashboard/notifications">
               {t('notifications.viewAll')}
             </Link>

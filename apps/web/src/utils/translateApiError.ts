@@ -53,11 +53,18 @@ export function translateApiError(err: unknown, t: (key: string) => string): str
         return details ? interpolate(resourceTranslation, details) : resourceTranslation
     }
 
-    // 3. Try generic code: apiErrors.ALREADY_EXISTS
+    // 3. Try generic code: apiErrors.ALREADY_EXISTS (or apiErrors.CODE._default for nested entries)
     const genericKey = `apiErrors.${code}`
     const generic = t(genericKey)
 
     if (generic !== genericKey) return details ? interpolate(generic, details) : generic
+
+    // 3b. Try _default sub-key for codes that use nested structure
+    const defaultKey = `apiErrors.${code}._default`
+    const defaultTranslation = t(defaultKey)
+
+    if (defaultTranslation !== defaultKey)
+      return details ? interpolate(defaultTranslation, details) : defaultTranslation
   }
 
   // 4. Use the API message if available (already localized by the backend)

@@ -36,6 +36,7 @@ import {
 } from '../../middlewares/utils/auth/is-user-authenticated'
 import { requireRole } from '../../middlewares/auth'
 import { canAccessTicket } from '../../middlewares/utils/auth/can-access-ticket'
+import { WebSocketManager } from '@libs/websocket'
 
 const CompanyIdParamSchema = z.object({
   companyId: z.string().uuid('Invalid company ID format'),
@@ -48,6 +49,7 @@ const TicketsQuerySchema = z.object({
     .enum(['open', 'in_progress', 'waiting_customer', 'resolved', 'closed', 'cancelled'])
     .optional(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+  channel: z.enum(['resident_to_admin', 'resident_to_support', 'admin_to_support']).optional(),
   search: z.string().optional(),
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
@@ -104,6 +106,7 @@ export class SupportTicketsController extends BaseController<
   private readonly closeService: CloseTicketService
   private readonly updateStatusService: UpdateTicketStatusService
   private readonly sendNotificationService: SendNotificationService
+  private readonly wsManager = WebSocketManager.getInstance()
 
   constructor(
     repository: SupportTicketsRepository,
@@ -236,6 +239,38 @@ export class SupportTicketsController extends BaseController<
   // ─────────────────────────────────────────────────────────────────────────────
 
   /**
+   * Override update to block changes on terminal tickets
+   */
+  protected override update = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TSupportTicketUpdate, unknown, { id: string }>(c)
+    const t = useTranslation(c)
+
+    const existing = await this.repository.getById(ctx.params.id)
+    if (!existing) {
+      return ctx.notFound({
+        error: t(LocaleDictionary.http.controllers.supportTickets.ticketNotFound),
+      })
+    }
+
+    if (
+      existing.status === 'closed' ||
+      existing.status === 'cancelled' ||
+      existing.status === 'resolved'
+    ) {
+      return ctx.badRequest({
+        error: t(LocaleDictionary.http.controllers.supportTickets.cannotAddMessageToClosed),
+      })
+    }
+
+    const entity = await this.repository.update(ctx.params.id, ctx.body)
+
+    // Broadcast ticket update to all connected clients
+    this.wsManager.broadcastToTicket(ctx.params.id, 'ticket_updated', entity)
+
+    return ctx.ok({ data: entity })
+  }
+
+  /**
    * Override getById to include user details and messages
    */
   protected override getById = async (c: Context): Promise<Response> => {
@@ -266,6 +301,7 @@ export class SupportTicketsController extends BaseController<
       const result = await repo.findAll({
         status: ctx.query.status,
         priority: ctx.query.priority,
+        channel: ctx.query.channel,
         search: ctx.query.search,
         page: ctx.query.page,
         limit: ctx.query.limit,
@@ -285,6 +321,7 @@ export class SupportTicketsController extends BaseController<
       const result = await repo.listByCompanyId(ctx.params.companyId, {
         status: ctx.query.status,
         priority: ctx.query.priority,
+        channel: ctx.query.channel,
         search: ctx.query.search,
         page: ctx.query.page,
         limit: ctx.query.limit,
@@ -330,6 +367,8 @@ export class SupportTicketsController extends BaseController<
         return ctx.badRequest({ error: result.error })
       }
 
+      this.wsManager.broadcastToTicket(ctx.params.id, 'ticket_updated', result.data)
+
       return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
@@ -349,14 +388,16 @@ export class SupportTicketsController extends BaseController<
         return ctx.badRequest({ error: result.error })
       }
 
+      this.wsManager.broadcastToTicket(ctx.params.id, 'ticket_updated', result.data)
+
       // Fire-and-forget: notify ticket creator
       if (result.data.createdByUserId) {
         this.sendNotificationService
           .execute({
             userId: result.data.createdByUserId,
             category: 'system',
-            title: 'Ticket Resolved',
-            body: `Your support ticket #${result.data.ticketNumber} has been resolved.`,
+            title: 'Tu ticket ha sido resuelto',
+            body: `Ticket #${result.data.ticketNumber}: ${result.data.subject}`,
             channels: ['in_app', 'push'],
             data: { ticketId: result.data.id, action: 'ticket_resolved' },
           })
@@ -382,14 +423,16 @@ export class SupportTicketsController extends BaseController<
         return ctx.badRequest({ error: result.error })
       }
 
+      this.wsManager.broadcastToTicket(ctx.params.id, 'ticket_updated', result.data)
+
       // Fire-and-forget: notify ticket creator
       if (result.data.createdByUserId) {
         this.sendNotificationService
           .execute({
             userId: result.data.createdByUserId,
             category: 'system',
-            title: 'Ticket Closed',
-            body: `Your support ticket #${result.data.ticketNumber} has been closed.`,
+            title: 'Tu ticket ha sido cerrado',
+            body: `Ticket #${result.data.ticketNumber}: ${result.data.subject}`,
             channels: ['in_app', 'push'],
             data: { ticketId: result.data.id, action: 'ticket_closed' },
           })
@@ -423,14 +466,16 @@ export class SupportTicketsController extends BaseController<
         return ctx.badRequest({ error: String(error) })
       }
 
+      this.wsManager.broadcastToTicket(ctx.params.id, 'ticket_updated', result.data)
+
       // Fire-and-forget: notify ticket creator of status change
       if (result.data.createdByUserId) {
         this.sendNotificationService
           .execute({
             userId: result.data.createdByUserId,
             category: 'system',
-            title: 'Ticket Status Updated',
-            body: `Your support ticket #${result.data.ticketNumber} status has been updated to ${ctx.body.status.replace('_', ' ')}.`,
+            title: 'Estado de ticket actualizado',
+            body: `Ticket #${result.data.ticketNumber}: ${result.data.subject}`,
             channels: ['in_app', 'push'],
             data: {
               ticketId: result.data.id,

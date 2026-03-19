@@ -2,7 +2,7 @@
 
 import type { TWizardExecutionData } from '@packages/domain'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   useCreatePaymentConceptFull,
   useUpdatePaymentConceptFull,
@@ -33,6 +33,7 @@ import { Typography } from '@/ui/components/typography'
 import { Stepper, type IStepItem } from '@/ui/components/stepper'
 import { useTranslation } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
+import { useWizardAutoDraft } from '@/hooks/useWizardAutoDraft'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -178,6 +179,15 @@ export function CreatePaymentConceptWizard({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showErrors, setShowErrors] = useState(false)
   const [editDataLoaded, setEditDataLoaded] = useState(false)
+  const [draftRestored, setDraftRestored] = useState(false)
+  const draftInitializedRef = useRef(false)
+  const skipNextSaveRef = useRef(false)
+
+  const { draft, isLoadingDraft, saveDraft, clearDraft } = useWizardAutoDraft<IWizardFormData>({
+    wizardType: 'payment_concept',
+    entityId: condominiumId,
+    enabled: !isEditMode && isOpen,
+  })
 
   const { mutateAsync: createConceptFull } = useCreatePaymentConceptFull(managementCompanyId)
   const { mutateAsync: updateConceptFull } = useUpdatePaymentConceptFull(managementCompanyId)
@@ -287,6 +297,38 @@ export function CreatePaymentConceptWizard({
   useEffect(() => {
     if (!isOpen) {
       setEditDataLoaded(false)
+    }
+  }, [isOpen])
+
+  // Restore draft when loaded (create mode only)
+  useEffect(() => {
+    if (isEditMode || draftInitializedRef.current || isLoadingDraft || !isOpen) return
+    draftInitializedRef.current = true
+
+    if (draft) {
+      skipNextSaveRef.current = true
+      setFormData({ ...INITIAL_FORM_DATA, ...draft.data })
+      setCurrentStep(draft.currentStep)
+      setDraftRestored(true)
+    }
+  }, [isEditMode, isLoadingDraft, draft, isOpen])
+
+  // Auto-save draft on formData/currentStep changes (create mode only)
+  useEffect(() => {
+    if (isEditMode || !draftInitializedRef.current || !isOpen) return
+    if (skipNextSaveRef.current) {
+      skipNextSaveRef.current = false
+
+      return
+    }
+    saveDraft(formData, currentStep)
+  }, [formData, currentStep, saveDraft, isEditMode, isOpen])
+
+  // Reset draft state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      draftInitializedRef.current = false
+      setDraftRestored(false)
     }
   }, [isOpen])
 
@@ -554,6 +596,7 @@ export function CreatePaymentConceptWizard({
         await generateBulk({ conceptId })
       }
 
+      clearDraft()
       await queryClient.invalidateQueries({ queryKey: paymentConceptKeys.all })
       toast.success(t(`${w}.success`))
       handleClose()
@@ -583,6 +626,7 @@ export function CreatePaymentConceptWizard({
     createAssignment,
     linkBankAccount,
     createInterestConfig,
+    clearDraft,
     queryClient,
     handleClose,
     toast,
@@ -692,12 +736,32 @@ export function CreatePaymentConceptWizard({
         </ModalHeader>
 
         <ModalBody>
-          {isEditMode && isLoadingEdit ? (
+          {(!isEditMode && isLoadingDraft) || (isEditMode && isLoadingEdit) ? (
             <div className="flex items-center justify-center py-12">
               <Spinner size="lg" />
             </div>
           ) : (
-            renderStepContent()
+            <>
+              {draftRestored && (
+                <div className="mb-4 flex items-center justify-between rounded-lg bg-default-100 p-3">
+                  <span className="text-sm text-default-600">{t(`${w}.draftRestored`)}</span>
+                  <Button
+                    size="sm"
+                    variant="flat"
+                    onPress={() => {
+                      clearDraft()
+                      skipNextSaveRef.current = true
+                      setFormData(INITIAL_FORM_DATA)
+                      setCurrentStep(0)
+                      setDraftRestored(false)
+                    }}
+                  >
+                    {t(`${w}.discardDraft`)}
+                  </Button>
+                </div>
+              )}
+              {renderStepContent()}
+            </>
           )}
         </ModalBody>
 

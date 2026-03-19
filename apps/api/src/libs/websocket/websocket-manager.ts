@@ -5,6 +5,7 @@ export interface IWebSocketClient {
   ws: ServerWebSocket<unknown>
   user: TUser
   ticketId: string
+  isSuperadmin: boolean
 }
 
 export interface IUserWebSocketClient {
@@ -41,8 +42,13 @@ export class WebSocketManager {
   /**
    * Add a client to a ticket room
    */
-  public addClient(ws: ServerWebSocket<unknown>, user: TUser, ticketId: string): void {
-    this.clients.set(ws, { ws, user, ticketId })
+  public addClient(
+    ws: ServerWebSocket<unknown>,
+    user: TUser,
+    ticketId: string,
+    isSuperadmin = false
+  ): void {
+    this.clients.set(ws, { ws, user, ticketId, isSuperadmin })
 
     if (!this.rooms.has(ticketId)) {
       this.rooms.set(ticketId, new Set())
@@ -73,9 +79,15 @@ export class WebSocketManager {
   }
 
   /**
-   * Broadcast a message to all clients in a ticket room
+   * Broadcast a message to all clients in a ticket room.
+   * If `onlySuperadmins` is true, only superadmin clients receive the message.
    */
-  public broadcastToTicket(ticketId: string, event: string, data: unknown): void {
+  public broadcastToTicket(
+    ticketId: string,
+    event: string,
+    data: unknown,
+    onlySuperadmins = false
+  ): void {
     const room = this.rooms.get(ticketId)
     if (!room || room.size === 0) {
       return
@@ -85,6 +97,10 @@ export class WebSocketManager {
 
     for (const ws of room) {
       try {
+        if (onlySuperadmins) {
+          const client = this.clients.get(ws)
+          if (!client?.isSuperadmin) continue
+        }
         ws.send(message)
       } catch {
         this.removeClient(ws)

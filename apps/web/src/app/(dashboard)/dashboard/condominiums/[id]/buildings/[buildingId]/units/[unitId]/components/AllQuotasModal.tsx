@@ -10,7 +10,7 @@ import { formatAmount } from '@packages/utils/currency'
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
-import { Input } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Select } from '@/ui/components/select'
 import { Button } from '@/ui/components/button'
 import { Pagination } from '@/ui/components/pagination'
@@ -155,25 +155,21 @@ export function AllQuotasModal({ isOpen, onClose, unitId, translations: t }: All
           {/* Filters */}
           <div className="mb-4 flex flex-wrap items-end gap-3">
             <div className="min-w-[140px]">
-              <Input
+              <DatePicker
                 label={t.filters.dateFrom}
-                size="sm"
-                type="date"
                 value={startDate}
-                onChange={e => {
-                  setStartDate(e.target.value)
+                onChange={v => {
+                  setStartDate(v)
                   setPage(1)
                 }}
               />
             </div>
             <div className="min-w-[140px]">
-              <Input
+              <DatePicker
                 label={t.filters.dateTo}
-                size="sm"
-                type="date"
                 value={endDate}
-                onChange={e => {
-                  setEndDate(e.target.value)
+                onChange={v => {
+                  setEndDate(v)
                   setPage(1)
                 }}
               />

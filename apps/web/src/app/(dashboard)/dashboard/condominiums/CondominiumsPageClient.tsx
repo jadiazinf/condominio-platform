@@ -7,9 +7,13 @@ import type {
   TActiveRoleType,
 } from '@packages/domain'
 
+import { useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+
 import { CondominiumsTable } from './components'
 
 import { useTranslation } from '@/contexts'
+import { useToast } from '@/ui/components/toast'
 
 interface CondominiumsPageClientProps {
   condominiums: TCondominium[]
@@ -17,6 +21,9 @@ interface CondominiumsPageClientProps {
   initialQuery: TCondominiumsQuery
   role?: TActiveRoleType | null
   canCreateCondominium?: boolean
+  limitReached?: boolean
+  maxCondominiums?: number
+  currentCondominiums?: number
 }
 
 export function CondominiumsPageClient({
@@ -25,8 +32,31 @@ export function CondominiumsPageClient({
   initialQuery,
   role,
   canCreateCondominium,
+  limitReached,
+  maxCondominiums,
+  currentCondominiums,
 }: CondominiumsPageClientProps) {
   const { t } = useTranslation()
+  const toast = useToast()
+  const router = useRouter()
+  const toastShownRef = useRef(false)
+
+  useEffect(() => {
+    if (limitReached && !toastShownRef.current) {
+      toastShownRef.current = true
+      const translationPrefix =
+        role === 'management_company' ? 'admin.condominiums' : 'superadmin.condominiums'
+
+      toast.error(
+        t(`${translationPrefix}.limitReached`, {
+          max: String(maxCondominiums ?? '∞'),
+          current: String(currentCondominiums ?? 0),
+        })
+      )
+      // Clean the URL param without triggering a navigation
+      router.replace('/dashboard/condominiums', { scroll: false })
+    }
+  }, [limitReached, maxCondominiums, currentCondominiums, role, t, toast, router])
 
   const isAdmin = role === 'management_company'
   const translationPrefix = isAdmin ? 'admin.condominiums' : 'superadmin.condominiums'

@@ -1,4 +1,4 @@
-import { eq, and, or, asc, count, inArray, ilike } from 'drizzle-orm'
+import { eq, and, or, asc, desc, count, inArray, ilike } from 'drizzle-orm'
 import type {
   TSupportTicket,
   TSupportTicketCreate,
@@ -6,6 +6,7 @@ import type {
   TSupportTicketMessage,
   TTicketStatus,
   TTicketPriority,
+  TTicketChannel,
   TPaginatedResponse,
   TUser,
 } from '@packages/domain'
@@ -23,6 +24,7 @@ type TTicketRecord = typeof supportTickets.$inferSelect
 export interface ITicketFilters {
   status?: TTicketStatus
   priority?: TTicketPriority
+  channel?: TTicketChannel
   search?: string
   page?: number
   limit?: number
@@ -50,6 +52,8 @@ export class SupportTicketsRepository
       id: r.id,
       ticketNumber: r.ticketNumber,
       managementCompanyId: r.managementCompanyId,
+      channel: r.channel,
+      condominiumId: r.condominiumId ?? null,
       createdByUserId: r.createdByUserId,
       createdByMemberId: r.createdByMemberId,
       subject: r.subject,
@@ -103,6 +107,10 @@ export class SupportTicketsRepository
 
     const conditions = [eq(supportTickets.managementCompanyId, companyId)]
 
+    if (filters?.channel) {
+      conditions.push(eq(supportTickets.channel, filters.channel))
+    }
+
     if (filters?.status) {
       conditions.push(eq(supportTickets.status, filters.status))
     }
@@ -146,7 +154,7 @@ export class SupportTicketsRepository
       )
       .leftJoin(users, eq(supportTicketAssignmentHistory.assignedTo, users.id))
       .where(and(...conditions))
-      .orderBy(asc(supportTickets.createdAt))
+      .orderBy(desc(supportTickets.createdAt))
       .limit(limit)
       .offset((page - 1) * limit)
 
@@ -196,6 +204,10 @@ export class SupportTicketsRepository
 
     const conditions = []
 
+    if (filters?.channel) {
+      conditions.push(eq(supportTickets.channel, filters.channel))
+    }
+
     if (filters?.status) {
       conditions.push(eq(supportTickets.status, filters.status))
     }
@@ -243,11 +255,11 @@ export class SupportTicketsRepository
       conditions.length > 0
         ? await dataQuery
             .where(and(...conditions))
-            .orderBy(asc(supportTickets.createdAt))
+            .orderBy(desc(supportTickets.createdAt))
             .limit(limit)
             .offset((page - 1) * limit)
         : await dataQuery
-            .orderBy(asc(supportTickets.createdAt))
+            .orderBy(desc(supportTickets.createdAt))
             .limit(limit)
             .offset((page - 1) * limit)
 
@@ -284,6 +296,146 @@ export class SupportTicketsRepository
         total,
         totalPages,
       },
+    }
+  }
+
+  /**
+   * List tickets created by a specific user with optional filters
+   */
+  async listByCreatorUserId(
+    userId: string,
+    filters?: ITicketFilters
+  ): Promise<TPaginatedResponse<TSupportTicket>> {
+    const page = filters?.page ?? 1
+    const limit = filters?.limit ?? 20
+
+    const conditions = [eq(supportTickets.createdByUserId, userId)]
+
+    if (filters?.channel) {
+      conditions.push(eq(supportTickets.channel, filters.channel))
+    }
+
+    if (filters?.status) {
+      conditions.push(eq(supportTickets.status, filters.status))
+    }
+
+    if (filters?.priority) {
+      conditions.push(eq(supportTickets.priority, filters.priority))
+    }
+
+    if (filters?.search) {
+      const searchTerm = `%${filters.search}%`
+      conditions.push(
+        or(
+          ilike(supportTickets.ticketNumber, searchTerm),
+          ilike(supportTickets.subject, searchTerm)
+        )!
+      )
+    }
+
+    const countResult = await this.db
+      .select({ total: count() })
+      .from(supportTickets)
+      .where(and(...conditions))
+
+    const total = countResult[0]?.total ?? 0
+
+    const results = await this.db
+      .select()
+      .from(supportTickets)
+      .where(and(...conditions))
+      .orderBy(desc(supportTickets.createdAt))
+      .limit(limit)
+      .offset((page - 1) * limit)
+
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data: results.map(r => this.mapToEntity(r)),
+      pagination: { page, limit, total, totalPages },
+    }
+  }
+
+  /**
+   * List tickets for an admin: resident_to_admin tickets for their condominiums + their own admin_to_support tickets
+   */
+  async listForAdmin(
+    userId: string,
+    companyId: string,
+    filters?: ITicketFilters
+  ): Promise<TPaginatedResponse<TSupportTicket>> {
+    const page = filters?.page ?? 1
+    const limit = filters?.limit ?? 20
+
+    const baseConditions = []
+
+    if (filters?.status) {
+      baseConditions.push(eq(supportTickets.status, filters.status))
+    }
+    if (filters?.priority) {
+      baseConditions.push(eq(supportTickets.priority, filters.priority))
+    }
+    if (filters?.search) {
+      const searchTerm = `%${filters.search}%`
+      baseConditions.push(
+        or(
+          ilike(supportTickets.ticketNumber, searchTerm),
+          ilike(supportTickets.subject, searchTerm)
+        )!
+      )
+    }
+
+    // Channel filter or default: resident_to_admin for their company OR admin_to_support they created
+    let channelCondition
+    if (filters?.channel) {
+      if (filters.channel === 'resident_to_admin') {
+        channelCondition = and(
+          eq(supportTickets.channel, 'resident_to_admin'),
+          eq(supportTickets.managementCompanyId, companyId)
+        )
+      } else if (filters.channel === 'admin_to_support') {
+        channelCondition = and(
+          eq(supportTickets.channel, 'admin_to_support'),
+          eq(supportTickets.createdByUserId, userId)
+        )
+      }
+    } else {
+      channelCondition = or(
+        and(
+          eq(supportTickets.channel, 'resident_to_admin'),
+          eq(supportTickets.managementCompanyId, companyId)
+        ),
+        and(
+          eq(supportTickets.channel, 'admin_to_support'),
+          eq(supportTickets.createdByUserId, userId)
+        )
+      )
+    }
+
+    const allConditions = channelCondition ? [...baseConditions, channelCondition] : baseConditions
+
+    const whereClause = allConditions.length > 0 ? and(...allConditions) : undefined
+
+    const countResult = await this.db
+      .select({ total: count() })
+      .from(supportTickets)
+      .where(whereClause)
+
+    const total = countResult[0]?.total ?? 0
+
+    const results = await this.db
+      .select()
+      .from(supportTickets)
+      .where(whereClause)
+      .orderBy(desc(supportTickets.createdAt))
+      .limit(limit)
+      .offset((page - 1) * limit)
+
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data: results.map(r => this.mapToEntity(r)),
+      pagination: { page, limit, total, totalPages },
     }
   }
 

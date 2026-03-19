@@ -9,6 +9,7 @@ import { useCreateExchangeRate, useCurrencies } from '@packages/http-client'
 
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Typography } from '@/ui/components/typography'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Card, CardBody } from '@/ui/components/card'
@@ -173,8 +174,7 @@ export function CreateExchangeRateForm() {
                 control={control}
                 name="effectiveDate"
                 render={({ field }) => (
-                  <Input
-                    {...field}
+                  <DatePicker
                     isRequired
                     errorMessage={
                       errors.effectiveDate
@@ -182,10 +182,8 @@ export function CreateExchangeRateForm() {
                         : undefined
                     }
                     label={t('superadmin.currencies.exchangeRates.form.fields.effectiveDate.label')}
-                    placeholder={t(
-                      'superadmin.currencies.exchangeRates.form.fields.effectiveDate.placeholder'
-                    )}
-                    type="date"
+                    value={field.value}
+                    onChange={field.onChange}
                   />
                 )}
               />

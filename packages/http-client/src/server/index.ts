@@ -8,3 +8,4 @@ export {
   fetchActiveSuperadminUsers,
   type TSuperadminSession,
 } from './fetch-superadmin'
+export { fetchNotificationsPaginated, type IFetchNotificationsParams } from './fetch-notifications'

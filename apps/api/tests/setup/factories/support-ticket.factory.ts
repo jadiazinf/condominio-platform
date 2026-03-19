@@ -31,6 +31,8 @@ export class SupportTicketFactory {
     return {
       ticketNumber: this.generateTicketNumber(),
       managementCompanyId: faker.string.uuid(),
+      channel: 'admin_to_support',
+      condominiumId: null,
       createdByUserId: faker.string.uuid(),
       createdByMemberId: null,
       subject: faker.lorem.sentence(),

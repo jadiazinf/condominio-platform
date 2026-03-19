@@ -14,7 +14,7 @@ import {
 
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
-import { Input } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
@@ -272,23 +272,21 @@ export function ExchangeRateHistoryTable() {
             setPage(1)
           }}
         />
-        <Input
+        <DatePicker
           className="w-full sm:w-44"
           label={t('superadmin.currencies.exchangeRates.filters.dateFrom')}
-          type="date"
           value={dateFrom}
-          onChange={e => {
-            setDateFrom(typeof e === 'string' ? e : ((e?.target as HTMLInputElement)?.value ?? ''))
+          onChange={value => {
+            setDateFrom(value)
             setPage(1)
           }}
         />
-        <Input
+        <DatePicker
           className="w-full sm:w-44"
           label={t('superadmin.currencies.exchangeRates.filters.dateTo')}
-          type="date"
           value={dateTo}
-          onChange={e => {
-            setDateTo(typeof e === 'string' ? e : ((e?.target as HTMLInputElement)?.value ?? ''))
+          onChange={value => {
+            setDateTo(value)
             setPage(1)
           }}
         />

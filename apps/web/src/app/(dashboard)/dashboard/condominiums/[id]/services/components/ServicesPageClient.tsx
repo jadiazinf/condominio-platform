@@ -2,13 +2,14 @@
 
 import type { TCondominiumService, TCondominiumServicesQuery } from '@packages/domain'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Wrench, Plus, X, Search, ChevronRight } from 'lucide-react'
 import { useCondominiumServicesPaginated } from '@packages/http-client/hooks'
 
 import { CreateServiceModal } from './CreateServiceModal'
 
+import { useDebouncedValue } from '@/hooks'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Input } from '@/ui/components/input'
@@ -80,20 +81,32 @@ export function ServicesPageClient({
   // Filter state
   const [providerFilter, setProviderFilter] = useState<TProviderFilter>('all')
   const [statusFilter, setStatusFilter] = useState<TStatusFilter>('active')
-  const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const debouncedSearch = useDebouncedValue(searchInput)
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
+  const isFirstRender = useRef(true)
+
+  // Reset page when debounced search changes (skip first render)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+
+      return
+    }
+    setPage(1)
+  }, [debouncedSearch])
 
   // Build query for API
   const query: TCondominiumServicesQuery = useMemo(
     () => ({
       page,
       limit,
-      search: search || undefined,
+      search: debouncedSearch || undefined,
       providerType: providerFilter === 'all' ? undefined : providerFilter,
       isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
     }),
-    [page, limit, search, providerFilter, statusFilter]
+    [page, limit, debouncedSearch, providerFilter, statusFilter]
   )
 
   // Provider type filter items
@@ -157,15 +170,10 @@ export function ServicesPageClient({
     }
   }, [])
 
-  const handleSearchChange = useCallback((value: string) => {
-    setSearch(value)
-    setPage(1)
-  }, [])
-
   const handleClearFilters = useCallback(() => {
     setProviderFilter('all')
     setStatusFilter('active')
-    setSearch('')
+    setSearchInput('')
     setPage(1)
   }, [])
 
@@ -236,7 +244,8 @@ export function ServicesPageClient({
     [t]
   )
 
-  const hasActiveFilters = providerFilter !== 'all' || statusFilter !== 'active' || search !== ''
+  const hasActiveFilters =
+    providerFilter !== 'all' || statusFilter !== 'active' || searchInput !== ''
 
   if (error) {
     return (
@@ -283,10 +292,10 @@ export function ServicesPageClient({
           className="w-full sm:w-64"
           placeholder={t.filters.searchPlaceholder}
           startContent={<Search className="text-default-400" size={16} />}
-          value={search}
+          value={searchInput}
           variant="bordered"
-          onClear={() => handleSearchChange('')}
-          onValueChange={handleSearchChange}
+          onClear={() => setSearchInput('')}
+          onValueChange={setSearchInput}
         />
         <Select
           aria-label={t.table.providerType}

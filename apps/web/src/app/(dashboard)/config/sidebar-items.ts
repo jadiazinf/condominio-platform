@@ -20,6 +20,7 @@ import {
   KeyRound,
   Bell,
   ArrowLeftRight,
+  ShieldAlert,
 } from 'lucide-react'
 
 type TSidebarItemConfig = Omit<TSidebarItem, 'icon'> & {
@@ -94,6 +95,12 @@ export const dashboardSidebarItems: TSidebarItemConfig[] = [
     href: '/dashboard/join-condominium',
   },
   {
+    key: 'support',
+    title: 'resident.nav.support',
+    icon: MessageSquare,
+    href: '/dashboard/support',
+  },
+  {
     key: 'notifications',
     title: 'nav.notifications',
     icon: Bell,
@@ -151,6 +158,12 @@ export const adminSidebarItems: TSidebarItemConfig[] = [
     href: '/dashboard/subscription',
   },
   {
+    key: 'tickets',
+    title: 'admin.company.nav.tickets',
+    icon: MessageSquare,
+    href: '/dashboard/support',
+  },
+  {
     key: 'notifications',
     title: 'nav.notifications',
     icon: Bell,
@@ -188,6 +201,12 @@ export const superadminSidebarItems: TSidebarItemConfig[] = [
     title: 'superadmin.nav.admins',
     icon: Building,
     href: '/dashboard/admins',
+  },
+  {
+    key: 'no-subscription',
+    title: 'superadmin.nav.noSubscription',
+    icon: ShieldAlert,
+    href: '/dashboard/admins/no-subscription',
   },
   {
     key: 'rates',

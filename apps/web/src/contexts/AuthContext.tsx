@@ -23,7 +23,7 @@ import {
   EmailAuthProvider,
 } from 'firebase/auth'
 
-import { getFirebaseAuth, getFirebaseErrorMessage } from '@/libs/firebase'
+import { getFirebaseAuth, getFirebaseErrorKey } from '@/libs/firebase'
 import { setSessionCookie, waitForSessionCookie, clearSessionCookie } from '@/libs/cookies'
 import { tokenRefreshManager } from '@/libs/auth'
 import { useSessionStore } from '@/stores/session-store'
@@ -266,9 +266,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await setSessionCookie(userCredential.user)
       await waitForSessionCookie()
     } catch (err) {
-      const errorMessage = getFirebaseErrorMessage(err)
+      const errorKey = getFirebaseErrorKey(err)
 
-      setError(errorMessage)
+      setError(errorKey)
       throw err
     } finally {
       setLoading(false)
@@ -286,9 +286,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       await setSessionCookie(userCredential.user)
     } catch (err) {
-      const errorMessage = getFirebaseErrorMessage(err)
+      const errorKey = getFirebaseErrorKey(err)
 
-      setError(errorMessage)
+      setError(errorKey)
       throw err
     } finally {
       setLoading(false)
@@ -311,9 +311,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await setSessionCookie(userCredential.user)
       await waitForSessionCookie()
     } catch (err) {
-      const errorMessage = getFirebaseErrorMessage(err)
+      const errorKey = getFirebaseErrorKey(err)
 
-      setError(errorMessage)
+      setError(errorKey)
       throw err
     } finally {
       setLoading(false)
@@ -337,9 +337,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await firebaseSignOut(auth)
       clearSessionCookie()
     } catch (err) {
-      const errorMessage = getFirebaseErrorMessage(err)
+      const errorKey = getFirebaseErrorKey(err)
 
-      setError(errorMessage)
+      setError(errorKey)
       throw err
     }
   }, [])
@@ -376,9 +376,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         clearSessionCookie()
         window.location.href = '/auth?inactivity=true'
       } else {
-        const errorMessage = getFirebaseErrorMessage(err)
+        const errorKey = getFirebaseErrorKey(err)
 
-        setError(errorMessage)
+        setError(errorKey)
         throw err
       }
     }
@@ -395,9 +395,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await user.delete()
       clearSessionCookie()
     } catch (err) {
-      const errorMessage = getFirebaseErrorMessage(err)
+      const errorKey = getFirebaseErrorKey(err)
 
-      setError(errorMessage)
+      setError(errorKey)
       throw err
     }
   }, [user])
@@ -421,9 +421,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         return true
       } catch (err) {
-        const errorMessage = getFirebaseErrorMessage(err)
+        const errorKey = getFirebaseErrorKey(err)
 
-        setError(errorMessage)
+        setError(errorKey)
 
         return false
       }

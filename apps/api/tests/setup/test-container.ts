@@ -221,7 +221,12 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     END $$;
 
     DO $$ BEGIN
-      CREATE TYPE ticket_category AS ENUM ('technical', 'billing', 'feature_request', 'general', 'bug');
+      CREATE TYPE ticket_category AS ENUM ('technical', 'billing', 'feature_request', 'general', 'bug', 'maintenance', 'payment_issue', 'access_request', 'noise_complaint');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    DO $$ BEGIN
+      CREATE TYPE ticket_channel AS ENUM ('resident_to_admin', 'resident_to_support', 'admin_to_support');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -988,6 +993,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       ticket_number VARCHAR(50) NOT NULL UNIQUE,
       management_company_id UUID NOT NULL REFERENCES management_companies(id) ON DELETE CASCADE,
+      channel ticket_channel NOT NULL,
+      condominium_id UUID REFERENCES condominiums(id),
       created_by_user_id UUID NOT NULL REFERENCES users(id),
       created_by_member_id UUID REFERENCES management_company_members(id),
       subject VARCHAR(255) NOT NULL,

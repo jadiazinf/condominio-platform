@@ -29,8 +29,12 @@ export class CreateMessageService {
       return failure('Ticket not found', 'NOT_FOUND')
     }
 
-    // Check if ticket is closed or cancelled
-    if (ticket.status === 'closed' || ticket.status === 'cancelled') {
+    // Check if ticket is in a terminal state
+    if (
+      ticket.status === 'closed' ||
+      ticket.status === 'cancelled' ||
+      ticket.status === 'resolved'
+    ) {
       return failure('Cannot add message to a closed or cancelled ticket', 'BAD_REQUEST')
     }
 
@@ -56,8 +60,15 @@ export class CreateMessageService {
       return failure('Failed to retrieve created message', 'INTERNAL_ERROR')
     }
 
-    // Broadcast new message with user info to all connected clients
-    this.wsManager.broadcastToTicket(input.ticketId, 'new_message', messageWithUser)
+    // Broadcast new message with user info to connected clients.
+    // Internal messages are only sent to superadmin clients.
+    const onlySuperadmins = !!messageWithUser.isInternal
+    this.wsManager.broadcastToTicket(
+      input.ticketId,
+      'new_message',
+      messageWithUser,
+      onlySuperadmins
+    )
 
     return success(messageWithUser)
   }

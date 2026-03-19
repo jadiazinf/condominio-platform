@@ -1,14 +1,63 @@
 import type { MiddlewareHandler } from 'hono'
+import type { TSupportTicket } from '@packages/domain'
 import { useTranslation } from '@intlify/hono'
-import { eq, and, isNotNull } from 'drizzle-orm'
 import { HttpContext } from '@http/context'
 import { DatabaseService } from '@database/service'
-import { UserRolesRepository, SupportTicketsRepository } from '@database/repositories'
-import { userRoles, condominiums, condominiumManagementCompanies } from '@database/drizzle/schema'
+import {
+  UserRolesRepository,
+  SupportTicketsRepository,
+  ManagementCompanyMembersRepository,
+} from '@database/repositories'
 import { AUTHENTICATED_USER_PROP } from './is-user-authenticated'
 import { LocaleDictionary } from '@locales/dictionary'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 
 export const TICKET_PROP = 'ticket'
+
+/**
+ * Shared ticket access check — reusable by HTTP middleware and WebSocket handler.
+ *
+ * Returns true if user can access the ticket, false otherwise.
+ *
+ * Access rules by channel:
+ * - SUPERADMIN: always allowed
+ * - Creator of the ticket: always allowed
+ * - `resident_to_admin`: admins/members of the ticket's managementCompanyId can access
+ * - `resident_to_support`: only creator + SUPERADMIN
+ * - `admin_to_support`: only creator + SUPERADMIN
+ */
+export async function checkTicketAccess(
+  userId: string,
+  ticket: TSupportTicket,
+  db: TDrizzleClient
+): Promise<boolean> {
+  const userRolesRepository = new UserRolesRepository(db)
+
+  // 1. Superadmin always has access
+  const isSuperadmin = await userRolesRepository.isUserSuperadmin(userId)
+  if (isSuperadmin) return true
+
+  // 2. Creator always has access to their own ticket
+  if (ticket.createdByUserId === userId) return true
+
+  // 3. Channel-based access
+  switch (ticket.channel) {
+    case 'resident_to_admin': {
+      // Admins/members of the management company can see resident→admin tickets
+      const membersRepo = new ManagementCompanyMembersRepository(db)
+      const member = await membersRepo.getByCompanyAndUser(ticket.managementCompanyId, userId)
+      return !!member
+    }
+
+    case 'resident_to_support':
+    case 'admin_to_support':
+      // Only creator + superadmin (already checked above)
+      return false
+
+    default:
+      return false
+  }
+}
 
 /**
  * Factory function to create a ticket access middleware with configurable param name.
@@ -45,50 +94,14 @@ export function createCanAccessTicket(paramName: string = 'id'): MiddlewareHandl
       })
     }
 
-    // Check if user is a superadmin
-    const userRolesRepository = new UserRolesRepository(db)
-    const isSuperadmin = await userRolesRepository.isUserSuperadmin(user.id)
+    const hasAccess = await checkTicketAccess(user.id, ticket, db)
 
-    if (isSuperadmin) {
-      // Superadmin has full access
-      c.set(TICKET_PROP, ticket)
-      await next()
-      return
-    }
-
-    // For non-superadmin users, check if they have access via condominium
-    // User must have a userRole with condominiumId where that condominium
-    // belongs to the ticket's managementCompanyId
-
-    // Get user's roles that have a condominiumId
-    // Check via junction table: userRoles -> condominiums -> condominiumManagementCompanies
-    const userRolesWithCondominium = await db
-      .select({
-        condominiumId: userRoles.condominiumId,
-        managementCompanyId: condominiumManagementCompanies.managementCompanyId,
-      })
-      .from(userRoles)
-      .innerJoin(condominiums, eq(userRoles.condominiumId, condominiums.id))
-      .innerJoin(
-        condominiumManagementCompanies,
-        eq(condominiums.id, condominiumManagementCompanies.condominiumId)
-      )
-      .where(
-        and(
-          eq(userRoles.userId, user.id),
-          isNotNull(userRoles.condominiumId),
-          eq(condominiumManagementCompanies.managementCompanyId, ticket.managementCompanyId)
-        )
-      )
-      .limit(1)
-
-    if (userRolesWithCondominium.length === 0) {
+    if (!hasAccess) {
       return ctx.forbidden({
         error: t(LocaleDictionary.http.middlewares.utils.auth.noTicketAccess),
       })
     }
 
-    // User has access via their condominium
     c.set(TICKET_PROP, ticket)
     await next()
   }
@@ -96,14 +109,6 @@ export function createCanAccessTicket(paramName: string = 'id'): MiddlewareHandl
 
 /**
  * Middleware that verifies if the authenticated user can access a support ticket.
- * Must be used after isUserAuthenticated middleware.
- *
- * Access is granted if:
- * - User is an active superadmin, OR
- * - User has a userRole with condominiumId where that condominium
- *   belongs to the ticket's managementCompanyId (non-general user)
- *
- * Sets the ticket in context variable 'ticket' for downstream handlers.
  * Uses 'id' as the param name by default.
  */
 export const canAccessTicket: MiddlewareHandler = createCanAccessTicket('id')
@@ -116,8 +121,6 @@ export const canAccessTicketByTicketId: MiddlewareHandler = createCanAccessTicke
 
 /**
  * Middleware that verifies if the authenticated user can modify a support ticket.
- * Must be used after isUserAuthenticated middleware.
- *
  * Only superadmins can modify tickets (status, priority, assign, resolve, close, cancel).
  */
 export const canModifyTicket: MiddlewareHandler = async (c, next) => {

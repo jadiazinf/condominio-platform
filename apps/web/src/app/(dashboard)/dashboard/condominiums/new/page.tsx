@@ -1,11 +1,12 @@
+import type { TManagementCompanySubscription } from '@packages/domain'
+import type { TManagementCompanyUsageStats } from '@packages/http-client'
+
 import { Suspense } from 'react'
-import { ArrowLeft } from 'lucide-react'
 import { redirect } from 'next/navigation'
+import { getMyCompanySubscription, getMyCompanyUsageStats } from '@packages/http-client'
 
 import { CreateCondominiumForm } from './components'
 
-import { Typography } from '@/ui/components/typography'
-import { Button } from '@/ui/components/button'
 import { getTranslations } from '@/libs/i18n/server'
 import { getFullSession } from '@/libs/session'
 
@@ -24,25 +25,43 @@ async function CreateCondominiumContent() {
     redirect('/dashboard')
   }
 
+  // Fetch subscription data for admin users
+  let subscription: TManagementCompanySubscription | null = null
+  let usageStats: TManagementCompanyUsageStats | null = null
+
+  if (isAdmin && adminCompanyId && session.sessionToken) {
+    try {
+      ;[subscription, usageStats] = await Promise.all([
+        getMyCompanySubscription(session.sessionToken, adminCompanyId),
+        getMyCompanyUsageStats(session.sessionToken, adminCompanyId),
+      ])
+
+      // Redirect if limit already reached
+      if (
+        subscription &&
+        usageStats &&
+        subscription.maxCondominiums !== null &&
+        usageStats.condominiumsCount >= subscription.maxCondominiums
+      ) {
+        redirect('/dashboard/condominiums?limitReached=true')
+      }
+    } catch {
+      // If we can't verify, allow access — the API will validate on submit
+    }
+  }
+
   const tp = isAdmin ? 'admin.condominiums' : 'superadmin.condominiums'
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      {/* Header */}
-      <div className="flex items-start gap-4">
-        <Button isIconOnly className="mt-1" href="/dashboard/condominiums" variant="flat">
-          <ArrowLeft size={18} />
-        </Button>
-        <div>
-          <Typography variant="h2">{t(`${tp}.form.createTitle`)}</Typography>
-          <Typography className="mt-1" color="muted" variant="body2">
-            {t(`${tp}.form.createSubtitle`)}
-          </Typography>
-        </div>
-      </div>
-
-      {/* Form */}
-      <CreateCondominiumForm adminCompanyId={adminCompanyId} adminCompanyName={adminCompanyName} />
+      <CreateCondominiumForm
+        adminCompanyId={adminCompanyId}
+        adminCompanyName={adminCompanyName}
+        subscription={subscription}
+        subtitle={t(`${tp}.form.createSubtitle`)}
+        title={t(`${tp}.form.createTitle`)}
+        usageStats={usageStats}
+      />
     </div>
   )
 }

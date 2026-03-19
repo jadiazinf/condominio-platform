@@ -2,6 +2,7 @@ import type { Context } from 'hono'
 import { useTranslation } from '@intlify/hono'
 import {
   supportTicketMessageCreateSchema,
+  type TSupportTicket,
   type TSupportTicketMessage,
   type TSupportTicketMessageCreate,
   type TSupportTicketMessageUpdate,
@@ -13,7 +14,10 @@ import {
 import type {
   SupportTicketMessagesRepository,
   SupportTicketsRepository,
+  ManagementCompanyMembersRepository,
+  UserRolesRepository,
 } from '@database/repositories'
+import type { SendNotificationService } from '@packages/services'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { BaseController } from '../base.controller'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
@@ -50,7 +54,10 @@ export class SupportTicketMessagesController extends BaseController<
   constructor(
     private readonly db: TDrizzleClient,
     repository: SupportTicketMessagesRepository,
-    private readonly ticketsRepository: SupportTicketsRepository
+    private readonly ticketsRepository: SupportTicketsRepository,
+    private readonly membersRepository: ManagementCompanyMembersRepository,
+    private readonly sendNotificationService: SendNotificationService,
+    private readonly userRolesRepository: UserRolesRepository
   ) {
     super(repository)
     this.createService = new CreateMessageService(db, repository, ticketsRepository)
@@ -170,9 +177,63 @@ export class SupportTicketMessagesController extends BaseController<
         return ctx.badRequest({ error: translatedError })
       }
 
+      // Get ticket to send notification to creator
+      const ticket = await this.ticketsRepository.getById(ctx.params.ticketId)
+      if (ticket) {
+        this.notifyNewMessage(ticket, user.id).catch(() => {})
+      }
+
       return ctx.created({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
+    }
+  }
+
+  // ── Notification helpers ──────────────────────────────────────────────────
+
+  private async notifyNewMessage(ticket: TSupportTicket, senderId: string): Promise<void> {
+    const notificationData = { ticketId: ticket.id, action: 'new_ticket_message' }
+    const notificationBody = `Ticket #${ticket.ticketNumber}: ${ticket.subject}`
+
+    if (senderId === ticket.createdByUserId) {
+      // Creator sent a message → notify responders
+      if (ticket.channel === 'resident_to_admin') {
+        const members = await this.membersRepository.listByCompanyId(ticket.managementCompanyId)
+        for (const member of members) {
+          await this.sendNotificationService.execute({
+            userId: member.userId,
+            category: 'system',
+            title: 'Nuevo mensaje en ticket',
+            body: notificationBody,
+            channels: ['in_app', 'push'],
+            data: notificationData,
+          })
+        }
+      } else {
+        const superadmins = await this.userRolesRepository.getActiveSuperadminUsers()
+        for (const superadmin of superadmins) {
+          await this.sendNotificationService.execute({
+            userId: superadmin.id,
+            category: 'system',
+            title: 'Nuevo mensaje en ticket',
+            body: notificationBody,
+            channels: ['in_app', 'push'],
+            data: notificationData,
+          })
+        }
+      }
+    } else {
+      // Admin/superadmin sent a message → notify the ticket creator
+      if (ticket.createdByUserId) {
+        await this.sendNotificationService.execute({
+          userId: ticket.createdByUserId,
+          category: 'system',
+          title: 'Respuesta en tu ticket',
+          body: notificationBody,
+          channels: ['in_app', 'push'],
+          data: notificationData,
+        })
+      }
     }
   }
 }

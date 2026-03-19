@@ -11,7 +11,7 @@ import {
   useMyCompanyPaymentConceptsPaginated,
 } from '@packages/http-client/hooks'
 
-import { Input } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Spinner } from '@/ui/components/spinner'
 import { Pagination } from '@/ui/components/pagination'
@@ -219,25 +219,17 @@ export function ReserveFundPaymentsSection({
           variant="bordered"
           onChange={handleConceptChange}
         />
-        <Input
-          isClearable
+        <DatePicker
           className="w-full sm:w-44"
           label={t.filters.startDate}
-          type="date"
           value={startDate}
-          variant="bordered"
-          onClear={() => handleStartDateChange('')}
-          onValueChange={handleStartDateChange}
+          onChange={handleStartDateChange}
         />
-        <Input
-          isClearable
+        <DatePicker
           className="w-full sm:w-44"
           label={t.filters.endDate}
-          type="date"
           value={endDate}
-          variant="bordered"
-          onClear={() => handleEndDateChange('')}
-          onValueChange={handleEndDateChange}
+          onChange={handleEndDateChange}
         />
       </div>
 

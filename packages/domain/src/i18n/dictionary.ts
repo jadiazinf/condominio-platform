@@ -26,6 +26,9 @@ export const DomainLocaleDictionary = {
         password: {
           required: 'validation.models.auth.password.required',
           min: 'validation.models.auth.password.min',
+          uppercase: 'validation.models.auth.password.uppercase',
+          lowercase: 'validation.models.auth.password.lowercase',
+          number: 'validation.models.auth.password.number',
         },
         firstName: {
           required: 'validation.models.auth.firstName.required',

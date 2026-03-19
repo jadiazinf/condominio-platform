@@ -16,7 +16,7 @@ import { registerWithGoogle, ApiErrorCodes, HttpError } from '@packages/http-cli
 import { ArrowLeft, Mail, Lock, User, Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 
-import { useAuth, useTranslation, useUser, getFirebaseErrorKey } from '@/contexts'
+import { useAuth, useTranslation, useUser, getFirebaseErrorKey, getApiErrorKey } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
 import { clearUserCookie, clearSessionCookie, setUserCookie } from '@/libs/cookies'
 import { savePendingRegistration } from '@/libs/storage'
@@ -197,7 +197,9 @@ export function AuthPageContent({ initialMode = 'signin' }: AuthPageContentProps
 
           return
         }
-        toast.error(err.message)
+        const errorKey = getApiErrorKey(err)
+
+        toast.error(t(errorKey))
 
         return
       }

@@ -23,10 +23,6 @@ interface IUseNotificationWebSocketOptions {
 
 /**
  * Hook to connect to WebSocket for real-time notification updates
- *
- * @param options.token - The Firebase authentication token
- * @param options.enabled - Whether the WebSocket connection is enabled
- * @param options.wsUrl - Optional custom WebSocket URL
  */
 export function useNotificationWebSocket({
   token,
@@ -36,34 +32,51 @@ export function useNotificationWebSocket({
   const [isConnected, setIsConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reconnectAttemptsRef = useRef(0)
+  const tokenRef = useRef(token)
+  const enabledRef = useRef(enabled)
+  const wsUrlRef = useRef(wsUrl)
+  const connectingRef = useRef(false)
   const queryClient = useQueryClient()
+  const queryClientRef = useRef(queryClient)
 
-  const MAX_RECONNECT_ATTEMPTS = 5
+  // Keep refs in sync
+  tokenRef.current = token
+  enabledRef.current = enabled
+  wsUrlRef.current = wsUrl
+  queryClientRef.current = queryClient
+
+  const MAX_RECONNECT_ATTEMPTS = 3
   const RECONNECT_DELAY = 3000
 
   const connect = useCallback(() => {
-    if (!enabled || !token) {
-      if (!token) setError('No authentication token')
-      return
-    }
+    const currentToken = tokenRef.current
 
-    // Close existing connection before creating a new one
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.close(1000, 'Reconnecting')
+    if (!enabledRef.current || !currentToken) return
+    if (connectingRef.current) return
+    connectingRef.current = true
+
+    // Close existing connection
+    if (wsRef.current) {
+      const { readyState } = wsRef.current
+      if (readyState === WebSocket.OPEN || readyState === WebSocket.CONNECTING) {
+        wsRef.current.close(1000, 'Reconnecting')
+      }
       wsRef.current = null
     }
 
     try {
       let finalWsUrl: string
+      const currentWsUrl = wsUrlRef.current
 
-      if (wsUrl) {
-        finalWsUrl = `${wsUrl}/notifications?token=${token}`
+      if (currentWsUrl) {
+        finalWsUrl = `${currentWsUrl}/notifications?token=${currentToken}`
       } else {
         const isClient = typeof globalThis !== 'undefined' && 'window' in globalThis
         if (!isClient) {
-          return // Don't connect on server
+          connectingRef.current = false
+          return
         }
 
         const config = getEnvConfig()
@@ -71,12 +84,13 @@ export function useNotificationWebSocket({
         const wsProtocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:'
         const wsHost = apiUrl.host
 
-        finalWsUrl = `${wsProtocol}//${wsHost}/api/ws/notifications?token=${token}`
+        finalWsUrl = `${wsProtocol}//${wsHost}/api/ws/notifications?token=${currentToken}`
       }
 
       const ws = new WebSocket(finalWsUrl)
 
       ws.onopen = () => {
+        connectingRef.current = false
         setIsConnected(true)
         setError(null)
         reconnectAttemptsRef.current = 0
@@ -85,52 +99,32 @@ export function useNotificationWebSocket({
       ws.onmessage = event => {
         try {
           const message: IWebSocketMessage = JSON.parse(event.data)
+          const qc = queryClientRef.current
 
           if (message.event === 'new_notification') {
             const { notification, unreadCount } = message.data as INewNotificationData
 
-            // Update notifications list cache (prepend new notification)
-            queryClient.setQueryData(
-              ['notifications'],
-              (old: { data: TNotification[] } | undefined) => {
-                if (!old?.data) return old
+            qc.setQueryData(['notifications'], (old: { data: TNotification[] } | undefined) => {
+              if (!old?.data) return old
+              const exists = old.data.some(n => n.id === notification.id)
+              if (exists) return old
+              return { ...old, data: [notification, ...old.data] }
+            })
 
-                // Deduplicate
-                const exists = old.data.some(n => n.id === notification.id)
-                if (exists) return old
-
-                return {
-                  ...old,
-                  data: [notification, ...old.data],
-                }
-              }
-            )
-
-            // Also try with userId-scoped key (used by useNotifications)
-            queryClient.setQueriesData(
+            qc.setQueriesData(
               { queryKey: ['notifications'], exact: false },
               (old: { data: TNotification[] } | undefined) => {
                 if (!old?.data || !Array.isArray(old.data)) return old
-
                 const exists = old.data.some(n => n.id === notification.id)
                 if (exists) return old
-
-                return {
-                  ...old,
-                  data: [notification, ...old.data],
-                }
+                return { ...old, data: [notification, ...old.data] }
               }
             )
 
-            // Update unread count cache
-            queryClient.setQueriesData(
+            qc.setQueriesData(
               { queryKey: ['notifications', 'unread-count'], exact: false },
-              () => ({
-                data: { count: unreadCount },
-              })
+              () => ({ data: { count: unreadCount } })
             )
-          } else if (message.event === 'error') {
-            setError(message.data as string)
           }
         } catch {
           // Silently ignore parse errors
@@ -142,27 +136,41 @@ export function useNotificationWebSocket({
       }
 
       ws.onclose = event => {
+        connectingRef.current = false
         setIsConnected(false)
 
-        // Attempt reconnection if not a normal closure and under max attempts
-        if (event.code !== 1000 && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
-          reconnectAttemptsRef.current++
+        console.log('[WS] onclose code:', event.code, 'reason:', event.reason)
 
+        // Auth failure (1008) — stop completely, no reconnection
+        if (event.code === 1008) {
+          setError(event.reason || 'Authentication failed')
+          return
+        }
+
+        // Normal closure — no reconnection needed
+        if (event.code === 1000) return
+
+        // Network/server issues — retry with limit
+        if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+          reconnectAttemptsRef.current++
           reconnectTimeoutRef.current = setTimeout(() => {
             connect()
           }, RECONNECT_DELAY)
-        } else if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+        } else {
           setError('Max reconnection attempts reached')
         }
       }
 
       wsRef.current = ws
     } catch {
+      connectingRef.current = false
       setError('Failed to connect to WebSocket')
     }
-  }, [token, enabled, wsUrl, queryClient])
+  }, [])
 
   const disconnect = useCallback(() => {
+    connectingRef.current = false
+
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current)
       reconnectTimeoutRef.current = null
@@ -176,14 +184,17 @@ export function useNotificationWebSocket({
     setIsConnected(false)
   }, [])
 
-  // Connect on mount, disconnect on unmount
   useEffect(() => {
-    connect()
+    if (enabled) {
+      connect()
+    } else {
+      disconnect()
+    }
 
     return () => {
       disconnect()
     }
-  }, [connect, disconnect])
+  }, [enabled, connect, disconnect])
 
   return {
     isConnected,

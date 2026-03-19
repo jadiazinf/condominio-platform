@@ -84,6 +84,8 @@ function ticketBody(overrides: Record<string, unknown> = {}) {
     managementCompanyId: companyId,
     createdByUserId: MOCK_USER_ID,
     createdByMemberId: null,
+    channel: 'admin_to_support',
+    condominiumId: null,
     subject: 'Test ticket subject',
     description: 'Test ticket description with details',
     priority: 'medium',
@@ -121,12 +123,17 @@ async function createTicket(
 describe('Support Ticket Flow', () => {
   describe('Create Tickets', () => {
     it('creates a ticket with minimal fields', async () => {
+      const body = ticketBody()
       const res = await request(`/platform/management-companies/${companyId}/tickets`, {
         method: 'POST',
         headers: JSON_HEADERS,
-        body: JSON.stringify(ticketBody()),
+        body: JSON.stringify(body),
       })
 
+      if (res.status !== 201) {
+        const errJson = await res.clone().json()
+        console.error('CREATE TICKET FAILED:', res.status, JSON.stringify(errJson, null, 2))
+      }
       expect(res.status).toBe(201)
       const json = (await res.json()) as { data: Record<string, unknown> }
       expect(json.data.subject).toBe('Test ticket subject')

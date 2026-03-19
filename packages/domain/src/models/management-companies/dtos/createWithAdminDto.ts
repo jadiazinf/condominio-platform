@@ -122,15 +122,17 @@ export const adminStepSchema = z
     }
 
     if (data.mode === 'existing') {
-      if (!data.existingUserEmail || data.existingUserEmail.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['existingUserEmail'],
-          message: auth.email.required,
-        })
-      }
-
+      // If a user has already been selected (existingUserId is set),
+      // the email field is not required — the search was already done.
       if (!data.existingUserId) {
+        if (!data.existingUserEmail || data.existingUserEmail.trim().length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['existingUserEmail'],
+            message: auth.email.required,
+          })
+        }
+
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['existingUserId'],

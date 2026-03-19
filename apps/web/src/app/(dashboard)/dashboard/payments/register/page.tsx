@@ -23,6 +23,7 @@ import { Typography } from '@/ui/components/typography'
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
 import { Input, CurrencyInput } from '@/ui/components/input'
+import { DatePicker } from '@/ui/components/date-picker'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Textarea } from '@/ui/components/textarea'
 import { Chip } from '@/ui/components/chip'
@@ -653,12 +654,11 @@ export default function RegisterPaymentPage() {
                     />
                   </div>
                   <div className="flex-1">
-                    <Input
+                    <DatePicker
                       isRequired
                       label={t('admin.payments.register.fields.paymentDate')}
-                      type="date"
                       value={paymentDate}
-                      onValueChange={setPaymentDate}
+                      onChange={setPaymentDate}
                     />
                   </div>
                 </div>

@@ -9,6 +9,8 @@ export const supportTicketUpdateSchema = supportTicketSchema
     updatedAt: true,
     ticketNumber: true,
     managementCompanyId: true,
+    channel: true,
+    condominiumId: true,
     createdByUserId: true,
     createdByMemberId: true,
     managementCompany: true,
