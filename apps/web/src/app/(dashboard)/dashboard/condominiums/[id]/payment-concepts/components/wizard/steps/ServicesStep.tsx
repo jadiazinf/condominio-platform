@@ -37,6 +37,7 @@ export interface ServicesStepProps {
   currencies: Array<{ id: string; code: string; symbol?: string | null; name?: string }>
   showErrors: boolean
   servicesRequired: boolean
+  isRecurring?: boolean
 }
 
 interface IApiService {
@@ -68,6 +69,7 @@ export function ServicesStep({
   currencies,
   showErrors,
   servicesRequired,
+  isRecurring,
 }: ServicesStepProps) {
   const { t } = useTranslation()
   const w = 'admin.condominiums.detail.services.conceptServices'
@@ -569,6 +571,7 @@ export function ServicesStep({
           currencies={currencies}
           currencyId={formData.currencyId}
           isOpen={!!executionTarget}
+          isRecurring={isRecurring}
           managementCompanyId={managementCompanyId}
           serviceId={executionTarget.serviceId}
           serviceName={executionTarget.serviceName}

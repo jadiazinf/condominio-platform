@@ -13,8 +13,9 @@ async function QuotasContent() {
 
   const isAdmin = session.activeRole === 'management_company'
 
-  if (!isAdmin && !session.condominiums?.length) {
-    redirect('/dashboard')
+  // Residents should use their dedicated quotas page
+  if (!isAdmin) {
+    redirect('/dashboard/my-quotas')
   }
 
   return (

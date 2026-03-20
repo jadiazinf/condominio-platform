@@ -233,6 +233,24 @@ export class PaymentConceptsRepository
   }
 
   /**
+   * Retrieves active, recurring payment concepts by charge generation strategy.
+   */
+  async getActiveByStrategy(strategy: 'auto' | 'bulk' | 'manual'): Promise<TPaymentConcept[]> {
+    const results = await this.db
+      .select()
+      .from(paymentConcepts)
+      .where(
+        and(
+          eq(paymentConcepts.isActive, true),
+          eq(paymentConcepts.isRecurring, true),
+          eq(paymentConcepts.chargeGenerationStrategy, strategy)
+        )
+      )
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
    * Lists payment concepts across all condominiums of a management company with pagination and filters.
    */
   async listByManagementCompanyPaginated(
@@ -247,8 +265,8 @@ export class PaymentConceptsRepository
       eq(condominiumManagementCompanies.managementCompanyId, managementCompanyId),
     ]
 
-    // Default to active only
-    if (query.isActive === undefined || query.isActive === true) {
+    // Filter by active status (undefined = show all)
+    if (query.isActive === true) {
       conditions.push(eq(paymentConcepts.isActive, true))
     } else if (query.isActive === false) {
       conditions.push(eq(paymentConcepts.isActive, false))

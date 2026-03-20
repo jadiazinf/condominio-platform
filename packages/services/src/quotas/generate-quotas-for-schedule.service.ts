@@ -1,4 +1,4 @@
-import type { TUnit } from '../../../domain/src'
+import type { TUnit, TServiceExecutionCreate } from '../../../domain/src'
 import type {
   QuotasRepository,
   QuotaGenerationRulesRepository,
@@ -7,6 +7,7 @@ import type {
   QuotaGenerationSchedulesRepository,
   UnitsRepository,
   BuildingsRepository,
+  ServiceExecutionsRepository,
 } from '../../../database/src/repositories'
 import type { TDrizzleClient } from '../../../database/src/repositories/interfaces'
 import { CalculateFormulaAmountService } from './calculate-formula-amount.service'
@@ -26,6 +27,10 @@ export interface IGenerateQuotasOutput {
   quotasFailed: number
   totalAmount: number
   logId: string
+  affectedUnitIds: string[]
+  paymentConceptId: string
+  periodDescription: string
+  dueDate: string
 }
 
 const MONTH_NAMES = [
@@ -54,7 +59,8 @@ export class GenerateQuotasForScheduleService {
     private readonly schedulesRepo: QuotaGenerationSchedulesRepository,
     private readonly logsRepo: QuotaGenerationLogsRepository,
     private readonly unitsRepo: UnitsRepository,
-    private readonly buildingsRepo: BuildingsRepository
+    private readonly buildingsRepo: BuildingsRepository,
+    private readonly executionsRepo?: ServiceExecutionsRepository
   ) {
     this.calculateService = new CalculateFormulaAmountService(formulasRepo, unitsRepo)
   }
@@ -90,6 +96,8 @@ export class GenerateQuotasForScheduleService {
 
     const issueDate = this.buildDate(periodYear, periodMonth, schedule.issueDay)
     const dueDate = this.buildDate(periodYear, periodMonth, schedule.dueDay)
+    const today = new Date().toISOString().split('T')[0]!
+    const quotaStatus = dueDate < today ? 'overdue' : 'pending'
     const periodDescription = `${MONTH_NAMES[periodMonth - 1]} ${periodYear}`
 
     const unitsWithAmounts: { unit: TUnit; amount: string }[] = []
@@ -160,7 +168,7 @@ export class GenerateQuotasForScheduleService {
             exchangeRateUsed: null,
             issueDate,
             dueDate,
-            status: 'pending',
+            status: quotaStatus,
             adjustmentsTotal: '0',
             paidAmount: '0',
             balance: amount,
@@ -177,6 +185,54 @@ export class GenerateQuotasForScheduleService {
           const msg = error instanceof Error ? error.message : String(error)
           errors.push(`Unit ${unit.id}: ${msg}`)
           logger.error({ unitId: unit.id, error }, '[QuotaGen] Failed to create quota for unit')
+        }
+      }
+
+      // Clone template executions for this period (if any)
+      if (quotasCreated > 0 && this.executionsRepo) {
+        try {
+          const templates = await this.executionsRepo.getTemplatesByConceptId(rule.paymentConceptId)
+
+          if (templates.length > 0) {
+            const txExecutionsRepo = this.executionsRepo.withTx(tx)
+
+            for (const template of templates) {
+              const clonedDate = template.executionDay
+                ? this.buildDate(periodYear, periodMonth, template.executionDay)
+                : issueDate
+
+              await txExecutionsRepo.create({
+                serviceId: template.serviceId,
+                condominiumId: template.condominiumId,
+                paymentConceptId: template.paymentConceptId,
+                title: `${template.title} - ${periodDescription}`,
+                description: template.description ?? undefined,
+                executionDate: clonedDate,
+                executionDay: null,
+                isTemplate: false,
+                totalAmount: template.totalAmount,
+                currencyId: template.currencyId,
+                invoiceNumber: template.invoiceNumber ?? undefined,
+                items: template.items,
+                attachments: template.attachments as TServiceExecutionCreate['attachments'],
+                notes: template.notes ?? undefined,
+              })
+            }
+
+            logger.info(
+              {
+                conceptId: rule.paymentConceptId,
+                templates: templates.length,
+                period: periodDescription,
+              },
+              '[QuotaGen] Cloned template executions for period'
+            )
+          }
+        } catch (error) {
+          logger.error(
+            { error, conceptId: rule.paymentConceptId },
+            '[QuotaGen] Failed to clone template executions'
+          )
         }
       }
 
@@ -224,6 +280,10 @@ export class GenerateQuotasForScheduleService {
         quotasFailed,
         totalAmount,
         logId: log.id,
+        affectedUnitIds,
+        paymentConceptId: rule.paymentConceptId,
+        periodDescription,
+        dueDate,
       })
     })
   }

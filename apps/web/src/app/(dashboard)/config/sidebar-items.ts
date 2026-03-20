@@ -41,12 +41,6 @@ export const dashboardSidebarItems: TSidebarItemConfig[] = [
     href: '/dashboard/amenities',
   },
   {
-    key: 'quotas',
-    title: 'admin.nav.quotas',
-    icon: Receipt,
-    href: '/dashboard/quotas',
-  },
-  {
     key: 'expenses',
     title: 'admin.nav.expenses',
     icon: ClipboardList,
@@ -132,12 +126,6 @@ export const adminSidebarItems: TSidebarItemConfig[] = [
     title: 'admin.company.nav.condominiums',
     icon: Building2,
     href: '/dashboard/condominiums',
-  },
-  {
-    key: 'quotas',
-    title: 'admin.company.nav.quotas',
-    icon: Receipt,
-    href: '/dashboard/quotas',
   },
   {
     key: 'my-management-company',

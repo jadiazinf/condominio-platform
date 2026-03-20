@@ -158,6 +158,7 @@ async function createConceptWithAssignment(
     unitId: undefined,
     distributionMethod: overrides.distributionMethod ?? 'equal_split',
     amount: overrides.amount ?? 3000,
+    assignedBy: MOCK_USER_ID,
   })
 
   return concept

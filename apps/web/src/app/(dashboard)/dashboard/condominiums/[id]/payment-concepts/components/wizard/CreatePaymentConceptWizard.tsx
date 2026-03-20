@@ -6,10 +6,6 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   useCreatePaymentConceptFull,
   useUpdatePaymentConceptFull,
-  useCreateAssignment,
-  useLinkBankAccount,
-  useCreateInterestConfiguration,
-  useGenerateChargesBulk,
   usePaymentConceptDetail,
   usePaymentConceptServices,
   useInterestConfigsByPaymentConcept,
@@ -17,6 +13,7 @@ import {
   useQueryClient,
   HttpError,
   isApiValidationError,
+  type IAssignmentInput,
 } from '@packages/http-client'
 
 import { BasicInfoStep } from './steps/BasicInfoStep'
@@ -125,7 +122,7 @@ const INITIAL_FORM_DATA: IWizardFormData = {
   services: [],
   assignments: [],
   bankAccountIds: [],
-  notifyImmediately: false,
+  notifyImmediately: true,
   changeReason: '',
 }
 
@@ -180,6 +177,7 @@ export function CreatePaymentConceptWizard({
   const [showErrors, setShowErrors] = useState(false)
   const [editDataLoaded, setEditDataLoaded] = useState(false)
   const [draftRestored, setDraftRestored] = useState(false)
+  const draftRestoredRef = useRef(false)
   const draftInitializedRef = useRef(false)
   const skipNextSaveRef = useRef(false)
 
@@ -191,10 +189,6 @@ export function CreatePaymentConceptWizard({
 
   const { mutateAsync: createConceptFull } = useCreatePaymentConceptFull(managementCompanyId)
   const { mutateAsync: updateConceptFull } = useUpdatePaymentConceptFull(managementCompanyId)
-  const { mutateAsync: createAssignment } = useCreateAssignment(managementCompanyId)
-  const { mutateAsync: linkBankAccount } = useLinkBankAccount(managementCompanyId)
-  const { mutateAsync: createInterestConfig } = useCreateInterestConfiguration()
-  const { mutateAsync: generateBulk } = useGenerateChargesBulk(managementCompanyId)
 
   // Load existing concept data for edit mode
   const { data: editConceptData, isLoading: isLoadingEdit } = usePaymentConceptDetail({
@@ -279,7 +273,7 @@ export function CreatePaymentConceptWizard({
           amount: a.amount,
         })),
       bankAccountIds: (c.bankAccounts ?? []).map((b: any) => b.bankAccountId),
-      notifyImmediately: false,
+      notifyImmediately: true,
       changeReason: '',
     })
     setEditDataLoaded(true)
@@ -306,6 +300,7 @@ export function CreatePaymentConceptWizard({
     draftInitializedRef.current = true
 
     if (draft) {
+      draftRestoredRef.current = true
       skipNextSaveRef.current = true
       setFormData({ ...INITIAL_FORM_DATA, ...draft.data })
       setCurrentStep(draft.currentStep)
@@ -328,13 +323,14 @@ export function CreatePaymentConceptWizard({
   useEffect(() => {
     if (!isOpen) {
       draftInitializedRef.current = false
+      draftRestoredRef.current = false
       setDraftRestored(false)
     }
   }, [isOpen])
 
-  // Default to VES currency when currencies load (create mode only)
+  // Default to VES currency when currencies load (create mode only, skip if draft restored)
   useEffect(() => {
-    if (isEditMode) return
+    if (isEditMode || draftRestoredRef.current) return
     if (!formData.currencyId && currencies.length > 0) {
       const ves = currencies.find(c => c.code === 'VES')
 
@@ -515,25 +511,51 @@ export function CreatePaymentConceptWizard({
   const handleSubmitCreate = useCallback(async () => {
     setIsSubmitting(true)
     try {
-      // 1. Create concept + services + executions in a single transaction
-      const conceptResult = await createConceptFull({
+      const assignments = formData.assignments.flatMap((assignment): IAssignmentInput[] => {
+        if (assignment.scopeType === 'unit' && assignment.unitIds?.length) {
+          return assignment.unitIds.map(unitId => ({
+            scopeType: 'unit' as const,
+            condominiumId,
+            unitId,
+            distributionMethod: 'fixed_per_unit' as const,
+            amount: assignment.amount,
+          }))
+        }
+
+        return [
+          {
+            scopeType: assignment.scopeType as 'condominium' | 'building' | 'unit',
+            condominiumId,
+            buildingId: assignment.buildingId,
+            distributionMethod: assignment.distributionMethod as
+              | 'by_aliquot'
+              | 'equal_split'
+              | 'fixed_per_unit',
+            amount: assignment.amount,
+          },
+        ]
+      })
+
+      await createConceptFull({
         condominiumId,
         name: formData.name,
         description: formData.description || undefined,
         conceptType: formData.conceptType as any,
         currencyId: formData.currencyId,
+        isActive: true,
         isRecurring: formData.isRecurring,
         recurrencePeriod: formData.isRecurring ? (formData.recurrencePeriod as any) : null,
         issueDay: formData.issueDay,
         dueDay: formData.dueDay,
-        effectiveFrom: formData.effectiveFrom || null,
-        effectiveUntil: formData.effectiveUntil || null,
+        effectiveFrom: formData.effectiveFrom ? new Date(formData.effectiveFrom) : null,
+        effectiveUntil: formData.effectiveUntil ? new Date(formData.effectiveUntil) : null,
         allowsPartialPayment: formData.allowsPartialPayment,
         latePaymentType: formData.latePaymentType as any,
         latePaymentValue: formData.latePaymentValue ?? null,
         latePaymentGraceDays: formData.latePaymentGraceDays,
         earlyPaymentType: formData.earlyPaymentType as any,
         earlyPaymentValue: formData.earlyPaymentValue ?? null,
+        chargeGenerationStrategy: formData.chargeGenerationStrategy,
         earlyPaymentDaysBeforeDue: formData.earlyPaymentDaysBeforeDue,
         services: formData.services.map(s => ({
           serviceId: s.serviceId,
@@ -541,60 +563,21 @@ export function CreatePaymentConceptWizard({
           useDefaultAmount: false,
           execution: s.execution!,
         })),
-      } as any)
-
-      const conceptId = conceptResult.data.data.id
-
-      // 2. Create assignments
-      for (const assignment of formData.assignments) {
-        if (assignment.scopeType === 'unit' && assignment.unitIds?.length) {
-          for (const unitId of assignment.unitIds) {
-            await createAssignment({
-              conceptId,
-              scopeType: 'unit',
-              condominiumId,
-              unitId,
-              distributionMethod: 'fixed_per_unit',
-              amount: assignment.amount,
-            })
-          }
-        } else {
-          await createAssignment({
-            conceptId,
-            scopeType: assignment.scopeType,
-            condominiumId,
-            buildingId: assignment.buildingId,
-            distributionMethod: assignment.distributionMethod,
-            amount: assignment.amount,
-          })
-        }
-      }
-
-      // 3. Link bank accounts
-      for (const bankAccountId of formData.bankAccountIds) {
-        await linkBankAccount({ conceptId, bankAccountId })
-      }
-
-      // 4. Create interest configuration if enabled
-      if (formData.interestEnabled && formData.interestRate) {
-        await createInterestConfig({
-          condominiumId,
-          paymentConceptId: conceptId,
-          name: `${formData.name} - Interest`,
-          interestType: formData.interestType,
-          interestRate: formData.interestRate,
-          calculationPeriod: formData.interestCalculationPeriod,
-          gracePeriodDays: formData.interestGracePeriodDays,
-          currencyId: formData.currencyId,
-          isActive: true,
-          effectiveFrom: new Date().toISOString().split('T')[0]!,
-        } as any)
-      }
-
-      // 5. Bulk-generate all charges if strategy is 'bulk'
-      if (formData.isRecurring && formData.chargeGenerationStrategy === 'bulk') {
-        await generateBulk({ conceptId })
-      }
+        assignments,
+        bankAccountIds: formData.bankAccountIds,
+        interestConfig:
+          formData.interestEnabled && formData.interestRate
+            ? {
+                name: `${formData.name} - Interest`,
+                interestType: formData.interestType as 'simple' | 'compound' | 'fixed_amount',
+                interestRate: formData.interestRate,
+                calculationPeriod: formData.interestCalculationPeriod,
+                gracePeriodDays: formData.interestGracePeriodDays,
+                isActive: true,
+                effectiveFrom: new Date().toISOString().split('T')[0]!,
+              }
+            : undefined,
+      })
 
       clearDraft()
       await queryClient.invalidateQueries({ queryKey: paymentConceptKeys.all })
@@ -619,19 +602,7 @@ export function CreatePaymentConceptWizard({
     } finally {
       setIsSubmitting(false)
     }
-  }, [
-    formData,
-    condominiumId,
-    createConceptFull,
-    createAssignment,
-    linkBankAccount,
-    createInterestConfig,
-    clearDraft,
-    queryClient,
-    handleClose,
-    toast,
-    t,
-  ])
+  }, [formData, condominiumId, createConceptFull, clearDraft, queryClient, handleClose, toast, t])
 
   const handleSubmit = isEditMode ? handleSubmitEdit : handleSubmitCreate
 
@@ -670,6 +641,7 @@ export function CreatePaymentConceptWizard({
             condominiumId={condominiumId}
             currencies={currencies}
             formData={formData}
+            isRecurring={formData.isRecurring}
             managementCompanyId={managementCompanyId}
             servicesRequired={SERVICES_REQUIRED_TYPES.includes(formData.conceptType as any)}
             showErrors={showErrors}

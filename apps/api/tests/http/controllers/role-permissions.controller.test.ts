@@ -393,7 +393,7 @@ describe('RolePermissionsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toBe('Role-permission assignment not found')
+      expect(getErrorMessage(json)).toBe('Role-permission assignment not found.')
     })
   })
 

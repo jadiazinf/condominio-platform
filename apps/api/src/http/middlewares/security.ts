@@ -34,6 +34,11 @@ export function applySecurityHeaders(app: Hono) {
 export function applyRateLimiting(app: Hono) {
   const rateLimitStore = new Map<string, { count: number; reset: number }>()
 
+  // SSR apps generate multiple API calls per page navigation (session + data).
+  // In development all requests share the same IP, so the limit must be generous.
+  const windowMs = 60_000
+  const maxRequests = 200
+
   const rateLimit: MiddlewareHandler = async (c, next) => {
     const ip =
       c.req.header('X-Forwarded-For') ??
@@ -41,8 +46,6 @@ export function applyRateLimiting(app: Hono) {
       c.req.header('X-Real-IP') ??
       'unknown'
     const now = Date.now()
-    const windowMs = 60_000
-    const maxRequests = 60
 
     const entry = rateLimitStore.get(ip) ?? { count: 0, reset: now + windowMs }
 

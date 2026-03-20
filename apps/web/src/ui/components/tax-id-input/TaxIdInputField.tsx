@@ -8,16 +8,15 @@ import { TaxIdInput, type ITaxIdInputProps } from './TaxIdInput'
 
 import { getTranslatedError } from '@/utils/formErrors'
 
-interface ITaxIdInputFieldProps
-  extends Omit<
-    ITaxIdInputProps,
-    | 'taxIdType'
-    | 'taxIdNumber'
-    | 'onTaxIdTypeChange'
-    | 'onTaxIdNumberChange'
-    | 'taxIdTypeError'
-    | 'taxIdNumberError'
-  > {
+interface ITaxIdInputFieldProps extends Omit<
+  ITaxIdInputProps,
+  | 'taxIdType'
+  | 'taxIdNumber'
+  | 'onTaxIdTypeChange'
+  | 'onTaxIdNumberChange'
+  | 'taxIdTypeError'
+  | 'taxIdNumberError'
+> {
   taxIdTypeFieldName: string
   taxIdNumberFieldName: string
   translateError?: (message: string | undefined) => string | undefined

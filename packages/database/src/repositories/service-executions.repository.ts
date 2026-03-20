@@ -34,7 +34,9 @@ export class ServiceExecutionsRepository
       paymentConceptId: r.paymentConceptId ?? null,
       title: r.title,
       description: r.description,
-      executionDate: r.executionDate,
+      executionDate: r.executionDate ?? null,
+      executionDay: r.executionDay ?? null,
+      isTemplate: r.isTemplate ?? false,
       totalAmount: r.totalAmount,
       currencyId: r.currencyId,
       invoiceNumber: r.invoiceNumber,
@@ -55,7 +57,9 @@ export class ServiceExecutionsRepository
       paymentConceptId: dto.paymentConceptId ?? null,
       title: dto.title,
       description: dto.description ?? null,
-      executionDate: dto.executionDate,
+      executionDate: dto.executionDate ?? null,
+      executionDay: dto.executionDay ?? null,
+      isTemplate: dto.isTemplate ?? false,
       totalAmount: String(dto.totalAmount),
       currencyId: dto.currencyId,
       invoiceNumber: dto.invoiceNumber ?? null,
@@ -69,7 +73,9 @@ export class ServiceExecutionsRepository
     const values: Record<string, unknown> = {}
     if (dto.title !== undefined) values.title = dto.title
     if (dto.description !== undefined) values.description = dto.description
-    if (dto.executionDate !== undefined) values.executionDate = dto.executionDate
+    if (dto.executionDate !== undefined) values.executionDate = dto.executionDate ?? null
+    if (dto.executionDay !== undefined) values.executionDay = dto.executionDay ?? null
+    if (dto.isTemplate !== undefined) values.isTemplate = dto.isTemplate
     if (dto.totalAmount !== undefined) values.totalAmount = String(dto.totalAmount)
     if (dto.currencyId !== undefined) values.currencyId = dto.currencyId
     if (dto.invoiceNumber !== undefined) values.invoiceNumber = dto.invoiceNumber
@@ -125,6 +131,24 @@ export class ServiceExecutionsRepository
       data: results.map(record => this.mapToEntity(record)),
       pagination: { page, limit, total, totalPages },
     }
+  }
+
+  /**
+   * Get template executions for a payment concept (isTemplate = true).
+   * Used during quota generation to clone execution data per period.
+   */
+  async getTemplatesByConceptId(conceptId: string): Promise<TServiceExecution[]> {
+    const results = await this.db
+      .select()
+      .from(serviceExecutions)
+      .where(
+        and(
+          eq(serviceExecutions.paymentConceptId, conceptId),
+          eq(serviceExecutions.isTemplate, true)
+        )
+      )
+
+    return results.map(record => this.mapToEntity(record))
   }
 
   /**

@@ -39,18 +39,18 @@ const STATUS_COLOR_MAP: Record<
 }
 
 const MONTH_NAMES = [
-  'Jan',
+  'Ene',
   'Feb',
   'Mar',
-  'Apr',
+  'Abr',
   'May',
   'Jun',
   'Jul',
-  'Aug',
+  'Ago',
   'Sep',
   'Oct',
   'Nov',
-  'Dec',
+  'Dic',
 ]
 
 export function QuotasTable() {

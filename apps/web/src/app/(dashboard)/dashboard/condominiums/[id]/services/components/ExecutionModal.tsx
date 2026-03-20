@@ -58,17 +58,19 @@ const itemSchema = z.object({
   notes: z.string().optional(),
 })
 
-const executionFormSchema = z.object({
+const executionFormBaseSchema = z.object({
   title: z.string().min(1, 'required').max(255),
   description: z.string().max(2000).optional(),
-  executionDate: z.string().min(1, 'required'),
+  executionDate: z.string().optional().default(''),
+  executionDay: z.number().int().min(1).max(28).optional(),
+  dateMode: z.enum(['fixed', 'day_of_month']).default('fixed'),
   invoiceNumber: z.string().max(100).optional(),
   totalAmount: z.string().min(1, 'required'),
   notes: z.string().max(5000).optional(),
   items: z.array(itemSchema),
 })
 
-type TExecutionFormValues = z.infer<typeof executionFormSchema>
+type TExecutionFormValues = z.infer<typeof executionFormBaseSchema>
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Props
@@ -91,6 +93,8 @@ interface IExecutionModalProps {
   wizardExecution?: TWizardExecutionData | null
   /** Available currencies for the currency calculator */
   currencies?: Array<{ id: string; code: string; symbol?: string | null; name?: string }>
+  /** Whether the parent concept is recurring — enables "day of month" option */
+  isRecurring?: boolean
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -111,6 +115,7 @@ export function ExecutionModal({
   onSaveLocal,
   wizardExecution,
   currencies,
+  isRecurring,
 }: IExecutionModalProps) {
   const { t } = useTranslation()
   const toast = useToast()
@@ -221,7 +226,7 @@ export function ExecutionModal({
 
   // ─── Form ──────────────────────────────────────────────────────────────────
   const methods = useForm<TExecutionFormValues>({
-    resolver: zodResolver(executionFormSchema),
+    resolver: zodResolver(executionFormBaseSchema) as any,
     defaultValues: {
       title: '',
       description: '',
@@ -242,10 +247,14 @@ export function ExecutionModal({
   useEffect(() => {
     if (isOpen) {
       if (execution) {
+        const isTemplatExec = !!(execution as any).isTemplate
+
         methods.reset({
           title: execution.title,
           description: execution.description ?? '',
-          executionDate: execution.executionDate,
+          executionDate: execution.executionDate ?? '',
+          executionDay: (execution as any).executionDay ?? undefined,
+          dateMode: isTemplatExec ? 'day_of_month' : 'fixed',
           invoiceNumber: execution.invoiceNumber ?? '',
           totalAmount: String(execution.totalAmount),
           notes: execution.notes ?? '',
@@ -260,10 +269,14 @@ export function ExecutionModal({
         })
         setExistingAttachments(execution.attachments ?? [])
       } else if (wizardExecution) {
+        const isTemplatExec = !!wizardExecution.isTemplate
+
         methods.reset({
           title: wizardExecution.title,
           description: wizardExecution.description ?? '',
-          executionDate: wizardExecution.executionDate,
+          executionDate: wizardExecution.executionDate ?? '',
+          executionDay: wizardExecution.executionDay ?? undefined,
+          dateMode: isTemplatExec ? 'day_of_month' : 'fixed',
           invoiceNumber: wizardExecution.invoiceNumber ?? '',
           totalAmount: String(wizardExecution.totalAmount),
           notes: wizardExecution.notes ?? '',
@@ -284,6 +297,8 @@ export function ExecutionModal({
           title: '',
           description: '',
           executionDate: new Date().toISOString().split('T')[0],
+          executionDay: undefined,
+          dateMode: isRecurring ? 'day_of_month' : 'fixed',
           invoiceNumber: '',
           totalAmount: '0',
           notes: '',
@@ -389,10 +404,14 @@ export function ExecutionModal({
 
   const handleSelectFromHistory = useCallback(
     (exec: TServiceExecution) => {
+      const isTemplatExec = !!(exec as any).isTemplate
+
       methods.reset({
         title: exec.title,
         description: exec.description ?? '',
-        executionDate: new Date().toISOString().split('T')[0],
+        executionDate: isTemplatExec ? '' : new Date().toISOString().split('T')[0],
+        executionDay: (exec as any).executionDay ?? undefined,
+        dateMode: isTemplatExec ? 'day_of_month' : 'fixed',
         invoiceNumber: exec.invoiceNumber ?? '',
         totalAmount: String(exec.totalAmount),
         notes: exec.notes ?? '',
@@ -435,6 +454,18 @@ export function ExecutionModal({
   }, [])
 
   const handleSubmit = methods.handleSubmit(data => {
+    // Cross-field validation
+    if (data.dateMode === 'fixed' && !data.executionDate) {
+      methods.setError('executionDate', { message: 'required' })
+
+      return
+    }
+    if (data.dateMode === 'day_of_month' && !data.executionDay) {
+      methods.setError('executionDay', { message: 'required' })
+
+      return
+    }
+
     const allAttachments = [...existingAttachments, ...completedAttachments]
 
     const payload = {
@@ -451,10 +482,14 @@ export function ExecutionModal({
 
     // Wizard mode: save locally without calling API
     if (isWizardMode) {
+      const isDayOfMonth = data.dateMode === 'day_of_month'
+
       onSaveLocal({
         title: payload.title,
         description: payload.description,
-        executionDate: payload.executionDate,
+        executionDate: isDayOfMonth ? null : payload.executionDate,
+        executionDay: isDayOfMonth ? data.executionDay : null,
+        isTemplate: isDayOfMonth,
         totalAmount: payload.totalAmount,
         currencyId: payload.currencyId,
         invoiceNumber: payload.invoiceNumber,
@@ -643,20 +678,77 @@ export function ExecutionModal({
                     variant="bordered"
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Date mode toggle — only in wizard mode for recurring concepts */}
+                  {isWizardMode && isRecurring && (
                     <Controller
                       control={methods.control}
-                      name="executionDate"
+                      name="dateMode"
                       render={({ field }) => (
-                        <DatePicker
-                          isRequired
-                          errorMessage={methods.formState.errors.executionDate?.message}
-                          label={t(`${d}.executionDate`)}
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
+                        <div className="flex gap-2">
+                          <Button
+                            className="flex-1"
+                            color={field.value === 'day_of_month' ? 'primary' : 'default'}
+                            size="sm"
+                            type="button"
+                            variant={field.value === 'day_of_month' ? 'solid' : 'bordered'}
+                            onPress={() => field.onChange('day_of_month')}
+                          >
+                            {t(`${d}.dayOfMonth`)}
+                          </Button>
+                          <Button
+                            className="flex-1"
+                            color={field.value === 'fixed' ? 'primary' : 'default'}
+                            size="sm"
+                            type="button"
+                            variant={field.value === 'fixed' ? 'solid' : 'bordered'}
+                            onPress={() => field.onChange('fixed')}
+                          >
+                            {t(`${d}.fixedDate`)}
+                          </Button>
+                        </div>
                       )}
                     />
+                  )}
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {methods.watch('dateMode') === 'day_of_month' ? (
+                      <Controller
+                        control={methods.control}
+                        name="executionDay"
+                        render={({ field }) => (
+                          <Input
+                            isRequired
+                            description="1-28"
+                            errorMessage={methods.formState.errors.executionDay?.message}
+                            isInvalid={!!methods.formState.errors.executionDay}
+                            label={t(`${d}.executionDay`)}
+                            type="number"
+                            value={String(field.value ?? '')}
+                            variant="bordered"
+                            onValueChange={v => {
+                              const n = v ? parseInt(v, 10) : undefined
+
+                              if (n !== undefined && (n < 1 || n > 28)) return
+                              field.onChange(n)
+                            }}
+                          />
+                        )}
+                      />
+                    ) : (
+                      <Controller
+                        control={methods.control}
+                        name="executionDate"
+                        render={({ field }) => (
+                          <DatePicker
+                            isRequired
+                            errorMessage={methods.formState.errors.executionDate?.message}
+                            label={t(`${d}.executionDate`)}
+                            value={field.value ?? ''}
+                            onChange={field.onChange}
+                          />
+                        )}
+                      />
+                    )}
                     <Input
                       label={t(`${d}.invoiceNumber`)}
                       {...methods.register('invoiceNumber')}

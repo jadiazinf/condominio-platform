@@ -41,6 +41,12 @@ type TQuotasRepo = {
   withTx: (tx: TDrizzleClient) => TQuotasRepo
 }
 
+type TExecutionsRepo = {
+  getTemplatesByConceptId: (conceptId: string) => Promise<Array<Record<string, unknown>>>
+  create: (data: Record<string, unknown>) => Promise<{ id: string }>
+  withTx: (tx: TDrizzleClient) => TExecutionsRepo
+}
+
 export interface IGenerateChargesInput {
   paymentConceptId: string
   periodYear: number
@@ -67,7 +73,8 @@ export class GenerateChargesService {
     private readonly conceptsRepo: PaymentConceptsRepository,
     private readonly assignmentsRepo: PaymentConceptAssignmentsRepository,
     private readonly unitsRepo: TUnitsRepo,
-    private readonly quotasRepo: TQuotasRepo
+    private readonly quotasRepo: TQuotasRepo,
+    private readonly executionsRepo?: TExecutionsRepo
   ) {}
 
   async execute(input: IGenerateChargesInput): Promise<TServiceResult<TGenerateChargesResult>> {
@@ -124,6 +131,11 @@ export class GenerateChargesService {
     // Period description
     const periodDescription = `${MONTH_NAMES[input.periodMonth - 1]} ${input.periodYear}`
 
+    // Load template executions before transaction (read-only)
+    const templateExecutions = this.executionsRepo
+      ? await this.executionsRepo.getTemplatesByConceptId(input.paymentConceptId)
+      : []
+
     // Duplicate check + insert inside transaction to prevent race conditions.
     // The unique index on (unit_id, payment_concept_id, period_year, period_month)
     // is the ultimate safety net, but checking first gives a cleaner error message.
@@ -155,6 +167,34 @@ export class GenerateChargesService {
       }))
 
       await txQuotasRepo.createMany(quotaRecords)
+
+      // Clone template executions for this period
+      if (this.executionsRepo && templateExecutions.length > 0) {
+        const txExecutionsRepo = this.executionsRepo.withTx(tx)
+
+        for (const template of templateExecutions) {
+          const clonedDate = template.executionDay
+            ? this.buildDate(input.periodYear, input.periodMonth, template.executionDay as number)
+            : issueDate
+
+          await txExecutionsRepo.create({
+            serviceId: template.serviceId,
+            condominiumId: template.condominiumId,
+            paymentConceptId: template.paymentConceptId,
+            title: `${template.title} - ${periodDescription}`,
+            description: template.description ?? undefined,
+            executionDate: clonedDate,
+            executionDay: null,
+            isTemplate: false,
+            totalAmount: template.totalAmount,
+            currencyId: template.currencyId,
+            invoiceNumber: template.invoiceNumber ?? undefined,
+            items: template.items,
+            attachments: template.attachments,
+            notes: template.notes ?? undefined,
+          })
+        }
+      }
 
       const totalAmount = unitAmounts.reduce((sum, ua) => sum + ua.amount, 0)
 
@@ -286,6 +326,12 @@ export class GenerateChargesService {
 
   private formatDate(year: number, month: number, day: number): string {
     return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  }
+
+  private buildDate(year: number, month: number, day: number): string {
+    const maxDay = new Date(year, month, 0).getDate()
+    const clampedDay = Math.min(day, maxDay)
+    return this.formatDate(year, month, clampedDay)
   }
 
   /**

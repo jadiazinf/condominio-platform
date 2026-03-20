@@ -2,6 +2,7 @@ import type { Context } from 'hono'
 import { StatusCodes } from 'http-status-codes'
 import { getBody, getQuery, getParams } from './middlewares/utils/payload-validator'
 import { AUTHENTICATED_USER_PROP } from './middlewares/utils/auth/is-user-authenticated'
+import { safeTranslation } from '../locales/safe-translation'
 import type { TUser } from '@packages/domain'
 import type {
   TApiDataResponse,
@@ -32,6 +33,22 @@ type TTypedErrorPayload = Omit<TApiErrorResponse, 'success'> & TExtraProps
 
 export class HttpContext<TBody = unknown, TQuery = unknown, TParams = unknown> {
   constructor(private readonly c: Context) {}
+
+  /**
+   * Translates the error string in an error payload using the request's locale.
+   * Uses the raw English error message as the translation key.
+   * Falls back to the original message if no translation is found.
+   */
+  private translateError(error: TErrorPayload): TErrorPayload {
+    const t = safeTranslation(this.c)
+    const translated = t(error.error)
+    // If safeTranslation returns the last segment of a dot-separated key,
+    // it means the key wasn't found — keep the original message
+    if (translated === error.error || translated === error.error.split('.').pop()) {
+      return error
+    }
+    return { ...error, error: translated }
+  }
 
   get body(): TBody {
     return getBody<TBody>(this.c)
@@ -103,7 +120,7 @@ export class HttpContext<TBody = unknown, TQuery = unknown, TParams = unknown> {
    * @param error Error payload: { error: string }
    */
   badRequest(error: TErrorPayload): TResponse {
-    return this.c.json(error, StatusCodes.BAD_REQUEST)
+    return this.c.json(this.translateError(error), StatusCodes.BAD_REQUEST)
   }
 
   /**
@@ -111,7 +128,7 @@ export class HttpContext<TBody = unknown, TQuery = unknown, TParams = unknown> {
    * @param error Error payload: { error: string }
    */
   unauthorized(error: TErrorPayload): TResponse {
-    return this.c.json(error, StatusCodes.UNAUTHORIZED)
+    return this.c.json(this.translateError(error), StatusCodes.UNAUTHORIZED)
   }
 
   /**
@@ -143,7 +160,7 @@ export class HttpContext<TBody = unknown, TQuery = unknown, TParams = unknown> {
    * @param error Error payload: { error: string }
    */
   forbidden(error: TErrorPayload): TResponse {
-    return this.c.json(error, StatusCodes.FORBIDDEN)
+    return this.c.json(this.translateError(error), StatusCodes.FORBIDDEN)
   }
 
   /**
@@ -151,7 +168,7 @@ export class HttpContext<TBody = unknown, TQuery = unknown, TParams = unknown> {
    * @param error Error payload: { error: string }
    */
   notFound(error: TErrorPayload): TResponse {
-    return this.c.json(error, StatusCodes.NOT_FOUND)
+    return this.c.json(this.translateError(error), StatusCodes.NOT_FOUND)
   }
 
   /**
@@ -167,7 +184,7 @@ export class HttpContext<TBody = unknown, TQuery = unknown, TParams = unknown> {
    * @param error Error payload: { error: string }
    */
   conflict(error: TErrorPayload): TResponse {
-    return this.c.json(error, StatusCodes.CONFLICT)
+    return this.c.json(this.translateError(error), StatusCodes.CONFLICT)
   }
 
   /**
@@ -175,7 +192,7 @@ export class HttpContext<TBody = unknown, TQuery = unknown, TParams = unknown> {
    * @param error Error payload: { error: string }
    */
   unprocessableEntity(error: TErrorPayload): TResponse {
-    return this.c.json(error, StatusCodes.UNPROCESSABLE_ENTITY)
+    return this.c.json(this.translateError(error), StatusCodes.UNPROCESSABLE_ENTITY)
   }
 
   /**

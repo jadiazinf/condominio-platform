@@ -1,7 +1,13 @@
 import PgBoss from 'pg-boss'
 import { env } from '@config/environment'
 import logger from '@utils/logger'
-import { QUEUES, JOB_OPTIONS, type IBulkGenerateJobData, type INotifyJobData } from './queues'
+import {
+  QUEUES,
+  JOB_OPTIONS,
+  type IAutoGenerateJobData,
+  type IBulkGenerateJobData,
+  type INotifyJobData,
+} from './queues'
 
 let boss: PgBoss | null = null
 
@@ -27,6 +33,19 @@ async function getClient(): Promise<PgBoss> {
   logger.info('[pg-boss:api] Send-only client started')
 
   return boss
+}
+
+/**
+ * Enqueue an auto-generation job.
+ * Triggers the worker to generate quotas for all auto-strategy concepts.
+ */
+export async function enqueueAutoGeneration(
+  data: IAutoGenerateJobData = {}
+): Promise<string | null> {
+  const client = await getClient()
+  const jobId = await client.send(QUEUES.AUTO_GENERATE, data, JOB_OPTIONS[QUEUES.AUTO_GENERATE])
+  logger.info({ jobId }, '[pg-boss:api] Auto-generation job enqueued')
+  return jobId
 }
 
 /**

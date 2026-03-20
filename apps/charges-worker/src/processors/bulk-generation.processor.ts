@@ -1,4 +1,5 @@
 import type PgBoss from 'pg-boss'
+import type { TServiceExecutionCreate } from '@packages/domain'
 import { DatabaseService } from '@database/service'
 import {
   PaymentConceptsRepository,
@@ -6,33 +7,65 @@ import {
   QuotasRepository,
   QuotaGenerationLogsRepository,
   UnitsRepository,
+  UnitOwnershipsRepository,
+  ServiceExecutionsRepository,
 } from '@database/repositories'
 import { getBossClient } from '@worker/boss/client'
 import { QUEUES, type IBulkGenerateJobData, type INotifyJobData } from '@worker/boss/queues'
 import logger from '@packages/logger'
 import { parseAmount, roundCurrency, toDecimal } from '@packages/utils/money'
+import { notifySuperadminsOnError } from '@worker/libs/notify-superadmins-on-error'
 
 const MAX_BULK_MONTHS = 12
 const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ]
 
 export async function processBulkGeneration(job: PgBoss.Job<IBulkGenerateJobData>): Promise<void> {
-  const { paymentConceptId, generatedBy } = job.data
+  const { paymentConceptId } = job.data
   const start = Date.now()
 
   logger.info({ jobId: job.id, paymentConceptId }, '[BulkGen] Starting bulk generation')
+
+  try {
+    await _processBulkGeneration(job)
+  } catch (error) {
+    const elapsed = ((Date.now() - start) / 1000).toFixed(1)
+    const serializedError =
+      error instanceof Error
+        ? { message: error.message, stack: error.stack, name: error.name }
+        : String(error)
+    logger.error(
+      { jobId: job.id, paymentConceptId, error: serializedError, elapsedSeconds: elapsed },
+      '[BulkGen] Job failed with error'
+    )
+
+    await notifySuperadminsOnError({
+      jobId: job.id,
+      processor: 'bulk-generation',
+      paymentConceptId,
+      error,
+      elapsedSeconds: elapsed,
+    })
+
+    throw error
+  }
+}
+
+async function _processBulkGeneration(job: PgBoss.Job<IBulkGenerateJobData>): Promise<void> {
+  const { paymentConceptId, generatedBy } = job.data
+  const start = Date.now()
 
   const db = DatabaseService.getInstance().getDb()
   const conceptsRepo = new PaymentConceptsRepository(db)
@@ -40,12 +73,24 @@ export async function processBulkGeneration(job: PgBoss.Job<IBulkGenerateJobData
   const quotasRepo = new QuotasRepository(db)
   const logsRepo = new QuotaGenerationLogsRepository(db)
   const unitsRepo = new UnitsRepository(db)
+  const executionsRepo = new ServiceExecutionsRepository(db)
 
   // 1. Validate concept
+  logger.info({ paymentConceptId }, '[BulkGen] Step 1: Fetching concept')
   const concept = await conceptsRepo.getById(paymentConceptId)
   if (!concept) {
     throw new Error(`Payment concept not found: ${paymentConceptId}`)
   }
+  logger.info(
+    {
+      conceptId: concept.id,
+      isActive: concept.isActive,
+      isRecurring: concept.isRecurring,
+      effectiveFrom: concept.effectiveFrom,
+      effectiveUntil: concept.effectiveUntil,
+    },
+    '[BulkGen] Concept loaded'
+  )
   if (!concept.isActive) {
     throw new Error(`Cannot generate charges for inactive concept: ${paymentConceptId}`)
   }
@@ -67,6 +112,7 @@ export async function processBulkGeneration(job: PgBoss.Job<IBulkGenerateJobData
   }
 
   // 2. Calculate periods
+  logger.info('[BulkGen] Step 2: Calculating periods')
   const periods = calculatePeriods(
     fromDate,
     untilDate,
@@ -82,20 +128,49 @@ export async function processBulkGeneration(job: PgBoss.Job<IBulkGenerateJobData
   }
 
   // 3. Load assignments and resolve units
+  logger.info('[BulkGen] Step 3: Loading assignments')
   const assignments = await assignmentsRepo.listByConceptId(paymentConceptId)
+  logger.info({ assignmentsCount: assignments.length }, '[BulkGen] Assignments loaded')
   if (assignments.length === 0) {
     throw new Error(`No active assignments for concept: ${paymentConceptId}`)
   }
 
-  // 4. Execute ALL periods in a single transaction (all-or-nothing)
+  const today = new Date().toISOString().split('T')[0]!
+
+  // 3b. Fetch template executions to clone per period
+  logger.info('[BulkGen] Step 3b: Fetching template executions')
+  const templateExecutions = await executionsRepo.getTemplatesByConceptId(paymentConceptId)
+  logger.info({ templatesCount: templateExecutions.length }, '[BulkGen] Templates loaded')
+
+  // 4. Resolve unit amounts
+  logger.info('[BulkGen] Step 4: Resolving unit amounts')
+  const preResolvedUnits = await resolveUnitAmounts(assignments, concept.condominiumId!, unitsRepo)
+  logger.info(
+    { unitsCount: preResolvedUnits.length, units: preResolvedUnits },
+    '[BulkGen] Unit amounts resolved'
+  )
+
+  if (preResolvedUnits.length === 0) {
+    throw new Error(`No active units found for concept assignments: ${paymentConceptId}`)
+  }
+
+  // 5. Execute ALL periods in a single transaction (all-or-nothing)
+  logger.info({ periodsCount: periods.length }, '[BulkGen] Step 5: Starting transaction')
   const result = await db.transaction(async tx => {
     const txQuotasRepo = quotasRepo.withTx(tx)
     const txLogsRepo = logsRepo.withTx(tx)
+    const txExecutionsRepo = executionsRepo.withTx(tx)
 
     let totalQuotas = 0
     let totalAmount = 0
     let periodsGenerated = 0
     let periodsSkipped = 0
+    const affectedUnitIds = new Set<string>()
+    // Track per-unit quota details for resident notifications
+    const unitQuotaDetails = new Map<
+      string,
+      Array<{ period: string; amount: string; dueDate: string; status: string }>
+    >()
 
     // Pre-load all existing quotas for this concept to avoid N+1 queries per period
     const existingPeriodsSet = new Set<string>()
@@ -110,8 +185,7 @@ export async function processBulkGeneration(job: PgBoss.Job<IBulkGenerateJobData
       }
     }
 
-    // Resolve unit amounts once (same for all periods since assignments don't change per-period)
-    const unitAmounts = await resolveUnitAmounts(assignments, concept.condominiumId!, unitsRepo)
+    const unitAmounts = preResolvedUnits
 
     for (const period of periods) {
       const periodKey = `${period.year}-${period.month}`
@@ -130,6 +204,8 @@ export async function processBulkGeneration(job: PgBoss.Job<IBulkGenerateJobData
       const periodDescription = `${MONTH_NAMES[period.month - 1]} ${period.year}`
 
       // Create quotas for each unit
+      const quotaStatus = dueDate < today ? 'overdue' : 'pending'
+
       for (const { unitId, amount } of unitAmounts) {
         await txQuotasRepo.create({
           unitId,
@@ -144,7 +220,7 @@ export async function processBulkGeneration(job: PgBoss.Job<IBulkGenerateJobData
           exchangeRateUsed: null,
           issueDate,
           dueDate,
-          status: 'pending',
+          status: quotaStatus,
           adjustmentsTotal: '0',
           paidAmount: '0',
           balance: amount.toString(),
@@ -155,6 +231,43 @@ export async function processBulkGeneration(job: PgBoss.Job<IBulkGenerateJobData
 
         totalQuotas++
         totalAmount += amount
+        affectedUnitIds.add(unitId)
+
+        if (!unitQuotaDetails.has(unitId)) {
+          unitQuotaDetails.set(unitId, [])
+        }
+        unitQuotaDetails.get(unitId)!.push({
+          period: periodDescription,
+          amount: amount.toString(),
+          dueDate,
+          status: quotaStatus,
+        })
+      }
+
+      // Clone template executions for this period
+      if (templateExecutions.length > 0) {
+        for (const template of templateExecutions) {
+          const clonedDate = template.executionDay
+            ? buildDate(period.year, period.month, template.executionDay)
+            : issueDate
+
+          await txExecutionsRepo.create({
+            serviceId: template.serviceId,
+            condominiumId: template.condominiumId,
+            paymentConceptId: template.paymentConceptId,
+            title: `${template.title} - ${periodDescription}`,
+            description: template.description ?? undefined,
+            executionDate: clonedDate,
+            executionDay: null,
+            isTemplate: false,
+            totalAmount: template.totalAmount,
+            currencyId: template.currencyId,
+            invoiceNumber: template.invoiceNumber ?? undefined,
+            items: template.items,
+            attachments: template.attachments as TServiceExecutionCreate['attachments'],
+            notes: template.notes ?? undefined,
+          })
+        }
       }
 
       periodsGenerated++
@@ -188,26 +301,121 @@ export async function processBulkGeneration(job: PgBoss.Job<IBulkGenerateJobData
       generatedBy,
     })
 
-    return { totalQuotas, totalAmount, periodsGenerated, periodsSkipped }
+    return {
+      totalQuotas,
+      totalAmount,
+      periodsGenerated,
+      periodsSkipped,
+      affectedUnitIds: Array.from(affectedUnitIds),
+      unitQuotaDetails: Object.fromEntries(unitQuotaDetails),
+    }
   })
 
-  // 5. Enqueue notification
+  // 5. Enqueue admin notification (in_app only for success, email only on failures)
   try {
     const boss = getBossClient()
     const notification: INotifyJobData = {
       userId: generatedBy,
       category: 'quota',
-      title: 'Bulk generation completed',
-      body: `Generated ${result.totalQuotas} quotas across ${result.periodsGenerated} periods. Total amount: ${toDecimal(result.totalAmount)}.`,
+      title: 'Generación masiva completada',
+      body: `Se generaron ${result.totalQuotas} cuota(s) en ${result.periodsGenerated} período(s). Monto total: ${toDecimal(result.totalAmount)}.`,
+      channels: ['in_app'],
       data: result,
     }
     await boss.send(QUEUES.NOTIFY, notification)
   } catch (notifyError) {
-    logger.error({ error: notifyError }, '[BulkGen] Failed to enqueue notification')
+    logger.error({ error: notifyError }, '[BulkGen] Failed to enqueue admin notification')
   }
+
+  // 6. Notify unit residents (1 notification per user with all their quotas)
+  await notifyUnitResidents(db, result, concept.name ?? 'Cuota', concept.condominiumId ?? undefined)
 
   const elapsed = ((Date.now() - start) / 1000).toFixed(1)
   logger.info({ elapsedSeconds: elapsed, ...result }, '[BulkGen] Bulk generation completed')
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Resident notifications
+// ─────────────────────────────────────────────────────────────────────────────
+
+type TBulkResult = {
+  affectedUnitIds: string[]
+  unitQuotaDetails: Record<
+    string,
+    Array<{ period: string; amount: string; dueDate: string; status: string }>
+  >
+  periodsGenerated: number
+}
+
+async function notifyUnitResidents(
+  db: ReturnType<typeof DatabaseService.prototype.getDb>,
+  result: TBulkResult,
+  conceptName: string,
+  condominiumId?: string
+): Promise<void> {
+  if (result.affectedUnitIds.length === 0) return
+
+  try {
+    const ownershipsRepo = new UnitOwnershipsRepository(db)
+    const ownerships = await ownershipsRepo.getRegisteredByUnitIds(result.affectedUnitIds)
+
+    if (ownerships.length === 0) return
+
+    // Group ownerships by userId → list of unitIds
+    const userUnits = new Map<string, string[]>()
+    for (const ownership of ownerships) {
+      if (!ownership.userId) continue
+      if (!userUnits.has(ownership.userId)) {
+        userUnits.set(ownership.userId, [])
+      }
+      userUnits.get(ownership.userId)!.push(ownership.unitId)
+    }
+
+    const boss = getBossClient()
+
+    for (const [userId, unitIds] of userUnits) {
+      // Collect all quotas for this user's units
+      const userQuotas: Array<{ period: string; amount: string; dueDate: string; status: string }> =
+        []
+      for (const unitId of unitIds) {
+        const details = result.unitQuotaDetails[unitId]
+        if (details) {
+          userQuotas.push(...details)
+        }
+      }
+
+      if (userQuotas.length === 0) continue
+
+      const totalAmount = userQuotas.reduce((sum, q) => sum + parseFloat(q.amount), 0)
+      const overdueCount = userQuotas.filter(q => q.status === 'overdue').length
+
+      let body = `Se generaron ${userQuotas.length} cuota(s) de "${conceptName}". Monto total: ${toDecimal(totalAmount)}.`
+      if (overdueCount > 0) {
+        body += ` ${overdueCount} cuota(s) vencida(s).`
+      }
+
+      const notification: INotifyJobData = {
+        userId,
+        category: 'quota',
+        title: `Nuevas cuotas generadas: ${conceptName}`,
+        body,
+        channels: ['in_app', 'email'],
+        data: {
+          condominiumId,
+          conceptName,
+          quotas: userQuotas,
+          totalAmount: toDecimal(totalAmount),
+          periodsGenerated: result.periodsGenerated,
+        },
+      }
+
+      await boss.send(QUEUES.NOTIFY, notification)
+    }
+
+    logger.info({ usersNotified: userUnits.size }, '[BulkGen] Resident notifications enqueued')
+  } catch (error) {
+    logger.error({ error }, '[BulkGen] Failed to enqueue resident notifications')
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -222,12 +430,15 @@ function calculatePeriods(
   const periods: Array<{ year: number; month: number }> = []
   const monthStep = recurrence === 'monthly' ? 1 : recurrence === 'quarterly' ? 3 : 12
 
-  let year = from.getFullYear()
-  let month = from.getMonth() + 1 // 1-based
+  // Use UTC methods to avoid timezone issues (dates stored as UTC in DB)
+  let year = from.getUTCFullYear()
+  let month = from.getUTCMonth() + 1 // 1-based
+
+  const untilYear = until.getUTCFullYear()
+  const untilMonth = until.getUTCMonth() + 1
 
   while (true) {
-    const periodDate = new Date(year, month - 1, 1)
-    if (periodDate > until) break
+    if (year > untilYear || (year === untilYear && month > untilMonth)) break
 
     periods.push({ year, month })
 

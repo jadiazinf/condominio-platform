@@ -371,7 +371,11 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
     // Billing
     {
       path: '/condominium/quotas',
-      router: new QuotasController(r.quotas, r.paymentConcepts).createRouter(),
+      router: new QuotasController(
+        r.quotas,
+        r.paymentConcepts,
+        r.paymentConceptServices
+      ).createRouter(),
     },
     {
       path: '/condominium/quota-adjustments',
@@ -557,6 +561,7 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         condominiumServicesRepo: r.condominiumServices,
         executionsRepo: r.serviceExecutions,
         interestConfigsRepo: r.interestConfigurations,
+        unitOwnershipsRepo: r.unitOwnerships,
       }).createRouter(),
     },
 

@@ -1,6 +1,6 @@
 import { and, eq, desc, asc, lte, gte, or, sql, inArray, notInArray, type SQL } from 'drizzle-orm'
 import type { TQuota, TQuotaCreate, TQuotaUpdate, TPaginatedResponse } from '@packages/domain'
-import { quotas, paymentConcepts } from '../drizzle/schema'
+import { quotas, paymentConcepts, currencies, units, buildings } from '../drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -95,29 +95,95 @@ export class QuotasRepository
       startDate?: string
       endDate?: string
       status?: string
+      conceptId?: string
     },
     condominiumId?: string
   ): Promise<TPaginatedResponse<TQuota>> {
+    const page = options.page ?? 1
+    const limit = options.limit ?? 20
+    const offset = (page - 1) * limit
+
     const conditions: SQL[] = [eq(quotas.unitId, unitId)]
 
     if (condominiumId) {
-      const conceptIds = this.db
-        .select({ id: paymentConcepts.id })
-        .from(paymentConcepts)
-        .where(eq(paymentConcepts.condominiumId, condominiumId))
-      conditions.push(inArray(quotas.paymentConceptId, conceptIds))
+      conditions.push(eq(paymentConcepts.condominiumId, condominiumId))
     }
     if (options.startDate) {
-      conditions.push(gte(quotas.dueDate, options.startDate))
+      conditions.push(gte(quotas.issueDate, options.startDate))
     }
     if (options.endDate) {
-      conditions.push(lte(quotas.dueDate, options.endDate))
+      conditions.push(lte(quotas.issueDate, options.endDate))
     }
     if (options.status) {
       conditions.push(eq(quotas.status, options.status as TQuota['status']))
     }
+    if (options.conceptId) {
+      conditions.push(eq(quotas.paymentConceptId, options.conceptId))
+    }
 
-    return this.listPaginated({ page: options.page, limit: options.limit }, conditions)
+    const whereClause = and(...conditions)
+
+    const countResult = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(quotas)
+      .leftJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
+      .where(whereClause)
+
+    const total = countResult[0]?.count ?? 0
+
+    const results = await this.db
+      .select({
+        quota: quotas,
+        conceptName: paymentConcepts.name,
+        currencyCode: currencies.code,
+        currencySymbol: currencies.symbol,
+        currencyName: currencies.name,
+      })
+      .from(quotas)
+      .leftJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
+      .leftJoin(currencies, eq(quotas.currencyId, currencies.id))
+      .where(whereClause)
+      .orderBy(asc(quotas.dueDate))
+      .limit(limit)
+      .offset(offset)
+
+    const totalPages = Math.ceil(total / limit)
+
+    const data = results.map(r => ({
+      ...this.mapToEntity(r.quota),
+      paymentConcept: r.conceptName ? { name: r.conceptName } : undefined,
+      currency: r.currencyCode
+        ? { code: r.currencyCode, symbol: r.currencySymbol, name: r.currencyName }
+        : undefined,
+    })) as TQuota[]
+
+    return { data, pagination: { page, limit, total, totalPages } }
+  }
+
+  /**
+   * Returns distinct payment concepts that have quotas for a given unit.
+   */
+  async getDistinctConceptsByUnit(
+    unitId: string,
+    condominiumId?: string
+  ): Promise<Array<{ id: string; name: string }>> {
+    const conditions: SQL[] = [eq(quotas.unitId, unitId)]
+
+    if (condominiumId) {
+      conditions.push(eq(paymentConcepts.condominiumId, condominiumId))
+    }
+
+    const results = await this.db
+      .selectDistinct({
+        id: paymentConcepts.id,
+        name: paymentConcepts.name,
+      })
+      .from(quotas)
+      .innerJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
+      .where(and(...conditions))
+      .orderBy(asc(paymentConcepts.name))
+
+    return results.map(r => ({ id: r.id, name: r.name }))
   }
 
   /**
@@ -437,5 +503,69 @@ export class QuotasRepository
       totalPending: totals?.totalPending ?? '0',
       conceptCount: count?.conceptCount ?? 0,
     }
+  }
+
+  /**
+   * Retrieves a single quota with related concept, currency, and unit info.
+   */
+  async getByIdWithRelations(id: string): Promise<TQuota | null> {
+    const results = await this.db
+      .select({
+        quota: quotas,
+        conceptName: paymentConcepts.name,
+        conceptType: paymentConcepts.conceptType,
+        conceptIsRecurring: paymentConcepts.isRecurring,
+        conceptRecurrencePeriod: paymentConcepts.recurrencePeriod,
+        conceptLatePaymentType: paymentConcepts.latePaymentType,
+        conceptLatePaymentValue: paymentConcepts.latePaymentValue,
+        conceptEarlyPaymentType: paymentConcepts.earlyPaymentType,
+        conceptEarlyPaymentValue: paymentConcepts.earlyPaymentValue,
+        conceptEarlyPaymentDaysBeforeDue: paymentConcepts.earlyPaymentDaysBeforeDue,
+        conceptDescription: paymentConcepts.description,
+        currencyCode: currencies.code,
+        currencySymbol: currencies.symbol,
+        currencyName: currencies.name,
+        unitNumber: units.unitNumber,
+        unitFloor: units.floor,
+        buildingName: buildings.name,
+      })
+      .from(quotas)
+      .leftJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
+      .leftJoin(currencies, eq(quotas.currencyId, currencies.id))
+      .leftJoin(units, eq(quotas.unitId, units.id))
+      .leftJoin(buildings, eq(units.buildingId, buildings.id))
+      .where(eq(quotas.id, id))
+      .limit(1)
+
+    if (results.length === 0) return null
+
+    const r = results[0]!
+    return {
+      ...this.mapToEntity(r.quota),
+      paymentConcept: r.conceptName
+        ? {
+            name: r.conceptName,
+            conceptType: r.conceptType,
+            isRecurring: r.conceptIsRecurring,
+            recurrencePeriod: r.conceptRecurrencePeriod,
+            latePaymentType: r.conceptLatePaymentType,
+            latePaymentValue: r.conceptLatePaymentValue,
+            earlyPaymentType: r.conceptEarlyPaymentType,
+            earlyPaymentValue: r.conceptEarlyPaymentValue,
+            earlyPaymentDaysBeforeDue: r.conceptEarlyPaymentDaysBeforeDue,
+            description: r.conceptDescription,
+          }
+        : undefined,
+      currency: r.currencyCode
+        ? { code: r.currencyCode, symbol: r.currencySymbol, name: r.currencyName }
+        : undefined,
+      unit: r.unitNumber
+        ? {
+            unitNumber: r.unitNumber,
+            floor: r.unitFloor,
+            building: r.buildingName ? { name: r.buildingName } : undefined,
+          }
+        : undefined,
+    } as TQuota
   }
 }

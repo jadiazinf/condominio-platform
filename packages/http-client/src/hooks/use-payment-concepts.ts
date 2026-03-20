@@ -107,6 +107,42 @@ export function useMyCompanyPaymentConceptsPaginated(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Server-side fetch — List (Paginated)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function getMyCompanyPaymentConceptsPaginated(
+  token: string,
+  companyId: string,
+  condominiumId: string,
+  query: TPaymentConceptsQuery
+): Promise<TApiPaginatedResponse<TPaymentConcept & { condominiumName: string | null }>> {
+  const client = getHttpClient()
+
+  const params = new URLSearchParams()
+  if (query.page) params.set('page', String(query.page))
+  if (query.limit) params.set('limit', String(query.limit))
+  if (query.search) params.set('search', query.search)
+  if (query.conceptType) params.set('conceptType', query.conceptType)
+  if (query.condominiumId) params.set('condominiumId', query.condominiumId)
+  if (query.isActive !== undefined) params.set('isActive', String(query.isActive))
+  if (query.isRecurring !== undefined) params.set('isRecurring', String(query.isRecurring))
+
+  const queryString = params.toString()
+  const path = `/${companyId}/me/payment-concepts${queryString ? `?${queryString}` : ''}`
+
+  const response = await client.get<
+    TApiPaginatedResponse<TPaymentConcept & { condominiumName: string | null }>
+  >(path, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'x-condominium-id': condominiumId,
+    },
+  })
+
+  return response.data
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Hooks - Detail (concept + assignments + bank accounts)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -169,8 +205,30 @@ export interface IServiceWithExecutionInput {
   execution: TWizardExecutionData
 }
 
+export interface IAssignmentInput {
+  scopeType: 'condominium' | 'building' | 'unit'
+  condominiumId: string
+  buildingId?: string
+  unitId?: string
+  distributionMethod: 'by_aliquot' | 'equal_split' | 'fixed_per_unit'
+  amount: number
+}
+
+export interface IInterestConfigInput {
+  name: string
+  interestType: 'simple' | 'compound' | 'fixed_amount'
+  interestRate?: number
+  calculationPeriod?: string
+  gracePeriodDays?: number
+  isActive?: boolean
+  effectiveFrom: string
+}
+
 export type TCreatePaymentConceptFullInput = TPaymentConceptCreate & {
   services?: IServiceWithExecutionInput[]
+  assignments?: IAssignmentInput[]
+  bankAccountIds?: string[]
+  interestConfig?: IInterestConfigInput
 }
 
 export interface ICreatePaymentConceptFullOptions {

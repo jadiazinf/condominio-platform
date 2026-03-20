@@ -155,7 +155,7 @@ describe('CurrenciesController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toBe('Currency not found')
+      expect(getErrorMessage(json)).toBe('Currency not found.')
     })
   })
 
@@ -178,7 +178,7 @@ describe('CurrenciesController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toBe('No base currency configured')
+      expect(getErrorMessage(json)).toBe('No base currency configured.')
     })
   })
 

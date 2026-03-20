@@ -1,44 +1,76 @@
 'use client'
 
-import type { TApiDataResponse } from '@packages/http-client'
-import type { TQuota, TQuotaStatus } from '@packages/domain'
-import type { TReportFormat } from '@packages/http-client'
+import type { TQuota, TQuotaStatus, TPaginationMeta } from '@packages/domain'
+import type { TReportFormat, IQuotasByUnitQuery } from '@packages/http-client'
 
-import { useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useQuery, getHttpClient, quotaKeys } from '@packages/http-client'
+import { useState, useCallback, useMemo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Receipt, Download } from 'lucide-react'
 import { formatAmount } from '@packages/utils/currency'
-import { formatShortDate } from '@packages/utils/dates'
-import {
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  XCircle,
-  Receipt,
-  TrendingUp,
-  CalendarCheck,
-  Download,
-} from 'lucide-react'
 import { downloadAccountStatement } from '@packages/http-client'
 
-import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
-import { Spinner } from '@/ui/components/spinner'
-import { Card, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
+import { Pagination } from '@/ui/components/pagination'
+import { Select, type ISelectItem } from '@/ui/components/select'
+import { Table, type ITableColumn } from '@/ui/components/table'
+import { Checkbox } from '@/ui/components/checkbox'
+import { DatePicker } from '@/ui/components/date-picker'
 import { useToast } from '@/ui/components/toast'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
+interface IUnitInfo {
+  id: string
+  unitNumber: string
+  buildingName: string
+  condominiumId: string
+  condominiumName: string
+}
+
+interface IConceptInfo {
+  id: string
+  name: string
+}
+
 interface IMyQuotasClientProps {
-  unitIds: string[]
-  userId: string
+  quotas: TQuota[]
+  pagination: TPaginationMeta
+  initialQuery: IQuotasByUnitQuery
+  selectedUnitId: string
+  allUnits: IUnitInfo[]
+  concepts: IConceptInfo[]
+  translations: {
+    title: string
+    subtitle: string
+    empty: string
+    concept: string
+    period: string
+    amount: string
+    dueDate: string
+    balance: string
+    unit: string
+    issueDate: string
+    totalPending: string
+    overdueCount: string
+    paidThisMonth: string
+    filter: Record<string, string>
+    status: Record<string, string>
+    export: {
+      csv: string
+      pdf: string
+      success: string
+      error: string
+    }
+  }
 }
 
 type TStatusFilter = 'all' | TQuotaStatus
+
+type TQuotaRow = TQuota & { id: string }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -66,161 +98,313 @@ const STATUS_CHIP_COLOR: Record<
   exonerated: 'secondary',
 }
 
-const STATUS_ICON: Record<TQuotaStatus, typeof Clock> = {
-  pending: Clock,
-  partial: TrendingUp,
-  overdue: AlertCircle,
-  paid: CheckCircle2,
-  cancelled: XCircle,
-  exonerated: CheckCircle2,
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Custom hook: fetch quotas for multiple units in a single query
-// ─────────────────────────────────────────────────────────────────────────────
-
-function useQuotasByMultipleUnits(unitIds: string[]) {
-  return useQuery<TQuota[]>({
-    queryKey: [...quotaKeys.all, 'multi-unit', ...unitIds],
-    queryFn: async () => {
-      const client = getHttpClient()
-      const results = await Promise.all(
-        unitIds.map(async unitId => {
-          const response = await client.get<TApiDataResponse<TQuota[]>>(`/quotas/unit/${unitId}`)
-
-          return response.data.data
-        })
-      )
-
-      return results.flat()
-    },
-    enabled: unitIds.length > 0,
-  })
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-function formatQuotaAmount(amount: string, currencySymbol: string): string {
-  const num = parseFloat(amount)
+const ENGLISH_TO_SPANISH_MONTHS: Record<string, string> = {
+  January: 'Enero',
+  February: 'Febrero',
+  March: 'Marzo',
+  April: 'Abril',
+  May: 'Mayo',
+  June: 'Junio',
+  July: 'Julio',
+  August: 'Agosto',
+  September: 'Septiembre',
+  October: 'Octubre',
+  November: 'Noviembre',
+  December: 'Diciembre',
+}
 
-  if (isNaN(num)) return `${currencySymbol} 0.00`
+function translatePeriodDescription(description: string): string {
+  if (!description) return ''
 
+  return description.replace(
+    /\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/g,
+    match => ENGLISH_TO_SPANISH_MONTHS[match] ?? match
+  )
+}
+
+function formatDateES(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00')
+
+  return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function formatAmountES(amount: string, currencySymbol: string): string {
   return `${currencySymbol} ${formatAmount(amount)}`
 }
 
-function formatDate(date: Date | string): string {
-  return formatShortDate(date)
-}
-
 function formatPeriod(year: number, month: number | null, description: string | null): string {
-  if (description) return description
+  if (description) return translatePeriodDescription(description)
   if (month !== null) {
     const date = new Date(year, month - 1)
 
-    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long' })
+    return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })
   }
 
   return String(year)
+}
+
+/** Quotas that can be selected for payment */
+function isPayable(status: string): boolean {
+  return status === 'pending' || status === 'partial' || status === 'overdue'
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function MyQuotasClient({ unitIds, userId: _userId }: IMyQuotasClientProps) {
-  const { t } = useTranslation()
+export function MyQuotasClient({
+  quotas,
+  pagination,
+  initialQuery,
+  selectedUnitId,
+  allUnits,
+  concepts,
+  translations: t,
+}: IMyQuotasClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const toast = useToast()
-  const [statusFilter, setStatusFilter] = useState<TStatusFilter>('all')
   const [exporting, setExporting] = useState<TReportFormat | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  const { data: allQuotas, isLoading } = useQuotasByMultipleUnits(unitIds)
+  const currentStatus = (initialQuery.status as TStatusFilter) || 'all'
+  const currentConceptId = initialQuery.conceptId || 'all'
+  const basePath = '/dashboard/my-quotas'
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Data
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const rows: TQuotaRow[] = quotas as TQuotaRow[]
+
+  const payableRows = useMemo(() => rows.filter(r => isPayable(r.status)), [rows])
+
+  const selectedCount = selectedIds.size
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // URL update (triggers SSR re-fetch)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const updateUrl = useCallback(
+    (updates: Partial<IQuotasByUnitQuery & { unitId?: string }>) => {
+      const params = new URLSearchParams(searchParams.toString())
+
+      if (updates.page !== undefined) {
+        if (updates.page === 1) params.delete('page')
+        else params.set('page', String(updates.page))
+      }
+
+      if (updates.limit !== undefined) {
+        if (updates.limit === 10) params.delete('limit')
+        else params.set('limit', String(updates.limit))
+      }
+
+      if ('status' in updates) {
+        if (!updates.status) params.delete('status')
+        else params.set('status', updates.status)
+      }
+
+      if ('unitId' in updates) {
+        if (!updates.unitId || updates.unitId === allUnits[0]?.id) params.delete('unitId')
+        else params.set('unitId', updates.unitId)
+      }
+
+      if ('startDate' in updates) {
+        if (!updates.startDate) params.delete('startDate')
+        else params.set('startDate', updates.startDate)
+      }
+
+      if ('endDate' in updates) {
+        if (!updates.endDate) params.delete('endDate')
+        else params.set('endDate', updates.endDate)
+      }
+
+      if ('conceptId' in updates) {
+        if (!updates.conceptId) params.delete('conceptId')
+        else params.set('conceptId', updates.conceptId)
+      }
+
+      const queryString = params.toString()
+
+      router.push(`${basePath}${queryString ? `?${queryString}` : ''}`)
+    },
+    [router, searchParams, allUnits]
+  )
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Handlers
+  // ─────────────────────────────────────────────────────────────────────────
 
   const handleExport = async (format: TReportFormat) => {
-    if (unitIds.length === 0) return
-
     setExporting(format)
     try {
-      // Download account statement for the first unit (primary)
-      await downloadAccountStatement({ unitId: unitIds[0], format })
-      toast.success(t('resident.myQuotas.export.success'))
+      await downloadAccountStatement({ unitId: selectedUnitId, format })
+      toast.success(t.export.success)
     } catch {
-      toast.error(t('resident.myQuotas.export.error'))
+      toast.error(t.export.error)
     } finally {
       setExporting(null)
     }
   }
 
-  // Sort quotas by dueDate descending
-  const sortedQuotas = useMemo(() => {
-    if (!allQuotas) return []
-
-    return [...allQuotas].sort(
-      (a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()
-    )
-  }, [allQuotas])
-
-  // Apply status filter
-  const filteredQuotas = useMemo(() => {
-    if (statusFilter === 'all') return sortedQuotas
-
-    return sortedQuotas.filter(q => q.status === statusFilter)
-  }, [sortedQuotas, statusFilter])
-
-  // Summary stats
-  const stats = useMemo(() => {
-    if (!sortedQuotas.length) {
-      return { totalPending: 0, overdueCount: 0, paidThisMonth: 0, currency: '$' }
-    }
-
-    const now = new Date()
-    const currentMonth = now.getMonth()
-    const currentYear = now.getFullYear()
-
-    let totalPending = 0
-    let overdueCount = 0
-    let paidThisMonth = 0
-
-    for (const quota of sortedQuotas) {
-      const amount = parseFloat(quota.balance) || 0
-
-      if (quota.status === 'pending') {
-        totalPending += amount
-      }
-
-      if (quota.status === 'overdue') {
-        totalPending += amount
-        overdueCount++
-      }
-
-      if (quota.status === 'paid') {
-        const dueDate = new Date(quota.dueDate)
-
-        if (dueDate.getMonth() === currentMonth && dueDate.getFullYear() === currentYear) {
-          paidThisMonth++
-        }
-      }
-    }
-
-    // Use the currency from the first quota that has one
-    const currency = sortedQuotas.find(q => q.currency)?.currency?.symbol ?? '$'
-
-    return { totalPending, overdueCount, paidThisMonth, currency }
-  }, [sortedQuotas])
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Loading state
-  // ─────────────────────────────────────────────────────────────────────────
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Spinner />
-      </div>
-    )
+  const handleStatusFilter = (filter: TStatusFilter) => {
+    setSelectedIds(new Set())
+    updateUrl({ status: filter === 'all' ? undefined : filter, page: 1 })
   }
+
+  const handleUnitChange = (key: string | null) => {
+    if (key) {
+      setSelectedIds(new Set())
+      updateUrl({ unitId: key, page: 1 })
+    }
+  }
+
+  const handleRowClick = (row: TQuotaRow) => {
+    router.push(`/dashboard/my-quotas/${row.id}`)
+  }
+
+  // Checkbox toggle for a single row
+  const toggleRow = useCallback(
+    (id: string, e?: React.MouseEvent) => {
+      e?.stopPropagation()
+      setSelectedIds(prev => {
+        const row = rows.find(r => r.id === id)
+
+        if (!row || !isPayable(row.status)) return prev
+
+        const next = new Set(prev)
+
+        if (next.has(id)) next.delete(id)
+        else next.add(id)
+
+        return next
+      })
+    },
+    [rows]
+  )
+
+  // Select all payable on current page
+  const toggleSelectAll = () => {
+    if (payableRows.length > 0 && payableRows.every(r => selectedIds.has(r.id))) {
+      // Deselect current page
+      const next = new Set(selectedIds)
+
+      payableRows.forEach(r => next.delete(r.id))
+      setSelectedIds(next)
+    } else {
+      // Select current page payable
+      const next = new Set(selectedIds)
+
+      payableRows.forEach(r => next.add(r.id))
+      setSelectedIds(next)
+    }
+  }
+
+  const allPageSelected = payableRows.length > 0 && payableRows.every(r => selectedIds.has(r.id))
+  const somePageSelected = payableRows.some(r => selectedIds.has(r.id))
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Table columns
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const columns: ITableColumn<TQuotaRow>[] = [
+    { key: 'select', label: '', width: 40 },
+    { key: 'concept', label: t.concept },
+    { key: 'period', label: t.period },
+    { key: 'dueDate', label: t.dueDate, hideOnMobile: true },
+    { key: 'amount', label: t.amount, align: 'end' },
+    { key: 'balance', label: t.balance, align: 'end', hideOnMobile: true },
+    { key: 'status', label: 'Status', align: 'center' },
+  ]
+
+  // NOTE: intentionally NOT memoized — HeroUI Table caches cells internally
+  // so the function must always have a fresh closure over `selectedIds`.
+  const renderCell = (row: TQuotaRow, columnKey: keyof TQuotaRow | string) => {
+    const currencySymbol = row.currency?.symbol ?? '$'
+
+    switch (columnKey) {
+      case 'select':
+        return (
+          <div onClick={e => e.stopPropagation()}>
+            <Checkbox
+              color="primary"
+              isDisabled={!isPayable(row.status)}
+              isSelected={isPayable(row.status) && selectedIds.has(row.id)}
+              onValueChange={() => toggleRow(row.id)}
+            />
+          </div>
+        )
+
+      case 'concept':
+        return (
+          <span className="font-medium">
+            {row.paymentConcept?.name ?? row.periodDescription ?? '-'}
+          </span>
+        )
+
+      case 'period':
+        return formatPeriod(row.periodYear, row.periodMonth, row.periodDescription)
+
+      case 'dueDate':
+        return formatDateES(row.dueDate)
+
+      case 'amount':
+        return formatAmountES(row.baseAmount, currencySymbol)
+
+      case 'balance': {
+        const balance = parseFloat(row.balance)
+        const base = parseFloat(row.baseAmount)
+
+        if (balance !== base && balance > 0) {
+          return (
+            <span className="text-warning-600">{formatAmountES(row.balance, currencySymbol)}</span>
+          )
+        }
+
+        return formatAmountES(row.balance, currencySymbol)
+      }
+
+      case 'status':
+        return (
+          <Chip color={STATUS_CHIP_COLOR[row.status as TQuotaStatus] ?? 'default'} variant="flat">
+            {t.status[row.status] ?? row.status}
+          </Chip>
+        )
+
+      default:
+        return null
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Unit selector items
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const unitItems: ISelectItem[] = allUnits.map(u => ({
+    key: u.id,
+    label: u.buildingName ? `${u.unitNumber} - ${u.buildingName}` : u.unitNumber,
+  }))
+
+  const statusItems: ISelectItem[] = STATUS_FILTERS.map(filter => ({
+    key: filter,
+    label: t.filter[filter] ?? filter,
+  }))
+
+  const conceptItems: ISelectItem[] = [
+    { key: 'all', label: t.filter.all ?? 'Todas' },
+    ...concepts.map(c => ({ key: c.id, label: c.name })),
+  ]
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Date filter state
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const currentStartDate = initialQuery.startDate ?? ''
+  const currentEndDate = initialQuery.endDate ?? ''
 
   // ─────────────────────────────────────────────────────────────────────────
   // Render
@@ -231,172 +415,231 @@ export function MyQuotasClient({ unitIds, userId: _userId }: IMyQuotasClientProp
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Typography variant="h2">{t('resident.myQuotas.title')}</Typography>
+          <Typography variant="h2">{t.title}</Typography>
           <Typography className="mt-1" color="muted" variant="body2">
-            {t('resident.myQuotas.subtitle')}
+            {t.subtitle}
           </Typography>
         </div>
         <div className="flex gap-2">
           <Button
             isDisabled={exporting !== null}
             isLoading={exporting === 'csv'}
-            size="sm"
             startContent={<Download size={16} />}
             variant="bordered"
             onPress={() => handleExport('csv')}
           >
-            {t('resident.myQuotas.export.csv')}
+            {t.export.csv}
           </Button>
           <Button
             isDisabled={exporting !== null}
             isLoading={exporting === 'pdf'}
-            size="sm"
             startContent={<Download size={16} />}
             variant="bordered"
             onPress={() => handleExport('pdf')}
           >
-            {t('resident.myQuotas.export.pdf')}
+            {t.export.pdf}
           </Button>
         </div>
       </div>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {/* Total Pending */}
-        <Card>
-          <CardBody className="flex flex-row items-center gap-4 p-4">
-            <div className="rounded-full bg-warning/10 p-3">
-              <TrendingUp className="text-warning" size={24} />
-            </div>
-            <div>
-              <Typography color="muted" variant="caption">
-                {t('resident.myQuotas.totalPending')}
-              </Typography>
-              <Typography variant="h3">
-                {formatQuotaAmount(String(stats.totalPending), stats.currency)}
-              </Typography>
-            </div>
-          </CardBody>
-        </Card>
+      {/* Filters Row */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
+        {allUnits.length > 1 && (
+          <Select
+            aria-label={t.unit}
+            className="w-full sm:w-52"
+            items={unitItems}
+            value={selectedUnitId}
+            variant="bordered"
+            onChange={handleUnitChange}
+          />
+        )}
 
-        {/* Overdue Count */}
-        <Card>
-          <CardBody className="flex flex-row items-center gap-4 p-4">
-            <div className="rounded-full bg-danger/10 p-3">
-              <AlertCircle className="text-danger" size={24} />
-            </div>
-            <div>
-              <Typography color="muted" variant="caption">
-                {t('resident.myQuotas.overdueCount')}
-              </Typography>
-              <Typography variant="h3">{stats.overdueCount}</Typography>
-            </div>
-          </CardBody>
-        </Card>
+        {/* Date filters */}
+        <DatePicker
+          className="w-full sm:w-44"
+          label={t.issueDate}
+          value={currentStartDate}
+          variant="bordered"
+          onChange={value => updateUrl({ startDate: value || undefined, page: 1 })}
+        />
+        <DatePicker
+          className="w-full sm:w-44"
+          label="Hasta"
+          value={currentEndDate}
+          variant="bordered"
+          onChange={value => updateUrl({ endDate: value || undefined, page: 1 })}
+        />
 
-        {/* Paid This Month */}
-        <Card>
-          <CardBody className="flex flex-row items-center gap-4 p-4">
-            <div className="rounded-full bg-success/10 p-3">
-              <CalendarCheck className="text-success" size={24} />
-            </div>
-            <div>
-              <Typography color="muted" variant="caption">
-                {t('resident.myQuotas.paidThisMonth')}
-              </Typography>
-              <Typography variant="h3">{stats.paidThisMonth}</Typography>
-            </div>
-          </CardBody>
-        </Card>
+        {/* Concept filter */}
+        {concepts.length > 0 && (
+          <Select
+            aria-label={t.concept}
+            className="w-full sm:w-52"
+            items={conceptItems}
+            label={t.concept}
+            value={currentConceptId}
+            variant="bordered"
+            onChange={key => {
+              setSelectedIds(new Set())
+              updateUrl({ conceptId: key === 'all' ? undefined : (key ?? undefined), page: 1 })
+            }}
+          />
+        )}
+
+        {/* Status filter */}
+        <Select
+          aria-label="Estado"
+          className="w-full sm:w-44"
+          items={statusItems}
+          value={currentStatus}
+          variant="bordered"
+          onChange={key => handleStatusFilter((key ?? 'all') as TStatusFilter)}
+        />
       </div>
 
-      {/* Status Filter Tabs */}
-      <div className="flex flex-wrap gap-2">
-        {STATUS_FILTERS.map(filter => (
+      {/* Selection bar */}
+      {selectedCount > 0 && (
+        <div className="flex items-center justify-between rounded-lg bg-primary-50 dark:bg-primary-900/20 px-4 py-3">
+          <Typography variant="body2">
+            {selectedCount} {selectedCount === 1 ? 'seleccionada' : 'seleccionadas'}
+          </Typography>
           <Button
-            key={filter}
-            color={statusFilter === filter ? 'primary' : 'default'}
-            size="sm"
-            variant={statusFilter === filter ? 'solid' : 'flat'}
-            onPress={() => setStatusFilter(filter)}
+            color="primary"
+            onPress={() => {
+              // TODO: Payment flow - navigate with selected IDs
+            }}
           >
-            {t(`resident.myQuotas.filter.${filter}`)}
+            Pagar seleccionadas
           </Button>
-        ))}
-      </div>
+        </div>
+      )}
 
-      {/* Quota List */}
-      {filteredQuotas.length === 0 ? (
-        <Card>
-          <CardBody className="flex flex-col items-center justify-center py-12 text-center">
-            <Receipt className="mb-3 text-default-300" size={48} />
-            <Typography color="muted" variant="body1">
-              {t('resident.myQuotas.empty')}
-            </Typography>
-          </CardBody>
-        </Card>
+      {/* Table (desktop) + Cards (mobile) */}
+      {rows.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-lg border border-default-200 bg-content1 py-12 text-center">
+          <Receipt className="mb-3 text-default-300" size={48} />
+          <Typography color="muted" variant="body1">
+            {t.empty}
+          </Typography>
+        </div>
       ) : (
-        <div className="space-y-3">
-          {filteredQuotas.map(quota => {
-            const StatusIcon = STATUS_ICON[quota.status as TQuotaStatus] ?? Clock
-            const chipColor = STATUS_CHIP_COLOR[quota.status as TQuotaStatus] ?? 'default'
-            const currencySymbol = quota.currency?.symbol ?? '$'
+        <>
+          {/* Desktop Table (hidden on mobile, custom cards below) */}
+          <Table<TQuotaRow>
+            key={`quotas-table-${selectedIds.size}-${Array.from(selectedIds).join(',')}`}
+            aria-label={t.title}
+            classNames={{ base: 'hidden md:block' }}
+            columns={columns}
+            mobileCards={false}
+            renderCell={renderCell}
+            rows={rows}
+            selectionMode="none"
+            onRowClick={handleRowClick}
+          />
 
-            return (
-              <Card
-                key={quota.id}
-                isPressable
-                className="cursor-pointer transition-shadow hover:shadow-md"
-                onPress={() => router.push(`/dashboard/my-quotas/${quota.id}`)}
-              >
-                <CardBody className="p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    {/* Left: Icon + Info */}
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`shrink-0 rounded-full bg-${chipColor}/10 p-2`}>
-                        <StatusIcon className={`text-${chipColor}`} size={18} />
-                      </div>
-                      <div className="min-w-0">
-                        <Typography className="truncate" variant="body1">
-                          {quota.paymentConcept?.name ??
-                            quota.periodDescription ??
-                            t('resident.myQuotas.quota')}
+          {/* Mobile Cards (custom, with checkboxes) */}
+          <div className="block space-y-3 md:hidden">
+            {/* Select all on mobile */}
+            {payableRows.length > 0 && (
+              <div className="flex items-center gap-2 px-1">
+                <Checkbox
+                  color="primary"
+                  isIndeterminate={somePageSelected && !allPageSelected}
+                  isSelected={allPageSelected}
+                  onValueChange={toggleSelectAll}
+                />
+                <Typography color="muted" variant="caption">
+                  Seleccionar todas
+                </Typography>
+              </div>
+            )}
+
+            {rows.map(row => {
+              const currencySymbol = row.currency?.symbol ?? '$'
+              const chipColor = STATUS_CHIP_COLOR[row.status as TQuotaStatus] ?? 'default'
+              const canSelect = isPayable(row.status)
+              const isSelected = selectedIds.has(row.id)
+              const balance = parseFloat(row.balance)
+              const base = parseFloat(row.baseAmount)
+              const hasBalance = balance !== base && balance > 0
+
+              return (
+                <div
+                  key={row.id}
+                  className={`rounded-lg border bg-content1 p-3 transition-colors cursor-pointer active:bg-default-100 ${
+                    isSelected ? 'border-primary-300 bg-primary-50/50' : 'border-default-200'
+                  }`}
+                  onClick={() => handleRowClick(row)}
+                >
+                  <div className="flex items-start gap-3">
+                    {/* Checkbox */}
+                    <div
+                      className="pt-0.5"
+                      onClick={e => {
+                        e.stopPropagation()
+                        toggleRow(row.id)
+                      }}
+                    >
+                      <Checkbox
+                        color="primary"
+                        isDisabled={!canSelect}
+                        isSelected={canSelect && isSelected}
+                        onValueChange={() => toggleRow(row.id)}
+                      />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <Typography className="truncate font-medium" variant="body2">
+                          {row.paymentConcept?.name ?? row.periodDescription ?? '-'}
                         </Typography>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                        <Chip color={chipColor} variant="flat">
+                          {t.status[row.status] ?? row.status}
+                        </Chip>
+                      </div>
+
+                      <Typography className="mt-1" color="muted" variant="caption">
+                        {formatPeriod(row.periodYear, row.periodMonth, row.periodDescription)}
+                      </Typography>
+
+                      <div className="mt-2 flex items-end justify-between gap-2">
+                        <div>
                           <Typography color="muted" variant="caption">
-                            {formatPeriod(
-                              quota.periodYear,
-                              quota.periodMonth,
-                              quota.periodDescription
-                            )}
+                            {t.dueDate}: {formatDateES(row.dueDate)}
                           </Typography>
-                          <Typography color="muted" variant="caption">
-                            {t('resident.myQuotas.dueDate')}: {formatDate(quota.dueDate)}
+                        </div>
+                        <div className="text-right">
+                          <Typography variant="body2">
+                            {formatAmountES(row.baseAmount, currencySymbol)}
                           </Typography>
-                          {quota.unit?.unitNumber && (
-                            <Chip color="default" size="sm" variant="flat">
-                              {quota.unit.unitNumber}
-                            </Chip>
+                          {hasBalance && (
+                            <Typography className="text-warning-600" variant="caption">
+                              {t.balance}: {formatAmountES(row.balance, currencySymbol)}
+                            </Typography>
                           )}
                         </div>
                       </div>
                     </div>
-
-                    {/* Right: Amount + Status */}
-                    <div className="flex shrink-0 flex-col items-end gap-1">
-                      <Typography variant="body1">
-                        {formatQuotaAmount(quota.baseAmount, currencySymbol)}
-                      </Typography>
-                      <Chip color={chipColor} size="sm" variant="flat">
-                        {t(`resident.myQuotas.status.${quota.status}`)}
-                      </Chip>
-                    </div>
                   </div>
-                </CardBody>
-              </Card>
-            )
-          })}
-        </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Pagination */}
+          <Pagination
+            className="mt-4"
+            limit={pagination.limit}
+            limitOptions={[10, 20, 50]}
+            page={pagination.page}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            onLimitChange={newLimit => updateUrl({ limit: newLimit, page: 1 })}
+            onPageChange={newPage => updateUrl({ page: newPage })}
+          />
+        </>
       )}
     </div>
   )

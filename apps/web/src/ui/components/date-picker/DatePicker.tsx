@@ -9,6 +9,7 @@ import { Info } from 'lucide-react'
 
 import { useModalPortalContainer } from '../modal/Modal'
 
+type TDatePickerRadius = 'none' | 'sm' | 'md' | 'lg' | 'full'
 type TDatePickerSize = 'sm' | 'md' | 'lg'
 type TDatePickerColor = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
 type TDatePickerVariant = 'flat' | 'bordered' | 'underlined' | 'faded'
@@ -43,6 +44,7 @@ interface IDatePickerProps {
   className?: string
   /** Locale for formatting, defaults to 'es-VE' */
   locale?: string
+  radius?: TDatePickerRadius
 }
 
 /**
@@ -70,6 +72,7 @@ function DatePicker({
   maxValue,
   className,
   locale = 'es-VE',
+  radius = 'sm',
 }: IDatePickerProps) {
   const modalPortalRef = useModalPortalContainer()
   // Parse string to CalendarDate
@@ -171,6 +174,7 @@ function DatePicker({
               }
             : undefined
         }
+        radius={radius}
         size={size}
         value={calendarValue}
         variant={variant}

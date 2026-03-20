@@ -18,6 +18,7 @@ import { ErrorCodes } from '@http/responses/types'
 type TMockQuotasRepository = {
   listAll: () => Promise<TQuota[]>
   getById: (id: string) => Promise<TQuota | null>
+  getByIdWithRelations: (id: string) => Promise<TQuota | null>
   create: (data: TQuotaCreate) => Promise<TQuota>
   update: (id: string, data: TQuotaUpdate) => Promise<TQuota | null>
   delete: (id: string) => Promise<boolean>
@@ -91,6 +92,13 @@ describe('QuotasController', function () {
         return testQuotas
       },
       getById: async function (id: string) {
+        return (
+          testQuotas.find(function (q) {
+            return q.id === id
+          }) || null
+        )
+      },
+      getByIdWithRelations: async function (id: string) {
         return (
           testQuotas.find(function (q) {
             return q.id === id

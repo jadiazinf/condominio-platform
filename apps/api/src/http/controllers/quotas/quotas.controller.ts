@@ -7,7 +7,11 @@ import {
   type TQuotaUpdate,
   ESystemRole,
 } from '@packages/domain'
-import type { QuotasRepository, PaymentConceptsRepository } from '@database/repositories'
+import type {
+  QuotasRepository,
+  PaymentConceptsRepository,
+  PaymentConceptServicesRepository,
+} from '@database/repositories'
 import { AppError } from '@errors/index'
 import { BaseController } from '../base.controller'
 import {
@@ -15,7 +19,12 @@ import {
   paramsValidator,
   queryValidator,
 } from '../../middlewares/utils/payload-validator'
-import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
+import {
+  authMiddleware,
+  requireRole,
+  canAccessUnit,
+  CONDOMINIUM_ID_PROP,
+} from '../../middlewares/auth'
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
@@ -49,7 +58,8 @@ const PaginatedByUnitQuerySchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
     .optional(),
-  status: z.enum(['pending', 'paid', 'overdue', 'cancelled']).optional(),
+  status: z.enum(['pending', 'partial', 'paid', 'overdue', 'cancelled', 'exonerated']).optional(),
+  conceptId: z.string().uuid().optional(),
 })
 
 type TPaginatedByUnitQuery = z.infer<typeof PaginatedByUnitQuerySchema>
@@ -66,7 +76,8 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
 
   constructor(
     repository: QuotasRepository,
-    private readonly paymentConceptsRepo: PaymentConceptsRepository
+    private readonly paymentConceptsRepo: PaymentConceptsRepository,
+    private readonly conceptServicesRepo?: PaymentConceptServicesRepository
   ) {
     super(repository)
     this.quotasRepository = repository
@@ -93,6 +104,7 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
             ESystemRole.USER
           ),
           paramsValidator(UnitIdParamSchema),
+          canAccessUnit(),
         ],
       },
       {
@@ -109,6 +121,23 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
           ),
           paramsValidator(UnitIdParamSchema),
           queryValidator(PaginatedByUnitQuerySchema),
+          canAccessUnit(),
+        ],
+      },
+      {
+        method: 'get',
+        path: '/unit/:unitId/concepts',
+        handler: this.getDistinctConceptsByUnit,
+        middlewares: [
+          authMiddleware,
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.USER
+          ),
+          paramsValidator(UnitIdParamSchema),
+          canAccessUnit(),
         ],
       },
       {
@@ -124,6 +153,7 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
             ESystemRole.USER
           ),
           paramsValidator(UnitIdParamSchema),
+          canAccessUnit(),
         ],
       },
       {
@@ -207,7 +237,7 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
 
   protected override getById = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
-    const entity = await this.repository.getById(ctx.params.id)
+    const entity = await this.quotasRepository.getByIdWithRelations(ctx.params.id)
     if (!entity) throw AppError.notFound('Resource', ctx.params.id)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     if (condominiumId) {
@@ -216,7 +246,12 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
         throw AppError.notFound('Resource', ctx.params.id)
       }
     }
-    return ctx.ok({ data: entity })
+    // Enrich with concept services if available
+    let services: unknown[] = []
+    if (this.conceptServicesRepo) {
+      services = await this.conceptServicesRepo.listByConceptId(entity.paymentConceptId)
+    }
+    return ctx.ok({ data: { ...entity, services } })
   }
 
   protected override list = async (c: Context): Promise<Response> => {
@@ -239,6 +274,7 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
         startDate: ctx.query.startDate,
         endDate: ctx.query.endDate,
         status: ctx.query.status,
+        conceptId: ctx.query.conceptId,
       },
       condominiumId
     )
@@ -249,6 +285,16 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
     const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     const data = await this.quotasRepository.getByUnitId(ctx.params.unitId, condominiumId)
+    return ctx.ok({ data })
+  }
+
+  private getDistinctConceptsByUnit = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TUnitIdParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const data = await this.quotasRepository.getDistinctConceptsByUnit(
+      ctx.params.unitId,
+      condominiumId
+    )
     return ctx.ok({ data })
   }
 

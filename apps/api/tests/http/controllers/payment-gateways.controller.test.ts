@@ -174,7 +174,7 @@ describe('PaymentGatewaysController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toBe('Payment gateway not found')
+      expect(getErrorMessage(json)).toBe('Payment gateway not found.')
     })
   })
 

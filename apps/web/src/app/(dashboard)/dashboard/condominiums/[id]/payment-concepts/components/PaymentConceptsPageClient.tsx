@@ -1,26 +1,19 @@
 'use client'
 
-import type { TPaymentConcept, TPaymentConceptsQuery } from '@packages/domain'
+import type { TPaymentConcept, TPaymentConceptsQuery, TPaginationMeta } from '@packages/domain'
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Plus, X, Search, FileText, FilePen } from 'lucide-react'
-import {
-  useMyCompanyPaymentConceptsPaginated,
-  useWizardDraft,
-  useDeleteWizardDraft,
-  wizardDraftKeys,
-} from '@packages/http-client/hooks'
+import { useWizardDraft, useDeleteWizardDraft, wizardDraftKeys } from '@packages/http-client/hooks'
 import { useQueryClient } from '@packages/http-client'
 
 import { PaymentConceptsTable } from './PaymentConceptsTable'
 
 import { useTranslation } from '@/contexts'
-import { useDebouncedValue } from '@/hooks'
 import { Button } from '@/ui/components/button'
 import { Input } from '@/ui/components/input'
 import { Select, type ISelectItem } from '@/ui/components/select'
-import { Spinner } from '@/ui/components/spinner'
 import { Pagination } from '@/ui/components/pagination'
 import { Typography } from '@/ui/components/typography'
 
@@ -37,6 +30,9 @@ type TStatusFilter = 'all' | 'active' | 'inactive'
 interface PaymentConceptsPageClientProps {
   condominiumId: string
   managementCompanyId: string
+  paymentConcepts: TPaymentConcept[]
+  pagination: TPaginationMeta
+  initialQuery: TPaymentConceptsQuery
   translations: {
     title: string
     subtitle: string
@@ -84,15 +80,18 @@ interface PaymentConceptsPageClientProps {
 
 export function PaymentConceptsPageClient({
   condominiumId,
-  managementCompanyId,
+  paymentConcepts,
+  pagination,
+  initialQuery,
   translations: t,
 }: PaymentConceptsPageClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { t: tr } = useTranslation()
   const queryClient = useQueryClient()
   const draftW = 'admin.condominiums.detail.paymentConcepts.wizard'
 
-  // Check for pending draft (draftResponse is null when no draft, object with .data when exists)
+  // Check for pending draft
   const { data: draftResponse } = useWizardDraft('payment_concept', condominiumId, {
     enabled: !!condominiumId,
   })
@@ -100,42 +99,81 @@ export function PaymentConceptsPageClient({
   const hasPendingDraft = !!draftResponse?.data
 
   const handleDiscardDraft = useCallback(() => {
-    // Optimistically remove draft from cache so banner disappears immediately
     queryClient.setQueryData(wizardDraftKeys.detail('payment_concept', condominiumId), null)
     deleteDraftMutation.mutate()
   }, [queryClient, condominiumId, deleteDraftMutation])
 
-  // Filter state
-  const [typeFilter, setTypeFilter] = useState<TTypeFilter>('all')
-  const [statusFilter, setStatusFilter] = useState<TStatusFilter>('active')
-  const [searchInput, setSearchInput] = useState('')
-  const debouncedSearch = useDebouncedValue(searchInput)
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
-  const isFirstRender = useRef(true)
+  // Local filter state (initialized from server-provided query)
+  const [searchInput, setSearchInput] = useState(initialQuery.search || '')
+  const [typeFilter, setTypeFilter] = useState<TTypeFilter>(
+    (initialQuery.conceptType as TTypeFilter) || 'all'
+  )
+  const [statusFilter, setStatusFilter] = useState<TStatusFilter>(
+    initialQuery.isActive === undefined ? 'all' : initialQuery.isActive ? 'active' : 'inactive'
+  )
 
-  // Reset page when debounced search changes (skip first render)
+  const isFirstRender = useRef(true)
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null)
+
+  const basePath = `/dashboard/condominiums/${condominiumId}/payment-concepts`
+
+  // Update URL with new query params (triggers server re-fetch)
+  const updateUrl = useCallback(
+    (updates: Partial<TPaymentConceptsQuery>) => {
+      const params = new URLSearchParams(searchParams.toString())
+
+      if (updates.page !== undefined) {
+        if (updates.page === 1) params.delete('page')
+        else params.set('page', String(updates.page))
+      }
+
+      if (updates.limit !== undefined) {
+        if (updates.limit === 10) params.delete('limit')
+        else params.set('limit', String(updates.limit))
+      }
+
+      if (updates.search !== undefined) {
+        if (!updates.search) params.delete('search')
+        else params.set('search', updates.search)
+      }
+
+      if ('conceptType' in updates) {
+        if (!updates.conceptType) params.delete('conceptType')
+        else params.set('conceptType', updates.conceptType)
+      }
+
+      if ('isActive' in updates) {
+        // undefined = "all" (no filter), true = active (default, remove param), false = inactive
+        if (updates.isActive === true) params.delete('isActive')
+        else if (updates.isActive === undefined) params.set('isActive', 'all')
+        else params.set('isActive', 'false')
+      }
+
+      const queryString = params.toString()
+
+      router.push(`${basePath}${queryString ? `?${queryString}` : ''}`)
+    },
+    [router, searchParams, basePath]
+  )
+
+  // Debounced search effect
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
 
       return
     }
-    setPage(1)
-  }, [debouncedSearch])
 
-  // Build query for API
-  const query: TPaymentConceptsQuery = useMemo(
-    () => ({
-      page,
-      limit,
-      search: debouncedSearch || undefined,
-      conceptType: typeFilter === 'all' ? undefined : typeFilter,
-      condominiumId,
-      isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
-    }),
-    [page, limit, debouncedSearch, typeFilter, statusFilter, condominiumId]
-  )
+    if (debounceTimer.current) clearTimeout(debounceTimer.current)
+
+    debounceTimer.current = setTimeout(() => {
+      updateUrl({ search: searchInput || undefined, page: 1 })
+    }, 500)
+
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    }
+  }, [searchInput, updateUrl])
 
   // Type filter items
   const typeFilterItems: ISelectItem[] = useMemo(
@@ -161,69 +199,48 @@ export function PaymentConceptsPageClient({
     [t]
   )
 
-  // Fetch data
-  const { data, isLoading, error, refetch } = useMyCompanyPaymentConceptsPaginated({
-    companyId: managementCompanyId,
-    query,
-    enabled: !!managementCompanyId,
-  })
-
-  const paymentConcepts = (data?.data ?? []) as TPaymentConcept[]
-  const pagination = data?.pagination ?? { page: 1, limit: 10, total: 0, totalPages: 0 }
-
   // Handlers
-  const handleTypeChange = useCallback((key: string | null) => {
-    if (key) {
-      setTypeFilter(key as TTypeFilter)
-      setPage(1)
-    }
-  }, [])
+  const handleTypeChange = useCallback(
+    (key: string | null) => {
+      if (key) {
+        setTypeFilter(key as TTypeFilter)
+        updateUrl({
+          conceptType: key === 'all' ? undefined : key,
+          page: 1,
+        })
+      }
+    },
+    [updateUrl]
+  )
 
-  const handleStatusChange = useCallback((key: string | null) => {
-    if (key) {
-      setStatusFilter(key as TStatusFilter)
-      setPage(1)
-    }
-  }, [])
+  const handleStatusChange = useCallback(
+    (key: string | null) => {
+      if (key) {
+        setStatusFilter(key as TStatusFilter)
+        updateUrl({
+          isActive: key === 'all' ? undefined : key === 'active',
+          page: 1,
+        })
+      }
+    },
+    [updateUrl]
+  )
 
   const handleClearFilters = useCallback(() => {
     setTypeFilter('all')
     setStatusFilter('active')
     setSearchInput('')
-    setPage(1)
-  }, [])
+    router.push(basePath)
+  }, [router, basePath])
 
   const handleRowClick = useCallback(
     (concept: TPaymentConcept) => {
-      router.push(`/dashboard/condominiums/${condominiumId}/payment-concepts/${concept.id}`)
+      router.push(`${basePath}/${concept.id}`)
     },
-    [condominiumId, router]
+    [router, basePath]
   )
 
   const hasActiveFilters = typeFilter !== 'all' || statusFilter !== 'active' || searchInput !== ''
-
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <Typography variant="h3">{t.title}</Typography>
-            <Typography className="mt-1" color="muted" variant="body2">
-              {t.subtitle}
-            </Typography>
-          </div>
-        </div>
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-danger-300 py-16">
-          <Typography color="danger" variant="body1">
-            Error al cargar los conceptos
-          </Typography>
-          <Button className="mt-4" color="primary" onPress={() => refetch()}>
-            Reintentar
-          </Button>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-4">
@@ -235,11 +252,7 @@ export function PaymentConceptsPageClient({
             {t.subtitle}
           </Typography>
         </div>
-        <Button
-          color="primary"
-          href={`/dashboard/condominiums/${condominiumId}/payment-concepts/create`}
-          startContent={<Plus size={16} />}
-        >
+        <Button color="primary" href={`${basePath}/create`} startContent={<Plus size={16} />}>
           {t.addConcept}
         </Button>
       </div>
@@ -257,11 +270,7 @@ export function PaymentConceptsPageClient({
             <Button size="sm" variant="flat" onPress={handleDiscardDraft}>
               {tr(`${draftW}.discardDraft`)}
             </Button>
-            <Button
-              color="primary"
-              href={`/dashboard/condominiums/${condominiumId}/payment-concepts/create`}
-              size="sm"
-            >
+            <Button color="primary" href={`${basePath}/create`} size="sm">
               {tr(`${draftW}.continueDraft`)}
             </Button>
           </div>
@@ -277,7 +286,10 @@ export function PaymentConceptsPageClient({
           startContent={<Search className="text-default-400" size={16} />}
           value={searchInput}
           variant="bordered"
-          onClear={() => setSearchInput('')}
+          onClear={() => {
+            setSearchInput('')
+            updateUrl({ search: undefined, page: 1 })
+          }}
           onValueChange={setSearchInput}
         />
         <Select
@@ -303,12 +315,8 @@ export function PaymentConceptsPageClient({
         )}
       </div>
 
-      {/* Table */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <Spinner size="lg" />
-        </div>
-      ) : paymentConcepts.length === 0 ? (
+      {/* Content */}
+      {paymentConcepts.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16">
           <FileText className="mb-4 text-default-300" size={48} />
           <Typography color="muted" variant="body1">
@@ -333,11 +341,8 @@ export function PaymentConceptsPageClient({
             page={pagination.page}
             total={pagination.total}
             totalPages={pagination.totalPages}
-            onLimitChange={newLimit => {
-              setLimit(newLimit)
-              setPage(1)
-            }}
-            onPageChange={setPage}
+            onLimitChange={newLimit => updateUrl({ limit: newLimit, page: 1 })}
+            onPageChange={newPage => updateUrl({ page: newPage })}
           />
         </>
       )}

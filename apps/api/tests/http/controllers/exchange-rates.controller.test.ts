@@ -226,7 +226,7 @@ describe('ExchangeRatesController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toBe('Exchange rate not found')
+      expect(getErrorMessage(json)).toBe('Exchange rate not found.')
     })
 
     it('should return 400 for invalid currency UUID', async function () {

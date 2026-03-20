@@ -6,16 +6,15 @@ import { PhoneInput, type IPhoneInputProps } from './PhoneInput'
 
 import { getTranslatedError } from '@/utils/formErrors'
 
-interface IPhoneInputFieldProps
-  extends Omit<
-    IPhoneInputProps,
-    | 'countryCode'
-    | 'phoneNumber'
-    | 'onCountryCodeChange'
-    | 'onPhoneNumberChange'
-    | 'countryCodeError'
-    | 'phoneNumberError'
-  > {
+interface IPhoneInputFieldProps extends Omit<
+  IPhoneInputProps,
+  | 'countryCode'
+  | 'phoneNumber'
+  | 'onCountryCodeChange'
+  | 'onPhoneNumberChange'
+  | 'countryCodeError'
+  | 'phoneNumberError'
+> {
   countryCodeFieldName: string
   phoneNumberFieldName: string
   translateError?: (message: string | undefined) => string | undefined

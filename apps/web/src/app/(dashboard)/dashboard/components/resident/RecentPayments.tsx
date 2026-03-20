@@ -1,7 +1,9 @@
-import { Receipt, CheckCircle2, Clock, XCircle } from 'lucide-react'
+import { Receipt, CheckCircle2, Clock, XCircle, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 
-import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Card, CardHeader, CardBody, CardFooter } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
+import { Button } from '@/ui/components/button'
 
 type TPaymentStatus = 'completed' | 'pending_verification' | 'rejected'
 
@@ -16,9 +18,11 @@ export interface IPayment {
 
 interface RecentPaymentsProps {
   payments: IPayment[]
+  maxItems?: number
   translations: {
     title: string
     noPayments: string
+    viewAll: string
     status: {
       completed: string
       pending_verification: string
@@ -36,7 +40,10 @@ const statusConfig: Record<
   rejected: { color: 'danger', icon: XCircle },
 }
 
-export function RecentPayments({ payments, translations: t }: RecentPaymentsProps) {
+export function RecentPayments({ payments, maxItems = 3, translations: t }: RecentPaymentsProps) {
+  const displayedPayments = payments.slice(0, maxItems)
+  const hasMore = payments.length > maxItems
+
   return (
     <Card>
       <CardHeader className="flex justify-between items-center px-6 pt-5 pb-0">
@@ -53,7 +60,7 @@ export function RecentPayments({ payments, translations: t }: RecentPaymentsProp
           </div>
         ) : (
           <div className="space-y-3">
-            {payments.map(payment => {
+            {displayedPayments.map(payment => {
               const config = statusConfig[payment.status]
               const StatusIcon = config.icon
 
@@ -73,7 +80,11 @@ export function RecentPayments({ payments, translations: t }: RecentPaymentsProp
                   </div>
                   <div className="text-right">
                     <p className="font-semibold">
-                      {payment.currency} {payment.amount.toLocaleString()}
+                      {payment.currency}{' '}
+                      {payment.amount.toLocaleString('es-ES', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </p>
                     <Chip color={config.color} variant="flat">
                       {t.status[payment.status]}
@@ -85,6 +96,20 @@ export function RecentPayments({ payments, translations: t }: RecentPaymentsProp
           </div>
         )}
       </CardBody>
+      {hasMore && (
+        <CardFooter className="px-6 pb-4 pt-0 justify-center">
+          <Button
+            as={Link}
+            className="w-full"
+            color="primary"
+            endContent={<ChevronRight size={16} />}
+            href="/dashboard/my-payments"
+            variant="light"
+          >
+            {t.viewAll}
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   )
 }

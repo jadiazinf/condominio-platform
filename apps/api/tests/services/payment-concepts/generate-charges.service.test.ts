@@ -651,4 +651,227 @@ describe('GenerateChargesService', function () {
       }
     })
   })
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Template cloning
+  // ─────────────────────────────────────────────────────────────────────────
+
+  describe('template cloning', function () {
+    let mockExecutionsRepo: {
+      getTemplatesByConceptId: (conceptId: string) => Promise<Array<Record<string, unknown>>>
+      create: (data: Record<string, unknown>) => Promise<{ id: string }>
+      withTx: (tx: unknown) => typeof mockExecutionsRepo
+    }
+    let createdExecutions: Record<string, unknown>[]
+
+    beforeEach(function () {
+      createdExecutions = []
+
+      mockExecutionsRepo = {
+        getTemplatesByConceptId: async () => [],
+        create: async data => {
+          createdExecutions.push(data)
+          return { id: `exec-${createdExecutions.length}` }
+        },
+        withTx() {
+          return this
+        },
+      }
+
+      service = new GenerateChargesService(
+        mockDb as never,
+        mockConceptsRepo as never,
+        mockAssignmentsRepo as never,
+        mockUnitsRepo as never,
+        mockQuotasRepo as never,
+        mockExecutionsRepo as never
+      )
+    })
+
+    it('should clone template executions for the generated period', async function () {
+      mockExecutionsRepo.getTemplatesByConceptId = async () => [
+        {
+          id: 'template-1',
+          serviceId: 'service-1',
+          condominiumId,
+          paymentConceptId: conceptId,
+          title: 'Monthly Cleaning',
+          description: 'Regular cleaning service',
+          executionDay: 15,
+          isTemplate: true,
+          totalAmount: '500.00',
+          currencyId,
+          invoiceNumber: null,
+          items: [{ description: 'Cleaning', amount: 500 }],
+          attachments: [],
+          notes: null,
+        },
+      ]
+
+      const result = await service.execute({
+        paymentConceptId: conceptId,
+        periodYear: 2026,
+        periodMonth: 3,
+        generatedBy: userId,
+      })
+
+      expect(result.success).toBe(true)
+      expect(createdExecutions.length).toBe(1)
+      expect(createdExecutions[0]!.title).toBe('Monthly Cleaning - March 2026')
+      expect(createdExecutions[0]!.executionDate).toBe('2026-03-15')
+      expect(createdExecutions[0]!.isTemplate).toBe(false)
+      expect(createdExecutions[0]!.executionDay).toBeNull()
+      expect(createdExecutions[0]!.totalAmount).toBe('500.00')
+    })
+
+    it('should use issueDate when template has no executionDay', async function () {
+      mockExecutionsRepo.getTemplatesByConceptId = async () => [
+        {
+          id: 'template-1',
+          serviceId: 'service-1',
+          condominiumId,
+          paymentConceptId: conceptId,
+          title: 'Service',
+          description: null,
+          executionDay: null,
+          isTemplate: true,
+          totalAmount: '100.00',
+          currencyId,
+          invoiceNumber: null,
+          items: [],
+          attachments: [],
+          notes: null,
+        },
+      ]
+
+      const result = await service.execute({
+        paymentConceptId: conceptId,
+        periodYear: 2026,
+        periodMonth: 6,
+        generatedBy: userId,
+      })
+
+      expect(result.success).toBe(true)
+      expect(createdExecutions.length).toBe(1)
+      // issueDay is 1, so executionDate should be 2026-06-01
+      expect(createdExecutions[0]!.executionDate).toBe('2026-06-01')
+    })
+
+    it('should clone multiple templates', async function () {
+      mockExecutionsRepo.getTemplatesByConceptId = async () => [
+        {
+          id: 'template-1',
+          serviceId: 'service-1',
+          condominiumId,
+          paymentConceptId: conceptId,
+          title: 'Cleaning',
+          description: null,
+          executionDay: 10,
+          isTemplate: true,
+          totalAmount: '300.00',
+          currencyId,
+          invoiceNumber: null,
+          items: [],
+          attachments: [],
+          notes: null,
+        },
+        {
+          id: 'template-2',
+          serviceId: 'service-2',
+          condominiumId,
+          paymentConceptId: conceptId,
+          title: 'Security',
+          description: null,
+          executionDay: 20,
+          isTemplate: true,
+          totalAmount: '200.00',
+          currencyId,
+          invoiceNumber: null,
+          items: [],
+          attachments: [],
+          notes: null,
+        },
+      ]
+
+      await service.execute({
+        paymentConceptId: conceptId,
+        periodYear: 2026,
+        periodMonth: 3,
+        generatedBy: userId,
+      })
+
+      expect(createdExecutions.length).toBe(2)
+      expect(createdExecutions[0]!.title).toBe('Cleaning - March 2026')
+      expect(createdExecutions[0]!.executionDate).toBe('2026-03-10')
+      expect(createdExecutions[1]!.title).toBe('Security - March 2026')
+      expect(createdExecutions[1]!.executionDate).toBe('2026-03-20')
+    })
+
+    it('should not clone when no templates exist', async function () {
+      mockExecutionsRepo.getTemplatesByConceptId = async () => []
+
+      await service.execute({
+        paymentConceptId: conceptId,
+        periodYear: 2026,
+        periodMonth: 3,
+        generatedBy: userId,
+      })
+
+      expect(createdExecutions.length).toBe(0)
+    })
+
+    it('should work without executionsRepo (backward compat)', async function () {
+      // Re-create service WITHOUT executionsRepo
+      service = new GenerateChargesService(
+        mockDb as never,
+        mockConceptsRepo as never,
+        mockAssignmentsRepo as never,
+        mockUnitsRepo as never,
+        mockQuotasRepo as never
+      )
+
+      const result = await service.execute({
+        paymentConceptId: conceptId,
+        periodYear: 2026,
+        periodMonth: 3,
+        generatedBy: userId,
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.quotasCreated).toBe(2)
+      }
+    })
+
+    it('should clamp executionDay to last day of month', async function () {
+      mockExecutionsRepo.getTemplatesByConceptId = async () => [
+        {
+          id: 'template-1',
+          serviceId: 'service-1',
+          condominiumId,
+          paymentConceptId: conceptId,
+          title: 'End of Month',
+          description: null,
+          executionDay: 31,
+          isTemplate: true,
+          totalAmount: '100.00',
+          currencyId,
+          invoiceNumber: null,
+          items: [],
+          attachments: [],
+          notes: null,
+        },
+      ]
+
+      await service.execute({
+        paymentConceptId: conceptId,
+        periodYear: 2026,
+        periodMonth: 2, // February has 28 days
+        generatedBy: userId,
+      })
+
+      expect(createdExecutions.length).toBe(1)
+      expect(createdExecutions[0]!.executionDate).toBe('2026-02-28')
+    })
+  })
 })

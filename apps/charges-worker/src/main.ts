@@ -65,6 +65,10 @@ async function main() {
 
   logger.info('[charges-worker] All handlers registered and cron jobs scheduled')
 
+  // NOTE: No startup triggers — rely on cron schedules only.
+  // Auto-generation and interest calculation run on their configured schedules.
+  // Triggering on every restart caused duplicate notifications and unnecessary processing.
+
   // Graceful shutdown
   const shutdown = async (signal: string) => {
     logger.info(`[charges-worker] Received ${signal}, shutting down gracefully...`)

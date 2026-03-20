@@ -205,7 +205,7 @@ describe('UnitsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toBe('Unit not found')
+      expect(getErrorMessage(json)).toBe('Unit not found.')
     })
 
     it('should return 400 for invalid building UUID format', async function () {

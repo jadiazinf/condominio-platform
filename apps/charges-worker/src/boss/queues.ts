@@ -35,6 +35,7 @@ export interface INotifyJobData {
   title: string
   body: string
   data?: Record<string, unknown>
+  channels?: Array<'in_app' | 'email' | 'push'>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -13,11 +13,18 @@ export type TServiceExecutionUpdate = z.infer<typeof serviceExecutionUpdateSchem
 
 /**
  * Execution data captured in the wizard (serviceId, condominiumId, paymentConceptId are inferred).
+ *
+ * Two scenarios:
+ * - Recurring service: `executionDay` (1-28) + `isTemplate: true`, `executionDate` is omitted.
+ *   The template is cloned per period during quota generation.
+ * - One-time service (paid in installments): `executionDate` (fixed date), `isTemplate: false`.
  */
 export type TWizardExecutionData = {
   title: string
   description?: string
-  executionDate: string
+  executionDate?: string | null
+  executionDay?: number | null
+  isTemplate?: boolean
   totalAmount: string
   currencyId: string
   invoiceNumber?: string

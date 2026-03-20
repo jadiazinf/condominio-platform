@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import type { TUnitOwnership, TUnitOwnershipCreate, TUnitOwnershipUpdate } from '@packages/domain'
 import { unitOwnerships, units, buildings, users, userInvitations } from '../drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
@@ -65,6 +65,27 @@ export class UnitOwnershipsRepository
       .from(unitOwnerships)
       .where(
         and(inArray(unitOwnerships.unitId, condominiumUnitIds), eq(unitOwnerships.isActive, true))
+      )
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Retrieves active, registered ownerships (with userId) for multiple units.
+   * Used to find which users to notify when quotas are generated.
+   */
+  async getRegisteredByUnitIds(unitIds: string[]): Promise<TUnitOwnership[]> {
+    if (unitIds.length === 0) return []
+
+    const results = await this.db
+      .select()
+      .from(unitOwnerships)
+      .where(
+        and(
+          inArray(unitOwnerships.unitId, unitIds),
+          eq(unitOwnerships.isActive, true),
+          sql`${unitOwnerships.userId} IS NOT NULL`
+        )
       )
 
     return results.map(record => this.mapToEntity(record))

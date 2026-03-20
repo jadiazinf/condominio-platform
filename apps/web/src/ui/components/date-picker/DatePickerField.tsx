@@ -4,8 +4,10 @@ import { useFormContext, useController } from 'react-hook-form'
 
 import { DatePicker, type IDatePickerProps } from './DatePicker'
 
-interface IDatePickerFieldProps
-  extends Omit<IDatePickerProps, 'value' | 'onChange' | 'errorMessage' | 'isInvalid'> {
+interface IDatePickerFieldProps extends Omit<
+  IDatePickerProps,
+  'value' | 'onChange' | 'errorMessage' | 'isInvalid'
+> {
   name: string
   translateError?: (message: string | undefined) => string | undefined
   errorMessage?: string

@@ -144,6 +144,7 @@ export class AssignPaymentConceptService {
         unitId: input.unitId,
         distributionMethod: input.distributionMethod,
         amount: input.amount,
+        assignedBy: input.assignedBy,
       })
 
       return success(assignment)

@@ -80,7 +80,20 @@
       "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/tickets/[ticketId] -type f -name \"*.tsx\" -o -name \"*.ts\")",
       "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/tickets/[ticketId] -maxdepth 1 -type f)",
       "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/tickets/[ticketId]/hooks -type f -name \"*.ts\" -o -name \"*.tsx\")",
-      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/tickets/[ticketId]/components/)"
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/tickets/[ticketId]/components/)",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/payment-concepts -name \"layout*\" -type f)",
+      "Bash(npx drizzle-kit:*)",
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/)",
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-quotas/)",
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-payments/)",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id] -name \"*sidebar*\" -o -name \"config.ts*\" -o -name \"*items*\")",
+      "Bash(find /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/payment-concepts/components/wizard -type f -name \"*.tsx\" -o -name \"*.ts\")",
+      "Bash(ls -laR /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\))",
+      "Bash(ls -la \"/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\(dashboard\\)/dashboard/condominiums/[id]/payment-concepts/components/wizard/\")",
+      "Bash(cat \"/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\(dashboard\\)/dashboard/condominiums/[id]/payment-concepts/components/wizard/CreatePaymentConceptWizard.tsx\")",
+      "Bash(sed -i \"s/toBe\\(''Payment gateway not found''\\)/toBe\\(''Payment gateway not found.''\\)/\" apps/api/tests/http/controllers/payment-gateways.controller.test.ts)",
+      "Bash(sed -i \"s/toBe\\(''No primary residence found for user''\\)/toBe\\(''No primary residence found for user.''\\)/\" apps/api/tests/http/controllers/unit-ownerships.controller.test.ts)",
+      "Bash(sed -i \"s/toBe\\(''Management company not found''\\)/toBe\\(''Management company not found.''\\)/\" apps/api/tests/http/controllers/management-companies.controller.test.ts)"
     ],
     "additionalDirectories": [
       "/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/(dashboard)/dashboard/condominiums/[id]/reserve-fund",

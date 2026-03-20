@@ -47,6 +47,7 @@ export interface IQuotasByUnitQuery {
   startDate?: string
   endDate?: string
   status?: string
+  conceptId?: string
 }
 
 export interface IUseQuotaDetailOptions {
@@ -276,6 +277,51 @@ export async function getQuotasByUnitServer(
   }
   const response = await client.get<TApiDataResponse<TQuota[]>>(
     `/condominium/quotas/unit/${unitId}`,
+    { headers }
+  )
+  return response.data.data
+}
+
+export async function getQuotasByUnitPaginatedServer(
+  token: string,
+  unitId: string,
+  query: IQuotasByUnitQuery,
+  condominiumId?: string
+): Promise<TApiPaginatedResponse<TQuota>> {
+  const client = getHttpClient()
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  }
+  if (condominiumId) {
+    headers['x-condominium-id'] = condominiumId
+  }
+  const params = new URLSearchParams()
+  if (query.page) params.set('page', String(query.page))
+  if (query.limit) params.set('limit', String(query.limit))
+  if (query.startDate) params.set('startDate', query.startDate)
+  if (query.endDate) params.set('endDate', query.endDate)
+  if (query.status) params.set('status', query.status)
+  if (query.conceptId) params.set('conceptId', query.conceptId)
+  const queryString = params.toString()
+  const path = `/condominium/quotas/unit/${unitId}/paginated${queryString ? `?${queryString}` : ''}`
+  const response = await client.get<TApiPaginatedResponse<TQuota>>(path, { headers })
+  return response.data
+}
+
+export async function getDistinctConceptsByUnitServer(
+  token: string,
+  unitId: string,
+  condominiumId?: string
+): Promise<Array<{ id: string; name: string }>> {
+  const client = getHttpClient()
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  }
+  if (condominiumId) {
+    headers['x-condominium-id'] = condominiumId
+  }
+  const response = await client.get<TApiDataResponse<Array<{ id: string; name: string }>>>(
+    `/condominium/quotas/unit/${unitId}/concepts`,
     { headers }
   )
   return response.data.data

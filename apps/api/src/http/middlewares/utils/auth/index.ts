@@ -20,3 +20,4 @@ export {
   USER_ROLE_PROP,
   MANAGEMENT_COMPANY_ID_PROP,
 } from './require-role'
+export { canAccessUnit } from './can-access-unit'

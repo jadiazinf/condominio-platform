@@ -171,7 +171,9 @@ const serviceWithExecutionSchema = z.object({
   execution: z.object({
     title: z.string().min(1).max(255),
     description: z.string().max(2000).optional(),
-    executionDate: z.string().min(1),
+    executionDate: z.string().min(1).optional().nullable(),
+    executionDay: z.number().int().min(1).max(28).optional().nullable(),
+    isTemplate: z.boolean().optional().default(false),
     totalAmount: z
       .string()
       .or(z.number())
@@ -184,8 +186,41 @@ const serviceWithExecutionSchema = z.object({
   }),
 })
 
+const assignmentInputSchema = z.object({
+  scopeType: z.enum(['condominium', 'building', 'unit'] as const),
+  condominiumId: z.string().uuid(),
+  buildingId: z.string().uuid().optional(),
+  unitId: z.string().uuid().optional(),
+  distributionMethod: z.enum(['by_aliquot', 'equal_split', 'fixed_per_unit'] as const),
+  amount: z.number().positive(),
+})
+
+const interestConfigInputSchema = z.object({
+  name: z.string().min(1).max(255),
+  interestType: z.enum(['simple', 'compound', 'fixed_amount'] as const),
+  interestRate: z.number().min(0).optional(),
+  calculationPeriod: z
+    .enum([
+      'daily',
+      'weekly',
+      'biweekly',
+      'monthly',
+      'quarterly',
+      'semi_annual',
+      'annual',
+      'per_overdue_quota',
+    ] as const)
+    .optional(),
+  gracePeriodDays: z.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+  effectiveFrom: z.string().min(1),
+})
+
 const paymentConceptCreateFullSchema = paymentConceptCreateSchema.extend({
   services: z.array(serviceWithExecutionSchema).default([]),
+  assignments: z.array(assignmentInputSchema).default([]),
+  bankAccountIds: z.array(z.string().uuid()).default([]),
+  interestConfig: interestConfigInputSchema.optional(),
 })
 
 type TPaymentConceptCreateFullBody = z.infer<typeof paymentConceptCreateFullSchema>
@@ -321,6 +356,11 @@ export interface IMcPaymentConceptsDeps {
   condominiumServicesRepo: CondominiumServicesRepository
   executionsRepo: ServiceExecutionsRepository
   interestConfigsRepo?: InterestConfigurationsRepository
+  unitOwnershipsRepo?: {
+    getRegisteredByUnitIds: (
+      unitIds: string[]
+    ) => Promise<Array<{ userId: string | null; unitId: string }>>
+  }
 }
 
 export class McPaymentConceptsController extends BaseController<
@@ -344,6 +384,7 @@ export class McPaymentConceptsController extends BaseController<
   private readonly unitsRepo: TUnitsRepo
   private readonly quotasRepo: TQuotasRepo
   private readonly changesRepo: PaymentConceptChangesRepository
+  private readonly condominiumsRepo: CondominiumsRepository
   private readonly db: TDrizzleClient
 
   constructor(deps: IMcPaymentConceptsDeps) {
@@ -356,6 +397,7 @@ export class McPaymentConceptsController extends BaseController<
     this.buildingsRepo = deps.buildingsRepo
     this.unitsRepo = deps.unitsRepo
     this.quotasRepo = deps.quotasRepo
+    this.condominiumsRepo = deps.condominiumsRepo
     this.changesRepo = new PaymentConceptChangesRepository(deps.db)
 
     this.linkServiceToConcept = new LinkServiceToConceptService(
@@ -379,7 +421,13 @@ export class McPaymentConceptsController extends BaseController<
       deps.condominiumMCRepo,
       deps.conceptServicesRepo,
       deps.condominiumServicesRepo,
-      deps.executionsRepo
+      deps.executionsRepo,
+      deps.assignmentsRepo,
+      deps.conceptBankAccountsRepo,
+      deps.interestConfigsRepo,
+      deps.unitsRepo,
+      deps.quotasRepo,
+      deps.unitOwnershipsRepo
     )
 
     this.updateFullService = new UpdatePaymentConceptFullService(
@@ -961,13 +1009,16 @@ export class McPaymentConceptsController extends BaseController<
     const dict = LocaleDictionary.http.controllers.paymentConcepts
 
     try {
-      const { services, ...conceptData } = ctx.body
+      const { services, assignments, bankAccountIds, interestConfig, ...conceptData } = ctx.body
 
       const result = await this.createFullService.execute({
         ...conceptData,
         managementCompanyId: ctx.params.managementCompanyId,
         createdBy: user.id,
         services,
+        assignments,
+        bankAccountIds,
+        interestConfig,
       } as ICreatePaymentConceptFullInput)
 
       if (!result.success) {
@@ -1107,12 +1158,28 @@ export class McPaymentConceptsController extends BaseController<
   private deactivateConcept = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, TConceptIdParam>(c)
     const user = ctx.getAuthenticatedUser()
-    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
 
     try {
+      // Verify the concept belongs to a condominium managed by this company
+      // instead of relying on the x-condominium-id header (which can be stale)
+      const concept = await this.conceptsRepo.getById(ctx.params.conceptId)
+      if (!concept) {
+        return ctx.notFound({ error: 'Payment concept not found' })
+      }
+
+      const condominiums = await this.condominiumsRepo.getByManagementCompanyId(
+        ctx.params.managementCompanyId
+      )
+      const belongsToCompany = condominiums.some(condo => condo.id === concept.condominiumId)
+      if (!belongsToCompany) {
+        return ctx.forbidden({
+          error: 'Payment concept does not belong to this management company',
+        })
+      }
+
       const result = await this.deactivateService.execute({
         conceptId: ctx.params.conceptId,
-        condominiumId,
+        condominiumId: concept.condominiumId!,
         deactivatedBy: user.id,
       })
 

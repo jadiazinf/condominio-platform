@@ -223,7 +223,7 @@ describe('ManagementCompaniesController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toBe('Management company not found')
+      expect(getErrorMessage(json)).toBe('Management company not found.')
     })
   })
 

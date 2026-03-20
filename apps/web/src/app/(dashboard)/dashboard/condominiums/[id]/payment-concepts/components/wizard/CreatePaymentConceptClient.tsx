@@ -6,13 +6,11 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   useCreatePaymentConceptFull,
-  useCreateAssignment,
-  useLinkBankAccount,
-  useCreateInterestConfiguration,
   paymentConceptKeys,
   useQueryClient,
   HttpError,
   isApiValidationError,
+  type IAssignmentInput,
 } from '@packages/http-client'
 
 import { BasicInfoStep } from './steps/BasicInfoStep'
@@ -58,7 +56,7 @@ const INITIAL_FORM_DATA: IWizardFormData = {
   assignments: [],
   bankAccountIds: [],
   chargeGenerationStrategy: 'auto',
-  notifyImmediately: false,
+  notifyImmediately: true,
   changeReason: '',
 }
 
@@ -103,6 +101,7 @@ export function CreatePaymentConceptClient({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showErrors, setShowErrors] = useState(false)
   const [draftRestored, setDraftRestored] = useState(false)
+  const draftRestoredRef = useRef(false)
   const draftInitializedRef = useRef(false)
   const skipNextSaveRef = useRef(false)
 
@@ -113,9 +112,6 @@ export function CreatePaymentConceptClient({
     })
 
   const { mutateAsync: createConceptFull } = useCreatePaymentConceptFull(managementCompanyId)
-  const { mutateAsync: createAssignment } = useCreateAssignment(managementCompanyId)
-  const { mutateAsync: linkBankAccount } = useLinkBankAccount(managementCompanyId)
-  const { mutateAsync: createInterestConfig } = useCreateInterestConfiguration()
 
   // Restore draft when loaded
   useEffect(() => {
@@ -123,6 +119,7 @@ export function CreatePaymentConceptClient({
     draftInitializedRef.current = true
 
     if (draft) {
+      draftRestoredRef.current = true
       skipNextSaveRef.current = true
       setFormData({ ...INITIAL_FORM_DATA, ...draft.data })
       setCurrentStep(draft.currentStep)
@@ -141,8 +138,9 @@ export function CreatePaymentConceptClient({
     saveDraft(formData, currentStep)
   }, [formData, currentStep, saveDraft])
 
-  // Default to VES currency when currencies load
+  // Default to VES currency when currencies load (skip if draft restored)
   useEffect(() => {
+    if (draftRestoredRef.current) return
     if (!formData.currencyId && currencies.length > 0) {
       const ves = currencies.find(c => c.code === 'VES')
 
@@ -210,25 +208,52 @@ export function CreatePaymentConceptClient({
   const handleSubmit = useCallback(async () => {
     setIsSubmitting(true)
     try {
-      // 1. Create concept + services + executions in a single transaction
-      const conceptResult = await createConceptFull({
+      // Build assignments, expanding unit-scope into individual entries
+      const assignments = formData.assignments.flatMap((assignment): IAssignmentInput[] => {
+        if (assignment.scopeType === 'unit' && assignment.unitIds?.length) {
+          return assignment.unitIds.map(unitId => ({
+            scopeType: 'unit' as const,
+            condominiumId,
+            unitId,
+            distributionMethod: 'fixed_per_unit' as const,
+            amount: assignment.amount,
+          }))
+        }
+
+        return [
+          {
+            scopeType: assignment.scopeType as 'condominium' | 'building' | 'unit',
+            condominiumId,
+            buildingId: assignment.buildingId,
+            distributionMethod: assignment.distributionMethod as
+              | 'by_aliquot'
+              | 'equal_split'
+              | 'fixed_per_unit',
+            amount: assignment.amount,
+          },
+        ]
+      })
+
+      await createConceptFull({
         condominiumId,
         name: formData.name,
         description: formData.description || undefined,
         conceptType: formData.conceptType as any,
         currencyId: formData.currencyId,
+        isActive: true,
         isRecurring: formData.isRecurring,
         recurrencePeriod: formData.isRecurring ? (formData.recurrencePeriod as any) : null,
         issueDay: formData.issueDay,
         dueDay: formData.dueDay,
-        effectiveFrom: formData.effectiveFrom || null,
-        effectiveUntil: formData.effectiveUntil || null,
+        effectiveFrom: formData.effectiveFrom ? new Date(formData.effectiveFrom) : null,
+        effectiveUntil: formData.effectiveUntil ? new Date(formData.effectiveUntil) : null,
         allowsPartialPayment: formData.allowsPartialPayment,
         latePaymentType: formData.latePaymentType as any,
         latePaymentValue: formData.latePaymentValue ?? null,
         latePaymentGraceDays: formData.latePaymentGraceDays,
         earlyPaymentType: formData.earlyPaymentType as any,
         earlyPaymentValue: formData.earlyPaymentValue ?? null,
+        chargeGenerationStrategy: formData.chargeGenerationStrategy,
         earlyPaymentDaysBeforeDue: formData.earlyPaymentDaysBeforeDue,
         services: formData.services.map(s => ({
           serviceId: s.serviceId,
@@ -236,55 +261,21 @@ export function CreatePaymentConceptClient({
           useDefaultAmount: false,
           execution: s.execution!,
         })),
-      } as any)
-
-      const conceptId = conceptResult.data.data.id
-
-      // 2. Create assignments
-      for (const assignment of formData.assignments) {
-        if (assignment.scopeType === 'unit' && assignment.unitIds?.length) {
-          for (const unitId of assignment.unitIds) {
-            await createAssignment({
-              conceptId,
-              scopeType: 'unit',
-              condominiumId,
-              unitId,
-              distributionMethod: 'fixed_per_unit',
-              amount: assignment.amount,
-            })
-          }
-        } else {
-          await createAssignment({
-            conceptId,
-            scopeType: assignment.scopeType,
-            condominiumId,
-            buildingId: assignment.buildingId,
-            distributionMethod: assignment.distributionMethod,
-            amount: assignment.amount,
-          })
-        }
-      }
-
-      // 3. Link bank accounts
-      for (const bankAccountId of formData.bankAccountIds) {
-        await linkBankAccount({ conceptId, bankAccountId })
-      }
-
-      // 4. Create interest configuration if enabled
-      if (formData.interestEnabled && formData.interestRate) {
-        await createInterestConfig({
-          condominiumId,
-          paymentConceptId: conceptId,
-          name: `${formData.name} - Interest`,
-          interestType: formData.interestType,
-          interestRate: formData.interestRate,
-          calculationPeriod: formData.interestCalculationPeriod,
-          gracePeriodDays: formData.interestGracePeriodDays,
-          currencyId: formData.currencyId,
-          isActive: true,
-          effectiveFrom: new Date().toISOString().split('T')[0]!,
-        } as any)
-      }
+        assignments,
+        bankAccountIds: formData.bankAccountIds,
+        interestConfig:
+          formData.interestEnabled && formData.interestRate
+            ? {
+                name: `${formData.name} - Interest`,
+                interestType: formData.interestType as 'simple' | 'compound' | 'fixed_amount',
+                interestRate: formData.interestRate,
+                calculationPeriod: formData.interestCalculationPeriod,
+                gracePeriodDays: formData.interestGracePeriodDays,
+                isActive: true,
+                effectiveFrom: new Date().toISOString().split('T')[0]!,
+              }
+            : undefined,
+      })
 
       clearDraft()
       await queryClient.invalidateQueries({ queryKey: paymentConceptKeys.all })
@@ -309,19 +300,7 @@ export function CreatePaymentConceptClient({
     } finally {
       setIsSubmitting(false)
     }
-  }, [
-    formData,
-    condominiumId,
-    createConceptFull,
-    createAssignment,
-    linkBankAccount,
-    createInterestConfig,
-    clearDraft,
-    queryClient,
-    router,
-    toast,
-    t,
-  ])
+  }, [formData, condominiumId, createConceptFull, clearDraft, queryClient, router, toast, t])
 
   const wizardSteps: IStepItem<(typeof STEPS)[number]>[] = [
     { key: 'basicInfo', title: t(`${w}.steps.basicInfo`) },
@@ -358,6 +337,7 @@ export function CreatePaymentConceptClient({
             condominiumId={condominiumId}
             currencies={currencies}
             formData={formData}
+            isRecurring={formData.isRecurring}
             managementCompanyId={managementCompanyId}
             servicesRequired={SERVICES_REQUIRED_TYPES.includes(formData.conceptType as any)}
             showErrors={showErrors}

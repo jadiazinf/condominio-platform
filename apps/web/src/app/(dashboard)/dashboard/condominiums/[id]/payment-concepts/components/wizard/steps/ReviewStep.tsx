@@ -239,6 +239,11 @@ export function ReviewStep({
                     {Number(service.execution.totalAmount).toLocaleString('es-VE', {
                       minimumFractionDigits: 2,
                     })}
+                    {' — '}
+                    {service.execution.isTemplate
+                      ? t('admin.condominiums.detail.services.detail.dayOfMonth') +
+                        `: ${service.execution.executionDay}`
+                      : service.execution.executionDate || ''}
                   </div>
                 )}
               </div>

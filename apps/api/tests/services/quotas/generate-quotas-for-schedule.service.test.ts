@@ -1,13 +1,16 @@
 /**
  * Comprehensive test suite for GenerateQuotasForScheduleService
  *
- * Test coverage (23 tests):
+ * Test coverage (32 tests):
  * - Happy path (5 tests): successful generation, building-specific, duplicate prevention, logging, amount calculation
  * - Error cases (6 tests): schedule/rule/formula not found, inactive rule/formula, no units
  * - Edge cases (6 tests): partial failures, all failures, empty buildings, date clamping (Feb & Apr)
  * - Transaction safety (3 tests): writes in transaction, duplicate check in transaction, rollback
  * - Date handling (2 tests): date formatting, period description
  * - Multiple buildings (1 test): units across multiple buildings in a condominium
+ * - Template execution cloning (9 tests): clone on generation, executionDay date building, day clamping,
+ *   fallback to issueDate, multiple templates, skip when 0 quotas, backward compat without repo,
+ *   error resilience, transactional safety
  */
 import { describe, it, expect, beforeEach, mock } from 'bun:test'
 import type {
@@ -57,6 +60,12 @@ type TMockBuildingsRepository = {
   getByCondominiumId: (condominiumId: string) => Promise<TBuilding[]>
 }
 
+type TMockServiceExecutionsRepository = {
+  getTemplatesByConceptId: (conceptId: string) => Promise<any[]>
+  create: (data: any) => Promise<any>
+  withTx: (tx: any) => TMockServiceExecutionsRepository
+}
+
 describe('GenerateQuotasForScheduleService', function () {
   let service: GenerateQuotasForScheduleService
   let mockDb: TMockDb
@@ -67,6 +76,7 @@ describe('GenerateQuotasForScheduleService', function () {
   let mockLogsRepo: TMockQuotaGenerationLogsRepository
   let mockUnitsRepo: TMockUnitsRepository
   let mockBuildingsRepo: TMockBuildingsRepository
+  let mockExecutionsRepo: TMockServiceExecutionsRepository
 
   const mockSchedule: TQuotaGenerationSchedule = {
     id: 'schedule-1',
@@ -284,6 +294,14 @@ describe('GenerateQuotasForScheduleService', function () {
       getByCondominiumId: mock(() => Promise.resolve([mockBuilding])),
     }
 
+    mockExecutionsRepo = {
+      getTemplatesByConceptId: mock(() => Promise.resolve([])),
+      create: mock(() => Promise.resolve({ id: 'exec-cloned-1' })),
+      withTx: mock(function (this: TMockServiceExecutionsRepository) {
+        return this
+      }),
+    }
+
     // Create service instance
     service = new GenerateQuotasForScheduleService(
       mockDb as never,
@@ -293,7 +311,8 @@ describe('GenerateQuotasForScheduleService', function () {
       mockSchedulesRepo as never,
       mockLogsRepo as never,
       mockUnitsRepo as never,
-      mockBuildingsRepo as never
+      mockBuildingsRepo as never,
+      mockExecutionsRepo as never
     )
   })
 
@@ -853,6 +872,224 @@ describe('GenerateQuotasForScheduleService', function () {
       }
       expect(mockBuildingsRepo.getByCondominiumId).toHaveBeenCalledWith('condo-1')
       expect(mockUnitsRepo.getByBuildingId).toHaveBeenCalledTimes(2)
+    })
+  })
+
+  describe('Template execution cloning', function () {
+    const mockTemplate = {
+      id: 'template-1',
+      serviceId: 'service-1',
+      condominiumId: 'condo-1',
+      paymentConceptId: 'concept-1',
+      title: 'Limpieza',
+      description: 'Limpieza mensual',
+      executionDate: null,
+      executionDay: 15,
+      isTemplate: true,
+      totalAmount: '500.00',
+      currencyId: 'currency-1',
+      invoiceNumber: null,
+      items: [{ description: 'Limpieza áreas comunes', amount: '500.00' }],
+      attachments: [],
+      notes: null,
+      status: 'pending',
+      createdBy: 'admin-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+
+    it('should clone template executions when quotas are created', async function () {
+      mockExecutionsRepo.getTemplatesByConceptId = mock(() => Promise.resolve([mockTemplate]))
+
+      const result = await service.execute({
+        scheduleId: 'schedule-1',
+        periodYear: 2025,
+        periodMonth: 3,
+        generatedBy: 'system',
+      })
+
+      expect(result.success).toBe(true)
+      expect(mockExecutionsRepo.getTemplatesByConceptId).toHaveBeenCalledWith('concept-1')
+      expect(mockExecutionsRepo.create).toHaveBeenCalledTimes(1)
+
+      const createCall = (mockExecutionsRepo.create as any).mock.calls[0]
+      const clonedData = createCall[0]
+
+      expect(clonedData.isTemplate).toBe(false)
+      expect(clonedData.executionDay).toBeNull()
+      expect(clonedData.executionDate).toBe('2025-03-15')
+      expect(clonedData.title).toBe('Limpieza - March 2025')
+      expect(clonedData.totalAmount).toBe('500.00')
+      expect(clonedData.serviceId).toBe('service-1')
+    })
+
+    it('should use executionDay to build the correct date within the period', async function () {
+      const templateDay28 = { ...mockTemplate, executionDay: 28 }
+      mockExecutionsRepo.getTemplatesByConceptId = mock(() => Promise.resolve([templateDay28]))
+
+      // February 2025 has 28 days, so day 28 should be valid
+      const result = await service.execute({
+        scheduleId: 'schedule-1',
+        periodYear: 2025,
+        periodMonth: 2,
+        generatedBy: 'system',
+      })
+
+      expect(result.success).toBe(true)
+      const clonedData = (mockExecutionsRepo.create as any).mock.calls[0][0]
+      expect(clonedData.executionDate).toBe('2025-02-28')
+    })
+
+    it('should clamp executionDay for months with fewer days (e.g. Feb)', async function () {
+      const templateDay30 = { ...mockTemplate, executionDay: 30 }
+      mockExecutionsRepo.getTemplatesByConceptId = mock(() => Promise.resolve([templateDay30]))
+
+      // February 2025 has 28 days — day 30 should clamp to 28
+      const result = await service.execute({
+        scheduleId: 'schedule-1',
+        periodYear: 2025,
+        periodMonth: 2,
+        generatedBy: 'system',
+      })
+
+      expect(result.success).toBe(true)
+      const clonedData = (mockExecutionsRepo.create as any).mock.calls[0][0]
+      expect(clonedData.executionDate).toBe('2025-02-28')
+    })
+
+    it('should use issueDate when template has no executionDay', async function () {
+      const templateNoDay = { ...mockTemplate, executionDay: null }
+      mockExecutionsRepo.getTemplatesByConceptId = mock(() => Promise.resolve([templateNoDay]))
+
+      const result = await service.execute({
+        scheduleId: 'schedule-1',
+        periodYear: 2025,
+        periodMonth: 3,
+        generatedBy: 'system',
+      })
+
+      expect(result.success).toBe(true)
+      const clonedData = (mockExecutionsRepo.create as any).mock.calls[0][0]
+      // issueDate is built from schedule.issueDay (1) → 2025-03-01
+      expect(clonedData.executionDate).toBe('2025-03-01')
+    })
+
+    it('should clone multiple templates for same concept', async function () {
+      const template2 = {
+        ...mockTemplate,
+        id: 'template-2',
+        serviceId: 'service-2',
+        title: 'Mantenimiento',
+        executionDay: 20,
+      }
+      mockExecutionsRepo.getTemplatesByConceptId = mock(() =>
+        Promise.resolve([mockTemplate, template2])
+      )
+
+      const result = await service.execute({
+        scheduleId: 'schedule-1',
+        periodYear: 2025,
+        periodMonth: 4,
+        generatedBy: 'system',
+      })
+
+      expect(result.success).toBe(true)
+      expect(mockExecutionsRepo.create).toHaveBeenCalledTimes(2)
+
+      const call1 = (mockExecutionsRepo.create as any).mock.calls[0][0]
+      const call2 = (mockExecutionsRepo.create as any).mock.calls[1][0]
+
+      expect(call1.executionDate).toBe('2025-04-15')
+      expect(call1.title).toBe('Limpieza - April 2025')
+
+      expect(call2.executionDate).toBe('2025-04-20')
+      expect(call2.title).toBe('Mantenimiento - April 2025')
+    })
+
+    it('should NOT clone templates when no quotas are created', async function () {
+      // All units already have quotas for this period
+      mockQuotasRepo.getByPeriod = mock(() =>
+        Promise.resolve([
+          { ...mockQuota, unitId: 'unit-1', status: 'pending' as const },
+          { ...mockQuota, unitId: 'unit-2', status: 'pending' as const },
+        ])
+      )
+
+      mockExecutionsRepo.getTemplatesByConceptId = mock(() => Promise.resolve([mockTemplate]))
+
+      const result = await service.execute({
+        scheduleId: 'schedule-1',
+        periodYear: 2025,
+        periodMonth: 2,
+        generatedBy: 'system',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.quotasCreated).toBe(0)
+      }
+      expect(mockExecutionsRepo.getTemplatesByConceptId).not.toHaveBeenCalled()
+      expect(mockExecutionsRepo.create).not.toHaveBeenCalled()
+    })
+
+    it('should NOT clone templates when no executionsRepo is provided', async function () {
+      // Create service without executionsRepo (backward compatibility)
+      const serviceWithoutExecRepo = new GenerateQuotasForScheduleService(
+        mockDb as never,
+        mockQuotasRepo as never,
+        mockRulesRepo as never,
+        mockFormulasRepo as never,
+        mockSchedulesRepo as never,
+        mockLogsRepo as never,
+        mockUnitsRepo as never,
+        mockBuildingsRepo as never
+      )
+
+      const result = await serviceWithoutExecRepo.execute({
+        scheduleId: 'schedule-1',
+        periodYear: 2025,
+        periodMonth: 3,
+        generatedBy: 'system',
+      })
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.quotasCreated).toBe(2)
+      }
+      // No calls to executions repo at all
+      expect(mockExecutionsRepo.getTemplatesByConceptId).not.toHaveBeenCalled()
+      expect(mockExecutionsRepo.create).not.toHaveBeenCalled()
+    })
+
+    it('should still succeed even if template cloning fails', async function () {
+      mockExecutionsRepo.getTemplatesByConceptId = mock(() => Promise.resolve([mockTemplate]))
+      mockExecutionsRepo.create = mock(() => Promise.reject(new Error('DB connection lost')))
+
+      const result = await service.execute({
+        scheduleId: 'schedule-1',
+        periodYear: 2025,
+        periodMonth: 3,
+        generatedBy: 'system',
+      })
+
+      // Quotas should still be created successfully (template cloning error is caught)
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.quotasCreated).toBe(2)
+      }
+    })
+
+    it('should use withTx on executionsRepo for transactional safety', async function () {
+      mockExecutionsRepo.getTemplatesByConceptId = mock(() => Promise.resolve([mockTemplate]))
+
+      await service.execute({
+        scheduleId: 'schedule-1',
+        periodYear: 2025,
+        periodMonth: 3,
+        generatedBy: 'system',
+      })
+
+      expect(mockExecutionsRepo.withTx).toHaveBeenCalledTimes(1)
     })
   })
 })

@@ -140,6 +140,7 @@ export {
   useMyCompanyDeactivateMember,
   useMyCompanyReactivateMember,
   useMyCompanyPaymentConceptsPaginated,
+  getMyCompanyPaymentConceptsPaginated,
   usePaymentConceptDetail,
   useCreatePaymentConcept,
   useCreatePaymentConceptFull,
@@ -273,6 +274,9 @@ export {
   updateQuota,
   deleteQuota,
   quotaKeys,
+  getQuotasByUnitPaginatedServer,
+  getDistinctConceptsByUnitServer,
+  type IQuotasByUnitQuery,
   // Payments
   usePayments,
   usePaymentsPaginated,
@@ -526,6 +530,7 @@ export type {
   TPaymentConceptChangeRecord,
   IDeactivatePaymentConceptOptions,
   IDeactivatePaymentConceptVariables,
+  IAssignmentInput,
   // Payment Concept Assignments
   IUsePaymentConceptAssignmentsOptions,
   ICreateAssignmentVariables,

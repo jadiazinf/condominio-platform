@@ -43,6 +43,13 @@
       "when": 1773514446248,
       "tag": "0005_aromatic_goblin_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1773970165876,
+      "tag": "0006_add_execution_day_template",
+      "breakpoints": true
     }
   ]
 }

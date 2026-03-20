@@ -17,7 +17,9 @@ export const serviceExecutionSchema = baseModelSchema.extend({
   paymentConceptId: z.uuid().nullable().optional(),
   title: z.string().min(1).max(255),
   description: z.string().nullable(),
-  executionDate: z.string(),
+  executionDate: z.string().nullable(),
+  executionDay: z.number().int().min(1).max(28).nullable().optional(),
+  isTemplate: z.boolean().default(false),
   totalAmount: z.string(),
   currencyId: z.uuid(),
   invoiceNumber: z.string().max(100).nullable(),
@@ -34,7 +36,9 @@ export const serviceExecutionCreateSchema = z.object({
   paymentConceptId: z.string().uuid().optional().nullable(),
   title: z.string().min(1).max(255),
   description: z.string().max(2000).optional(),
-  executionDate: z.string(),
+  executionDate: z.string().optional().nullable(),
+  executionDay: z.number().int().min(1).max(28).optional().nullable(),
+  isTemplate: z.boolean().optional().default(false),
   totalAmount: z
     .string()
     .or(z.number())

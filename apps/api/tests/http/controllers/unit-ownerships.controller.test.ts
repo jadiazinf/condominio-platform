@@ -309,7 +309,7 @@ describe('UnitOwnershipsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toBe('No primary residence found for user')
+      expect(getErrorMessage(json)).toBe('No primary residence found for user.')
     })
   })
 
@@ -332,7 +332,7 @@ describe('UnitOwnershipsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toBe('Unit ownership not found')
+      expect(getErrorMessage(json)).toBe('Unit ownership not found.')
     })
   })
 

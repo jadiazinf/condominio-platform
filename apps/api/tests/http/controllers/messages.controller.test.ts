@@ -336,7 +336,7 @@ describe('MessagesController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toBe('Message not found')
+      expect(getErrorMessage(json)).toBe('Message not found.')
     })
   })
 

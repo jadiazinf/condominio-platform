@@ -141,11 +141,13 @@ export function ServiceExecutionsPanel({
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate">{execution.title}</p>
                       <p className="text-xs text-default-400">
-                        {new Date(execution.executionDate).toLocaleDateString('es-ES', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
+                        {execution.executionDate
+                          ? new Date(execution.executionDate).toLocaleDateString('es-ES', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })
+                          : `Día ${(execution as any).executionDay ?? '—'}`}
                       </p>
                     </div>
                     <p className="text-sm font-medium shrink-0 tabular-nums">

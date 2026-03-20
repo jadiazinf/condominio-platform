@@ -149,6 +149,7 @@ type TMockConceptBankAccountsRepo = {
 
 type TMockCondominiumsRepo = {
   getById: (id: string) => Promise<{ id: string; name: string } | null>
+  getByManagementCompanyId: (mcId: string) => Promise<{ id: string; name: string }[]>
 }
 
 type TMockCurrenciesRepo = {
@@ -223,6 +224,10 @@ describe('McPaymentConceptsController', function () {
       getById: async id => {
         if (id === CONDO_ID) return { id: CONDO_ID, name: 'Test Condo' }
         return null
+      },
+      getByManagementCompanyId: async mcId => {
+        if (mcId === MC_ID) return [{ id: CONDO_ID, name: 'Test Condo' }]
+        return []
       },
     }
 

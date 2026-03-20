@@ -34,13 +34,6 @@ export const CONDOMINIUM_DETAIL_MENU_ITEMS: ICondominiumDetailMenuItem[] = [
     iconName: 'building',
   },
   {
-    key: 'quotas',
-    translationKey: 'admin.condominiums.detail.sidebar.quotas',
-    path: '/quotas',
-    iconName: 'receipt',
-    roles: ['management_company'],
-  },
-  {
     key: 'payments',
     translationKey: 'admin.condominiums.detail.sidebar.payments',
     path: '/payments',

@@ -87,6 +87,7 @@ export const paymentConceptAssignmentCreateSchema = z
     unitId: z.uuid().optional(),
     distributionMethod: z.enum(EDistributionMethods),
     amount: z.number().positive('Amount must be greater than 0'),
+    assignedBy: z.uuid(),
   })
   .superRefine((data, ctx) => {
     if (data.scopeType === 'building' && !data.buildingId) {

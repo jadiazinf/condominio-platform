@@ -72,6 +72,21 @@ export function AssignmentsStep({
     }
   }, [formData.assignments.length, autoAmount, onUpdate])
 
+  // Sync form state from existing assignment (e.g. when navigating back to this step)
+  const hasSyncedFromAssignment = useRef(false)
+
+  useEffect(() => {
+    if (!hasSyncedFromAssignment.current && formData.assignments.length > 0) {
+      hasSyncedFromAssignment.current = true
+      const existing = formData.assignments[0]!
+
+      setEditScope(existing.scopeType)
+      setEditMethod(existing.distributionMethod)
+      setEditBuildingIds(existing.buildingId ? [existing.buildingId] : [])
+      setEditUnitIds(existing.unitIds ?? [])
+    }
+  }, [formData.assignments])
+
   // Client-side data fetching (always fetch both, with MC header for MC admins)
   const { data: buildingsResponse, isLoading: loadingBuildings } = useCondominiumBuildingsList({
     condominiumId,
@@ -183,21 +198,59 @@ export function AssignmentsStep({
     return 'success'
   }
 
+  // Update assignment in real-time as the user changes form fields
+  const updateAssignment = useCallback(
+    (updates: Partial<IWizardAssignment>) => {
+      if (formData.assignments.length === 0) return
+      const current = formData.assignments[0]!
+      const updated = { ...current, ...updates }
+
+      onUpdate({ assignments: [updated] })
+    },
+    [formData.assignments, onUpdate]
+  )
+
   const handleScopeChange = (scope: 'condominium' | 'building' | 'unit') => {
     setEditScope(scope)
     setEditUnitIds([])
     setEditBuildingIds([])
+    const method = scope === 'unit' ? 'fixed_per_unit' : editMethod
+
     if (scope === 'unit') {
       setEditMethod('fixed_per_unit')
     }
+
+    updateAssignment({
+      scopeType: scope,
+      buildingId: undefined,
+      unitIds: undefined,
+      distributionMethod: method,
+    })
+  }
+
+  const handleMethodChange = (method: 'by_aliquot' | 'equal_split' | 'fixed_per_unit') => {
+    setEditMethod(method)
+    updateAssignment({ distributionMethod: method })
   }
 
   // Toggle a building in the multi-select
-  const toggleBuilding = useCallback((buildingId: string) => {
-    setEditBuildingIds(prev =>
-      prev.includes(buildingId) ? prev.filter(id => id !== buildingId) : [...prev, buildingId]
-    )
-  }, [])
+  const toggleBuilding = useCallback(
+    (buildingId: string) => {
+      setEditBuildingIds(prev => {
+        const next = prev.includes(buildingId)
+          ? prev.filter(id => id !== buildingId)
+          : [...prev, buildingId]
+
+        // For single building assignment, update immediately
+        if (next.length === 1) {
+          updateAssignment({ buildingId: next[0] })
+        }
+
+        return next
+      })
+    },
+    [updateAssignment]
+  )
 
   // Toggle all buildings
   const allBuildingsSelected = buildings.length > 0 && editBuildingIds.length === buildings.length
@@ -208,36 +261,6 @@ export function AssignmentsStep({
       setEditBuildingIds(buildings.map(b => b.id))
     }
   }, [buildings, allBuildingsSelected])
-
-  const handleAddAssignment = () => {
-    if (!autoAmount || autoAmount <= 0) return
-    if (editScope === 'building' && editBuildingIds.length === 0) return
-    if (editScope === 'unit' && editUnitIds.length === 0) return
-
-    if (editScope === 'building') {
-      // Create one assignment per selected building
-      const newAssignments: IWizardAssignment[] = editBuildingIds.map(buildingId => ({
-        scopeType: 'building' as const,
-        buildingId,
-        distributionMethod: editMethod,
-        amount: autoAmount,
-      }))
-
-      onUpdate({ assignments: [...formData.assignments, ...newAssignments] })
-    } else {
-      const newAssignment: IWizardAssignment = {
-        scopeType: editScope,
-        unitIds: editScope === 'unit' ? [...editUnitIds] : undefined,
-        distributionMethod: editScope === 'unit' ? 'fixed_per_unit' : editMethod,
-        amount: autoAmount,
-      }
-
-      onUpdate({ assignments: [...formData.assignments, newAssignment] })
-    }
-
-    setEditUnitIds([])
-    setEditBuildingIds([])
-  }
 
   const handleRemoveAssignment = (index: number) => {
     const updated = formData.assignments.filter((_, i) => i !== index)
@@ -253,7 +276,7 @@ export function AssignmentsStep({
         {t(`${w}.description`)}
       </Typography>
 
-      {/* Add assignment form */}
+      {/* Assignment configuration form */}
       <div className="flex flex-col gap-4 rounded-lg border border-default-200 p-4">
         <Typography className="font-semibold" variant="body2">
           {t(`${w}.addAssignment`)}
@@ -265,17 +288,45 @@ export function AssignmentsStep({
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <Select
-            items={scopeItems}
-            label={t(`${w}.scope`)}
-            placeholder={t(`${w}.scopePlaceholder`)}
-            tooltip={t(`${w}.tooltips.scope`)}
-            value={editScope}
-            variant="bordered"
-            onChange={key => key && handleScopeChange(key as 'condominium' | 'building' | 'unit')}
-          />
+        <div className="flex flex-col gap-4 sm:flex-row sm:gap-5">
+          <div className="flex-1">
+            <Select
+              items={scopeItems}
+              label={t(`${w}.scope`)}
+              placeholder={t(`${w}.scopePlaceholder`)}
+              tooltip={t(`${w}.tooltips.scope`)}
+              value={editScope}
+              variant="bordered"
+              onChange={key => key && handleScopeChange(key as 'condominium' | 'building' | 'unit')}
+            />
+          </div>
+
+          {/* Distribution method — hidden for unit scope */}
+          {editScope !== 'unit' && (
+            <div className="flex-1">
+              <Select
+                items={methodItems}
+                label={t(`${w}.distributionMethod`)}
+                placeholder={t(`${w}.distributionMethodPlaceholder`)}
+                tooltip={t(`${w}.tooltips.distributionMethod`)}
+                value={editMethod}
+                variant="bordered"
+                onChange={key =>
+                  key && handleMethodChange(key as 'by_aliquot' | 'equal_split' | 'fixed_per_unit')
+                }
+              />
+            </div>
+          )}
         </div>
+
+        {/* Distribution method hint */}
+        {editScope !== 'unit' && (
+          <Typography color="muted" variant="caption">
+            {editMethod === 'by_aliquot' && t(`${w}.methodAliquotHint`)}
+            {editMethod === 'equal_split' && t(`${w}.methodEqualSplitHint`)}
+            {editMethod === 'fixed_per_unit' && t(`${w}.methodFixedHint`)}
+          </Typography>
+        )}
 
         {/* Building multi-select button grid */}
         {editScope === 'building' && (
@@ -382,33 +433,11 @@ export function AssignmentsStep({
               onClose={unitModal.onClose}
               onConfirm={ids => {
                 setEditUnitIds(ids)
+                updateAssignment({ unitIds: ids })
                 unitModal.onClose()
               }}
             />
           </div>
-        )}
-
-        {/* Distribution method — hidden for unit scope */}
-        {editScope !== 'unit' && (
-          <>
-            <Select
-              items={methodItems}
-              label={t(`${w}.distributionMethod`)}
-              placeholder={t(`${w}.distributionMethodPlaceholder`)}
-              tooltip={t(`${w}.tooltips.distributionMethod`)}
-              value={editMethod}
-              variant="bordered"
-              onChange={key =>
-                key && setEditMethod(key as 'by_aliquot' | 'equal_split' | 'fixed_per_unit')
-              }
-            />
-
-            <Typography color="muted" variant="caption">
-              {editMethod === 'by_aliquot' && t(`${w}.methodAliquotHint`)}
-              {editMethod === 'equal_split' && t(`${w}.methodEqualSplitHint`)}
-              {editMethod === 'fixed_per_unit' && t(`${w}.methodFixedHint`)}
-            </Typography>
-          </>
         )}
 
         {/* Services total amount (read-only) */}

@@ -155,7 +155,7 @@ describe('RolesController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toBe('Role not found')
+      expect(getErrorMessage(json)).toBe('Role not found.')
     })
   })
 

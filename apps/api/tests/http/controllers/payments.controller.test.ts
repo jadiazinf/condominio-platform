@@ -281,7 +281,7 @@ describe('PaymentsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toBe('Payment not found')
+      expect(getErrorMessage(json)).toBe('Payment not found.')
     })
   })
 
@@ -610,7 +610,7 @@ describe('PaymentsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toBe('Payment not found')
+      expect(getErrorMessage(json)).toBe('Payment not found.')
     })
 
     it('should return 400 when payment is not pending verification', async function () {
@@ -683,7 +683,7 @@ describe('PaymentsController', function () {
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
 
       const json = (await res.json()) as IApiResponse
-      expect(getErrorMessage(json)).toBe('Payment not found')
+      expect(getErrorMessage(json)).toBe('Payment not found.')
     })
 
     it('should return 400 when payment is not pending verification', async function () {

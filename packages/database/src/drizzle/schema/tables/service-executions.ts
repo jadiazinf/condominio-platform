@@ -8,6 +8,8 @@ import {
   index,
   decimal,
   date,
+  boolean,
+  integer,
 } from 'drizzle-orm/pg-core'
 import { condominiumServices } from './condominium-services'
 import { condominiums } from './condominiums'
@@ -29,7 +31,9 @@ export const serviceExecutions = pgTable(
     }),
     title: varchar('title', { length: 255 }).notNull(),
     description: text('description'),
-    executionDate: date('execution_date').notNull(),
+    executionDate: date('execution_date'),
+    executionDay: integer('execution_day'),
+    isTemplate: boolean('is_template').notNull().default(false),
     totalAmount: decimal('total_amount', { precision: 15, scale: 2 }).notNull().default('0'),
     currencyId: uuid('currency_id')
       .notNull()

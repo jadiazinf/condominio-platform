@@ -21,6 +21,7 @@ type TAssignmentCreateData = {
   unitId?: string
   distributionMethod: 'by_aliquot' | 'equal_split' | 'fixed_per_unit'
   amount: number
+  assignedBy: string
 }
 
 type TAssignmentsRepo = {
@@ -457,6 +458,7 @@ export class UpdatePaymentConceptFullService {
             unitId: assignment.unitId,
             distributionMethod: assignment.distributionMethod,
             amount: assignment.amount,
+            assignedBy: input.changedBy,
           })
         }
       }

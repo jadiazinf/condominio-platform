@@ -202,6 +202,7 @@ const createAuthMock = () => {
     tokenOnlyMiddleware: mockTokenOnlyHandler,
     isTokenValid: mockTokenOnlyHandler,
     requireRole: mockRequireRole,
+    canAccessUnit: () => mockAuthHandler,
     CONDOMINIUM_ID_PROP: 'condominiumId',
     USER_ROLE_PROP: 'userRole',
     MANAGEMENT_COMPANY_ID_PROP: 'managementCompanyId',

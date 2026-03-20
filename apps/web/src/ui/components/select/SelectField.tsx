@@ -6,11 +6,10 @@ import { Select, type ISelectProps } from './Select'
 
 import { getTranslatedError } from '@/utils/formErrors'
 
-interface ISelectFieldProps
-  extends Omit<
-    ISelectProps,
-    'selectedKeys' | 'onSelectionChange' | 'value' | 'onChange' | 'isInvalid' | 'errorMessage'
-  > {
+interface ISelectFieldProps extends Omit<
+  ISelectProps,
+  'selectedKeys' | 'onSelectionChange' | 'value' | 'onChange' | 'isInvalid' | 'errorMessage'
+> {
   name: string
   translateError?: (message: string | undefined) => string | undefined
 }

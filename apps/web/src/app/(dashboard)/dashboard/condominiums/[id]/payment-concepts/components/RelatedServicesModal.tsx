@@ -77,11 +77,13 @@ function ServiceExecutionsList({
           <div className="min-w-0">
             <p className="text-xs font-medium truncate">{execution.title}</p>
             <p className="text-xs text-default-400">
-              {new Date(execution.executionDate).toLocaleDateString('es-ES', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })}
+              {execution.executionDate
+                ? new Date(execution.executionDate).toLocaleDateString('es-ES', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })
+                : `Día ${(execution as any).executionDay ?? '—'}`}
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">

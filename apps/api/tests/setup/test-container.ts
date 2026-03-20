@@ -1409,6 +1409,32 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       UNIQUE(payment_concept_id, service_id)
     );
 
+    CREATE TABLE IF NOT EXISTS service_executions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      service_id UUID NOT NULL REFERENCES condominium_services(id) ON DELETE CASCADE,
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      payment_concept_id UUID REFERENCES payment_concepts(id) ON DELETE SET NULL,
+      title VARCHAR(255) NOT NULL,
+      description TEXT,
+      execution_date DATE,
+      execution_day INTEGER,
+      is_template BOOLEAN NOT NULL DEFAULT false,
+      total_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
+      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
+      invoice_number VARCHAR(100),
+      items JSONB DEFAULT '[]',
+      attachments JSONB DEFAULT '[]',
+      notes TEXT,
+      metadata JSONB,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_service_executions_service ON service_executions(service_id);
+    CREATE INDEX IF NOT EXISTS idx_service_executions_condominium ON service_executions(condominium_id);
+    CREATE INDEX IF NOT EXISTS idx_service_executions_concept ON service_executions(payment_concept_id);
+    CREATE INDEX IF NOT EXISTS idx_service_executions_date ON service_executions(execution_date);
+
   `)
   const elapsed = performance.now() - start
   console.log(`[TestContainer] createSchema took ${elapsed.toFixed(1)}ms`)
@@ -1458,6 +1484,7 @@ export async function cleanDatabase(
 ): Promise<void> {
   const start = performance.now()
   await testDb.execute(sql`
+    DELETE FROM service_executions;
     DELETE FROM payment_concept_services;
     DELETE FROM condominium_services;
     DELETE FROM payment_concept_changes;

@@ -1,11 +1,11 @@
-import { and, eq, desc, gte, lte, sql } from 'drizzle-orm'
+import { and, eq, desc, gte, lte, sql, aliasedTable } from 'drizzle-orm'
 import type {
   TExchangeRate,
   TExchangeRateCreate,
   TExchangeRateUpdate,
   TPaginatedResponse,
 } from '@packages/domain'
-import { exchangeRates } from '../drizzle/schema'
+import { exchangeRates, currencies } from '../drizzle/schema'
 import type { TDrizzleClient } from './interfaces'
 import { BaseRepository } from './base'
 
@@ -82,6 +82,9 @@ export class ExchangeRatesRepository extends BaseRepository<
    * Gets the latest active exchange rate for each unique currency pair.
    */
   async getLatestRates(): Promise<TExchangeRate[]> {
+    const fromCurr = aliasedTable(currencies, 'from_curr')
+    const toCurr = aliasedTable(currencies, 'to_curr')
+
     const subquery = this.db
       .select({
         fromCurrencyId: exchangeRates.fromCurrencyId,
@@ -94,7 +97,7 @@ export class ExchangeRatesRepository extends BaseRepository<
       .as('latest')
 
     const results = await this.db
-      .select({ er: exchangeRates })
+      .select({ er: exchangeRates, fromCurrency: fromCurr, toCurrency: toCurr })
       .from(exchangeRates)
       .innerJoin(
         subquery,
@@ -104,10 +107,42 @@ export class ExchangeRatesRepository extends BaseRepository<
           eq(exchangeRates.effectiveDate, subquery.maxDate)
         )
       )
+      .leftJoin(fromCurr, eq(exchangeRates.fromCurrencyId, fromCurr.id))
+      .leftJoin(toCurr, eq(exchangeRates.toCurrencyId, toCurr.id))
       .where(eq(exchangeRates.isActive, true))
       .orderBy(desc(exchangeRates.effectiveDate))
 
-    return results.map(r => this.mapToEntity(r.er))
+    return results.map(r => ({
+      ...this.mapToEntity(r.er),
+      fromCurrency: r.fromCurrency
+        ? {
+            id: r.fromCurrency.id,
+            code: r.fromCurrency.code,
+            name: r.fromCurrency.name,
+            symbol: r.fromCurrency.symbol,
+            isBaseCurrency: r.fromCurrency.isBaseCurrency ?? false,
+            isActive: r.fromCurrency.isActive ?? true,
+            decimals: r.fromCurrency.decimals ?? 2,
+            registeredBy: r.fromCurrency.registeredBy,
+            createdAt: r.fromCurrency.createdAt ?? new Date(),
+            updatedAt: r.fromCurrency.updatedAt ?? new Date(),
+          }
+        : undefined,
+      toCurrency: r.toCurrency
+        ? {
+            id: r.toCurrency.id,
+            code: r.toCurrency.code,
+            name: r.toCurrency.name,
+            symbol: r.toCurrency.symbol,
+            isBaseCurrency: r.toCurrency.isBaseCurrency ?? false,
+            isActive: r.toCurrency.isActive ?? true,
+            decimals: r.toCurrency.decimals ?? 2,
+            registeredBy: r.toCurrency.registeredBy,
+            createdAt: r.toCurrency.createdAt ?? new Date(),
+            updatedAt: r.toCurrency.updatedAt ?? new Date(),
+          }
+        : undefined,
+    }))
   }
 
   /**

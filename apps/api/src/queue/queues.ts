@@ -10,6 +10,11 @@ export const QUEUES = {
   NOTIFY: 'charges:notify',
 } as const
 
+export interface IAutoGenerateJobData {
+  /** When triggered manually, process only this schedule. Otherwise processes all due schedules. */
+  scheduleId?: string
+}
+
 export interface IBulkGenerateJobData {
   paymentConceptId: string
   generatedBy: string
@@ -21,9 +26,16 @@ export interface INotifyJobData {
   title: string
   body: string
   data?: Record<string, unknown>
+  channels?: Array<'in_app' | 'email' | 'push'>
 }
 
 export const JOB_OPTIONS = {
+  [QUEUES.AUTO_GENERATE]: {
+    retryLimit: 3,
+    retryDelay: 30,
+    retryBackoff: true,
+    expireInMinutes: 30,
+  },
   [QUEUES.BULK_GENERATE]: {
     retryLimit: 3,
     retryDelay: 30,

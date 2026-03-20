@@ -453,7 +453,9 @@ function ExecutionCard({
             <div className="flex items-center gap-3 text-xs text-default-500 flex-wrap">
               <span className="flex items-center gap-1">
                 <Calendar size={12} />
-                {formatDate(execution.executionDate)}
+                {execution.executionDate
+                  ? formatDate(execution.executionDate)
+                  : `Día ${(execution as any).executionDay ?? '—'}`}
               </span>
               {execution.invoiceNumber && (
                 <span className="flex items-center gap-1">
@@ -610,7 +612,7 @@ function ExecutionCard({
         <ExchangeRateModal
           currencies={currencies}
           currencyId={execution.currencyId}
-          executionDate={execution.executionDate}
+          executionDate={execution.executionDate ?? ''}
           isOpen={rateModal.isOpen}
           totalAmount={execution.totalAmount}
           onClose={rateModal.onClose}

@@ -9,3 +9,4 @@ export {
   USER_ROLE_PROP,
   MANAGEMENT_COMPANY_ID_PROP,
 } from './utils/auth/require-role'
+export { canAccessUnit } from './utils/auth/can-access-unit'

@@ -49,6 +49,7 @@ export class PaymentConceptAssignmentsRepository extends BaseRepository<
       unitId: dto.unitId ?? null,
       distributionMethod: dto.distributionMethod,
       amount: dto.amount.toString(),
+      assignedBy: dto.assignedBy,
     }
   }
 

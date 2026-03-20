@@ -1,3 +1,8 @@
+import type { TPaymentConceptsQuery } from '@packages/domain'
+
+import { getMyCompanyPaymentConceptsPaginated } from '@packages/http-client'
+import { redirect } from 'next/navigation'
+
 import { PaymentConceptsPageClient } from './components/PaymentConceptsPageClient'
 
 import { getTranslations } from '@/libs/i18n/server'
@@ -5,16 +10,42 @@ import { getFullSession } from '@/libs/session'
 
 interface PageProps {
   params: Promise<{ id: string }>
+  searchParams: Promise<{
+    page?: string
+    limit?: string
+    search?: string
+    conceptType?: string
+    isActive?: string
+  }>
 }
 
-export default async function CondominiumPaymentConceptsPage({ params }: PageProps) {
-  const { id } = await params
-  const [{ t }, session] = await Promise.all([getTranslations(), getFullSession()])
+export default async function CondominiumPaymentConceptsPage({ params, searchParams }: PageProps) {
+  const [{ id }, sp, { t }, session] = await Promise.all([
+    params,
+    searchParams,
+    getTranslations(),
+    getFullSession(),
+  ])
+
+  if (!session.sessionToken) {
+    redirect('/auth')
+  }
 
   const managementCompanyId =
     session?.activeRole === 'management_company'
       ? (session.managementCompanies?.[0]?.managementCompanyId ?? '')
       : ''
+
+  // Build query from URL search params
+  // Default: isActive=true (show active). "all" = no filter. "false" = inactive only.
+  const query: TPaymentConceptsQuery = {
+    page: sp.page ? parseInt(sp.page, 10) : 1,
+    limit: sp.limit ? parseInt(sp.limit, 10) : 10,
+    search: sp.search || undefined,
+    conceptType: sp.conceptType || undefined,
+    condominiumId: id,
+    isActive: sp.isActive === 'all' ? undefined : sp.isActive === 'false' ? false : true,
+  }
 
   const p = 'admin.condominiums.detail.paymentConcepts'
 
@@ -62,11 +93,36 @@ export default async function CondominiumPaymentConceptsPage({ params }: PagePro
     noResultsHint: t(`${p}.noResultsHint`),
   }
 
-  return (
-    <PaymentConceptsPageClient
-      condominiumId={id}
-      managementCompanyId={managementCompanyId}
-      translations={translations}
-    />
-  )
+  try {
+    const response = await getMyCompanyPaymentConceptsPaginated(
+      session.sessionToken,
+      managementCompanyId,
+      id,
+      query
+    )
+
+    return (
+      <PaymentConceptsPageClient
+        condominiumId={id}
+        initialQuery={query}
+        managementCompanyId={managementCompanyId}
+        pagination={response.pagination}
+        paymentConcepts={response.data}
+        translations={translations}
+      />
+    )
+  } catch (error) {
+    console.error('Failed to fetch payment concepts:', error)
+
+    return (
+      <PaymentConceptsPageClient
+        condominiumId={id}
+        initialQuery={query}
+        managementCompanyId={managementCompanyId}
+        pagination={{ page: 1, limit: 10, total: 0, totalPages: 0 }}
+        paymentConcepts={[]}
+        translations={translations}
+      />
+    )
+  }
 }

@@ -14,6 +14,7 @@ import { getBossClient } from '@worker/boss/client'
 import { QUEUES, type ICalculateInterestJobData, type INotifyJobData } from '@worker/boss/queues'
 import logger from '@packages/logger'
 import { parseAmount, toDecimal } from '@packages/utils/money'
+import { notifySuperadminsOnError } from '@worker/libs/notify-superadmins-on-error'
 
 export async function processInterestCalculation(
   job: PgBoss.Job<ICalculateInterestJobData>
@@ -22,6 +23,35 @@ export async function processInterestCalculation(
   const { data } = job
 
   logger.info({ jobId: job.id, data }, '[Interest] Starting interest calculation')
+
+  try {
+    await _processInterestCalculation(job)
+  } catch (error) {
+    const elapsed = ((Date.now() - start) / 1000).toFixed(1)
+    const serializedError =
+      error instanceof Error
+        ? { message: error.message, stack: error.stack, name: error.name }
+        : String(error)
+    logger.error(
+      { jobId: job.id, error: serializedError, elapsedSeconds: elapsed },
+      '[Interest] Job failed with error'
+    )
+
+    await notifySuperadminsOnError({
+      jobId: job.id,
+      processor: 'interest-calculation',
+      error,
+      elapsedSeconds: elapsed,
+    })
+
+    throw error
+  }
+}
+
+async function _processInterestCalculation(
+  _job: PgBoss.Job<ICalculateInterestJobData>
+): Promise<void> {
+  const start = Date.now()
 
   const db = DatabaseService.getInstance().getDb()
   const quotasRepo = new QuotasRepository(db)
@@ -213,18 +243,16 @@ export async function processInterestCalculation(
     }
   }
 
-  // Enqueue notification with results
-  if (updated > 0 || errors > 0) {
+  // Enqueue notification only on errors (no email for success)
+  if (errors > 0) {
     try {
       const boss = getBossClient()
       const notification: INotifyJobData = {
         userId: SYSTEM_USER_ID,
-        category: errors > 0 ? 'alert' : 'quota',
-        title:
-          errors > 0
-            ? 'Interest calculation completed with errors'
-            : 'Interest calculation completed',
-        body: `Quotas processed: ${processed}. Interest applied: ${updated}. Skipped: ${skipped}. Errors: ${errors}.`,
+        category: 'alert',
+        title: 'Cálculo de intereses completado con errores',
+        body: `Cuotas procesadas: ${processed}. Intereses aplicados: ${updated}. Omitidas: ${skipped}. Errores: ${errors}.`,
+        channels: ['in_app', 'email'],
         data: { processed, updated, skipped, errors, total: overdueQuotas.length },
       }
       await boss.send(QUEUES.NOTIFY, notification)
