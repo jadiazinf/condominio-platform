@@ -242,6 +242,7 @@ export function ResidentDashboardClient({
               payNow: t('resident.dashboard.payNow'),
               exchangeRates: t('resident.dashboard.exchangeRates'),
               updatedAt: t('resident.dashboard.updatedAt'),
+              noPendingConcepts: t('resident.dashboard.noPendingConcepts'),
             }}
           />
         </div>

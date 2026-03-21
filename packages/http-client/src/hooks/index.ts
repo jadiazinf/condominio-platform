@@ -1002,6 +1002,23 @@ export {
   type IDeleteWizardDraftOptions,
 } from './use-wizard-drafts'
 
+// Payment Flow (resident wizard)
+export {
+  usePayableQuotas,
+  useValidateQuotaSelection,
+  useInitiatePayment,
+  useGatewayHealth,
+  paymentFlowKeys,
+  type IPayableQuotaGroup,
+  type IPayableBankAccount,
+  type IPayableQuotasResponse,
+  type IValidateSelectionInput,
+  type IValidateSelectionResponse,
+  type IInitiatePaymentInput,
+  type IInitiatePaymentResponse,
+  type IGatewayHealthResponse,
+} from './use-payment-flow'
+
 // Re-export commonly used TanStack Query hooks
 export {
   useQuery,

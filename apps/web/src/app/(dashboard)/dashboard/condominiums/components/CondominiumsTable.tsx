@@ -381,14 +381,14 @@ export function CondominiumsTable({
                 className="w-full cursor-pointer transition-all hover:shadow-md"
                 onPress={() => handleViewDetails(condominium.id)}
               >
-                <CardBody className="flex flex-col h-[160px]">
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <Home className="text-primary shrink-0" size={18} />
+                <CardBody className="flex flex-col gap-3 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <Home className="text-primary shrink-0" size={20} />
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium truncate">{condominium.name}</p>
+                        <p className="font-semibold text-base truncate">{condominium.name}</p>
                         {condominium.code && (
-                          <p className="text-xs text-default-500">
+                          <p className="text-xs text-default-400 mt-0.5">
                             {t(`${tp}.table.code`)}: {condominium.code}
                           </p>
                         )}
@@ -403,7 +403,7 @@ export function CondominiumsTable({
                     </Chip>
                   </div>
 
-                  <div className="flex-1 space-y-2 overflow-hidden">
+                  <div className="space-y-1.5">
                     {/* Company info — only for superadmin */}
                     {!isAdmin &&
                       (condominium.managementCompanies &&

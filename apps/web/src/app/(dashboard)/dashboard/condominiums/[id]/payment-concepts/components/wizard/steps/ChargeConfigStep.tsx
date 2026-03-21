@@ -76,7 +76,7 @@ export function ChargeConfigStep({
         <Typography className="font-semibold" variant="body2">
           {t(`${w}.scheduling`)}
         </Typography>
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
           <Select
             isRequired
             errorMessage={
@@ -122,8 +122,8 @@ export function ChargeConfigStep({
       </div>
 
       {/* Partial payment */}
-      <div className="flex items-center justify-between rounded-lg border border-default-200 p-4">
-        <div>
+      <div className="flex items-start gap-3 justify-between rounded-lg border border-default-200 p-4">
+        <div className="flex-1 min-w-0">
           <Typography className="font-medium" variant="body2">
             {t(`${w}.allowsPartialPayment`)}
           </Typography>
@@ -132,6 +132,7 @@ export function ChargeConfigStep({
           </Typography>
         </div>
         <Switch
+          className="shrink-0"
           color="primary"
           isSelected={formData.allowsPartialPayment}
           onValueChange={val => onUpdate({ allowsPartialPayment: val })}
@@ -155,7 +156,7 @@ export function ChargeConfigStep({
           }
         />
         {formData.latePaymentType !== 'none' && (
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
             {formData.latePaymentType === 'percentage' ? (
               <CurrencyInput
                 isRequired
@@ -234,7 +235,7 @@ export function ChargeConfigStep({
           }
         />
         {formData.earlyPaymentType !== 'none' && (
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
             {formData.earlyPaymentType === 'percentage' ? (
               <CurrencyInput
                 isRequired
@@ -309,8 +310,8 @@ export function ChargeConfigStep({
 
       {/* Interest configuration */}
       <div className="flex flex-col gap-4 rounded-lg border border-default-200 p-4">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-start gap-3 justify-between">
+          <div className="flex-1 min-w-0">
             <Typography className="font-semibold" variant="body2">
               {t(`${w}.interest`)}
             </Typography>
@@ -319,6 +320,7 @@ export function ChargeConfigStep({
             </Typography>
           </div>
           <Switch
+            className="shrink-0"
             color="primary"
             isSelected={formData.interestEnabled}
             onValueChange={val => onUpdate({ interestEnabled: val })}
@@ -326,7 +328,7 @@ export function ChargeConfigStep({
         </div>
         {formData.interestEnabled && (
           <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
               <Select
                 items={interestTypeItems}
                 label={t(`${w}.interestType`)}
@@ -352,7 +354,7 @@ export function ChargeConfigStep({
                 onValueChange={val => onUpdate({ interestRate: val ? Number(val) : undefined })}
               />
             </div>
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
               <Select
                 items={interestPeriodItems}
                 label={t(`${w}.interestCalculationPeriod`)}

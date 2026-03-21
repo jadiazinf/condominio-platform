@@ -296,11 +296,12 @@ export function ServicesStep({
 
       {/* Add service button */}
       <div className="flex flex-col gap-4 rounded-lg border border-default-200 p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Typography className="font-semibold" variant="body2">
             {t(`${w}.addService`)}
           </Typography>
           <Button
+            className="w-full sm:w-auto"
             color="primary"
             startContent={<Plus size={16} />}
             variant="flat"
@@ -334,7 +335,7 @@ export function ServicesStep({
               return (
                 <div
                   key={service.serviceId}
-                  className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
+                  className={`flex flex-col gap-3 rounded-lg border p-3 transition-colors ${
                     hasExecution
                       ? 'border-success-200 bg-success-50/30'
                       : showErrors
@@ -342,8 +343,9 @@ export function ServicesStep({
                         : 'border-default-200 hover:border-default-300'
                   }`}
                 >
-                  <Wrench className="shrink-0 text-default-400" size={18} />
-                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                  {/* Row 1: name + chip */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Wrench className="shrink-0 text-default-400" size={18} />
                     <span className="text-sm font-medium truncate">{service.serviceName}</span>
                     {hasExecution && (
                       <Chip
@@ -356,35 +358,39 @@ export function ServicesStep({
                       </Chip>
                     )}
                   </div>
-                  <span className="shrink-0 text-sm font-medium text-default-600">
+                  {/* Row 2: amount */}
+                  <span className="text-sm font-semibold text-default-600">
                     {service.amount > 0 ? formatAmount(service.amount) : '—'}
                   </span>
-                  <Button
-                    className="shrink-0"
-                    color={hasExecution ? 'success' : 'primary'}
-                    size="sm"
-                    startContent={hasExecution ? <CheckCircle2 size={14} /> : <Receipt size={14} />}
-                    variant="flat"
-                    onPress={() =>
-                      setExecutionTarget({
-                        serviceId: service.serviceId,
-                        serviceName: service.serviceName,
-                        existingExecution: service.execution,
-                      })
-                    }
-                  >
-                    {hasExecution ? t(`${w}.editExecution`) : t(`${w}.addExecution`)}
-                  </Button>
-                  <Button
-                    isIconOnly
-                    className="shrink-0"
-                    color="danger"
-                    size="sm"
-                    variant="light"
-                    onPress={() => handleRemoveService(index)}
-                  >
-                    <Trash2 size={14} />
-                  </Button>
+                  {/* Row 3: action buttons */}
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      className="shrink-0"
+                      color={hasExecution ? 'success' : 'primary'}
+                      size="sm"
+                      startContent={hasExecution ? <CheckCircle2 size={14} /> : <Receipt size={14} />}
+                      variant="flat"
+                      onPress={() =>
+                        setExecutionTarget({
+                          serviceId: service.serviceId,
+                          serviceName: service.serviceName,
+                          existingExecution: service.execution,
+                        })
+                      }
+                    >
+                      {hasExecution ? t(`${w}.editExecution`) : t(`${w}.addExecution`)}
+                    </Button>
+                    <Button
+                      isIconOnly
+                      className="shrink-0"
+                      color="danger"
+                      size="sm"
+                      variant="light"
+                      onPress={() => handleRemoveService(index)}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
                 </div>
               )
             })}
@@ -424,10 +430,11 @@ export function ServicesStep({
         onClose={selectorModal.onClose}
       >
         <ModalContent>
-          <ModalHeader className="flex flex-col gap-3 px-8">
-            <div className="flex items-center justify-between">
+          <ModalHeader className="flex flex-col gap-3 px-4 sm:px-8">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <Typography variant="h4">{t(`${w}.addService`)}</Typography>
               <Button
+                className="w-full sm:w-auto"
                 color="primary"
                 size="sm"
                 startContent={<Plus size={14} />}
@@ -461,7 +468,7 @@ export function ServicesStep({
             </div>
           </ModalHeader>
 
-          <ModalBody className="max-h-[60vh] px-8">
+          <ModalBody className="max-h-[60vh] px-4 sm:px-8">
             {selectorLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Spinner size="lg" />
@@ -547,7 +554,7 @@ export function ServicesStep({
             )}
           </ModalBody>
 
-          <ModalFooter className="px-8">
+          <ModalFooter className="px-4 sm:px-8">
             <Button variant="flat" onPress={selectorModal.onClose}>
               {t('common.close')}
             </Button>

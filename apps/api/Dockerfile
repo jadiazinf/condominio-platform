@@ -54,5 +54,5 @@ EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/health || exit 1
 
-# Start the server
-CMD ["bun", "run", "src/main.ts"]
+# Start with migrations, then server
+CMD ["bun", "run", "scripts/start.ts"]

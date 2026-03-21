@@ -4,7 +4,7 @@ import { DomainLocaleDictionary } from '../../i18n/dictionary'
 
 const d = DomainLocaleDictionary.validation.models.paymentGateways
 
-export const EGatewayTypes = ['stripe', 'banco_plaza', 'paypal', 'zelle', 'other'] as const
+export const EGatewayTypes = ['stripe', 'banco_plaza', 'bnc', 'paypal', 'zelle', 'other'] as const
 
 export const paymentGatewaySchema = baseModelSchema.extend({
   name: z.string({ error: d.name.required }).max(100, { error: d.name.max }),

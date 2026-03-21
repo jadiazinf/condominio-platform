@@ -26,6 +26,13 @@ const envSchema = z.object({
   APP_URL: z.url('APP_URL must be a valid URL'),
   // Superadmin
   SUPERADMIN_EMAIL_DOMAIN: z.string().optional().default('@latorre.com'),
+  // BNC (Banco Nacional de Crédito) — optional, validated at runtime when gateway is used
+  BNC_API_BASE_URL: z.string().url().optional(),
+  BNC_CLIENT_GUID: z.string().optional(),
+  BNC_MASTER_KEY: z.string().optional(),
+  BNC_TERMINAL: z.string().optional(),
+  BNC_WEBHOOK_API_KEY: z.string().optional(),
+  BNC_SANDBOX: z.coerce.boolean().default(true),
   // Test-only flags (middleware bypass control)
   TEST_AUTH_MIDDLEWARE: z.string().optional(),
   TEST_REQUIRE_ROLE_MIDDLEWARE: z.string().optional(),
@@ -160,6 +167,12 @@ if (isTestMode) {
     RESEND_FROM_EMAIL: 'Condominio App <noreply@resend.dev>',
     APP_URL: 'http://localhost:3000',
     SUPERADMIN_EMAIL_DOMAIN: '@latorre.com',
+    BNC_API_BASE_URL: undefined,
+    BNC_CLIENT_GUID: undefined,
+    BNC_MASTER_KEY: undefined,
+    BNC_TERMINAL: undefined,
+    BNC_WEBHOOK_API_KEY: undefined,
+    BNC_SANDBOX: true,
     TEST_AUTH_MIDDLEWARE: Bun.env.TEST_AUTH_MIDDLEWARE || process.env.TEST_AUTH_MIDDLEWARE,
     TEST_REQUIRE_ROLE_MIDDLEWARE:
       Bun.env.TEST_REQUIRE_ROLE_MIDDLEWARE || process.env.TEST_REQUIRE_ROLE_MIDDLEWARE,

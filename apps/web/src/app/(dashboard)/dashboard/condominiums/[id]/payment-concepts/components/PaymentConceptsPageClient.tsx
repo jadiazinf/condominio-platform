@@ -245,32 +245,32 @@ export function PaymentConceptsPageClient({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Typography variant="h3">{t.title}</Typography>
           <Typography className="mt-1" color="muted" variant="body2">
             {t.subtitle}
           </Typography>
         </div>
-        <Button color="primary" href={`${basePath}/create`} startContent={<Plus size={16} />}>
+        <Button className="w-full sm:w-auto" color="primary" href={`${basePath}/create`} startContent={<Plus size={16} />}>
           {t.addConcept}
         </Button>
       </div>
 
       {/* Pending draft banner */}
       {hasPendingDraft && (
-        <div className="flex items-center justify-between rounded-lg border border-warning-200 bg-warning-50 p-4">
+        <div className="flex flex-col gap-3 rounded-lg border border-warning-200 bg-warning-50 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <FilePen className="text-warning-600" size={20} />
+            <FilePen className="shrink-0 text-warning-600" size={20} />
             <Typography color="default" variant="body2">
               {tr(`${draftW}.pendingDraft`)}
             </Typography>
           </div>
           <div className="flex gap-2">
-            <Button size="sm" variant="flat" onPress={handleDiscardDraft}>
+            <Button className="flex-1 sm:flex-initial" size="sm" variant="flat" onPress={handleDiscardDraft}>
               {tr(`${draftW}.discardDraft`)}
             </Button>
-            <Button color="primary" href={`${basePath}/create`} size="sm">
+            <Button className="flex-1 sm:flex-initial" color="primary" href={`${basePath}/create`} size="sm">
               {tr(`${draftW}.continueDraft`)}
             </Button>
           </div>

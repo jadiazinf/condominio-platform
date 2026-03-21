@@ -97,7 +97,7 @@ export function MyPaymentsClient({ userId }: IMyPaymentsClientProps) {
         <Button
           as={Link}
           color="primary"
-          href="/dashboard/report-payment"
+          href="/dashboard/pay"
           startContent={<Plus size={16} />}
         >
           {t('resident.myPayments.reportPayment')}

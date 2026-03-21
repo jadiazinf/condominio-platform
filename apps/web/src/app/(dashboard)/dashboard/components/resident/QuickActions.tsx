@@ -21,7 +21,7 @@ export function QuickActions({ translations: t }: QuickActionsProps) {
       label: t.payQuota,
       icon: CreditCard,
       color: 'primary' as const,
-      href: '/dashboard/report-payment',
+      href: '/dashboard/pay',
     },
     {
       key: 'statement',

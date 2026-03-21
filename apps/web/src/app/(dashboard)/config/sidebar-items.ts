@@ -71,10 +71,10 @@ export const dashboardSidebarItems: TSidebarItemConfig[] = [
     href: '/dashboard/payments',
   },
   {
-    key: 'report-payment',
-    title: 'resident.nav.reportPayment',
+    key: 'pay',
+    title: 'resident.nav.pay',
     icon: CreditCard,
-    href: '/dashboard/report-payment',
+    href: '/dashboard/pay',
   },
   {
     key: 'reservations',

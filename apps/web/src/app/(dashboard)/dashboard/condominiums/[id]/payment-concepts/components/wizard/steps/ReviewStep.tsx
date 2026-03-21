@@ -72,6 +72,13 @@ export function ReviewStep({
     return labels[method] || method
   }
 
+  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
+      <span className="text-sm text-default-500 sm:min-w-[160px] shrink-0">{label}</span>
+      <span className="text-sm font-medium text-right sm:text-right">{children}</span>
+    </div>
+  )
+
   return (
     <div className="flex flex-col gap-5">
       <Typography color="muted" variant="body2">
@@ -80,56 +87,35 @@ export function ReviewStep({
 
       {/* Basic Info */}
       <Card>
-        <CardBody className="space-y-2">
+        <CardBody className="space-y-3">
           <Typography className="font-semibold" variant="body2">
             {t(`${w}.basicInfo`)}
           </Typography>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <span className="text-default-500">{t(`${w}.name`)}</span>
-            <span className="font-medium">{formData.name}</span>
-
-            <span className="text-default-500">{t(`${w}.type`)}</span>
-            <span>{getTypeLabel(formData.conceptType)}</span>
-
-            <span className="text-default-500">{t(`${w}.currency`)}</span>
-            <span>{currencyCode}</span>
-
-            <span className="text-default-500">{t(`${w}.effectiveFrom`)}</span>
-            <span>{formData.effectiveFrom || '-'}</span>
-
+          <div className="flex flex-col gap-3">
+            <Field label={t(`${w}.name`)}>{formData.name}</Field>
+            <Field label={t(`${w}.type`)}>{getTypeLabel(formData.conceptType)}</Field>
+            <Field label={t(`${w}.currency`)}>{currencyCode}</Field>
+            <Field label={t(`${w}.effectiveFrom`)}>{formData.effectiveFrom || '-'}</Field>
             {formData.effectiveUntil && (
-              <>
-                <span className="text-default-500">{t(`${w}.effectiveUntil`)}</span>
-                <span>{formData.effectiveUntil}</span>
-              </>
+              <Field label={t(`${w}.effectiveUntil`)}>{formData.effectiveUntil}</Field>
             )}
-
-            <span className="text-default-500">{t(`${w}.recurring`)}</span>
-            <span>{formData.isRecurring ? t('common.yes') : t('common.no')}</span>
-
+            <Field label={t(`${w}.recurring`)}>
+              {formData.isRecurring ? t('common.yes') : t('common.no')}
+            </Field>
             {formData.isRecurring && formData.recurrencePeriod && (
-              <>
-                <span className="text-default-500">{t(`${w}.recurrence`)}</span>
-                <span>{t(`admin.paymentConcepts.recurrence.${formData.recurrencePeriod}`)}</span>
-              </>
+              <Field label={t(`${w}.recurrence`)}>
+                {t(`admin.paymentConcepts.recurrence.${formData.recurrencePeriod}`)}
+              </Field>
             )}
-
             {formData.isRecurring && (
-              <>
-                <span className="text-default-500">{t(`${w}.chargeGenerationStrategy`)}</span>
-                <span>
-                  {formData.chargeGenerationStrategy === 'auto' && t(`${w}.strategyAuto`)}
-                  {formData.chargeGenerationStrategy === 'bulk' && t(`${w}.strategyBulk`)}
-                  {formData.chargeGenerationStrategy === 'manual' && t(`${w}.strategyManual`)}
-                </span>
-              </>
+              <Field label={t(`${w}.chargeGenerationStrategy`)}>
+                {formData.chargeGenerationStrategy === 'auto' && t(`${w}.strategyAuto`)}
+                {formData.chargeGenerationStrategy === 'bulk' && t(`${w}.strategyBulk`)}
+                {formData.chargeGenerationStrategy === 'manual' && t(`${w}.strategyManual`)}
+              </Field>
             )}
-
             {formData.description && (
-              <>
-                <span className="text-default-500">{t(`${w}.descriptionLabel`)}</span>
-                <span>{formData.description}</span>
-              </>
+              <Field label={t(`${w}.descriptionLabel`)}>{formData.description}</Field>
             )}
           </div>
         </CardBody>
@@ -137,66 +123,53 @@ export function ReviewStep({
 
       {/* Charge Config */}
       <Card>
-        <CardBody className="space-y-2">
+        <CardBody className="space-y-3">
           <Typography className="font-semibold" variant="body2">
             {t(`${w}.chargeConfig`)}
           </Typography>
-          <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="flex flex-col gap-3">
             {formData.isRecurring && (
               <>
-                <span className="text-default-500">{t(`${w}.issueDay`)}</span>
-                <span>{formData.issueDay || '-'}</span>
-                <span className="text-default-500">{t(`${w}.dueDay`)}</span>
-                <span>{formData.dueDay || '-'}</span>
+                <Field label={t(`${w}.issueDay`)}>{formData.issueDay || '-'}</Field>
+                <Field label={t(`${w}.dueDay`)}>{formData.dueDay || '-'}</Field>
               </>
             )}
-            <span className="text-default-500">{t(`${w}.partialPayment`)}</span>
-            <span>{formData.allowsPartialPayment ? t('common.yes') : t('common.no')}</span>
-
+            <Field label={t(`${w}.partialPayment`)}>
+              {formData.allowsPartialPayment ? t('common.yes') : t('common.no')}
+            </Field>
             {formData.latePaymentType !== 'none' && (
-              <>
-                <span className="text-default-500">{t(`${w}.lateFee`)}</span>
-                <span>
-                  {formData.latePaymentType === 'percentage'
-                    ? `${formData.latePaymentValue}%`
-                    : `${currencyCode} ${formData.latePaymentValue}`}
-                  {formData.latePaymentGraceDays
-                    ? ` (${formData.latePaymentGraceDays} ${t(`${w}.graceDays`)})`
-                    : ''}
-                </span>
-              </>
+              <Field label={t(`${w}.lateFee`)}>
+                {formData.latePaymentType === 'percentage'
+                  ? `${formData.latePaymentValue}%`
+                  : `${currencyCode} ${formData.latePaymentValue}`}
+                {formData.latePaymentGraceDays
+                  ? ` (${formData.latePaymentGraceDays} ${t(`${w}.graceDays`)})`
+                  : ''}
+              </Field>
             )}
-
             {formData.earlyPaymentType !== 'none' && (
-              <>
-                <span className="text-default-500">{t(`${w}.earlyDiscount`)}</span>
-                <span>
-                  {formData.earlyPaymentType === 'percentage'
-                    ? `${formData.earlyPaymentValue}%`
-                    : `${currencyCode} ${formData.earlyPaymentValue}`}
-                  {formData.earlyPaymentDaysBeforeDue
-                    ? ` (${formData.earlyPaymentDaysBeforeDue} ${t(`${w}.daysBefore`)})`
-                    : ''}
-                </span>
-              </>
+              <Field label={t(`${w}.earlyDiscount`)}>
+                {formData.earlyPaymentType === 'percentage'
+                  ? `${formData.earlyPaymentValue}%`
+                  : `${currencyCode} ${formData.earlyPaymentValue}`}
+                {formData.earlyPaymentDaysBeforeDue
+                  ? ` (${formData.earlyPaymentDaysBeforeDue} ${t(`${w}.daysBefore`)})`
+                  : ''}
+              </Field>
             )}
-
             {formData.interestEnabled && (
-              <>
-                <span className="text-default-500">{t(`${w}.interest`)}</span>
-                <span>
-                  {formData.interestType === 'simple'
-                    ? t(`${w}.interestSimple`)
-                    : t(`${w}.interestCompound`)}
-                  {' — '}
-                  {formData.interestRate}%{' '}
-                  {formData.interestCalculationPeriod === 'monthly'
-                    ? t(`${w}.interestMonthly`)
-                    : t(`${w}.interestDaily`)}
-                  {formData.interestGracePeriodDays > 0 &&
-                    ` (${formData.interestGracePeriodDays} ${t(`${w}.graceDays`)})`}
-                </span>
-              </>
+              <Field label={t(`${w}.interest`)}>
+                {formData.interestType === 'simple'
+                  ? t(`${w}.interestSimple`)
+                  : t(`${w}.interestCompound`)}
+                {' — '}
+                {formData.interestRate}%{' '}
+                {formData.interestCalculationPeriod === 'monthly'
+                  ? t(`${w}.interestMonthly`)
+                  : t(`${w}.interestDaily`)}
+                {formData.interestGracePeriodDays > 0 &&
+                  ` (${formData.interestGracePeriodDays} ${t(`${w}.graceDays`)})`}
+              </Field>
             )}
           </div>
         </CardBody>
@@ -213,8 +186,8 @@ export function ReviewStep({
             <Divider />
             {formData.services.map((service, i) => (
               <div key={i} className="flex flex-col gap-1 py-1">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Typography className="font-medium" variant="body2">
                       {service.serviceName}
                     </Typography>
@@ -285,8 +258,8 @@ export function ReviewStep({
               }
 
               return (
-                <div key={i} className="flex items-center justify-between py-1">
-                  <div className="flex items-center gap-2">
+                <div key={i} className="flex flex-col gap-2 py-1 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Chip color="primary" size="sm" variant="flat">
                       {scopeLabel}
                     </Chip>

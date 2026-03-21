@@ -129,6 +129,8 @@ import { BankAccountsController } from '../controllers/bank-accounts/bank-accoun
 import { AddUnitOwnerService } from '@services/unit-ownerships/add-unit-owner.service'
 import { ProcessWebhookService } from '@services/webhooks'
 import { PaymentGatewayManager } from '@services/payment-gateways/gateway-manager'
+import { PaymentFlowController } from '../controllers/payments/payment-flow.controller'
+import { ApplyPaymentToQuotaService } from '@services/payment-applications/apply-payment-to-quota.service'
 import { createSendNotificationService } from '../../services/notifications'
 import { Hono } from 'hono'
 import type { TGatewayType } from '@packages/domain'
@@ -423,6 +425,28 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         r.quotaAdjustments,
         r.paymentPendingAllocations
       ).createRouter(),
+    },
+    {
+      path: '/condominium/payment-flow',
+      router: new PaymentFlowController({
+        quotasRepo: r.quotas,
+        conceptsRepo: r.paymentConcepts,
+        conceptBankAccountsRepo: r.paymentConceptBankAccounts,
+        bankAccountsRepo: r.bankAccounts,
+        paymentsRepo: r.payments,
+        gatewayTransactionsRepo: r.gatewayTransactions,
+        gatewayManager,
+        applyPaymentService: new ApplyPaymentToQuotaService(
+          db,
+          r.paymentApplications,
+          r.payments,
+          r.quotas,
+          r.quotaAdjustments,
+          r.interestConfigurations,
+          r.paymentConcepts,
+          r.paymentPendingAllocations,
+        ),
+      }).createRouter(),
     },
     {
       path: '/condominium/payment-applications',

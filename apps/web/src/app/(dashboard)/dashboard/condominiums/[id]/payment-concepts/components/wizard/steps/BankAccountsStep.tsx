@@ -112,20 +112,22 @@ export function BankAccountsStep({
               }
               onPress={() => handleToggle(account.id)}
             >
-              <CardBody className="flex flex-row items-center gap-3 py-3">
-                <Checkbox
-                  isSelected={formData.bankAccountIds.includes(account.id)}
-                  onValueChange={() => handleToggle(account.id)}
-                />
-                <div className="flex-1">
-                  <Typography className="font-medium" variant="body2">
-                    {account.displayName || account.bankName}
-                  </Typography>
-                  <Typography color="muted" variant="caption">
-                    {account.bankName}
-                  </Typography>
+              <CardBody className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <Checkbox
+                    isSelected={formData.bankAccountIds.includes(account.id)}
+                    onValueChange={() => handleToggle(account.id)}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <Typography className="font-medium truncate" variant="body2">
+                      {account.displayName || account.bankName}
+                    </Typography>
+                    <Typography color="muted" variant="caption">
+                      {account.bankName}
+                    </Typography>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 pl-8 sm:pl-0">
                   <Chip color="default" size="sm" variant="flat">
                     {account.currency}
                   </Chip>

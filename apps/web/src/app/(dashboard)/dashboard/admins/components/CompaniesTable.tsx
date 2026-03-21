@@ -260,7 +260,7 @@ export function CompaniesTable() {
           <Spinner size="lg" />
         </div>
       ) : companies.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16 px-6 text-center">
           <Building2 className="mb-4 text-default-300" size={48} />
           <Typography color="muted" variant="body1">
             {t('superadmin.companies.empty')}

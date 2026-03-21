@@ -322,7 +322,7 @@ export default function MyQuotaDetailPage() {
             as={Link}
             className="w-full sm:col-span-2"
             color="primary"
-            href="/dashboard/report-payment"
+            href="/dashboard/pay"
             size="lg"
           >
             {t(`${p}.pay`)}

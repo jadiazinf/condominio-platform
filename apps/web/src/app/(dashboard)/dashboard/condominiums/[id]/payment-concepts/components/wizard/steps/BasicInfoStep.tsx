@@ -128,8 +128,8 @@ export function BasicInfoStep({ formData, onUpdate, currencies, showErrors }: Ba
         />
       </div>
 
-      <div className="flex items-center justify-between rounded-lg border border-default-200 p-4">
-        <div>
+      <div className="flex items-start gap-3 justify-between rounded-lg border border-default-200 p-4">
+        <div className="flex-1 min-w-0">
           <Typography className="font-medium" variant="body2">
             {t(`${w}.isRecurring`)}
           </Typography>
@@ -138,6 +138,7 @@ export function BasicInfoStep({ formData, onUpdate, currencies, showErrors }: Ba
           </Typography>
         </div>
         <Switch
+          className="shrink-0"
           color="primary"
           isSelected={formData.isRecurring}
           onValueChange={val => onUpdate({ isRecurring: val })}

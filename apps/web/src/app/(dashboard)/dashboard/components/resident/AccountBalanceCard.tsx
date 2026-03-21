@@ -1,4 +1,8 @@
+'use client'
+
 import { TrendingUp } from 'lucide-react'
+import { useEffect, useRef } from 'react'
+import confetti from 'canvas-confetti'
 
 import { Card, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
@@ -27,6 +31,7 @@ interface AccountBalanceCardProps {
     payNow: string
     exchangeRates: string
     updatedAt: string
+    noPendingConcepts: string
   }
 }
 
@@ -62,6 +67,57 @@ export function AccountBalanceCard({
 }: AccountBalanceCardProps) {
   const totalAllCurrencies = currencySummaries.reduce((sum, c) => sum + c.pending, 0)
   const isAllPaid = totalAllCurrencies === 0
+  const confettiFired = useRef(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!isAllPaid || confettiFired.current) return
+
+    const STORAGE_KEY = 'confetti_last_shown'
+    const today = new Date().toDateString()
+    const lastShown = sessionStorage.getItem(STORAGE_KEY)
+
+    if (lastShown === today) return
+
+    confettiFired.current = true
+    sessionStorage.setItem(STORAGE_KEY, today)
+
+    // Calculate card center as origin (normalized 0-1 relative to viewport)
+    const card = cardRef.current
+    let originX = 0.5
+    let originY = 0.3
+
+    if (card) {
+      const rect = card.getBoundingClientRect()
+
+      // getBoundingClientRect is already relative to viewport, no scroll adjustment needed
+      originX = (rect.left + rect.width / 2) / window.innerWidth
+      originY = (rect.top + rect.height * 0.4) / window.innerHeight
+    }
+
+    const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd', '#01a3a4', '#f368e0', '#ff9f43', '#10ac84']
+
+    const duration = 1500
+    const end = Date.now() + duration
+
+    const frame = () => {
+      confetti({
+        particleCount: 5,
+        angle: 90,
+        spread: 360,
+        origin: { x: originX, y: originY },
+        colors,
+        startVelocity: 20,
+        gravity: 0.6,
+        ticks: 80,
+        scalar: 0.9,
+      })
+
+      if (Date.now() < end) requestAnimationFrame(frame)
+    }
+
+    requestAnimationFrame(frame)
+  }, [isAllPaid])
 
   // Get the latest rate date
   const latestDate = exchangeRates[0]?.effectiveDate
@@ -96,25 +152,8 @@ export function AccountBalanceCard({
     })
     .filter(e => e.hasData)
 
-  if (isAllPaid) {
-    return (
-      <Card className="h-full relative overflow-hidden bg-gradient-to-br from-success-900/20 via-success-800/10 to-transparent">
-        <CardBody className="flex items-center justify-center p-5">
-          <Chip
-            classNames={{
-              base: 'bg-success-100 dark:bg-success-900/30 px-4 py-2',
-              content: 'text-success-700 dark:text-success-400 font-medium text-base',
-            }}
-            size="lg"
-          >
-            {t.upToDate}
-          </Chip>
-        </CardBody>
-      </Card>
-    )
-  }
-
   return (
+    <div ref={cardRef} className="h-full">
     <Card className="h-full relative overflow-hidden shadow-lg border border-emerald-500/10 dark:border-emerald-400/10">
       {/* Layered gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 via-emerald-500/5 to-transparent dark:from-emerald-500/15 dark:via-emerald-400/5 dark:to-transparent" />
@@ -161,49 +200,57 @@ export function AccountBalanceCard({
       {/* Subtle inner highlight line at top */}
       <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent" />
       <CardBody className="relative p-5 h-full flex flex-col gap-4">
-        {/* Top row: balances + equivalents side by side */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          {/* Currency balances */}
-          <div className="flex flex-wrap gap-x-8 gap-y-4">
-            {currencySummaries.map(currency => (
-              <div key={currency.code}>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs text-default-400 uppercase tracking-wider">
-                    {t.totalPending}
-                  </span>
-                  <Chip className="h-5" size="sm" variant="flat">
-                    {currency.code}
-                  </Chip>
-                </div>
-                <p className="text-3xl font-bold tracking-tight leading-tight">
-                  {formatAmountES(currency.pending, currency.symbol)}
-                </p>
-                {currency.dueThisMonth > 0 && (
-                  <p className="text-sm text-warning-500 mt-1">
-                    {t.dueThisMonth}: {formatAmountES(currency.dueThisMonth, currency.symbol)}
-                  </p>
-                )}
-              </div>
-            ))}
+        {isAllPaid ? (
+          /* Centered message when all paid */
+          <div className="flex flex-1 items-center justify-center py-6">
+            <p className="text-center text-lg font-light tracking-wide text-emerald-800 dark:text-white/80">
+              {t.noPendingConcepts}
+            </p>
           </div>
-
-          {/* Equivalents */}
-          {equivalents.length > 0 && (
-            <div className="flex gap-3 sm:text-right">
-              {equivalents.map(eq => (
-                <div
-                  key={eq.code}
-                  className="rounded-md bg-default-100 dark:bg-default-50/10 px-3 py-2"
-                >
-                  <span className="text-xs text-default-400 block">≈ {eq.code}</span>
-                  <span className="text-base font-semibold">
-                    {formatAmountES(eq.total, eq.symbol)}
-                  </span>
+        ) : (
+          /* Currency balances — inline on desktop, stacked on mobile */
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:gap-x-8 sm:gap-y-4">
+              {currencySummaries.map(currency => (
+                <div key={currency.code}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs text-default-400 uppercase tracking-wider">
+                      {t.totalPending}
+                    </span>
+                    <Chip className="h-5" size="sm" variant="flat">
+                      {currency.code}
+                    </Chip>
+                  </div>
+                  <p className="text-3xl font-bold tracking-tight leading-tight">
+                    {formatAmountES(currency.pending, currency.symbol)}
+                  </p>
+                  {currency.dueThisMonth > 0 && (
+                    <p className="text-sm text-warning-500 mt-1">
+                      {t.dueThisMonth}: {formatAmountES(currency.dueThisMonth, currency.symbol)}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
-          )}
-        </div>
+
+            {/* Equivalents */}
+            {equivalents.length > 0 && (
+              <div className="flex gap-3 sm:text-right">
+                {equivalents.map(eq => (
+                  <div
+                    key={eq.code}
+                    className="rounded-md bg-default-100 dark:bg-default-50/10 px-3 py-2"
+                  >
+                    <span className="text-xs text-default-400 block">≈ {eq.code}</span>
+                    <span className="text-base font-semibold">
+                      {formatAmountES(eq.total, eq.symbol)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Bottom: exchange rates (USD and EUR only) */}
         {exchangeRates.length > 0 &&
@@ -215,18 +262,18 @@ export function AccountBalanceCard({
             if (relevantRates.length === 0) return null
 
             return (
-              <div className="mt-auto pt-3 border-t border-default-200/50 dark:border-default-100/10">
-                <div className="flex items-center gap-2 mb-2">
+              <div className="mt-auto pt-3 border-t border-default-200/50 dark:border-default-100/10 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
+                <div className="flex items-center gap-2">
                   <TrendingUp className="text-warning-500 shrink-0" size={14} />
                   {formattedDate && (
                     <span className="text-xs text-default-400">{formattedDate}</span>
                   )}
                 </div>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
                   {relevantRates.map(rate => (
                     <span
                       key={`${rate.fromCode}-${rate.toCode}`}
-                      className="text-base text-warning-600 dark:text-warning-400"
+                      className="text-sm text-warning-600 dark:text-warning-400"
                     >
                       1 {rate.fromCode} ={' '}
                       <span className="font-semibold text-warning-500 dark:text-warning-300">
@@ -241,5 +288,6 @@ export function AccountBalanceCard({
           })()}
       </CardBody>
     </Card>
+    </div>
   )
 }

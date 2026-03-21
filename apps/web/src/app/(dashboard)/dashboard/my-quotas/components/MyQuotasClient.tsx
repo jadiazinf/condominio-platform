@@ -507,7 +507,8 @@ export function MyQuotasClient({
           <Button
             color="primary"
             onPress={() => {
-              // TODO: Payment flow - navigate with selected IDs
+              const ids = Array.from(selectedIds).join(',')
+              router.push(`/dashboard/pay?quotaIds=${ids}&unitId=${selectedUnitId}`)
             }}
           >
             Pagar seleccionadas

@@ -41,6 +41,7 @@ export const quotaStatusEnum = pgEnum('quota_status', [
 export const gatewayTypeEnum = pgEnum('gateway_type', [
   'stripe',
   'banco_plaza',
+  'bnc',
   'paypal',
   'zelle',
   'other',
