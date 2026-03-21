@@ -5,7 +5,7 @@ import type { TReportFormat, IQuotasByUnitQuery } from '@packages/http-client'
 
 import { useState, useCallback, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Receipt, Download } from 'lucide-react'
+import { Receipt, Download, X } from 'lucide-react'
 import { formatAmount } from '@packages/utils/currency'
 import { downloadAccountStatement } from '@packages/http-client'
 
@@ -317,7 +317,6 @@ export function MyQuotasClient({
     { key: 'period', label: t.period },
     { key: 'dueDate', label: t.dueDate, hideOnMobile: true },
     { key: 'amount', label: t.amount, align: 'end' },
-    { key: 'balance', label: t.balance, align: 'end', hideOnMobile: true },
     { key: 'status', label: 'Status', align: 'center' },
   ]
 
@@ -354,19 +353,6 @@ export function MyQuotasClient({
 
       case 'amount':
         return formatAmountES(row.baseAmount, currencySymbol)
-
-      case 'balance': {
-        const balance = parseFloat(row.balance)
-        const base = parseFloat(row.baseAmount)
-
-        if (balance !== base && balance > 0) {
-          return (
-            <span className="text-warning-600">{formatAmountES(row.balance, currencySymbol)}</span>
-          )
-        }
-
-        return formatAmountES(row.balance, currencySymbol)
-      }
 
       case 'status':
         return (
@@ -405,6 +391,14 @@ export function MyQuotasClient({
 
   const currentStartDate = initialQuery.startDate ?? ''
   const currentEndDate = initialQuery.endDate ?? ''
+
+  const hasActiveFilters =
+    currentStatus !== 'all' || currentConceptId !== 'all' || !!currentStartDate || !!currentEndDate
+
+  const clearFilters = useCallback(() => {
+    setSelectedIds(new Set())
+    router.push(basePath)
+  }, [router, basePath])
 
   // ─────────────────────────────────────────────────────────────────────────
   // Render
@@ -496,6 +490,18 @@ export function MyQuotasClient({
           variant="bordered"
           onChange={key => handleStatusFilter((key ?? 'all') as TStatusFilter)}
         />
+
+        {/* Clear filters */}
+        {hasActiveFilters && (
+          <Button
+            className="shrink-0"
+            startContent={<X size={14} />}
+            variant="flat"
+            onPress={clearFilters}
+          >
+            {t.filter.clear ?? 'Limpiar filtros'}
+          </Button>
+        )}
       </div>
 
       {/* Selection bar */}
@@ -508,6 +514,7 @@ export function MyQuotasClient({
             color="primary"
             onPress={() => {
               const ids = Array.from(selectedIds).join(',')
+
               router.push(`/dashboard/pay?quotaIds=${ids}&unitId=${selectedUnitId}`)
             }}
           >

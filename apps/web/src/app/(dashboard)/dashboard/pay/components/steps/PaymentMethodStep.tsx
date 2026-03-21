@@ -1,6 +1,8 @@
 'use client'
 
-import { useMemo, useCallback } from 'react'
+import type { IPaymentWizardState, TPayMethod } from '../PaymentWizardClient'
+
+import { useMemo, useCallback, useState } from 'react'
 import { useGatewayHealth, type IPayableBankAccount } from '@packages/http-client'
 import {
   CreditCard,
@@ -11,9 +13,10 @@ import {
   Wifi,
   WifiOff,
   Loader2,
+  Eye,
 } from 'lucide-react'
 
-import type { IPaymentWizardState, TPayMethod } from '../PaymentWizardClient'
+import { BankAccountDetailModal } from '../BankAccountDetailModal'
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
@@ -41,6 +44,9 @@ export function PaymentMethodStep({ state, onUpdate }: PaymentMethodStepProps) {
   const { t } = useTranslation()
   const p = 'resident.pay.method'
 
+  // Bank detail modal
+  const [detailBank, setDetailBank] = useState<IPayableBankAccount | null>(null)
+
   // Bank accounts from validation result
   const bankAccounts: IPayableBankAccount[] = state.validationResult?.commonBankAccounts ?? []
 
@@ -48,23 +54,29 @@ export function PaymentMethodStep({ state, onUpdate }: PaymentMethodStepProps) {
   const selectedBank = bankAccounts.find(ba => ba.id === state.bankAccountId)
   const isBnc = selectedBank?.isBnc ?? false
   const { data: healthData, isLoading: healthLoading } = useGatewayHealth('bnc', isBnc)
-  const bncAvailable = healthData?.data?.data?.available ?? false
+  const bncAvailable = (healthData as { data?: { available?: boolean } })?.data?.available ?? false
 
-  // Available methods depend on selected bank
+  // Available methods depend on selected bank's acceptedPaymentMethods
   const availableMethods: TPayMethod[] = useMemo(() => {
     if (!selectedBank) return []
 
-    if (selectedBank.isBnc) {
-      const methods: TPayMethod[] = ['transfer', 'mobile_payment']
-      if (bncAvailable) {
-        methods.unshift('c2p', 'vpos')
-      }
-      methods.push('cash', 'other')
-      return methods
+    const accepted = new Set(selectedBank.acceptedPaymentMethods)
+    const methods: TPayMethod[] = []
+
+    // BNC direct methods (only if available and bank is BNC)
+    if (selectedBank.isBnc && bncAvailable) {
+      if (accepted.has('pago_movil')) methods.push('c2p')
+      methods.push('vpos')
     }
 
-    // Non-BNC bank
-    return ['transfer', 'mobile_payment', 'cash', 'other']
+    // Manual methods filtered by what the bank accepts
+    if (accepted.has('transfer')) methods.push('transfer')
+    if (accepted.has('pago_movil')) methods.push('mobile_payment')
+
+    // Cash and other are always available (independent of bank)
+    methods.push('cash', 'other')
+
+    return methods
   }, [selectedBank, bncAvailable])
 
   // Handle bank account selection
@@ -77,7 +89,7 @@ export function PaymentMethodStep({ state, onUpdate }: PaymentMethodStepProps) {
         method: '', // Reset method when bank changes
       })
     },
-    [onUpdate],
+    [onUpdate]
   )
 
   // Handle method selection
@@ -85,7 +97,7 @@ export function PaymentMethodStep({ state, onUpdate }: PaymentMethodStepProps) {
     (method: TPayMethod) => {
       onUpdate({ method })
     },
-    [onUpdate],
+    [onUpdate]
   )
 
   return (
@@ -103,8 +115,14 @@ export function PaymentMethodStep({ state, onUpdate }: PaymentMethodStepProps) {
             <Typography className="text-sm text-default-500">{t(`${p}.totalAmount`)}</Typography>
             <Typography className="text-lg font-bold">
               {state.validationResult?.total
-                ? parseFloat(state.validationResult.total).toFixed(2)
-                : '0.00'}
+                ? `${state.quotaGroups[0]?.concept.currencySymbol ?? ''} ${new Intl.NumberFormat(
+                    'es-VE',
+                    {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }
+                  ).format(parseFloat(state.validationResult.total))}`
+                : '0,00'}
             </Typography>
           </div>
         </div>
@@ -133,9 +151,7 @@ export function PaymentMethodStep({ state, onUpdate }: PaymentMethodStepProps) {
                     <Typography className="font-medium" variant="body2">
                       {bank.bankName}
                     </Typography>
-                    <Typography className="text-sm text-default-500">
-                      {bank.displayName}
-                    </Typography>
+                    <Typography className="text-sm text-default-500">{bank.displayName}</Typography>
                   </div>
                   {bank.isBnc ? (
                     <Chip color="success" size="sm" variant="flat">
@@ -146,6 +162,19 @@ export function PaymentMethodStep({ state, onUpdate }: PaymentMethodStepProps) {
                       {t(`${p}.manualOnly`)}
                     </Chip>
                   )}
+                </div>
+                <div className="mt-2 flex justify-end">
+                  <button
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded px-2 py-1 text-xs text-primary hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                    type="button"
+                    onClick={e => {
+                      e.stopPropagation()
+                      setDetailBank(bank)
+                    }}
+                  >
+                    <Eye size={14} />
+                    {t(`${p}.viewDetails`)}
+                  </button>
                 </div>
               </CardBody>
             </Card>
@@ -159,23 +188,17 @@ export function PaymentMethodStep({ state, onUpdate }: PaymentMethodStepProps) {
           {healthLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin text-default-400" />
-              <Typography className="text-sm text-default-500">
-                {t(`${p}.bncChecking`)}
-              </Typography>
+              <Typography className="text-sm text-default-500">{t(`${p}.bncChecking`)}</Typography>
             </>
           ) : bncAvailable ? (
             <>
               <Wifi className="h-4 w-4 text-success" />
-              <Typography className="text-sm text-success">
-                {t(`${p}.bncAvailable`)}
-              </Typography>
+              <Typography className="text-sm text-success">{t(`${p}.bncAvailable`)}</Typography>
             </>
           ) : (
             <>
               <WifiOff className="h-4 w-4 text-danger" />
-              <Typography className="text-sm text-danger">
-                {t(`${p}.bncUnavailable`)}
-              </Typography>
+              <Typography className="text-sm text-danger">{t(`${p}.bncUnavailable`)}</Typography>
             </>
           )}
         </div>
@@ -231,6 +254,13 @@ export function PaymentMethodStep({ state, onUpdate }: PaymentMethodStepProps) {
           </div>
         </>
       )}
+
+      {/* Bank account detail modal */}
+      <BankAccountDetailModal
+        bankAccount={detailBank}
+        isOpen={!!detailBank}
+        onClose={() => setDetailBank(null)}
+      />
     </div>
   )
 }

@@ -32,7 +32,7 @@ async function PaymentWizardContent() {
         buildingName: u.building?.name ?? '',
         condominiumId: condo.condominium.id,
         condominiumName: condo.condominium.name,
-      })),
+      }))
   )
 
   if (unitOptions.length === 0) {
@@ -40,7 +40,7 @@ async function PaymentWizardContent() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto space-y-6">
       <div>
         <Typography variant="h2">{t('resident.pay.title')}</Typography>
         <Typography className="mt-1" color="muted" variant="body2">
@@ -48,10 +48,7 @@ async function PaymentWizardContent() {
         </Typography>
       </div>
 
-      <PaymentWizardClient
-        unitOptions={unitOptions}
-        userId={session.user.id}
-      />
+      <PaymentWizardClient unitOptions={unitOptions} userId={session.user.id} />
     </div>
   )
 }

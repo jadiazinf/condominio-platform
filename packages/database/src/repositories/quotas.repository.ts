@@ -201,11 +201,25 @@ export class QuotasRepository
     }
 
     const results = await this.db
-      .select()
+      .select({
+        quota: quotas,
+        conceptName: paymentConcepts.name,
+        currencyCode: currencies.code,
+        currencySymbol: currencies.symbol,
+        currencyName: currencies.name,
+      })
       .from(quotas)
+      .leftJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
+      .leftJoin(currencies, eq(quotas.currencyId, currencies.id))
       .where(and(...conditions))
 
-    return results.map(record => this.mapToEntity(record))
+    return results.map(r => ({
+      ...this.mapToEntity(r.quota),
+      paymentConcept: r.conceptName ? { name: r.conceptName } : undefined,
+      currency: r.currencyCode
+        ? { code: r.currencyCode, symbol: r.currencySymbol, name: r.currencyName }
+        : undefined,
+    })) as TQuota[]
   }
 
   /**
@@ -262,6 +276,27 @@ export class QuotasRepository
       .where(
         and(
           eq(quotas.paymentConceptId, paymentConceptId),
+          eq(quotas.unitId, unitId),
+          or(eq(quotas.status, 'pending'), eq(quotas.status, 'overdue'))
+        )
+      )
+      .orderBy(asc(quotas.dueDate))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Batch: retrieves unpaid quotas for multiple concepts and a unit in a single query.
+   */
+  async getUnpaidByConceptsAndUnit(conceptIds: string[], unitId: string): Promise<TQuota[]> {
+    if (conceptIds.length === 0) return []
+
+    const results = await this.db
+      .select()
+      .from(quotas)
+      .where(
+        and(
+          inArray(quotas.paymentConceptId, conceptIds),
           eq(quotas.unitId, unitId),
           or(eq(quotas.status, 'pending'), eq(quotas.status, 'overdue'))
         )

@@ -17,7 +17,8 @@ import type {
 import type { IBncConfig, IBncWebhookPayload } from '@libs/bnc/types'
 import { BncApiClient, BncApiError } from '@libs/bnc/bnc-api-client'
 import { WorkingKeyManager } from '@libs/bnc/working-key-manager'
-import { extractErrorCode, getBncError, requiresReauth } from '@libs/bnc/error-codes'
+// error-codes utilities will be used when BNC integration goes live
+// import { extractErrorCode, getBncError, requiresReauth } from '@libs/bnc/error-codes'
 import logger from '@utils/logger'
 
 /**
@@ -82,7 +83,7 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
    */
   async initiatePayment(
     request: IGatewayPaymentRequest,
-    _config: Record<string, unknown>,
+    _config: Record<string, unknown>
   ): Promise<IGatewayPaymentResponse> {
     this.ensureConfigured()
 
@@ -124,13 +125,14 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
 
       const entries = await this.client!.getAccountHistory(
         { AccountNumber: accountNumber, StartDate: startDate, EndDate: endDate },
-        workingKey,
+        workingKey
       )
 
       const match = entries.find(
-        entry => entry.ReferenceA === request.externalReference ||
+        entry =>
+          entry.ReferenceA === request.externalReference ||
           entry.ReferenceB === request.externalReference ||
-          entry.ControlNumber === request.externalReference,
+          entry.ControlNumber === request.externalReference
       )
 
       if (match) {
@@ -158,7 +160,7 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
    * Queries transaction status by BNC transaction ID.
    */
   async getTransactionStatus(
-    request: IGatewayStatusRequest,
+    request: IGatewayStatusRequest
   ): Promise<IGatewayVerificationResponse> {
     this.ensureConfigured()
 
@@ -171,12 +173,10 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
 
       const entries = await this.client!.getAccountHistory(
         { AccountNumber: accountNumber, StartDate: today, EndDate: today },
-        workingKey,
+        workingKey
       )
 
-      const match = entries.find(
-        entry => entry.ControlNumber === request.externalTransactionId,
-      )
+      const match = entries.find(entry => entry.ControlNumber === request.externalTransactionId)
 
       if (match) {
         return {
@@ -192,7 +192,7 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
       return {
         found: false,
         status: 'initiated',
-        rawResponse: { message: 'Transaction not found in today\'s history' },
+        rawResponse: { message: "Transaction not found in today's history" },
       }
     } catch (error) {
       return this.handleVerificationError(error)
@@ -229,12 +229,15 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
   async processWebhook(payload: IGatewayWebhookPayload): Promise<IGatewayWebhookResult> {
     const body = payload.body as IBncWebhookPayload
 
-    const externalTransactionId = body.DestinyBankReference || body.OriginBankReference || `bnc_wh_${Date.now()}`
+    const externalTransactionId =
+      body.DestinyBankReference || body.OriginBankReference || `bnc_wh_${Date.now()}`
 
     // Try to extract paymentId from Concept field (if we encoded it there)
     const paymentId = this.extractPaymentIdFromConcept(body.Concept) ?? null
 
-    logger.info(`[BNC Webhook] ${body.PaymentType} from bank ${body.OriginBankCode}, amount: ${body.Amount}, ref: ${externalTransactionId}`)
+    logger.info(
+      `[BNC Webhook] ${body.PaymentType} from bank ${body.OriginBankCode}, amount: ${body.Amount}, ref: ${externalTransactionId}`
+    )
 
     return {
       paymentId,
@@ -266,7 +269,7 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
 
     try {
       const workingKey = await this.keyManager!.getWorkingKey()
-      const terminal = metadata.terminal as string || 'TERM0001'
+      const terminal = (metadata.terminal as string) || 'TERM0001'
 
       const result = await this.client!.reverseC2P(
         {
@@ -274,7 +277,7 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
           Amount: Number(request.amount),
           Terminal: terminal,
         },
-        workingKey,
+        workingKey
       )
 
       return {
@@ -308,7 +311,7 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
   // Private helpers
   // ─────────────────────────────────────────────────────────────────────────
 
-  private ensureConfigured(): asserts this is this & { client: BncApiClient; keyManager: WorkingKeyManager } {
+  private ensureConfigured(): void {
     if (!this.client || !this.keyManager) {
       throw new Error('BNC no configurado. Contacte al administrador.')
     }
@@ -316,7 +319,7 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
 
   private async initiateC2P(
     request: IGatewayPaymentRequest,
-    metadata: Record<string, unknown>,
+    metadata: Record<string, unknown>
   ): Promise<IGatewayPaymentResponse> {
     const workingKey = await this.getWorkingKeyWithRetry()
 
@@ -328,9 +331,9 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
           DebtorID: metadata.debtorID as string,
           Amount: Number(request.amount),
           Token: metadata.token as string,
-          Terminal: metadata.terminal as string || 'TERM0001',
+          Terminal: (metadata.terminal as string) || 'TERM0001',
         },
-        workingKey,
+        workingKey
       )
 
       return {
@@ -346,7 +349,7 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
 
   private async initiateVPOS(
     request: IGatewayPaymentRequest,
-    metadata: Record<string, unknown>,
+    metadata: Record<string, unknown>
   ): Promise<IGatewayPaymentResponse> {
     const workingKey = await this.getWorkingKeyWithRetry()
 
@@ -365,7 +368,7 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
           AffiliationNumber: Number(metadata.affiliationNumber),
           OperationRef: request.paymentId.slice(0, 40),
         },
-        workingKey,
+        workingKey
       )
 
       return {
@@ -395,7 +398,7 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
     error: unknown,
     request: IGatewayPaymentRequest,
     metadata: Record<string, unknown>,
-    method: string,
+    method: string
   ): Promise<IGatewayPaymentResponse> {
     if (error instanceof BncApiError) {
       // On EPIRWK, invalidate key and retry once
@@ -414,9 +417,9 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
                 DebtorID: metadata.debtorID as string,
                 Amount: Number(request.amount),
                 Token: metadata.token as string,
-                Terminal: metadata.terminal as string || 'TERM0001',
+                Terminal: (metadata.terminal as string) || 'TERM0001',
               },
-              newKey,
+              newKey
             )
             return {
               externalTransactionId: String(result.IdTransaction),

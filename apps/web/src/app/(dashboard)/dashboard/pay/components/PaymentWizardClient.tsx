@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   useValidateQuotaSelection,
@@ -53,9 +53,11 @@ export interface IPaymentWizardState {
 
   // Step 3 - Payment details
   // C2P
-  c2pPhone: string
+  c2pPhoneCountryCode: string
+  c2pPhoneNumber: string
   c2pBankCode: string
-  c2pDocument: string
+  c2pDocumentType: string
+  c2pDocumentNumber: string
   c2pToken: string
   c2pOtpRequested: boolean
 
@@ -65,7 +67,8 @@ export interface IPaymentWizardState {
   vposExpiry: string
   vposCvv: string
   vposHolderName: string
-  vposHolderId: string
+  vposHolderIdType: string
+  vposHolderIdNumber: string
   vposAccountType: number
 
   // Manual
@@ -73,6 +76,13 @@ export interface IPaymentWizardState {
   manualReceiptNumber: string
   manualReceiptUrl: string
   manualNotes: string
+
+  // Manual - mobile_payment sender info
+  manualSenderPhoneCountryCode: string
+  manualSenderPhoneNumber: string
+  manualSenderBankCode: string
+  manualSenderDocumentType: string
+  manualSenderDocumentNumber: string
 
   // Step 5 - Result
   paymentResult: IInitiatePaymentResponse | null
@@ -89,9 +99,11 @@ const INITIAL_STATE: IPaymentWizardState = {
   selectedBankAccount: null,
   method: '',
   isBncAccount: false,
-  c2pPhone: '',
+  c2pPhoneCountryCode: '+58',
+  c2pPhoneNumber: '',
   c2pBankCode: '',
-  c2pDocument: '',
+  c2pDocumentType: 'V',
+  c2pDocumentNumber: '',
   c2pToken: '',
   c2pOtpRequested: false,
   vposCardNumber: '',
@@ -99,17 +111,24 @@ const INITIAL_STATE: IPaymentWizardState = {
   vposExpiry: '',
   vposCvv: '',
   vposHolderName: '',
-  vposHolderId: '',
+  vposHolderIdType: 'V',
+  vposHolderIdNumber: '',
   vposAccountType: 1, // Principal
   manualPaymentDate: new Date().toISOString().split('T')[0]!,
   manualReceiptNumber: '',
   manualReceiptUrl: '',
   manualNotes: '',
+  manualSenderPhoneCountryCode: '+58',
+  manualSenderPhoneNumber: '',
+  manualSenderBankCode: '',
+  manualSenderDocumentType: 'V',
+  manualSenderDocumentNumber: '',
   paymentResult: null,
   paymentError: null,
 }
 
 const STEPS = ['selectQuotas', 'paymentMethod', 'paymentDetails', 'confirmation', 'result'] as const
+
 type TStepKey = (typeof STEPS)[number]
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -144,17 +163,54 @@ export function PaymentWizardClient({ unitOptions, userId }: PaymentWizardClient
   }, [])
 
   // Mutations
-  const validateSelection = useValidateQuotaSelection({
-    onError: (error) => {
-      toast.error(error.message || t(`${p}.errors.validationFailed`))
-    },
-  })
+  const validateSelection = useValidateQuotaSelection()
+  const initiatePayment = useInitiatePayment()
 
-  const initiatePayment = useInitiatePayment({
-    onError: (error) => {
-      toast.error(error.message || t(`${p}.errors.paymentFailed`))
-    },
-  })
+  // Auto-skip step 1 when quotas are pre-selected from URL params
+  const autoSkipAttempted = useRef(false)
+
+  useEffect(() => {
+    if (
+      autoSkipAttempted.current ||
+      preselectedQuotaIds.length === 0 ||
+      currentStep !== 0 ||
+      !state.unitId ||
+      state.selectedQuotaIds.length === 0 ||
+      state.quotaGroups.length === 0
+    ) {
+      return
+    }
+
+    // Wait until amounts are populated (SelectQuotasStep's useEffect fills them)
+    const hasAmounts = state.selectedQuotaIds.every(id => state.amounts[id])
+
+    if (!hasAmounts) return
+
+    autoSkipAttempted.current = true
+
+    // Auto-validate and skip to step 2
+    validateSelection
+      .mutateAsync({
+        unitId: state.unitId,
+        quotaIds: state.selectedQuotaIds,
+        amounts: state.amounts,
+      })
+      .then(result => {
+        if (result.data?.data) {
+          setState(prev => ({ ...prev, validationResult: result.data.data }))
+          setCurrentStep(1)
+        }
+      })
+      .catch(() => {
+        // Validation failed — stay on step 1 so user can adjust
+      })
+  }, [
+    preselectedQuotaIds.length,
+    currentStep,
+    state.unitId,
+    state.selectedQuotaIds.length,
+    state.quotaGroups.length,
+  ])
 
   // Step navigation
   const handleNext = useCallback(() => {
@@ -169,21 +225,43 @@ export function PaymentWizardClient({ unitOptions, userId }: PaymentWizardClient
   const handleValidateAndProceed = useCallback(async () => {
     if (state.selectedQuotaIds.length === 0) return
 
+    // Build effective amounts: use state.amounts if set, otherwise fall back to quota.balance
+    // This mirrors the same fallback logic used by CurrencyInput display and total calculation
+    const effectiveAmounts: Record<string, string> = {}
+
+    for (const id of state.selectedQuotaIds) {
+      if (state.amounts[id]) {
+        effectiveAmounts[id] = state.amounts[id]
+      } else {
+        const quota = state.quotaGroups.flatMap(g => g.quotas).find(q => q.id === id)
+
+        effectiveAmounts[id] = quota?.balance ?? '0'
+      }
+    }
+
     try {
       const result = await validateSelection.mutateAsync({
         unitId: state.unitId,
         quotaIds: state.selectedQuotaIds,
-        amounts: state.amounts,
+        amounts: effectiveAmounts,
       })
 
       if (result.data?.data) {
         updateState({ validationResult: result.data.data })
         handleNext()
       }
-    } catch {
-      // Error already handled by onError callback
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t(`${p}.errors.validationFailed`))
     }
-  }, [state.unitId, state.selectedQuotaIds, state.amounts, validateSelection, updateState, handleNext])
+  }, [
+    state.unitId,
+    state.selectedQuotaIds,
+    state.amounts,
+    state.quotaGroups,
+    validateSelection,
+    updateState,
+    handleNext,
+  ])
 
   // Step 4 → 5: Submit payment
   const handleSubmitPayment = useCallback(async () => {
@@ -192,12 +270,29 @@ export function PaymentWizardClient({ unitOptions, userId }: PaymentWizardClient
     setIsSubmitting(true)
     try {
       const isManual = state.method !== 'c2p' && state.method !== 'vpos'
-      const paymentMethod = isManual ? state.method : (state.method === 'c2p' ? 'mobile_payment' : 'card')
+      const paymentMethod = isManual
+        ? state.method
+        : state.method === 'c2p'
+          ? 'mobile_payment'
+          : 'card'
+
+      // Build effective amounts with fallback to quota.balance
+      const effectiveAmounts: Record<string, string> = {}
+
+      for (const id of state.selectedQuotaIds) {
+        if (state.amounts[id]) {
+          effectiveAmounts[id] = state.amounts[id]
+        } else {
+          const quota = state.quotaGroups.flatMap(g => g.quotas).find(q => q.id === id)
+
+          effectiveAmounts[id] = quota?.balance ?? '0'
+        }
+      }
 
       const input: Record<string, unknown> = {
         unitId: state.unitId,
         quotaIds: state.selectedQuotaIds,
-        amounts: state.amounts,
+        amounts: effectiveAmounts,
         method: isManual ? 'manual' : state.method,
         paymentMethod,
         paymentDate: isManual ? state.manualPaymentDate : new Date().toISOString().split('T')[0],
@@ -208,13 +303,24 @@ export function PaymentWizardClient({ unitOptions, userId }: PaymentWizardClient
         if (state.manualReceiptNumber) input.receiptNumber = state.manualReceiptNumber
         if (state.manualReceiptUrl) input.receiptUrl = state.manualReceiptUrl
         if (state.manualNotes) input.notes = state.manualNotes
+
+        // Sender details for transfer and mobile_payment
+        if (state.method === 'transfer' || state.method === 'mobile_payment') {
+          input.senderBankCode = state.manualSenderBankCode
+          input.senderDocument = `${state.manualSenderDocumentType}${state.manualSenderDocumentNumber}`
+        }
+
+        // Mobile payment also sends phone
+        if (state.method === 'mobile_payment') {
+          input.senderPhone = `${state.manualSenderPhoneCountryCode}${state.manualSenderPhoneNumber}`
+        }
       }
 
       if (state.method === 'c2p') {
         input.c2pData = {
           debtorBankCode: state.c2pBankCode,
-          debtorCellPhone: state.c2pPhone,
-          debtorID: state.c2pDocument,
+          debtorCellPhone: `${state.c2pPhoneCountryCode}${state.c2pPhoneNumber}`,
+          debtorID: `${state.c2pDocumentType}${state.c2pDocumentNumber}`,
           token: state.c2pToken,
         }
       }
@@ -226,7 +332,7 @@ export function PaymentWizardClient({ unitOptions, userId }: PaymentWizardClient
           expiration: parseInt(state.vposExpiry.replace('/', ''), 10),
           cvv: parseInt(state.vposCvv, 10),
           cardHolderName: state.vposHolderName,
-          cardHolderID: parseInt(state.vposHolderId, 10),
+          cardHolderID: parseInt(`${state.vposHolderIdNumber}`, 10),
           accountType: state.vposAccountType,
         }
       }
@@ -269,7 +375,7 @@ export function PaymentWizardClient({ unitOptions, userId }: PaymentWizardClient
       { key: 'confirmation', title: t(`${p}.steps.confirmation`) },
       { key: 'result', title: t(`${p}.steps.result`) },
     ],
-    [t],
+    [t]
   )
 
   const renderStepContent = () => {
@@ -284,30 +390,14 @@ export function PaymentWizardClient({ unitOptions, userId }: PaymentWizardClient
           />
         )
       case 1:
-        return (
-          <PaymentMethodStep
-            state={state}
-            onUpdate={updateState}
-          />
-        )
+        return <PaymentMethodStep state={state} onUpdate={updateState} />
       case 2:
-        return (
-          <PaymentDetailsStep
-            state={state}
-            onUpdate={updateState}
-          />
-        )
+        return <PaymentDetailsStep state={state} onUpdate={updateState} />
       case 3:
-        return (
-          <ConfirmationStep state={state} />
-        )
+        return <ConfirmationStep state={state} />
       case 4:
         return (
-          <ResultStep
-            state={state}
-            onPayMore={handleReset}
-            onTryAgain={() => setCurrentStep(2)}
-          />
+          <ResultStep state={state} onPayMore={handleReset} onTryAgain={() => setCurrentStep(2)} />
         )
       default:
         return null
@@ -321,13 +411,14 @@ export function PaymentWizardClient({ unitOptions, userId }: PaymentWizardClient
     <div className="flex flex-col gap-6">
       {/* Stepper */}
       <Stepper
+        hideLabelsOnMobile
         color="primary"
         currentStep={STEPS[currentStep]!}
-        hideLabelsOnMobile
         isClickable={!isResultStep}
         steps={wizardSteps}
         onStepChange={stepKey => {
           const stepIndex = STEPS.indexOf(stepKey)
+
           if (stepIndex >= 0 && stepIndex < currentStep) {
             setCurrentStep(stepIndex)
           }
@@ -341,56 +432,48 @@ export function PaymentWizardClient({ unitOptions, userId }: PaymentWizardClient
 
       {/* Navigation */}
       {!isResultStep && (
-        <div className="flex justify-between gap-3">
-          <div>
-            {currentStep > 0 && currentStep < 4 && (
-              <Button variant="flat" onPress={handleBack}>
-                {t('common.back')}
-              </Button>
-            )}
-          </div>
-          <div>
-            {currentStep === 0 && (
-              <Button
-                color="primary"
-                isDisabled={state.selectedQuotaIds.length === 0}
-                isLoading={validateSelection.isPending}
-                onPress={handleValidateAndProceed}
-              >
-                {validateSelection.isPending
-                  ? t(`${p}.selectQuotas.validating`)
-                  : t(`${p}.selectQuotas.continue`)}
-              </Button>
-            )}
-            {currentStep === 1 && (
-              <Button
-                color="primary"
-                isDisabled={!state.bankAccountId || !state.method}
-                onPress={handleNext}
-              >
-                {t('common.next')}
-              </Button>
-            )}
-            {currentStep === 2 && (
-              <Button
-                color="primary"
-                isDisabled={!canProceedFromDetails(state)}
-                onPress={handleNext}
-              >
-                {t('common.next')}
-              </Button>
-            )}
-            {currentStep === 3 && (
-              <Button
-                color="primary"
-                isDisabled={isSubmitting}
-                isLoading={isSubmitting}
-                onPress={handleSubmitPayment}
-              >
-                {isSubmitting ? t(`${p}.confirm.processing`) : t(`${p}.confirm.confirmAndPay`)}
-              </Button>
-            )}
-          </div>
+        <div className="flex justify-end gap-3">
+          {currentStep > 0 && currentStep < 4 && (
+            <Button variant="bordered" onPress={handleBack}>
+              {t('common.back')}
+            </Button>
+          )}
+          {currentStep === 0 && (
+            <Button
+              color="primary"
+              isDisabled={state.selectedQuotaIds.length === 0}
+              isLoading={validateSelection.isPending}
+              onPress={handleValidateAndProceed}
+            >
+              {validateSelection.isPending
+                ? t(`${p}.selectQuotas.validating`)
+                : t(`${p}.selectQuotas.continue`)}
+            </Button>
+          )}
+          {currentStep === 1 && (
+            <Button
+              color="primary"
+              isDisabled={!state.bankAccountId || !state.method}
+              onPress={handleNext}
+            >
+              {t('common.next')}
+            </Button>
+          )}
+          {currentStep === 2 && (
+            <Button color="primary" isDisabled={!canProceedFromDetails(state)} onPress={handleNext}>
+              {t('common.next')}
+            </Button>
+          )}
+          {currentStep === 3 && (
+            <Button
+              color="primary"
+              isDisabled={isSubmitting}
+              isLoading={isSubmitting}
+              onPress={handleSubmitPayment}
+            >
+              {isSubmitting ? t(`${p}.confirm.processing`) : t(`${p}.confirm.confirmAndPay`)}
+            </Button>
+          )}
         </div>
       )}
     </div>
@@ -401,7 +484,12 @@ function canProceedFromDetails(state: IPaymentWizardState): boolean {
   const { method } = state
 
   if (method === 'c2p') {
-    return !!(state.c2pPhone && state.c2pBankCode && state.c2pDocument && state.c2pToken)
+    return !!(
+      state.c2pPhoneNumber &&
+      state.c2pBankCode &&
+      state.c2pDocumentNumber &&
+      state.c2pToken
+    )
   }
 
   if (method === 'vpos') {
@@ -410,13 +498,29 @@ function canProceedFromDetails(state: IPaymentWizardState): boolean {
       state.vposExpiry &&
       state.vposCvv.length >= 3 &&
       state.vposHolderName &&
-      state.vposHolderId
+      state.vposHolderIdNumber
     )
   }
 
-  // Manual methods
-  if (method === 'transfer' || method === 'mobile_payment') {
-    return !!(state.manualPaymentDate && state.manualReceiptNumber)
+  // Transfer needs date + receipt + sender bank + sender document
+  if (method === 'transfer') {
+    return !!(
+      state.manualPaymentDate &&
+      state.manualReceiptNumber &&
+      state.manualSenderBankCode &&
+      state.manualSenderDocumentNumber
+    )
+  }
+
+  // Mobile payment needs date + receipt + sender info
+  if (method === 'mobile_payment') {
+    return !!(
+      state.manualPaymentDate &&
+      state.manualReceiptNumber &&
+      state.manualSenderPhoneNumber &&
+      state.manualSenderBankCode &&
+      state.manualSenderDocumentNumber
+    )
   }
 
   // Cash/other only need date

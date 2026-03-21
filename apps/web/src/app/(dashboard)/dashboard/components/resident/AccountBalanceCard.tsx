@@ -95,7 +95,18 @@ export function AccountBalanceCard({
       originY = (rect.top + rect.height * 0.4) / window.innerHeight
     }
 
-    const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd', '#01a3a4', '#f368e0', '#ff9f43', '#10ac84']
+    const colors = [
+      '#ff6b6b',
+      '#feca57',
+      '#48dbfb',
+      '#ff9ff3',
+      '#54a0ff',
+      '#5f27cd',
+      '#01a3a4',
+      '#f368e0',
+      '#ff9f43',
+      '#10ac84',
+    ]
 
     const duration = 1500
     const end = Date.now() + duration
@@ -154,140 +165,148 @@ export function AccountBalanceCard({
 
   return (
     <div ref={cardRef} className="h-full">
-    <Card className="h-full relative overflow-hidden shadow-lg border border-emerald-500/10 dark:border-emerald-400/10">
-      {/* Layered gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 via-emerald-500/5 to-transparent dark:from-emerald-500/15 dark:via-emerald-400/5 dark:to-transparent" />
-      {/* Radial glow top-right */}
-      <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-emerald-400/10 via-emerald-300/5 to-transparent dark:from-emerald-400/12 rounded-full -translate-y-1/3 translate-x-1/4 blur-2xl" />
-      {/* Radial glow bottom-left */}
-      <div className="absolute bottom-0 left-0 w-56 h-56 bg-gradient-to-tr from-emerald-500/8 via-teal-400/5 to-transparent dark:from-emerald-500/10 rounded-full translate-y-1/3 -translate-x-1/4 blur-xl" />
-      {/* Dot grid pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.04] dark:opacity-[0.07]"
-        style={{
-          backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
-          backgroundSize: '20px 20px',
-        }}
-      />
-      {/* Decorative geometric shapes */}
-      <svg
-        className="absolute top-3 right-4 text-emerald-500/[0.06] dark:text-emerald-400/[0.08]"
-        fill="none"
-        height="120"
-        viewBox="0 0 120 120"
-        width="120"
-      >
-        <rect height="40" rx="8" stroke="currentColor" strokeWidth="1.5" width="40" x="10" y="10" />
-        <rect height="40" rx="8" stroke="currentColor" strokeWidth="1" width="40" x="30" y="30" />
-        <circle cx="90" cy="30" r="20" stroke="currentColor" strokeWidth="1.5" />
-        <circle cx="90" cy="30" r="12" stroke="currentColor" strokeWidth="1" />
-        <line stroke="currentColor" strokeWidth="1.5" x1="60" x2="110" y1="90" y2="90" />
-        <line stroke="currentColor" strokeWidth="1" x1="70" x2="110" y1="100" y2="100" />
-        <line stroke="currentColor" strokeWidth="1" x1="80" x2="110" y1="110" y2="110" />
-      </svg>
-      {/* Decorative corner arcs */}
-      <svg
-        className="absolute bottom-2 left-3 text-emerald-500/[0.05] dark:text-emerald-400/[0.07]"
-        fill="none"
-        height="80"
-        viewBox="0 0 80 80"
-        width="80"
-      >
-        <path d="M5 75 Q5 5 75 5" fill="none" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M15 75 Q15 15 75 15" fill="none" stroke="currentColor" strokeWidth="1" />
-        <path d="M25 75 Q25 25 75 25" fill="none" stroke="currentColor" strokeWidth="0.75" />
-      </svg>
-      {/* Subtle inner highlight line at top */}
-      <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent" />
-      <CardBody className="relative p-5 h-full flex flex-col gap-4">
-        {isAllPaid ? (
-          /* Centered message when all paid */
-          <div className="flex flex-1 items-center justify-center py-6">
-            <p className="text-center text-lg font-light tracking-wide text-emerald-800 dark:text-white/80">
-              {t.noPendingConcepts}
-            </p>
-          </div>
-        ) : (
-          /* Currency balances — inline on desktop, stacked on mobile */
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:gap-x-8 sm:gap-y-4">
-              {currencySummaries.map(currency => (
-                <div key={currency.code}>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs text-default-400 uppercase tracking-wider">
-                      {t.totalPending}
-                    </span>
-                    <Chip className="h-5" size="sm" variant="flat">
-                      {currency.code}
-                    </Chip>
-                  </div>
-                  <p className="text-3xl font-bold tracking-tight leading-tight">
-                    {formatAmountES(currency.pending, currency.symbol)}
-                  </p>
-                  {currency.dueThisMonth > 0 && (
-                    <p className="text-sm text-warning-500 mt-1">
-                      {t.dueThisMonth}: {formatAmountES(currency.dueThisMonth, currency.symbol)}
-                    </p>
-                  )}
-                </div>
-              ))}
+      <Card className="h-full relative overflow-hidden shadow-lg border border-emerald-500/10 dark:border-emerald-400/10">
+        {/* Layered gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 via-emerald-500/5 to-transparent dark:from-emerald-500/15 dark:via-emerald-400/5 dark:to-transparent" />
+        {/* Radial glow top-right */}
+        <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-emerald-400/10 via-emerald-300/5 to-transparent dark:from-emerald-400/12 rounded-full -translate-y-1/3 translate-x-1/4 blur-2xl" />
+        {/* Radial glow bottom-left */}
+        <div className="absolute bottom-0 left-0 w-56 h-56 bg-gradient-to-tr from-emerald-500/8 via-teal-400/5 to-transparent dark:from-emerald-500/10 rounded-full translate-y-1/3 -translate-x-1/4 blur-xl" />
+        {/* Dot grid pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.04] dark:opacity-[0.07]"
+          style={{
+            backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
+            backgroundSize: '20px 20px',
+          }}
+        />
+        {/* Decorative geometric shapes */}
+        <svg
+          className="absolute top-3 right-4 text-emerald-500/[0.06] dark:text-emerald-400/[0.08]"
+          fill="none"
+          height="120"
+          viewBox="0 0 120 120"
+          width="120"
+        >
+          <rect
+            height="40"
+            rx="8"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            width="40"
+            x="10"
+            y="10"
+          />
+          <rect height="40" rx="8" stroke="currentColor" strokeWidth="1" width="40" x="30" y="30" />
+          <circle cx="90" cy="30" r="20" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="90" cy="30" r="12" stroke="currentColor" strokeWidth="1" />
+          <line stroke="currentColor" strokeWidth="1.5" x1="60" x2="110" y1="90" y2="90" />
+          <line stroke="currentColor" strokeWidth="1" x1="70" x2="110" y1="100" y2="100" />
+          <line stroke="currentColor" strokeWidth="1" x1="80" x2="110" y1="110" y2="110" />
+        </svg>
+        {/* Decorative corner arcs */}
+        <svg
+          className="absolute bottom-2 left-3 text-emerald-500/[0.05] dark:text-emerald-400/[0.07]"
+          fill="none"
+          height="80"
+          viewBox="0 0 80 80"
+          width="80"
+        >
+          <path d="M5 75 Q5 5 75 5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M15 75 Q15 15 75 15" fill="none" stroke="currentColor" strokeWidth="1" />
+          <path d="M25 75 Q25 25 75 25" fill="none" stroke="currentColor" strokeWidth="0.75" />
+        </svg>
+        {/* Subtle inner highlight line at top */}
+        <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent" />
+        <CardBody className="relative p-5 h-full flex flex-col gap-4">
+          {isAllPaid ? (
+            /* Centered message when all paid */
+            <div className="flex flex-1 items-center justify-center py-6">
+              <p className="text-center text-lg font-light tracking-wide text-emerald-800 dark:text-white/80">
+                {t.noPendingConcepts}
+              </p>
             </div>
-
-            {/* Equivalents */}
-            {equivalents.length > 0 && (
-              <div className="flex gap-3 sm:text-right">
-                {equivalents.map(eq => (
-                  <div
-                    key={eq.code}
-                    className="rounded-md bg-default-100 dark:bg-default-50/10 px-3 py-2"
-                  >
-                    <span className="text-xs text-default-400 block">≈ {eq.code}</span>
-                    <span className="text-base font-semibold">
-                      {formatAmountES(eq.total, eq.symbol)}
-                    </span>
+          ) : (
+            /* Currency balances — inline on desktop, stacked on mobile */
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:gap-x-8 sm:gap-y-4">
+                {currencySummaries.map(currency => (
+                  <div key={currency.code}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs text-default-400 uppercase tracking-wider">
+                        {t.totalPending}
+                      </span>
+                      <Chip className="h-5" size="sm" variant="flat">
+                        {currency.code}
+                      </Chip>
+                    </div>
+                    <p className="text-3xl font-bold tracking-tight leading-tight">
+                      {formatAmountES(currency.pending, currency.symbol)}
+                    </p>
+                    {currency.dueThisMonth > 0 && (
+                      <p className="text-sm text-warning-500 mt-1">
+                        {t.dueThisMonth}: {formatAmountES(currency.dueThisMonth, currency.symbol)}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-        )}
 
-        {/* Bottom: exchange rates (USD and EUR only) */}
-        {exchangeRates.length > 0 &&
-          (() => {
-            const relevantRates = exchangeRates.filter(
-              r => r.fromCode === 'USD' || r.fromCode === 'EUR'
-            )
-
-            if (relevantRates.length === 0) return null
-
-            return (
-              <div className="mt-auto pt-3 border-t border-default-200/50 dark:border-default-100/10 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="text-warning-500 shrink-0" size={14} />
-                  {formattedDate && (
-                    <span className="text-xs text-default-400">{formattedDate}</span>
-                  )}
-                </div>
-                <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
-                  {relevantRates.map(rate => (
-                    <span
-                      key={`${rate.fromCode}-${rate.toCode}`}
-                      className="text-sm text-warning-600 dark:text-warning-400"
+              {/* Equivalents */}
+              {equivalents.length > 0 && (
+                <div className="flex gap-3 sm:text-right">
+                  {equivalents.map(eq => (
+                    <div
+                      key={eq.code}
+                      className="rounded-md bg-default-100 dark:bg-default-50/10 px-3 py-2"
                     >
-                      1 {rate.fromCode} ={' '}
-                      <span className="font-semibold text-warning-500 dark:text-warning-300">
-                        {formatRate(rate.rate)}
-                      </span>{' '}
-                      {rate.toCode}
-                    </span>
+                      <span className="text-xs text-default-400 block">≈ {eq.code}</span>
+                      <span className="text-base font-semibold">
+                        {formatAmountES(eq.total, eq.symbol)}
+                      </span>
+                    </div>
                   ))}
                 </div>
-              </div>
-            )
-          })()}
-      </CardBody>
-    </Card>
+              )}
+            </div>
+          )}
+
+          {/* Bottom: exchange rates (USD and EUR only) */}
+          {exchangeRates.length > 0 &&
+            (() => {
+              const relevantRates = exchangeRates.filter(
+                r => r.fromCode === 'USD' || r.fromCode === 'EUR'
+              )
+
+              if (relevantRates.length === 0) return null
+
+              return (
+                <div className="mt-auto pt-3 border-t border-default-200/50 dark:border-default-100/10 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="text-warning-500 shrink-0" size={14} />
+                    {formattedDate && (
+                      <span className="text-xs text-default-400">{formattedDate}</span>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
+                    {relevantRates.map(rate => (
+                      <span
+                        key={`${rate.fromCode}-${rate.toCode}`}
+                        className="text-sm text-warning-600 dark:text-warning-400"
+                      >
+                        1 {rate.fromCode} ={' '}
+                        <span className="font-semibold text-warning-500 dark:text-warning-300">
+                          {formatRate(rate.rate)}
+                        </span>{' '}
+                        {rate.toCode}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+        </CardBody>
+      </Card>
     </div>
   )
 }

@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo } from 'react'
-
 import type { IPaymentWizardState } from '../PaymentWizardClient'
+
+import { useMemo } from 'react'
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
@@ -23,9 +23,7 @@ export function ConfirmationStep({ state }: ConfirmationStepProps) {
 
     return state.validationResult.validatedQuotas.map(vq => {
       // Find the original quota from groups
-      const group = state.quotaGroups.find(g =>
-        g.quotas.some(q => q.id === vq.quotaId),
-      )
+      const group = state.quotaGroups.find(g => g.quotas.some(q => q.id === vq.quotaId))
       const quota = group?.quotas.find(q => q.id === vq.quotaId)
 
       return {
@@ -46,6 +44,7 @@ export function ConfirmationStep({ state }: ConfirmationStepProps) {
       cash: t('resident.pay.method.methods.cash'),
       other: t('resident.pay.method.methods.other'),
     }
+
     return methods[state.method] ?? state.method
   }, [state.method, t])
 
@@ -66,10 +65,7 @@ export function ConfirmationStep({ state }: ConfirmationStepProps) {
           </Typography>
           <div className="space-y-2">
             {quotaDetails.map(detail => (
-              <div
-                key={detail.quotaId}
-                className="flex items-center justify-between text-sm"
-              >
+              <div key={detail.quotaId} className="flex items-center justify-between text-sm">
                 <div>
                   <span className="text-default-700 dark:text-default-300">
                     {detail.conceptName}
@@ -77,9 +73,7 @@ export function ConfirmationStep({ state }: ConfirmationStepProps) {
                   <span className="mx-2 text-default-400">·</span>
                   <span className="text-default-500">{detail.period}</span>
                 </div>
-                <span className="font-medium">
-                  {parseFloat(detail.amount).toFixed(2)}
-                </span>
+                <span className="font-medium">{parseFloat(detail.amount).toFixed(2)}</span>
               </div>
             ))}
           </div>
@@ -90,8 +84,14 @@ export function ConfirmationStep({ state }: ConfirmationStepProps) {
             </Typography>
             <Typography className="text-lg font-bold text-primary">
               {state.validationResult
-                ? parseFloat(state.validationResult.total).toFixed(2)
-                : '0.00'}
+                ? `${state.quotaGroups[0]?.concept.currencySymbol ?? ''} ${new Intl.NumberFormat(
+                    'es-VE',
+                    {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }
+                  ).format(parseFloat(state.validationResult.total))}`
+                : '0,00'}
             </Typography>
           </div>
         </CardBody>
@@ -117,9 +117,15 @@ export function ConfirmationStep({ state }: ConfirmationStepProps) {
                 <Typography className="font-medium" variant="body2">
                   {t(`${p}.paymentDetails`)}
                 </Typography>
-                <Field label={t(`${p}.phone`)} value={state.c2pPhone} />
+                <Field
+                  label={t(`${p}.phone`)}
+                  value={`${state.c2pPhoneCountryCode} ${state.c2pPhoneNumber}`}
+                />
                 <Field label={t(`${p}.bank`)} value={state.c2pBankCode} />
-                <Field label={t(`${p}.document`)} value={state.c2pDocument} />
+                <Field
+                  label={t(`${p}.document`)}
+                  value={`${state.c2pDocumentType}-${state.c2pDocumentNumber}`}
+                />
               </>
             )}
 
@@ -130,10 +136,7 @@ export function ConfirmationStep({ state }: ConfirmationStepProps) {
                 <Typography className="font-medium" variant="body2">
                   {t(`${p}.paymentDetails`)}
                 </Typography>
-                <Field
-                  label={t(`${p}.cardEnding`)}
-                  value={state.vposCardNumber.slice(-4)}
-                />
+                <Field label={t(`${p}.cardEnding`)} value={state.vposCardNumber.slice(-4)} />
               </>
             )}
 
@@ -143,10 +146,26 @@ export function ConfirmationStep({ state }: ConfirmationStepProps) {
                 <Divider />
                 <Field label={t(`${p}.paymentDate`)} value={state.manualPaymentDate} />
                 {state.manualReceiptNumber && (
-                  <Field
-                    label={t(`${p}.receiptNumber`)}
-                    value={state.manualReceiptNumber}
-                  />
+                  <Field label={t(`${p}.receiptNumber`)} value={state.manualReceiptNumber} />
+                )}
+                {(state.method === 'transfer' || state.method === 'mobile_payment') && (
+                  <>
+                    {state.manualSenderBankCode && (
+                      <Field label={t(`${p}.senderBank`)} value={state.manualSenderBankCode} />
+                    )}
+                    {state.manualSenderDocumentNumber && (
+                      <Field
+                        label={t(`${p}.senderDocument`)}
+                        value={`${state.manualSenderDocumentType}-${state.manualSenderDocumentNumber}`}
+                      />
+                    )}
+                    {state.method === 'mobile_payment' && state.manualSenderPhoneNumber && (
+                      <Field
+                        label={t(`${p}.senderPhone`)}
+                        value={`${state.manualSenderPhoneCountryCode} ${state.manualSenderPhoneNumber}`}
+                      />
+                    )}
+                  </>
                 )}
               </>
             )}

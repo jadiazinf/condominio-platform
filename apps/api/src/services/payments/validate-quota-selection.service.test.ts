@@ -128,7 +128,7 @@ describe('ValidateQuotaSelectionService', () => {
       quotasRepo as never,
       conceptsRepo as never,
       conceptBankAccountsRepo as never,
-      bankAccountsRepo as never,
+      bankAccountsRepo as never
     )
   })
 
@@ -142,7 +142,13 @@ describe('ValidateQuotaSelectionService', () => {
       conceptsRepo.getById.mockResolvedValue(concept)
       quotasRepo.getUnpaidByConceptAndUnit.mockResolvedValue([quota])
       conceptBankAccountsRepo.listByConceptId.mockResolvedValue([
-        { id: 'link-1', paymentConceptId: 'concept-1', bankAccountId: 'ba-1', assignedBy: null, createdAt: new Date() },
+        {
+          id: 'link-1',
+          paymentConceptId: 'concept-1',
+          bankAccountId: 'ba-1',
+          assignedBy: null,
+          createdAt: new Date(),
+        },
       ])
       bankAccountsRepo.getById.mockResolvedValue(bankAccount)
 
@@ -169,7 +175,13 @@ describe('ValidateQuotaSelectionService', () => {
       conceptsRepo.getById.mockResolvedValue(concept)
       quotasRepo.getUnpaidByConceptAndUnit.mockResolvedValue([quota])
       conceptBankAccountsRepo.listByConceptId.mockResolvedValue([
-        { id: 'link-1', paymentConceptId: 'concept-1', bankAccountId: 'ba-1', assignedBy: null, createdAt: new Date() },
+        {
+          id: 'link-1',
+          paymentConceptId: 'concept-1',
+          bankAccountId: 'ba-1',
+          assignedBy: null,
+          createdAt: new Date(),
+        },
       ])
       bankAccountsRepo.getById.mockResolvedValue(createMockBankAccount())
 
@@ -270,7 +282,13 @@ describe('ValidateQuotaSelectionService', () => {
       conceptsRepo.getById.mockResolvedValue(concept)
       quotasRepo.getUnpaidByConceptAndUnit.mockResolvedValue([quota])
       conceptBankAccountsRepo.listByConceptId.mockResolvedValue([
-        { id: 'link-1', paymentConceptId: 'concept-1', bankAccountId: 'ba-1', assignedBy: null, createdAt: new Date() },
+        {
+          id: 'link-1',
+          paymentConceptId: 'concept-1',
+          bankAccountId: 'ba-1',
+          assignedBy: null,
+          createdAt: new Date(),
+        },
       ])
       bankAccountsRepo.getById.mockResolvedValue(createMockBankAccount())
 
@@ -291,7 +309,13 @@ describe('ValidateQuotaSelectionService', () => {
       conceptsRepo.getById.mockResolvedValue(concept)
       quotasRepo.getUnpaidByConceptAndUnit.mockResolvedValue([quota])
       conceptBankAccountsRepo.listByConceptId.mockResolvedValue([
-        { id: 'link-1', paymentConceptId: 'concept-1', bankAccountId: 'ba-1', assignedBy: null, createdAt: new Date() },
+        {
+          id: 'link-1',
+          paymentConceptId: 'concept-1',
+          bankAccountId: 'ba-1',
+          assignedBy: null,
+          createdAt: new Date(),
+        },
       ])
       bankAccountsRepo.getById.mockResolvedValue(createMockBankAccount())
 
@@ -307,8 +331,18 @@ describe('ValidateQuotaSelectionService', () => {
 
   describe('oldest-first rule', () => {
     it('should reject when skipping an older unpaid quota of the same concept', async () => {
-      const oldQuota = createMockQuota({ id: 'q-old', dueDate: '2025-12-15', periodMonth: 12, periodYear: 2025 })
-      const newQuota = createMockQuota({ id: 'q-new', dueDate: '2026-01-15', periodMonth: 1, periodYear: 2026 })
+      const oldQuota = createMockQuota({
+        id: 'q-old',
+        dueDate: '2025-12-15',
+        periodMonth: 12,
+        periodYear: 2025,
+      })
+      const newQuota = createMockQuota({
+        id: 'q-new',
+        dueDate: '2026-01-15',
+        periodMonth: 1,
+        periodYear: 2026,
+      })
       const concept = createMockConcept()
 
       quotasRepo.getById.mockImplementation((id: string) => {
@@ -340,7 +374,13 @@ describe('ValidateQuotaSelectionService', () => {
       conceptsRepo.getById.mockResolvedValue(concept)
       quotasRepo.getUnpaidByConceptAndUnit.mockResolvedValue([oldQuota])
       conceptBankAccountsRepo.listByConceptId.mockResolvedValue([
-        { id: 'link-1', paymentConceptId: 'concept-1', bankAccountId: 'ba-1', assignedBy: null, createdAt: new Date() },
+        {
+          id: 'link-1',
+          paymentConceptId: 'concept-1',
+          bankAccountId: 'ba-1',
+          assignedBy: null,
+          createdAt: new Date(),
+        },
       ])
       bankAccountsRepo.getById.mockResolvedValue(createMockBankAccount())
 
@@ -384,7 +424,13 @@ describe('ValidateQuotaSelectionService', () => {
       conceptsRepo.getById.mockResolvedValue(concept)
       quotasRepo.getUnpaidByConceptAndUnit.mockResolvedValue([quota])
       conceptBankAccountsRepo.listByConceptId.mockResolvedValue([
-        { id: 'link-1', paymentConceptId: 'concept-1', bankAccountId: 'ba-1', assignedBy: null, createdAt: new Date() },
+        {
+          id: 'link-1',
+          paymentConceptId: 'concept-1',
+          bankAccountId: 'ba-1',
+          assignedBy: null,
+          createdAt: new Date(),
+        },
       ])
       bankAccountsRepo.getById.mockResolvedValue(createMockBankAccount())
 
@@ -459,8 +505,16 @@ describe('ValidateQuotaSelectionService', () => {
 
   describe('currency consistency', () => {
     it('should reject mixed currencies', async () => {
-      const quota1 = createMockQuota({ id: 'q-1', paymentConceptId: 'concept-1', currencyId: 'currency-ves' })
-      const quota2 = createMockQuota({ id: 'q-2', paymentConceptId: 'concept-2', currencyId: 'currency-usd' })
+      const quota1 = createMockQuota({
+        id: 'q-1',
+        paymentConceptId: 'concept-1',
+        currencyId: 'currency-ves',
+      })
+      const quota2 = createMockQuota({
+        id: 'q-2',
+        paymentConceptId: 'concept-2',
+        currencyId: 'currency-usd',
+      })
       const concept1 = createMockConcept({ id: 'concept-1', currencyId: 'currency-ves' })
       const concept2 = createMockConcept({ id: 'concept-2', currencyId: 'currency-usd' })
 
@@ -517,13 +571,33 @@ describe('ValidateQuotaSelectionService', () => {
 
       // concept-1 has both accounts, concept-2 only has shared
       conceptBankAccountsRepo.listByConceptId.mockImplementation((conceptId: string) => {
-        if (conceptId === 'concept-1') return Promise.resolve([
-          { id: 'link-1', paymentConceptId: 'concept-1', bankAccountId: 'ba-shared', assignedBy: null, createdAt: new Date() },
-          { id: 'link-2', paymentConceptId: 'concept-1', bankAccountId: 'ba-exclusive', assignedBy: null, createdAt: new Date() },
-        ])
-        if (conceptId === 'concept-2') return Promise.resolve([
-          { id: 'link-3', paymentConceptId: 'concept-2', bankAccountId: 'ba-shared', assignedBy: null, createdAt: new Date() },
-        ])
+        if (conceptId === 'concept-1')
+          return Promise.resolve([
+            {
+              id: 'link-1',
+              paymentConceptId: 'concept-1',
+              bankAccountId: 'ba-shared',
+              assignedBy: null,
+              createdAt: new Date(),
+            },
+            {
+              id: 'link-2',
+              paymentConceptId: 'concept-1',
+              bankAccountId: 'ba-exclusive',
+              assignedBy: null,
+              createdAt: new Date(),
+            },
+          ])
+        if (conceptId === 'concept-2')
+          return Promise.resolve([
+            {
+              id: 'link-3',
+              paymentConceptId: 'concept-2',
+              bankAccountId: 'ba-shared',
+              assignedBy: null,
+              createdAt: new Date(),
+            },
+          ])
         return Promise.resolve([])
       })
       bankAccountsRepo.getById.mockImplementation((id: string) => {
@@ -542,7 +616,7 @@ describe('ValidateQuotaSelectionService', () => {
       if (result.success) {
         // Only the shared account should appear
         expect(result.data.commonBankAccounts).toHaveLength(1)
-        expect(result.data.commonBankAccounts[0].id).toBe('ba-shared')
+        expect(result.data.commonBankAccounts[0]!.id).toBe('ba-shared')
       }
     })
 
@@ -568,12 +642,26 @@ describe('ValidateQuotaSelectionService', () => {
 
       // Each concept has a different exclusive bank account
       conceptBankAccountsRepo.listByConceptId.mockImplementation((conceptId: string) => {
-        if (conceptId === 'concept-1') return Promise.resolve([
-          { id: 'link-1', paymentConceptId: 'concept-1', bankAccountId: 'ba-1', assignedBy: null, createdAt: new Date() },
-        ])
-        if (conceptId === 'concept-2') return Promise.resolve([
-          { id: 'link-2', paymentConceptId: 'concept-2', bankAccountId: 'ba-2', assignedBy: null, createdAt: new Date() },
-        ])
+        if (conceptId === 'concept-1')
+          return Promise.resolve([
+            {
+              id: 'link-1',
+              paymentConceptId: 'concept-1',
+              bankAccountId: 'ba-1',
+              assignedBy: null,
+              createdAt: new Date(),
+            },
+          ])
+        if (conceptId === 'concept-2')
+          return Promise.resolve([
+            {
+              id: 'link-2',
+              paymentConceptId: 'concept-2',
+              bankAccountId: 'ba-2',
+              assignedBy: null,
+              createdAt: new Date(),
+            },
+          ])
         return Promise.resolve([])
       })
       bankAccountsRepo.getById.mockImplementation((id: string) => {

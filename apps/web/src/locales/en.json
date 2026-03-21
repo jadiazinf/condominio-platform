@@ -602,7 +602,8 @@
         "overdue": "Overdue",
         "paid": "Paid",
         "cancelled": "Cancelled",
-        "exonerated": "Exonerated"
+        "exonerated": "Exonerated",
+        "clear": "Clear filters"
       },
       "status": {
         "pending": "Pending",
@@ -720,7 +721,13 @@
         "all": "All",
         "pendingVerification": "Pending Verification",
         "completed": "Completed",
-        "rejected": "Rejected"
+        "rejected": "Rejected",
+        "pending": "Pending",
+        "failed": "Failed",
+        "refunded": "Refunded",
+        "status": "Status",
+        "startDate": "From",
+        "endDate": "To"
       },
       "status": {
         "pending": "Pending",
@@ -842,7 +849,7 @@
         "quotasSelected": "quotas selected",
         "quotaSelected": "quota selected",
         "period": "Period",
-        "balance": "Balance",
+        "pending": "Pending",
         "amount": "Amount to pay",
         "dueDate": "Due",
         "overdue": "Overdue",
@@ -874,8 +881,11 @@
           "cash": "Cash",
           "cashDesc": "Register a cash payment.",
           "other": "Other",
-          "otherDesc": "Other payment method."
-        }
+          "otherDesc": "Other payment method.",
+          "pago_movil": "Pago Movil",
+          "interbancario": "Interbank"
+        },
+        "viewDetails": "View account details"
       },
       "details": {
         "title": "Payment details",
@@ -923,14 +933,28 @@
         },
         "manual": {
           "title": "Manual payment registration",
+          "titles": {
+            "transfer": "Bank transfer registration",
+            "mobile_payment": "Mobile payment registration",
+            "cash": "Cash payment registration",
+            "other": "Other payment method registration"
+          },
           "paymentDate": "Payment date",
-          "receiptNumber": "Reference/receipt number",
-          "receiptNumberPlaceholder": "E.g: TRF-123456",
+          "receiptNumber": "Reference number",
+          "receiptNumberPlaceholder": "E.g: 123456789",
           "receiptRequired": "Reference number is required",
           "bankInfo": "Destination account details",
           "bankInfoDesc": "Make the payment to the following account:",
+          "bank": "Bank",
+          "account": "Account",
           "receipt": "Payment receipt",
           "receiptHelp": "Upload an image or PDF of the receipt (max 5MB)",
+          "senderPhone": "Sender phone",
+          "senderBank": "Sender bank",
+          "senderBankPlaceholder": "Select sender bank",
+          "senderDocument": "Sender ID / Tax ID",
+          "viewBankDetails": "View destination account details",
+          "totalAmount": "Total amount to pay",
           "notes": "Notes (optional)",
           "notesPlaceholder": "Add details about this payment..."
         }
@@ -952,6 +976,9 @@
         "cardEnding": "Card ending in",
         "paymentDate": "Payment date",
         "receiptNumber": "Reference",
+        "senderPhone": "Sender phone",
+        "senderBank": "Sender bank",
+        "senderDocument": "Sender ID",
         "confirmAndPay": "Confirm and Pay",
         "processing": "Processing..."
       },
@@ -979,6 +1006,23 @@
         "amountExceedsBalance": "Amount exceeds the pending balance",
         "gatewayUnavailable": "Payment gateway is currently unavailable",
         "invalidBankAccount": "The selected bank account is not valid"
+      },
+      "bankDetail": {
+        "title": "Bank account details",
+        "accountHolder": "Account holder",
+        "accountNumber": "Account number",
+        "bankCode": "Bank code",
+        "accountType": "Account type",
+        "document": "Document",
+        "phone": "Phone",
+        "displayName": "Account name",
+        "acceptedMethods": "Accepted payment methods",
+        "copied": "Copied to clipboard",
+        "accountTypes": {
+          "corriente": "Checking",
+          "ahorro": "Savings",
+          "divisas": "Foreign currency"
+        }
       }
     }
   },

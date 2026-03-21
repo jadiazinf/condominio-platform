@@ -192,6 +192,43 @@ export class PaymentsRepository
   }
 
   /**
+   * Retrieves paginated payments for a user with optional filters.
+   */
+  async listPaginatedByUser(
+    userId: string,
+    options: {
+      page?: number
+      limit?: number
+      startDate?: string
+      endDate?: string
+      status?: string
+    },
+    condominiumId?: string
+  ): Promise<TPaginatedResponse<TPayment>> {
+    const conditions: SQL[] = [eq(payments.userId, userId)]
+
+    if (condominiumId) {
+      const condominiumUnitIds = this.db
+        .select({ id: units.id })
+        .from(units)
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(eq(buildings.condominiumId, condominiumId))
+      conditions.push(inArray(payments.unitId, condominiumUnitIds))
+    }
+    if (options.startDate) {
+      conditions.push(gte(payments.paymentDate, options.startDate))
+    }
+    if (options.endDate) {
+      conditions.push(lte(payments.paymentDate, options.endDate))
+    }
+    if (options.status) {
+      conditions.push(eq(payments.status, options.status as TPayment['status']))
+    }
+
+    return this.listPaginated({ page: options.page, limit: options.limit }, conditions)
+  }
+
+  /**
    * Retrieves payments by unit.
    */
   async getByUnitId(unitId: string, condominiumId?: string): Promise<TPayment[]> {

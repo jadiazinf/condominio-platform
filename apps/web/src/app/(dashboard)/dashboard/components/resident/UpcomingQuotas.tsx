@@ -55,7 +55,6 @@ function formatAmount(amount: number): string {
 
 export function UpcomingQuotas({ quotas, maxItems = 3, translations: t }: UpcomingQuotasProps) {
   const displayedQuotas = quotas.slice(0, maxItems)
-  const hasMore = quotas.length > maxItems
 
   return (
     <Card>
@@ -64,18 +63,16 @@ export function UpcomingQuotas({ quotas, maxItems = 3, translations: t }: Upcomi
           <Calendar className="text-default-500" size={20} />
           <h3 className="text-lg font-semibold">{t.title}</h3>
         </div>
-        {hasMore && (
-          <Button
-            as={Link}
-            color="primary"
-            endContent={<ChevronRight size={14} />}
-            href="/dashboard/my-quotas"
-            size="sm"
-            variant="light"
-          >
-            {t.viewAll}
-          </Button>
-        )}
+        <Button
+          as={Link}
+          color="primary"
+          endContent={<ChevronRight size={14} />}
+          href="/dashboard/my-quotas"
+          size="sm"
+          variant="light"
+        >
+          {t.viewAll}
+        </Button>
       </CardHeader>
       <CardBody className="px-6 py-4">
         {quotas.length === 0 ? (

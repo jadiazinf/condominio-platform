@@ -10,6 +10,7 @@ import {
   ServiceExecutionsRepository,
   UserRolesRepository,
   QuotaGenerationLogsRepository,
+  CurrenciesRepository,
 } from '@database/repositories'
 import { getBossClient } from '@worker/boss/client'
 import { QUEUES, type IAutoGenerateJobData, type INotifyJobData } from '@worker/boss/queues'
@@ -55,6 +56,7 @@ async function _processAutoGeneration(job: PgBoss.Job<IAutoGenerateJobData>): Pr
   const quotasRepo = new QuotasRepository(db)
   const unitsRepo = new UnitsRepository(db)
   const executionsRepo = new ServiceExecutionsRepository(db)
+  const currenciesRepo = new CurrenciesRepository(db)
 
   // 1. Find all active recurring concepts with chargeGenerationStrategy='auto'
   const autoConcepts = await conceptsRepo.getActiveByStrategy('auto')
@@ -89,6 +91,7 @@ async function _processAutoGeneration(job: PgBoss.Job<IAutoGenerateJobData>): Pr
   let totalFailed = 0
   const errors: string[] = []
   const generatedQuotas: TGeneratedQuotaInfo[] = []
+  const currencyCodeCache = new Map<string, string>()
 
   for (const concept of autoConcepts) {
     try {
@@ -241,6 +244,12 @@ async function _processAutoGeneration(job: PgBoss.Job<IAutoGenerateJobData>): Pr
         const periodAmount = unitAmounts.reduce((sum, ua) => sum + ua.amount, 0)
         totalCreated += unitAmounts.length
 
+        // Resolve currency code (cached)
+        if (!currencyCodeCache.has(concept.currencyId)) {
+          const currency = await currenciesRepo.getById(concept.currencyId)
+          currencyCodeCache.set(concept.currencyId, currency?.code ?? '')
+        }
+
         generatedQuotas.push({
           affectedUnitIds: unitAmounts.map(ua => ua.unitId),
           paymentConceptId: concept.id,
@@ -249,6 +258,7 @@ async function _processAutoGeneration(job: PgBoss.Job<IAutoGenerateJobData>): Pr
           dueDate,
           totalAmount: periodAmount,
           quotasCreated: unitAmounts.length,
+          currencyCode: currencyCodeCache.get(concept.currencyId) ?? '',
         })
       }
 
@@ -548,6 +558,7 @@ type TGeneratedQuotaInfo = {
   dueDate: string
   totalAmount: number
   quotasCreated: number
+  currencyCode: string
 }
 
 async function notifyResidentsForAutoGeneration(
@@ -582,7 +593,8 @@ async function notifyResidentsForAutoGeneration(
         notifiedUsers.add(ownership.userId)
 
         const perUnitAmount = toDecimal(quota.totalAmount / quota.quotasCreated)
-        let body = `Nueva cuota de "${conceptName}" - ${quota.periodDescription}. Monto: ${perUnitAmount}. Vencimiento: ${quota.dueDate}.`
+        const currencyLabel = quota.currencyCode ? ` ${quota.currencyCode}` : ''
+        let body = `Nueva cuota de "${conceptName}" - ${quota.periodDescription}. Monto: ${perUnitAmount}${currencyLabel}. Vencimiento: ${quota.dueDate}.`
         if (isOverdue) {
           body += ' (Vencida)'
         }
@@ -600,6 +612,8 @@ async function notifyResidentsForAutoGeneration(
             periodDescription: quota.periodDescription,
             dueDate: quota.dueDate,
             amount: perUnitAmount,
+            totalAmount: perUnitAmount,
+            currencyCode: quota.currencyCode,
             isOverdue,
           },
         }

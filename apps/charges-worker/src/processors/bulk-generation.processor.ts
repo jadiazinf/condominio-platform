@@ -9,6 +9,7 @@ import {
   UnitsRepository,
   UnitOwnershipsRepository,
   ServiceExecutionsRepository,
+  CurrenciesRepository,
 } from '@database/repositories'
 import { getBossClient } from '@worker/boss/client'
 import { QUEUES, type IBulkGenerateJobData, type INotifyJobData } from '@worker/boss/queues'
@@ -328,7 +329,16 @@ async function _processBulkGeneration(job: PgBoss.Job<IBulkGenerateJobData>): Pr
   }
 
   // 6. Notify unit residents (1 notification per user with all their quotas)
-  await notifyUnitResidents(db, result, concept.name ?? 'Cuota', concept.condominiumId ?? undefined)
+  const currenciesRepo = new CurrenciesRepository(db)
+  const currency = await currenciesRepo.getById(concept.currencyId)
+  const currencyCode = currency?.code ?? ''
+  await notifyUnitResidents(
+    db,
+    result,
+    concept.name ?? 'Cuota',
+    currencyCode,
+    concept.condominiumId ?? undefined
+  )
 
   const elapsed = ((Date.now() - start) / 1000).toFixed(1)
   logger.info({ elapsedSeconds: elapsed, ...result }, '[BulkGen] Bulk generation completed')
@@ -351,6 +361,7 @@ async function notifyUnitResidents(
   db: ReturnType<typeof DatabaseService.prototype.getDb>,
   result: TBulkResult,
   conceptName: string,
+  currencyCode: string,
   condominiumId?: string
 ): Promise<void> {
   if (result.affectedUnitIds.length === 0) return
@@ -388,8 +399,9 @@ async function notifyUnitResidents(
 
       const totalAmount = userQuotas.reduce((sum, q) => sum + parseFloat(q.amount), 0)
       const overdueCount = userQuotas.filter(q => q.status === 'overdue').length
+      const currencyLabel = currencyCode ? ` ${currencyCode}` : ''
 
-      let body = `Se generaron ${userQuotas.length} cuota(s) de "${conceptName}". Monto total: ${toDecimal(totalAmount)}.`
+      let body = `Se generaron ${userQuotas.length} cuota(s) de "${conceptName}". Monto total: ${toDecimal(totalAmount)}${currencyLabel}.`
       if (overdueCount > 0) {
         body += ` ${overdueCount} cuota(s) vencida(s).`
       }
@@ -405,6 +417,7 @@ async function notifyUnitResidents(
           conceptName,
           quotas: userQuotas,
           totalAmount: toDecimal(totalAmount),
+          currencyCode,
           periodsGenerated: result.periodsGenerated,
         },
       }

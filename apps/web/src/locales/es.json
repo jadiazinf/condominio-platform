@@ -611,7 +611,8 @@
         "overdue": "Vencidas",
         "paid": "Pagadas",
         "cancelled": "Canceladas",
-        "exonerated": "Exoneradas"
+        "exonerated": "Exoneradas",
+        "clear": "Limpiar filtros"
       },
       "status": {
         "pending": "Pendiente",
@@ -729,7 +730,13 @@
         "all": "Todos",
         "pendingVerification": "En verificación",
         "completed": "Completados",
-        "rejected": "Rechazados"
+        "rejected": "Rechazados",
+        "pending": "Pendiente",
+        "failed": "Fallido",
+        "refunded": "Reembolsado",
+        "status": "Estado",
+        "startDate": "Desde",
+        "endDate": "Hasta"
       },
       "status": {
         "pending": "Pendiente",
@@ -851,7 +858,7 @@
         "quotasSelected": "cuotas seleccionadas",
         "quotaSelected": "cuota seleccionada",
         "period": "Periodo",
-        "balance": "Saldo",
+        "pending": "Pendiente",
         "amount": "Monto a pagar",
         "dueDate": "Vence",
         "overdue": "Vencida",
@@ -883,8 +890,11 @@
           "cash": "Efectivo",
           "cashDesc": "Registra un pago en efectivo.",
           "other": "Otro",
-          "otherDesc": "Otro método de pago."
-        }
+          "otherDesc": "Otro método de pago.",
+          "pago_movil": "Pago Móvil",
+          "interbancario": "Interbancario"
+        },
+        "viewDetails": "Ver datos de la cuenta"
       },
       "details": {
         "title": "Detalles del pago",
@@ -932,14 +942,28 @@
         },
         "manual": {
           "title": "Registro de pago manual",
+          "titles": {
+            "transfer": "Registro de transferencia bancaria",
+            "mobile_payment": "Registro de pago móvil",
+            "cash": "Registro de pago en efectivo",
+            "other": "Registro de otro método de pago"
+          },
           "paymentDate": "Fecha del pago",
-          "receiptNumber": "Número de referencia/recibo",
-          "receiptNumberPlaceholder": "Ej: TRF-123456",
+          "receiptNumber": "Número de referencia",
+          "receiptNumberPlaceholder": "Ej: 123456789",
           "receiptRequired": "El número de referencia es requerido",
           "bankInfo": "Datos de la cuenta destino",
           "bankInfoDesc": "Realiza el pago a la siguiente cuenta:",
+          "bank": "Banco",
+          "account": "Cuenta",
           "receipt": "Comprobante de pago",
           "receiptHelp": "Sube una imagen o PDF del comprobante (máx 5MB)",
+          "senderPhone": "Teléfono del emisor",
+          "senderBank": "Banco del emisor",
+          "senderBankPlaceholder": "Selecciona el banco del emisor",
+          "senderDocument": "Cédula / RIF del emisor",
+          "viewBankDetails": "Ver datos de la cuenta destino",
+          "totalAmount": "Monto total a pagar",
           "notes": "Notas (opcional)",
           "notesPlaceholder": "Agrega detalles sobre este pago..."
         }
@@ -961,6 +985,9 @@
         "cardEnding": "Tarjeta terminada en",
         "paymentDate": "Fecha del pago",
         "receiptNumber": "Referencia",
+        "senderPhone": "Teléfono del emisor",
+        "senderBank": "Banco del emisor",
+        "senderDocument": "Cédula del emisor",
         "confirmAndPay": "Confirmar y Pagar",
         "processing": "Procesando..."
       },
@@ -988,6 +1015,23 @@
         "amountExceedsBalance": "El monto excede el saldo pendiente",
         "gatewayUnavailable": "El gateway de pago no está disponible en este momento",
         "invalidBankAccount": "La cuenta bancaria seleccionada no es válida"
+      },
+      "bankDetail": {
+        "title": "Datos de la cuenta bancaria",
+        "accountHolder": "Titular",
+        "accountNumber": "Número de cuenta",
+        "bankCode": "Código del banco",
+        "accountType": "Tipo de cuenta",
+        "document": "Documento",
+        "phone": "Teléfono",
+        "displayName": "Nombre de la cuenta",
+        "acceptedMethods": "Métodos de pago aceptados",
+        "copied": "Copiado al portapapeles",
+        "accountTypes": {
+          "corriente": "Corriente",
+          "ahorro": "Ahorro",
+          "divisas": "Divisas"
+        }
       }
     }
   },

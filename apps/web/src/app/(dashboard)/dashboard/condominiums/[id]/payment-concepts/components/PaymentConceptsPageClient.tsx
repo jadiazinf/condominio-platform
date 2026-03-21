@@ -252,7 +252,12 @@ export function PaymentConceptsPageClient({
             {t.subtitle}
           </Typography>
         </div>
-        <Button className="w-full sm:w-auto" color="primary" href={`${basePath}/create`} startContent={<Plus size={16} />}>
+        <Button
+          className="w-full sm:w-auto"
+          color="primary"
+          href={`${basePath}/create`}
+          startContent={<Plus size={16} />}
+        >
           {t.addConcept}
         </Button>
       </div>
@@ -267,10 +272,20 @@ export function PaymentConceptsPageClient({
             </Typography>
           </div>
           <div className="flex gap-2">
-            <Button className="flex-1 sm:flex-initial" size="sm" variant="flat" onPress={handleDiscardDraft}>
+            <Button
+              className="flex-1 sm:flex-initial"
+              size="sm"
+              variant="flat"
+              onPress={handleDiscardDraft}
+            >
               {tr(`${draftW}.discardDraft`)}
             </Button>
-            <Button className="flex-1 sm:flex-initial" color="primary" href={`${basePath}/create`} size="sm">
+            <Button
+              className="flex-1 sm:flex-initial"
+              color="primary"
+              href={`${basePath}/create`}
+              size="sm"
+            >
               {tr(`${draftW}.continueDraft`)}
             </Button>
           </div>

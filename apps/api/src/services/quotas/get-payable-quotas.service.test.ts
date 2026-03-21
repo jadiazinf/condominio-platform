@@ -1,6 +1,5 @@
 import { describe, it, expect, mock, beforeEach } from 'bun:test'
 import { GetPayableQuotasService } from './get-payable-quotas.service'
-import type { QuotasRepository, PaymentConceptBankAccountsRepository, BankAccountsRepository, PaymentConceptsRepository } from '@database/repositories'
 
 function createMockQuota(overrides: Record<string, unknown> = {}) {
   return {
@@ -79,7 +78,6 @@ function createMockBankAccount(overrides: Record<string, unknown> = {}) {
       accountType: 'corriente' as const,
       identityDocType: 'J' as const,
       identityDocNumber: '12345678',
-      phoneNumber: '584121234567',
     },
     acceptedPaymentMethods: ['transfer', 'pago_movil'],
     appliesToAllCondominiums: false,
@@ -98,30 +96,36 @@ function createMockBankAccount(overrides: Record<string, unknown> = {}) {
 describe('GetPayableQuotasService', () => {
   let service: GetPayableQuotasService
   let quotasRepo: {
-    getUnpaidByConceptAndUnit: ReturnType<typeof mock>
+    getUnpaidByConceptsAndUnit: ReturnType<typeof mock>
   }
   let conceptBankAccountsRepo: {
-    listByConceptId: ReturnType<typeof mock>
+    listByConceptIds: ReturnType<typeof mock>
   }
   let bankAccountsRepo: {
-    getById: ReturnType<typeof mock>
+    getByIds: ReturnType<typeof mock>
   }
   let conceptsRepo: {
+    getByIds: ReturnType<typeof mock>
+  }
+  let currenciesRepo: {
     getById: ReturnType<typeof mock>
   }
 
   beforeEach(() => {
     quotasRepo = {
-      getUnpaidByConceptAndUnit: mock(() => Promise.resolve([])),
+      getUnpaidByConceptsAndUnit: mock(() => Promise.resolve([])),
     }
     conceptBankAccountsRepo = {
-      listByConceptId: mock(() => Promise.resolve([])),
+      listByConceptIds: mock(() => Promise.resolve([])),
     }
     bankAccountsRepo = {
-      getById: mock(() => Promise.resolve(null)),
+      getByIds: mock(() => Promise.resolve([])),
     }
     conceptsRepo = {
-      getById: mock(() => Promise.resolve(null)),
+      getByIds: mock(() => Promise.resolve([])),
+    }
+    currenciesRepo = {
+      getById: mock(() => Promise.resolve({ id: 'curr-1', code: 'USD', symbol: '$' })),
     }
 
     service = new GetPayableQuotasService(
@@ -129,12 +133,13 @@ describe('GetPayableQuotasService', () => {
       conceptBankAccountsRepo as never,
       bankAccountsRepo as never,
       conceptsRepo as never,
+      currenciesRepo as never
     )
   })
 
   it('should return empty groups when no unpaid quotas exist', async () => {
-    conceptsRepo.getById.mockResolvedValue(createMockConcept())
-    quotasRepo.getUnpaidByConceptAndUnit.mockResolvedValue([])
+    conceptsRepo.getByIds.mockResolvedValue([createMockConcept()])
+    quotasRepo.getUnpaidByConceptsAndUnit.mockResolvedValue([])
 
     const result = await service.execute({
       unitId: 'unit-1',
@@ -152,12 +157,18 @@ describe('GetPayableQuotasService', () => {
     const quota1 = createMockQuota({ id: 'q-1', periodMonth: 1, dueDate: '2026-01-15' })
     const quota2 = createMockQuota({ id: 'q-2', periodMonth: 2, dueDate: '2026-02-15' })
     const bankAccount = createMockBankAccount()
-    const conceptBankLink = { id: 'link-1', paymentConceptId: 'concept-1', bankAccountId: 'ba-1', assignedBy: null, createdAt: new Date() }
+    const conceptBankLink = {
+      id: 'link-1',
+      paymentConceptId: 'concept-1',
+      bankAccountId: 'ba-1',
+      assignedBy: null,
+      createdAt: new Date(),
+    }
 
-    conceptsRepo.getById.mockResolvedValue(concept)
-    quotasRepo.getUnpaidByConceptAndUnit.mockResolvedValue([quota1, quota2])
-    conceptBankAccountsRepo.listByConceptId.mockResolvedValue([conceptBankLink])
-    bankAccountsRepo.getById.mockResolvedValue(bankAccount)
+    conceptsRepo.getByIds.mockResolvedValue([concept])
+    quotasRepo.getUnpaidByConceptsAndUnit.mockResolvedValue([quota1, quota2])
+    conceptBankAccountsRepo.listByConceptIds.mockResolvedValue([conceptBankLink])
+    bankAccountsRepo.getByIds.mockResolvedValue([bankAccount])
 
     const result = await service.execute({
       unitId: 'unit-1',
@@ -167,82 +178,130 @@ describe('GetPayableQuotasService', () => {
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.data.groups).toHaveLength(1)
-      const group = result.data.groups[0]
+      const group = result.data.groups[0]!
       expect(group.concept.id).toBe('concept-1')
       expect(group.concept.name).toBe('Condominio')
       expect(group.concept.allowsPartialPayment).toBe(true)
       expect(group.quotas).toHaveLength(2)
       expect(group.bankAccounts).toHaveLength(1)
-      expect(group.bankAccounts[0].id).toBe('ba-1')
-      expect(group.bankAccounts[0].isBnc).toBe(true) // bankCode 0191
+      expect(group.bankAccounts[0]!.id).toBe('ba-1')
+      expect(group.bankAccounts[0]!.isBnc).toBe(true) // bankCode 0191
+      expect(group.bankAccounts[0]!.accountHolderName).toBe('Administradora Latorre')
+      expect(group.bankAccounts[0]!.accountNumber).toBe('01910000000000001234')
+      expect(group.bankAccounts[0]!.accountType).toBe('corriente')
+      expect(group.bankAccounts[0]!.identityDocType).toBe('J')
+      expect(group.bankAccounts[0]!.identityDocNumber).toBe('12345678')
     }
   })
 
   it('should flag BNC bank accounts correctly', async () => {
     const concept = createMockConcept()
     const quota = createMockQuota()
-    const bncAccount = createMockBankAccount({ id: 'ba-bnc', accountDetails: { accountNumber: '01910000000000001234', bankCode: '0191', accountType: 'corriente', identityDocType: 'J', identityDocNumber: '12345678' } })
-    const otherAccount = createMockBankAccount({ id: 'ba-other', bankName: 'Banesco', accountDetails: { accountNumber: '01340000000000005678', bankCode: '0134', accountType: 'corriente', identityDocType: 'J', identityDocNumber: '12345678' } })
+    const bncAccount = createMockBankAccount({
+      id: 'ba-bnc',
+      accountDetails: {
+        accountNumber: '01910000000000001234',
+        bankCode: '0191',
+        accountType: 'corriente',
+        identityDocType: 'J',
+        identityDocNumber: '12345678',
+      },
+    })
+    const otherAccount = createMockBankAccount({
+      id: 'ba-other',
+      bankName: 'Banesco',
+      accountDetails: {
+        accountNumber: '01340000000000005678',
+        bankCode: '0134',
+        accountType: 'corriente',
+        identityDocType: 'J',
+        identityDocNumber: '12345678',
+      },
+    })
 
-    conceptsRepo.getById.mockResolvedValue(concept)
-    quotasRepo.getUnpaidByConceptAndUnit.mockResolvedValue([quota])
-    conceptBankAccountsRepo.listByConceptId.mockResolvedValue([
-      { id: 'link-1', paymentConceptId: 'concept-1', bankAccountId: 'ba-bnc', assignedBy: null, createdAt: new Date() },
-      { id: 'link-2', paymentConceptId: 'concept-1', bankAccountId: 'ba-other', assignedBy: null, createdAt: new Date() },
+    conceptsRepo.getByIds.mockResolvedValue([concept])
+    quotasRepo.getUnpaidByConceptsAndUnit.mockResolvedValue([quota])
+    conceptBankAccountsRepo.listByConceptIds.mockResolvedValue([
+      {
+        id: 'link-1',
+        paymentConceptId: 'concept-1',
+        bankAccountId: 'ba-bnc',
+        assignedBy: null,
+        createdAt: new Date(),
+      },
+      {
+        id: 'link-2',
+        paymentConceptId: 'concept-1',
+        bankAccountId: 'ba-other',
+        assignedBy: null,
+        createdAt: new Date(),
+      },
     ])
-    bankAccountsRepo.getById
-      .mockResolvedValueOnce(bncAccount)
-      .mockResolvedValueOnce(otherAccount)
+    bankAccountsRepo.getByIds.mockResolvedValue([bncAccount, otherAccount])
 
     const result = await service.execute({ unitId: 'unit-1', conceptIds: ['concept-1'] })
 
     expect(result.success).toBe(true)
     if (result.success) {
-      const bankAccounts = result.data.groups[0].bankAccounts
+      const bankAccounts = result.data.groups[0]!.bankAccounts
       expect(bankAccounts).toHaveLength(2)
       expect(bankAccounts.find(ba => ba.id === 'ba-bnc')!.isBnc).toBe(true)
       expect(bankAccounts.find(ba => ba.id === 'ba-other')!.isBnc).toBe(false)
     }
   })
 
-  it('should skip inactive bank accounts', async () => {
+  it('should skip inactive bank accounts (filtered by repo)', async () => {
     const concept = createMockConcept()
     const quota = createMockQuota()
-    const inactiveAccount = createMockBankAccount({ isActive: false })
 
-    conceptsRepo.getById.mockResolvedValue(concept)
-    quotasRepo.getUnpaidByConceptAndUnit.mockResolvedValue([quota])
-    conceptBankAccountsRepo.listByConceptId.mockResolvedValue([
-      { id: 'link-1', paymentConceptId: 'concept-1', bankAccountId: 'ba-1', assignedBy: null, createdAt: new Date() },
+    conceptsRepo.getByIds.mockResolvedValue([concept])
+    quotasRepo.getUnpaidByConceptsAndUnit.mockResolvedValue([quota])
+    conceptBankAccountsRepo.listByConceptIds.mockResolvedValue([
+      {
+        id: 'link-1',
+        paymentConceptId: 'concept-1',
+        bankAccountId: 'ba-1',
+        assignedBy: null,
+        createdAt: new Date(),
+      },
     ])
-    bankAccountsRepo.getById.mockResolvedValue(inactiveAccount)
+    // getByIds already filters inactive accounts, so returns empty
+    bankAccountsRepo.getByIds.mockResolvedValue([])
 
     const result = await service.execute({ unitId: 'unit-1', conceptIds: ['concept-1'] })
 
     expect(result.success).toBe(true)
     if (result.success) {
-      expect(result.data.groups[0].bankAccounts).toHaveLength(0)
+      expect(result.data.groups[0]!.bankAccounts).toHaveLength(0)
     }
   })
 
   it('should handle multiple concepts', async () => {
     const concept1 = createMockConcept({ id: 'concept-1', name: 'Condominio', currencyId: 'c1' })
-    const concept2 = createMockConcept({ id: 'concept-2', name: 'Fondo de Reserva', currencyId: 'c1', conceptType: 'reserve_fund' })
+    const concept2 = createMockConcept({
+      id: 'concept-2',
+      name: 'Fondo de Reserva',
+      currencyId: 'c1',
+      conceptType: 'reserve_fund',
+    })
 
     const quota1 = createMockQuota({ paymentConceptId: 'concept-1' })
     const quota2 = createMockQuota({ id: 'q-2', paymentConceptId: 'concept-2' })
 
     const bankAccount = createMockBankAccount()
 
-    conceptsRepo.getById
-      .mockResolvedValueOnce(concept1)
-      .mockResolvedValueOnce(concept2)
-    quotasRepo.getUnpaidByConceptAndUnit
-      .mockResolvedValueOnce([quota1])
-      .mockResolvedValueOnce([quota2])
-    conceptBankAccountsRepo.listByConceptId
-      .mockResolvedValue([{ id: 'link-1', paymentConceptId: 'concept-1', bankAccountId: 'ba-1', assignedBy: null, createdAt: new Date() }])
-    bankAccountsRepo.getById.mockResolvedValue(bankAccount)
+    conceptsRepo.getByIds.mockResolvedValue([concept1, concept2])
+    quotasRepo.getUnpaidByConceptsAndUnit.mockResolvedValue([quota1, quota2])
+    conceptBankAccountsRepo.listByConceptIds.mockResolvedValue([
+      {
+        id: 'link-1',
+        paymentConceptId: 'concept-1',
+        bankAccountId: 'ba-1',
+        assignedBy: null,
+        createdAt: new Date(),
+      },
+    ])
+    bankAccountsRepo.getByIds.mockResolvedValue([bankAccount])
 
     const result = await service.execute({
       unitId: 'unit-1',
@@ -256,7 +315,7 @@ describe('GetPayableQuotasService', () => {
   })
 
   it('should skip concepts that do not exist', async () => {
-    conceptsRepo.getById.mockResolvedValue(null)
+    conceptsRepo.getByIds.mockResolvedValue([])
 
     const result = await service.execute({
       unitId: 'unit-1',
@@ -273,34 +332,46 @@ describe('GetPayableQuotasService', () => {
     const concept = createMockConcept({ currencyId: 'currency-ves' })
     const quota = createMockQuota({ currencyId: 'currency-ves' })
 
-    conceptsRepo.getById.mockResolvedValue(concept)
-    quotasRepo.getUnpaidByConceptAndUnit.mockResolvedValue([quota])
-    conceptBankAccountsRepo.listByConceptId.mockResolvedValue([])
+    conceptsRepo.getByIds.mockResolvedValue([concept])
+    quotasRepo.getUnpaidByConceptsAndUnit.mockResolvedValue([quota])
+    conceptBankAccountsRepo.listByConceptIds.mockResolvedValue([])
+    bankAccountsRepo.getByIds.mockResolvedValue([])
 
     const result = await service.execute({ unitId: 'unit-1', conceptIds: ['concept-1'] })
 
     expect(result.success).toBe(true)
     if (result.success) {
-      expect(result.data.groups[0].concept.currencyId).toBe('currency-ves')
+      expect(result.data.groups[0]!.concept.currencyId).toBe('currency-ves')
     }
   })
 
   it('should return quotas ordered by dueDate (oldest first)', async () => {
     const concept = createMockConcept()
-    // getUnpaidByConceptAndUnit already returns ordered by dueDate ASC
-    const quotaOld = createMockQuota({ id: 'q-old', dueDate: '2025-12-15', periodMonth: 12, periodYear: 2025 })
-    const quotaNew = createMockQuota({ id: 'q-new', dueDate: '2026-01-15', periodMonth: 1, periodYear: 2026 })
+    const quotaOld = createMockQuota({
+      id: 'q-old',
+      dueDate: '2025-12-15',
+      periodMonth: 12,
+      periodYear: 2025,
+    })
+    const quotaNew = createMockQuota({
+      id: 'q-new',
+      dueDate: '2026-01-15',
+      periodMonth: 1,
+      periodYear: 2026,
+    })
 
-    conceptsRepo.getById.mockResolvedValue(concept)
-    quotasRepo.getUnpaidByConceptAndUnit.mockResolvedValue([quotaOld, quotaNew])
-    conceptBankAccountsRepo.listByConceptId.mockResolvedValue([])
+    conceptsRepo.getByIds.mockResolvedValue([concept])
+    // getUnpaidByConceptsAndUnit returns ordered by dueDate ASC
+    quotasRepo.getUnpaidByConceptsAndUnit.mockResolvedValue([quotaOld, quotaNew])
+    conceptBankAccountsRepo.listByConceptIds.mockResolvedValue([])
+    bankAccountsRepo.getByIds.mockResolvedValue([])
 
     const result = await service.execute({ unitId: 'unit-1', conceptIds: ['concept-1'] })
 
     expect(result.success).toBe(true)
     if (result.success) {
-      expect(result.data.groups[0].quotas[0].id).toBe('q-old')
-      expect(result.data.groups[0].quotas[1].id).toBe('q-new')
+      expect(result.data.groups[0]!.quotas[0]!.id).toBe('q-old')
+      expect(result.data.groups[0]!.quotas[1]!.id).toBe('q-new')
     }
   })
 })

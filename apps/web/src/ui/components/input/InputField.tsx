@@ -6,10 +6,8 @@ import { Input, type IInputProps } from './Input'
 
 import { getTranslatedError } from '@/utils/formErrors'
 
-interface IInputFieldProps extends Omit<
-  IInputProps,
-  'value' | 'onValueChange' | 'onChange' | 'isInvalid'
-> {
+interface IInputFieldProps
+  extends Omit<IInputProps, 'value' | 'onValueChange' | 'onChange' | 'isInvalid'> {
   name: string
   translateError?: (message: string | undefined) => string | undefined
 }

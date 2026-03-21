@@ -76,6 +76,9 @@ export async function processNotification(job: PgBoss.Job<INotifyJobData>): Prom
       '[Notify] Notification sent successfully'
     )
 
+    // Broadcast via WebSocket (call API server's internal endpoint)
+    await broadcastNotificationViaApi(userId, result.data.notification.id)
+
     // Send actual email if email channel was requested and delivery was created as 'pending'
     const requestedChannels = channels ?? ['in_app', 'push']
     if (requestedChannels.includes('email')) {
@@ -260,6 +263,7 @@ function buildNotificationEmailHtml(input: IEmailTemplateInput): string {
   const totalAmount = input.data?.totalAmount as string | undefined
   const dueDate = input.data?.dueDate as string | undefined
   const quotasCreated = input.data?.quotasCreated as number | undefined
+  const currencyCode = input.data?.currencyCode as string | undefined
 
   // Convert newlines in body to paragraphs
   const bodyParagraphs = input.body
@@ -274,7 +278,14 @@ function buildNotificationEmailHtml(input: IEmailTemplateInput): string {
   // Build detail rows if structured data is available
   const hasDetails = conceptName || condominiumName || totalAmount || dueDate
   const detailRows = hasDetails
-    ? buildDetailRows({ conceptName, condominiumName, totalAmount, dueDate, quotasCreated })
+    ? buildDetailRows({
+        conceptName,
+        condominiumName,
+        totalAmount,
+        dueDate,
+        quotasCreated,
+        currencyCode,
+      })
     : ''
 
   // Build management company contact block
@@ -418,6 +429,7 @@ function buildDetailRows(details: {
   totalAmount?: string
   dueDate?: string
   quotasCreated?: number
+  currencyCode?: string
 }): string {
   const rows: string[] = []
 
@@ -428,12 +440,10 @@ function buildDetailRows(details: {
     rows.push(buildDetailRow('Concepto', details.conceptName))
   }
   if (details.totalAmount) {
-    rows.push(
-      buildDetailRow(
-        'Monto',
-        `<strong style="color: #0f172a;">${escapeHtml(details.totalAmount)}</strong>`
-      )
-    )
+    const amountDisplay = details.currencyCode
+      ? `${escapeHtml(details.totalAmount)} ${escapeHtml(details.currencyCode)}`
+      : escapeHtml(details.totalAmount)
+    rows.push(buildDetailRow('Monto', `<strong style="color: #0f172a;">${amountDisplay}</strong>`))
   }
   if (details.dueDate) {
     rows.push(buildDetailRow('Vencimiento', details.dueDate))
@@ -457,6 +467,33 @@ function buildDetailRow(label: string, value: string): string {
           </table>
         </td>
       </tr>`
+}
+
+async function broadcastNotificationViaApi(userId: string, notificationId: string): Promise<void> {
+  const apiUrl = process.env.INTERNAL_API_URL
+  const apiKey = process.env.INTERNAL_API_KEY
+  if (!apiUrl || !apiKey) return
+
+  try {
+    const response = await fetch(`${apiUrl}/api/internal/broadcast-notification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-internal-api-key': apiKey,
+      },
+      body: JSON.stringify({ userId, notificationId }),
+    })
+
+    if (!response.ok) {
+      logger.warn(
+        { status: response.status, userId, notificationId },
+        '[Notify] Failed to broadcast notification via API'
+      )
+    }
+  } catch (error) {
+    // Non-critical: notification is already saved, just won't appear in real-time
+    logger.warn({ error, userId }, '[Notify] Could not reach API for WebSocket broadcast')
+  }
 }
 
 function buildManagementCompanyBlock(mc: IManagementCompanyContact): string {

@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm'
+import { eq, and, inArray } from 'drizzle-orm'
 import type { TPaymentConceptBankAccount } from '@packages/domain'
 import { paymentConceptBankAccounts } from '../drizzle/schema'
 import type { TDrizzleClient } from './interfaces'
@@ -23,6 +23,17 @@ export class PaymentConceptBankAccountsRepository {
       .select()
       .from(paymentConceptBankAccounts)
       .where(eq(paymentConceptBankAccounts.paymentConceptId, conceptId))
+
+    return results.map(r => this.mapToEntity(r))
+  }
+
+  async listByConceptIds(conceptIds: string[]): Promise<TPaymentConceptBankAccount[]> {
+    if (conceptIds.length === 0) return []
+
+    const results = await this.db
+      .select()
+      .from(paymentConceptBankAccounts)
+      .where(inArray(paymentConceptBankAccounts.paymentConceptId, conceptIds))
 
     return results.map(r => this.mapToEntity(r))
   }

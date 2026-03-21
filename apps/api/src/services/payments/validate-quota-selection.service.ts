@@ -30,6 +30,12 @@ export interface IValidatedBankAccount {
   bankCode: string
   isBnc: boolean
   acceptedPaymentMethods: string[]
+  accountHolderName: string
+  accountNumber: string
+  accountType: string
+  identityDocType: string
+  identityDocNumber: string
+  phoneNumber: string | null
 }
 
 export interface IValidateQuotaSelectionOutput {
@@ -56,11 +62,11 @@ export class ValidateQuotaSelectionService {
     private readonly quotasRepo: QuotasRepository,
     private readonly conceptsRepo: PaymentConceptsRepository,
     private readonly conceptBankAccountsRepo: PaymentConceptBankAccountsRepository,
-    private readonly bankAccountsRepo: BankAccountsRepository,
+    private readonly bankAccountsRepo: BankAccountsRepository
   ) {}
 
   async execute(
-    input: IValidateQuotaSelectionInput,
+    input: IValidateQuotaSelectionInput
   ): Promise<TServiceResult<IValidateQuotaSelectionOutput>> {
     const { unitId, quotaIds, amounts } = input
 
@@ -84,7 +90,10 @@ export class ValidateQuotaSelectionService {
 
       // Status check
       if (!PAYABLE_STATUSES.has(quota.status)) {
-        return failure(`La cuota no está disponible para pago (estado: ${quota.status})`, 'BAD_REQUEST')
+        return failure(
+          `La cuota no está disponible para pago (estado: ${quota.status})`,
+          'BAD_REQUEST'
+        )
       }
 
       quotas.push(quota)
@@ -127,13 +136,13 @@ export class ValidateQuotaSelectionService {
         // There's an older unpaid quota not in the selection
         return failure(
           `Debe pagar la cuota más antigua primero para el concepto "${concept.name}"`,
-          'BAD_REQUEST',
+          'BAD_REQUEST'
         )
       }
 
       // Per-quota amount validation
       for (const quota of conceptQuotas) {
-        const amountStr = amounts[quota.id]
+        const amountStr = amounts[quota.id] ?? '0'
         const amount = Number(amountStr)
         const balance = Number(quota.balance)
 
@@ -144,7 +153,7 @@ export class ValidateQuotaSelectionService {
         if (amount > balance) {
           return failure(
             `El monto (${amountStr}) excede el saldo de la cuota (${quota.balance})`,
-            'BAD_REQUEST',
+            'BAD_REQUEST'
           )
         }
 
@@ -152,7 +161,7 @@ export class ValidateQuotaSelectionService {
         if (!concept.allowsPartialPayment && amount < balance) {
           return failure(
             `El concepto "${concept.name}" requiere pago completo. Monto: ${amountStr}, Balance: ${quota.balance}`,
-            'BAD_REQUEST',
+            'BAD_REQUEST'
           )
         }
 
@@ -183,19 +192,19 @@ export class ValidateQuotaSelectionService {
     if (conceptEntries.length === 0 || conceptEntries.some(s => s.size === 0)) {
       return failure(
         'No hay una cuenta bancaria en común para los conceptos seleccionados',
-        'BAD_REQUEST',
+        'BAD_REQUEST'
       )
     }
 
-    let commonIds = conceptEntries[0]
+    let commonIds = conceptEntries[0]!
     for (let i = 1; i < conceptEntries.length; i++) {
-      commonIds = new Set([...commonIds].filter(id => conceptEntries[i].has(id)))
+      commonIds = new Set([...commonIds].filter(id => conceptEntries[i]!.has(id)))
     }
 
     if (commonIds.size === 0) {
       return failure(
         'No hay una cuenta bancaria en común para los conceptos seleccionados',
-        'BAD_REQUEST',
+        'BAD_REQUEST'
       )
     }
 
@@ -205,7 +214,14 @@ export class ValidateQuotaSelectionService {
       const account = await this.bankAccountsRepo.getById(id)
       if (!account) continue
 
-      const details = account.accountDetails as { bankCode?: string }
+      const details = account.accountDetails as {
+        bankCode?: string
+        accountNumber?: string
+        accountType?: string
+        identityDocType?: string
+        identityDocNumber?: string
+        phoneNumber?: string
+      }
       const bankCode = details.bankCode ?? ''
 
       commonBankAccounts.push({
@@ -215,13 +231,17 @@ export class ValidateQuotaSelectionService {
         bankCode,
         isBnc: bankCode === BNC_BANK_CODE,
         acceptedPaymentMethods: account.acceptedPaymentMethods,
+        accountHolderName: account.accountHolderName,
+        accountNumber: details.accountNumber ?? '',
+        accountType: details.accountType ?? '',
+        identityDocType: details.identityDocType ?? '',
+        identityDocNumber: details.identityDocNumber ?? '',
+        phoneNumber: details.phoneNumber ?? null,
       })
     }
 
     // 5. Calculate total
-    const total = validatedQuotas
-      .reduce((sum, vq) => sum + Number(vq.amount), 0)
-      .toFixed(2)
+    const total = validatedQuotas.reduce((sum, vq) => sum + Number(vq.amount), 0).toFixed(2)
 
     return success({
       validatedQuotas,

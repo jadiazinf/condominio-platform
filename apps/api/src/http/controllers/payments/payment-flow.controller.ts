@@ -1,6 +1,14 @@
 import type { Context } from 'hono'
-import { ESystemRole } from '@packages/domain'
-import type { QuotasRepository, PaymentConceptsRepository, PaymentConceptBankAccountsRepository, BankAccountsRepository, PaymentsRepository, GatewayTransactionsRepository } from '@database/repositories'
+import { ESystemRole, type TGatewayType } from '@packages/domain'
+import type {
+  QuotasRepository,
+  PaymentConceptsRepository,
+  PaymentConceptBankAccountsRepository,
+  BankAccountsRepository,
+  PaymentsRepository,
+  GatewayTransactionsRepository,
+  CurrenciesRepository,
+} from '@database/repositories'
 import type { PaymentGatewayManager } from '@src/services/payment-gateways/gateway-manager'
 import type { ApplyPaymentToQuotaService } from '@src/services/payment-applications/apply-payment-to-quota.service'
 import { HttpContext } from '../../context'
@@ -40,29 +48,32 @@ const InitiatePaymentBodySchema = z.object({
   receiptNumber: z.string().optional(),
   receiptUrl: z.string().url().optional(),
   notes: z.string().optional(),
-  c2pData: z.object({
-    debtorBankCode: z.string(),
-    debtorCellPhone: z.string(),
-    debtorID: z.string(),
-    token: z.string(),
-  }).optional(),
-  vposData: z.object({
-    cardType: z.number(),
-    cardNumber: z.string(),
-    expiration: z.number(),
-    cvv: z.number(),
-    cardHolderName: z.string(),
-    cardHolderID: z.number(),
-    accountType: z.number(),
-  }).optional(),
+  senderPhone: z.string().optional(),
+  senderBankCode: z.string().optional(),
+  senderDocument: z.string().optional(),
+  c2pData: z
+    .object({
+      debtorBankCode: z.string(),
+      debtorCellPhone: z.string(),
+      debtorID: z.string(),
+      token: z.string(),
+    })
+    .optional(),
+  vposData: z
+    .object({
+      cardType: z.number(),
+      cardNumber: z.string(),
+      expiration: z.number(),
+      cvv: z.number(),
+      cardHolderName: z.string(),
+      cardHolderID: z.number(),
+      accountType: z.number(),
+    })
+    .optional(),
 })
 
 const GatewayTypeParamSchema = z.object({
   gatewayType: z.string(),
-})
-
-const ConceptIdsQuerySchema = z.object({
-  conceptIds: z.string().transform(s => s.split(',')),
 })
 
 /**
@@ -85,24 +96,26 @@ export class PaymentFlowController {
       conceptsRepo: PaymentConceptsRepository
       conceptBankAccountsRepo: PaymentConceptBankAccountsRepository
       bankAccountsRepo: BankAccountsRepository
+      currenciesRepo: CurrenciesRepository
       paymentsRepo: PaymentsRepository
       gatewayTransactionsRepo: GatewayTransactionsRepository
       gatewayManager: PaymentGatewayManager
       applyPaymentService: ApplyPaymentToQuotaService
-    },
+    }
   ) {
     this.getPayableQuotasService = new GetPayableQuotasService(
       deps.quotasRepo,
       deps.conceptBankAccountsRepo,
       deps.bankAccountsRepo,
       deps.conceptsRepo,
+      deps.currenciesRepo
     )
 
     this.validateSelectionService = new ValidateQuotaSelectionService(
       deps.quotasRepo,
       deps.conceptsRepo,
       deps.conceptBankAccountsRepo,
-      deps.bankAccountsRepo,
+      deps.bankAccountsRepo
     )
 
     this.initiatePaymentService = new InitiatePaymentFlowService(
@@ -110,7 +123,7 @@ export class PaymentFlowController {
       deps.paymentsRepo,
       deps.applyPaymentService,
       deps.gatewayManager,
-      deps.gatewayTransactionsRepo,
+      deps.gatewayTransactionsRepo
     )
   }
 
@@ -176,7 +189,9 @@ export class PaymentFlowController {
 
     // If no concept IDs provided, fetch all distinct concepts for this unit
     if (conceptIds.length === 0) {
-      const distinctConcepts = await this.deps.quotasRepo.getDistinctConceptsByUnit(ctx.params.unitId)
+      const distinctConcepts = await this.deps.quotasRepo.getDistinctConceptsByUnit(
+        ctx.params.unitId
+      )
       conceptIds = distinctConcepts.map(c => c.id)
     }
 
@@ -232,11 +247,11 @@ export class PaymentFlowController {
     const ctx = new HttpContext<unknown, unknown, { gatewayType: string }>(c)
     const { gatewayType } = ctx.params
 
-    if (!this.deps.gatewayManager.hasAdapter(gatewayType as any)) {
+    if (!this.deps.gatewayManager.hasAdapter(gatewayType as TGatewayType)) {
       return ctx.ok({ data: { available: false, message: 'Gateway no configurado' } })
     }
 
-    const adapter = this.deps.gatewayManager.getAdapter(gatewayType as any)
+    const adapter = this.deps.gatewayManager.getAdapter(gatewayType as TGatewayType)
 
     // BNC adapter has a healthCheck method
     if ('healthCheck' in adapter && typeof adapter.healthCheck === 'function') {
@@ -261,7 +276,7 @@ export class PaymentFlowController {
 
   private handleServiceError(
     ctx: HttpContext,
-    result: { success: false; error: string; code: string },
+    result: { success: false; error: string; code: string }
   ): Response | Promise<Response> {
     switch (result.code) {
       case 'NOT_FOUND':

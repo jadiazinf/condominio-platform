@@ -28,15 +28,16 @@ export class PaymentGatewayManager {
     const stripe = new StripePaymentAdapter()
 
     // BNC adapter — initialized only when env vars are present
-    const bncConfig = env.BNC_API_BASE_URL && env.BNC_CLIENT_GUID && env.BNC_MASTER_KEY && env.BNC_TERMINAL
-      ? {
-          baseUrl: env.BNC_API_BASE_URL,
-          clientGUID: env.BNC_CLIENT_GUID,
-          masterKey: env.BNC_MASTER_KEY,
-          terminal: env.BNC_TERMINAL,
-          sandbox: env.BNC_SANDBOX,
-        }
-      : undefined
+    const bncConfig =
+      env.BNC_API_BASE_URL && env.BNC_CLIENT_GUID && env.BNC_MASTER_KEY && env.BNC_TERMINAL
+        ? {
+            baseUrl: env.BNC_API_BASE_URL,
+            clientGUID: env.BNC_CLIENT_GUID,
+            masterKey: env.BNC_MASTER_KEY,
+            terminal: env.BNC_TERMINAL,
+            sandbox: env.BNC_SANDBOX,
+          }
+        : undefined
     const bnc = new BncPaymentAdapter(bncConfig, env.BNC_WEBHOOK_API_KEY)
 
     // Map gateway types to adapters

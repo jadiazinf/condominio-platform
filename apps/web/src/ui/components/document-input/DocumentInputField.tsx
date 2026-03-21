@@ -6,15 +6,16 @@ import { DocumentInput, type IDocumentInputProps, type TIdDocumentType } from '.
 
 import { getTranslatedError } from '@/utils/formErrors'
 
-interface IDocumentInputFieldProps extends Omit<
-  IDocumentInputProps,
-  | 'documentType'
-  | 'documentNumber'
-  | 'onDocumentTypeChange'
-  | 'onDocumentNumberChange'
-  | 'documentTypeError'
-  | 'documentNumberError'
-> {
+interface IDocumentInputFieldProps
+  extends Omit<
+    IDocumentInputProps,
+    | 'documentType'
+    | 'documentNumber'
+    | 'onDocumentTypeChange'
+    | 'onDocumentNumberChange'
+    | 'documentTypeError'
+    | 'documentNumberError'
+  > {
   documentTypeFieldName: string
   documentNumberFieldName: string
   translateError?: (message: string | undefined) => string | undefined

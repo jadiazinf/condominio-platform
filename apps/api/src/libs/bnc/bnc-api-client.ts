@@ -27,7 +27,7 @@ export class BncApiError extends Error {
     public readonly bncCode: string,
     public readonly bncMessage: string,
     public readonly retryable: boolean,
-    public readonly requiresReauth: boolean,
+    public readonly requiresReauth: boolean
   ) {
     super(message)
     this.name = 'BncApiError'
@@ -46,7 +46,10 @@ export class BncApiError extends Error {
 export class BncApiClient {
   private readonly _fetch: typeof fetch
 
-  constructor(private readonly config: IBncConfig, fetchFn?: typeof fetch) {
+  constructor(
+    private readonly config: IBncConfig,
+    fetchFn?: typeof fetch
+  ) {
     this._fetch = fetchFn ?? globalThis.fetch
   }
 
@@ -56,10 +59,9 @@ export class BncApiClient {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const response = await this.fetchWithTimeout(
-        `${this.config.baseUrl}/api/welcome/home`,
-        { method: 'GET' },
-      )
+      const response = await this.fetchWithTimeout(`${this.config.baseUrl}/api/welcome/home`, {
+        method: 'GET',
+      })
 
       return response.ok
     } catch {
@@ -78,16 +80,13 @@ export class BncApiClient {
     const payload = JSON.stringify({ ClientGUID: this.config.clientGUID })
     const envelope = this.buildEnvelope(payload, this.config.masterKey)
 
-    const response = await this.fetchWithTimeout(
-      `${this.config.baseUrl}/api/Auth/LogOn`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(envelope),
-      },
-    )
+    const response = await this.fetchWithTimeout(`${this.config.baseUrl}/api/Auth/LogOn`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(envelope),
+    })
 
-    const data: IBncResponseEnvelope = await response.json()
+    const data = (await response.json()) as IBncResponseEnvelope
 
     if (data.status !== 'OK') {
       const code = extractErrorCode(data.message)
@@ -98,7 +97,7 @@ export class BncApiClient {
         code,
         errorInfo.message,
         errorInfo.retryable,
-        errorInfo.requiresReauth ?? false,
+        errorInfo.requiresReauth ?? false
       )
     }
 
@@ -115,11 +114,7 @@ export class BncApiClient {
    * POST /api/MobPayment/SendC2P
    */
   async sendC2P(request: IC2PRequest, workingKey: string): Promise<IC2PResponse> {
-    return this.sendEncryptedRequest<IC2PResponse>(
-      '/api/MobPayment/SendC2P',
-      request,
-      workingKey,
-    )
+    return this.sendEncryptedRequest<IC2PResponse>('/api/MobPayment/SendC2P', request, workingKey)
   }
 
   /**
@@ -127,11 +122,7 @@ export class BncApiClient {
    * POST /api/MobPayment/ReverseC2P
    */
   async reverseC2P(request: IC2PReverseRequest, workingKey: string): Promise<unknown> {
-    return this.sendEncryptedRequest(
-      '/api/MobPayment/ReverseC2P',
-      request,
-      workingKey,
-    )
+    return this.sendEncryptedRequest('/api/MobPayment/ReverseC2P', request, workingKey)
   }
 
   /**
@@ -139,11 +130,7 @@ export class BncApiClient {
    * POST /api/Transaction/Send
    */
   async sendVPOS(request: IVPOSRequest, workingKey: string): Promise<IVPOSResponse> {
-    return this.sendEncryptedRequest<IVPOSResponse>(
-      '/api/Transaction/Send',
-      request,
-      workingKey,
-    )
+    return this.sendEncryptedRequest<IVPOSResponse>('/api/Transaction/Send', request, workingKey)
   }
 
   /**
@@ -154,12 +141,12 @@ export class BncApiClient {
    */
   async getAccountHistory(
     request: IAccountHistoryRequest,
-    workingKey: string,
+    workingKey: string
   ): Promise<IAccountHistoryEntry[]> {
     return this.sendEncryptedRequest<IAccountHistoryEntry[]>(
       '/api/Position/HistoryByDate',
       request,
-      workingKey,
+      workingKey
     )
   }
 
@@ -168,11 +155,7 @@ export class BncApiClient {
    * POST /api/Services/BCVRates
    */
   async getBCVRates(workingKey: string): Promise<IBCVRatesResponse> {
-    return this.sendEncryptedRequest<IBCVRatesResponse>(
-      '/api/Services/BCVRates',
-      {},
-      workingKey,
-    )
+    return this.sendEncryptedRequest<IBCVRatesResponse>('/api/Services/BCVRates', {}, workingKey)
   }
 
   /**
@@ -182,23 +165,20 @@ export class BncApiClient {
   private async sendEncryptedRequest<T>(
     path: string,
     payload: unknown,
-    workingKey: string,
+    workingKey: string
   ): Promise<T> {
     const jsonPayload = JSON.stringify(payload)
     const envelope = this.buildEnvelope(jsonPayload, workingKey)
 
     logger.debug(`[BNC] Sending request to ${path}`)
 
-    const response = await this.fetchWithTimeout(
-      `${this.config.baseUrl}${path}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(envelope),
-      },
-    )
+    const response = await this.fetchWithTimeout(`${this.config.baseUrl}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(envelope),
+    })
 
-    const data: IBncResponseEnvelope = await response.json()
+    const data = (await response.json()) as IBncResponseEnvelope
 
     if (data.status !== 'OK') {
       const code = extractErrorCode(data.message)
@@ -211,7 +191,7 @@ export class BncApiClient {
         code,
         errorInfo.message,
         errorInfo.retryable,
-        errorInfo.requiresReauth ?? false,
+        errorInfo.requiresReauth ?? false
       )
     }
 
@@ -226,9 +206,7 @@ export class BncApiClient {
   private buildEnvelope(jsonPayload: string, passphrase: string): IBncRequestEnvelope {
     const reference = generateReference()
     const encryptedValue = encrypt(jsonPayload, passphrase)
-    const validation = sha256Hash(
-      this.config.clientGUID + reference + encryptedValue,
-    )
+    const validation = sha256Hash(this.config.clientGUID + reference + encryptedValue)
 
     return {
       ClientGUID: this.config.clientGUID,
@@ -243,10 +221,7 @@ export class BncApiClient {
    * Wrapper around fetch with timeout support.
    * Venezuelan banking APIs can be slow — uses 30s timeout.
    */
-  private async fetchWithTimeout(
-    url: string,
-    options: RequestInit,
-  ): Promise<Response> {
+  private async fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
 

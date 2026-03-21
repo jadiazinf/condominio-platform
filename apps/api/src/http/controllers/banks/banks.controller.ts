@@ -33,7 +33,8 @@ export class BanksController extends BaseController<TBank, TBankCreate, Partial<
             ESystemRole.ADMIN,
             ESystemRole.ACCOUNTANT,
             ESystemRole.SUPPORT,
-            ESystemRole.VIEWER
+            ESystemRole.VIEWER,
+            ESystemRole.USER
           ),
           queryValidator(banksQuerySchema),
         ],

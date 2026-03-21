@@ -155,6 +155,20 @@ export class BankAccountsRepository
   }
 
   /**
+   * Batch: retrieves multiple bank accounts by IDs.
+   */
+  async getByIds(ids: string[]): Promise<TBankAccount[]> {
+    if (ids.length === 0) return []
+
+    const results = await this.db
+      .select()
+      .from(bankAccounts)
+      .where(and(inArray(bankAccounts.id, ids), eq(bankAccounts.isActive, true)))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
    * Get a bank account by ID with its assigned condominiums and user relations.
    */
   async getByIdWithCondominiums(

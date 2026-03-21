@@ -1,7 +1,5 @@
-import { useApiMutation, useApiQuery } from './use-api-query'
-import { getHttpClient } from '../client/http-client'
+import { useApiQuery, useApiMutation } from './use-api-query'
 import type { TApiDataResponse } from '../types/api-responses'
-import type { ApiResponse } from '../types/http'
 import type { TPayment } from '@packages/domain'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -26,6 +24,8 @@ export interface IPayableQuotaGroup {
     name: string
     conceptType: string
     currencyId: string
+    currencyCode: string
+    currencySymbol: string
     allowsPartialPayment: boolean
   }
   quotas: Array<{
@@ -50,6 +50,12 @@ export interface IPayableBankAccount {
   bankCode: string
   isBnc: boolean
   acceptedPaymentMethods: string[]
+  accountHolderName: string
+  accountNumber: string
+  accountType: string
+  identityDocType: string
+  identityDocNumber: string
+  phoneNumber: string | null
 }
 
 export interface IPayableQuotasResponse {
@@ -85,6 +91,9 @@ export interface IInitiatePaymentInput {
   receiptNumber?: string
   receiptUrl?: string
   notes?: string
+  senderPhone?: string
+  senderBankCode?: string
+  senderDocument?: string
   c2pData?: {
     debtorBankCode: string
     debtorCellPhone: string
@@ -126,53 +135,32 @@ const BASE_PATH = '/condominium/payment-flow'
  * Fetches payable quotas for a unit, grouped by payment concept.
  */
 export function usePayableQuotas(unitId: string, conceptIds: string[] = [], enabled = true) {
-  return useApiQuery<TApiDataResponse<IPayableQuotasResponse>>(
-    paymentFlowKeys.payableQuotas(unitId, conceptIds),
-    async () => {
-      const client = getHttpClient()
-      const query = conceptIds.length > 0 ? `?conceptIds=${conceptIds.join(',')}` : ''
-      return client.get(`${BASE_PATH}/payable-quotas/${unitId}${query}`)
-    },
-    { enabled: enabled && !!unitId },
-  )
+  const query = conceptIds.length > 0 ? `?conceptIds=${conceptIds.join(',')}` : ''
+  return useApiQuery<TApiDataResponse<IPayableQuotasResponse>>({
+    queryKey: paymentFlowKeys.payableQuotas(unitId, conceptIds),
+    path: `${BASE_PATH}/payable-quotas/${unitId}${query}`,
+    enabled: enabled && !!unitId,
+  })
 }
 
 /**
  * Validates a quota selection before payment.
  */
-export function useValidateQuotaSelection(options?: {
-  onSuccess?: (data: ApiResponse<TApiDataResponse<IValidateSelectionResponse>>) => void
-  onError?: (error: Error) => void
-}) {
-  return useApiMutation<TApiDataResponse<IValidateSelectionResponse>, IValidateSelectionInput>(
-    async (input) => {
-      const client = getHttpClient()
-      return client.post(`${BASE_PATH}/validate-selection`, input)
-    },
-    {
-      onSuccess: options?.onSuccess,
-      onError: options?.onError,
-    },
-  )
+export function useValidateQuotaSelection() {
+  return useApiMutation<TApiDataResponse<IValidateSelectionResponse>, IValidateSelectionInput>({
+    path: `${BASE_PATH}/validate-selection`,
+    method: 'POST',
+  })
 }
 
 /**
  * Initiates a payment (BNC C2P/VPOS or manual registration).
  */
-export function useInitiatePayment(options?: {
-  onSuccess?: (data: ApiResponse<TApiDataResponse<IInitiatePaymentResponse>>) => void
-  onError?: (error: Error) => void
-}) {
-  return useApiMutation<TApiDataResponse<IInitiatePaymentResponse>, IInitiatePaymentInput>(
-    async (input) => {
-      const client = getHttpClient()
-      return client.post(`${BASE_PATH}/initiate`, input)
-    },
-    {
-      onSuccess: options?.onSuccess,
-      onError: options?.onError,
-    },
-  )
+export function useInitiatePayment() {
+  return useApiMutation<TApiDataResponse<IInitiatePaymentResponse>, IInitiatePaymentInput>({
+    path: `${BASE_PATH}/initiate`,
+    method: 'POST',
+  })
 }
 
 /**
@@ -180,15 +168,10 @@ export function useInitiatePayment(options?: {
  * Refetches every 30 seconds when enabled.
  */
 export function useGatewayHealth(gatewayType: string, enabled = true) {
-  return useApiQuery<TApiDataResponse<IGatewayHealthResponse>>(
-    paymentFlowKeys.gatewayHealth(gatewayType),
-    async () => {
-      const client = getHttpClient()
-      return client.get(`${BASE_PATH}/gateway-health/${gatewayType}`)
-    },
-    {
-      enabled: enabled && !!gatewayType,
-      refetchInterval: 30_000,
-    },
-  )
+  return useApiQuery<TApiDataResponse<IGatewayHealthResponse>>({
+    queryKey: paymentFlowKeys.gatewayHealth(gatewayType),
+    path: `${BASE_PATH}/gateway-health/${gatewayType}`,
+    enabled: enabled && !!gatewayType,
+    refetchInterval: 30_000,
+  })
 }

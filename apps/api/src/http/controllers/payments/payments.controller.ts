@@ -91,6 +91,24 @@ const PaginatedByUnitQuerySchema = z.object({
 
 type TPaginatedByUnitQuery = z.infer<typeof PaginatedByUnitQuerySchema>
 
+const PaginatedByUserQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
+    .optional(),
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
+    .optional(),
+  status: z
+    .enum(['pending', 'pending_verification', 'completed', 'failed', 'refunded', 'rejected'])
+    .optional(),
+})
+
+type TPaginatedByUserQuery = z.infer<typeof PaginatedByUserQuerySchema>
+
 const DateRangeQuerySchema = z.object({
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)'),
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)'),
@@ -236,8 +254,19 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         handler: this.getByUserId,
         middlewares: [
           authMiddleware,
-          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.USER),
           paramsValidator(UserIdParamSchema),
+        ],
+      },
+      {
+        method: 'get',
+        path: '/user/:userId/paginated',
+        handler: this.getByUserIdPaginated,
+        middlewares: [
+          authMiddleware,
+          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT, ESystemRole.USER),
+          paramsValidator(UserIdParamSchema),
+          queryValidator(PaginatedByUserQuerySchema),
         ],
       },
       {
@@ -432,6 +461,24 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     const payments = await this.paymentsRepository.getByUserId(ctx.params.userId, condominiumId)
     return ctx.ok({ data: payments })
+  }
+
+  private getByUserIdPaginated = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, TPaginatedByUserQuery, TUserIdParam>(c)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    const result = await this.paymentsRepository.listPaginatedByUser(
+      ctx.params.userId,
+      {
+        page: ctx.query.page,
+        limit: ctx.query.limit,
+        startDate: ctx.query.startDate,
+        endDate: ctx.query.endDate,
+        status: ctx.query.status,
+      },
+      condominiumId
+    )
+
+    return ctx.ok(result)
   }
 
   private getByUnitIdPaginated = async (c: Context): Promise<Response> => {

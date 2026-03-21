@@ -96,7 +96,7 @@ describe('InitiatePaymentFlowService', () => {
       paymentsRepo as never,
       applyPaymentService as never,
       gatewayManager as never,
-      gatewayTransactionsRepo as never,
+      gatewayTransactionsRepo as never
     )
   })
 
@@ -112,6 +112,8 @@ describe('InitiatePaymentFlowService', () => {
         paymentDate: '2026-03-20',
         receiptNumber: 'REF-123',
         bankAccountId: 'ba-1',
+        senderBankCode: '0102',
+        senderDocument: 'V12345678',
       })
 
       expect(result.success).toBe(true)
@@ -280,7 +282,14 @@ describe('InitiatePaymentFlowService', () => {
       validateService.execute.mockResolvedValue(
         createMockValidationResult({
           commonBankAccounts: [
-            { id: 'ba-other', displayName: 'Other', bankName: 'Other', bankCode: '0134', isBnc: false, acceptedPaymentMethods: ['transfer'] },
+            {
+              id: 'ba-other',
+              displayName: 'Other',
+              bankName: 'Other',
+              bankCode: '0134',
+              isBnc: false,
+              acceptedPaymentMethods: ['transfer'],
+            },
           ],
         })
       )

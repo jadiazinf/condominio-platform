@@ -6,10 +6,8 @@ import { CurrencyInput, type ICurrencyInputProps } from './CurrencyInput'
 
 import { getTranslatedError } from '@/utils/formErrors'
 
-interface ICurrencyInputFieldProps extends Omit<
-  ICurrencyInputProps,
-  'value' | 'onValueChange' | 'isInvalid'
-> {
+interface ICurrencyInputFieldProps
+  extends Omit<ICurrencyInputProps, 'value' | 'onValueChange' | 'isInvalid'> {
   name: string
   translateError?: (message: string | undefined) => string | undefined
 }

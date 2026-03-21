@@ -654,6 +654,7 @@ export {
   getPaymentsPendingVerification,
   getPaymentByNumber,
   getPaymentsByUser,
+  getPaymentsByUserPaginated,
   getPaymentsByUnit,
   getPaymentsByStatus,
   getPaymentsByDateRange,

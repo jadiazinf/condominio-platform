@@ -38,6 +38,10 @@ export interface IInitiatePaymentInput {
   notes?: string
   c2pData?: IC2PData
   vposData?: IVPOSData
+  // Manual mobile_payment sender info
+  senderPhone?: string
+  senderBankCode?: string
+  senderDocument?: string
 }
 
 export interface IInitiatePaymentOutput {
@@ -65,12 +69,10 @@ export class InitiatePaymentFlowService {
     private readonly paymentsRepo: PaymentsRepository,
     private readonly applyPaymentService: ApplyPaymentToQuotaService,
     private readonly gatewayManager: PaymentGatewayManager,
-    private readonly gatewayTransactionsRepo: GatewayTransactionsRepository,
+    private readonly gatewayTransactionsRepo: GatewayTransactionsRepository
   ) {}
 
-  async execute(
-    input: IInitiatePaymentInput,
-  ): Promise<TServiceResult<IInitiatePaymentOutput>> {
+  async execute(input: IInitiatePaymentInput): Promise<TServiceResult<IInitiatePaymentOutput>> {
     // 1. Validate quota selection
     const validation = await this.validateService.execute({
       unitId: input.unitId,
@@ -87,7 +89,10 @@ export class InitiatePaymentFlowService {
     // 2. Validate bank account is in the common set
     const selectedBank = commonBankAccounts.find(ba => ba.id === input.bankAccountId)
     if (!selectedBank) {
-      return failure('La cuenta bancaria seleccionada no es válida para estos conceptos', 'BAD_REQUEST')
+      return failure(
+        'La cuenta bancaria seleccionada no es válida para estos conceptos',
+        'BAD_REQUEST'
+      )
     }
 
     // 3. Duplicate receipt number check (manual flow)
@@ -96,12 +101,18 @@ export class InitiatePaymentFlowService {
       if (existing.length > 0) {
         return failure(
           `Ya existe un pago registrado con la referencia "${input.receiptNumber}"`,
-          'CONFLICT',
+          'CONFLICT'
         )
       }
     }
 
-    // 4. Route to the appropriate flow
+    // 4. Validate method-specific required fields
+    const methodValidation = this.validateMethodFields(input)
+    if (!methodValidation.success) {
+      return failure(methodValidation.error, methodValidation.code)
+    }
+
+    // 5. Route to the appropriate flow
     if (input.method === 'manual') {
       return this.handleManualFlow(input, total, currencyId, validatedQuotas)
     }
@@ -113,11 +124,79 @@ export class InitiatePaymentFlowService {
     return failure(`Método de pago no soportado: ${input.method}`, 'BAD_REQUEST')
   }
 
+  private validateMethodFields(
+    input: IInitiatePaymentInput
+  ): { success: true } | { success: false; error: string; code: 'BAD_REQUEST' } {
+    if (input.method === 'manual') {
+      const pm = input.paymentMethod
+
+      // transfer and mobile_payment require receipt number
+      if ((pm === 'transfer' || pm === 'mobile_payment') && !input.receiptNumber) {
+        return {
+          success: false,
+          error: 'El número de referencia es requerido para este método de pago',
+          code: 'BAD_REQUEST',
+        }
+      }
+
+      // transfer and mobile_payment require sender bank and document
+      if (pm === 'transfer' || pm === 'mobile_payment') {
+        if (!input.senderBankCode) {
+          return { success: false, error: 'El banco del emisor es requerido', code: 'BAD_REQUEST' }
+        }
+        if (!input.senderDocument) {
+          return { success: false, error: 'La cédula del emisor es requerida', code: 'BAD_REQUEST' }
+        }
+      }
+
+      // mobile_payment additionally requires sender phone
+      if (pm === 'mobile_payment') {
+        if (!input.senderPhone) {
+          return {
+            success: false,
+            error: 'El teléfono del emisor es requerido para pago móvil',
+            code: 'BAD_REQUEST',
+          }
+        }
+      }
+    }
+
+    if (input.method === 'c2p') {
+      if (!input.c2pData) {
+        return { success: false, error: 'Faltan los datos de pago C2P', code: 'BAD_REQUEST' }
+      }
+      const { debtorBankCode, debtorCellPhone, debtorID, token } = input.c2pData
+      if (!debtorBankCode || !debtorCellPhone || !debtorID || !token) {
+        return {
+          success: false,
+          error: 'Faltan campos requeridos de C2P (teléfono, banco, cédula, token)',
+          code: 'BAD_REQUEST',
+        }
+      }
+    }
+
+    if (input.method === 'vpos') {
+      if (!input.vposData) {
+        return { success: false, error: 'Faltan los datos de tarjeta VPOS', code: 'BAD_REQUEST' }
+      }
+      const { cardNumber, cardHolderName, cvv } = input.vposData
+      if (!cardNumber || !cardHolderName || !cvv) {
+        return {
+          success: false,
+          error: 'Faltan campos requeridos de tarjeta (número, titular, CVV)',
+          code: 'BAD_REQUEST',
+        }
+      }
+    }
+
+    return { success: true }
+  }
+
   private async handleManualFlow(
     input: IInitiatePaymentInput,
     total: string,
     currencyId: string,
-    validatedQuotas: { quotaId: string; amount: string }[],
+    validatedQuotas: { quotaId: string; amount: string }[]
   ): Promise<TServiceResult<IInitiatePaymentOutput>> {
     const paymentData: TPaymentCreate = {
       paymentNumber: null,
@@ -133,6 +212,9 @@ export class InitiatePaymentFlowService {
       paymentDetails: {
         quotas: validatedQuotas,
         bankAccountId: input.bankAccountId,
+        ...(input.senderPhone && { senderPhone: input.senderPhone }),
+        ...(input.senderBankCode && { senderBankCode: input.senderBankCode }),
+        ...(input.senderDocument && { senderDocument: input.senderDocument }),
       },
       paymentDate: input.paymentDate,
       status: 'pending_verification',
@@ -156,7 +238,7 @@ export class InitiatePaymentFlowService {
     total: string,
     currencyId: string,
     validatedQuotas: { quotaId: string; amount: string }[],
-    selectedBank: { id: string; bankCode: string; isBnc: boolean },
+    _selectedBank: { id: string; bankCode: string; isBnc: boolean }
   ): Promise<TServiceResult<IInitiatePaymentOutput>> {
     // Create payment record first (status: pending)
     const paymentData: TPaymentCreate = {
@@ -218,7 +300,7 @@ export class InitiatePaymentFlowService {
         currencyCode: 'VES',
         metadata,
       },
-      {},
+      {}
     )
 
     // Record gateway transaction (audit)
@@ -234,9 +316,11 @@ export class InitiatePaymentFlowService {
       maxAttempts: 1,
       lastAttemptAt: new Date(),
       verifiedAt: gatewayResult.status === 'completed' ? new Date() : null,
-      errorMessage: gatewayResult.status === 'failed'
-        ? (gatewayResult.rawResponse as Record<string, unknown>).bncMessage as string ?? 'BNC payment failed'
-        : null,
+      errorMessage:
+        gatewayResult.status === 'failed'
+          ? (((gatewayResult.rawResponse as Record<string, unknown>).bncMessage as string) ??
+            'BNC payment failed')
+          : null,
     })
 
     // Handle result
@@ -274,12 +358,12 @@ export class InitiatePaymentFlowService {
 
     logger.warn(
       { paymentId: payment.id, bncCode: rawResponse.bncCode },
-      '[InitiatePayment] BNC payment failed',
+      '[InitiatePayment] BNC payment failed'
     )
 
     return failure(
       (rawResponse.bncMessage as string) ?? 'Error al procesar el pago con el banco',
-      'BAD_REQUEST',
+      'BAD_REQUEST'
     )
   }
 }

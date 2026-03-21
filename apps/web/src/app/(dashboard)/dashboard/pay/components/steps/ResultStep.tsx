@@ -1,9 +1,9 @@
 'use client'
 
+import type { IPaymentWizardState } from '../PaymentWizardClient'
+
 import Link from 'next/link'
 import { CheckCircle2, Clock, XCircle } from 'lucide-react'
-
-import type { IPaymentWizardState } from '../PaymentWizardClient'
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'

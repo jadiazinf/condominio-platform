@@ -1,7 +1,7 @@
 import { Receipt, CheckCircle2, Clock, XCircle, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
-import { Card, CardHeader, CardBody, CardFooter } from '@/ui/components/card'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
 
@@ -42,7 +42,6 @@ const statusConfig: Record<
 
 export function RecentPayments({ payments, maxItems = 3, translations: t }: RecentPaymentsProps) {
   const displayedPayments = payments.slice(0, maxItems)
-  const hasMore = payments.length > maxItems
 
   return (
     <Card>
@@ -51,6 +50,16 @@ export function RecentPayments({ payments, maxItems = 3, translations: t }: Rece
           <Receipt className="text-default-500" size={20} />
           <h3 className="text-lg font-semibold">{t.title}</h3>
         </div>
+        <Button
+          as={Link}
+          color="primary"
+          endContent={<ChevronRight size={14} />}
+          href="/dashboard/my-payments"
+          size="sm"
+          variant="light"
+        >
+          {t.viewAll}
+        </Button>
       </CardHeader>
       <CardBody className="px-6 py-4">
         {payments.length === 0 ? (
@@ -96,20 +105,6 @@ export function RecentPayments({ payments, maxItems = 3, translations: t }: Rece
           </div>
         )}
       </CardBody>
-      {hasMore && (
-        <CardFooter className="px-6 pb-4 pt-0 justify-center">
-          <Button
-            as={Link}
-            className="w-full"
-            color="primary"
-            endContent={<ChevronRight size={16} />}
-            href="/dashboard/my-payments"
-            variant="light"
-          >
-            {t.viewAll}
-          </Button>
-        </CardFooter>
-      )}
     </Card>
   )
 }

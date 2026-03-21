@@ -1,4 +1,4 @@
-import { and, eq, ilike, sql, desc } from 'drizzle-orm'
+import { and, eq, ilike, sql, desc, inArray } from 'drizzle-orm'
 import type { SQL } from 'drizzle-orm'
 import type {
   TPaymentConcept,
@@ -125,6 +125,20 @@ export class PaymentConceptsRepository
     if (dto.createdBy !== undefined) values.createdBy = dto.createdBy
 
     return values
+  }
+
+  /**
+   * Batch: retrieves multiple payment concepts by IDs.
+   */
+  async getByIds(ids: string[]): Promise<TPaymentConcept[]> {
+    if (ids.length === 0) return []
+
+    const results = await this.db
+      .select()
+      .from(paymentConcepts)
+      .where(and(inArray(paymentConcepts.id, ids), eq(paymentConcepts.isActive, true)))
+
+    return results.map(record => this.mapToEntity(record))
   }
 
   /**

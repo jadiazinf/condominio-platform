@@ -368,7 +368,9 @@ export function ServicesStep({
                       className="shrink-0"
                       color={hasExecution ? 'success' : 'primary'}
                       size="sm"
-                      startContent={hasExecution ? <CheckCircle2 size={14} /> : <Receipt size={14} />}
+                      startContent={
+                        hasExecution ? <CheckCircle2 size={14} /> : <Receipt size={14} />
+                      }
                       variant="flat"
                       onPress={() =>
                         setExecutionTarget({

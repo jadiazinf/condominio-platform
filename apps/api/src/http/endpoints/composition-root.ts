@@ -117,6 +117,7 @@ import {
   WizardDraftsController,
 } from '../controllers'
 
+import { InternalController } from '../controllers/internal'
 import { BanksController } from '../controllers/banks/banks.controller'
 import { McCondominiumServicesController } from '../controllers/condominium-services/mc-condominium-services.controller'
 import { McReserveFundController } from '../controllers/reserve-fund'
@@ -433,6 +434,7 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         conceptsRepo: r.paymentConcepts,
         conceptBankAccountsRepo: r.paymentConceptBankAccounts,
         bankAccountsRepo: r.bankAccounts,
+        currenciesRepo: r.currencies,
         paymentsRepo: r.payments,
         gatewayTransactionsRepo: r.gatewayTransactions,
         gatewayManager,
@@ -444,7 +446,7 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
           r.quotaAdjustments,
           r.interestConfigurations,
           r.paymentConcepts,
-          r.paymentPendingAllocations,
+          r.paymentPendingAllocations
         ),
       }).createRouter(),
     },
@@ -704,6 +706,12 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
 
     // Health check
     { path: '/health', router: createHealthRouter() },
+
+    // Internal (inter-service communication, secured by INTERNAL_API_KEY)
+    {
+      path: '/internal',
+      router: new InternalController(r.notifications).createRouter(),
+    },
 
     // Webhooks (no auth — authenticated by gateway signature)
     {

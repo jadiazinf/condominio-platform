@@ -1,4 +1,4 @@
-import { describe, it, expect, mock, beforeEach } from 'bun:test'
+import { describe, it, expect } from 'bun:test'
 import { BncPaymentAdapter } from './bnc.adapter'
 import type { IBncConfig } from '@libs/bnc/types'
 
@@ -173,10 +173,7 @@ describe('BncPaymentAdapter', () => {
       const adapter = new BncPaymentAdapter()
 
       await expect(
-        adapter.initiatePayment(
-          { paymentId: 'p1', amount: '100', currencyCode: 'VES' },
-          {},
-        ),
+        adapter.initiatePayment({ paymentId: 'p1', amount: '100', currencyCode: 'VES' }, {})
       ).rejects.toThrow('BNC no configurado')
     })
 
@@ -191,8 +188,8 @@ describe('BncPaymentAdapter', () => {
             currencyCode: 'VES',
             metadata: { method: 'bitcoin' },
           },
-          {},
-        ),
+          {}
+        )
       ).rejects.toThrow('Unsupported BNC payment method')
     })
   })
@@ -206,7 +203,7 @@ describe('BncPaymentAdapter', () => {
           paymentId: 'p1',
           externalReference: 'REF123',
           gatewayConfiguration: {},
-        }),
+        })
       ).rejects.toThrow('BNC no configurado')
     })
   })

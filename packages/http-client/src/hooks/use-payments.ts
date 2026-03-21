@@ -418,6 +418,45 @@ export async function getPaymentsByUser(userId: string): Promise<TPayment[]> {
   return response.data.data
 }
 
+export async function getPaymentsByUserPaginated(
+  token: string,
+  userId: string,
+  query: {
+    page?: number
+    limit?: number
+    status?: string
+    startDate?: string
+    endDate?: string
+  } = {},
+  condominiumId?: string,
+  managementCompanyId?: string
+): Promise<TApiPaginatedResponse<TPayment>> {
+  const client = getHttpClient()
+
+  const params = new URLSearchParams()
+  if (query.page) params.set('page', String(query.page))
+  if (query.limit) params.set('limit', String(query.limit))
+  if (query.status) params.set('status', query.status)
+  if (query.startDate) params.set('startDate', query.startDate)
+  if (query.endDate) params.set('endDate', query.endDate)
+
+  const queryString = params.toString()
+  const path = `/condominium/payments/user/${userId}/paginated${queryString ? `?${queryString}` : ''}`
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  }
+  if (condominiumId) {
+    headers['x-condominium-id'] = condominiumId
+  }
+  if (managementCompanyId) {
+    headers['x-management-company-id'] = managementCompanyId
+  }
+
+  const response = await client.get<TApiPaginatedResponse<TPayment>>(path, { headers })
+  return response.data
+}
+
 export async function getPaymentsByUnit(unitId: string): Promise<TPayment[]> {
   const client = getHttpClient()
   const response = await client.get<TApiDataResponse<TPayment[]>>(

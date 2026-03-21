@@ -1,19 +1,23 @@
 'use client'
 
-import { useCallback } from 'react'
-import { useBanks } from '@packages/http-client'
-
 import type { IPaymentWizardState } from '../PaymentWizardClient'
+
+import { useCallback, useMemo, useState } from 'react'
+import { useBanks } from '@packages/http-client'
+import { Eye } from 'lucide-react'
+
+import { BankAccountDetailModal } from '../BankAccountDetailModal'
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
-import { Card, CardBody } from '@/ui/components/card'
 import { Input } from '@/ui/components/input'
 import { Select, type ISelectItem } from '@/ui/components/select'
+import { Autocomplete, type IAutocompleteItem } from '@/ui/components/autocomplete'
 import { DatePicker } from '@/ui/components/date-picker'
 import { Textarea } from '@/ui/components/textarea'
 import { Button } from '@/ui/components/button'
-import { Chip } from '@/ui/components/chip'
+import { PhoneInput } from '@/ui/components/phone-input'
+import { DocumentInput } from '@/ui/components/document-input'
 
 interface PaymentDetailsStepProps {
   state: IPaymentWizardState
@@ -21,12 +25,9 @@ interface PaymentDetailsStepProps {
 }
 
 export function PaymentDetailsStep({ state, onUpdate }: PaymentDetailsStepProps) {
-  const { t } = useTranslation()
-  const p = 'resident.pay.details'
-
   const update = useCallback(
     (updates: Partial<IPaymentWizardState>) => onUpdate(updates),
-    [onUpdate],
+    [onUpdate]
   )
 
   switch (state.method) {
@@ -54,16 +55,21 @@ function C2PDetails({
   const p = 'resident.pay.details.c2p'
 
   // Fetch Venezuelan banks for selector
-  const { data: banksData } = useBanks()
-  const banks = banksData?.data ?? []
+  const { data: banksData } = useBanks({ country: 'VE', accountCategory: 'national' })
+  const bankItems: IAutocompleteItem[] = useMemo(() => {
+    const banks = banksData?.data ?? []
 
-  const bankItems: ISelectItem[] = banks.map(b => ({
-    key: b.bankCode,
-    label: `${b.bankCode} - ${b.name}`,
-  }))
+    return banks
+      .filter(b => b.code)
+      .sort((a, b) => (a.code ?? '').localeCompare(b.code ?? ''))
+      .map(b => ({
+        key: b.code ?? b.id,
+        label: `${b.name} (${b.code})`,
+      }))
+  }, [banksData])
 
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col gap-6">
       <Typography className="font-semibold" variant="h4">
         {t(`${p}.title`)}
       </Typography>
@@ -71,38 +77,38 @@ function C2PDetails({
       {!state.c2pOtpRequested ? (
         <>
           {/* Phase 1: Debtor data */}
-          <Input
+          <PhoneInput
             isRequired
+            countryCode={state.c2pPhoneCountryCode}
             label={t(`${p}.phone`)}
-            placeholder={t(`${p}.phonePlaceholder`)}
-            type="tel"
-            value={state.c2pPhone}
-            onValueChange={v => onUpdate({ c2pPhone: v })}
+            phoneNumber={state.c2pPhoneNumber}
+            onCountryCodeChange={code => onUpdate({ c2pPhoneCountryCode: code ?? '+58' })}
+            onPhoneNumberChange={v => onUpdate({ c2pPhoneNumber: v })}
           />
 
-          <Select
+          <Autocomplete
             isRequired
             items={bankItems}
             label={t(`${p}.bank`)}
             placeholder={t(`${p}.bankPlaceholder`)}
             value={state.c2pBankCode}
-            onChange={key => onUpdate({ c2pBankCode: key ?? '' })}
+            onSelectionChange={key => onUpdate({ c2pBankCode: key?.toString() ?? '' })}
           />
 
-          <Input
+          <DocumentInput
             isRequired
+            documentNumber={state.c2pDocumentNumber}
+            documentType={state.c2pDocumentType as 'V' | 'E' | 'J' | 'G' | 'P' | null}
             label={t(`${p}.document`)}
-            placeholder={t(`${p}.documentPlaceholder`)}
-            value={state.c2pDocument}
-            onValueChange={v => onUpdate({ c2pDocument: v })}
+            onDocumentNumberChange={v => onUpdate({ c2pDocumentNumber: v })}
+            onDocumentTypeChange={type => onUpdate({ c2pDocumentType: type ?? 'V' })}
           />
 
           <Button
             color="primary"
-            isDisabled={!state.c2pPhone || !state.c2pBankCode || !state.c2pDocument}
+            isDisabled={!state.c2pPhoneNumber || !state.c2pBankCode || !state.c2pDocumentNumber}
             onPress={() => {
               // In the real flow this would call the backend to send C2P and get a token
-              // For now, simulate OTP request
               onUpdate({ c2pOtpRequested: true })
             }}
           >
@@ -123,7 +129,9 @@ function C2PDetails({
             <div className="grid gap-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-default-500">{t(`${p}.phone`)}</span>
-                <span>{state.c2pPhone}</span>
+                <span>
+                  {state.c2pPhoneCountryCode} {state.c2pPhoneNumber}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-default-500">{t(`${p}.bank`)}</span>
@@ -131,7 +139,9 @@ function C2PDetails({
               </div>
               <div className="flex justify-between">
                 <span className="text-default-500">{t(`${p}.document`)}</span>
-                <span>{state.c2pDocument}</span>
+                <span>
+                  {state.c2pDocumentType}-{state.c2pDocumentNumber}
+                </span>
               </div>
             </div>
           </div>
@@ -187,7 +197,7 @@ function VPOSDetails({
   ]
 
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col gap-6">
       <Typography className="font-semibold" variant="h4">
         {t(`${p}.title`)}
       </Typography>
@@ -202,6 +212,7 @@ function VPOSDetails({
           // Format with spaces every 4 digits
           const raw = v.replace(/\s/g, '').replace(/\D/g, '')
           const formatted = raw.replace(/(.{4})/g, '$1 ').trim()
+
           onUpdate({ vposCardNumber: formatted })
         }}
       />
@@ -223,6 +234,7 @@ function VPOSDetails({
           value={state.vposExpiry}
           onValueChange={v => {
             const raw = v.replace(/\D/g, '')
+
             if (raw.length <= 2) {
               onUpdate({ vposExpiry: raw })
             } else {
@@ -250,13 +262,13 @@ function VPOSDetails({
         onValueChange={v => onUpdate({ vposHolderName: v })}
       />
 
-      <Input
+      <DocumentInput
         isRequired
+        documentNumber={state.vposHolderIdNumber}
+        documentType={state.vposHolderIdType as 'V' | 'E' | 'J' | 'G' | 'P' | null}
         label={t(`${p}.holderId`)}
-        maxLength={9}
-        placeholder={t(`${p}.holderIdPlaceholder`)}
-        value={state.vposHolderId}
-        onValueChange={v => onUpdate({ vposHolderId: v.replace(/\D/g, '') })}
+        onDocumentNumberChange={v => onUpdate({ vposHolderIdNumber: v })}
+        onDocumentTypeChange={type => onUpdate({ vposHolderIdType: type ?? 'V' })}
       />
 
       <Select
@@ -284,33 +296,72 @@ function ManualDetails({
   const { t } = useTranslation()
   const p = 'resident.pay.details.manual'
 
-  const isTransferOrMobile = state.method === 'transfer' || state.method === 'mobile_payment'
+  const [showBankModal, setShowBankModal] = useState(false)
+
+  const isMobilePayment = state.method === 'mobile_payment'
+  const isTransfer = state.method === 'transfer'
+  const showReceipt = state.method !== 'cash'
+
+  // Fetch national Venezuelan banks for sender bank selector
+  const { data: banksData } = useBanks({ country: 'VE', accountCategory: 'national' })
+  const bankItems: IAutocompleteItem[] = useMemo(() => {
+    const banks = banksData?.data ?? []
+
+    return banks
+      .filter(b => b.code)
+      .sort((a, b) => (a.code ?? '').localeCompare(b.code ?? ''))
+      .map(b => ({
+        key: b.code ?? b.id,
+        label: `${b.name} (${b.code})`,
+      }))
+  }, [banksData])
+
+  // Method-specific title
+  const titleKey = `${p}.titles.${state.method}`
+  const title = t(titleKey) !== titleKey ? t(titleKey) : t(`${p}.title`)
 
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col gap-6">
       <Typography className="font-semibold" variant="h4">
-        {t(`${p}.title`)}
+        {title}
       </Typography>
 
-      {/* Bank account info card */}
-      {state.selectedBankAccount && (
-        <Card className="bg-default-50 dark:bg-default-100/50">
-          <CardBody className="p-4">
-            <Typography className="mb-2 text-sm font-medium text-default-500">
-              {t(`${p}.bankInfoDesc`)}
+      {/* Amount summary */}
+      {state.validationResult && (
+        <div className="rounded-lg bg-default-50 p-4 dark:bg-default-100/50">
+          <div className="flex items-center justify-between">
+            <Typography className="text-sm text-default-500">{t(`${p}.totalAmount`)}</Typography>
+            <Typography className="text-lg font-bold">
+              {state.quotaGroups[0]?.concept.currencySymbol ?? ''}{' '}
+              {new Intl.NumberFormat('es-VE', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(parseFloat(state.validationResult.total))}
             </Typography>
-            <div className="grid gap-1 text-sm">
-              <div className="flex justify-between">
-                <span className="text-default-500">Banco</span>
-                <span className="font-medium">{state.selectedBankAccount.bankName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-default-500">Cuenta</span>
-                <span className="font-medium">{state.selectedBankAccount.displayName}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
+          </div>
+        </div>
+      )}
+
+      {/* Bank account detail button — for transfer/mobile_payment */}
+      {(isTransfer || isMobilePayment) && state.selectedBankAccount && (
+        <>
+          <div className="flex justify-end">
+            <button
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded px-3 py-1.5 text-sm text-primary hover:bg-primary-50 dark:hover:bg-primary-900/20"
+              type="button"
+              onClick={() => setShowBankModal(true)}
+            >
+              <Eye size={16} />
+              {t(`${p}.viewBankDetails`)} — {state.selectedBankAccount.bankName}
+            </button>
+          </div>
+
+          <BankAccountDetailModal
+            bankAccount={state.selectedBankAccount}
+            isOpen={showBankModal}
+            onClose={() => setShowBankModal(false)}
+          />
+        </>
       )}
 
       <DatePicker
@@ -320,14 +371,53 @@ function ManualDetails({
         onChange={v => onUpdate({ manualPaymentDate: v })}
       />
 
-      <Input
-        isRequired={isTransferOrMobile}
-        description={isTransferOrMobile ? t(`${p}.receiptRequired`) : undefined}
-        label={t(`${p}.receiptNumber`)}
-        placeholder={t(`${p}.receiptNumberPlaceholder`)}
-        value={state.manualReceiptNumber}
-        onValueChange={v => onUpdate({ manualReceiptNumber: v })}
-      />
+      {/* Sender bank — for transfer and mobile_payment */}
+      {(isTransfer || isMobilePayment) && (
+        <Autocomplete
+          isRequired
+          items={bankItems}
+          label={t(`${p}.senderBank`)}
+          placeholder={t(`${p}.senderBankPlaceholder`)}
+          value={state.manualSenderBankCode}
+          onSelectionChange={key => onUpdate({ manualSenderBankCode: key?.toString() ?? '' })}
+        />
+      )}
+
+      {/* Sender document — for transfer and mobile_payment */}
+      {(isTransfer || isMobilePayment) && (
+        <DocumentInput
+          isRequired
+          documentNumber={state.manualSenderDocumentNumber}
+          documentType={state.manualSenderDocumentType as 'V' | 'E' | 'J' | 'G' | 'P' | null}
+          label={t(`${p}.senderDocument`)}
+          onDocumentNumberChange={v => onUpdate({ manualSenderDocumentNumber: v })}
+          onDocumentTypeChange={type => onUpdate({ manualSenderDocumentType: type ?? 'V' })}
+        />
+      )}
+
+      {/* Additional sender info — only for mobile_payment */}
+      {isMobilePayment && (
+        <PhoneInput
+          isRequired
+          countryCode={state.manualSenderPhoneCountryCode}
+          label={t(`${p}.senderPhone`)}
+          phoneNumber={state.manualSenderPhoneNumber}
+          onCountryCodeChange={code => onUpdate({ manualSenderPhoneCountryCode: code ?? '+58' })}
+          onPhoneNumberChange={v => onUpdate({ manualSenderPhoneNumber: v })}
+        />
+      )}
+
+      {showReceipt && (
+        <Input
+          description={isTransfer || isMobilePayment ? t(`${p}.receiptRequired`) : undefined}
+          inputMode="numeric"
+          isRequired={isTransfer || isMobilePayment}
+          label={t(`${p}.receiptNumber`)}
+          placeholder={t(`${p}.receiptNumberPlaceholder`)}
+          value={state.manualReceiptNumber}
+          onValueChange={v => onUpdate({ manualReceiptNumber: v.replace(/\D/g, '') })}
+        />
+      )}
 
       <Textarea
         label={t(`${p}.notes`)}

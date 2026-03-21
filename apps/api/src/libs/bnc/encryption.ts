@@ -13,7 +13,13 @@ const HASH_ALGORITHM = 'sha1'
  * as specified by BNC ESolutions API v2.1 (Rijndael / AES-256-CBC).
  */
 function deriveKeyAndIv(passphrase: string): { key: Buffer; iv: Buffer } {
-  const derived = pbkdf2Sync(passphrase, SALT, ITERATIONS, KEY_SIZE + IV_SIZE, HASH_ALGORITHM)
+  const derived = pbkdf2Sync(
+    passphrase,
+    SALT as unknown as Uint8Array,
+    ITERATIONS,
+    KEY_SIZE + IV_SIZE,
+    HASH_ALGORITHM
+  )
 
   return {
     key: derived.subarray(0, KEY_SIZE),
@@ -31,7 +37,11 @@ function deriveKeyAndIv(passphrase: string): { key: Buffer; iv: Buffer } {
  */
 export function encrypt(plaintext: string, passphrase: string): string {
   const { key, iv } = deriveKeyAndIv(passphrase)
-  const cipher = createCipheriv(ALGORITHM, key, iv)
+  const cipher = createCipheriv(
+    ALGORITHM,
+    key as unknown as Uint8Array,
+    iv as unknown as Uint8Array
+  )
 
   let encrypted = cipher.update(plaintext, 'utf8', 'base64')
   encrypted += cipher.final('base64')
@@ -49,7 +59,11 @@ export function encrypt(plaintext: string, passphrase: string): string {
  */
 export function decrypt(ciphertext: string, passphrase: string): string {
   const { key, iv } = deriveKeyAndIv(passphrase)
-  const decipher = createDecipheriv(ALGORITHM, key, iv)
+  const decipher = createDecipheriv(
+    ALGORITHM,
+    key as unknown as Uint8Array,
+    iv as unknown as Uint8Array
+  )
 
   let decrypted = decipher.update(ciphertext, 'base64', 'utf8')
   decrypted += decipher.final('utf8')

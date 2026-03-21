@@ -1,23 +1,19 @@
 'use client'
 
-import { useEffect, useCallback, useMemo } from 'react'
-import {
-  usePayableQuotas,
-  type IPayableQuotaGroup,
-} from '@packages/http-client'
-
 import type { IPaymentWizardState, IUnitOption } from '../PaymentWizardClient'
+
+import { useEffect, useCallback, useMemo } from 'react'
+import { usePayableQuotas, type IPayableQuotaGroup } from '@packages/http-client'
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Card, CardBody, CardHeader } from '@/ui/components/card'
 import { Checkbox } from '@/ui/components/checkbox'
 import { Chip } from '@/ui/components/chip'
-import { Input } from '@/ui/components/input'
+import { CurrencyInput } from '@/ui/components/input'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Spinner } from '@/ui/components/spinner'
 import { Divider } from '@/ui/components/divider'
-import { useToast } from '@/ui/components/toast'
 
 interface SelectQuotasStepProps {
   state: IPaymentWizardState
@@ -33,19 +29,18 @@ export function SelectQuotasStep({
   onUpdate,
 }: SelectQuotasStepProps) {
   const { t } = useTranslation()
-  const toast = useToast()
   const p = 'resident.pay.selectQuotas'
 
   // Fetch all payable quotas for the unit (empty conceptIds = backend fetches all)
   const { data: quotasData, isLoading } = usePayableQuotas(
     state.unitId,
     [], // Empty array triggers backend to auto-fetch all concepts for the unit
-    !!state.unitId,
+    !!state.unitId
   )
 
   const groups: IPayableQuotaGroup[] = useMemo(
-    () => quotasData?.data?.data?.groups ?? [],
-    [quotasData],
+    () => (quotasData as { data?: { groups?: IPayableQuotaGroup[] } })?.data?.groups ?? [],
+    [quotasData]
   )
 
   // Store groups in state for other steps to reference
@@ -57,15 +52,22 @@ export function SelectQuotasStep({
 
   // Pre-select quotas from URL params on first load
   useEffect(() => {
-    if (preselectedQuotaIds.length > 0 && groups.length > 0 && state.selectedQuotaIds.length === 0) {
+    if (
+      preselectedQuotaIds.length > 0 &&
+      groups.length > 0 &&
+      state.selectedQuotaIds.length === 0
+    ) {
       const validIds = preselectedQuotaIds.filter(id =>
-        groups.some(g => g.quotas.some(q => q.id === id)),
+        groups.some(g => g.quotas.some(q => q.id === id))
       )
+
       if (validIds.length > 0) {
         // Initialize amounts with full balances
         const amounts: Record<string, string> = {}
+
         for (const id of validIds) {
           const quota = groups.flatMap(g => g.quotas).find(q => q.id === id)
+
           if (quota) amounts[id] = quota.balance
         }
         onUpdate({ selectedQuotaIds: validIds, amounts })
@@ -80,7 +82,7 @@ export function SelectQuotasStep({
         key: u.unitId,
         label: `${u.unitNumber} - ${u.buildingName} (${u.condominiumName})`,
       })),
-    [unitOptions],
+    [unitOptions]
   )
 
   // Handle unit change
@@ -93,47 +95,31 @@ export function SelectQuotasStep({
         validationResult: null,
       })
     },
-    [onUpdate],
+    [onUpdate]
   )
 
-  // Toggle quota selection with oldest-first enforcement
+  // Toggle quota selection (simple toggle, oldest-first validated on "Continuar")
   const handleToggleQuota = useCallback(
     (quotaId: string, group: IPayableQuotaGroup) => {
       const isSelected = state.selectedQuotaIds.includes(quotaId)
-      const groupQuotas = group.quotas // already ordered oldest-first
-      const quotaIndex = groupQuotas.findIndex(q => q.id === quotaId)
 
       if (isSelected) {
-        // Deselecting: also deselect all newer quotas in this group
-        const idsToRemove = groupQuotas.slice(quotaIndex).map(q => q.id)
-        const newSelected = state.selectedQuotaIds.filter(id => !idsToRemove.includes(id))
+        const newSelected = state.selectedQuotaIds.filter(id => id !== quotaId)
         const newAmounts = { ...state.amounts }
-        for (const id of idsToRemove) delete newAmounts[id]
+
+        delete newAmounts[quotaId]
         onUpdate({ selectedQuotaIds: newSelected, amounts: newAmounts })
       } else {
-        // Selecting: auto-select all older quotas in this group (oldest-first rule)
-        const idsToAdd = groupQuotas.slice(0, quotaIndex + 1).map(q => q.id)
-        const newIds = idsToAdd.filter(id => !state.selectedQuotaIds.includes(id))
-
-        if (newIds.length > 1) {
-          toast.info(t(`${p}.oldestFirstWarning`))
-        }
-
-        const newAmounts = { ...state.amounts }
-        for (const id of newIds) {
-          if (!newAmounts[id]) {
-            const quota = groupQuotas.find(q => q.id === id)
-            if (quota) newAmounts[id] = quota.balance
-          }
-        }
+        const quota = group.quotas.find(q => q.id === quotaId)
+        const newAmounts = { ...state.amounts, [quotaId]: quota?.balance ?? '0' }
 
         onUpdate({
-          selectedQuotaIds: [...state.selectedQuotaIds, ...newIds],
+          selectedQuotaIds: [...state.selectedQuotaIds, quotaId],
           amounts: newAmounts,
         })
       }
     },
-    [state.selectedQuotaIds, state.amounts, onUpdate, toast, t],
+    [state.selectedQuotaIds, state.amounts, onUpdate]
   )
 
   // Handle amount change for a quota
@@ -143,22 +129,37 @@ export function SelectQuotasStep({
         amounts: { ...state.amounts, [quotaId]: value },
       })
     },
-    [state.amounts, onUpdate],
+    [state.amounts, onUpdate]
   )
 
-  // Calculate total
+  // Calculate total — use quota.balance as fallback (same as CurrencyInput display)
   const total = useMemo(() => {
     return state.selectedQuotaIds.reduce((sum, id) => {
-      const amount = parseFloat(state.amounts[id] ?? '0')
+      const quota = groups.flatMap(g => g.quotas).find(q => q.id === id)
+      const amount = parseFloat(state.amounts[id] ?? quota?.balance ?? '0')
+
       return sum + (isNaN(amount) ? 0 : amount)
     }, 0)
-  }, [state.selectedQuotaIds, state.amounts])
+  }, [state.selectedQuotaIds, state.amounts, groups])
 
-  // Determine currency from first selected quota
-  const currency = useMemo(() => {
+  // Determine currency symbol from first group
+  const currencySymbol = useMemo(() => {
     if (groups.length === 0) return ''
-    return groups[0]?.concept.currencyId ?? ''
+
+    return groups[0]?.concept.currencySymbol ?? '$'
   }, [groups])
+
+  // Format amount with locale
+  const formatAmount = useCallback((value: string | number) => {
+    const num = typeof value === 'string' ? parseFloat(value) : value
+
+    if (isNaN(num)) return '0,00'
+
+    return new Intl.NumberFormat('es-VE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(num)
+  }, [])
 
   if (!state.unitId && unitOptions.length > 1) {
     return (
@@ -251,7 +252,8 @@ export function SelectQuotasStep({
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
                             <Typography variant="body2">
-                              {quota.periodDescription ?? `${quota.periodMonth}/${quota.periodYear}`}
+                              {quota.periodDescription ??
+                                `${quota.periodMonth}/${quota.periodYear}`}
                             </Typography>
                             {isOverdue && (
                               <Chip color="danger" size="sm" variant="flat">
@@ -260,26 +262,32 @@ export function SelectQuotasStep({
                             )}
                           </div>
                           <Typography className="text-sm text-default-500">
-                            {t(`${p}.dueDate`)}: {new Date(quota.dueDate).toLocaleDateString()}
+                            {t(`${p}.dueDate`)}:{' '}
+                            {new Date(quota.dueDate + 'T00:00:00').toLocaleDateString('es-ES', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
                           </Typography>
                         </div>
 
                         <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
                           <Typography className="text-sm text-default-500">
-                            {t(`${p}.balance`)}: {parseFloat(quota.balance).toFixed(2)}
+                            {t(`${p}.pending`)}: {group.concept.currencySymbol ?? '$'}{' '}
+                            {formatAmount(quota.balance)}
                           </Typography>
 
                           {isSelected && (
-                            <div className="w-36">
+                            <div className="w-40">
                               {group.concept.allowsPartialPayment ? (
-                                <Input
-                                  inputMode="decimal"
+                                <CurrencyInput
+                                  currencySymbol={
+                                    <span className="text-default-400 text-sm">
+                                      {group.concept.currencySymbol ?? '$'}
+                                    </span>
+                                  }
                                   label={t(`${p}.amount`)}
-                                  max={parseFloat(quota.balance)}
-                                  min={0.01}
                                   size="sm"
-                                  step="0.01"
-                                  type="number"
                                   value={amount}
                                   onValueChange={v => handleAmountChange(quota.id, v)}
                                 />
@@ -289,7 +297,7 @@ export function SelectQuotasStep({
                                     {t(`${p}.amount`)}
                                   </Typography>
                                   <Typography className="font-semibold">
-                                    {parseFloat(quota.balance).toFixed(2)}
+                                    {formatAmount(quota.balance)}
                                   </Typography>
                                 </div>
                               )}
@@ -317,7 +325,10 @@ export function SelectQuotasStep({
             </Typography>
             <div className="text-right">
               <Typography className="text-sm text-default-500">{t(`${p}.total`)}</Typography>
-              <Typography className="text-lg font-bold">{total.toFixed(2)}</Typography>
+              <Typography className="text-lg font-bold">
+                {currencySymbol ? `${currencySymbol} ` : ''}
+                {formatAmount(total)}
+              </Typography>
             </div>
           </div>
         </div>

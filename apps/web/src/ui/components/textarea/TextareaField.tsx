@@ -6,10 +6,8 @@ import { Textarea, type ITextareaProps } from './Textarea'
 
 import { getTranslatedError } from '@/utils/formErrors'
 
-interface ITextareaFieldProps extends Omit<
-  ITextareaProps,
-  'value' | 'onValueChange' | 'isInvalid' | 'errorMessage'
-> {
+interface ITextareaFieldProps
+  extends Omit<ITextareaProps, 'value' | 'onValueChange' | 'isInvalid' | 'errorMessage'> {
   name: string
   translateError?: (message: string | undefined) => string | undefined
 }
