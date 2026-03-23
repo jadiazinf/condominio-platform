@@ -96,7 +96,8 @@
       "Bash(sed -i \"s/toBe\\(''Management company not found''\\)/toBe\\(''Management company not found.''\\)/\" apps/api/tests/http/controllers/management-companies.controller.test.ts)",
       "WebFetch(domain:documenter.getpostman.com)",
       "Bash(npx eslint:*)",
-      "Bash(find \"/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\(dashboard\\)\" -type f)"
+      "Bash(find \"/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\(dashboard\\)\" -type f)",
+      "Bash(ls /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-receipts/)"
     ],
     "additionalDirectories": [
       "/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/(dashboard)/dashboard/condominiums/[id]/reserve-fund",

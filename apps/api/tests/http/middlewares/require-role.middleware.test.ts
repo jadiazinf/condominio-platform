@@ -72,17 +72,28 @@ describe('requireRole middleware', () => {
     userRolesRepo = new UserRolesRepository(db)
 
     // Seed the five system roles (UPPERCASE names as required)
-    const superadminRole = await rolesRepo.create(
+    // Use findOrCreate pattern to avoid duplicate key errors in CI
+    const findOrCreateRole = async (data: ReturnType<typeof RoleFactory.systemRole>) => {
+      const existing = await rolesRepo.getByName(data.name)
+      if (existing) return existing
+      return rolesRepo.create(data)
+    }
+
+    const superadminRole = await findOrCreateRole(
       RoleFactory.systemRole({ name: ESystemRole.SUPERADMIN })
     )
-    const adminRole = await rolesRepo.create(RoleFactory.systemRole({ name: ESystemRole.ADMIN }))
-    const accountantRole = await rolesRepo.create(
+    const adminRole = await findOrCreateRole(
+      RoleFactory.systemRole({ name: ESystemRole.ADMIN })
+    )
+    const accountantRole = await findOrCreateRole(
       RoleFactory.systemRole({ name: ESystemRole.ACCOUNTANT })
     )
-    const supportRole = await rolesRepo.create(
+    const supportRole = await findOrCreateRole(
       RoleFactory.systemRole({ name: ESystemRole.SUPPORT })
     )
-    const userRole = await rolesRepo.create(RoleFactory.systemRole({ name: ESystemRole.USER }))
+    const userRole = await findOrCreateRole(
+      RoleFactory.systemRole({ name: ESystemRole.USER })
+    )
 
     superadminRoleId = superadminRole.id
     adminRoleId = adminRole.id
