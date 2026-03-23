@@ -59,6 +59,7 @@ export { ExpensesRepository } from './expenses.repository'
 export { DocumentsRepository } from './documents.repository'
 export { MessagesRepository } from './messages.repository'
 export { AuditLogsRepository } from './audit-logs.repository'
+export { EventLogsRepository, type IEventLogsQuery } from './event-logs.repository'
 export { PaymentPendingAllocationsRepository } from './payment-pending-allocations.repository'
 
 // Notifications

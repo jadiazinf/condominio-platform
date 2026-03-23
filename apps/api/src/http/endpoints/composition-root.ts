@@ -69,6 +69,7 @@ import {
   BankStatementEntriesRepository,
   BankReconciliationsRepository,
   BankStatementMatchesRepository,
+  EventLogsRepository,
 } from '@database/repositories'
 
 import {
@@ -138,6 +139,7 @@ import { ReportsController } from '../controllers/reports/reports.controller'
 import { AccessCodesController } from '../controllers/access-codes'
 import { AccessRequestsController } from '../controllers/access-requests'
 import { BankAccountsController } from '../controllers/bank-accounts/bank-accounts.controller'
+import { EventLogsController, CondominiumEventLogsController } from '../controllers/event-logs/event-logs.controller'
 import { AddUnitOwnerService } from '@services/unit-ownerships/add-unit-owner.service'
 import { ProcessWebhookService } from '@services/webhooks'
 import { PaymentGatewayManager } from '@services/payment-gateways/gateway-manager'
@@ -337,7 +339,12 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         r.locations,
         r.users,
         r.managementCompanyMembers,
-        r.paymentConcepts
+        r.paymentConcepts,
+        undefined, // invitationsRepository
+        undefined, // userRolesRepository
+        undefined, // rolesRepository
+        undefined, // auditLogsRepository
+        r.currencies
       ).createRouter(),
     },
     {
@@ -541,7 +548,9 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         r.condominiums,
         r.currencies,
         r.unitOwnerships,
-        r.paymentConceptServices
+        r.paymentConceptServices,
+        r.managementCompanies,
+        r.exchangeRates
       ).createRouter(),
     },
 

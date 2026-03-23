@@ -391,6 +391,44 @@ export const reconciliationStatusEnum = pgEnum('reconciliation_status', [
 
 export const matchTypeEnum = pgEnum('match_type', ['auto_reference', 'auto_amount_date', 'manual'])
 
+// ============================================================================
+// EVENT LOG ENUMS
+// ============================================================================
+
+export const eventLogCategoryEnum = pgEnum('event_log_category', [
+  'payment',
+  'quota',
+  'reconciliation',
+  'worker',
+  'notification',
+  'gateway',
+  'auth',
+  'subscription',
+  'receipt',
+  'system',
+])
+
+export const eventLogLevelEnum = pgEnum('event_log_level', [
+  'info',
+  'warn',
+  'error',
+  'critical',
+])
+
+export const eventLogResultEnum = pgEnum('event_log_result', [
+  'success',
+  'failure',
+  'partial',
+])
+
+export const eventLogSourceEnum = pgEnum('event_log_source', [
+  'api',
+  'worker',
+  'webhook',
+  'cron',
+  'system',
+])
+
 export const bankPaymentMethodEnum = pgEnum('bank_payment_method', [
   // National (Venezuela)
   'transfer',

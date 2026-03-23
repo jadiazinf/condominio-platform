@@ -28,6 +28,7 @@ export const managementCompanySchema = baseModelSchema.extend({
   logoUrl: z.string().url({ error: d.logoUrl.invalid }).nullable(),
   metadata: z.record(z.string(), z.unknown()).nullable(),
   createdBy: z.uuid({ error: d.createdBy.invalid }).nullable(),
+  preferredCurrencyId: z.uuid().nullable().optional(),
   // Relations
   location: locationSchema.optional(),
   createdByUser: userSchema.optional(),

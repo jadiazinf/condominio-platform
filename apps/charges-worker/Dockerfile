@@ -12,8 +12,9 @@ COPY scripts/ ./scripts/
 # Copy all packages (needed for workspace resolution)
 COPY packages/ ./packages/
 
-# Copy the charges-worker app
+# Copy the charges-worker app and api (worker imports @api/* services)
 COPY apps/charges-worker/ ./apps/charges-worker/
+COPY apps/api/ ./apps/api/
 
 # Install all dependencies (ignore preinstall script errors in Docker)
 RUN bun install --ignore-scripts || bun install
@@ -33,8 +34,9 @@ COPY --from=builder /app/package.json /app/bun.lock /app/turbo.json ./
 # Copy packages with their node_modules
 COPY --from=builder /app/packages/ ./packages/
 
-# Copy charges-worker app
+# Copy charges-worker app and api (worker imports @api/* services)
 COPY --from=builder /app/apps/charges-worker/ ./apps/charges-worker/
+COPY --from=builder /app/apps/api/ ./apps/api/
 
 # Copy node_modules from builder
 COPY --from=builder /app/node_modules/ ./node_modules/

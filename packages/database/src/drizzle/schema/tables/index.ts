@@ -92,5 +92,8 @@ export * from './bank-statement-entries'
 export * from './bank-reconciliations'
 export * from './bank-statement-matches'
 
+// Event Logs
+export * from './event-logs'
+
 // Wizard Drafts
 export * from './wizard-drafts'

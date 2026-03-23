@@ -1280,6 +1280,31 @@ export const DomainLocaleDictionary = {
           invalid: 'validation.models.bankStatementMatches.matchType.invalid',
         },
       },
+      eventLogs: {
+        category: {
+          invalid: 'validation.models.eventLogs.category.invalid',
+        },
+        level: {
+          invalid: 'validation.models.eventLogs.level.invalid',
+        },
+        event: {
+          required: 'validation.models.eventLogs.event.required',
+          max: 'validation.models.eventLogs.event.max',
+        },
+        action: {
+          required: 'validation.models.eventLogs.action.required',
+          max: 'validation.models.eventLogs.action.max',
+        },
+        message: {
+          required: 'validation.models.eventLogs.message.required',
+        },
+        result: {
+          invalid: 'validation.models.eventLogs.result.invalid',
+        },
+        source: {
+          invalid: 'validation.models.eventLogs.source.invalid',
+        },
+      },
     },
   },
 }

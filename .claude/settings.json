@@ -97,7 +97,8 @@
       "WebFetch(domain:documenter.getpostman.com)",
       "Bash(npx eslint:*)",
       "Bash(find \"/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\(dashboard\\)\" -type f)",
-      "Bash(ls /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-receipts/)"
+      "Bash(ls /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-receipts/)",
+      "Bash(ls /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-management-company/components/)"
     ],
     "additionalDirectories": [
       "/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/(dashboard)/dashboard/condominiums/[id]/reserve-fund",

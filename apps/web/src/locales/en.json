@@ -4569,7 +4569,17 @@
           "basicInfo": "Basic Information",
           "contactInfo": "Contact Information",
           "metadata": "Additional Data",
-          "noData": "No information"
+          "noData": "No information",
+          "preferredCurrency": {
+            "title": "Preferred Currency",
+            "description": "Select the currency in which you want to display amounts on receipts and reports. If configured, amounts will be automatically converted using the current exchange rate.",
+            "label": "Display currency",
+            "placeholder": "Select a currency",
+            "noPreference": "No preference (original currency)",
+            "updateSuccess": "Preferred currency updated successfully",
+            "updateError": "Failed to update preferred currency",
+            "saving": "Saving..."
+          }
         },
         "subscription": {
           "title": "Subscription",

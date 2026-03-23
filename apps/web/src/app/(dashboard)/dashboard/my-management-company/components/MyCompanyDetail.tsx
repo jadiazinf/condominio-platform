@@ -1,5 +1,6 @@
 import { getMyCompanyDetail } from '@packages/http-client'
 
+import { PreferredCurrencySelector } from './PreferredCurrencySelector'
 import { Card } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'
@@ -123,6 +124,12 @@ export async function MyCompanyDetail() {
           <InfoRow label={t('superadmin.companies.table.createdAt')} value={formattedCreatedAt} />
         </div>
       </Card>
+
+      {/* Preferred Currency */}
+      <PreferredCurrencySelector
+        currentPreferredCurrencyId={company.preferredCurrencyId ?? null}
+        managementCompanyId={managementCompanyId}
+      />
     </div>
   )
 }

@@ -22,6 +22,9 @@ export {
   type IGenerateQuotasOutput,
 } from './quotas/generate-quotas-for-schedule.service'
 
+// Event Logger
+export { EventLogger, type IEventLogRepository, type IEventLogInput } from './event-logger'
+
 // Notification services
 export {
   SendFcmNotificationService,

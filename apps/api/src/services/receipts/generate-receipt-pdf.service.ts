@@ -6,6 +6,8 @@ import type { UnitsRepository } from '@packages/database'
 import type { BuildingsRepository } from '@packages/database'
 import type { CondominiumsRepository } from '@packages/database'
 import type { CurrenciesRepository } from '@packages/database'
+import type { ManagementCompaniesRepository } from '@packages/database'
+import type { ExchangeRatesRepository } from '@packages/database'
 import type { PaymentConceptServicesRepository } from '@packages/database'
 
 export interface IReceiptPdfOutput {
@@ -71,8 +73,69 @@ export class GenerateReceiptPdfService {
     private readonly buildingsRepo: BuildingsRepository,
     private readonly condominiumsRepo: CondominiumsRepository,
     private readonly currenciesRepo: CurrenciesRepository,
-    private readonly conceptServicesRepo?: PaymentConceptServicesRepository
+    private readonly conceptServicesRepo?: PaymentConceptServicesRepository,
+    private readonly managementCompaniesRepo?: ManagementCompaniesRepository,
+    private readonly exchangeRatesRepo?: ExchangeRatesRepository
   ) {}
+
+  /**
+   * Resolves the preferred currency and exchange rate for a management company.
+   * Returns a formatter function that converts and formats amounts.
+   */
+  /**
+   * Resolves the preferred currency and exchange rate for a management company.
+   * Returns a converter function that converts amounts, and the preferred currency symbol.
+   */
+  private async resolvePreferredCurrency(
+    condominium: Record<string, unknown>,
+    receiptCurrencyId: string
+  ): Promise<{
+    convertAmount: (amount: string | number) => string
+    currencySymbol: string
+  }> {
+    const currency = await this.currenciesRepo.getById(receiptCurrencyId)
+    const originalSymbol = String(currency?.symbol ?? '')
+    const identity = (a: string | number) => String(a)
+
+    if (!this.managementCompaniesRepo || !this.exchangeRatesRepo) {
+      return { convertAmount: identity, currencySymbol: originalSymbol }
+    }
+
+    const managementCompanyIds = (condominium as { managementCompanyIds?: string[] }).managementCompanyIds
+    if (!managementCompanyIds?.length) {
+      return { convertAmount: identity, currencySymbol: originalSymbol }
+    }
+
+    const company = await this.managementCompaniesRepo.getById(managementCompanyIds[0]!)
+    if (!company?.preferredCurrencyId || company.preferredCurrencyId === receiptCurrencyId) {
+      return { convertAmount: identity, currencySymbol: originalSymbol }
+    }
+
+    const preferredCurrency = await this.currenciesRepo.getById(company.preferredCurrencyId)
+    if (!preferredCurrency) {
+      return { convertAmount: identity, currencySymbol: originalSymbol }
+    }
+
+    const rate = await this.exchangeRatesRepo.getLatestRate(receiptCurrencyId, company.preferredCurrencyId)
+    if (!rate) {
+      // No exchange rate available — fall back to original currency
+      return { convertAmount: identity, currencySymbol: originalSymbol }
+    }
+
+    const preferredSymbol = String(preferredCurrency.symbol ?? '')
+    const rateValue = Number(rate.rate)
+    const decimals = preferredCurrency.decimals ?? 2
+
+    return {
+      currencySymbol: preferredSymbol,
+      convertAmount: (amount: string | number) => {
+        const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
+        if (isNaN(numAmount)) return String(amount)
+        const converted = numAmount * rateValue
+        return converted.toFixed(decimals)
+      },
+    }
+  }
 
   async execute(receiptId: string): Promise<TServiceResult<IReceiptPdfOutput>> {
     try {
@@ -89,8 +152,11 @@ export class GenerateReceiptPdfService {
       const condominium = await this.condominiumsRepo.getById(receipt.condominiumId)
       if (!condominium) return failure('Condominio no encontrado', 'NOT_FOUND')
 
-      const currency = await this.currenciesRepo.getById(receipt.currencyId)
-      const currencySymbol = String(currency?.symbol ?? '')
+      // Resolve preferred currency for display (converts amounts if needed)
+      const { convertAmount, currencySymbol } = await this.resolvePreferredCurrency(
+        condominium as Record<string, unknown>,
+        receipt.currencyId as string
+      )
 
       // 3b. Build breakdown items from quotas + services (matching web view)
       const quotas = await this.quotasRepo.getByUnitAndPeriod(
@@ -106,7 +172,7 @@ export class GenerateReceiptPdfService {
             ?.name as string) ?? 'Concepto'
         breakdownItems.push({
           label: conceptName,
-          amount: (quota as Record<string, unknown>).baseAmount as string,
+          amount: convertAmount((quota as Record<string, unknown>).baseAmount as string),
         })
 
         // Fetch linked services for this concept
@@ -115,7 +181,7 @@ export class GenerateReceiptPdfService {
             (quota as Record<string, unknown>).paymentConceptId as string
           )
           for (const svc of services) {
-            breakdownItems.push({ label: svc.serviceName, amount: String(svc.amount), sub: true })
+            breakdownItems.push({ label: svc.serviceName, amount: convertAmount(svc.amount), sub: true })
           }
         }
       }
@@ -149,7 +215,7 @@ export class GenerateReceiptPdfService {
       this.drawBreakdownTable(doc, breakdownItems, currencySymbol, pageWidth)
 
       // ─── Amounts Summary ──────────────────────────────────────────
-      this.drawAmountsSummary(doc, receipt, currencySymbol, pageWidth)
+      this.drawAmountsSummary(doc, receipt, currencySymbol, pageWidth, convertAmount)
 
       // ─── Footer ───────────────────────────────────────────────────
       this.drawFooter(doc, condominium, pageWidth)
@@ -356,7 +422,8 @@ export class GenerateReceiptPdfService {
     doc: PDFKit.PDFDocument,
     receipt: Record<string, unknown>,
     currencySymbol: string,
-    pageWidth: number
+    pageWidth: number,
+    convertAmount: (amount: string | number) => string = (a) => String(a)
   ) {
     const y = doc.y + 10
 
@@ -384,7 +451,7 @@ export class GenerateReceiptPdfService {
       doc.fontSize(9).font('Helvetica').fillColor('#666666')
       txt(doc, label, MARGIN + 10, rowY + 4, { width: pageWidth * 0.6 })
       doc.fontSize(9).font('Helvetica').fillColor('#333333')
-      txt(doc, `${currencySymbol} ${value}`, MARGIN + pageWidth * 0.6, rowY + 4, {
+      txt(doc, `${currencySymbol} ${convertAmount(value)}`, MARGIN + pageWidth * 0.6, rowY + 4, {
         width: pageWidth * 0.35,
         align: 'right',
       })
@@ -408,7 +475,7 @@ export class GenerateReceiptPdfService {
     txt(doc, 'TOTAL A PAGAR', MARGIN + 10, rowY + 6, { width: pageWidth * 0.6 })
     txt(
       doc,
-      `${currencySymbol} ${receipt.totalAmount as string}`,
+      `${currencySymbol} ${convertAmount(receipt.totalAmount as string)}`,
       MARGIN + pageWidth * 0.6,
       rowY + 6,
       {

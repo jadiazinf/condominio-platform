@@ -16,6 +16,8 @@ import type {
   CurrenciesRepository,
   UnitOwnershipsRepository,
   PaymentConceptServicesRepository,
+  ManagementCompaniesRepository,
+  ExchangeRatesRepository,
 } from '@database/repositories'
 import { BaseController } from '../base.controller'
 import {
@@ -94,7 +96,9 @@ export class ReceiptsController extends BaseController<
     condominiumsRepo: CondominiumsRepository,
     currenciesRepo: CurrenciesRepository,
     unitOwnershipsRepo: UnitOwnershipsRepository,
-    conceptServicesRepo: PaymentConceptServicesRepository
+    conceptServicesRepo: PaymentConceptServicesRepository,
+    managementCompaniesRepo?: ManagementCompaniesRepository,
+    exchangeRatesRepo?: ExchangeRatesRepository
   ) {
     super(receiptsRepo)
     this.receiptsRepository = receiptsRepo
@@ -117,7 +121,9 @@ export class ReceiptsController extends BaseController<
       buildingsRepo,
       condominiumsRepo,
       currenciesRepo,
-      conceptServicesRepo
+      conceptServicesRepo,
+      managementCompaniesRepo,
+      exchangeRatesRepo
     )
     this.sendReceiptEmailService = new SendReceiptEmailService()
     this.unitOwnershipsRepo = unitOwnershipsRepo

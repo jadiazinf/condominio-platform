@@ -7,6 +7,7 @@ import type {
   TUser,
   TUserCreate,
   TSubscriptionLimitValidation,
+  TCurrency,
 } from '@packages/domain'
 
 import { useApiQuery, useApiMutation } from './use-api-query'
@@ -575,6 +576,94 @@ export async function getMyCompanySubscriptionsPaginated(
   })
 
   return response.data
+}
+
+/**
+ * Fetch the preferred currency for the authenticated user's company.
+ */
+export async function getMyCompanyPreferredCurrency(
+  token: string,
+  managementCompanyId: string
+): Promise<{ preferredCurrencyId: string | null }> {
+  const client = getHttpClient()
+  const response = await client.get<TApiDataResponse<{ preferredCurrencyId: string | null }>>(
+    `/platform/management-companies/${managementCompanyId}/me/preferred-currency`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  return response.data.data
+}
+
+/**
+ * Update the preferred currency for the authenticated user's company.
+ */
+export async function updateMyCompanyPreferredCurrency(
+  token: string,
+  managementCompanyId: string,
+  currencyId: string | null
+): Promise<TManagementCompany> {
+  const client = getHttpClient()
+  const response = await client.patch<TApiDataResponse<TManagementCompany>>(
+    `/platform/management-companies/${managementCompanyId}/me/preferred-currency`,
+    { currencyId },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  return response.data.data
+}
+
+/**
+ * Hook to update the preferred currency for the authenticated user's company.
+ */
+export function useUpdateMyCompanyPreferredCurrency(options: {
+  token: string
+  managementCompanyId: string
+}) {
+  const { token, managementCompanyId } = options
+
+  return useApiMutation<TApiDataResponse<TManagementCompany>, { currencyId: string | null }>({
+    path: `/platform/management-companies/${managementCompanyId}/me/preferred-currency`,
+    method: 'PATCH',
+    config: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    invalidateKeys: [
+      ['management-companies', managementCompanyId],
+      ['management-companies', managementCompanyId, 'me', 'preferred-currency'],
+    ],
+  })
+}
+
+/**
+ * Hook to fetch the preferred currency for the authenticated user's company.
+ */
+export function useMyCompanyPreferredCurrency(options: {
+  token: string
+  managementCompanyId: string
+  enabled?: boolean
+}) {
+  const { token, managementCompanyId, enabled = true } = options
+
+  return useApiQuery<TApiDataResponse<{ preferredCurrencyId: string | null }>>({
+    path: `/platform/management-companies/${managementCompanyId}/me/preferred-currency`,
+    queryKey: ['management-companies', managementCompanyId, 'me', 'preferred-currency'],
+    config: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    enabled: enabled && !!managementCompanyId,
+  })
 }
 
 /**

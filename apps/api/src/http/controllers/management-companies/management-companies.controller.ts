@@ -49,7 +49,9 @@ import type {
   ManagementCompanyMembersRepository,
   PaymentConceptsRepository,
   AuditLogsRepository,
+  CurrenciesRepository,
 } from '@database/repositories'
+import { UpdatePreferredCurrencyService } from '@src/services/management-companies/update-preferred-currency.service'
 
 const TaxIdNumberParamSchema = z.object({
   taxIdNumber: z.string().min(1),
@@ -66,6 +68,12 @@ type TLocationIdParam = z.infer<typeof LocationIdParamSchema>
 const ToggleActiveBodySchema = z.object({
   isActive: z.boolean(),
 })
+
+const PreferredCurrencyBodySchema = z.object({
+  currencyId: z.string().uuid().nullable(),
+})
+
+type TPreferredCurrencyBody = z.infer<typeof PreferredCurrencyBodySchema>
 
 type TToggleActiveBody = z.infer<typeof ToggleActiveBodySchema>
 
@@ -173,6 +181,7 @@ export class ManagementCompaniesController extends BaseController<
   private readonly membersRepository?: ManagementCompanyMembersRepository
   private readonly paymentConceptsRepository?: PaymentConceptsRepository
   private readonly auditLogsRepository?: AuditLogsRepository
+  private readonly currenciesRepository?: CurrenciesRepository
 
   constructor(
     repository: ManagementCompaniesRepository,
@@ -184,7 +193,8 @@ export class ManagementCompaniesController extends BaseController<
     invitationsRepository?: UserInvitationsRepository,
     userRolesRepository?: UserRolesRepository,
     rolesRepository?: RolesRepository,
-    auditLogsRepository?: AuditLogsRepository
+    auditLogsRepository?: AuditLogsRepository,
+    currenciesRepository?: CurrenciesRepository
   ) {
     super(repository)
     this.managementCompaniesRepository = repository
@@ -194,6 +204,7 @@ export class ManagementCompaniesController extends BaseController<
     this.membersRepository = membersRepository
     this.paymentConceptsRepository = paymentConceptsRepository
     this.auditLogsRepository = auditLogsRepository
+    this.currenciesRepository = currenciesRepository
     this.validateLimitsService = new ValidateSubscriptionLimitsService(
       subscriptionsRepository,
       repository
@@ -456,6 +467,32 @@ export class ManagementCompaniesController extends BaseController<
           authMiddleware,
           paramsValidator(MemberAuditLogIdParamSchema),
           requireRole(ESystemRole.ADMIN),
+        ],
+      },
+      {
+        method: 'get',
+        path: '/:managementCompanyId/me/preferred-currency',
+        handler: this.getMyCompanyPreferredCurrency,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ManagementCompanyIdParamSchema),
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.VIEWER
+          ),
+        ],
+      },
+      {
+        method: 'patch',
+        path: '/:managementCompanyId/me/preferred-currency',
+        handler: this.updateMyCompanyPreferredCurrency,
+        middlewares: [
+          authMiddleware,
+          paramsValidator(ManagementCompanyIdParamSchema),
+          requireRole(ESystemRole.ADMIN),
+          bodyValidator(PreferredCurrencyBodySchema),
         ],
       },
       {
@@ -1096,6 +1133,62 @@ export class ManagementCompaniesController extends BaseController<
       }
 
       return ctx.ok({ data: log })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private getMyCompanyPreferredCurrency = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, { managementCompanyId: string }>(c)
+
+    try {
+      const company = await this.managementCompaniesRepository.getById(
+        ctx.params.managementCompanyId
+      )
+      if (!company) {
+        return ctx.notFound({ error: 'Management company not found' })
+      }
+
+      let currency = null
+      if (company.preferredCurrencyId && this.currenciesRepository) {
+        currency = await this.currenciesRepository.getById(company.preferredCurrencyId)
+      }
+
+      return ctx.ok({
+        data: {
+          preferredCurrencyId: company.preferredCurrencyId,
+          currency,
+        },
+      })
+    } catch (error) {
+      return this.handleError(ctx, error)
+    }
+  }
+
+  private updateMyCompanyPreferredCurrency = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<TPreferredCurrencyBody, unknown, { managementCompanyId: string }>(c)
+
+    try {
+      if (!this.currenciesRepository) {
+        return ctx.badRequest({ error: 'Currencies repository not configured' })
+      }
+
+      const service = new UpdatePreferredCurrencyService(
+        this.managementCompaniesRepository,
+        this.currenciesRepository
+      )
+
+      const result = await service.execute({
+        managementCompanyId: ctx.params.managementCompanyId,
+        currencyId: ctx.body.currencyId,
+      })
+
+      if (!result.success) {
+        if (result.code === 'NOT_FOUND') return ctx.notFound({ error: result.error })
+        return ctx.badRequest({ error: result.error })
+      }
+
+      return ctx.ok({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
     }

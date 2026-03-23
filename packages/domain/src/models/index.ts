@@ -59,6 +59,9 @@ export * from './user-fcm-tokens'
 // Audit
 export * from './audit-logs'
 
+// Event Logs
+export * from './event-logs'
+
 // Admin Invitations
 export * from './admin-invitations'
 

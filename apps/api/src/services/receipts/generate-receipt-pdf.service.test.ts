@@ -188,6 +188,151 @@ describe('GenerateReceiptPdfService', () => {
     }
   })
 
+  it('should generate PDF with converted amounts when preferred currency is set', async () => {
+    const condoWithMc = {
+      ...baseCondominium,
+      managementCompanyIds: ['mc-1'],
+    }
+    const mockMcRepo = {
+      getById: mock(() =>
+        Promise.resolve({ id: 'mc-1', preferredCurrencyId: 'currency-usd' })
+      ),
+    }
+    const mockExchangeRatesRepo = {
+      getLatestRate: mock(() =>
+        Promise.resolve({ rate: '0.027', fromCurrencyId: 'currency-1', toCurrencyId: 'currency-usd' })
+      ),
+    }
+    const preferredCurrency = {
+      id: 'currency-usd',
+      code: 'USD',
+      symbol: '$',
+      name: 'US Dollar',
+      decimals: 2,
+    }
+
+    mockReceiptsRepo.getById.mockResolvedValueOnce(baseReceipt)
+    mockQuotasRepo.getByUnitAndPeriod.mockResolvedValueOnce(baseQuotas)
+    mockUnitsRepo.getById.mockResolvedValueOnce(baseUnit)
+    mockBuildingsRepo.getById.mockResolvedValueOnce(baseBuilding)
+    mockCondominiumsRepo.getById.mockResolvedValueOnce(condoWithMc)
+    // First call returns original currency, second returns preferred currency
+    mockCurrenciesRepo.getById
+      .mockResolvedValueOnce(baseCurrency)
+      .mockResolvedValueOnce(preferredCurrency)
+
+    const service = new GenerateReceiptPdfService(
+      mockReceiptsRepo as never,
+      mockQuotasRepo as never,
+      mockUnitsRepo as never,
+      mockBuildingsRepo as never,
+      mockCondominiumsRepo as never,
+      mockCurrenciesRepo as never,
+      mockConceptServicesRepo as never,
+      mockMcRepo as never,
+      mockExchangeRatesRepo as never
+    )
+    const result = await service.execute('receipt-1')
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.data).toBeInstanceOf(Buffer)
+      expect(result.data.data.toString('ascii', 0, 5)).toBe('%PDF-')
+    }
+    // Verify the exchange rate was fetched
+    expect(mockExchangeRatesRepo.getLatestRate).toHaveBeenCalledWith('currency-1', 'currency-usd')
+    expect(mockMcRepo.getById).toHaveBeenCalledWith('mc-1')
+  })
+
+  it('should fallback to original currency when no exchange rate is available', async () => {
+    const condoWithMc = {
+      ...baseCondominium,
+      managementCompanyIds: ['mc-1'],
+    }
+    const mockMcRepo = {
+      getById: mock(() =>
+        Promise.resolve({ id: 'mc-1', preferredCurrencyId: 'currency-usd' })
+      ),
+    }
+    const mockExchangeRatesRepo = {
+      getLatestRate: mock(() => Promise.resolve(null)),
+    }
+    const preferredCurrency = {
+      id: 'currency-usd',
+      code: 'USD',
+      symbol: '$',
+      name: 'US Dollar',
+      decimals: 2,
+    }
+
+    mockReceiptsRepo.getById.mockResolvedValueOnce(baseReceipt)
+    mockQuotasRepo.getByUnitAndPeriod.mockResolvedValueOnce(baseQuotas)
+    mockUnitsRepo.getById.mockResolvedValueOnce(baseUnit)
+    mockBuildingsRepo.getById.mockResolvedValueOnce(baseBuilding)
+    mockCondominiumsRepo.getById.mockResolvedValueOnce(condoWithMc)
+    mockCurrenciesRepo.getById
+      .mockResolvedValueOnce(baseCurrency)
+      .mockResolvedValueOnce(preferredCurrency)
+
+    const service = new GenerateReceiptPdfService(
+      mockReceiptsRepo as never,
+      mockQuotasRepo as never,
+      mockUnitsRepo as never,
+      mockBuildingsRepo as never,
+      mockCondominiumsRepo as never,
+      mockCurrenciesRepo as never,
+      mockConceptServicesRepo as never,
+      mockMcRepo as never,
+      mockExchangeRatesRepo as never
+    )
+    const result = await service.execute('receipt-1')
+
+    // Should still succeed — falls back to original currency
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.data).toBeInstanceOf(Buffer)
+    }
+  })
+
+  it('should not convert when preferred currency matches receipt currency', async () => {
+    const condoWithMc = {
+      ...baseCondominium,
+      managementCompanyIds: ['mc-1'],
+    }
+    const mockMcRepo = {
+      getById: mock(() =>
+        Promise.resolve({ id: 'mc-1', preferredCurrencyId: 'currency-1' }) // same as receipt
+      ),
+    }
+    const mockExchangeRatesRepo = {
+      getLatestRate: mock(() => Promise.resolve(null)),
+    }
+
+    mockReceiptsRepo.getById.mockResolvedValueOnce(baseReceipt)
+    mockQuotasRepo.getByUnitAndPeriod.mockResolvedValueOnce(baseQuotas)
+    mockUnitsRepo.getById.mockResolvedValueOnce(baseUnit)
+    mockBuildingsRepo.getById.mockResolvedValueOnce(baseBuilding)
+    mockCondominiumsRepo.getById.mockResolvedValueOnce(condoWithMc)
+    mockCurrenciesRepo.getById.mockResolvedValueOnce(baseCurrency)
+
+    const service = new GenerateReceiptPdfService(
+      mockReceiptsRepo as never,
+      mockQuotasRepo as never,
+      mockUnitsRepo as never,
+      mockBuildingsRepo as never,
+      mockCondominiumsRepo as never,
+      mockCurrenciesRepo as never,
+      mockConceptServicesRepo as never,
+      mockMcRepo as never,
+      mockExchangeRatesRepo as never
+    )
+    const result = await service.execute('receipt-1')
+
+    expect(result.success).toBe(true)
+    // Exchange rate should NOT have been called since currencies match
+    expect(mockExchangeRatesRepo.getLatestRate).not.toHaveBeenCalled()
+  })
+
   it('should include currency symbol in the filename', async () => {
     mockReceiptsRepo.getById.mockResolvedValueOnce(baseReceipt)
     mockQuotasRepo.getByUnitAndPeriod.mockResolvedValueOnce(baseQuotas)

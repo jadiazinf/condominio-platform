@@ -52,6 +52,7 @@ import { bankStatementImports } from '../tables/bank-statement-imports'
 import { bankStatementEntries } from '../tables/bank-statement-entries'
 import { bankReconciliations } from '../tables/bank-reconciliations'
 import { bankStatementMatches } from '../tables/bank-statement-matches'
+import { eventLogs } from '../tables/event-logs'
 
 // ============================================================================
 // LOCATIONS RELATIONS
@@ -1033,6 +1034,18 @@ export const bankStatementMatchesRelations = relations(bankStatementMatches, ({ 
   }),
   matchedByUser: one(users, {
     fields: [bankStatementMatches.matchedBy],
+    references: [users.id],
+  }),
+}))
+
+// ─── Event Logs ──────────────────────────────────────────────────────
+export const eventLogsRelations = relations(eventLogs, ({ one }) => ({
+  condominium: one(condominiums, {
+    fields: [eventLogs.condominiumId],
+    references: [condominiums.id],
+  }),
+  user: one(users, {
+    fields: [eventLogs.userId],
     references: [users.id],
   }),
 }))

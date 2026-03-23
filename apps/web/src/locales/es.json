@@ -4606,7 +4606,17 @@
           "basicInfo": "Información Básica",
           "contactInfo": "Información de Contacto",
           "metadata": "Datos Adicionales",
-          "noData": "Sin información"
+          "noData": "Sin información",
+          "preferredCurrency": {
+            "title": "Moneda Preferida",
+            "description": "Selecciona la moneda en la que deseas visualizar los montos en recibos y reportes. Si se configura, los montos se convertirán automáticamente usando la tasa de cambio vigente.",
+            "label": "Moneda de visualización",
+            "placeholder": "Selecciona una moneda",
+            "noPreference": "Sin preferencia (moneda original)",
+            "updateSuccess": "Moneda preferida actualizada correctamente",
+            "updateError": "Error al actualizar la moneda preferida",
+            "saving": "Guardando..."
+          }
         },
         "subscription": {
           "title": "Suscripción",

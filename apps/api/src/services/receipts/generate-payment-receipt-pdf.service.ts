@@ -5,6 +5,8 @@ import type { PaymentApplicationsRepository } from '@packages/database'
 import type { UnitsRepository } from '@packages/database'
 import type { CondominiumsRepository } from '@packages/database'
 import type { CurrenciesRepository } from '@packages/database'
+import type { ManagementCompaniesRepository } from '@packages/database'
+import type { ExchangeRatesRepository } from '@packages/database'
 
 export interface IPaymentReceiptPdfOutput {
   data: Buffer
@@ -42,8 +44,59 @@ export class GeneratePaymentReceiptPdfService {
     private readonly paymentApplicationsRepo: PaymentApplicationsRepository,
     private readonly unitsRepo: UnitsRepository,
     private readonly condominiumsRepo: CondominiumsRepository,
-    private readonly currenciesRepo: CurrenciesRepository
+    private readonly currenciesRepo: CurrenciesRepository,
+    private readonly managementCompaniesRepo?: ManagementCompaniesRepository,
+    private readonly exchangeRatesRepo?: ExchangeRatesRepository
   ) {}
+
+  private async resolvePreferredCurrency(
+    condominium: Record<string, unknown> | null,
+    paymentCurrencyId: string
+  ): Promise<{
+    convertAmount: (amount: string | number) => string
+    currencySymbol: string
+  }> {
+    const currency = await this.currenciesRepo.getById(paymentCurrencyId)
+    const originalSymbol = String(currency?.symbol ?? '')
+    const identity = (a: string | number) => String(a)
+
+    if (!condominium || !this.managementCompaniesRepo || !this.exchangeRatesRepo) {
+      return { convertAmount: identity, currencySymbol: originalSymbol }
+    }
+
+    const managementCompanyIds = (condominium as { managementCompanyIds?: string[] }).managementCompanyIds
+    if (!managementCompanyIds?.length) {
+      return { convertAmount: identity, currencySymbol: originalSymbol }
+    }
+
+    const company = await this.managementCompaniesRepo.getById(managementCompanyIds[0]!)
+    if (!company?.preferredCurrencyId || company.preferredCurrencyId === paymentCurrencyId) {
+      return { convertAmount: identity, currencySymbol: originalSymbol }
+    }
+
+    const preferredCurrency = await this.currenciesRepo.getById(company.preferredCurrencyId)
+    if (!preferredCurrency) {
+      return { convertAmount: identity, currencySymbol: originalSymbol }
+    }
+
+    const rate = await this.exchangeRatesRepo.getLatestRate(paymentCurrencyId, company.preferredCurrencyId)
+    if (!rate) {
+      return { convertAmount: identity, currencySymbol: originalSymbol }
+    }
+
+    const preferredSymbol = String(preferredCurrency.symbol ?? '')
+    const rateValue = Number(rate.rate)
+    const decimals = preferredCurrency.decimals ?? 2
+
+    return {
+      currencySymbol: preferredSymbol,
+      convertAmount: (amount: string | number) => {
+        const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
+        if (isNaN(numAmount)) return String(amount)
+        return (numAmount * rateValue).toFixed(decimals)
+      },
+    }
+  }
 
   async execute(paymentId: string): Promise<TServiceResult<IPaymentReceiptPdfOutput>> {
     try {
@@ -61,8 +114,11 @@ export class GeneratePaymentReceiptPdfService {
       const condominium = await this.condominiumsRepo.getById(
         (unit as unknown as Record<string, unknown>).condominiumId as string
       )
-      const currency = await this.currenciesRepo.getById(payment.currencyId)
-      const currencySymbol = String(currency?.symbol ?? '')
+
+      const { convertAmount, currencySymbol } = await this.resolvePreferredCurrency(
+        condominium as Record<string, unknown> | null,
+        payment.currencyId
+      )
 
       // 4. Generate PDF
       const doc = new PDFDocument({
@@ -85,15 +141,15 @@ export class GeneratePaymentReceiptPdfService {
       this.drawHeader(doc, condominium, payment, pageWidth)
 
       // ─── Payment Info ─────────────────────────────────────────────
-      this.drawPaymentInfo(doc, payment, unit, currencySymbol, pageWidth)
+      this.drawPaymentInfo(doc, payment, unit, currencySymbol, pageWidth, convertAmount)
 
       // ─── Applications Table ───────────────────────────────────────
       if (applications.length > 0) {
-        this.drawApplicationsTable(doc, applications, currencySymbol, pageWidth)
+        this.drawApplicationsTable(doc, applications, currencySymbol, pageWidth, convertAmount)
       }
 
       // ─── Total ────────────────────────────────────────────────────
-      this.drawTotal(doc, payment, currencySymbol, pageWidth)
+      this.drawTotal(doc, payment, currencySymbol, pageWidth, convertAmount)
 
       // ─── Notes ────────────────────────────────────────────────────
       if (payment.notes) {
@@ -205,7 +261,8 @@ export class GeneratePaymentReceiptPdfService {
     payment: Record<string, unknown>,
     unit: Record<string, unknown>,
     currencySymbol: string,
-    pageWidth: number
+    pageWidth: number,
+    convertAmount: (amount: string | number) => string = (a) => String(a)
   ) {
     const y = doc.y + 10
 
@@ -237,7 +294,7 @@ export class GeneratePaymentReceiptPdfService {
 
     doc.fontSize(10).font('Helvetica-Bold').fillColor('#333333')
     doc.text((unit.ownerName as string) ?? '-', col1X, y + 54)
-    doc.text(`${currencySymbol} ${payment.amount as string}`, col2X, y + 54)
+    doc.text(`${currencySymbol} ${convertAmount(payment.amount as string)}`, col2X, y + 54)
 
     doc.fillColor('#000000')
     doc.y = y + 80
@@ -247,7 +304,8 @@ export class GeneratePaymentReceiptPdfService {
     doc: PDFKit.PDFDocument,
     applications: Record<string, unknown>[],
     currencySymbol: string,
-    pageWidth: number
+    pageWidth: number,
+    convertAmount: (amount: string | number) => string = (a) => String(a)
   ) {
     const y = doc.y + 10
 
@@ -288,19 +346,19 @@ export class GeneratePaymentReceiptPdfService {
         width: colWidths[0]! - 12,
       })
       doc.text(
-        `${currencySymbol} ${app.appliedToPrincipal as string}`,
+        `${currencySymbol} ${convertAmount(app.appliedToPrincipal as string)}`,
         MARGIN + colWidths[0]! + 6,
         tableY + 5,
         { width: colWidths[1]! - 12, align: 'right' }
       )
       doc.text(
-        `${currencySymbol} ${app.appliedToInterest as string}`,
+        `${currencySymbol} ${convertAmount(app.appliedToInterest as string)}`,
         MARGIN + colWidths[0]! + colWidths[1]! + 6,
         tableY + 5,
         { width: colWidths[2]! - 12, align: 'right' }
       )
       doc.text(
-        `${currencySymbol} ${app.appliedAmount as string}`,
+        `${currencySymbol} ${convertAmount(app.appliedAmount as string)}`,
         MARGIN + colWidths[0]! + colWidths[1]! + colWidths[2]! + 6,
         tableY + 5,
         { width: colWidths[3]! - 12, align: 'right' }
@@ -324,7 +382,8 @@ export class GeneratePaymentReceiptPdfService {
     doc: PDFKit.PDFDocument,
     payment: Record<string, unknown>,
     currencySymbol: string,
-    pageWidth: number
+    pageWidth: number,
+    convertAmount: (amount: string | number) => string = (a) => String(a)
   ) {
     const y = doc.y + 10
     const totalWidth = pageWidth * 0.4
@@ -333,7 +392,7 @@ export class GeneratePaymentReceiptPdfService {
     doc.rect(totalX, y, totalWidth, 28).fill(ACCENT_COLOR)
     doc.fontSize(12).font('Helvetica-Bold').fillColor('#ffffff')
     doc.text('TOTAL PAGADO', totalX + 10, y + 7, { width: totalWidth * 0.5 })
-    doc.text(`${currencySymbol} ${payment.amount as string}`, totalX + totalWidth * 0.5, y + 7, {
+    doc.text(`${currencySymbol} ${convertAmount(payment.amount as string)}`, totalX + totalWidth * 0.5, y + 7, {
       width: totalWidth * 0.45,
       align: 'right',
     })

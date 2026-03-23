@@ -55,6 +55,7 @@ export class ManagementCompaniesRepository
       logoUrl: r.logoUrl,
       metadata: r.metadata as Record<string, unknown> | null,
       createdBy: r.createdBy,
+      preferredCurrencyId: r.preferredCurrencyId ?? null,
       createdAt: r.createdAt ?? new Date(),
       updatedAt: r.updatedAt ?? new Date(),
     }

@@ -1,4 +1,5 @@
 import { pgTable, uuid, varchar, text, boolean, timestamp, jsonb, index } from 'drizzle-orm/pg-core'
+import { currencies } from './currencies'
 import { locations } from './locations'
 import { users } from './users'
 
@@ -24,6 +25,9 @@ export const managementCompanies = pgTable(
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow(),
     createdBy: uuid('created_by').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    preferredCurrencyId: uuid('preferred_currency_id').references(() => currencies.id, {
       onDelete: 'set null',
     }),
   },
