@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm'
+import { eq, and, or } from 'drizzle-orm'
 import type {
   TPaymentConceptAssignment,
   TPaymentConceptAssignmentCreate,
@@ -94,6 +94,45 @@ export class PaymentConceptAssignmentsRepository extends BaseRepository<
       .select()
       .from(paymentConceptAssignments)
       .where(and(...conditions))
+
+    return results.map(r => this.mapToEntity(r))
+  }
+
+  /**
+   * Finds all active assignments that cover a given unit.
+   * Matches: unit-specific, building-level (by buildingId), or condominium-level (by condominiumId).
+   * Returns assignments with their paymentConceptId for resolving applicable concepts.
+   */
+  async listByUnitScope(
+    unitId: string,
+    buildingId: string,
+    condominiumId: string
+  ): Promise<TPaymentConceptAssignment[]> {
+    const results = await this.db
+      .select()
+      .from(paymentConceptAssignments)
+      .where(
+        and(
+          eq(paymentConceptAssignments.isActive, true),
+          or(
+            // Unit-specific
+            and(
+              eq(paymentConceptAssignments.scopeType, 'unit'),
+              eq(paymentConceptAssignments.unitId, unitId)
+            ),
+            // Building-level
+            and(
+              eq(paymentConceptAssignments.scopeType, 'building'),
+              eq(paymentConceptAssignments.buildingId, buildingId)
+            ),
+            // Condominium-level
+            and(
+              eq(paymentConceptAssignments.scopeType, 'condominium'),
+              eq(paymentConceptAssignments.condominiumId, condominiumId)
+            )
+          )
+        )
+      )
 
     return results.map(r => this.mapToEntity(r))
   }

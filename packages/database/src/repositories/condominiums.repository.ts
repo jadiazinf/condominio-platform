@@ -288,6 +288,16 @@ export class CondominiumsRepository
   }
 
   /**
+   * Retrieves all active condominiums (lightweight, no management company IDs).
+   * Used by worker processors that need to iterate over all condominiums.
+   */
+  async getAllActive(): Promise<TCondominium[]> {
+    const results = await this.db.select().from(condominiums).where(eq(condominiums.isActive, true))
+
+    return results.map(r => this.mapToEntity(r))
+  }
+
+  /**
    * Retrieves condominiums by management company using the junction table.
    */
   async getByManagementCompanyId(

@@ -455,6 +455,7 @@ describe('Authorization Tests', function () {
       listAll: () => Promise<TPayment[]>
       listByCondominiumId: (condominiumId: string) => Promise<TPayment[]>
       getById: (id: string) => Promise<TPayment | null>
+      getByIdWithRelations: (id: string) => Promise<TPayment | null>
       create: (data: TPaymentCreate) => Promise<TPayment>
       update: (id: string, data: TPaymentUpdate) => Promise<TPayment | null>
       delete: (id: string) => Promise<boolean>
@@ -508,6 +509,13 @@ describe('Authorization Tests', function () {
             }) || null
           )
         },
+        getByIdWithRelations: async function (id: string) {
+          return (
+            testPayments.find(function (p) {
+              return p.id === id
+            }) || null
+          )
+        },
         create: async function (data: TPaymentCreate) {
           return withId(data, crypto.randomUUID()) as TPayment
         },
@@ -541,11 +549,14 @@ describe('Authorization Tests', function () {
           return { id: '550e8400-e29b-41d4-a716-446655440060', condominiumId: CONDO_ID }
         },
       }
+      const mockPaymentAppsRepo = {
+        getByPaymentIdWithRelations: async () => [],
+      }
       const controller = new PaymentsController(
         mockRepository as unknown as PaymentsRepository,
         mockDb,
-        {} as any,
-        {} as any,
+        mockPaymentAppsRepo as never,
+        {} as never,
         mockSendNotification,
         mockUnitsRepo as any,
         mockBuildingsRepo as any
@@ -775,7 +786,12 @@ describe('Authorization Tests', function () {
       }
       const controller = new QuotasController(
         mockRepository as unknown as QuotasRepository,
-        mockPaymentConceptsRepo as any
+        mockPaymentConceptsRepo as any,
+        undefined,
+        {} as any,
+        {} as any,
+        {} as any,
+        {} as any
       )
 
       app = createTestApp()

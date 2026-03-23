@@ -1,0 +1,1 @@
+ALTER TABLE "payment_concepts" ADD COLUMN "generate_receipts" boolean DEFAULT true;

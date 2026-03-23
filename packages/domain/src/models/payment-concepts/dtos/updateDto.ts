@@ -28,6 +28,7 @@ export const paymentConceptUpdateSchema = z.object({
   effectiveUntil: z.coerce.date().nullable().optional(),
   chargeGenerationStrategy: z.enum(EChargeGenerationStrategies).optional(),
   isActive: z.boolean().optional(),
+  generateReceipts: z.boolean().optional(),
   metadata: z.record(z.string(), z.unknown()).nullable().optional(),
   createdBy: z.uuid().nullable().optional(),
 })

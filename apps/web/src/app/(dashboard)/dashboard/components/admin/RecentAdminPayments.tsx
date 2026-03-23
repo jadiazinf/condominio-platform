@@ -10,6 +10,7 @@
 
 import Link from 'next/link'
 import { Wallet, ArrowRight } from 'lucide-react'
+import { formatAmount } from '@packages/utils/currency'
 
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
@@ -80,7 +81,7 @@ export function RecentAdminPayments({ payments, translations: t }: RecentAdminPa
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
                   <span className="text-sm font-semibold">
-                    {payment.currency} {payment.amount.toLocaleString()}
+                    {payment.currency} {formatAmount(payment.amount)}
                   </span>
                   <Chip color={STATUS_COLOR_MAP[payment.status]} size="sm" variant="flat">
                     {t.status[payment.status]}

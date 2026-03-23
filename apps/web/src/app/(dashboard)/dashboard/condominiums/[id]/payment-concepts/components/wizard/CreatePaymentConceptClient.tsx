@@ -57,6 +57,7 @@ const INITIAL_FORM_DATA: IWizardFormData = {
   bankAccountIds: [],
   chargeGenerationStrategy: 'auto',
   notifyImmediately: true,
+  generateReceipt: true,
   changeReason: '',
 }
 
@@ -263,6 +264,8 @@ export function CreatePaymentConceptClient({
         })),
         assignments,
         bankAccountIds: formData.bankAccountIds,
+        notifyImmediately: formData.notifyImmediately,
+        generateReceipts: formData.generateReceipt,
         interestConfig:
           formData.interestEnabled && formData.interestRate
             ? {

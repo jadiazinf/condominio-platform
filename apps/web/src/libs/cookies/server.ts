@@ -9,6 +9,8 @@ import type {
 
 import { cookies } from 'next/headers'
 
+import { env } from '@/config/env'
+
 const USER_COOKIE_NAME = '__user'
 const CONDOMINIUMS_COOKIE_NAME = '__condominiums'
 const SELECTED_CONDOMINIUM_COOKIE_NAME = '__selected_condominium'
@@ -31,7 +33,7 @@ export async function setUserCookieServer(user: TUser): Promise<void> {
     path: '/',
     maxAge: COOKIE_MAX_AGE,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.get('NODE_ENV') === 'production',
   })
 }
 
@@ -67,7 +69,7 @@ export async function setCondominiumsCookieServer(
     path: '/',
     maxAge: COOKIE_MAX_AGE,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.get('NODE_ENV') === 'production',
   })
 }
 
@@ -103,7 +105,7 @@ export async function setSelectedCondominiumCookieServer(
     path: '/',
     maxAge: COOKIE_MAX_AGE,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.get('NODE_ENV') === 'production',
   })
 }
 
@@ -137,7 +139,7 @@ export async function setSuperadminCookieServer(superadmin: TUserRole): Promise<
     path: '/',
     maxAge: COOKIE_MAX_AGE,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.get('NODE_ENV') === 'production',
   })
 }
 

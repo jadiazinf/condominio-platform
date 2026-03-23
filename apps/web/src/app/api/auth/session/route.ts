@@ -10,6 +10,7 @@ import {
 } from '@packages/http-client'
 
 import { verifySessionToken } from '@/libs/firebase/server'
+import { env } from '@/config/env'
 
 const USER_COOKIE_NAME = '__user'
 const CONDOMINIUMS_COOKIE_NAME = '__condominiums'
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<SessionRes
   const condominiums = condominiumsResponse.condominiums
   const managementCompanies = managementCompaniesResponse?.managementCompanies ?? []
   const isSuperadmin = !!superadminSession
-  const isSecure = process.env.NODE_ENV === 'production'
+  const isSecure = env.get('NODE_ENV') === 'production'
 
   // Compute available roles and determine active role
   const availableRoles: TActiveRoleType[] = []

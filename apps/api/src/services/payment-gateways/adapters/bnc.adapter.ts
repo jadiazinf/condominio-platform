@@ -120,11 +120,20 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
         }
       }
 
-      const startDate = request.transactionDate ?? new Date().toISOString().slice(0, 10)
-      const endDate = startDate
+      // Search a ±3 day window around the transaction date to account for
+      // processing delays and timezone differences
+      const referenceDate = request.transactionDate ? new Date(request.transactionDate) : new Date()
+      const startDate = new Date(referenceDate)
+      startDate.setDate(startDate.getDate() - 3)
+      const endDate = new Date(referenceDate)
+      endDate.setDate(endDate.getDate() + 3)
 
       const entries = await this.client!.getAccountHistory(
-        { AccountNumber: accountNumber, StartDate: startDate, EndDate: endDate },
+        {
+          AccountNumber: accountNumber,
+          StartDate: startDate.toISOString().slice(0, 10),
+          EndDate: endDate.toISOString().slice(0, 10),
+        },
         workingKey
       )
 
@@ -169,10 +178,17 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
     try {
       const workingKey = await this.keyManager!.getWorkingKey()
       const accountNumber = request.gatewayConfiguration.accountNumber as string
-      const today = new Date().toISOString().slice(0, 10)
+      // Search a 7-day window since we don't know the exact transaction date
+      const endDate = new Date()
+      const startDate = new Date()
+      startDate.setDate(startDate.getDate() - 7)
 
       const entries = await this.client!.getAccountHistory(
-        { AccountNumber: accountNumber, StartDate: today, EndDate: today },
+        {
+          AccountNumber: accountNumber,
+          StartDate: startDate.toISOString().slice(0, 10),
+          EndDate: endDate.toISOString().slice(0, 10),
+        },
         workingKey
       )
 
@@ -232,15 +248,13 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
     const externalTransactionId =
       body.DestinyBankReference || body.OriginBankReference || `bnc_wh_${Date.now()}`
 
-    // Try to extract paymentId from Concept field (if we encoded it there)
-    const paymentId = this.extractPaymentIdFromConcept(body.Concept) ?? null
-
     logger.info(
       `[BNC Webhook] ${body.PaymentType} from bank ${body.OriginBankCode}, amount: ${body.Amount}, ref: ${externalTransactionId}`
     )
 
+    // paymentId resolution is handled by ProcessWebhookService via gateway_transactions lookup
     return {
-      paymentId,
+      paymentId: null,
       externalTransactionId,
       status: 'completed',
       rawPayload: body as unknown as Record<string, unknown>,
@@ -428,7 +442,31 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
               rawResponse: result as unknown as Record<string, unknown>,
             }
           }
-          // VPOS retry would go here if needed
+
+          if (method === 'vpos') {
+            const result = await this.client!.sendVPOS(
+              {
+                TransactionIdentifier: request.paymentId.slice(0, 20),
+                Amount: Number(request.amount),
+                idCardType: Number(metadata.cardType) as 1 | 2 | 3,
+                CardNumber: Number(metadata.cardNumber),
+                dtExpiration: Number(metadata.expiration),
+                CardHolderName: metadata.cardHolderName as string,
+                CardHolderID: Number(metadata.cardHolderID),
+                AccountType: Number(metadata.accountType) as 0 | 10 | 20,
+                CVV: Number(metadata.cvv),
+                AffiliationNumber: Number(metadata.affiliationNumber),
+                OperationRef: request.paymentId.slice(0, 40),
+              },
+              newKey
+            )
+            return {
+              externalTransactionId: String(result.Reference),
+              externalReference: result.Code,
+              status: result.Status === 'OK' ? 'completed' : 'failed',
+              rawResponse: result as unknown as Record<string, unknown>,
+            }
+          }
         } catch (retryError) {
           if (retryError instanceof BncApiError) {
             return {
@@ -475,18 +513,5 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
       errorMessage: error instanceof Error ? error.message : 'Unknown error',
       rawResponse: {},
     }
-  }
-
-  /**
-   * Tries to extract a payment ID from the BNC webhook Concept field.
-   * We encode the payment ID in the Concept when initiating C2P payments.
-   */
-  private extractPaymentIdFromConcept(concept?: string): string | undefined {
-    if (!concept) return undefined
-
-    // Convention: "PAY:<paymentId>" in the concept
-    const match = concept.match(/PAY:([a-zA-Z0-9-]+)/)
-
-    return match?.[1]
   }
 }

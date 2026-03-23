@@ -29,3 +29,8 @@ export {
   type ISendAccessRequestApprovedEmailInput,
   type ISendAccessRequestApprovedEmailResult,
 } from './send-access-request-approved-email.service'
+export {
+  SendReceiptEmailService,
+  type ISendReceiptEmailInput,
+  type ISendReceiptEmailResult,
+} from './send-receipt-email.service'

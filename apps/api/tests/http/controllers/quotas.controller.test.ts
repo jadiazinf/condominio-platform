@@ -155,6 +155,11 @@ describe('QuotasController', function () {
     // Create controller with mock repository
     const controller = new QuotasController(
       mockRepository as unknown as QuotasRepository,
+      {} as any,
+      undefined,
+      {} as any,
+      {} as any,
+      {} as any,
       {} as any
     )
 

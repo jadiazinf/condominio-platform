@@ -1,10 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getEnvConfig } from '../config/env'
-
-// Browser globals — declared here so the file compiles in non-DOM environments
-// (e.g. the API tsconfig which doesn't include "lib": ["dom"]).
-declare const window: any
-declare const document: any
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -45,7 +39,9 @@ export function setReportAuthToken(
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function downloadFile(path: string, filename: string): Promise<void> {
-  if (typeof window === 'undefined') return
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DOM APIs accessed via globalThis to avoid requiring "dom" lib in non-browser tsconfigs
+  const win = globalThis as any
+  if (!win.window) return
 
   const { apiBaseUrl } = getEnvConfig()
   const normalizedBase = apiBaseUrl.endsWith('/') ? apiBaseUrl.slice(0, -1) : apiBaseUrl
@@ -68,14 +64,14 @@ async function downloadFile(path: string, filename: string): Promise<void> {
   }
 
   const blob = await response.blob()
-  const blobUrl = (URL as any).createObjectURL(blob)
-  const anchor = document.createElement('a')
+  const blobUrl: string = win.URL.createObjectURL(blob)
+  const anchor = win.document.createElement('a')
   anchor.href = blobUrl
   anchor.download = filename
-  document.body.appendChild(anchor)
+  win.document.body.appendChild(anchor)
   anchor.click()
-  document.body.removeChild(anchor)
-  ;(URL as any).revokeObjectURL(blobUrl)
+  win.document.body.removeChild(anchor)
+  win.URL.revokeObjectURL(blobUrl)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -8,11 +8,13 @@ import {
   type IBulkGenerateJobData,
   type ICalculateInterestJobData,
   type INotifyJobData,
+  type IPaymentRemindersJobData,
 } from '@worker/boss/queues'
 import { processAutoGeneration } from '@worker/processors/auto-generation.processor'
 import { processBulkGeneration } from '@worker/processors/bulk-generation.processor'
 import { processInterestCalculation } from '@worker/processors/interest-calculation.processor'
 import { processNotification } from '@worker/processors/notification.processor'
+import { processPaymentReminders } from '@worker/processors/payment-reminders.processor'
 import { DatabaseService } from '@database/service'
 import logger from '@packages/logger'
 
@@ -48,6 +50,13 @@ async function main() {
   await boss.work<INotifyJobData>(QUEUES.NOTIFY, { batchSize: 1 }, async jobs => {
     for (const job of jobs) await processNotification(job)
   })
+  await boss.work<IPaymentRemindersJobData>(
+    QUEUES.PAYMENT_REMINDERS,
+    { batchSize: 1 },
+    async jobs => {
+      for (const job of jobs) await processPaymentReminders(job)
+    }
+  )
 
   // Schedule cron jobs
   await boss.schedule(
@@ -61,6 +70,12 @@ async function main() {
     CRON_SCHEDULES.CALCULATE_INTEREST,
     {},
     { ...JOB_OPTIONS[QUEUES.CALCULATE_INTEREST] }
+  )
+  await boss.schedule(
+    QUEUES.PAYMENT_REMINDERS,
+    CRON_SCHEDULES.PAYMENT_REMINDERS,
+    {},
+    { ...JOB_OPTIONS[QUEUES.PAYMENT_REMINDERS] }
   )
 
   logger.info('[charges-worker] All handlers registered and cron jobs scheduled')

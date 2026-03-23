@@ -53,6 +53,7 @@ export const paymentConcepts = pgTable(
     effectiveFrom: timestamp('effective_from'),
     effectiveUntil: timestamp('effective_until'),
     isActive: boolean('is_active').default(true),
+    generateReceipts: boolean('generate_receipts').default(true),
     metadata: jsonb('metadata'),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow(),

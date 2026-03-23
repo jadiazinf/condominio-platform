@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 
 import { useUser } from '@/contexts'
+import { env } from '@/config/env'
 
 /**
  * Preloads the user's avatar image when it becomes available.
@@ -34,7 +35,7 @@ export function AvatarPreloader() {
     }
 
     img.onerror = () => {
-      if (process.env.NODE_ENV === 'development') {
+      if (env.get('NODE_ENV') === 'development') {
         console.error('[AvatarPreloader] Failed to preload image:', photoUrl)
       }
     }

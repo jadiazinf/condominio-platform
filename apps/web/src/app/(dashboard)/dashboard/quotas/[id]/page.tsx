@@ -1,8 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useQuotaDetail } from '@packages/http-client'
-import { ArrowLeft } from 'lucide-react'
+import { useQuotaDetail, useCancelQuota } from '@packages/http-client'
+import { ArrowLeft, Ban } from 'lucide-react'
 import { formatCurrency } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
 
@@ -11,6 +12,9 @@ import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
+import { Textarea } from '@/ui/components/textarea'
+import { useToast } from '@/ui/components/toast'
 
 const STATUS_COLOR_MAP: Record<
   string,
@@ -39,13 +43,38 @@ const MONTH_NAMES = [
   'Dec',
 ]
 
+const CANCELLABLE_STATUSES = new Set(['pending', 'partial', 'overdue'])
+
 export default function QuotaDetailPage() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
   const { t } = useTranslation()
+  const toast = useToast()
 
   const { data, isLoading, error } = useQuotaDetail(params.id)
   const quota = data?.data
+
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
+
+  const cancelMutation = useCancelQuota(params.id, {
+    onSuccess: () => {
+      toast.success(t('admin.quotas.actions.cancelSuccess'))
+      setShowCancelModal(false)
+      setCancelReason('')
+      router.push('/dashboard/quotas')
+    },
+    onError: () => {
+      toast.error(t('admin.quotas.actions.cancelError'))
+    },
+  })
+
+  const handleCancel = () => {
+    if (cancelReason.length < 10) return
+    cancelMutation.mutate({ reason: cancelReason })
+  }
+
+  const canCancel = quota && CANCELLABLE_STATUSES.has(quota.status)
 
   const formatPeriod = (year: number, month: number | null) => {
     if (month && month >= 1 && month <= 12) {
@@ -105,9 +134,21 @@ export default function QuotaDetailPage() {
             {formatPeriod(quota.periodYear, quota.periodMonth)}
           </Typography>
         </div>
-        <Chip color={STATUS_COLOR_MAP[quota.status] || 'default'} size="lg" variant="flat">
-          {t(`admin.quotas.status.${quota.status}`)}
-        </Chip>
+        <div className="flex items-center gap-3">
+          <Chip color={STATUS_COLOR_MAP[quota.status] || 'default'} size="lg" variant="flat">
+            {t(`admin.quotas.status.${quota.status}`)}
+          </Chip>
+          {canCancel && (
+            <Button
+              color="danger"
+              startContent={<Ban size={16} />}
+              variant="flat"
+              onPress={() => setShowCancelModal(true)}
+            >
+              {t('admin.quotas.actions.cancel')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Unit Information */}
@@ -218,6 +259,57 @@ export default function QuotaDetailPage() {
           {quota.notes ?? t('admin.quotas.detail.noNotes')}
         </Typography>
       </div>
+
+      {/* Cancel Modal */}
+      <Modal
+        isOpen={showCancelModal}
+        onClose={() => {
+          setShowCancelModal(false)
+          setCancelReason('')
+        }}
+      >
+        <ModalContent>
+          <ModalHeader>
+            <Typography variant="h4">{t('admin.quotas.actions.cancelTitle')}</Typography>
+          </ModalHeader>
+          <ModalBody>
+            <Typography className="mb-4" color="muted" variant="body2">
+              {t('admin.quotas.actions.cancelWarning')}
+            </Typography>
+            <Textarea
+              label={t('admin.quotas.actions.cancelReasonLabel')}
+              minRows={3}
+              placeholder={t('admin.quotas.actions.cancelReasonPlaceholder')}
+              value={cancelReason}
+              onValueChange={setCancelReason}
+            />
+            {cancelReason.length > 0 && cancelReason.length < 10 && (
+              <Typography color="danger" variant="caption">
+                {t('admin.quotas.actions.cancelReasonMinLength')}
+              </Typography>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              variant="light"
+              onPress={() => {
+                setShowCancelModal(false)
+                setCancelReason('')
+              }}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              color="danger"
+              isDisabled={cancelReason.length < 10}
+              isLoading={cancelMutation.isPending}
+              onPress={handleCancel}
+            >
+              {t('admin.quotas.actions.confirmCancel')}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   )
 }

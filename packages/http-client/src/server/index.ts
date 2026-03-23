@@ -9,3 +9,4 @@ export {
   type TSuperadminSession,
 } from './fetch-superadmin'
 export { fetchNotificationsPaginated, type IFetchNotificationsParams } from './fetch-notifications'
+export { getReceiptsPaginated, type TReceiptListItem } from './fetch-receipts'

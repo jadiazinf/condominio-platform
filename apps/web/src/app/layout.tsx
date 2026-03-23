@@ -7,6 +7,7 @@ import { siteConfig } from '@/config/site'
 import { JsonLd } from '@/ui/components/seo'
 import { fontSans } from '@/config/fonts'
 import { getLocale } from '@/libs/i18n'
+import { env } from '@/config/env'
 
 import '@/globals.css'
 
@@ -83,7 +84,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    google: env.get('NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION'),
   },
 }
 

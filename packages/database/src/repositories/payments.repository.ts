@@ -7,6 +7,7 @@ import {
   paymentConcepts,
   units,
   buildings,
+  currencies,
 } from '../drizzle/schema'
 import type { TDrizzleClient, IRepositoryWithHardDelete } from './interfaces'
 import { BaseRepository } from './base'
@@ -183,12 +184,26 @@ export class PaymentsRepository
     }
 
     const results = await this.db
-      .select()
+      .select({
+        payment: payments,
+        currencyCode: currencies.code,
+        currencySymbol: currencies.symbol,
+        currencyName: currencies.name,
+      })
       .from(payments)
+      .leftJoin(currencies, eq(payments.currencyId, currencies.id))
       .where(and(...conditions))
       .orderBy(desc(payments.paymentDate))
 
-    return results.map(record => this.mapToEntity(record))
+    return results.map(r => {
+      const payment = this.mapToEntity(r.payment)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(payment as any).currency = r.currencyCode
+        ? { code: r.currencyCode, symbol: r.currencySymbol, name: r.currencyName ?? '' }
+        : undefined
+
+      return payment
+    })
   }
 
   /**
@@ -226,6 +241,125 @@ export class PaymentsRepository
     }
 
     return this.listPaginated({ page: options.page, limit: options.limit }, conditions)
+  }
+
+  /**
+   * Retrieves a single payment with currency and unit relations.
+   */
+  async getByIdWithRelations(id: string): Promise<TPayment | null> {
+    const results = await this.db
+      .select({
+        payment: payments,
+        currencyCode: currencies.code,
+        currencySymbol: currencies.symbol,
+        currencyName: currencies.name,
+        unitNumber: units.unitNumber,
+      })
+      .from(payments)
+      .leftJoin(currencies, eq(payments.currencyId, currencies.id))
+      .leftJoin(units, eq(payments.unitId, units.id))
+      .where(eq(payments.id, id))
+      .limit(1)
+
+    if (results.length === 0) return null
+
+    const r = results[0]!
+    const payment = this.mapToEntity(r.payment)
+    // Attach partial relation data (only fields needed by the frontend)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(payment as any).currency = r.currencyCode
+      ? { code: r.currencyCode, symbol: r.currencySymbol, name: r.currencyName ?? '' }
+      : undefined
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(payment as any).unit = r.unitNumber ? { unitNumber: r.unitNumber } : undefined
+
+    return payment
+  }
+
+  /**
+   * Retrieves paginated payments with currency and unit relations.
+   */
+  async listPaginatedByUserWithRelations(
+    userId: string,
+    options: {
+      page?: number
+      limit?: number
+      startDate?: string
+      endDate?: string
+      status?: string
+    },
+    condominiumId?: string
+  ): Promise<TPaginatedResponse<TPayment>> {
+    const page = options.page ?? 1
+    const limit = options.limit ?? 20
+    const offset = (page - 1) * limit
+
+    const conditions: SQL[] = [eq(payments.userId, userId)]
+
+    if (condominiumId) {
+      const condominiumUnitIds = this.db
+        .select({ id: units.id })
+        .from(units)
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(eq(buildings.condominiumId, condominiumId))
+      conditions.push(inArray(payments.unitId, condominiumUnitIds))
+    }
+    if (options.startDate) {
+      conditions.push(gte(payments.paymentDate, options.startDate))
+    }
+    if (options.endDate) {
+      conditions.push(lte(payments.paymentDate, options.endDate))
+    }
+    if (options.status) {
+      conditions.push(eq(payments.status, options.status as TPayment['status']))
+    }
+
+    const whereClause = and(...conditions)
+
+    // Count
+    const countResult = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(payments)
+      .where(whereClause)
+    const total = countResult[0]?.count ?? 0
+
+    // Data with joins
+    const results = await this.db
+      .select({
+        payment: payments,
+        currencyCode: currencies.code,
+        currencySymbol: currencies.symbol,
+        currencyName: currencies.name,
+        unitNumber: units.unitNumber,
+      })
+      .from(payments)
+      .leftJoin(currencies, eq(payments.currencyId, currencies.id))
+      .leftJoin(units, eq(payments.unitId, units.id))
+      .where(whereClause)
+      .orderBy(desc(payments.paymentDate))
+      .limit(limit)
+      .offset(offset)
+
+    const data = results.map(r => {
+      const payment = this.mapToEntity(r.payment)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(payment as any).currency = r.currencyCode
+        ? { code: r.currencyCode, symbol: r.currencySymbol, name: r.currencyName ?? '' }
+        : undefined
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(payment as any).unit = r.unitNumber ? { unitNumber: r.unitNumber } : undefined
+      return payment
+    })
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    }
   }
 
   /**
@@ -316,6 +450,23 @@ export class PaymentsRepository
       .from(payments)
       .where(and(eq(payments.receiptNumber, receiptNumber), sql`${payments.status} != 'rejected'`))
       .orderBy(desc(payments.paymentDate))
+
+    return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Retrieves payments with status 'pending' or 'pending_verification' for a unit.
+   */
+  async getPendingByUnitId(unitId: string): Promise<TPayment[]> {
+    const results = await this.db
+      .select()
+      .from(payments)
+      .where(
+        and(
+          eq(payments.unitId, unitId),
+          inArray(payments.status, ['pending', 'pending_verification'])
+        )
+      )
 
     return results.map(record => this.mapToEntity(record))
   }

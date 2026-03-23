@@ -2,6 +2,7 @@ import type { Context, MiddlewareHandler } from 'hono'
 import { z } from 'zod'
 import { WebSocketManager } from '@libs/websocket/websocket-manager'
 import type { NotificationsRepository } from '@database/repositories'
+import { env } from '@config/environment'
 import { createRouter } from '../create-router'
 import type { TRouteDefinition } from '../types'
 import { bodyValidator } from '../../middlewares/utils/payload-validator'
@@ -34,7 +35,7 @@ export class InternalController {
    * Middleware: validates the x-internal-api-key header.
    */
   private requireInternalApiKey: MiddlewareHandler = async (ctx, next) => {
-    const key = process.env.INTERNAL_API_KEY
+    const key = env.INTERNAL_API_KEY
     if (!key) {
       return ctx.json({ error: 'Internal API not configured' }, 503)
     }

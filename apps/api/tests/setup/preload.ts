@@ -20,6 +20,9 @@ if (fs.existsSync(envPath)) {
       const value = valueParts.join('=').trim()
       const trimmedKey = key.trim()
 
+      // Don't overwrite env vars already set (e.g. by CI)
+      if (process.env[trimmedKey]) return
+
       // Set both process.env and Bun.env
       process.env[trimmedKey] = value
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment

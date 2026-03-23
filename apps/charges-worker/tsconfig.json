@@ -11,7 +11,8 @@
       "@packages/services": ["../../packages/services/src"],
       "@packages/test-utils": ["../../packages/test-utils/src"],
       "@packages/utils": ["../../packages/utils/src"],
-      "@packages/utils/*": ["../../packages/utils/src/*"]
+      "@packages/utils/*": ["../../packages/utils/src/*"],
+      "@api/*": ["../api/src/*"]
     }
   },
   "include": ["src", "tests"],

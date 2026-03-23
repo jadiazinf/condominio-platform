@@ -13,6 +13,8 @@ import {
   ViewAllPaymentsButton,
   AddOwnershipButton,
   OwnersTable,
+  RecentQuotasTable,
+  RecentPaymentsTable,
 } from './components/UnitDetailClient'
 
 import { getTranslations } from '@/libs/i18n/server'
@@ -21,7 +23,6 @@ import { Typography } from '@/ui/components/typography'
 import { Card, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Link } from '@/ui/components/link'
-import { Table, type ITableColumn } from '@/ui/components/table'
 import { Divider } from '@/ui/components/divider'
 
 interface PageProps {
@@ -85,6 +86,7 @@ export default async function UnitDetailPage({ params }: PageProps) {
   // Financial calculations
   const pendingQuotas = quotas.filter(q => q.status === 'pending' || q.status === 'overdue')
   const totalDebt = pendingQuotas.reduce((sum, q) => sum + parseFloat(q.balance || '0'), 0)
+  const currencySymbol = quotas[0]?.currency?.symbol || quotas[0]?.currency?.code || '$'
   const sortedPayments = [...payments].sort(
     (a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime()
   )
@@ -119,30 +121,6 @@ export default async function UnitDetailPage({ params }: PageProps) {
     authorized: t(`${ud}.ownershipTypes.authorized`),
   }
 
-  const quotaStatusColors: Record<
-    string,
-    'success' | 'warning' | 'danger' | 'default' | 'secondary' | 'primary'
-  > = {
-    paid: 'success',
-    pending: 'warning',
-    partial: 'primary',
-    overdue: 'danger',
-    cancelled: 'default',
-    exonerated: 'secondary',
-  }
-
-  const paymentStatusColors: Record<
-    string,
-    'success' | 'warning' | 'danger' | 'default' | 'primary'
-  > = {
-    completed: 'success',
-    pending: 'warning',
-    pending_verification: 'primary',
-    failed: 'danger',
-    refunded: 'default',
-    rejected: 'danger',
-  }
-
   const quotaStatusLabels: Record<string, string> = {
     pending: t(`${ud}.quotaStatuses.pending`),
     partial: t(`${ud}.quotaStatuses.partial`),
@@ -168,85 +146,6 @@ export default async function UnitDetailPage({ params }: PageProps) {
     mobile_payment: t(`${ud}.paymentMethods.mobile_payment`),
     gateway: t(`${ud}.paymentMethods.gateway`),
     other: t(`${ud}.paymentMethods.other`),
-  }
-
-  // Table columns
-  type TQuotaRow = TQuota & { id: string }
-  type TPaymentRow = TPayment & { id: string }
-
-  const quotaColumns: ITableColumn<TQuotaRow>[] = [
-    { key: 'concept', label: t(`${ud}.quotaTable.concept`) },
-    { key: 'period', label: t(`${ud}.quotaTable.period`) },
-    { key: 'amount', label: t(`${ud}.quotaTable.amount`), align: 'end' },
-    { key: 'paid', label: t(`${ud}.quotaTable.paid`), align: 'end' },
-    { key: 'balance', label: t(`${ud}.quotaTable.balance`), align: 'end' },
-    { key: 'status', label: t(`${ud}.quotaTable.status`) },
-  ]
-
-  const paymentColumns: ITableColumn<TPaymentRow>[] = [
-    { key: 'number', label: t(`${ud}.paymentTable.number`) },
-    { key: 'date', label: t(`${ud}.paymentTable.date`) },
-    { key: 'amount', label: t(`${ud}.paymentTable.amount`), align: 'end' },
-    { key: 'method', label: t(`${ud}.paymentTable.method`) },
-    { key: 'status', label: t(`${ud}.paymentTable.status`) },
-  ]
-
-  const renderQuotaCell = (quota: TQuota, columnKey: string) => {
-    switch (columnKey) {
-      case 'concept':
-        return quota.paymentConcept?.name || quota.periodDescription || '-'
-      case 'period': {
-        if (quota.periodMonth) {
-          const monthName = new Date(quota.periodYear, quota.periodMonth - 1).toLocaleDateString(
-            'es-VE',
-            { month: 'short' }
-          )
-
-          return `${monthName} ${quota.periodYear}`
-        }
-
-        return quota.periodDescription || `${quota.periodYear}`
-      }
-      case 'amount':
-        return formatAmount(quota.baseAmount)
-      case 'paid':
-        return formatAmount(quota.paidAmount)
-      case 'balance':
-        return (
-          <span className={parseFloat(quota.balance) > 0 ? 'text-danger font-medium' : ''}>
-            {formatAmount(quota.balance)}
-          </span>
-        )
-      case 'status':
-        return (
-          <Chip color={quotaStatusColors[quota.status] || 'default'} size="sm" variant="flat">
-            {quotaStatusLabels[quota.status] || quota.status}
-          </Chip>
-        )
-      default:
-        return null
-    }
-  }
-
-  const renderPaymentCell = (payment: TPayment, columnKey: string) => {
-    switch (columnKey) {
-      case 'number':
-        return payment.paymentNumber || '-'
-      case 'date':
-        return formatFullDate(payment.paymentDate)
-      case 'amount':
-        return formatAmount(payment.amount)
-      case 'method':
-        return paymentMethodLabels[payment.paymentMethod] || payment.paymentMethod
-      case 'status':
-        return (
-          <Chip color={paymentStatusColors[payment.status] || 'default'} size="sm" variant="flat">
-            {paymentStatusLabels[payment.status] || payment.status}
-          </Chip>
-        )
-      default:
-        return null
-    }
   }
 
   // Shared filter translations for modals
@@ -308,7 +207,7 @@ export default async function UnitDetailPage({ params }: PageProps) {
                 className={`mt-0.5 ${totalDebt > 0 ? 'text-danger' : 'text-success'}`}
                 variant="h4"
               >
-                ${formatAmount(totalDebt)}
+                {currencySymbol} {formatAmount(totalDebt)}
               </Typography>
             </div>
             <div className="text-center">
@@ -353,6 +252,124 @@ export default async function UnitDetailPage({ params }: PageProps) {
                 },
                 statuses: quotaStatusLabels,
                 noResults: t(`${ud}.noQuotas`),
+                actions: {
+                  cancel: t('admin.quotas.actions.cancel'),
+                  cancelTitle: t('admin.quotas.actions.cancelTitle'),
+                  cancelWarning: t('admin.quotas.actions.cancelWarning'),
+                  cancelReasonLabel: t('admin.quotas.actions.cancelReasonLabel'),
+                  cancelReasonPlaceholder: t('admin.quotas.actions.cancelReasonPlaceholder'),
+                  cancelReasonMinLength: t('admin.quotas.actions.cancelReasonMinLength'),
+                  confirmCancel: t('admin.quotas.actions.confirmCancel'),
+                  cancelSuccess: t('admin.quotas.actions.cancelSuccess'),
+                  cancelError: t('admin.quotas.actions.cancelError'),
+                  close: t('common.cancel'),
+                  generate: t('admin.quotas.actions.generate'),
+                  generateTitle: t('admin.quotas.actions.generateTitle'),
+                  generateDescription: t('admin.quotas.actions.generateDescription'),
+                  generateConcept: t('admin.quotas.actions.generateConcept'),
+                  generateConceptPlaceholder: t('admin.quotas.actions.generateConceptPlaceholder'),
+                  generateYear: t('admin.quotas.actions.generateYear'),
+                  generateMonth: t('admin.quotas.actions.generateMonth'),
+                  generateMonthPlaceholder: t('admin.quotas.actions.generateMonthPlaceholder'),
+                  confirmGenerate: t('admin.quotas.actions.confirmGenerate'),
+                  generateSuccess: t('admin.quotas.actions.generateSuccess'),
+                  generateError: t('admin.quotas.actions.generateError'),
+                  noConceptsAvailable: t('admin.quotas.actions.noConceptsAvailable'),
+                  generateModeAll: t('admin.quotas.actions.generateModeAll'),
+                  generateModeSingle: t('admin.quotas.actions.generateModeSingle'),
+                  generateAllDescription: t('admin.quotas.actions.generateAllDescription'),
+                  generateAllSuccess: t('admin.quotas.actions.generateAllSuccess'),
+                  generateResultCreated: t('admin.quotas.actions.generateResultCreated'),
+                  generateResultSkipped: t('admin.quotas.actions.generateResultSkipped'),
+                  generateResultFailed: t('admin.quotas.actions.generateResultFailed'),
+                  conceptPreview: {
+                    title: t('admin.quotas.actions.conceptPreview.title'),
+                    close: t('admin.quotas.actions.conceptPreview.close'),
+                    description: t('admin.quotas.actions.conceptPreview.description'),
+                    conceptType: t('admin.quotas.actions.conceptPreview.conceptType'),
+                    currency: t('admin.quotas.actions.conceptPreview.currency'),
+                    recurrence: t('admin.quotas.actions.conceptPreview.recurrence'),
+                    generationStrategy: t('admin.quotas.actions.conceptPreview.generationStrategy'),
+                    allowsPartialPayment: t(
+                      'admin.quotas.actions.conceptPreview.allowsPartialPayment'
+                    ),
+                    scheduleTitle: t('admin.quotas.actions.conceptPreview.scheduleTitle'),
+                    issueDay: t('admin.quotas.actions.conceptPreview.issueDay'),
+                    dueDay: t('admin.quotas.actions.conceptPreview.dueDay'),
+                    effectiveFrom: t('admin.quotas.actions.conceptPreview.effectiveFrom'),
+                    effectiveUntil: t('admin.quotas.actions.conceptPreview.effectiveUntil'),
+                    latePaymentTitle: t('admin.quotas.actions.conceptPreview.latePaymentTitle'),
+                    latePaymentType: t('admin.quotas.actions.conceptPreview.latePaymentType'),
+                    latePaymentValue: t('admin.quotas.actions.conceptPreview.latePaymentValue'),
+                    latePaymentGraceDays: t(
+                      'admin.quotas.actions.conceptPreview.latePaymentGraceDays'
+                    ),
+                    earlyPaymentTitle: t('admin.quotas.actions.conceptPreview.earlyPaymentTitle'),
+                    earlyPaymentType: t('admin.quotas.actions.conceptPreview.earlyPaymentType'),
+                    earlyPaymentValue: t('admin.quotas.actions.conceptPreview.earlyPaymentValue'),
+                    earlyPaymentDaysBeforeDue: t(
+                      'admin.quotas.actions.conceptPreview.earlyPaymentDaysBeforeDue'
+                    ),
+                    amountTitle: t('admin.quotas.actions.conceptPreview.amountTitle'),
+                    totalAmount: t('admin.quotas.actions.conceptPreview.totalAmount'),
+                    unitAmount: t('admin.quotas.actions.conceptPreview.unitAmount'),
+                    assignmentScope: t('admin.quotas.actions.conceptPreview.assignmentScope'),
+                    distributionMethod: t('admin.quotas.actions.conceptPreview.distributionMethod'),
+                    noAssignment: t('admin.quotas.actions.conceptPreview.noAssignment'),
+                    yes: t('admin.quotas.actions.conceptPreview.yes'),
+                    no: t('admin.quotas.actions.conceptPreview.no'),
+                    notConfigured: t('admin.quotas.actions.conceptPreview.notConfigured'),
+                    conceptTypes: {
+                      maintenance: t(
+                        'admin.quotas.actions.conceptPreview.conceptTypes.maintenance'
+                      ),
+                      condominium_fee: t(
+                        'admin.quotas.actions.conceptPreview.conceptTypes.condominium_fee'
+                      ),
+                      extraordinary: t(
+                        'admin.quotas.actions.conceptPreview.conceptTypes.extraordinary'
+                      ),
+                      fine: t('admin.quotas.actions.conceptPreview.conceptTypes.fine'),
+                      reserve_fund: t(
+                        'admin.quotas.actions.conceptPreview.conceptTypes.reserve_fund'
+                      ),
+                      other: t('admin.quotas.actions.conceptPreview.conceptTypes.other'),
+                    },
+                    recurrencePeriods: {
+                      monthly: t('admin.quotas.actions.conceptPreview.recurrencePeriods.monthly'),
+                      quarterly: t(
+                        'admin.quotas.actions.conceptPreview.recurrencePeriods.quarterly'
+                      ),
+                      yearly: t('admin.quotas.actions.conceptPreview.recurrencePeriods.yearly'),
+                    },
+                    strategies: {
+                      auto: t('admin.quotas.actions.conceptPreview.strategies.auto'),
+                      bulk: t('admin.quotas.actions.conceptPreview.strategies.bulk'),
+                      manual: t('admin.quotas.actions.conceptPreview.strategies.manual'),
+                    },
+                    scopes: {
+                      condominium: t('admin.quotas.actions.conceptPreview.scopes.condominium'),
+                      building: t('admin.quotas.actions.conceptPreview.scopes.building'),
+                      unit: t('admin.quotas.actions.conceptPreview.scopes.unit'),
+                    },
+                    distributions: {
+                      by_aliquot: t('admin.quotas.actions.conceptPreview.distributions.by_aliquot'),
+                      equal_split: t(
+                        'admin.quotas.actions.conceptPreview.distributions.equal_split'
+                      ),
+                      fixed_per_unit: t(
+                        'admin.quotas.actions.conceptPreview.distributions.fixed_per_unit'
+                      ),
+                    },
+                    adjustmentTypes: {
+                      percentage: t(
+                        'admin.quotas.actions.conceptPreview.adjustmentTypes.percentage'
+                      ),
+                      fixed: t('admin.quotas.actions.conceptPreview.adjustmentTypes.fixed'),
+                      none: t('admin.quotas.actions.conceptPreview.adjustmentTypes.none'),
+                    },
+                  },
+                },
               }}
               unitId={unitId}
             />
@@ -362,17 +379,20 @@ export default async function UnitDetailPage({ params }: PageProps) {
               {t(`${ud}.noQuotas`)}
             </Typography>
           ) : (
-            <Table<TQuotaRow>
-              aria-label={t(`${ud}.recentQuotas`)}
-              classNames={{
-                wrapper: 'shadow-none border-none p-0',
-                tr: 'hover:bg-default-50',
-                th: 'text-xs',
-                td: 'text-sm py-1.5',
+            <RecentQuotasTable
+              quotas={recentQuotas}
+              translations={{
+                ariaLabel: t(`${ud}.recentQuotas`),
+                columns: {
+                  concept: t(`${ud}.quotaTable.concept`),
+                  period: t(`${ud}.quotaTable.period`),
+                  amount: t(`${ud}.quotaTable.amount`),
+                  paid: t(`${ud}.quotaTable.paid`),
+                  balance: t(`${ud}.quotaTable.balance`),
+                  status: t(`${ud}.quotaTable.status`),
+                },
+                statuses: quotaStatusLabels,
               }}
-              columns={quotaColumns}
-              renderCell={renderQuotaCell}
-              rows={recentQuotas}
             />
           )}
         </CardBody>
@@ -409,17 +429,20 @@ export default async function UnitDetailPage({ params }: PageProps) {
               {t(`${ud}.noPaymentsRegistered`)}
             </Typography>
           ) : (
-            <Table<TPaymentRow>
-              aria-label={t(`${ud}.recentPayments`)}
-              classNames={{
-                wrapper: 'shadow-none border-none p-0',
-                tr: 'hover:bg-default-50',
-                th: 'text-xs',
-                td: 'text-sm py-1.5',
+            <RecentPaymentsTable
+              payments={recentPayments}
+              translations={{
+                ariaLabel: t(`${ud}.recentPayments`),
+                columns: {
+                  number: t(`${ud}.paymentTable.number`),
+                  date: t(`${ud}.paymentTable.date`),
+                  amount: t(`${ud}.paymentTable.amount`),
+                  method: t(`${ud}.paymentTable.method`),
+                  status: t(`${ud}.paymentTable.status`),
+                },
+                statuses: paymentStatusLabels,
+                methods: paymentMethodLabels,
               }}
-              columns={paymentColumns}
-              renderCell={renderPaymentCell}
-              rows={recentPayments}
             />
           )}
         </CardBody>

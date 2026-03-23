@@ -424,6 +424,91 @@ export const DomainLocaleDictionary = {
           invalid: 'validation.models.exchangeRates.createdBy.invalid',
         },
       },
+      budgets: {
+        name: {
+          required: 'validation.models.budgets.name.required',
+          max: 'validation.models.budgets.name.max',
+        },
+        condominiumId: {
+          required: 'validation.models.budgets.condominiumId.required',
+          invalid: 'validation.models.budgets.condominiumId.invalid',
+        },
+        currencyId: {
+          required: 'validation.models.budgets.currencyId.required',
+          invalid: 'validation.models.budgets.currencyId.invalid',
+        },
+        budgetType: {
+          invalid: 'validation.models.budgets.budgetType.invalid',
+        },
+        periodYear: {
+          required: 'validation.models.budgets.periodYear.required',
+          invalid: 'validation.models.budgets.periodYear.invalid',
+        },
+        periodMonth: {
+          min: 'validation.models.budgets.periodMonth.min',
+          max: 'validation.models.budgets.periodMonth.max',
+        },
+        totalAmount: {
+          invalid: 'validation.models.budgets.totalAmount.invalid',
+        },
+        reserveFundPercentage: {
+          invalid: 'validation.models.budgets.reserveFundPercentage.invalid',
+        },
+        status: {
+          invalid: 'validation.models.budgets.status.invalid',
+        },
+      },
+      budgetItems: {
+        description: {
+          required: 'validation.models.budgetItems.description.required',
+          max: 'validation.models.budgetItems.description.max',
+        },
+        budgetedAmount: {
+          required: 'validation.models.budgetItems.budgetedAmount.required',
+          invalid: 'validation.models.budgetItems.budgetedAmount.invalid',
+        },
+        budgetId: {
+          required: 'validation.models.budgetItems.budgetId.required',
+          invalid: 'validation.models.budgetItems.budgetId.invalid',
+        },
+      },
+      condominiumReceipts: {
+        condominiumId: {
+          required: 'validation.models.condominiumReceipts.condominiumId.required',
+          invalid: 'validation.models.condominiumReceipts.condominiumId.invalid',
+        },
+        buildingId: {
+          required: 'validation.models.condominiumReceipts.buildingId.required',
+          invalid: 'validation.models.condominiumReceipts.buildingId.invalid',
+        },
+        unitId: {
+          required: 'validation.models.condominiumReceipts.unitId.required',
+          invalid: 'validation.models.condominiumReceipts.unitId.invalid',
+        },
+        currencyId: {
+          required: 'validation.models.condominiumReceipts.currencyId.required',
+          invalid: 'validation.models.condominiumReceipts.currencyId.invalid',
+        },
+        periodYear: {
+          required: 'validation.models.condominiumReceipts.periodYear.required',
+          invalid: 'validation.models.condominiumReceipts.periodYear.invalid',
+        },
+        periodMonth: {
+          required: 'validation.models.condominiumReceipts.periodMonth.required',
+          min: 'validation.models.condominiumReceipts.periodMonth.min',
+          max: 'validation.models.condominiumReceipts.periodMonth.max',
+        },
+        receiptNumber: {
+          required: 'validation.models.condominiumReceipts.receiptNumber.required',
+          max: 'validation.models.condominiumReceipts.receiptNumber.max',
+        },
+        status: {
+          invalid: 'validation.models.condominiumReceipts.status.invalid',
+        },
+        totalAmount: {
+          invalid: 'validation.models.condominiumReceipts.totalAmount.invalid',
+        },
+      },
       expenseCategories: {
         name: {
           required: 'validation.models.expenseCategories.name.required',
@@ -1128,6 +1213,72 @@ export const DomainLocaleDictionary = {
         },
         methodNotSupportedByBank: 'validation.models.bankAccounts.methodNotSupportedByBank',
         bankNotFound: 'validation.models.bankAccounts.bankNotFound',
+      },
+      bankStatementImports: {
+        bankAccountId: {
+          invalid: 'validation.models.bankStatementImports.bankAccountId.invalid',
+        },
+        filename: {
+          required: 'validation.models.bankStatementImports.filename.required',
+          max: 'validation.models.bankStatementImports.filename.max',
+        },
+        periodFrom: {
+          invalid: 'validation.models.bankStatementImports.periodFrom.invalid',
+        },
+        periodTo: {
+          invalid: 'validation.models.bankStatementImports.periodTo.invalid',
+        },
+        status: {
+          invalid: 'validation.models.bankStatementImports.status.invalid',
+        },
+      },
+      bankStatementEntries: {
+        importId: {
+          invalid: 'validation.models.bankStatementEntries.importId.invalid',
+        },
+        transactionDate: {
+          invalid: 'validation.models.bankStatementEntries.transactionDate.invalid',
+        },
+        amount: {
+          required: 'validation.models.bankStatementEntries.amount.required',
+        },
+        entryType: {
+          invalid: 'validation.models.bankStatementEntries.entryType.invalid',
+        },
+        status: {
+          invalid: 'validation.models.bankStatementEntries.status.invalid',
+        },
+        reference: {
+          max: 'validation.models.bankStatementEntries.reference.max',
+        },
+      },
+      bankReconciliations: {
+        bankAccountId: {
+          invalid: 'validation.models.bankReconciliations.bankAccountId.invalid',
+        },
+        condominiumId: {
+          invalid: 'validation.models.bankReconciliations.condominiumId.invalid',
+        },
+        periodFrom: {
+          invalid: 'validation.models.bankReconciliations.periodFrom.invalid',
+        },
+        periodTo: {
+          invalid: 'validation.models.bankReconciliations.periodTo.invalid',
+        },
+        status: {
+          invalid: 'validation.models.bankReconciliations.status.invalid',
+        },
+      },
+      bankStatementMatches: {
+        entryId: {
+          invalid: 'validation.models.bankStatementMatches.entryId.invalid',
+        },
+        paymentId: {
+          invalid: 'validation.models.bankStatementMatches.paymentId.invalid',
+        },
+        matchType: {
+          invalid: 'validation.models.bankStatementMatches.matchType.invalid',
+        },
       },
     },
   },

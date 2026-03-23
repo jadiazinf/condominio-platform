@@ -94,7 +94,9 @@
       "Bash(sed -i \"s/toBe\\(''Payment gateway not found''\\)/toBe\\(''Payment gateway not found.''\\)/\" apps/api/tests/http/controllers/payment-gateways.controller.test.ts)",
       "Bash(sed -i \"s/toBe\\(''No primary residence found for user''\\)/toBe\\(''No primary residence found for user.''\\)/\" apps/api/tests/http/controllers/unit-ownerships.controller.test.ts)",
       "Bash(sed -i \"s/toBe\\(''Management company not found''\\)/toBe\\(''Management company not found.''\\)/\" apps/api/tests/http/controllers/management-companies.controller.test.ts)",
-      "WebFetch(domain:documenter.getpostman.com)"
+      "WebFetch(domain:documenter.getpostman.com)",
+      "Bash(npx eslint:*)",
+      "Bash(find \"/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\(dashboard\\)\" -type f)"
     ],
     "additionalDirectories": [
       "/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/(dashboard)/dashboard/condominiums/[id]/reserve-fund",

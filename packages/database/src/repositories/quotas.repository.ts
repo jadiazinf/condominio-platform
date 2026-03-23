@@ -350,6 +350,32 @@ export class QuotasRepository
   }
 
   /**
+   * Retrieves a quota by unit, concept, and period (any status including cancelled/exonerated).
+   */
+  async getByUnitConceptAndPeriod(
+    unitId: string,
+    conceptId: string,
+    year: number,
+    month: number
+  ): Promise<TQuota | null> {
+    const results = await this.db
+      .select()
+      .from(quotas)
+      .where(
+        and(
+          eq(quotas.unitId, unitId),
+          eq(quotas.paymentConceptId, conceptId),
+          eq(quotas.periodYear, year),
+          eq(quotas.periodMonth, month)
+        )
+      )
+      .limit(1)
+
+    if (results.length === 0) return null
+    return this.mapToEntity(results[0])
+  }
+
+  /**
    * Checks if quotas already exist for a payment concept and period.
    */
   async existsForConceptAndPeriod(
@@ -407,6 +433,35 @@ export class QuotasRepository
       .orderBy(quotas.unitId, quotas.dueDate)
 
     return results.map(record => this.mapToEntity(record))
+  }
+
+  /**
+   * Retrieves all non-cancelled quotas for a unit in a specific period, with concept info.
+   */
+  async getByUnitAndPeriod(unitId: string, year: number, month: number) {
+    const results = await this.db
+      .select({
+        quota: quotas,
+        conceptName: paymentConcepts.name,
+        conceptType: paymentConcepts.conceptType,
+      })
+      .from(quotas)
+      .leftJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
+      .where(
+        and(
+          eq(quotas.unitId, unitId),
+          eq(quotas.periodYear, year),
+          eq(quotas.periodMonth, month),
+          notInArray(quotas.status, ['cancelled', 'exonerated'])
+        )
+      )
+
+    return results.map(r => ({
+      ...this.mapToEntity(r.quota),
+      paymentConcept: r.conceptName
+        ? { name: r.conceptName, conceptType: r.conceptType }
+        : undefined,
+    }))
   }
 
   /**
@@ -491,6 +546,27 @@ export class QuotasRepository
   }
 
   /**
+   * Cancels all non-paid quotas (pending/overdue) for a concept + specific unit IDs.
+   * Returns the count of cancelled quotas.
+   */
+  async cancelNonPaidByConceptAndUnits(conceptId: string, unitIds: string[]): Promise<number> {
+    if (unitIds.length === 0) return 0
+    const results = await this.db
+      .update(quotas)
+      .set({ status: 'cancelled', updatedAt: new Date() })
+      .where(
+        and(
+          eq(quotas.paymentConceptId, conceptId),
+          inArray(quotas.unitId, unitIds),
+          or(eq(quotas.status, 'pending'), eq(quotas.status, 'overdue'))
+        )
+      )
+      .returning()
+
+    return results.length
+  }
+
+  /**
    * Gets aggregated summary for reserve fund quotas of a condominium.
    */
   async getReserveFundSummary(condominiumId: string): Promise<{
@@ -511,7 +587,8 @@ export class QuotasRepository
       .where(
         and(
           eq(paymentConcepts.condominiumId, condominiumId),
-          eq(paymentConcepts.conceptType, 'reserve_fund')
+          eq(paymentConcepts.conceptType, 'reserve_fund'),
+          notInArray(quotas.status, ['cancelled', 'exonerated'])
         )
       )
 

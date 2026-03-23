@@ -546,6 +546,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       effective_from TIMESTAMP,
       effective_until TIMESTAMP,
       is_active BOOLEAN DEFAULT true,
+      generate_receipts BOOLEAN DEFAULT true,
       metadata JSONB,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),

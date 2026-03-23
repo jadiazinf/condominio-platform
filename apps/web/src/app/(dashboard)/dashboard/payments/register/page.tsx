@@ -261,8 +261,9 @@ export default function RegisterPaymentPage() {
       setVerificationResult({ found: result.found, verifiedAmount: result.verifiedAmount })
 
       if (result.found) {
-        // TODO: Auto-fill form fields from verification result (e.g. amount, date, currency)
-        // when the bank adapter returns real transaction data
+        if (result.verifiedAmount && !amount) {
+          setAmount(result.verifiedAmount)
+        }
         toast.success(t('admin.payments.register.verification.found'))
       } else {
         toast.error(t('admin.payments.register.verification.notFound'))

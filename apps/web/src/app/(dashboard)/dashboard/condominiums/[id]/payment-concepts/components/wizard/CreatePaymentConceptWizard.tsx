@@ -90,6 +90,7 @@ export interface IWizardFormData {
   bankAccountIds: string[]
   // Step 6 - Review
   notifyImmediately: boolean
+  generateReceipt: boolean
   /** Reason for the change — only used in edit mode */
   changeReason: string
 }
@@ -123,6 +124,7 @@ const INITIAL_FORM_DATA: IWizardFormData = {
   assignments: [],
   bankAccountIds: [],
   notifyImmediately: true,
+  generateReceipt: true,
   changeReason: '',
 }
 
@@ -274,6 +276,7 @@ export function CreatePaymentConceptWizard({
         })),
       bankAccountIds: (c.bankAccounts ?? []).map((b: any) => b.bankAccountId),
       notifyImmediately: true,
+      generateReceipt: c.generateReceipts !== false,
       changeReason: '',
     })
     setEditDataLoaded(true)
@@ -565,6 +568,8 @@ export function CreatePaymentConceptWizard({
         })),
         assignments,
         bankAccountIds: formData.bankAccountIds,
+        notifyImmediately: formData.notifyImmediately,
+        generateReceipts: formData.generateReceipt,
         interestConfig:
           formData.interestEnabled && formData.interestRate
             ? {

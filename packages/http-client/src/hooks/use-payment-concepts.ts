@@ -229,6 +229,8 @@ export type TCreatePaymentConceptFullInput = TPaymentConceptCreate & {
   assignments?: IAssignmentInput[]
   bankAccountIds?: string[]
   interestConfig?: IInterestConfigInput
+  notifyImmediately?: boolean
+  generateReceipts?: boolean
 }
 
 export interface ICreatePaymentConceptFullOptions {

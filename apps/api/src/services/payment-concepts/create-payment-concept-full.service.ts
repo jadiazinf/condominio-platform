@@ -91,6 +91,7 @@ export interface ICreatePaymentConceptFullInput extends TPaymentConceptCreate {
   assignments?: IAssignmentInput[]
   bankAccountIds?: string[]
   interestConfig?: IInterestConfigInput
+  notifyImmediately?: boolean
 }
 
 type TUnitsRepo = {
@@ -466,15 +467,69 @@ export class CreatePaymentConceptFullService {
           'Non-recurring concept: quotas generated successfully'
         )
 
-        // Notify affected residents
-        await this.notifyResidents(
-          genResult.data.unitDetails,
-          conceptName,
-          condominiumName,
-          currencySymbol,
-          genResult.data.dueDate,
-          input.condominiumId ?? undefined
-        )
+        // Auto-generate receipts (if enabled)
+        const shouldGenerateReceipts = input.generateReceipts !== false
+        if (shouldGenerateReceipts) {
+          try {
+            const { autoGenerateReceipts } =
+              await import('@src/services/receipts/auto-generate-receipts.service')
+            const { CondominiumReceiptsRepository, BuildingsRepository } =
+              await import('@database/repositories')
+            const receiptResult = await autoGenerateReceipts(
+              {
+                receiptsRepo: new CondominiumReceiptsRepository(this.db),
+                quotasRepo: this.quotasRepo as never,
+                unitsRepo: this.unitsRepo as never,
+                buildingsRepo: new BuildingsRepository(this.db),
+              },
+              {
+                unitIds: genResult.data.unitDetails.map(u => u.unitId),
+                conceptType: concept.conceptType ?? 'other',
+                condominiumId: concept.condominiumId!,
+                periodYear,
+                periodMonth,
+                currencyId: concept.currencyId,
+                generatedBy,
+              }
+            )
+
+            // Notify admin if receipts already existed for some units
+            if (receiptResult.conflicts.length > 0) {
+              await this.notifyAdminReceiptConflicts(
+                input.createdBy,
+                conceptName,
+                condominiumName,
+                periodYear,
+                periodMonth,
+                receiptResult.conflicts.length,
+                genResult.data.unitDetails.length,
+                input.condominiumId ?? undefined
+              )
+            }
+          } catch (receiptError) {
+            logger.error(
+              { error: receiptError, conceptId: concept.id },
+              'Non-recurring concept: failed to auto-generate receipts'
+            )
+          }
+        } else {
+          logger.info(
+            { conceptId: concept.id },
+            'Non-recurring concept: receipt generation skipped (generateReceipts=false)'
+          )
+        }
+
+        // Notify affected residents (if enabled)
+        if (input.notifyImmediately !== false) {
+          await this.notifyResidents(
+            genResult.data.unitDetails,
+            conceptName,
+            condominiumName,
+            currencySymbol,
+            genResult.data.dueDate,
+            input.condominiumId ?? undefined
+          )
+        }
       } else {
         logger.error(
           { conceptId: concept.id, error: genResult.error, code: genResult.code },
@@ -593,6 +648,79 @@ export class CreatePaymentConceptFullService {
       )
     } catch (error) {
       logger.error({ error }, 'Non-recurring concept: failed to notify residents')
+    }
+  }
+
+  /**
+   * Notifies the admin that receipts could not be generated because they already
+   * exist for the given period. Sends via email + in-app notification.
+   */
+  private async notifyAdminReceiptConflicts(
+    adminUserId: string,
+    conceptName: string,
+    condominiumName: string,
+    periodYear: number,
+    periodMonth: number,
+    conflictCount: number,
+    totalUnits: number,
+    condominiumId?: string
+  ): Promise<void> {
+    const MONTH_NAMES = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ]
+    const periodStr = `${MONTH_NAMES[periodMonth - 1]} ${periodYear}`
+
+    const title = 'Recibos no regenerados'
+    const body = [
+      `Al crear el concepto "${conceptName}" en ${condominiumName}, se generaron las cuotas correctamente, ` +
+        `pero no se pudieron generar nuevos recibos para ${conflictCount} de ${totalUnits} unidades ` +
+        `porque ya existen recibos para el período ${periodStr}.`,
+      '',
+      'Los recibos existentes NO incluyen la nueva cuota. Para incluirla:',
+      '1. Anule los recibos del período desde la sección de Recibos.',
+      '2. Regenere los recibos para que incluyan todas las cuotas del período.',
+      '',
+      `Concepto creado: ${conceptName}`,
+      `Condominio: ${condominiumName}`,
+      `Período: ${periodStr}`,
+      `Unidades afectadas: ${conflictCount} de ${totalUnits}`,
+    ].join('\n')
+
+    try {
+      await enqueueNotification({
+        userId: adminUserId,
+        category: 'alert',
+        title,
+        body,
+        channels: ['in_app', 'email'],
+        data: {
+          condominiumId,
+          conceptName,
+          condominiumName,
+          periodYear,
+          periodMonth,
+          conflictCount,
+          totalUnits,
+        },
+      })
+
+      logger.info(
+        { adminUserId, conflictCount, totalUnits, periodStr },
+        'Receipt conflict notification sent to admin'
+      )
+    } catch (error) {
+      logger.error({ error, adminUserId }, 'Failed to send receipt conflict notification')
     }
   }
 }

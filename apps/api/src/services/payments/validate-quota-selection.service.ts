@@ -21,6 +21,9 @@ export interface IValidatedQuota {
   paymentConceptId: string
   amount: string
   balance: string
+  conceptName: string
+  periodYear: number
+  periodMonth: number
 }
 
 export interface IValidatedBankAccount {
@@ -170,6 +173,9 @@ export class ValidateQuotaSelectionService {
           paymentConceptId: quota.paymentConceptId,
           amount: amountStr,
           balance: quota.balance,
+          conceptName: concept.name,
+          periodYear: quota.periodYear,
+          periodMonth: quota.periodMonth,
         })
       }
 

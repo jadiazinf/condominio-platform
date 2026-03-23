@@ -3,13 +3,15 @@ import { getAuth, type Auth } from 'firebase/auth'
 import { getStorage, type FirebaseStorage } from 'firebase/storage'
 import { getMessaging, type Messaging } from 'firebase/messaging'
 
+import { env } from '@/config/env'
+
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: env.get('NEXT_PUBLIC_FIREBASE_API_KEY'),
+  authDomain: env.get('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN'),
+  projectId: env.get('NEXT_PUBLIC_FIREBASE_PROJECT_ID'),
+  storageBucket: env.get('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET'),
+  messagingSenderId: env.get('NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID'),
+  appId: env.get('NEXT_PUBLIC_FIREBASE_APP_ID'),
 }
 
 let app: FirebaseApp

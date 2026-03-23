@@ -4,6 +4,7 @@ import { Component, type ReactNode, type ErrorInfo } from 'react'
 
 import { Button } from '@/ui/components/button'
 import { Card, CardBody, CardFooter, CardHeader } from '@/ui/components/card'
+import { env } from '@/config/env'
 
 // ============================================================================
 // TYPES
@@ -65,7 +66,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error to console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (env.get('NODE_ENV') === 'development') {
       console.error('[ErrorBoundary] Caught error:', error)
       console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack)
     }
@@ -108,7 +109,7 @@ interface DefaultErrorFallbackProps {
 }
 
 function DefaultErrorFallback({ error, onReset }: DefaultErrorFallbackProps) {
-  const isDevelopment = process.env.NODE_ENV === 'development'
+  const isDevelopment = env.get('NODE_ENV') === 'development'
 
   return (
     <div className="flex items-center justify-center min-h-[400px] p-4">
@@ -174,7 +175,7 @@ export function PageErrorBoundary({ children, pageName }: PageErrorBoundaryProps
       )}
       onError={(error, errorInfo) => {
         // In production, you could send this to an error tracking service
-        if (process.env.NODE_ENV === 'production') {
+        if (env.get('NODE_ENV') === 'production') {
           // Example: sendToErrorTracker(error, errorInfo, { page: pageName })
         }
       }}
@@ -191,7 +192,7 @@ interface PageErrorFallbackProps {
 }
 
 function PageErrorFallback({ error, onReset, pageName }: PageErrorFallbackProps) {
-  const isDevelopment = process.env.NODE_ENV === 'development'
+  const isDevelopment = env.get('NODE_ENV') === 'development'
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">

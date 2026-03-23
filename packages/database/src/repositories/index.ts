@@ -118,5 +118,18 @@ export { CondominiumServicesRepository } from './condominium-services.repository
 export { ServiceExecutionsRepository } from './service-executions.repository'
 export { PaymentConceptServicesRepository } from './payment-concept-services.repository'
 
+// Budgets
+export { BudgetsRepository } from './budgets.repository'
+export { BudgetItemsRepository } from './budget-items.repository'
+
+// Condominium Receipts
+export { CondominiumReceiptsRepository } from './condominium-receipts.repository'
+
+// Bank Reconciliation
+export { BankStatementImportsRepository } from './bank-statement-imports.repository'
+export { BankStatementEntriesRepository } from './bank-statement-entries.repository'
+export { BankReconciliationsRepository } from './bank-reconciliations.repository'
+export { BankStatementMatchesRepository } from './bank-statement-matches.repository'
+
 // Wizard Drafts
 export { WizardDraftsRepository } from './wizard-drafts.repository'

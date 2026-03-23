@@ -10,7 +10,10 @@ import {
   UnitOwnershipsRepository,
   ServiceExecutionsRepository,
   CurrenciesRepository,
+  BuildingsRepository,
+  CondominiumReceiptsRepository,
 } from '@database/repositories'
+import { autoGenerateReceipts } from '@api/services/receipts/auto-generate-receipts.service'
 import { getBossClient } from '@worker/boss/client'
 import { QUEUES, type IBulkGenerateJobData, type INotifyJobData } from '@worker/boss/queues'
 import logger from '@packages/logger'
@@ -332,12 +335,47 @@ async function _processBulkGeneration(job: PgBoss.Job<IBulkGenerateJobData>): Pr
   const currenciesRepo = new CurrenciesRepository(db)
   const currency = await currenciesRepo.getById(concept.currencyId)
   const currencyCode = currency?.code ?? ''
+
+  // Auto-generate receipts BEFORE notifications (so we can attach PDFs)
+  const unitReceiptMap = new Map<string, string>()
+  if (concept.condominiumId) {
+    try {
+      const receiptsRepo = new CondominiumReceiptsRepository(db)
+      const buildingsRepo = new BuildingsRepository(db)
+
+      for (const period of periods) {
+        if (!result.unitQuotaDetails || Object.keys(result.unitQuotaDetails).length === 0) continue
+
+        const receiptResult = await autoGenerateReceipts(
+          { receiptsRepo, quotasRepo, unitsRepo, buildingsRepo },
+          {
+            unitIds: result.affectedUnitIds,
+            conceptType: concept.conceptType ?? 'other',
+            condominiumId: concept.condominiumId,
+            periodYear: period.year,
+            periodMonth: period.month,
+            currencyId: concept.currencyId,
+            generatedBy,
+          }
+        )
+
+        for (const [unitId, receiptId] of receiptResult.unitReceiptMap) {
+          unitReceiptMap.set(unitId, receiptId)
+        }
+      }
+    } catch (receiptError) {
+      logger.error({ error: receiptError }, '[BulkGen] Failed to auto-generate receipts')
+    }
+  }
+
+  // Notify residents (with receiptIds for PDF attachment)
   await notifyUnitResidents(
     db,
     result,
     concept.name ?? 'Cuota',
     currencyCode,
-    concept.condominiumId ?? undefined
+    concept.condominiumId ?? undefined,
+    unitReceiptMap
   )
 
   const elapsed = ((Date.now() - start) / 1000).toFixed(1)
@@ -362,7 +400,8 @@ async function notifyUnitResidents(
   result: TBulkResult,
   conceptName: string,
   currencyCode: string,
-  condominiumId?: string
+  condominiumId?: string,
+  unitReceiptMap: Map<string, string> = new Map()
 ): Promise<void> {
   if (result.affectedUnitIds.length === 0) return
 
@@ -406,6 +445,9 @@ async function notifyUnitResidents(
         body += ` ${overdueCount} cuota(s) vencida(s).`
       }
 
+      // Find receiptId for this user's units (use first unit's receipt)
+      const receiptId = unitIds.map(uid => unitReceiptMap.get(uid)).find(Boolean)
+
       const notification: INotifyJobData = {
         userId,
         category: 'quota',
@@ -419,6 +461,7 @@ async function notifyUnitResidents(
           totalAmount: toDecimal(totalAmount),
           currencyCode,
           periodsGenerated: result.periodsGenerated,
+          ...(receiptId ? { receiptId } : {}),
         },
       }
 

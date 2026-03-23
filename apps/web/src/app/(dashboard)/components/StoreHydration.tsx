@@ -32,6 +32,7 @@ import {
   setActiveRoleCookie,
 } from '@/libs/cookies/management-company-cookie'
 import { getProfilePhotoUrl } from '@/libs/firebase'
+import { env } from '@/config/env'
 
 interface StoreHydrationProps {
   user: TUser | null
@@ -217,7 +218,7 @@ export function StoreHydration({
         setUser(updatedUser)
         setUserCookie(updatedUser)
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
+        if (env.get('NODE_ENV') === 'development') {
           console.error('[StoreHydration] Error refreshing photo URL:', error)
         }
       }

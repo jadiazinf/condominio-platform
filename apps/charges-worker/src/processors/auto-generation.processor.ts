@@ -11,7 +11,10 @@ import {
   UserRolesRepository,
   QuotaGenerationLogsRepository,
   CurrenciesRepository,
+  BuildingsRepository,
+  CondominiumReceiptsRepository,
 } from '@database/repositories'
+import { autoGenerateReceipts } from '@api/services/receipts/auto-generate-receipts.service'
 import { getBossClient } from '@worker/boss/client'
 import { QUEUES, type IAutoGenerateJobData, type INotifyJobData } from '@worker/boss/queues'
 import logger from '@packages/logger'
@@ -253,12 +256,17 @@ async function _processAutoGeneration(job: PgBoss.Job<IAutoGenerateJobData>): Pr
         generatedQuotas.push({
           affectedUnitIds: unitAmounts.map(ua => ua.unitId),
           paymentConceptId: concept.id,
+          conceptType: concept.conceptType ?? 'other',
           condominiumId: concept.condominiumId ?? undefined,
+          currencyId: concept.currencyId,
+          periodYear: period.year,
+          periodMonth: period.month,
           periodDescription,
           dueDate,
           totalAmount: periodAmount,
           quotasCreated: unitAmounts.length,
           currencyCode: currencyCodeCache.get(concept.currencyId) ?? '',
+          generateReceipts: concept.generateReceipts !== false,
         })
       }
 
@@ -350,8 +358,11 @@ async function _processAutoGeneration(job: PgBoss.Job<IAutoGenerateJobData>): Pr
     logger.error({ error: notifyError }, '[AutoGen] Failed to enqueue admin notification')
   }
 
-  // Notify residents
-  await notifyResidentsForAutoGeneration(db, generatedQuotas)
+  // Auto-generate receipts for maintenance concepts (before notifications so we can attach PDFs)
+  const unitReceiptMap = await autoGenerateReceiptsForQuotas(db, generatedQuotas)
+
+  // Notify residents (with receiptIds for PDF attachment)
+  await notifyResidentsForAutoGeneration(db, generatedQuotas, unitReceiptMap)
 
   const elapsed = ((Date.now() - start) / 1000).toFixed(1)
   logger.info({ elapsedSeconds: elapsed, totalCreated, totalFailed }, '[AutoGen] Cycle completed')
@@ -553,17 +564,23 @@ async function markOverdueQuotas(quotasRepo: QuotasRepository, today: string): P
 type TGeneratedQuotaInfo = {
   affectedUnitIds: string[]
   paymentConceptId: string
+  conceptType: string
   condominiumId?: string
+  currencyId: string
+  periodYear: number
+  periodMonth: number
   periodDescription: string
   dueDate: string
   totalAmount: number
   quotasCreated: number
   currencyCode: string
+  generateReceipts: boolean
 }
 
 async function notifyResidentsForAutoGeneration(
   db: ReturnType<typeof DatabaseService.prototype.getDb>,
-  generatedQuotas: TGeneratedQuotaInfo[]
+  generatedQuotas: TGeneratedQuotaInfo[],
+  unitReceiptMap: Map<string, string> = new Map()
 ): Promise<void> {
   if (generatedQuotas.length === 0) return
 
@@ -599,6 +616,9 @@ async function notifyResidentsForAutoGeneration(
           body += ' (Vencida)'
         }
 
+        // Include receiptId for PDF attachment if available
+        const receiptId = unitReceiptMap.get(ownership.unitId)
+
         const notification: INotifyJobData = {
           userId: ownership.userId,
           category: 'quota',
@@ -615,6 +635,7 @@ async function notifyResidentsForAutoGeneration(
             totalAmount: perUnitAmount,
             currencyCode: quota.currencyCode,
             isOverdue,
+            ...(receiptId ? { receiptId } : {}),
           },
         }
 
@@ -629,4 +650,59 @@ async function notifyResidentsForAutoGeneration(
   } catch (error) {
     logger.error({ error }, '[AutoGen] Failed to enqueue resident notifications')
   }
+}
+
+async function autoGenerateReceiptsForQuotas(
+  db: ReturnType<typeof DatabaseService.prototype.getDb>,
+  generatedQuotas: TGeneratedQuotaInfo[]
+): Promise<Map<string, string>> {
+  const unitReceiptMap = new Map<string, string>()
+  if (generatedQuotas.length === 0) return unitReceiptMap
+
+  try {
+    const receiptsRepo = new CondominiumReceiptsRepository(db)
+    const quotasRepo = new QuotasRepository(db)
+    const unitsRepo = new UnitsRepository(db)
+    const buildingsRepo = new BuildingsRepository(db)
+
+    for (const quota of generatedQuotas) {
+      if (!quota.condominiumId) continue
+      if (!quota.generateReceipts) {
+        logger.info(
+          { conceptId: quota.paymentConceptId },
+          '[AutoGen] Skipping receipt generation (generateReceipts=false)'
+        )
+        continue
+      }
+
+      const result = await autoGenerateReceipts(
+        { receiptsRepo, quotasRepo, unitsRepo, buildingsRepo },
+        {
+          unitIds: quota.affectedUnitIds,
+          conceptType: quota.conceptType,
+          condominiumId: quota.condominiumId,
+          periodYear: quota.periodYear,
+          periodMonth: quota.periodMonth,
+          currencyId: quota.currencyId,
+          generatedBy: null,
+        }
+      )
+
+      // Merge unit→receipt map
+      for (const [unitId, receiptId] of result.unitReceiptMap) {
+        unitReceiptMap.set(unitId, receiptId)
+      }
+
+      if (result.receiptsGenerated > 0) {
+        logger.info(
+          { conceptId: quota.paymentConceptId, receiptsGenerated: result.receiptsGenerated },
+          '[AutoGen] Receipts auto-generated for concept'
+        )
+      }
+    }
+  } catch (error) {
+    logger.error({ error }, '[AutoGen] Failed to auto-generate receipts')
+  }
+
+  return unitReceiptMap
 }

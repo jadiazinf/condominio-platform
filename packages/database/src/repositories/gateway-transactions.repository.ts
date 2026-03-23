@@ -118,6 +118,24 @@ export class GatewayTransactionsRepository
   }
 
   /**
+   * Retrieves a gateway transaction by external transaction ID.
+   * Used by webhook processing to match incoming bank references against
+   * the ID returned when the transaction was initiated (e.g. BNC IdTransaction).
+   */
+  async getByExternalTransactionId(
+    externalTransactionId: string
+  ): Promise<TGatewayTransaction | null> {
+    const results = await this.db
+      .select()
+      .from(gatewayTransactions)
+      .where(eq(gatewayTransactions.externalTransactionId, externalTransactionId))
+      .limit(1)
+
+    if (results.length === 0) return null
+    return this.mapToEntity(results[0])
+  }
+
+  /**
    * Retrieves transactions pending verification (for retry scenarios).
    */
   async getPendingVerification(maxAttempts: number): Promise<TGatewayTransaction[]> {

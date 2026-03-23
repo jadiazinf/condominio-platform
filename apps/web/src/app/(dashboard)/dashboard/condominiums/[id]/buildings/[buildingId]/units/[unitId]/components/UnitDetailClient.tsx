@@ -1,6 +1,6 @@
 'use client'
 
-import type { TUnitOwnership } from '@packages/domain'
+import type { TUnitOwnership, TQuota, TPayment } from '@packages/domain'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -19,8 +19,9 @@ import {
 } from 'lucide-react'
 import { useResendOwnerInvitation } from '@packages/http-client/hooks'
 import { formatFullDate } from '@packages/utils/dates'
+import { formatAmount } from '@packages/utils/currency'
 
-import { AllQuotasModal } from './AllQuotasModal'
+import { AllQuotasModal, type AllQuotasModalTranslations } from './AllQuotasModal'
 import { AllPaymentsModal } from './AllPaymentsModal'
 import { AddOwnershipModal, type AddOwnershipModalTranslations } from './AddOwnershipModal'
 
@@ -53,19 +54,7 @@ interface ModalTranslations {
 interface ViewAllQuotasButtonProps {
   unitId: string
   label: string
-  translations: ModalTranslations & {
-    title: string
-    table: {
-      concept: string
-      period: string
-      amount: string
-      paid: string
-      balance: string
-      status: string
-    }
-    statuses: Record<string, string>
-    noResults: string
-  }
+  translations: AllQuotasModalTranslations
 }
 
 export function ViewAllQuotasButton({ unitId, label, translations }: ViewAllQuotasButtonProps) {
@@ -491,5 +480,178 @@ export function OwnersTable({ ownerships, translations: t }: OwnersTableProps) {
         </ModalContent>
       </Modal>
     </>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Recent Quotas Table (client component — renderCell cannot live in server)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const quotaStatusColors: Record<
+  string,
+  'success' | 'warning' | 'danger' | 'default' | 'secondary' | 'primary'
+> = {
+  paid: 'success',
+  pending: 'warning',
+  partial: 'primary',
+  overdue: 'danger',
+  cancelled: 'default',
+  exonerated: 'secondary',
+}
+
+const paymentStatusColors: Record<
+  string,
+  'success' | 'warning' | 'danger' | 'default' | 'primary'
+> = {
+  completed: 'success',
+  pending: 'warning',
+  pending_verification: 'primary',
+  failed: 'danger',
+  refunded: 'default',
+  rejected: 'danger',
+}
+
+type TQuotaRow = TQuota & { id: string }
+
+export interface RecentQuotasTableProps {
+  quotas: TQuota[]
+  translations: {
+    ariaLabel: string
+    columns: {
+      concept: string
+      period: string
+      amount: string
+      paid: string
+      balance: string
+      status: string
+    }
+    statuses: Record<string, string>
+  }
+}
+
+export function RecentQuotasTable({ quotas, translations: t }: RecentQuotasTableProps) {
+  const columns: ITableColumn<TQuotaRow>[] = [
+    { key: 'concept', label: t.columns.concept },
+    { key: 'period', label: t.columns.period },
+    { key: 'amount', label: t.columns.amount, align: 'end' },
+    { key: 'paid', label: t.columns.paid, align: 'end' },
+    { key: 'balance', label: t.columns.balance, align: 'end' },
+    { key: 'status', label: t.columns.status },
+  ]
+
+  const renderCell = (quota: TQuota, columnKey: string) => {
+    const sym = quota.currency?.symbol || quota.currency?.code || '$'
+
+    switch (columnKey) {
+      case 'concept':
+        return quota.paymentConcept?.name || quota.periodDescription || '-'
+      case 'period': {
+        if (quota.periodMonth) {
+          const monthName = new Date(quota.periodYear, quota.periodMonth - 1).toLocaleDateString(
+            'es-VE',
+            { month: 'short' }
+          )
+
+          return `${monthName} ${quota.periodYear}`
+        }
+
+        return quota.periodDescription || `${quota.periodYear}`
+      }
+      case 'amount':
+        return `${sym} ${formatAmount(quota.baseAmount)}`
+      case 'paid':
+        return `${sym} ${formatAmount(quota.paidAmount)}`
+      case 'balance':
+        return (
+          <span className={parseFloat(quota.balance) > 0 ? 'text-danger font-medium' : ''}>
+            {sym} {formatAmount(quota.balance)}
+          </span>
+        )
+      case 'status':
+        return (
+          <Chip color={quotaStatusColors[quota.status] || 'default'} size="sm" variant="flat">
+            {t.statuses[quota.status] || quota.status}
+          </Chip>
+        )
+      default:
+        return null
+    }
+  }
+
+  return (
+    <Table<TQuotaRow>
+      aria-label={t.ariaLabel}
+      classNames={{
+        wrapper: 'shadow-none border-none p-0',
+        tr: 'hover:bg-default-50',
+        th: 'text-xs',
+        td: 'text-sm py-1.5',
+      }}
+      columns={columns}
+      renderCell={renderCell}
+      rows={quotas}
+    />
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Recent Payments Table (client component)
+// ─────────────────────────────────────────────────────────────────────────────
+
+type TPaymentRow = TPayment & { id: string }
+
+export interface RecentPaymentsTableProps {
+  payments: TPayment[]
+  translations: {
+    ariaLabel: string
+    columns: { number: string; date: string; amount: string; method: string; status: string }
+    statuses: Record<string, string>
+    methods: Record<string, string>
+  }
+}
+
+export function RecentPaymentsTable({ payments, translations: t }: RecentPaymentsTableProps) {
+  const columns: ITableColumn<TPaymentRow>[] = [
+    { key: 'number', label: t.columns.number },
+    { key: 'date', label: t.columns.date },
+    { key: 'amount', label: t.columns.amount, align: 'end' },
+    { key: 'method', label: t.columns.method },
+    { key: 'status', label: t.columns.status },
+  ]
+
+  const renderCell = (payment: TPayment, columnKey: string) => {
+    switch (columnKey) {
+      case 'number':
+        return payment.paymentNumber || '-'
+      case 'date':
+        return formatFullDate(payment.paymentDate)
+      case 'amount':
+        return formatAmount(payment.amount)
+      case 'method':
+        return t.methods[payment.paymentMethod] || payment.paymentMethod
+      case 'status':
+        return (
+          <Chip color={paymentStatusColors[payment.status] || 'default'} size="sm" variant="flat">
+            {t.statuses[payment.status] || payment.status}
+          </Chip>
+        )
+      default:
+        return null
+    }
+  }
+
+  return (
+    <Table<TPaymentRow>
+      aria-label={t.ariaLabel}
+      classNames={{
+        wrapper: 'shadow-none border-none p-0',
+        tr: 'hover:bg-default-50',
+        th: 'text-xs',
+        td: 'text-sm py-1.5',
+      }}
+      columns={columns}
+      renderCell={renderCell}
+      rows={payments}
+    />
   )
 }

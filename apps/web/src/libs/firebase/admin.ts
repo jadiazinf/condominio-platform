@@ -4,8 +4,10 @@ import { join } from 'path'
 import { initializeApp, getApps, cert, type App, type ServiceAccount } from 'firebase-admin/app'
 import { getAuth, type Auth } from 'firebase-admin/auth'
 
+import { env } from '@/config/env'
+
 function loadServiceAccountFromBase64(): ServiceAccount | null {
-  const base64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64
+  const base64 = env.get('FIREBASE_SERVICE_ACCOUNT_BASE64')
 
   if (!base64) {
     return null
@@ -25,7 +27,7 @@ function loadServiceAccountFromBase64(): ServiceAccount | null {
 function loadServiceAccountFromFile(): ServiceAccount | null {
   // Try to load from common locations
   const possiblePaths = [
-    process.env.FIREBASE_SERVICE_ACCOUNT_PATH,
+    env.get('FIREBASE_SERVICE_ACCOUNT_PATH'),
     join(process.cwd(), 'firebaseServiceAccountKey.json'),
     join(process.cwd(), 'firebase-service-account.json'),
     join(process.cwd(), 'serviceAccountKey.json'),
@@ -70,9 +72,9 @@ function getFirebaseAdminApp(): App {
   }
 
   // Option 3: Load from individual environment variables (fallback)
-  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID
-  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL
-  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n')
+  const projectId = env.get('FIREBASE_ADMIN_PROJECT_ID')
+  const clientEmail = env.get('FIREBASE_ADMIN_CLIENT_EMAIL')
+  const privateKey = env.get('FIREBASE_ADMIN_PRIVATE_KEY')?.replace(/\\n/g, '\n')
 
   if (!projectId || !clientEmail || !privateKey) {
     throw new Error(

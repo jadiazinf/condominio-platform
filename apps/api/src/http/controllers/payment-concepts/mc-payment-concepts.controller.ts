@@ -56,7 +56,7 @@ import type {
 } from '@database/repositories'
 import { PaymentConceptChangesRepository } from '@database/repositories/payment-concept-changes.repository'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
-import { useTranslation } from '@intlify/hono'
+import { safeTranslation } from '@src/locales/safe-translation'
 import { LocaleDictionary } from '@locales/dictionary'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -83,6 +83,12 @@ const BankAccountLinkIdParamSchema = z.object({
 type TConceptIdParam = z.infer<typeof ConceptIdParamSchema>
 type TAssignmentIdParam = z.infer<typeof AssignmentIdParamSchema>
 type TBankAccountLinkIdParam = z.infer<typeof BankAccountLinkIdParamSchema>
+
+const DeactivateAssignmentBodySchema = z.object({
+  cancelPendingQuotas: z.boolean().default(false),
+})
+
+type TDeactivateAssignmentBody = z.infer<typeof DeactivateAssignmentBodySchema>
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Generate body schema
@@ -335,6 +341,7 @@ type TQuotasRepo = {
   createMany: (quotas: Record<string, unknown>[]) => Promise<{ id: string }[]>
   getDelinquentByConcept: (conceptId: string, asOfDate: string) => Promise<TQuota[]>
   cancelAllNonPaidByConceptId: (conceptId: string) => Promise<number>
+  cancelNonPaidByConceptAndUnits: (conceptId: string, unitIds: string[]) => Promise<number>
   withTx: (tx: TDrizzleClient) => TQuotasRepo
 }
 
@@ -385,6 +392,7 @@ export class McPaymentConceptsController extends BaseController<
   private readonly quotasRepo: TQuotasRepo
   private readonly changesRepo: PaymentConceptChangesRepository
   private readonly condominiumsRepo: CondominiumsRepository
+  private readonly unitOwnershipsRepo: IMcPaymentConceptsDeps['unitOwnershipsRepo']
   private readonly db: TDrizzleClient
 
   constructor(deps: IMcPaymentConceptsDeps) {
@@ -398,6 +406,7 @@ export class McPaymentConceptsController extends BaseController<
     this.unitsRepo = deps.unitsRepo
     this.quotasRepo = deps.quotasRepo
     this.condominiumsRepo = deps.condominiumsRepo
+    this.unitOwnershipsRepo = deps.unitOwnershipsRepo
     this.changesRepo = new PaymentConceptChangesRepository(deps.db)
 
     this.linkServiceToConcept = new LinkServiceToConceptService(
@@ -448,7 +457,9 @@ export class McPaymentConceptsController extends BaseController<
       deps.conceptsRepo,
       deps.assignmentsRepo,
       deps.buildingsRepo,
-      deps.unitsRepo
+      deps.unitsRepo,
+      deps.db,
+      deps.quotasRepo
     )
 
     this.generateService = new GenerateChargesService(
@@ -635,6 +646,7 @@ export class McPaymentConceptsController extends BaseController<
         middlewares: [
           authMiddleware,
           paramsValidator(AssignmentIdParamSchema),
+          bodyValidator(DeactivateAssignmentBodySchema),
           requireRole(...adminOnly),
         ],
       },
@@ -1005,7 +1017,7 @@ export class McPaymentConceptsController extends BaseController<
   private createConceptFull = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TPaymentConceptCreateFullBody, unknown, { managementCompanyId: string }>(c)
     const user = ctx.getAuthenticatedUser()
-    const t = useTranslation(c)
+    const t = safeTranslation(c)
     const dict = LocaleDictionary.http.controllers.paymentConcepts
 
     try {
@@ -1069,7 +1081,7 @@ export class McPaymentConceptsController extends BaseController<
   private updateConceptFull = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TPaymentConceptUpdateFullBody, unknown, TConceptIdParam>(c)
     const user = ctx.getAuthenticatedUser()
-    const t = useTranslation(c)
+    const t = safeTranslation(c)
     const dict = LocaleDictionary.http.controllers.paymentConcepts
 
     try {
@@ -1264,19 +1276,24 @@ export class McPaymentConceptsController extends BaseController<
   }
 
   private deactivateAssignment = async (c: Context): Promise<Response> => {
-    const ctx = this.ctx<unknown, unknown, TAssignmentIdParam>(c)
+    const ctx = this.ctx<TDeactivateAssignmentBody, unknown, TAssignmentIdParam>(c)
 
     try {
-      const result = await this.assignService.deactivate(ctx.params.assignmentId)
+      const result = await this.assignService.deactivate(
+        ctx.params.assignmentId,
+        ctx.body.cancelPendingQuotas
+      )
 
       if (!result.success) {
-        if (result.code === 'NOT_FOUND') {
-          return ctx.notFound({ error: result.error })
-        }
+        if (result.code === 'NOT_FOUND') return ctx.notFound({ error: result.error })
+        if (result.code === 'CONFLICT') return ctx.conflict({ error: result.error })
         return ctx.badRequest({ error: result.error })
       }
 
-      return ctx.ok({ data: result.data })
+      return ctx.ok({
+        data: result.data.assignment,
+        cancelledQuotas: result.data.cancelledQuotas,
+      })
     } catch (error) {
       return this.handleError(ctx, error)
     }
@@ -1378,9 +1395,148 @@ export class McPaymentConceptsController extends BaseController<
         return ctx.badRequest({ error: result.error })
       }
 
+      // Enqueue notifications + auto-generate receipts (fire-and-forget)
+      this.postChargeGeneration({
+        conceptId: ctx.params.conceptId,
+        periodYear: ctx.body.periodYear,
+        periodMonth: ctx.body.periodMonth,
+        unitDetails: result.data.unitDetails,
+        dueDate: result.data.dueDate,
+        generatedBy: user.id,
+      }).catch(err => {
+        const msg = err instanceof Error ? err.message : String(err)
+        console.log('[GenerateCharges] postChargeGeneration failed:', msg)
+      })
+
       return ctx.created({ data: result.data })
     } catch (error) {
       return this.handleError(ctx, error)
+    }
+  }
+
+  /**
+   * Post-processing after charge generation: notifications + receipt auto-generation.
+   */
+  private async postChargeGeneration(params: {
+    conceptId: string
+    periodYear: number
+    periodMonth: number
+    unitDetails: Array<{ unitId: string; amount: number }>
+    dueDate: string
+    generatedBy: string
+  }): Promise<void> {
+    // Send notifications
+    await this.notifyResidentsForGeneratedCharges(params)
+
+    // Auto-generate receipts for maintenance concepts
+    try {
+      const concept = await this.conceptsRepo.getById(params.conceptId)
+      if (!concept || !concept.condominiumId) return
+
+      const { autoGenerateReceipts } =
+        await import('@src/services/receipts/auto-generate-receipts.service')
+      const { CondominiumReceiptsRepository, BuildingsRepository } =
+        await import('@database/repositories')
+      const db = this.db
+      await autoGenerateReceipts(
+        {
+          receiptsRepo: new CondominiumReceiptsRepository(db),
+          quotasRepo: this.quotasRepo as never,
+          unitsRepo: this.unitsRepo as never,
+          buildingsRepo: new BuildingsRepository(db),
+        },
+        {
+          unitIds: params.unitDetails.map(u => u.unitId),
+          conceptType: concept.conceptType ?? 'other',
+          condominiumId: concept.condominiumId,
+          periodYear: params.periodYear,
+          periodMonth: params.periodMonth,
+          currencyId: concept.currencyId,
+          generatedBy: params.generatedBy,
+        }
+      )
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error)
+      const stack = error instanceof Error ? error.stack : undefined
+      console.error('[GenerateCharges] Failed to auto-generate receipts', { msg, stack })
+      console.log('[GenerateCharges] RECEIPT ERROR:', msg)
+    }
+  }
+
+  /**
+   * Notifies residents after single-period charge generation (flow 3).
+   */
+  private async notifyResidentsForGeneratedCharges(params: {
+    conceptId: string
+    periodYear: number
+    periodMonth: number
+    unitDetails: Array<{ unitId: string; amount: number }>
+    dueDate: string
+  }): Promise<void> {
+    if (!this.unitOwnershipsRepo || params.unitDetails.length === 0) return
+
+    try {
+      const concept = await this.conceptsRepo.getById(params.conceptId)
+      if (!concept) return
+
+      const currency = await this.currenciesRepo.getById(concept.currencyId)
+      const currencyCode = currency?.code ?? ''
+      const conceptName = concept.name ?? 'Cuota'
+
+      const MONTH_NAMES = [
+        'Enero',
+        'Febrero',
+        'Marzo',
+        'Abril',
+        'Mayo',
+        'Junio',
+        'Julio',
+        'Agosto',
+        'Septiembre',
+        'Octubre',
+        'Noviembre',
+        'Diciembre',
+      ]
+      const periodDescription = `${MONTH_NAMES[params.periodMonth - 1]} ${params.periodYear}`
+
+      const unitIds = params.unitDetails.map(u => u.unitId)
+      const ownerships = await this.unitOwnershipsRepo.getRegisteredByUnitIds(unitIds)
+      if (ownerships.length === 0) return
+
+      const { enqueueNotification } = await import('@src/queue/boss-client')
+
+      // Group by userId to avoid duplicate notifications
+      const notifiedUsers = new Set<string>()
+      const unitAmountMap = new Map(params.unitDetails.map(u => [u.unitId, u.amount]))
+
+      for (const ownership of ownerships) {
+        if (!ownership.userId || notifiedUsers.has(ownership.userId)) continue
+        notifiedUsers.add(ownership.userId)
+
+        const amount = unitAmountMap.get(ownership.unitId) ?? 0
+        const currencyLabel = currencyCode ? ` ${currencyCode}` : ''
+        const body = `Nueva cuota de "${conceptName}" - ${periodDescription}. Monto: ${amount.toFixed(2)}${currencyLabel}. Vencimiento: ${params.dueDate}.`
+
+        await enqueueNotification({
+          userId: ownership.userId,
+          category: 'quota',
+          title: `Nueva cuota: ${conceptName}`,
+          body,
+          channels: ['in_app', 'email'],
+          data: {
+            condominiumId: concept.condominiumId,
+            conceptName,
+            paymentConceptId: concept.id,
+            periodDescription,
+            dueDate: params.dueDate,
+            totalAmount: amount.toFixed(2),
+            currencyCode,
+          },
+        })
+      }
+    } catch (error) {
+      // Non-critical: log but don't fail the request
+      console.error('[GenerateCharges] Failed to enqueue notifications', error)
     }
   }
 

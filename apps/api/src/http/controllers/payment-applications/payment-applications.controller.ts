@@ -220,7 +220,10 @@ export class PaymentApplicationsController extends BaseController<
     const repo = this.repository as PaymentApplicationsRepository
 
     try {
-      const applications = await repo.getByPaymentId(ctx.params.paymentId, condominiumId)
+      const applications = await repo.getByPaymentIdWithRelations(
+        ctx.params.paymentId,
+        condominiumId
+      )
       return ctx.ok({ data: applications })
     } catch (error) {
       return this.handleError(ctx, error)

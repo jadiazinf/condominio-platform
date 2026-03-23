@@ -70,5 +70,11 @@ export { UserTicketsController } from './tickets/user-tickets.controller'
 export { AmenitiesController } from './amenities'
 export { AmenityReservationsController } from './amenity-reservations'
 
+// Budgets
+export { BudgetsController } from './budgets/budgets.controller'
+
+// Receipts
+export { ReceiptsController } from './receipts/receipts.controller'
+
 // Wizard Drafts
 export { WizardDraftsController } from './wizard-drafts'

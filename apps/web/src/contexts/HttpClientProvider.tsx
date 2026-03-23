@@ -6,6 +6,7 @@ import {
   setGlobalCondominiumId,
   setGlobalManagementCompanyId,
   setReportAuthToken,
+  setReceiptDownloadAuth,
   createHttpClient,
   setHttpClient,
 } from '@packages/http-client'
@@ -76,6 +77,13 @@ function initializeHttpClient() {
 
   // Share the same token getter with the report download utility
   setReportAuthToken(authTokenGetter)
+
+  // Share auth + condominium getters with the receipt PDF download utility
+  setReceiptDownloadAuth(authTokenGetter, () => {
+    const selected = getSelectedCondominiumCookie()
+
+    return selected?.condominium?.id ?? null
+  })
 
   // Configure HTTP client with token refresh capability, locale, and condominium support
   const client = createHttpClient({

@@ -1,6 +1,9 @@
 import { z } from 'zod'
 
 export const envSchema = z.object({
+  // Node
+  NODE_ENV: z.enum(['development', 'production', 'staging', 'test']).default('development'),
+
   // API
   NEXT_PUBLIC_API_BASE_URL: z.string().url('API_BASE_URL debe ser una URL válida'),
   NEXT_PUBLIC_API_TIMEOUT: z.coerce.number().default(30000),
@@ -8,6 +11,7 @@ export const envSchema = z.object({
   // App
   NEXT_PUBLIC_APP_NAME: z.string().default('CondominioApp'),
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+  NEXT_PUBLIC_BASE_URL: z.string().optional(),
 
   // Firebase (Client)
   NEXT_PUBLIC_FIREBASE_API_KEY: z.string(),
@@ -16,13 +20,18 @@ export const envSchema = z.object({
   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: z.string().optional(),
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: z.string().optional(),
   NEXT_PUBLIC_FIREBASE_APP_ID: z.string(),
+  NEXT_PUBLIC_FIREBASE_VAPID_KEY: z.string().optional(),
 
   // Firebase Admin (Server-only) - Use FIREBASE_SERVICE_ACCOUNT_BASE64 (preferred)
   // or individual variables as fallback
   FIREBASE_SERVICE_ACCOUNT_BASE64: z.string().optional(),
+  FIREBASE_SERVICE_ACCOUNT_PATH: z.string().optional(),
   FIREBASE_ADMIN_PROJECT_ID: z.string().optional(),
   FIREBASE_ADMIN_CLIENT_EMAIL: z.string().email().optional(),
   FIREBASE_ADMIN_PRIVATE_KEY: z.string().optional(),
+
+  // SEO
+  NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: z.string().optional(),
 
   // Feature flags (ejemplo)
   NEXT_PUBLIC_ENABLE_ANALYTICS: z.coerce.boolean().default(false),

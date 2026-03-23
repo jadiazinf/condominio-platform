@@ -6,7 +6,15 @@ function createMockValidationResult(overrides: Record<string, unknown> = {}) {
     success: true as const,
     data: {
       validatedQuotas: [
-        { quotaId: 'q-1', paymentConceptId: 'concept-1', amount: '1000.00', balance: '1000.00' },
+        {
+          quotaId: 'q-1',
+          paymentConceptId: 'concept-1',
+          amount: '1000.00',
+          balance: '1000.00',
+          conceptName: 'Condominio',
+          periodYear: 2026,
+          periodMonth: 3,
+        },
       ],
       total: '1000.00',
       currencyId: 'currency-1',
@@ -32,6 +40,7 @@ describe('InitiatePaymentFlowService', () => {
     create: ReturnType<typeof mock>
     getById: ReturnType<typeof mock>
     getByReceiptNumber: ReturnType<typeof mock>
+    getPendingByUnitId: ReturnType<typeof mock>
     update: ReturnType<typeof mock>
   }
   let applyPaymentService: { execute: ReturnType<typeof mock> }
@@ -63,6 +72,7 @@ describe('InitiatePaymentFlowService', () => {
       create: mock(() => Promise.resolve(mockPayment)),
       getById: mock(() => Promise.resolve(mockPayment)),
       getByReceiptNumber: mock(() => Promise.resolve([])),
+      getPendingByUnitId: mock(() => Promise.resolve([])),
       update: mock(() => Promise.resolve(mockPayment)),
     }
     applyPaymentService = {
@@ -276,6 +286,66 @@ describe('InitiatePaymentFlowService', () => {
       if (!result.success) {
         expect(result.code).toBe('BAD_REQUEST')
       }
+    })
+
+    it('should fail when a quota already has a pending payment', async () => {
+      paymentsRepo.getPendingByUnitId.mockResolvedValue([
+        {
+          id: 'existing-payment',
+          status: 'pending_verification',
+          paymentDetails: {
+            quotas: [{ quotaId: 'q-1' }],
+          },
+        },
+      ])
+
+      const result = await service.execute({
+        unitId: 'unit-1',
+        userId: 'user-1',
+        quotaIds: ['q-1'],
+        amounts: { 'q-1': '1000.00' },
+        method: 'manual',
+        paymentMethod: 'transfer',
+        paymentDate: '2026-03-20',
+        receiptNumber: 'REF-123',
+        bankAccountId: 'ba-1',
+        senderBankCode: '0102',
+        senderDocument: 'V12345678',
+      })
+
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.code).toBe('CONFLICT')
+        expect(result.error).toContain('pago pendiente')
+      }
+    })
+
+    it('should allow payment when pending payments exist for different quotas', async () => {
+      paymentsRepo.getPendingByUnitId.mockResolvedValue([
+        {
+          id: 'existing-payment',
+          status: 'pending_verification',
+          paymentDetails: {
+            quotas: [{ quotaId: 'q-other' }],
+          },
+        },
+      ])
+
+      const result = await service.execute({
+        unitId: 'unit-1',
+        userId: 'user-1',
+        quotaIds: ['q-1'],
+        amounts: { 'q-1': '1000.00' },
+        method: 'manual',
+        paymentMethod: 'transfer',
+        paymentDate: '2026-03-20',
+        receiptNumber: 'REF-123',
+        bankAccountId: 'ba-1',
+        senderBankCode: '0102',
+        senderDocument: 'V12345678',
+      })
+
+      expect(result.success).toBe(true)
     })
 
     it('should fail when selected bank account is not in common accounts', async () => {

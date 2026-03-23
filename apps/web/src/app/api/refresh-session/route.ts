@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
+import { env } from '@/config/env'
+
 const COOKIES_TO_CLEAR = [
   '__user',
   '__condominiums',
@@ -29,6 +31,6 @@ export async function GET() {
   }
 
   return NextResponse.redirect(
-    new URL('/dashboard', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')
+    new URL('/dashboard', env.get('NEXT_PUBLIC_APP_URL') || 'http://localhost:3000')
   )
 }

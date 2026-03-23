@@ -125,13 +125,61 @@ export class ProcessWebhookService {
       gatewayConfiguration: config,
     })
 
+    // Resolve paymentId from gateway_transactions if the adapter couldn't determine it.
+    // This is the primary resolution path for BNC webhooks: the C2P/VPOS API doesn't
+    // support encoding a paymentId in the request, so we match the webhook's bank
+    // references against stored externalTransactionId/externalReference values.
+    let resolvedPaymentId = result.paymentId
+    let matchedGatewayTx: { id: string; paymentId: string; status: string } | null = null
+
+    if (!resolvedPaymentId && result.externalTransactionId) {
+      // Try matching by externalTransactionId first (BNC IdTransaction → DestinyBankReference)
+      const byTxId = await this.gatewayTransactionsRepository.getByExternalTransactionId(
+        result.externalTransactionId
+      )
+      if (byTxId) {
+        resolvedPaymentId = byTxId.paymentId
+        matchedGatewayTx = byTxId
+      } else {
+        // Fallback: try matching by externalReference (BNC Reference → authorization code)
+        const byRef = await this.gatewayTransactionsRepository.getByExternalReference(
+          result.externalTransactionId
+        )
+        if (byRef) {
+          resolvedPaymentId = byRef.paymentId
+          matchedGatewayTx = byRef
+        }
+      }
+
+      if (resolvedPaymentId) {
+        logger.info(
+          { gatewayType, resolvedPaymentId, externalTxId: result.externalTransactionId },
+          '[Webhook] Resolved paymentId from gateway_transactions'
+        )
+      }
+    }
+
     logger.info(
-      { gatewayType, paymentId: result.paymentId, externalTxId: result.externalTransactionId },
+      { gatewayType, paymentId: resolvedPaymentId, externalTxId: result.externalTransactionId },
       '[Webhook] Processed'
     )
 
     // Idempotency: if we already processed this external transaction, skip
-    if (result.externalTransactionId) {
+    if (matchedGatewayTx && matchedGatewayTx.status === 'completed') {
+      logger.info(
+        { externalTxId: result.externalTransactionId },
+        '[Webhook] Already processed, skipping (idempotent)'
+      )
+      return success({
+        paymentId: resolvedPaymentId,
+        externalTransactionId: result.externalTransactionId,
+        status: result.status,
+        autoVerified: false,
+      })
+    }
+
+    // If no matchedGatewayTx yet, try the original lookup for non-BNC gateways
+    if (!matchedGatewayTx && result.externalTransactionId) {
       const existingTx = await this.gatewayTransactionsRepository.getByExternalReference(
         result.externalTransactionId
       )
@@ -141,7 +189,7 @@ export class ProcessWebhookService {
           '[Webhook] Already processed, skipping (idempotent)'
         )
         return success({
-          paymentId: result.paymentId,
+          paymentId: resolvedPaymentId,
           externalTransactionId: result.externalTransactionId,
           status: result.status,
           autoVerified: false,
@@ -157,26 +205,28 @@ export class ProcessWebhookService {
       const txPaymentsRepo = this.paymentsRepository.withTx(tx)
 
       // Update gateway transaction record (audit trail)
-      if (result.externalTransactionId) {
-        const existingTx = await txGatewayTxRepo.getByExternalReference(
-          result.externalTransactionId
-        )
+      // Use the already-matched transaction if available, otherwise try to find it
+      const gatewayTxRecord = matchedGatewayTx
+        ? matchedGatewayTx
+        : result.externalTransactionId
+          ? ((await txGatewayTxRepo.getByExternalTransactionId(result.externalTransactionId)) ??
+            (await txGatewayTxRepo.getByExternalReference(result.externalTransactionId)))
+          : null
 
-        if (existingTx) {
-          if (result.status === 'completed') {
-            await txGatewayTxRepo.markVerified(existingTx.id, result.externalTransactionId)
-          } else if (result.status === 'failed') {
-            await txGatewayTxRepo.markFailed(existingTx.id, 'Webhook reported failure')
-          }
+      if (gatewayTxRecord) {
+        if (result.status === 'completed') {
+          await txGatewayTxRepo.markVerified(gatewayTxRecord.id, result.externalTransactionId)
+        } else if (result.status === 'failed') {
+          await txGatewayTxRepo.markFailed(gatewayTxRecord.id, 'Webhook reported failure')
         }
       }
 
       // Auto-verify payment if webhook reports completion
-      if (result.paymentId && result.status === 'completed') {
-        const payment = await txPaymentsRepo.getById(result.paymentId)
+      if (resolvedPaymentId && result.status === 'completed') {
+        const payment = await txPaymentsRepo.getById(resolvedPaymentId)
         if (payment && payment.status === 'pending_verification') {
           await txPaymentsRepo.verifyPayment(
-            result.paymentId,
+            resolvedPaymentId,
             SYSTEM_USER_ID,
             `Auto-verified via ${gatewayType} webhook`
           )
@@ -185,9 +235,9 @@ export class ProcessWebhookService {
       }
 
       // Confirm pending refunds when webhook reports refund completion
-      if (result.paymentId && result.status === 'refunded' && this.pendingAllocationsRepository) {
+      if (resolvedPaymentId && result.status === 'refunded' && this.pendingAllocationsRepository) {
         const txPendingRepo = this.pendingAllocationsRepository.withTx(tx)
-        const pendingAllocations = await txPendingRepo.getByPaymentId(result.paymentId)
+        const pendingAllocations = await txPendingRepo.getByPaymentId(resolvedPaymentId)
         const refundPending = pendingAllocations.find(a => a.status === 'refund_pending')
 
         if (refundPending) {
@@ -198,7 +248,7 @@ export class ProcessWebhookService {
             allocatedBy: SYSTEM_USER_ID,
           })
           logger.info(
-            { allocationId: refundPending.id, paymentId: result.paymentId },
+            { allocationId: refundPending.id, paymentId: resolvedPaymentId },
             '[Webhook] Refund confirmed — allocation updated to refunded'
           )
         }
@@ -206,15 +256,15 @@ export class ProcessWebhookService {
     })
 
     // Notifications outside transaction (fire-and-forget)
-    if (result.paymentId && result.status === 'completed') {
-      this.notifyPayer(result.paymentId, gatewayType)
+    if (resolvedPaymentId && result.status === 'completed') {
+      this.notifyPayer(resolvedPaymentId, gatewayType)
     }
-    if (result.paymentId && result.status === 'failed') {
-      this.notifyPayerFailure(result.paymentId, gatewayType)
+    if (resolvedPaymentId && result.status === 'failed') {
+      this.notifyPayerFailure(resolvedPaymentId, gatewayType)
     }
 
     return success({
-      paymentId: result.paymentId,
+      paymentId: resolvedPaymentId,
       externalTransactionId: result.externalTransactionId,
       status: result.status,
       autoVerified,

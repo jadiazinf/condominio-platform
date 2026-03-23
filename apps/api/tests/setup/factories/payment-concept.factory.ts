@@ -29,6 +29,7 @@ export class PaymentConceptFactory {
       dueDay: 15,
       chargeGenerationStrategy: 'auto',
       isActive: true,
+      generateReceipts: true,
       metadata: null,
       createdBy: null,
       ...overrides,

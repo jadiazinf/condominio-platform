@@ -8,12 +8,16 @@ import type {
   PaymentsRepository,
   GatewayTransactionsRepository,
   CurrenciesRepository,
+  ManagementCompanyMembersRepository,
 } from '@database/repositories'
 import type { PaymentGatewayManager } from '@src/services/payment-gateways/gateway-manager'
 import type { ApplyPaymentToQuotaService } from '@src/services/payment-applications/apply-payment-to-quota.service'
+import type { SendNotificationService } from '@src/services/notifications'
+import type { EmailService } from '@src/services/email/email.service'
+import logger from '@utils/logger'
 import { HttpContext } from '../../context'
 import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-validator'
-import { authMiddleware, requireRole } from '../../middlewares/auth'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
 import { createRouter } from '../create-router'
 import type { TRouteDefinition } from '../types'
@@ -22,6 +26,9 @@ import { GetPayableQuotasService } from '@src/services/quotas/get-payable-quotas
 import { ValidateQuotaSelectionService } from '@src/services/payments/validate-quota-selection.service'
 import { InitiatePaymentFlowService } from '@src/services/payments/initiate-payment-flow.service'
 import type { BncPaymentAdapter } from '@src/services/payment-gateways/adapters/bnc.adapter'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
+import { condominiumManagementCompanies } from '@database/drizzle/schema'
+import { eq } from 'drizzle-orm'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Validation Schemas
@@ -92,6 +99,7 @@ export class PaymentFlowController {
 
   constructor(
     private readonly deps: {
+      db: TDrizzleClient
       quotasRepo: QuotasRepository
       conceptsRepo: PaymentConceptsRepository
       conceptBankAccountsRepo: PaymentConceptBankAccountsRepository
@@ -101,6 +109,9 @@ export class PaymentFlowController {
       gatewayTransactionsRepo: GatewayTransactionsRepository
       gatewayManager: PaymentGatewayManager
       applyPaymentService: ApplyPaymentToQuotaService
+      sendNotificationService: SendNotificationService
+      managementCompanyMembersRepo: ManagementCompanyMembersRepository
+      emailService?: EmailService
     }
   ) {
     this.getPayableQuotasService = new GetPayableQuotasService(
@@ -230,6 +241,8 @@ export class PaymentFlowController {
   private initiatePayment = async (c: Context): Promise<Response> => {
     const ctx = new HttpContext<z.infer<typeof InitiatePaymentBodySchema>>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    let managementCompanyId = c.req.header('x-management-company-id')
 
     const result = await this.initiatePaymentService.execute({
       ...ctx.body,
@@ -240,7 +253,85 @@ export class PaymentFlowController {
       return this.handleServiceError(ctx, result)
     }
 
+    // Resolve management company from condominium if header not present (resident flow)
+    if (!managementCompanyId && condominiumId) {
+      const link = await this.deps.db
+        .select({ managementCompanyId: condominiumManagementCompanies.managementCompanyId })
+        .from(condominiumManagementCompanies)
+        .where(eq(condominiumManagementCompanies.condominiumId, condominiumId))
+        .limit(1)
+      managementCompanyId = link[0]?.managementCompanyId ?? undefined
+    }
+
+    // Fire-and-forget: notify admins/accountants about the new payment
+    this.notifyAdminsOfNewPayment(
+      { paymentId: result.data.payment.id, status: result.data.status },
+      user,
+      managementCompanyId
+    ).catch(err => logger.error('Failed to send payment notifications', err))
+
     return ctx.created({ data: result.data })
+  }
+
+  private async notifyAdminsOfNewPayment(
+    paymentData: { paymentId: string; status: string },
+    payer: { id: string; displayName?: string | null; email?: string | null },
+    managementCompanyId?: string
+  ): Promise<void> {
+    if (!managementCompanyId) return
+
+    // Find admins and accountants for this management company (with user details for email)
+    const members =
+      await this.deps.managementCompanyMembersRepo.listByCompanyIdWithUsers(managementCompanyId)
+
+    const adminMembers = members.filter(
+      m => m.isActive && (m.roleName === 'admin' || m.roleName === 'accountant')
+    )
+
+    const payerName = payer.displayName || payer.email || 'Un residente'
+    const title = 'Nuevo pago registrado'
+    const body = `${payerName} ha registrado un nuevo pago pendiente de verificación.`
+
+    // Send in-app + push notification to each admin/accountant
+    for (const member of adminMembers) {
+      if (member.userId === payer.id) continue // Don't notify the payer if they're also an admin
+
+      this.deps.sendNotificationService
+        .execute({
+          userId: member.userId,
+          category: 'payment',
+          title,
+          body,
+          channels: ['in_app', 'push'],
+          priority: 'high',
+          data: {
+            paymentId: paymentData.paymentId,
+            action: 'payment_registered',
+            payerName,
+          },
+        })
+        .catch(() => {})
+    }
+
+    // Send email to admins/accountants
+    if (this.deps.emailService) {
+      for (const member of adminMembers) {
+        if (member.userId === payer.id) continue
+        if (!member.user?.email) continue
+
+        this.deps.emailService
+          .execute({
+            to: member.user.email,
+            subject: `Nuevo pago registrado - ${payerName}`,
+            html: `
+              <h2>Nuevo pago registrado</h2>
+              <p><strong>${payerName}</strong> ha registrado un nuevo pago que requiere verificación.</p>
+              <p>Ingresa al sistema para revisar y verificar el pago.</p>
+            `,
+          })
+          .catch(() => {})
+      }
+    }
   }
 
   private gatewayHealth = async (c: Context): Promise<Response> => {

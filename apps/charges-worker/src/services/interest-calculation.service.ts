@@ -109,6 +109,12 @@ export class InterestCalculationService {
     // Round to 2 decimal places
     calculatedInterest = roundCurrency(calculatedInterest)
 
+    // Safety cap: interest cannot exceed the outstanding principal.
+    // Prevents runaway compound interest for long-overdue quotas.
+    if (calculatedInterest > outstandingPrincipal) {
+      calculatedInterest = outstandingPrincipal
+    }
+
     if (calculatedInterest <= 0) return null
 
     // Only apply if calculated interest exceeds previously applied interest

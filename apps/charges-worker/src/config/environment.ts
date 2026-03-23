@@ -10,6 +10,10 @@ const envSchema = z.object({
   // Firebase - needed for push notifications via FCM
   FIREBASE_API_KEY: z.string('FIREBASE_API_KEY must be provided'),
   FIREBASE_SERVICE_ACCOUNT_BASE64: z.string().optional(),
+  // App URLs - needed for email templates and inter-service communication
+  APP_URL: z.string().optional().default('https://app.condominioapp.com'),
+  INTERNAL_API_URL: z.string().optional(),
+  INTERNAL_API_KEY: z.string().optional(),
 })
 
 const parsed = envSchema.safeParse(Bun.env)

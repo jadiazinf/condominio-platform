@@ -33,6 +33,8 @@ const envSchema = z.object({
   BNC_TERMINAL: z.string().optional(),
   BNC_WEBHOOK_API_KEY: z.string().optional(),
   BNC_SANDBOX: z.coerce.boolean().default(true),
+  // Internal API key for inter-service communication
+  INTERNAL_API_KEY: z.string().optional(),
   // Test-only flags (middleware bypass control)
   TEST_AUTH_MIDDLEWARE: z.string().optional(),
   TEST_REQUIRE_ROLE_MIDDLEWARE: z.string().optional(),

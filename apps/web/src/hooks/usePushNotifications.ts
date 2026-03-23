@@ -6,8 +6,9 @@ import { useApiMutation } from '@packages/http-client'
 
 import { getFirebaseMessaging } from '@/libs/firebase'
 import { useAuth, useUser } from '@/contexts'
+import { env } from '@/config/env'
 
-const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || ''
+const VAPID_KEY = env.get('NEXT_PUBLIC_FIREBASE_VAPID_KEY') || ''
 
 type TPermissionStatus = 'default' | 'granted' | 'denied' | 'unsupported'
 

@@ -18,6 +18,11 @@ import {
   Bell,
   ArrowLeftRight,
   ShieldAlert,
+  FileText,
+  AlertTriangle,
+  Calculator,
+  FileSpreadsheet,
+  Scale,
 } from 'lucide-react'
 
 type TSidebarItemConfig = Omit<TSidebarItem, 'icon'> & {
@@ -42,6 +47,18 @@ export const dashboardSidebarItems: TSidebarItemConfig[] = [
     title: 'resident.nav.myPayments',
     icon: Wallet,
     href: '/dashboard/my-payments',
+  },
+  {
+    key: 'my-account-statement',
+    title: 'resident.nav.myAccountStatement',
+    icon: FileText,
+    href: '/dashboard/my-account-statement',
+  },
+  {
+    key: 'my-receipts',
+    title: 'resident.nav.myReceipts',
+    icon: FileSpreadsheet,
+    href: '/dashboard/my-receipts',
   },
   {
     key: 'join-condominium',
@@ -99,6 +116,30 @@ export const adminSidebarItems: TSidebarItemConfig[] = [
     title: 'admin.company.nav.payments',
     icon: Wallet,
     href: '/dashboard/payments',
+  },
+  {
+    key: 'budgets',
+    title: 'admin.company.nav.budgets',
+    icon: Calculator,
+    href: '/dashboard/budgets',
+  },
+  {
+    key: 'receipts',
+    title: 'admin.company.nav.receipts',
+    icon: FileSpreadsheet,
+    href: '/dashboard/receipts',
+  },
+  {
+    key: 'bank-reconciliation',
+    title: 'admin.company.nav.bankReconciliation',
+    icon: Scale,
+    href: '/dashboard/bank-reconciliation',
+  },
+  {
+    key: 'delinquency-report',
+    title: 'admin.company.nav.delinquencyReport',
+    icon: AlertTriangle,
+    href: '/dashboard/reports/delinquency',
   },
   {
     key: 'subscription',

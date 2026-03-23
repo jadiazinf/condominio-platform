@@ -53,6 +53,7 @@ export const paymentConceptSchema = baseModelSchema.extend({
   effectiveFrom: z.coerce.date().nullable(),
   effectiveUntil: z.coerce.date().nullable(),
   isActive: z.boolean().default(true),
+  generateReceipts: z.boolean().optional(),
   metadata: z.record(z.string(), z.unknown()).nullable(),
   createdBy: z.uuid({ error: d.createdBy.invalid }).nullable(),
   // Relations

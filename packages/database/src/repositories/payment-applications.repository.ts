@@ -104,6 +104,98 @@ export class PaymentApplicationsRepository
   }
 
   /**
+   * Retrieves applications by payment with quota and concept details.
+   */
+  async getByPaymentIdWithRelations(
+    paymentId: string,
+    condominiumId?: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<any[]> {
+    const conditions = [eq(paymentApplications.paymentId, paymentId)]
+
+    if (condominiumId) {
+      const condominiumQuotaIds = this.db
+        .select({ id: quotas.id })
+        .from(quotas)
+        .innerJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
+        .where(eq(paymentConcepts.condominiumId, condominiumId))
+      conditions.push(inArray(paymentApplications.quotaId, condominiumQuotaIds))
+    }
+
+    const results = await this.db
+      .select({
+        application: paymentApplications,
+        periodYear: quotas.periodYear,
+        periodMonth: quotas.periodMonth,
+        periodDescription: quotas.periodDescription,
+        balance: quotas.balance,
+        dueDate: quotas.dueDate,
+        conceptName: paymentConcepts.name,
+      })
+      .from(paymentApplications)
+      .leftJoin(quotas, eq(paymentApplications.quotaId, quotas.id))
+      .leftJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
+      .where(and(...conditions))
+
+    return results.map(r => ({
+      ...this.mapToEntity(r.application),
+      quota: r.periodYear
+        ? {
+            periodYear: r.periodYear,
+            periodMonth: r.periodMonth!,
+            periodDescription: r.periodDescription,
+            balance: r.balance!,
+            dueDate: r.dueDate!,
+          }
+        : undefined,
+      conceptName: r.conceptName ?? undefined,
+    }))
+  }
+
+  /**
+   * Retrieves applications for multiple payments with quota and concept details.
+   */
+  async getByPaymentIdsWithRelations(
+    paymentIds: string[],
+    condominiumId?: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<any[]> {
+    if (paymentIds.length === 0) return []
+
+    const conditions = [inArray(paymentApplications.paymentId, paymentIds)]
+
+    if (condominiumId) {
+      const condominiumQuotaIds = this.db
+        .select({ id: quotas.id })
+        .from(quotas)
+        .innerJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
+        .where(eq(paymentConcepts.condominiumId, condominiumId))
+      conditions.push(inArray(paymentApplications.quotaId, condominiumQuotaIds))
+    }
+
+    const results = await this.db
+      .select({
+        application: paymentApplications,
+        periodYear: quotas.periodYear,
+        periodMonth: quotas.periodMonth,
+        conceptName: paymentConcepts.name,
+      })
+      .from(paymentApplications)
+      .leftJoin(quotas, eq(paymentApplications.quotaId, quotas.id))
+      .leftJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
+      .where(and(...conditions))
+
+    return results.map(r => ({
+      paymentId: r.application.paymentId,
+      quotaId: r.application.quotaId,
+      appliedAmount: r.application.appliedAmount,
+      conceptName: r.conceptName ?? undefined,
+      periodYear: r.periodYear ?? undefined,
+      periodMonth: r.periodMonth ?? undefined,
+    }))
+  }
+
+  /**
    * Retrieves applications by quota.
    */
   async getByQuotaId(quotaId: string, condominiumId?: string): Promise<TPaymentApplication[]> {

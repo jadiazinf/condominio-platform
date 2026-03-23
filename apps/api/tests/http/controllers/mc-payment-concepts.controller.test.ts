@@ -124,6 +124,7 @@ type TMockConceptsRepo = {
 
 type TMockAssignmentsRepo = {
   listByConceptId: (conceptId: string) => Promise<TPaymentConceptAssignment[]>
+  getById: (id: string) => Promise<TPaymentConceptAssignment | null>
   getByConceptAndScope: (
     conceptId: string,
     scope: string,
@@ -202,6 +203,7 @@ describe('McPaymentConceptsController', function () {
 
     mockAssignmentsRepo = {
       listByConceptId: async () => [createAssignment()],
+      getById: async id => createAssignment({ id }),
       getByConceptAndScope: async () => null,
       create: async data => createAssignment(data as Partial<TPaymentConceptAssignment>),
       update: async (id, data) =>
@@ -311,6 +313,7 @@ describe('McPaymentConceptsController', function () {
         records.map(() => ({ id: crypto.randomUUID() })),
       getDelinquentByConcept: async () => [],
       cancelAllNonPaidByConceptId: async () => 0,
+      cancelNonPaidByConceptAndUnits: async () => 0,
       withTx: () => mockQuotasRepo,
     }
 
@@ -394,6 +397,7 @@ describe('McPaymentConceptsController', function () {
           createMany: async () => [],
           getDelinquentByConcept: async () => [],
           cancelAllNonPaidByConceptId: async () => 0,
+          cancelNonPaidByConceptAndUnits: async () => 0,
           withTx: function () {
             return this
           },
@@ -701,17 +705,37 @@ describe('McPaymentConceptsController', function () {
     it('should deactivate an assignment', async function () {
       const res = await request(
         `/${MC_ID}/me/payment-concepts/${CONCEPT_ID}/assignments/${ASSIGNMENT_ID}/deactivate`,
-        { method: 'PATCH' }
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        }
+      )
+      expect(res.status).toBe(StatusCodes.OK)
+    })
+
+    it('should deactivate an assignment and cancel pending quotas', async function () {
+      const res = await request(
+        `/${MC_ID}/me/payment-concepts/${CONCEPT_ID}/assignments/${ASSIGNMENT_ID}/deactivate`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cancelPendingQuotas: true }),
+        }
       )
       expect(res.status).toBe(StatusCodes.OK)
     })
 
     it('should return 404 for non-existent assignment', async function () {
-      mockAssignmentsRepo.update = async () => null
+      mockAssignmentsRepo.getById = async () => null
 
       const res = await request(
         `/${MC_ID}/me/payment-concepts/${CONCEPT_ID}/assignments/550e8400-e29b-41d4-a716-446655440099/deactivate`,
-        { method: 'PATCH' }
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        }
       )
       expect(res.status).toBe(StatusCodes.NOT_FOUND)
     })
@@ -814,6 +838,7 @@ describe('McPaymentConceptsController', function () {
           createMany: async () => [],
           getDelinquentByConcept: async () => [],
           cancelAllNonPaidByConceptId: async () => 0,
+          cancelNonPaidByConceptAndUnits: async () => 0,
           withTx: function () {
             return this
           },

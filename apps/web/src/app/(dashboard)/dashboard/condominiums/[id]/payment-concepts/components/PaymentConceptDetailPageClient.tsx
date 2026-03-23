@@ -22,9 +22,11 @@ import {
 import {
   usePaymentConceptDetail,
   useDeactivatePaymentConcept,
+  useDeactivateAssignment,
   useApiQuery,
   useCondominiumBuildingsList,
   paymentConceptKeys,
+  paymentConceptAssignmentKeys,
   useQueryClient,
 } from '@packages/http-client'
 
@@ -126,6 +128,20 @@ export function PaymentConceptDetailPageClient({
       router.push(backUrl)
     },
     onError: () => toast.error(t(`${d}.deactivateError`)),
+  })
+
+  const [deactivatingAssignmentId, setDeactivatingAssignmentId] = useState<string | null>(null)
+  const [cancelAssignmentQuotas, setCancelAssignmentQuotas] = useState(false)
+
+  const deactivateAssignment = useDeactivateAssignment(managementCompanyId, conceptId, {
+    onSuccess: () => {
+      toast.success(t(`${d}.assignmentDeactivated`))
+      queryClient.invalidateQueries({ queryKey: paymentConceptKeys.all })
+      queryClient.invalidateQueries({ queryKey: paymentConceptAssignmentKeys.all })
+      setDeactivatingAssignmentId(null)
+      setCancelAssignmentQuotas(false)
+    },
+    onError: () => toast.error(t(`${d}.assignmentDeactivateError`)),
   })
 
   const typeLabels = useMemo(
@@ -471,14 +487,67 @@ export function PaymentConceptDetailPageClient({
                     {conceptAny?.currency?.symbol ?? ''} {assignment.amount.toLocaleString()}{' '}
                     {conceptAny?.currency?.code ?? ''}
                   </p>
-                  <p className="text-xs text-default-400">
-                    {t(`${d}.assignedOn`)}{' '}
-                    {new Date(assignment.createdAt).toLocaleDateString('es-ES', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-default-400">
+                      {t(`${d}.assignedOn`)}{' '}
+                      {new Date(assignment.createdAt).toLocaleDateString('es-ES', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </p>
+                    {assignment.isActive && concept.isActive && (
+                      <Button
+                        color="danger"
+                        size="sm"
+                        variant="light"
+                        onPress={() => setDeactivatingAssignmentId(assignment.id)}
+                      >
+                        <Ban size={12} />
+                        {t(`${d}.deactivateAssignment`)}
+                      </Button>
+                    )}
+                  </div>
+                  {deactivatingAssignmentId === assignment.id && (
+                    <div className="mt-2 rounded-lg bg-danger-50 p-3 space-y-2">
+                      <p className="text-sm text-danger-700">
+                        {t(`${d}.deactivateAssignmentWarning`)}
+                      </p>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          checked={cancelAssignmentQuotas}
+                          type="checkbox"
+                          onChange={e => setCancelAssignmentQuotas(e.target.checked)}
+                        />
+                        {t(`${d}.cancelPendingQuotas`)}
+                      </label>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="flat"
+                          onPress={() => {
+                            setDeactivatingAssignmentId(null)
+                            setCancelAssignmentQuotas(false)
+                          }}
+                        >
+                          {t('common.cancel')}
+                        </Button>
+                        <Button
+                          color="danger"
+                          isLoading={deactivateAssignment.isPending}
+                          size="sm"
+                          onPress={() =>
+                            deactivateAssignment.mutate({
+                              assignmentId: assignment.id,
+                              cancelPendingQuotas: cancelAssignmentQuotas,
+                            })
+                          }
+                        >
+                          {t(`${d}.confirmDeactivateAssignment`)}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

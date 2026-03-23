@@ -35,6 +35,7 @@ type TMockPaymentGatewaysRepository = {
 
 type TMockGatewayTransactionsRepository = {
   getByExternalReference: (ref: string) => Promise<{ id: string; status: string } | null>
+  getByExternalTransactionId: (txId: string) => Promise<{ id: string; status: string } | null>
   markVerified: (id: string, externalTxId: string) => Promise<void>
   markFailed: (id: string, error: string) => Promise<void>
   withTx: (tx: unknown) => TMockGatewayTransactionsRepository
@@ -176,6 +177,9 @@ describe('ProcessWebhookService', function () {
 
     mockGatewayTxRepo = {
       getByExternalReference: async function () {
+        return null
+      },
+      getByExternalTransactionId: async function () {
         return null
       },
       markVerified: async function (id: string, externalTxId: string) {

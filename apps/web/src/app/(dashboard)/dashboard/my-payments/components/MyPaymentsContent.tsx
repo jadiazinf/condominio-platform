@@ -11,13 +11,13 @@ import { formatShortDate } from '@packages/utils/dates'
 
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
-import { Card, CardBody } from '@/ui/components/card'
 import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { DatePicker } from '@/ui/components/date-picker'
 import { Pagination } from '@/ui/components/pagination'
 import { ClearFiltersButton } from '@/ui/components/filters'
+import { Table, type ITableColumn } from '@/ui/components/table'
 import { getPaymentStatusColor } from '@/utils/status-colors'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -39,20 +39,44 @@ interface IMyPaymentsContentProps {
   }
 }
 
+interface IPaymentDetailsQuota {
+  quotaId: string
+  amount: string
+  conceptName?: string
+  periodYear?: number
+  periodMonth?: number
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-function formatDate(date: Date | string | null): string {
-  if (!date) return '-'
+function getQuotaSummary(payment: TPayment, monthNames: Record<string, string>): string {
+  const details = payment.paymentDetails as {
+    quotas?: IPaymentDetailsQuota[]
+  } | null
 
-  return formatShortDate(date)
-}
+  if (!details?.quotas?.length) return '-'
 
-function formatPaymentAmount(amount: string | null): string {
-  if (!amount) return '-'
+  const quotas = details.quotas
+  const concepts = Array.from(new Set(quotas.map(q => q.conceptName).filter(Boolean)))
+  const conceptStr = concepts.length > 0 ? concepts.join(', ') : '-'
 
-  return formatAmount(amount)
+  const periods = quotas
+    .filter(q => q.periodYear && q.periodMonth)
+    .map(q => {
+      const monthKey = String(q.periodMonth)
+      const monthName = monthNames[monthKey] ?? monthKey
+
+      return `${monthName} ${q.periodYear}`
+    })
+
+  const uniquePeriods = Array.from(new Set(periods))
+
+  if (uniquePeriods.length === 0) return conceptStr
+  if (uniquePeriods.length <= 2) return `${conceptStr} (${uniquePeriods.join(', ')})`
+
+  return `${conceptStr} (${uniquePeriods[0]}, +${uniquePeriods.length - 1})`
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -68,6 +92,21 @@ export function MyPaymentsContent({
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+
+  const monthNames: Record<string, string> = {
+    '1': t('resident.myQuotas.months.1'),
+    '2': t('resident.myQuotas.months.2'),
+    '3': t('resident.myQuotas.months.3'),
+    '4': t('resident.myQuotas.months.4'),
+    '5': t('resident.myQuotas.months.5'),
+    '6': t('resident.myQuotas.months.6'),
+    '7': t('resident.myQuotas.months.7'),
+    '8': t('resident.myQuotas.months.8'),
+    '9': t('resident.myQuotas.months.9'),
+    '10': t('resident.myQuotas.months.10'),
+    '11': t('resident.myQuotas.months.11'),
+    '12': t('resident.myQuotas.months.12'),
+  }
 
   // Build URL with updated params
   const updateParams = useCallback(
@@ -117,6 +156,64 @@ export function MyPaymentsContent({
     [t]
   )
 
+  // Table columns
+  const columns: ITableColumn<TPayment>[] = [
+    { key: 'paymentDate', label: t('resident.myPayments.table.date') },
+    { key: 'concept', label: t('resident.myPayments.table.concept') },
+    { key: 'amount', label: t('resident.myPayments.table.amount'), align: 'end' },
+    { key: 'paymentMethod', label: t('resident.myPayments.table.method'), hideOnMobile: true },
+    { key: 'receiptNumber', label: t('resident.myPayments.table.receipt'), hideOnMobile: true },
+    { key: 'status', label: t('resident.myPayments.table.status'), align: 'center' },
+  ]
+
+  const renderCell = useCallback(
+    (payment: TPayment, columnKey: keyof TPayment | string) => {
+      switch (columnKey) {
+        case 'paymentDate':
+          return (
+            <Typography variant="body2">
+              {payment.paymentDate ? formatShortDate(payment.paymentDate) : '-'}
+            </Typography>
+          )
+        case 'concept':
+          return (
+            <Typography className="max-w-[200px] truncate" variant="body2">
+              {getQuotaSummary(payment, monthNames)}
+            </Typography>
+          )
+        case 'amount':
+          return (
+            <div className="text-right">
+              <Typography variant="body2" weight="semibold">
+                {payment.currency?.symbol ?? ''} {formatAmount(payment.amount ?? '0')}
+              </Typography>
+            </div>
+          )
+        case 'paymentMethod':
+          return (
+            <Typography color="muted" variant="body2">
+              {getPaymentMethodLabel(payment.paymentMethod)}
+            </Typography>
+          )
+        case 'receiptNumber':
+          return (
+            <Typography color="muted" variant="caption">
+              {payment.receiptNumber ? `#${payment.receiptNumber}` : '-'}
+            </Typography>
+          )
+        case 'status':
+          return (
+            <Chip color={getPaymentStatusColor(payment.status)} size="sm" variant="flat">
+              {t(`resident.myPayments.status.${payment.status}`)}
+            </Chip>
+          )
+        default:
+          return null
+      }
+    },
+    [t, getPaymentMethodLabel, monthNames]
+  )
+
   return (
     <div className="space-y-4">
       {/* Filters row */}
@@ -156,7 +253,7 @@ export function MyPaymentsContent({
         </div>
       </div>
 
-      {/* Payment cards or empty state */}
+      {/* Table / Cards or empty state */}
       {payments.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16">
           <CreditCard className="mb-4 text-default-300" size={48} />
@@ -169,71 +266,13 @@ export function MyPaymentsContent({
         </div>
       ) : (
         <>
-          <div className="space-y-3">
-            {payments.map(payment => (
-              <Card
-                key={payment.id}
-                isHoverable
-                isPressable
-                className="cursor-pointer"
-                onPress={() => router.push(`/dashboard/my-payments/${payment.id}`)}
-              >
-                <CardBody className="p-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    {/* Left side: payment info */}
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <Typography variant="subtitle1" weight="semibold">
-                          {payment.currency?.symbol ?? ''}
-                          {formatPaymentAmount(payment.amount)}
-                        </Typography>
-                        {payment.currency && (
-                          <Typography color="muted" variant="caption">
-                            {payment.currency.code}
-                          </Typography>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                        <Typography color="muted" variant="body2">
-                          {getPaymentMethodLabel(payment.paymentMethod)}
-                        </Typography>
-                        <Typography color="muted" variant="body2">
-                          {formatDate(payment.paymentDate)}
-                        </Typography>
-                        {payment.unit?.unitNumber && (
-                          <Typography color="muted" variant="body2">
-                            {t('resident.myPayments.unit')}: {payment.unit.unitNumber}
-                          </Typography>
-                        )}
-                        {payment.receiptNumber && (
-                          <Typography color="muted" variant="caption">
-                            #{payment.receiptNumber}
-                          </Typography>
-                        )}
-                      </div>
-                      {payment.notes && (
-                        <Typography className="mt-1" color="muted" variant="caption">
-                          {payment.notes}
-                        </Typography>
-                      )}
-                      {payment.verificationNotes && (
-                        <Typography className="mt-1" color="danger" variant="caption">
-                          {t('resident.myPayments.verificationNotes')}: {payment.verificationNotes}
-                        </Typography>
-                      )}
-                    </div>
-
-                    {/* Right side: status chip */}
-                    <div className="flex items-center">
-                      <Chip color={getPaymentStatusColor(payment.status)} variant="flat">
-                        {t(`resident.myPayments.status.${payment.status}`)}
-                      </Chip>
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
-            ))}
-          </div>
+          <Table
+            aria-label={t('resident.myPayments.title')}
+            columns={columns}
+            renderCell={renderCell}
+            rows={payments}
+            onRowClick={payment => router.push(`/dashboard/my-payments/${payment.id}`)}
+          />
 
           {/* Pagination */}
           {pagination.totalPages > 1 && (

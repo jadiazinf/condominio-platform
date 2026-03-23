@@ -19,6 +19,7 @@ import { ErrorCodes } from '@http/responses/types'
 type TMockPaymentsRepository = {
   listAll: () => Promise<TPayment[]>
   getById: (id: string) => Promise<TPayment | null>
+  getByIdWithRelations: (id: string) => Promise<TPayment | null>
   create: (data: TPaymentCreate) => Promise<TPayment>
   update: (id: string, data: TPaymentUpdate) => Promise<TPayment | null>
   delete: (id: string) => Promise<boolean>
@@ -118,6 +119,13 @@ describe('PaymentsController', function () {
           }) || null
         )
       },
+      getByIdWithRelations: async function (id: string) {
+        return (
+          testPayments.find(function (p) {
+            return p.id === id
+          }) || null
+        )
+      },
       create: async function (data: TPaymentCreate) {
         return withId(data, crypto.randomUUID()) as TPayment
       },
@@ -198,15 +206,30 @@ describe('PaymentsController', function () {
 
     // Create controller with mock repository
     const mockDb = {} as unknown as TDrizzleClient
-    const mockSendNotification = { execute: async () => ({ success: true }) } as any
+    const mockSendNotification = { execute: async () => ({ success: true }) } as never
+    const mockPaymentAppsRepo = {
+      getByPaymentIdWithRelations: async () => [],
+    }
+    const mockUnitsRepo = {
+      getById: async () => ({
+        id: '550e8400-e29b-41d4-a716-446655440030',
+        buildingId: '550e8400-e29b-41d4-a716-446655440060',
+      }),
+    }
+    const mockBuildingsRepo = {
+      getById: async () => ({
+        id: '550e8400-e29b-41d4-a716-446655440060',
+        condominiumId: '550e8400-e29b-41d4-a716-446655440090',
+      }),
+    }
     const controller = new PaymentsController(
       mockRepository as unknown as PaymentsRepository,
       mockDb,
-      {} as any,
-      {} as any,
+      mockPaymentAppsRepo as never,
+      {} as never,
       mockSendNotification,
-      {} as any,
-      {} as any
+      mockUnitsRepo as never,
+      mockBuildingsRepo as never
     )
 
     // Create Hono app with controller routes

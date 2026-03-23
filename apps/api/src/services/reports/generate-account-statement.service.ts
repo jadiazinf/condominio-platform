@@ -176,6 +176,7 @@ export class GenerateAccountStatementService {
       partial: 'Parcial',
       overdue: 'Vencida',
       cancelled: 'Cancelada',
+      exonerated: 'Exonerada',
     }
     return statusMap[status] ?? status
   }
@@ -185,10 +186,12 @@ export class GenerateAccountStatementService {
    */
   private translatePaymentStatus(status: string): string {
     const statusMap: Record<string, string> = {
-      completed: 'Completado',
+      pending: 'Pendiente',
       pending_verification: 'Por verificar',
+      completed: 'Completado',
+      failed: 'Fallido',
+      refunded: 'Reembolsado',
       rejected: 'Rechazado',
-      reversed: 'Revertido',
     }
     return statusMap[status] ?? status
   }

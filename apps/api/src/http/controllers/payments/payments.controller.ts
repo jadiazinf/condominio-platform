@@ -171,6 +171,7 @@ type TIdParam = z.infer<typeof IdParamSchema>
  */
 export class PaymentsController extends BaseController<TPayment, TPaymentCreate, TPaymentUpdate> {
   private readonly paymentsRepository: PaymentsRepository
+  private readonly paymentApplicationsRepository: PaymentApplicationsRepository
   private readonly reportPaymentService: ReportPaymentService
   private readonly verifyPaymentService: VerifyPaymentService
   private readonly rejectPaymentService: RejectPaymentService
@@ -199,6 +200,7 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
     super(repository)
 
     this.paymentsRepository = repository
+    this.paymentApplicationsRepository = paymentApplicationsRepo
     this.sendNotificationService = sendNotificationService
     this.bankAccountsRepository = bankAccountsRepo
     this.paymentGatewaysRepository = paymentGatewaysRepo
@@ -414,7 +416,7 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
 
   protected override getById = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, unknown, { id: string }>(c)
-    const entity = await this.repository.getById(ctx.params.id)
+    const entity = await this.paymentsRepository.getByIdWithRelations(ctx.params.id)
     if (!entity) throw AppError.notFound('Resource', ctx.params.id)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     if (condominiumId) {
@@ -425,7 +427,36 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
         throw AppError.notFound('Resource', ctx.params.id)
       }
     }
-    return ctx.ok({ data: entity })
+
+    // Enrich with payment applications (concept name, period, balance)
+    const applications = await this.paymentApplicationsRepository.getByPaymentIdWithRelations(
+      ctx.params.id,
+      condominiumId
+    )
+
+    // Enrich with destination bank account info
+    const details = entity.paymentDetails as Record<string, unknown> | null
+    let bankAccount:
+      | { displayName: string; bankName: string; accountHolderName: string }
+      | undefined
+    if (details?.bankAccountId && this.bankAccountsRepository) {
+      const ba = await this.bankAccountsRepository.getById(details.bankAccountId as string)
+      if (ba) {
+        bankAccount = {
+          displayName: ba.displayName,
+          bankName: ba.bankName,
+          accountHolderName: ba.accountHolderName,
+        }
+      }
+    }
+
+    return ctx.ok({
+      data: {
+        ...entity,
+        applications,
+        bankAccount,
+      },
+    })
   }
 
   protected override list = async (c: Context): Promise<Response> => {
@@ -466,7 +497,7 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
   private getByUserIdPaginated = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<unknown, TPaginatedByUserQuery, TUserIdParam>(c)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
-    const result = await this.paymentsRepository.listPaginatedByUser(
+    const result = await this.paymentsRepository.listPaginatedByUserWithRelations(
       ctx.params.userId,
       {
         page: ctx.query.page,
@@ -477,6 +508,49 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
       },
       condominiumId
     )
+
+    // Enrich old payments that don't have concept info in paymentDetails.quotas
+    const paymentsNeedingEnrichment = result.data.filter(p => {
+      const details = p.paymentDetails as { quotas?: { conceptName?: string }[] } | null
+      if (!details?.quotas?.length) return true
+      return details.quotas.some(q => !q.conceptName)
+    })
+
+    if (paymentsNeedingEnrichment.length > 0) {
+      const paymentIds = paymentsNeedingEnrichment.map(p => p.id)
+      const applications = await this.paymentApplicationsRepository.getByPaymentIdsWithRelations(
+        paymentIds,
+        condominiumId
+      )
+
+      // Group applications by paymentId
+      const appsByPayment = new Map<string, typeof applications>()
+      for (const app of applications) {
+        const existing = appsByPayment.get(app.paymentId) ?? []
+        existing.push(app)
+        appsByPayment.set(app.paymentId, existing)
+      }
+
+      // Enrich payments with concept/period data from applications
+      for (const payment of paymentsNeedingEnrichment) {
+        const apps = appsByPayment.get(payment.id)
+        if (!apps?.length) continue
+
+        const enrichedQuotas = apps.map(app => ({
+          quotaId: app.quotaId,
+          amount: app.appliedAmount,
+          conceptName: app.conceptName,
+          periodYear: app.periodYear,
+          periodMonth: app.periodMonth,
+        }))
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(payment as any).paymentDetails = {
+          ...(payment.paymentDetails as Record<string, unknown> | null),
+          quotas: enrichedQuotas,
+        }
+      }
+    }
 
     return ctx.ok(result)
   }

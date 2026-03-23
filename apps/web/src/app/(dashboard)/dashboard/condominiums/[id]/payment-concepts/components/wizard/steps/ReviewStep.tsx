@@ -2,8 +2,8 @@
 
 import type { IWizardFormData } from '../CreatePaymentConceptWizard'
 
-import { useMemo } from 'react'
-import { useMyCompanyBankAccountsPaginated } from '@packages/http-client'
+import { useMemo, useEffect } from 'react'
+import { useMyCompanyBankAccountsPaginated, useReceipts } from '@packages/http-client'
 
 import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
@@ -47,6 +47,24 @@ export function ReviewStep({
 
     return all.filter(a => formData.bankAccountIds.includes(a.id))
   }, [bankAccountsData, formData.bankAccountIds])
+
+  // Check if receipts already exist for the current period
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1
+  const { data: receiptsData } = useReceipts({
+    periodYear: currentYear,
+    periodMonth: currentMonth,
+    enabled: !isEditMode,
+  })
+  const receiptsExist = (receiptsData?.data?.length ?? 0) > 0
+
+  // Auto-disable generateReceipt if receipts already exist
+  useEffect(() => {
+    if (receiptsExist && formData.generateReceipt) {
+      onUpdate({ generateReceipt: false })
+    }
+  }, [receiptsExist])
 
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
@@ -329,6 +347,32 @@ export function ReviewStep({
               placeholder={t(`${w}.changeReasonPlaceholder`)}
               value={formData.changeReason}
               onValueChange={value => onUpdate({ changeReason: value })}
+            />
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Generate Receipt Switch */}
+      {!isEditMode && (
+        <Card>
+          <CardBody className="flex flex-row items-center justify-between gap-4">
+            <div>
+              <Typography className="font-semibold" variant="body2">
+                {t(`${w}.generateReceiptTitle`)}
+              </Typography>
+              <Typography color="muted" variant="caption">
+                {receiptsExist
+                  ? t(`${w}.generateReceiptDisabled`)
+                  : formData.generateReceipt
+                    ? t(`${w}.generateReceiptDescriptionOn`)
+                    : t(`${w}.generateReceiptDescriptionOff`)}
+              </Typography>
+            </div>
+            <Switch
+              color="primary"
+              isDisabled={receiptsExist}
+              isSelected={formData.generateReceipt}
+              onValueChange={value => onUpdate({ generateReceipt: value })}
             />
           </CardBody>
         </Card>

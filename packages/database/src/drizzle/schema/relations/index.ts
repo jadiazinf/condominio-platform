@@ -47,6 +47,11 @@ import { subscriptionInvoices } from '../tables/subscription-invoices'
 import { managementCompanyMembers } from '../tables/management-company-members'
 import { supportTickets } from '../tables/support-tickets'
 import { supportTicketMessages } from '../tables/support-ticket-messages'
+import { bankAccounts } from '../tables/bank-accounts'
+import { bankStatementImports } from '../tables/bank-statement-imports'
+import { bankStatementEntries } from '../tables/bank-statement-entries'
+import { bankReconciliations } from '../tables/bank-reconciliations'
+import { bankStatementMatches } from '../tables/bank-statement-matches'
 
 // ============================================================================
 // LOCATIONS RELATIONS
@@ -958,5 +963,76 @@ export const amenityReservationsRelations = relations(amenityReservations, ({ on
     fields: [amenityReservations.approvedBy],
     references: [users.id],
     relationName: 'reservationApprover',
+  }),
+}))
+
+// ============================================================================
+// BANK ACCOUNT RELATIONS
+// ============================================================================
+
+export const bankAccountsRelations = relations(bankAccounts, ({ one, many }) => ({
+  managementCompany: one(managementCompanies, {
+    fields: [bankAccounts.managementCompanyId],
+    references: [managementCompanies.id],
+  }),
+  createdByUser: one(users, {
+    fields: [bankAccounts.createdBy],
+    references: [users.id],
+  }),
+  statementImports: many(bankStatementImports),
+  reconciliations: many(bankReconciliations),
+}))
+
+// ============================================================================
+// BANK RECONCILIATION RELATIONS
+// ============================================================================
+
+export const bankStatementImportsRelations = relations(bankStatementImports, ({ one, many }) => ({
+  bankAccount: one(bankAccounts, {
+    fields: [bankStatementImports.bankAccountId],
+    references: [bankAccounts.id],
+  }),
+  importedByUser: one(users, {
+    fields: [bankStatementImports.importedBy],
+    references: [users.id],
+  }),
+  entries: many(bankStatementEntries),
+}))
+
+export const bankStatementEntriesRelations = relations(bankStatementEntries, ({ one }) => ({
+  import: one(bankStatementImports, {
+    fields: [bankStatementEntries.importId],
+    references: [bankStatementImports.id],
+  }),
+  match: one(bankStatementMatches),
+}))
+
+export const bankReconciliationsRelations = relations(bankReconciliations, ({ one }) => ({
+  bankAccount: one(bankAccounts, {
+    fields: [bankReconciliations.bankAccountId],
+    references: [bankAccounts.id],
+  }),
+  condominium: one(condominiums, {
+    fields: [bankReconciliations.condominiumId],
+    references: [condominiums.id],
+  }),
+  reconciledByUser: one(users, {
+    fields: [bankReconciliations.reconciledBy],
+    references: [users.id],
+  }),
+}))
+
+export const bankStatementMatchesRelations = relations(bankStatementMatches, ({ one }) => ({
+  entry: one(bankStatementEntries, {
+    fields: [bankStatementMatches.entryId],
+    references: [bankStatementEntries.id],
+  }),
+  payment: one(payments, {
+    fields: [bankStatementMatches.paymentId],
+    references: [payments.id],
+  }),
+  matchedByUser: one(users, {
+    fields: [bankStatementMatches.matchedBy],
+    references: [users.id],
   }),
 }))

@@ -6,7 +6,7 @@ import logger from '@packages/logger'
 
 interface IWorkerErrorContext {
   jobId: string
-  processor: 'bulk-generation' | 'auto-generation' | 'interest-calculation'
+  processor: 'bulk-generation' | 'auto-generation' | 'interest-calculation' | 'payment-reminders'
   paymentConceptId?: string
   error: unknown
   elapsedSeconds: string

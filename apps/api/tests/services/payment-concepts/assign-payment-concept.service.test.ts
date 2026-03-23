@@ -12,6 +12,7 @@ type TMockPaymentConceptsRepo = {
 
 type TMockAssignmentsRepo = {
   create: (data: Record<string, unknown>) => Promise<TPaymentConceptAssignment>
+  getById: (id: string) => Promise<TPaymentConceptAssignment | null>
   getByConceptAndScope: (
     conceptId: string,
     scopeType: string,
@@ -116,6 +117,7 @@ describe('AssignPaymentConceptService', function () {
 
     mockAssignmentsRepo = {
       create: async data => mockAssignment(data as Partial<TPaymentConceptAssignment>),
+      getById: async id => mockAssignment({ id }),
       getByConceptAndScope: async () => null,
       update: async (id, data) =>
         mockAssignment({ id, ...data } as Partial<TPaymentConceptAssignment>),
@@ -282,7 +284,8 @@ describe('AssignPaymentConceptService', function () {
 
       expect(result.success).toBe(true)
       if (result.success) {
-        expect(result.data.isActive).toBe(false)
+        expect(result.data.assignment.isActive).toBe(false)
+        expect(result.data.cancelledQuotas).toBe(0)
       }
     })
   })

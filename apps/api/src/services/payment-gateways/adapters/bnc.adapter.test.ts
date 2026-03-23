@@ -138,7 +138,8 @@ describe('BncPaymentAdapter', () => {
         gatewayConfiguration: {},
       })
 
-      expect(result.paymentId).toBe('abc-123-def')
+      // paymentId resolution now happens in ProcessWebhookService via gateway_transactions lookup
+      expect(result.paymentId).toBeNull()
     })
 
     it('should process TRF webhook payload', async () => {

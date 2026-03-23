@@ -69,6 +69,22 @@ export interface IDeleteQuotaOptions {
   onError?: (error: Error) => void
 }
 
+export interface ICancelQuotaOptions {
+  onSuccess?: (data: ApiResponse<TApiDataResponse<unknown>>) => void
+  onError?: (error: Error) => void
+}
+
+export interface IGenerateMissingQuotaInput {
+  paymentConceptId: string
+  periodYear: number
+  periodMonth: number
+}
+
+export interface IGenerateMissingQuotaOptions {
+  onSuccess?: (data: ApiResponse<TApiDataResponse<TQuota>>) => void
+  onError?: (error: Error) => void
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Hooks - List All Quotas
 // ─────────────────────────────────────────────────────────────────────────────
@@ -234,6 +250,141 @@ export function useDeleteQuota(options?: IDeleteQuotaOptions) {
   return useApiMutation<TApiDataResponse<TQuota>, { id: string }>({
     path: data => `/condominium/quotas/${data.id}`,
     method: 'DELETE',
+    config: {},
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+    invalidateKeys: [quotaKeys.all],
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mutations - Cancel Quota (with audit trail via waiver)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useCancelQuota(quotaId: string, options?: ICancelQuotaOptions) {
+  return useApiMutation<TApiDataResponse<unknown>, { reason: string }>({
+    path: `/condominium/quotas/${quotaId}/cancel`,
+    method: 'POST',
+    config: {},
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+    invalidateKeys: [quotaKeys.all],
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hooks - Get Distinct Concepts by Unit (client-side)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useDistinctConceptsByUnit(unitId: string, options?: { enabled?: boolean }) {
+  return useApiQuery<TApiDataResponse<Array<{ id: string; name: string }>>>({
+    path: `/condominium/quotas/unit/${unitId}/concepts`,
+    queryKey: [...quotaKeys.byUnit(unitId), 'concepts'],
+    config: {},
+    enabled: options?.enabled !== false && !!unitId,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hooks - Concept Preview for Unit
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface IConceptPreviewCurrency {
+  code: string
+  symbol: string | null
+  name: string
+}
+
+export interface IConceptPreviewData {
+  concept: {
+    id: string
+    name: string
+    description: string | null
+    conceptType: string
+    isRecurring: boolean
+    recurrencePeriod: string | null
+    chargeGenerationStrategy: string
+    currencyId: string
+    allowsPartialPayment: boolean
+    latePaymentType: string
+    latePaymentValue: number | null
+    latePaymentGraceDays: number
+    earlyPaymentType: string
+    earlyPaymentValue: number | null
+    earlyPaymentDaysBeforeDue: number
+    issueDay: number | null
+    dueDay: number | null
+    effectiveFrom: string | null
+    effectiveUntil: string | null
+    isActive: boolean
+    currency?: IConceptPreviewCurrency
+  }
+  assignment: {
+    scopeType: string
+    distributionMethod: string
+    totalAmount: number
+  } | null
+  unitAmount: number | null
+}
+
+export function useConceptPreview(
+  unitId: string,
+  conceptId: string,
+  options?: { enabled?: boolean }
+) {
+  return useApiQuery<TApiDataResponse<IConceptPreviewData>>({
+    path: `/condominium/quotas/unit/${unitId}/concept-preview/${conceptId}`,
+    queryKey: [...quotaKeys.byUnit(unitId), 'concept-preview', conceptId],
+    config: {},
+    enabled: options?.enabled !== false && !!unitId && !!conceptId,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mutations - Generate Missing Quota for a Unit
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useGenerateMissingQuota(unitId: string, options?: IGenerateMissingQuotaOptions) {
+  return useApiMutation<TApiDataResponse<TQuota>, IGenerateMissingQuotaInput>({
+    path: `/condominium/quotas/unit/${unitId}/generate`,
+    method: 'POST',
+    config: {},
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+    invalidateKeys: [quotaKeys.all],
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mutations - Generate All Missing Quotas for a Unit
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface IGenerateAllMissingQuotasInput {
+  paymentConceptId: string
+  periodYear: number
+}
+
+export interface IGenerateAllMissingQuotasResult {
+  created: TQuota[]
+  skipped: Array<{ month: number; reason: string }>
+  failed: Array<{ month: number; error: string }>
+}
+
+export interface IGenerateAllMissingQuotasOptions {
+  onSuccess?: (data: ApiResponse<TApiDataResponse<IGenerateAllMissingQuotasResult>>) => void
+  onError?: (error: Error) => void
+}
+
+export function useGenerateAllMissingQuotas(
+  unitId: string,
+  options?: IGenerateAllMissingQuotasOptions
+) {
+  return useApiMutation<
+    TApiDataResponse<IGenerateAllMissingQuotasResult>,
+    IGenerateAllMissingQuotasInput
+  >({
+    path: `/condominium/quotas/unit/${unitId}/generate-all`,
+    method: 'POST',
     config: {},
     onSuccess: options?.onSuccess,
     onError: options?.onError,

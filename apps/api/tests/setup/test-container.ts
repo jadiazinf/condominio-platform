@@ -17,7 +17,11 @@ if (existsSync(envPath)) {
     if (trimmed && !trimmed.startsWith('#')) {
       const [key, ...valueParts] = trimmed.split('=')
       if (key && valueParts.length > 0) {
-        process.env[key.trim()] = valueParts.join('=').trim()
+        const trimmedKey = key.trim()
+        // Don't overwrite env vars already set (e.g. by CI)
+        if (!process.env[trimmedKey]) {
+          process.env[trimmedKey] = valueParts.join('=').trim()
+        }
       }
     }
   }
@@ -571,6 +575,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       effective_from TIMESTAMP,
       effective_until TIMESTAMP,
       is_active BOOLEAN DEFAULT true,
+      generate_receipts BOOLEAN DEFAULT true,
       metadata JSONB,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),

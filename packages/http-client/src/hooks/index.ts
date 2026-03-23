@@ -610,6 +610,11 @@ export {
   useCreateQuota,
   useUpdateQuota,
   useDeleteQuota,
+  useCancelQuota,
+  useDistinctConceptsByUnit,
+  useConceptPreview,
+  useGenerateMissingQuota,
+  useGenerateAllMissingQuotas,
   getQuotas,
   getQuotasByUnit,
   getQuotasPendingByUnit,
@@ -628,6 +633,13 @@ export {
   type ICreateQuotaOptions,
   type IUpdateQuotaOptions,
   type IDeleteQuotaOptions,
+  type IConceptPreviewData,
+  type IConceptPreviewCurrency,
+  type IGenerateMissingQuotaInput,
+  type IGenerateMissingQuotaOptions,
+  type IGenerateAllMissingQuotasInput,
+  type IGenerateAllMissingQuotasResult,
+  type IGenerateAllMissingQuotasOptions,
   getQuotasByUnitServer,
   getQuotasByUnitPaginatedServer,
   getDistinctConceptsByUnitServer,
@@ -1019,6 +1031,97 @@ export {
   type IInitiatePaymentResponse,
   type IGatewayHealthResponse,
 } from './use-payment-flow'
+
+// Account Statements
+export {
+  useAccountStatement,
+  getAccountStatementServer,
+  accountStatementKeys,
+  type IAccountStatementLineItem,
+  type IAccountStatementAging,
+  type IAccountStatementData,
+  type IAccountStatementQuery,
+} from './use-account-statements'
+export {
+  useDelinquencyReport,
+  getDelinquencyReportServer,
+  delinquencyKeys,
+  type IDelinquencyUnit,
+  type IDelinquencyUnitAging,
+  type IDelinquencySummary,
+  type IDelinquencyReportData,
+  type IDelinquencyReportQuery,
+} from './use-delinquency-report'
+
+// Budgets
+export {
+  useBudgets,
+  useBudgetDetail,
+  useBudgetCalculateQuotas,
+  useBudgetVsActual,
+  useCreateBudget,
+  useUpdateBudget,
+  useDeleteBudget,
+  budgetKeys,
+  type IBudgetWithItems,
+  type ICreateBudgetInput,
+  type ICreateBudgetItemInput,
+  type IUnitQuota,
+  type ISkippedUnit,
+  type ICalculateQuotasResult,
+  type IBudgetVsActualItem,
+  type IBudgetVsActualResult,
+  type ICreateBudgetOptions,
+  type IUpdateBudgetOptions,
+  type IDeleteBudgetOptions,
+} from './use-budgets'
+
+// Receipts
+export {
+  useReceipts,
+  useReceiptDetail,
+  useGenerateReceipt,
+  useBulkGenerateReceipts,
+  useVoidReceipt,
+  useUpdateReceipt,
+  useSendReceipt,
+  useDownloadReceiptPdf,
+  setReceiptDownloadAuth,
+  receiptKeys,
+  type ISendReceiptResult,
+  type IReceiptWithItems,
+  type IGenerateReceiptInput,
+  type IBulkGenerateInput,
+  type IBulkGenerateResult,
+  type IGenerateReceiptOptions,
+  type IBulkGenerateOptions,
+  type IVoidReceiptOptions,
+} from './use-receipts'
+
+export {
+  bankReconciliationKeys,
+  useBankStatementImports,
+  useBankStatementEntries,
+  useBankReconciliations,
+  useBankReconciliationDetail,
+  useImportBankStatement,
+  useAutoMatch,
+  useManualMatch,
+  useUnmatchEntry,
+  useIgnoreEntry,
+  useCreateReconciliation,
+  useCompleteReconciliation,
+  type IColumnMapping,
+  type IImportBankStatementInput,
+  type IImportBankStatementResult,
+  type IBankStatementImport,
+  type IBankStatementEntry,
+  type IAutoMatchResult,
+  type IManualMatchInput,
+  type IBankReconciliation,
+  type ICreateReconciliationInput,
+  type IReconciliationSummary,
+} from './use-bank-reconciliation'
 
 // Re-export commonly used TanStack Query hooks
 export {

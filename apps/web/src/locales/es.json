@@ -482,7 +482,9 @@
       "reservations": "Reservaciones",
       "joinCondominium": "Unirme a Condominio",
       "myRequests": "Mis Solicitudes",
-      "support": "Soporte"
+      "support": "Soporte",
+      "myAccountStatement": "Mi Estado de Cuenta",
+      "myReceipts": "Mis Recibos"
     },
     "joinCondominium": {
       "title": "Unirme a un Condominio",
@@ -726,6 +728,14 @@
       "unit": "Unidad",
       "verificationNotes": "Notas de verificación",
       "error": "Error al cargar los pagos",
+      "table": {
+        "date": "Fecha",
+        "concept": "Concepto / Cuota",
+        "amount": "Monto",
+        "method": "Método",
+        "receipt": "Referencia",
+        "status": "Estado"
+      },
       "filter": {
         "all": "Todos",
         "pendingVerification": "En verificación",
@@ -776,6 +786,16 @@
         "principal": "Capital",
         "interest": "Intereses",
         "adminNotes": "Nota del administrador",
+        "senderInfo": "Datos del Emisor",
+        "senderBank": "Banco del emisor",
+        "senderDocument": "Documento del emisor",
+        "senderPhone": "Teléfono del emisor",
+        "associatedQuotas": "Cuotas Asociadas",
+        "unknownConcept": "Concepto",
+        "destinationBank": "Cuenta Bancaria Destino",
+        "bankName": "Banco",
+        "accountName": "Nombre de la cuenta",
+        "accountHolder": "Titular",
         "methods": {
           "transfer": "Transferencia",
           "cash": "Efectivo",
@@ -798,6 +818,139 @@
           "rejected": "Tu pago fue rechazado por el administrador. Revisa las notas para más detalles.",
           "refunded": "Este pago ha sido reembolsado."
         }
+      }
+    },
+    "myAccountStatement": {
+      "title": "Mi Estado de Cuenta",
+      "subtitle": "Consulta el detalle de cargos, pagos e intereses de tu unidad",
+      "selectUnit": "Seleccionar Unidad",
+      "from": "Desde",
+      "to": "Hasta",
+      "search": "Consultar",
+      "loading": "Cargando estado de cuenta...",
+      "error": "Error al cargar el estado de cuenta",
+      "empty": "No hay movimientos en el periodo seleccionado",
+      "summary": {
+        "previousBalance": "Saldo anterior",
+        "totalCharges": "Total cargos",
+        "totalPayments": "Total pagos",
+        "totalInterest": "Total intereses",
+        "currentBalance": "Saldo actual"
+      },
+      "aging": {
+        "title": "Antigüedad de deuda",
+        "current": "Vigente (0-30 días)",
+        "days30": "31-60 días",
+        "days60": "61-90 días",
+        "days90Plus": "Más de 90 días"
+      },
+      "lineItems": {
+        "title": "Movimientos",
+        "date": "Fecha",
+        "description": "Descripción",
+        "type": "Tipo",
+        "amount": "Monto",
+        "balance": "Saldo",
+        "types": {
+          "charge": "Cargo",
+          "payment": "Pago",
+          "interest": "Interés",
+          "adjustment": "Ajuste"
+        }
+      }
+    },
+    "myReceipts": {
+      "title": "Mis Recibos",
+      "subtitle": "Consulta tus recibos de condominio",
+      "empty": "No tienes recibos disponibles",
+      "emptyDescription": "Los recibos aparecerán aquí cuando sean generados por tu administrador",
+      "table": {
+        "receiptNumber": "Nro. Recibo",
+        "concept": "Concepto",
+        "category": "Categoría",
+        "period": "Período",
+        "totalAmount": "Monto Total",
+        "status": "Estado"
+      },
+      "filter": {
+        "startDate": "Desde",
+        "endDate": "Hasta",
+        "concept": "Concepto",
+        "all": "Todos"
+      },
+      "conceptTypes": {
+        "maintenance": "Mantenimiento",
+        "condominium_fee": "Cuota de condominio",
+        "extraordinary": "Extraordinario",
+        "fine": "Multa",
+        "reserve_fund": "Fondo de reserva",
+        "other": "Otro"
+      },
+      "statuses": {
+        "draft": "Borrador",
+        "generated": "Generado",
+        "sent": "Enviado",
+        "voided": "Anulado"
+      }
+    },
+    "receiptDetail": {
+      "title": "Detalle del Recibo",
+      "back": "Volver",
+      "receiptNumber": "Número de Recibo",
+      "period": "Período",
+      "status": "Estado",
+      "unitAliquot": "Alícuota",
+      "generatedAt": "Fecha de Generación",
+      "amounts": {
+        "ordinary": "Cuota Ordinaria",
+        "extraordinary": "Cuota Extraordinaria",
+        "reserveFund": "Fondo de Reserva",
+        "interest": "Intereses",
+        "fines": "Multas",
+        "previousBalance": "Saldo Anterior",
+        "total": "Total"
+      },
+      "breakdown": {
+        "title": "Desglose del Período",
+        "item": "Concepto",
+        "amount": "Monto"
+      },
+      "statuses": {
+        "draft": "Borrador",
+        "generated": "Generado",
+        "sent": "Enviado",
+        "voided": "Anulado",
+        "pending": "Pendiente",
+        "partial": "Parcial",
+        "paid": "Pagado",
+        "overdue": "Vencido"
+      },
+      "downloadPdf": "Descargar PDF",
+      "loading": "Cargando recibo...",
+      "notFound": "Recibo no encontrado",
+      "infoModal": {
+        "button": "Sobre este recibo",
+        "title": "¿Cómo se genera este recibo?",
+        "intro": "El recibo de condominio es un documento que consolida todos los cargos que debe pagar una unidad en un período determinado (generalmente mensual). A continuación te explicamos cómo se calcula cada monto.",
+        "conceptsTitle": "Conceptos de Pago",
+        "conceptsBody": "El administrador del condominio configura los conceptos de pago que aplican a las unidades. Estos pueden ser cuotas de mantenimiento, fondos de reserva, cuotas extraordinarias, multas, entre otros. Cada concepto puede tener servicios asociados (como agua, luz, vigilancia, etc.) que detallan en qué se utiliza el monto.",
+        "formulasTitle": "¿Cómo se calcula el monto de cada concepto?",
+        "formulaFixed": "Monto fijo: El administrador establece un monto igual para todas las unidades del condominio (ej: Bs. 1.500 por concepto de vigilancia).",
+        "formulaAliquot": "Por alícuota: El monto se calcula multiplicando un monto base por el porcentaje de alícuota de tu unidad. La alícuota representa la proporción de tu unidad respecto al total del condominio (ej: si tu alícuota es 10% y el gasto total es Bs. 100.000, tu cuota es Bs. 10.000).",
+        "formulaPerUnit": "Monto específico por unidad: El administrador asigna un monto particular a cada unidad según sus características.",
+        "breakdownTitle": "Desglose del Período",
+        "breakdownBody": "La sección \"Desglose del Período\" muestra cada concepto que se cobra en este recibo con su monto calculado. Debajo de cada concepto aparecen los servicios asociados que detallan el uso de ese monto (por ejemplo, un concepto de \"Mantenimiento\" puede incluir servicios como \"Agua\", \"Limpieza\", \"Vigilancia\").",
+        "summaryTitle": "Resumen de Montos",
+        "summaryOrdinary": "Cuota Ordinaria: Suma de todos los conceptos de tipo mantenimiento y cuota de condominio del período actual.",
+        "summaryExtraordinary": "Cuota Extraordinaria: Cargos especiales aprobados por la asamblea para gastos no recurrentes.",
+        "summaryReserve": "Fondo de Reserva: Ahorro obligatorio destinado a reparaciones o mejoras mayores del condominio.",
+        "summaryInterest": "Intereses: Recargos generados por cuotas no pagadas a tiempo. Se calculan sobre cada cuota individual según la configuración del concepto (interés simple o compuesto).",
+        "summaryFines": "Multas: Penalizaciones por incumplimiento de normas del condominio.",
+        "summaryPrevBalance": "Saldo Anterior: Monto acumulado de períodos anteriores que no ha sido pagado. Este saldo se arrastra de mes a mes hasta que sea cancelado.",
+        "summaryTotal": "El Total es la suma de todos los montos anteriores. Este es el monto que debe pagar la unidad.",
+        "interestTitle": "¿Cómo funcionan los intereses?",
+        "interestBody": "Los intereses se calculan individualmente sobre cada cuota pendiente, no sobre el total de la deuda. Esto significa que cada concepto puede tener su propia tasa de interés configurada. Si un concepto tiene interés simple, el recargo se calcula sobre el monto original de la cuota. Si tiene interés compuesto, el recargo se calcula sobre el monto acumulado (monto + intereses previos).",
+        "close": "Entendido"
       }
     },
     "reportPayment": {
@@ -3631,6 +3784,390 @@
       "expenses": "Gastos",
       "amenities": "Amenidades"
     },
+    "delinquencyReport": {
+      "title": "Reporte de Morosidad",
+      "subtitle": "Visualiza las unidades con deudas pendientes y su antigüedad",
+      "asOfDate": "Fecha de corte",
+      "filterByBuilding": "Filtrar por edificio",
+      "allBuildings": "Todos los edificios",
+      "search": "Generar reporte",
+      "loading": "Generando reporte...",
+      "error": "Error al generar el reporte de morosidad",
+      "empty": "No hay unidades morosas para la fecha seleccionada",
+      "summary": {
+        "title": "Resumen",
+        "totalDelinquent": "Total moroso",
+        "delinquentUnits": "Unidades morosas",
+        "totalUnits": "Total de unidades",
+        "collectionRate": "Tasa de cobranza"
+      },
+      "table": {
+        "unit": "Unidad",
+        "building": "Edificio",
+        "totalDebt": "Deuda total",
+        "overdueQuotas": "Cuotas vencidas",
+        "oldestDueDate": "Deuda más antigua",
+        "current": "Vigente",
+        "days30": "31-60 días",
+        "days60": "61-90 días",
+        "days90Plus": "+90 días"
+      }
+    },
+    "budgets": {
+      "title": "Presupuestos",
+      "subtitle": "Gestiona los presupuestos del condominio",
+      "create": "Crear Presupuesto",
+      "empty": "No hay presupuestos registrados",
+      "loading": "Cargando presupuestos...",
+      "table": {
+        "name": "Nombre",
+        "type": "Tipo",
+        "period": "Período",
+        "totalAmount": "Monto Total",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "statuses": {
+        "draft": "Borrador",
+        "approved": "Aprobado",
+        "active": "Activo",
+        "closed": "Cerrado"
+      },
+      "types": {
+        "monthly": "Mensual",
+        "quarterly": "Trimestral",
+        "annual": "Anual"
+      }
+    },
+    "budgetDetail": {
+      "back": "Volver",
+      "loading": "Cargando presupuesto...",
+      "error": "Error al cargar el presupuesto",
+      "tabs": {
+        "overview": "Resumen",
+        "vsActual": "Presupuesto vs Real",
+        "quotas": "Cálculo de Cuotas"
+      },
+      "overview": {
+        "type": "Tipo",
+        "period": "Período",
+        "status": "Estado",
+        "totalAmount": "Monto Total",
+        "reserveFund": "Fondo de Reserva",
+        "items": "Partidas del Presupuesto",
+        "description": "Descripción",
+        "amount": "Monto"
+      },
+      "vsActual": {
+        "title": "Presupuesto vs Gastos Reales",
+        "description": "Descripción",
+        "budgeted": "Presupuestado",
+        "actual": "Real",
+        "variance": "Variación",
+        "total": "Total",
+        "loading": "Calculando..."
+      },
+      "quotas": {
+        "title": "Cálculo de Cuota Ordinaria",
+        "calculate": "Calcular",
+        "unit": "Unidad",
+        "aliquot": "Alícuota",
+        "amount": "Cuota",
+        "budgetTotal": "Total Presupuesto",
+        "reserveFund": "Fondo de Reserva",
+        "totalWithReserve": "Total con Reserva",
+        "skippedUnits": "Unidades sin alícuota asignada",
+        "loading": "Calculando cuotas...",
+        "notActive": "El presupuesto debe estar aprobado o activo para calcular cuotas"
+      }
+    },
+    "createBudget": {
+      "title": "Crear Presupuesto",
+      "subtitle": "Define un nuevo presupuesto para el condominio",
+      "back": "Volver",
+      "form": {
+        "name": "Nombre",
+        "namePlaceholder": "Ej: Presupuesto Enero 2026",
+        "description": "Descripción",
+        "type": "Tipo de presupuesto",
+        "year": "Año",
+        "month": "Mes",
+        "currency": "Moneda",
+        "reserveFund": "Fondo de reserva",
+        "notes": "Notas"
+      },
+      "items": {
+        "title": "Partidas del Presupuesto",
+        "add": "Agregar partida",
+        "description": "Descripción",
+        "amount": "Monto",
+        "remove": "Eliminar"
+      },
+      "submit": "Crear Presupuesto",
+      "success": "Presupuesto creado exitosamente",
+      "error": "Complete todos los campos requeridos",
+      "months": {
+        "1": "Enero",
+        "2": "Febrero",
+        "3": "Marzo",
+        "4": "Abril",
+        "5": "Mayo",
+        "6": "Junio",
+        "7": "Julio",
+        "8": "Agosto",
+        "9": "Septiembre",
+        "10": "Octubre",
+        "11": "Noviembre",
+        "12": "Diciembre"
+      }
+    },
+    "receipts": {
+      "title": "Recibos de Condominio",
+      "subtitle": "Gestiona los recibos mensuales de condominio",
+      "generate": "Generar Recibos",
+      "bulkGenerate": "Generar Masivamente",
+      "empty": "No hay recibos generados",
+      "loading": "Cargando recibos...",
+      "table": {
+        "receiptNumber": "Nro. Recibo",
+        "unit": "Unidad",
+        "period": "Período",
+        "totalAmount": "Monto Total",
+        "status": "Estado"
+      },
+      "statuses": {
+        "draft": "Borrador",
+        "generated": "Generado",
+        "sent": "Enviado",
+        "voided": "Anulado"
+      }
+    },
+    "receiptDetail": {
+      "title": "Detalle del Recibo",
+      "back": "Volver",
+      "receiptNumber": "Número de Recibo",
+      "period": "Período",
+      "status": "Estado",
+      "unitAliquot": "Alícuota",
+      "generatedAt": "Fecha de Generación",
+      "amounts": {
+        "ordinary": "Cuota Ordinaria",
+        "extraordinary": "Cuota Extraordinaria",
+        "reserveFund": "Fondo de Reserva",
+        "interest": "Intereses",
+        "fines": "Multas",
+        "previousBalance": "Saldo Anterior",
+        "total": "Total"
+      },
+      "breakdown": {
+        "title": "Desglose del Período",
+        "item": "Concepto",
+        "amount": "Monto"
+      },
+      "statuses": {
+        "draft": "Borrador",
+        "generated": "Generado",
+        "sent": "Enviado",
+        "voided": "Anulado",
+        "pending": "Pendiente",
+        "partial": "Parcial",
+        "paid": "Pagado",
+        "overdue": "Vencido"
+      },
+      "void": "Anular Recibo",
+      "voidConfirm": "¿Estás seguro de anular este recibo? Esta acción no se puede deshacer.",
+      "downloadPdf": "Descargar PDF",
+      "sendEmail": "Enviar por Email",
+      "sendEmailSuccess": "Recibo enviado exitosamente por email",
+      "loading": "Cargando recibo...",
+      "notFound": "Recibo no encontrado",
+      "infoModal": {
+        "button": "Sobre este recibo",
+        "title": "¿Cómo se genera este recibo?",
+        "intro": "El recibo de condominio es un documento que consolida todos los cargos que debe pagar una unidad en un período determinado (generalmente mensual). A continuación te explicamos cómo se calcula cada monto.",
+        "conceptsTitle": "Conceptos de Pago",
+        "conceptsBody": "Los conceptos de pago configurados generan cuotas para cada unidad. Estos pueden ser cuotas de mantenimiento, fondos de reserva, cuotas extraordinarias, multas, entre otros. Cada concepto puede tener servicios asociados que detallan en qué se utiliza el monto.",
+        "formulasTitle": "¿Cómo se calcula el monto de cada concepto?",
+        "formulaFixed": "Monto fijo: Un monto igual para todas las unidades del condominio.",
+        "formulaAliquot": "Por alícuota: El monto se calcula multiplicando un monto base por el porcentaje de alícuota de la unidad.",
+        "formulaPerUnit": "Monto específico por unidad: Un monto particular asignado a cada unidad según sus características.",
+        "breakdownTitle": "Desglose del Período",
+        "breakdownBody": "La sección \"Desglose del Período\" muestra cada concepto cobrado en este recibo con su monto. Debajo de cada concepto aparecen los servicios asociados.",
+        "summaryTitle": "Resumen de Montos",
+        "summaryOrdinary": "Cuota Ordinaria: Suma de conceptos de tipo mantenimiento y cuota de condominio.",
+        "summaryExtraordinary": "Cuota Extraordinaria: Cargos especiales para gastos no recurrentes.",
+        "summaryReserve": "Fondo de Reserva: Ahorro para reparaciones o mejoras mayores.",
+        "summaryInterest": "Intereses: Recargos por cuotas no pagadas a tiempo, calculados por cuota individual.",
+        "summaryFines": "Multas: Penalizaciones por incumplimiento de normas.",
+        "summaryPrevBalance": "Saldo Anterior: Monto acumulado de períodos anteriores no pagado.",
+        "summaryTotal": "El Total es la suma de todos los montos anteriores.",
+        "interestTitle": "¿Cómo funcionan los intereses?",
+        "interestBody": "Los intereses se calculan individualmente sobre cada cuota pendiente. Cada concepto puede tener su propia tasa (simple o compuesto). El interés simple se calcula sobre el monto original; el compuesto sobre el monto acumulado.",
+        "close": "Cerrar"
+      }
+    },
+    "generateReceipts": {
+      "title": "Generar Recibos",
+      "subtitle": "Genera los recibos de condominio para un período",
+      "back": "Volver",
+      "form": {
+        "periodYear": "Año",
+        "periodMonth": "Mes",
+        "currency": "Moneda",
+        "budget": "Presupuesto (opcional)"
+      },
+      "bulkGenerate": "Generar Recibos para Todas las Unidades",
+      "success": "Recibos generados exitosamente",
+      "error": "Complete todos los campos requeridos",
+      "result": {
+        "generated": "Generados",
+        "failed": "Fallidos",
+        "total": "Total de Unidades",
+        "errors": "Errores"
+      },
+      "months": {
+        "1": "Enero",
+        "2": "Febrero",
+        "3": "Marzo",
+        "4": "Abril",
+        "5": "Mayo",
+        "6": "Junio",
+        "7": "Julio",
+        "8": "Agosto",
+        "9": "Septiembre",
+        "10": "Octubre",
+        "11": "Noviembre",
+        "12": "Diciembre"
+      },
+      "preview": {
+        "title": "Vista Previa de Generación",
+        "subtitle": "Se generarán recibos para las siguientes unidades del condominio:",
+        "unitCount": "Unidades",
+        "confirm": "Confirmar y Generar",
+        "cancel": "Cancelar"
+      }
+    },
+    "bankReconciliation": {
+      "title": "Conciliación Bancaria",
+      "subtitle": "Importa estados de cuenta y concilia con los pagos registrados",
+      "importBtn": "Importar Estado de Cuenta",
+      "newReconciliation": "Nueva Conciliación",
+      "empty": "No hay conciliaciones registradas",
+      "loading": "Cargando conciliaciones...",
+      "tabs": {
+        "imports": "Importaciones",
+        "reconciliations": "Conciliaciones"
+      },
+      "importsTable": {
+        "filename": "Archivo",
+        "period": "Período",
+        "entries": "Movimientos",
+        "credits": "Créditos",
+        "debits": "Débitos",
+        "status": "Estado"
+      },
+      "reconciliationsTable": {
+        "period": "Período",
+        "matched": "Conciliados",
+        "unmatched": "Sin conciliar",
+        "ignored": "Ignorados",
+        "status": "Estado"
+      },
+      "statuses": {
+        "processing": "Procesando",
+        "completed": "Completado",
+        "failed": "Fallido",
+        "inProgress": "En Progreso",
+        "cancelled": "Cancelado"
+      },
+      "import": {
+        "title": "Importar Estado de Cuenta",
+        "subtitle": "Sube un archivo CSV con los movimientos bancarios",
+        "backToList": "Volver a conciliaciones",
+        "bankAccount": "Cuenta Bancaria",
+        "bankAccountPlaceholder": "Selecciona una cuenta bancaria",
+        "selectFile": "Seleccionar archivo CSV",
+        "changeFile": "Cambiar archivo",
+        "preview": "Vista Previa",
+        "previewDesc": "Revisa los movimientos antes de importar",
+        "entriesFound": "movimientos encontrados",
+        "columnMapping": "Mapeo de Columnas",
+        "columnMappingDesc": "Indica qué columna del CSV corresponde a cada campo",
+        "col": {
+          "transactionDate": "Fecha",
+          "reference": "Referencia",
+          "description": "Descripción",
+          "amount": "Monto",
+          "entryType": "Tipo (crédito/débito)",
+          "balance": "Saldo"
+        },
+        "autoDetected": "Auto-detectado",
+        "skipColumn": "— Omitir —",
+        "importing": "Importando...",
+        "importBtn": "Importar Movimientos",
+        "success": "Estado de cuenta importado exitosamente",
+        "error": "Error al importar el estado de cuenta",
+        "noFile": "Selecciona un archivo CSV primero",
+        "noBankAccount": "Selecciona una cuenta bancaria",
+        "emptyFile": "El archivo está vacío o no tiene datos válidos"
+      },
+      "detail": {
+        "title": "Movimientos Importados",
+        "subtitle": "Gestiona los movimientos del estado de cuenta importado",
+        "backToList": "Volver a conciliaciones",
+        "summary": "Resumen",
+        "totalEntries": "Total Movimientos",
+        "totalCredits": "Total Créditos",
+        "totalDebits": "Total Débitos",
+        "matched": "Conciliados",
+        "unmatched": "Sin Conciliar",
+        "ignored": "Ignorados",
+        "autoMatch": "Auto-Conciliar",
+        "autoMatching": "Conciliando...",
+        "autoMatchSuccess": "Auto-conciliación completada: {{matched}} conciliados, {{unmatched}} sin conciliar",
+        "autoMatchError": "Error al ejecutar auto-conciliación",
+        "table": {
+          "date": "Fecha",
+          "reference": "Referencia",
+          "description": "Descripción",
+          "amount": "Monto",
+          "type": "Tipo",
+          "status": "Estado",
+          "actions": "Acciones"
+        },
+        "entryTypes": {
+          "credit": "Crédito",
+          "debit": "Débito"
+        },
+        "entryStatuses": {
+          "unmatched": "Sin conciliar",
+          "matched": "Conciliado",
+          "ignored": "Ignorado"
+        },
+        "actions": {
+          "match": "Conciliar",
+          "unmatch": "Desconciliar",
+          "ignore": "Ignorar"
+        },
+        "matchDialog": {
+          "title": "Conciliar Movimiento",
+          "subtitle": "Busca y selecciona el pago que corresponde a este movimiento",
+          "searchPlaceholder": "Buscar por referencia o monto...",
+          "noResults": "No se encontraron pagos que coincidan",
+          "selectPayment": "Seleccionar",
+          "paymentRef": "Ref",
+          "paymentAmount": "Monto",
+          "paymentDate": "Fecha",
+          "matching": "Conciliando...",
+          "matchSuccess": "Movimiento conciliado exitosamente",
+          "matchError": "Error al conciliar el movimiento"
+        },
+        "unmatchSuccess": "Conciliación revertida",
+        "unmatchError": "Error al revertir la conciliación",
+        "ignoreSuccess": "Movimiento marcado como ignorado",
+        "ignoreError": "Error al ignorar el movimiento"
+      }
+    },
     "accessCodes": {
       "title": "Código de Acceso",
       "noCode": "No hay un código de acceso activo. Genera uno para que los residentes puedan solicitar acceso.",
@@ -3721,7 +4258,11 @@
         "tickets": "Tickets de Soporte",
         "myCompany": "Mi Administradora",
         "subscription": "Suscripción",
-        "paymentConcepts": "Conceptos"
+        "paymentConcepts": "Conceptos",
+        "delinquencyReport": "Reporte de Morosidad",
+        "budgets": "Presupuestos",
+        "receipts": "Recibos",
+        "bankReconciliation": "Conciliación Bancaria"
       },
       "myCompany": {
         "title": "Mi Administradora",
@@ -4841,6 +5382,10 @@
               "changeReasonTitle": "Razón del cambio",
               "changeReasonHint": "Describe brevemente por qué se modificó este concepto. Se guardará en el historial de cambios.",
               "changeReasonPlaceholder": "Ej: Ajuste de tarifa por aumento de costos operativos",
+              "generateReceiptTitle": "Generar recibo",
+              "generateReceiptDescriptionOn": "Se generará automáticamente un recibo consolidado para cada unidad del período actual",
+              "generateReceiptDescriptionOff": "No se generará recibo. Las cuotas se crearán pero los recibos deberán generarse manualmente",
+              "generateReceiptDisabled": "Ya existen recibos para este período. Las cuotas se agregarán pero los recibos existentes no se actualizarán. Anule los recibos actuales y regenere si desea incluir este concepto",
               "notifyTitle": "Notificar a los residentes",
               "notifyDescriptionOn": "Se enviará notificación por correo y mensajería al crear el concepto",
               "notifyDescriptionOff": "La notificación se enviará automáticamente según el día de emisión configurado"
@@ -4882,6 +5427,9 @@
             "deactivateAssignment": "Desactivar",
             "assignmentDeactivated": "Asignación desactivada",
             "assignmentDeactivateError": "Error al desactivar la asignación",
+            "deactivateAssignmentWarning": "Esta asignación se desactivará y no se generarán más cuotas para este alcance.",
+            "cancelPendingQuotas": "Cancelar cuotas pendientes/vencidas de esta asignación",
+            "confirmDeactivateAssignment": "Confirmar desactivación",
             "generateCharges": "Generar Cargos",
             "createdAt": "Fecha de Creación",
             "assignedOn": "Asignado el",
@@ -5190,7 +5738,100 @@
       },
       "actions": {
         "view": "Ver detalles",
-        "backToList": "Volver a cuotas"
+        "backToList": "Volver a cuotas",
+        "cancel": "Cancelar cuota",
+        "cancelTitle": "Cancelar Cuota",
+        "cancelWarning": "Esta acción cancelará la cuota y no se puede revertir. Se creará un registro de auditoría con la razón proporcionada.",
+        "cancelReasonLabel": "Razón de cancelación",
+        "cancelReasonPlaceholder": "Explica por qué se cancela esta cuota...",
+        "cancelReasonMinLength": "La razón debe tener al menos 10 caracteres",
+        "confirmCancel": "Confirmar cancelación",
+        "cancelSuccess": "Cuota cancelada correctamente",
+        "cancelError": "Error al cancelar la cuota",
+        "generate": "Generar cuota",
+        "generateTitle": "Generar Cuota Faltante",
+        "generateDescription": "Genera una cuota para un periodo que no fue generado automáticamente o que fue cancelado previamente.",
+        "generateConcept": "Concepto de pago",
+        "generateConceptPlaceholder": "Selecciona un concepto",
+        "generateYear": "Año",
+        "generateMonth": "Mes",
+        "generateMonthPlaceholder": "Selecciona un mes",
+        "confirmGenerate": "Generar cuota",
+        "generateSuccess": "Cuota generada correctamente",
+        "generateError": "Error al generar la cuota",
+        "noConceptsAvailable": "No hay conceptos disponibles para esta unidad",
+        "generateModeAll": "Todas las faltantes",
+        "generateModeSingle": "Una sola cuota",
+        "generateAllDescription": "Genera todas las cuotas faltantes para el periodo seleccionado, según los conceptos asignados a esta unidad.",
+        "generateAllSuccess": "Cuotas generadas correctamente",
+        "generateResultCreated": "Creadas",
+        "generateResultSkipped": "Omitidas (ya existían)",
+        "generateResultFailed": "Errores",
+        "conceptPreview": {
+          "title": "Detalle del Concepto",
+          "close": "Cerrar",
+          "description": "Descripción",
+          "conceptType": "Tipo de concepto",
+          "currency": "Moneda",
+          "recurrence": "Recurrencia",
+          "generationStrategy": "Estrategia de generación",
+          "allowsPartialPayment": "Permite pago parcial",
+          "scheduleTitle": "Programación",
+          "issueDay": "Día de emisión",
+          "dueDay": "Día de vencimiento",
+          "effectiveFrom": "Vigente desde",
+          "effectiveUntil": "Vigente hasta",
+          "latePaymentTitle": "Mora / Recargo",
+          "latePaymentType": "Tipo de recargo",
+          "latePaymentValue": "Valor del recargo",
+          "latePaymentGraceDays": "Días de gracia",
+          "earlyPaymentTitle": "Descuento por pronto pago",
+          "earlyPaymentType": "Tipo de descuento",
+          "earlyPaymentValue": "Valor del descuento",
+          "earlyPaymentDaysBeforeDue": "Días antes del vencimiento",
+          "amountTitle": "Montos",
+          "totalAmount": "Monto total del concepto",
+          "unitAmount": "Monto por cuota (esta unidad)",
+          "assignmentScope": "Alcance",
+          "distributionMethod": "Método de distribución",
+          "noAssignment": "No hay asignación activa para esta unidad",
+          "yes": "Sí",
+          "no": "No",
+          "notConfigured": "Sin recargo por mora ni descuento por pronto pago configurado.",
+          "conceptTypes": {
+            "maintenance": "Mantenimiento",
+            "condominium_fee": "Cuota de condominio",
+            "extraordinary": "Extraordinario",
+            "fine": "Multa",
+            "reserve_fund": "Fondo de reserva",
+            "other": "Otro"
+          },
+          "recurrencePeriods": {
+            "monthly": "Mensual",
+            "quarterly": "Trimestral",
+            "yearly": "Anual"
+          },
+          "strategies": {
+            "auto": "Automática",
+            "bulk": "Masiva",
+            "manual": "Manual"
+          },
+          "scopes": {
+            "condominium": "Condominio",
+            "building": "Edificio",
+            "unit": "Unidad"
+          },
+          "distributions": {
+            "by_aliquot": "Por alícuota",
+            "equal_split": "División equitativa",
+            "fixed_per_unit": "Monto fijo por unidad"
+          },
+          "adjustmentTypes": {
+            "percentage": "Porcentaje",
+            "fixed": "Monto fijo",
+            "none": "Ninguno"
+          }
+        }
       }
     },
     "payments": {

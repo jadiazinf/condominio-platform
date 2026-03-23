@@ -9,17 +9,25 @@ import {
   UsersRepository,
   CondominiumsRepository,
   ManagementCompaniesRepository,
+  CondominiumReceiptsRepository,
+  QuotasRepository,
+  UnitsRepository,
+  BuildingsRepository,
+  CurrenciesRepository,
+  PaymentConceptServicesRepository,
 } from '@database/repositories'
 import { SendNotificationService, SendFcmNotificationService } from '@packages/services'
+import { GenerateReceiptPdfService } from '@api/services/receipts/generate-receipt-pdf.service'
 import { admin } from '@worker/libs/firebase/config'
 import type { INotifyJobData } from '@worker/boss/queues'
 import logger from '@packages/logger'
+import { env } from '@worker/config/environment'
 
 let resendClient: Resend | null = null
 
 function getResendClient(): Resend | null {
   if (resendClient) return resendClient
-  const apiKey = process.env.RESEND_API_KEY || Bun.env.RESEND_API_KEY
+  const apiKey = env.RESEND_API_KEY
   if (!apiKey) return null
   resendClient = new Resend(apiKey)
   return resendClient
@@ -123,7 +131,7 @@ async function sendEmail(
 
     const resend = getResendClient()
     if (!resend) {
-      const isDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
+      const isDev = env.NODE_ENV === 'development' || env.NODE_ENV === 'test'
       if (isDev) {
         logger.warn(
           { userId, subject },
@@ -135,7 +143,7 @@ async function sendEmail(
       return
     }
 
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'Condominio App <noreply@resend.dev>'
+    const fromEmail = env.RESEND_FROM_EMAIL
 
     // Fetch management company info if condominiumId is available
     let managementCompanyInfo: IManagementCompanyContact | undefined
@@ -175,12 +183,34 @@ async function sendEmail(
       managementCompany: managementCompanyInfo,
     })
 
+    // Generate receipt PDF attachment if receiptId is available
+    const attachments: Array<{ filename: string; content: Buffer }> = []
+    const receiptId = data?.receiptId as string | undefined
+    if (receiptId) {
+      try {
+        const pdfResult = await generateReceiptPdf(db, receiptId)
+        if (pdfResult) {
+          attachments.push({
+            filename: pdfResult.filename,
+            content: pdfResult.data,
+          })
+          logger.info({ receiptId }, '[Notify] Receipt PDF attached to email')
+        }
+      } catch (pdfError) {
+        logger.warn(
+          { receiptId, error: pdfError },
+          '[Notify] Failed to generate receipt PDF, sending email without attachment'
+        )
+      }
+    }
+
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: fromEmail,
       to: [user.email],
       subject,
       html: htmlBody,
       text: body,
+      ...(attachments.length > 0 ? { attachments } : {}),
     })
 
     if (emailError) {
@@ -255,7 +285,7 @@ const CATEGORY_CONFIG: Record<string, { color: string; label: string; accentLigh
 function buildNotificationEmailHtml(input: IEmailTemplateInput): string {
   const config = CATEGORY_CONFIG[input.category] ?? CATEGORY_CONFIG.system!
   const year = new Date().getFullYear()
-  const appUrl = process.env.APP_URL || 'https://app.condominioapp.com'
+  const appUrl = env.APP_URL
 
   // Extract structured data for enhanced display
   const conceptName = input.data?.conceptName as string | undefined
@@ -470,8 +500,8 @@ function buildDetailRow(label: string, value: string): string {
 }
 
 async function broadcastNotificationViaApi(userId: string, notificationId: string): Promise<void> {
-  const apiUrl = process.env.INTERNAL_API_URL
-  const apiKey = process.env.INTERNAL_API_KEY
+  const apiUrl = env.INTERNAL_API_URL
+  const apiKey = env.INTERNAL_API_KEY
   if (!apiUrl || !apiKey) return
 
   try {
@@ -529,4 +559,39 @@ function buildManagementCompanyBlock(mc: IManagementCompanyContact): string {
                     </div>
                   </td>
                 </tr>`
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Receipt PDF generation for email attachment
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function generateReceiptPdf(
+  db: ReturnType<typeof DatabaseService.prototype.getDb>,
+  receiptId: string
+): Promise<{ data: Buffer; filename: string } | null> {
+  const receiptsRepo = new CondominiumReceiptsRepository(db)
+  const quotasRepo = new QuotasRepository(db)
+  const unitsRepo = new UnitsRepository(db)
+  const buildingsRepo = new BuildingsRepository(db)
+  const condominiumsRepo = new CondominiumsRepository(db)
+  const currenciesRepo = new CurrenciesRepository(db)
+  const conceptServicesRepo = new PaymentConceptServicesRepository(db)
+
+  const pdfService = new GenerateReceiptPdfService(
+    receiptsRepo,
+    quotasRepo,
+    unitsRepo,
+    buildingsRepo,
+    condominiumsRepo,
+    currenciesRepo,
+    conceptServicesRepo
+  )
+
+  const result = await pdfService.execute(receiptId)
+  if (!result.success) {
+    logger.warn({ receiptId, error: result.error }, '[Notify] Receipt PDF generation failed')
+    return null
+  }
+
+  return { data: result.data.data, filename: result.data.filename }
 }

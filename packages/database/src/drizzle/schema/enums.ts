@@ -346,10 +346,50 @@ export const chargeGenerationStrategyEnum = pgEnum('charge_generation_strategy',
 ])
 
 // ============================================================================
+// BUDGET ENUMS
+// ============================================================================
+
+export const budgetStatusEnum = pgEnum('budget_status', ['draft', 'approved', 'active', 'closed'])
+
+export const budgetTypeEnum = pgEnum('budget_type', ['monthly', 'quarterly', 'annual'])
+
+// ============================================================================
+// CONDOMINIUM RECEIPT ENUMS
+// ============================================================================
+
+export const receiptStatusEnum = pgEnum('receipt_status', ['draft', 'generated', 'sent', 'voided'])
+
+// ============================================================================
 // WIZARD DRAFT ENUMS
 // ============================================================================
 
 export const wizardTypeEnum = pgEnum('wizard_type', ['payment_concept'])
+
+// ============================================================================
+// BANK RECONCILIATION ENUMS
+// ============================================================================
+
+export const bankStatementEntryTypeEnum = pgEnum('bank_statement_entry_type', ['credit', 'debit'])
+
+export const bankStatementEntryStatusEnum = pgEnum('bank_statement_entry_status', [
+  'unmatched',
+  'matched',
+  'ignored',
+])
+
+export const bankStatementImportStatusEnum = pgEnum('bank_statement_import_status', [
+  'processing',
+  'completed',
+  'failed',
+])
+
+export const reconciliationStatusEnum = pgEnum('reconciliation_status', [
+  'in_progress',
+  'completed',
+  'cancelled',
+])
+
+export const matchTypeEnum = pgEnum('match_type', ['auto_reference', 'auto_amount_date', 'manual'])
 
 export const bankPaymentMethodEnum = pgEnum('bank_payment_method', [
   // National (Venezuela)

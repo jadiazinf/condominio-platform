@@ -3,6 +3,7 @@ import type {
   PaymentConceptsRepository,
   PaymentConceptAssignmentsRepository,
 } from '@database/repositories'
+import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
 
 type TBuildingsRepo = {
@@ -35,12 +36,25 @@ export interface IAssignPaymentConceptInput {
   assignedBy: string
 }
 
+type TQuotasRepo = {
+  cancelNonPaidByConceptAndUnits: (conceptId: string, unitIds: string[]) => Promise<number>
+  cancelAllNonPaidByConceptId: (conceptId: string) => Promise<number>
+  withTx: (tx: TDrizzleClient) => TQuotasRepo
+}
+
+export interface IDeactivateAssignmentResult {
+  assignment: TPaymentConceptAssignment
+  cancelledQuotas: number
+}
+
 export class AssignPaymentConceptService {
   constructor(
     private readonly conceptsRepo: PaymentConceptsRepository,
     private readonly assignmentsRepo: PaymentConceptAssignmentsRepository,
     private readonly buildingsRepo: TBuildingsRepo,
-    private readonly unitsRepo: TUnitsRepo
+    private readonly unitsRepo: TUnitsRepo,
+    private readonly db?: TDrizzleClient,
+    private readonly quotasRepo?: TQuotasRepo
   ) {}
 
   async execute(
@@ -154,11 +168,63 @@ export class AssignPaymentConceptService {
     }
   }
 
-  async deactivate(assignmentId: string): Promise<TServiceResult<TPaymentConceptAssignment>> {
-    const assignment = await this.assignmentsRepo.update(assignmentId, { isActive: false })
+  async deactivate(
+    assignmentId: string,
+    cancelPendingQuotas = false
+  ): Promise<TServiceResult<IDeactivateAssignmentResult>> {
+    const assignment = await this.assignmentsRepo.getById(assignmentId)
     if (!assignment) {
       return failure('Assignment not found', 'NOT_FOUND')
     }
-    return success(assignment)
+    if (!assignment.isActive) {
+      return failure('Assignment is already deactivated', 'CONFLICT')
+    }
+
+    if (!cancelPendingQuotas || !this.db || !this.quotasRepo) {
+      // Simple deactivation without quota cancellation
+      const updated = await this.assignmentsRepo.update(assignmentId, { isActive: false })
+      return success({ assignment: updated!, cancelledQuotas: 0 })
+    }
+
+    // Deactivate with quota cancellation in a transaction
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (this.db as any).transaction(async (tx: TDrizzleClient) => {
+      const txAssignments = this.assignmentsRepo.withTx(tx)
+      const txQuotas = this.quotasRepo!.withTx(tx)
+
+      // 1. Find affected unit IDs based on assignment scope
+      const unitIds = await this.getAffectedUnitIds(assignment)
+
+      // 2. Cancel pending/overdue quotas for affected units
+      let cancelledQuotas = 0
+      if (unitIds.length > 0) {
+        cancelledQuotas = await txQuotas.cancelNonPaidByConceptAndUnits(
+          assignment.paymentConceptId,
+          unitIds
+        )
+      }
+
+      // 3. Deactivate the assignment
+      const updated = await txAssignments.update(assignmentId, { isActive: false })
+
+      return { assignment: updated!, cancelledQuotas }
+    })
+
+    return success(result)
+  }
+
+  private async getAffectedUnitIds(assignment: TPaymentConceptAssignment): Promise<string[]> {
+    if (assignment.scopeType === 'unit' && assignment.unitId) {
+      return [assignment.unitId]
+    }
+    if (assignment.scopeType === 'building' && assignment.buildingId) {
+      const units = await this.unitsRepo.getByBuildingId(assignment.buildingId)
+      return units.filter(u => u.isActive).map(u => u.id)
+    }
+    if (assignment.scopeType === 'condominium' && assignment.condominiumId) {
+      const units = await this.unitsRepo.getByCondominiumId(assignment.condominiumId)
+      return units.filter(u => u.isActive).map(u => u.id)
+    }
+    return []
   }
 }

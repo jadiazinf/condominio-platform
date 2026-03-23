@@ -1,5 +1,6 @@
 import { Receipt, CheckCircle2, Clock, XCircle, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
+import { formatAmount } from '@packages/utils/currency'
 
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
@@ -89,11 +90,7 @@ export function RecentPayments({ payments, maxItems = 3, translations: t }: Rece
                   </div>
                   <div className="text-right">
                     <p className="font-semibold">
-                      {payment.currency}{' '}
-                      {payment.amount.toLocaleString('es-ES', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
+                      {payment.currency} {formatAmount(payment.amount)}
                     </p>
                     <Chip color={config.color} variant="flat">
                       {t.status[payment.status]}

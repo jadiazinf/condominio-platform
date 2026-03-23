@@ -1,6 +1,9 @@
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import {
   AccessRequestsRepository,
+  BudgetsRepository,
+  BudgetItemsRepository,
+  CondominiumReceiptsRepository,
   AdminInvitationsRepository,
   AmenitiesRepository,
   AmenityReservationsRepository,
@@ -60,7 +63,13 @@ import {
 } from '@database/repositories'
 import { GatewayTransactionsRepository } from '@database/repositories/gateway-transactions.repository'
 import { PaymentConceptChangesRepository } from '@database/repositories/payment-concept-changes.repository'
-import { WizardDraftsRepository } from '@database/repositories'
+import {
+  WizardDraftsRepository,
+  BankStatementImportsRepository,
+  BankStatementEntriesRepository,
+  BankReconciliationsRepository,
+  BankStatementMatchesRepository,
+} from '@database/repositories'
 
 import {
   AuthController,
@@ -115,6 +124,8 @@ import {
   AmenitiesController,
   AmenityReservationsController,
   WizardDraftsController,
+  BudgetsController,
+  ReceiptsController,
 } from '../controllers'
 
 import { InternalController } from '../controllers/internal'
@@ -131,6 +142,8 @@ import { AddUnitOwnerService } from '@services/unit-ownerships/add-unit-owner.se
 import { ProcessWebhookService } from '@services/webhooks'
 import { PaymentGatewayManager } from '@services/payment-gateways/gateway-manager'
 import { PaymentFlowController } from '../controllers/payments/payment-flow.controller'
+import { AccountStatementsController } from '../controllers/account-statements/account-statements.controller'
+import { BankReconciliationController } from '../controllers/bank-reconciliation/bank-reconciliation.controller'
 import { ApplyPaymentToQuotaService } from '@services/payment-applications/apply-payment-to-quota.service'
 import { createSendNotificationService } from '../../services/notifications'
 import { Hono } from 'hono'
@@ -148,8 +161,11 @@ export function createRepositories(db: TDrizzleClient) {
     auditLogs: new AuditLogsRepository(db),
     bankAccounts: new BankAccountsRepository(db),
     banks: new BanksRepository(db),
+    budgets: new BudgetsRepository(db),
+    budgetItems: new BudgetItemsRepository(db),
     buildings: new BuildingsRepository(db),
     condominiumAccessCodes: new CondominiumAccessCodesRepository(db),
+    condominiumReceipts: new CondominiumReceiptsRepository(db),
     condominiumServices: new CondominiumServicesRepository(db),
     condominiums: new CondominiumsRepository(db),
     currencies: new CurrenciesRepository(db),
@@ -201,6 +217,10 @@ export function createRepositories(db: TDrizzleClient) {
     userRoles: new UserRolesRepository(db),
     users: new UsersRepository(db),
     wizardDrafts: new WizardDraftsRepository(db),
+    bankStatementImports: new BankStatementImportsRepository(db),
+    bankStatementEntries: new BankStatementEntriesRepository(db),
+    bankReconciliations: new BankReconciliationsRepository(db),
+    bankStatementMatches: new BankStatementMatchesRepository(db),
   }
 }
 
@@ -377,7 +397,14 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
       router: new QuotasController(
         r.quotas,
         r.paymentConcepts,
-        r.paymentConceptServices
+        r.paymentConceptServices,
+        db,
+        r.quotaAdjustments,
+        r.paymentConceptAssignments,
+        r.units,
+        r.buildings,
+        r.currencies,
+        r.unitOwnerships
       ).createRouter(),
     },
     {
@@ -430,6 +457,7 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
     {
       path: '/condominium/payment-flow',
       router: new PaymentFlowController({
+        db,
         quotasRepo: r.quotas,
         conceptsRepo: r.paymentConcepts,
         conceptBankAccountsRepo: r.paymentConceptBankAccounts,
@@ -448,6 +476,18 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
           r.paymentConcepts,
           r.paymentPendingAllocations
         ),
+        sendNotificationService,
+        managementCompanyMembersRepo: r.managementCompanyMembers,
+      }).createRouter(),
+    },
+    {
+      path: '/condominium/account-statements',
+      router: new AccountStatementsController({
+        quotasRepo: r.quotas,
+        paymentsRepo: r.payments,
+        applicationsRepo: r.paymentApplications,
+        unitsRepo: r.units,
+        unitOwnershipsRepo: r.unitOwnerships,
       }).createRouter(),
     },
     {
@@ -483,6 +523,40 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
       router: new ExpenseCategoriesController(r.expenseCategories).createRouter(),
     },
     { path: '/condominium/expenses', router: new ExpensesController(r.expenses).createRouter() },
+
+    // Budgets
+    {
+      path: '/condominium/budgets',
+      router: new BudgetsController(r.budgets, r.budgetItems, r.expenses, r.units).createRouter(),
+    },
+
+    // Condominium Receipts
+    {
+      path: '/condominium/receipts',
+      router: new ReceiptsController(
+        r.condominiumReceipts,
+        r.quotas,
+        r.units,
+        r.buildings,
+        r.condominiums,
+        r.currencies,
+        r.unitOwnerships,
+        r.paymentConceptServices
+      ).createRouter(),
+    },
+
+    // Bank Reconciliation
+    {
+      path: '/condominium/bank-reconciliation',
+      router: new BankReconciliationController(
+        r.bankStatementImports,
+        r.bankStatementEntries,
+        r.bankReconciliations,
+        r.bankStatementMatches,
+        r.payments,
+        r.gatewayTransactions
+      ).createRouter(),
+    },
 
     // Documents and messaging
     { path: '/condominium/documents', router: new DocumentsController(r.documents).createRouter() },

@@ -1,6 +1,8 @@
+import { env } from '@/config/env'
+
 export type SiteConfig = typeof siteConfig
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://condominioapp.com'
+const BASE_URL = env.get('NEXT_PUBLIC_BASE_URL') || 'https://condominioapp.com'
 
 export const siteConfig = {
   name: 'CondominioApp',

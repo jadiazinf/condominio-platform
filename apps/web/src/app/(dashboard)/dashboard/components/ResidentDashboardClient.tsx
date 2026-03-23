@@ -100,7 +100,7 @@ function mapPayment(payment: TPayment): IPayment | null {
   return {
     id: payment.id,
     amount: parseFloat(payment.amount),
-    currency: payment.currency?.code || '$',
+    currency: payment.currency?.symbol || '$',
     date: formatDateES(payment.paymentDate),
     method: payment.paymentMethod,
     status: payment.status as IPayment['status'],

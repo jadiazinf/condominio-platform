@@ -50,6 +50,7 @@ export interface IUpdateAssignmentOptions {
 
 export interface IDeactivateAssignmentVariables {
   assignmentId: string
+  cancelPendingQuotas?: boolean
 }
 
 export interface IDeactivateAssignmentOptions {

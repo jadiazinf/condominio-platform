@@ -125,6 +125,8 @@ function createMockPaymentApplicationsRepo(testApplications: TPaymentApplication
     delete: async (id: string) => testApplications.some(a => a.id === id),
     getByPaymentId: async (paymentId: string, _condominiumId?: string) =>
       testApplications.filter(a => a.paymentId === paymentId),
+    getByPaymentIdWithRelations: async (paymentId: string, _condominiumId?: string) =>
+      testApplications.filter(a => a.paymentId === paymentId),
     getByQuotaId: async (quotaId: string, _condominiumId?: string) =>
       testApplications.filter(a => a.quotaId === quotaId),
     withTx: function () {
@@ -530,9 +532,12 @@ describe('PaymentApplicationsController', function () {
   describe('Tenant isolation', function () {
     const condominiumId = '550e8400-e29b-41d4-a716-446655440090'
 
-    it('should pass condominiumId to getByPaymentId', async function () {
+    it('should pass condominiumId to getByPaymentIdWithRelations', async function () {
       let calledWithCondoId: string | undefined
-      mockAppsRepo.getByPaymentId = async function (_paymentId: string, condoId?: string) {
+      mockAppsRepo.getByPaymentIdWithRelations = async function (
+        _paymentId: string,
+        condoId?: string
+      ) {
         calledWithCondoId = condoId
         return []
       }

@@ -1,7 +1,10 @@
 import type { TPayment, TPaymentCreate } from '@packages/domain'
 import type { PaymentsRepository, GatewayTransactionsRepository } from '@database/repositories'
 import type { PaymentGatewayManager } from '../payment-gateways/gateway-manager'
-import type { ValidateQuotaSelectionService } from './validate-quota-selection.service'
+import type {
+  ValidateQuotaSelectionService,
+  IValidatedQuota,
+} from './validate-quota-selection.service'
 import type { ApplyPaymentToQuotaService } from '../payment-applications/apply-payment-to-quota.service'
 import { type TServiceResult, success, failure } from '../base.service'
 import logger from '@utils/logger'
@@ -95,7 +98,29 @@ export class InitiatePaymentFlowService {
       )
     }
 
-    // 3. Duplicate receipt number check (manual flow)
+    // 3. Check for quotas that already have pending payments
+    const pendingPayments = await this.paymentsRepo.getPendingByUnitId(input.unitId)
+    if (pendingPayments.length > 0) {
+      const pendingQuotaIds = new Set<string>()
+      for (const p of pendingPayments) {
+        const details = p.paymentDetails as { quotas?: { quotaId: string }[] } | null
+        if (details?.quotas) {
+          for (const q of details.quotas) {
+            pendingQuotaIds.add(q.quotaId)
+          }
+        }
+      }
+
+      const overlapping = input.quotaIds.filter(id => pendingQuotaIds.has(id))
+      if (overlapping.length > 0) {
+        return failure(
+          'Una o más cuotas seleccionadas ya tienen un pago pendiente por verificación',
+          'CONFLICT'
+        )
+      }
+    }
+
+    // 4. Duplicate receipt number check (manual flow)
     if (input.receiptNumber) {
       const existing = await this.paymentsRepo.getByReceiptNumber(input.receiptNumber)
       if (existing.length > 0) {
@@ -106,13 +131,13 @@ export class InitiatePaymentFlowService {
       }
     }
 
-    // 4. Validate method-specific required fields
+    // 5. Validate method-specific required fields
     const methodValidation = this.validateMethodFields(input)
     if (!methodValidation.success) {
       return failure(methodValidation.error, methodValidation.code)
     }
 
-    // 5. Route to the appropriate flow
+    // 6. Route to the appropriate flow
     if (input.method === 'manual') {
       return this.handleManualFlow(input, total, currencyId, validatedQuotas)
     }
@@ -196,7 +221,7 @@ export class InitiatePaymentFlowService {
     input: IInitiatePaymentInput,
     total: string,
     currencyId: string,
-    validatedQuotas: { quotaId: string; amount: string }[]
+    validatedQuotas: IValidatedQuota[]
   ): Promise<TServiceResult<IInitiatePaymentOutput>> {
     const paymentData: TPaymentCreate = {
       paymentNumber: null,
@@ -237,7 +262,7 @@ export class InitiatePaymentFlowService {
     input: IInitiatePaymentInput,
     total: string,
     currencyId: string,
-    validatedQuotas: { quotaId: string; amount: string }[],
+    validatedQuotas: IValidatedQuota[],
     _selectedBank: { id: string; bankCode: string; isBnc: boolean }
   ): Promise<TServiceResult<IInitiatePaymentOutput>> {
     // Create payment record first (status: pending)
@@ -297,7 +322,7 @@ export class InitiatePaymentFlowService {
       {
         paymentId: payment.id,
         amount: total,
-        currencyCode: 'VES',
+        currencyCode: 'VES', // BNC only processes VES transactions
         metadata,
       },
       {}

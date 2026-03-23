@@ -1,13 +1,13 @@
 'use client'
 
-import type { TPaymentStatus } from '@packages/domain'
+import type { TPayment, TPaymentStatus } from '@packages/domain'
 
 import { useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { formatAmount } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
-import { usePaymentDetail, usePaymentApplicationsByPayment } from '@packages/http-client'
+import { usePaymentDetail } from '@packages/http-client'
 
 import { getPaymentStatusColor } from '@/utils/status-colors'
 import { Typography } from '@/ui/components/typography'
@@ -15,6 +15,44 @@ import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
 import { Skeleton } from '@/ui/components/skeleton'
 import { useTranslation } from '@/contexts'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface IPaymentDetailsQuota {
+  quotaId: string
+  amount: string
+  conceptName?: string
+  periodYear?: number
+  periodMonth?: number
+  balance?: string
+  paymentConceptId?: string
+}
+
+interface IPaymentApplication {
+  quotaId: string
+  appliedAmount: string
+  conceptName?: string
+  quota?: {
+    periodYear: number
+    periodMonth: number
+    periodDescription?: string
+    balance: string
+    dueDate: string
+  }
+}
+
+interface IBankAccount {
+  displayName: string
+  bankName: string
+  accountHolderName: string
+}
+
+interface IEnrichedPaymentResponse {
+  applications?: IPaymentApplication[]
+  bankAccount?: IBankAccount
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -32,6 +70,32 @@ function fmtAmount(amount: string | null | undefined): string {
   return formatAmount(amount)
 }
 
+function getPaymentDetailsQuotas(payment: TPayment): IPaymentDetailsQuota[] {
+  const details = payment.paymentDetails as {
+    quotas?: IPaymentDetailsQuota[]
+  } | null
+
+  return details?.quotas ?? []
+}
+
+function getSenderInfo(payment: TPayment): {
+  senderPhone?: string
+  senderBankCode?: string
+  senderDocument?: string
+  bankAccountId?: string
+} {
+  const details = payment.paymentDetails as Record<string, unknown> | null
+
+  if (!details) return {}
+
+  return {
+    senderPhone: details.senderPhone as string | undefined,
+    senderBankCode: details.senderBankCode as string | undefined,
+    senderDocument: details.senderDocument as string | undefined,
+    bankAccountId: details.bankAccountId as string | undefined,
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────────────────────────────────────────
@@ -42,20 +106,26 @@ export default function MyPaymentDetailPage() {
   const { t } = useTranslation()
 
   const { data, isLoading, error } = usePaymentDetail(id)
-  const payment = data?.data
+  const responseData = data?.data as (TPayment & IEnrichedPaymentResponse) | undefined
+  const payment = responseData
 
-  const { data: applicationsData } = usePaymentApplicationsByPayment(id, {
-    enabled: !!payment,
-  })
-  const applications = applicationsData?.data ?? []
-
-  // Progress: how much of the payment has been applied to quotas
-  const totalApplied = useMemo(() => {
-    return (
-      applications.reduce((sum, app) => sum + Math.round(parseFloat(app.appliedAmount) * 100), 0) /
-      100
-    )
-  }, [applications])
+  const monthNames: Record<string, string> = useMemo(
+    () => ({
+      '1': t('resident.myQuotas.months.1'),
+      '2': t('resident.myQuotas.months.2'),
+      '3': t('resident.myQuotas.months.3'),
+      '4': t('resident.myQuotas.months.4'),
+      '5': t('resident.myQuotas.months.5'),
+      '6': t('resident.myQuotas.months.6'),
+      '7': t('resident.myQuotas.months.7'),
+      '8': t('resident.myQuotas.months.8'),
+      '9': t('resident.myQuotas.months.9'),
+      '10': t('resident.myQuotas.months.10'),
+      '11': t('resident.myQuotas.months.11'),
+      '12': t('resident.myQuotas.months.12'),
+    }),
+    [t]
+  )
 
   // ── Loading ─────────────────────────────────────────────────────────────────
   if (isLoading) return <PaymentDetailSkeleton />
@@ -79,7 +149,21 @@ export default function MyPaymentDetailPage() {
   }
 
   const currencySymbol = payment.currency?.symbol ?? ''
-  const currencyCode = payment.currency?.code ?? ''
+  const sender = getSenderInfo(payment)
+  const applications = payment.applications ?? []
+  const detailQuotas = getPaymentDetailsQuotas(payment)
+  // Prefer applications (enriched from DB) over paymentDetails.quotas (JSONB snapshot)
+  const quotaItems =
+    applications.length > 0
+      ? applications.map(app => ({
+          quotaId: app.quotaId,
+          amount: app.appliedAmount,
+          conceptName: app.conceptName,
+          periodYear: app.quota?.periodYear,
+          periodMonth: app.quota?.periodMonth,
+        }))
+      : detailQuotas
+  const destinationBank = payment.bankAccount
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -111,12 +195,12 @@ export default function MyPaymentDetailPage() {
         <DetailSection title={t('resident.myPayments.detail.paymentInfo')}>
           <DetailRow
             label={t('resident.myPayments.detail.amount')}
-            value={`${currencySymbol}${fmtAmount(payment.amount)} ${currencyCode}`}
+            value={`${currencySymbol} ${fmtAmount(payment.amount)}`}
           />
           {payment.paidAmount && (
             <DetailRow
               label={t('resident.myPayments.detail.paidAmount')}
-              value={`${fmtAmount(payment.paidAmount)} ${payment.paidCurrency?.code ?? ''}`}
+              value={`${payment.paidCurrency?.symbol ?? ''}${fmtAmount(payment.paidAmount)}`}
             />
           )}
           {payment.exchangeRate && (
@@ -162,6 +246,48 @@ export default function MyPaymentDetailPage() {
         </DetailSection>
       </div>
 
+      {/* Sender details */}
+      {(sender.senderBankCode || sender.senderDocument || sender.senderPhone) && (
+        <DetailSection title={t('resident.myPayments.detail.senderInfo')}>
+          {sender.senderBankCode && (
+            <DetailRow
+              label={t('resident.myPayments.detail.senderBank')}
+              value={sender.senderBankCode}
+            />
+          )}
+          {sender.senderDocument && (
+            <DetailRow
+              label={t('resident.myPayments.detail.senderDocument')}
+              value={sender.senderDocument}
+            />
+          )}
+          {sender.senderPhone && (
+            <DetailRow
+              label={t('resident.myPayments.detail.senderPhone')}
+              value={sender.senderPhone}
+            />
+          )}
+        </DetailSection>
+      )}
+
+      {/* Destination bank account */}
+      {destinationBank && (
+        <DetailSection title={t('resident.myPayments.detail.destinationBank')}>
+          <DetailRow
+            label={t('resident.myPayments.detail.bankName')}
+            value={destinationBank.bankName}
+          />
+          <DetailRow
+            label={t('resident.myPayments.detail.accountName')}
+            value={destinationBank.displayName}
+          />
+          <DetailRow
+            label={t('resident.myPayments.detail.accountHolder')}
+            value={destinationBank.accountHolderName}
+          />
+        </DetailSection>
+      )}
+
       {/* Receipt link */}
       {payment.receiptUrl && (
         <div className="rounded-lg border border-default-200 p-4">
@@ -184,45 +310,40 @@ export default function MyPaymentDetailPage() {
         </DetailSection>
       )}
 
-      {/* Applied quotas */}
-      {applications.length > 0 && (
-        <DetailSection title={t('resident.myPayments.detail.appliedQuotas')}>
+      {/* Associated quotas */}
+      {quotaItems.length > 0 && (
+        <DetailSection title={t('resident.myPayments.detail.associatedQuotas')}>
           <div className="space-y-2">
-            {applications.map(app => (
-              <div
-                key={app.id}
-                className="flex flex-col gap-1 rounded-md bg-default-50 p-3 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex flex-col gap-0.5">
+            {quotaItems.map((q, i) => {
+              const monthKey = String(q.periodMonth)
+              const monthName = monthNames[monthKey] ?? monthKey
+              const periodLabel =
+                q.periodYear && q.periodMonth ? `${monthName} ${q.periodYear}` : '-'
+
+              return (
+                <div
+                  key={q.quotaId || i}
+                  className="flex flex-col gap-1 rounded-md bg-default-50 p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-medium">
+                      {q.conceptName ?? t('resident.myPayments.detail.unknownConcept')}
+                    </span>
+                    <span className="text-xs text-default-500">{periodLabel}</span>
+                  </div>
                   <span className="text-sm font-medium">
-                    {currencySymbol}
-                    {fmtAmount(app.appliedAmount)} {currencyCode}
+                    {currencySymbol} {fmtAmount(q.amount)}
                   </span>
-                  <span className="text-xs text-default-500">{fmtDate(app.appliedAt)}</span>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-default-500">
-                  {parseFloat(app.appliedToPrincipal ?? '0') > 0 && (
-                    <span>
-                      {t('resident.myPayments.detail.principal')}:{' '}
-                      {fmtAmount(app.appliedToPrincipal)}
-                    </span>
-                  )}
-                  {parseFloat(app.appliedToInterest ?? '0') > 0 && (
-                    <span>
-                      {t('resident.myPayments.detail.interest')}: {fmtAmount(app.appliedToInterest)}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
           <div className="mt-3 flex justify-between border-t border-default-200 pt-3">
             <Typography color="muted" variant="body2">
               {t('resident.myPayments.detail.totalApplied')}
             </Typography>
             <Typography variant="body2" weight="semibold">
-              {currencySymbol}
-              {fmtAmount(totalApplied.toFixed(2))} {currencyCode}
+              {currencySymbol} {fmtAmount(payment.amount)}
             </Typography>
           </div>
         </DetailSection>

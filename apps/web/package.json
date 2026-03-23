@@ -58,6 +58,7 @@
     "@internationalized/date": "^3.12.0",
     "@packages/domain": "workspace:*",
     "@packages/http-client": "workspace:*",
+    "@tanstack/react-query": "^5.90.16",
     "@packages/utils": "workspace:*",
     "@react-aria/i18n": "^3.12.16",
     "@react-aria/ssr": "3.9.10",

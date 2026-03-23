@@ -68,7 +68,7 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
     if (!condominium.createdByUser) return noDataText
 
     if (condominium.createdByUser.isSuperadmin) {
-      return 'Superadmin'
+      return condominium.createdByUser.displayName || 'Superadmin'
     }
 
     return condominium.createdByUser.displayName || condominium.createdByUser.email
