@@ -87,8 +87,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <StoreHydration {...hydrationProps} />
       <DashboardShell initialUser={session.user}>
         <PageErrorBoundary pageName="Dashboard">{children}</PageErrorBoundary>
+        <PushNotificationPrompt hasActiveTokens={hasActiveFcmTokens} />
       </DashboardShell>
-      <PushNotificationPrompt hasActiveTokens={hasActiveFcmTokens} />
     </DashboardTheme>
   )
 }
