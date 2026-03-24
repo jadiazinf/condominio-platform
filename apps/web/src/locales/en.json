@@ -3436,6 +3436,14 @@
     "offline": "No internet connection",
     "online": "Connection restored"
   },
+  "pushNotifications": {
+    "prompt": {
+      "title": "Enable notifications",
+      "description": "Get alerts for payments, support messages, and important announcements directly on your device.",
+      "enable": "Enable",
+      "later": "Not now"
+    }
+  },
   "errors": {
     "error": {
       "title": "A Disturbance in the Force",
@@ -3456,6 +3464,8 @@
       "profileDescription": "Information visible to other users",
       "language": "Language",
       "languageDescription": "Application language preferences",
+      "notifications": "Notifications",
+      "notificationsDescription": "Configure push alerts and preferences",
       "appearance": "Appearance",
       "appearanceDescription": "Customize the visual theme"
     },
@@ -3504,6 +3514,18 @@
       "subtitle": "Select the application language",
       "selectLanguage": "Select language",
       "selectLanguageDescription": "The change will be applied immediately across the application"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Configure how and when to receive notifications",
+      "pushTitle": "Push notifications",
+      "pushDescription": "Receive alerts for payments, support messages, and important announcements directly on your device",
+      "pushToggleLabel": "Push notifications",
+      "pushEnabled": "You will receive notifications on this device",
+      "pushDisabled": "You are not receiving push notifications",
+      "unsupported": "Your browser does not support push notifications. Try using Chrome, Firefox, or Edge.",
+      "deniedTitle": "Notifications blocked by browser",
+      "deniedInstructions": "To enable notifications, click the lock icon (or site settings) next to your browser's address bar, find \"Notifications\" and change it to \"Allow\". Then reload the page."
     },
     "appearance": {
       "title": "Appearance",

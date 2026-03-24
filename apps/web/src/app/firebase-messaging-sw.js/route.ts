@@ -20,37 +20,74 @@ firebase.initializeApp(${JSON.stringify(firebaseConfig)});
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
-  const notificationData = payload.notification || {};
-  const title = notificationData.title;
-  const body = notificationData.body;
-  const icon = notificationData.icon;
+/**
+ * Resolve the URL a notification click should navigate to.
+ * Falls back to the dashboard root if no routing data is present.
+ */
+function resolveClickUrl(data) {
+  if (!data) return '/dashboard';
 
-  if (title) {
-    self.registration.showNotification(title, {
-      body: body || '',
-      icon: icon || '/icons/icon-192x192.png',
-      badge: '/icons/icon-72x72.png',
-      data: payload.data || {},
-    });
+  // Explicit action-based routing
+  if (data.action === 'payment_verified' || data.action === 'payment_rejected') {
+    return data.paymentId ? '/dashboard/payments/' + data.paymentId : '/dashboard/payments';
   }
+  if (data.action === 'ticket_resolved' || data.action === 'ticket_closed' || data.action === 'ticket_reply') {
+    return data.ticketId ? '/dashboard/support/' + data.ticketId : '/dashboard/support';
+  }
+  if (data.action === 'quota_generated' || data.action === 'quota_reminder') {
+    return data.quotaId ? '/dashboard/quotas/' + data.quotaId : '/dashboard/quotas';
+  }
+
+  // Category-based fallback routing
+  if (data.category === 'payment') return '/dashboard/payments';
+  if (data.category === 'quota') return '/dashboard/quotas';
+  if (data.category === 'announcement') return '/dashboard/announcements';
+  if (data.category === 'alert' || data.category === 'system') return '/dashboard/notifications';
+
+  // Generic URL if the backend sent one
+  if (data.url) return data.url;
+
+  return '/dashboard';
+}
+
+messaging.onBackgroundMessage((payload) => {
+  // Prevent duplicate: if the payload already has a notification field,
+  // the browser may auto-display it. We only show manually if needed.
+  if (payload.notification && payload.notification.title) {
+    // Firebase compat sometimes auto-shows notification — showing ours
+    // only when the SDK didn't already (data-only messages).
+  }
+
+  var notificationData = payload.notification || {};
+  var data = payload.data || {};
+  var title = notificationData.title || data.title;
+  var body = notificationData.body || data.body;
+
+  if (!title) return;
+
+  var tag = data.notificationId || data.category || 'default';
+
+  self.registration.showNotification(title, {
+    body: body || '',
+    icon: notificationData.icon || '/icons/icon-192x192.png',
+    badge: '/icons/icon-72x72.png',
+    tag: tag,
+    renotify: true,
+    data: data,
+    vibrate: [200, 100, 200],
+  });
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
-  const data = event.notification.data || {};
-  let url = '/';
-
-  if (data.action === 'payment_verified' || data.action === 'payment_rejected') {
-    url = data.paymentId ? '/dashboard/payments/' + data.paymentId : '/dashboard/payments';
-  } else if (data.action === 'ticket_resolved' || data.action === 'ticket_closed') {
-    url = data.ticketId ? '/dashboard/support/' + data.ticketId : '/dashboard/support';
-  }
+  var url = resolveClickUrl(event.notification.data);
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      for (const client of windowClients) {
+      // Try to reuse an existing window
+      for (var i = 0; i < windowClients.length; i++) {
+        var client = windowClients[i];
         if (client.url.includes(self.location.origin) && 'focus' in client) {
           client.navigate(url);
           return client.focus();
@@ -59,6 +96,15 @@ self.addEventListener('notificationclick', (event) => {
       return clients.openWindow(url);
     })
   );
+});
+
+// Activate new SW immediately so updated routing takes effect
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim());
 });
 `
 

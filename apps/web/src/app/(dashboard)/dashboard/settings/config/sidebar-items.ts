@@ -1,4 +1,4 @@
-export type TSettingsIconName = 'user' | 'globe' | 'palette'
+export type TSettingsIconName = 'user' | 'globe' | 'palette' | 'bell'
 
 export interface ISettingsMenuItem {
   key: string
@@ -13,6 +13,12 @@ export const SETTINGS_MENU_ITEMS: ISettingsMenuItem[] = [
     translationKey: 'settings.nav.profile',
     href: '/dashboard/settings',
     iconName: 'user',
+  },
+  {
+    key: 'notifications',
+    translationKey: 'settings.nav.notifications',
+    href: '/dashboard/settings/notifications',
+    iconName: 'bell',
   },
   {
     key: 'language',

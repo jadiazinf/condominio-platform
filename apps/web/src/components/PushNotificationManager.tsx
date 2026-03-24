@@ -2,10 +2,11 @@
 
 import type { MessagePayload } from 'firebase/messaging'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useQueryClient } from '@packages/http-client'
 
 import { usePushNotifications } from '@/hooks/usePushNotifications'
+import { usePushNotificationStore } from '@/stores/push-notification-store'
 
 export function PushNotificationManager() {
   const queryClient = useQueryClient()
@@ -28,7 +29,25 @@ export function PushNotificationManager() {
     [queryClient]
   )
 
-  usePushNotifications({ onForegroundMessage: handleForegroundMessage })
+  const { unregisterFcmToken, isRegistered, permission } = usePushNotifications({
+    onForegroundMessage: handleForegroundMessage,
+  })
+
+  // Expose unregister function to the store so AuthContext can call it on logout
+  useEffect(() => {
+    usePushNotificationStore.getState().setUnregister(unregisterFcmToken)
+
+    return () => {
+      usePushNotificationStore.getState().setUnregister(null)
+    }
+  }, [unregisterFcmToken])
+
+  // Log registration status in dev
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Push] Status:', { permission, isRegistered })
+    }
+  }, [permission, isRegistered])
 
   return null
 }

@@ -27,6 +27,7 @@ import { getFirebaseAuth, getFirebaseErrorKey } from '@/libs/firebase'
 import { setSessionCookie, waitForSessionCookie, clearSessionCookie } from '@/libs/cookies'
 import { tokenRefreshManager } from '@/libs/auth'
 import { useSessionStore } from '@/stores/session-store'
+import { usePushNotificationStore } from '@/stores/push-notification-store'
 
 interface AuthContextType {
   user: User | null
@@ -328,6 +329,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Suppress cookie recreation before signing out
       suppressCookieRef.current = true
 
+      // Unregister FCM token so this device stops receiving push notifications
+      const unregisterPush = usePushNotificationStore.getState().unregister
+
+      if (unregisterPush) {
+        await unregisterPush().catch(() => {
+          // Non-blocking — don't prevent sign-out if this fails
+        })
+      }
+
       // Reset the token refresh manager
       tokenRefreshManager.reset()
 
@@ -355,6 +365,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Suppress cookie recreation before signing out
       suppressCookieRef.current = true
+
+      // Unregister FCM token so this device stops receiving push notifications
+      const unregisterPush = usePushNotificationStore.getState().unregister
+
+      if (unregisterPush) {
+        await unregisterPush().catch(() => {})
+      }
 
       // Reset the token refresh manager
       tokenRefreshManager.reset()

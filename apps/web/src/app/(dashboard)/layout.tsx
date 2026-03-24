@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
+import { fetchUserFcmTokens } from '@packages/http-client'
 
 import { StoreHydration } from './components/StoreHydration'
 import { DashboardShell } from './components/DashboardShell'
@@ -8,6 +9,7 @@ import { AdminShell } from './components/AdminShell'
 import { DashboardTheme } from './components/DashboardTheme'
 
 import { PageErrorBoundary } from '@/ui/components/error-boundary'
+import { PushNotificationPrompt } from '@/components/PushNotificationPrompt'
 import { getFullSession } from '@/libs/session'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -30,6 +32,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
     }
     redirect('/select-condominium')
   }
+
+  // Check if user already has active FCM tokens (non-blocking)
+  const activeTokens = await fetchUserFcmTokens(session.sessionToken, session.user.id).catch(
+    () => []
+  )
+  const hasActiveFcmTokens = activeTokens.length > 0
 
   // Preload avatar image from server to prevent flash
   const avatarPreloadLink = session.user?.photoUrl ? (
@@ -80,6 +88,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <DashboardShell initialUser={session.user}>
         <PageErrorBoundary pageName="Dashboard">{children}</PageErrorBoundary>
       </DashboardShell>
+      <PushNotificationPrompt hasActiveTokens={hasActiveFcmTokens} />
     </DashboardTheme>
   )
 }

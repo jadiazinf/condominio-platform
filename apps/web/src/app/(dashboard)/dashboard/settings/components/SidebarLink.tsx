@@ -3,7 +3,7 @@
 import type { TSettingsIconName } from '../config/sidebar-items'
 
 import { usePathname } from 'next/navigation'
-import { User, Globe, Palette } from 'lucide-react'
+import { User, Globe, Palette, Bell } from 'lucide-react'
 
 import { Link } from '@/ui/components/link'
 import { cn } from '@/ui/utils'
@@ -12,6 +12,7 @@ const ICONS = {
   user: User,
   globe: Globe,
   palette: Palette,
+  bell: Bell,
 } as const
 
 interface ISidebarLinkProps {

@@ -3440,6 +3440,14 @@
     "offline": "Sin conexión a internet",
     "online": "Conexión restablecida"
   },
+  "pushNotifications": {
+    "prompt": {
+      "title": "Activa las notificaciones",
+      "description": "Recibe alertas de pagos, mensajes de soporte y avisos importantes directamente en tu dispositivo.",
+      "enable": "Activar",
+      "later": "Ahora no"
+    }
+  },
   "errors": {
     "error": {
       "title": "Un disturbio en la Fuerza",
@@ -3460,6 +3468,8 @@
       "profileDescription": "Información visible para otros usuarios",
       "language": "Idioma",
       "languageDescription": "Preferencias de idioma de la aplicación",
+      "notifications": "Notificaciones",
+      "notificationsDescription": "Configura alertas push y preferencias",
       "appearance": "Apariencia",
       "appearanceDescription": "Personaliza el tema visual"
     },
@@ -3508,6 +3518,18 @@
       "subtitle": "Selecciona el idioma de la aplicación",
       "selectLanguage": "Seleccionar idioma",
       "selectLanguageDescription": "El cambio se aplicará inmediatamente en toda la aplicación"
+    },
+    "notifications": {
+      "title": "Notificaciones",
+      "subtitle": "Configura cómo y cuándo recibir notificaciones",
+      "pushTitle": "Notificaciones push",
+      "pushDescription": "Recibe alertas de pagos, mensajes de soporte y avisos importantes directamente en tu dispositivo",
+      "pushToggleLabel": "Notificaciones push",
+      "pushEnabled": "Recibirás notificaciones en este dispositivo",
+      "pushDisabled": "No estás recibiendo notificaciones push",
+      "unsupported": "Tu navegador no soporta notificaciones push. Intenta usar Chrome, Firefox o Edge.",
+      "deniedTitle": "Notificaciones bloqueadas por el navegador",
+      "deniedInstructions": "Para habilitar las notificaciones, haz clic en el icono de candado (o ajustes del sitio) junto a la barra de direcciones de tu navegador, busca \"Notificaciones\" y cámbialas a \"Permitir\". Luego recarga la página."
     },
     "appearance": {
       "title": "Apariencia",
