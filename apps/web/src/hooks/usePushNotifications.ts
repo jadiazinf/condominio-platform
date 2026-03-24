@@ -43,10 +43,26 @@ async function getOrCreateFcmToken(): Promise<string | null> {
     return null
   }
 
-  // Register the Firebase Messaging service worker
-  const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
+  // Register the Firebase Messaging service worker with a dedicated scope
+  // to avoid conflict with the PWA service worker (sw.js) at scope '/'
+  const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+    scope: '/firebase-cloud-messaging-push-scope',
+  })
 
-  await navigator.serviceWorker.ready
+  // Wait for the SW to be active (handles fresh installs and updates)
+  if (!swRegistration.active) {
+    const sw = swRegistration.installing || swRegistration.waiting
+    if (sw) {
+      await new Promise<void>(resolve => {
+        sw.addEventListener('statechange', function handler() {
+          if (sw.state === 'activated') {
+            sw.removeEventListener('statechange', handler)
+            resolve()
+          }
+        })
+      })
+    }
+  }
 
   // Send Firebase config to the SW so it can handle background messages
   if (swRegistration.active) {

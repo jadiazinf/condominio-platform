@@ -102,7 +102,8 @@
       "Bash(grep -n 'formatCurrency\\\\|formatAmount\\\\|ConvertedAmount' apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-receipts/components/MyReceiptsContent.tsx apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/receipts/[id]/components/ReceiptDetailClient.tsx apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/expenses/[id]/page.tsx apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/expenses/components/ExpensesTable.tsx)",
       "Bash(bun lint:*)",
       "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-account-statement/)",
-      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/notifications/)"
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/notifications/)",
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/support/)"
     ],
     "additionalDirectories": [
       "/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/(dashboard)/dashboard/condominiums/[id]/reserve-fund",

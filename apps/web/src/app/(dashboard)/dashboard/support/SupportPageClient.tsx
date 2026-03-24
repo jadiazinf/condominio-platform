@@ -203,7 +203,7 @@ export function SupportPageClient() {
               : 'Gestiona tus solicitudes y consultas'}
           </Typography>
         </div>
-        <Button color="primary" href="/dashboard/support/create" startContent={<Plus size={18} />}>
+        <Button color="primary" href="/dashboard/support/create" startContent={<Plus size={20} />}>
           {t('resident.support.newTicket') !== 'resident.support.newTicket'
             ? t('resident.support.newTicket')
             : 'Nuevo ticket'}
@@ -274,31 +274,42 @@ export function SupportPageClient() {
             {tickets.map(ticket => (
               <button
                 key={ticket.id}
-                className="flex items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-default-50"
+                className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-default-50 sm:items-center sm:gap-4"
                 onClick={() => router.push(`/dashboard/support/${ticket.id}`)}
               >
                 {/* Status dot */}
                 <Circle
-                  className={`shrink-0 fill-current ${getStatusDotColor(ticket.status)}`}
+                  className={`mt-1.5 shrink-0 fill-current sm:mt-0 ${getStatusDotColor(ticket.status)}`}
                   size={10}
                 />
 
                 {/* Content */}
-                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <div className="flex items-center gap-2">
-                    <Typography className="truncate font-medium">{ticket.subject}</Typography>
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <div className="flex items-start justify-between gap-2 sm:items-center">
+                    <Typography className="line-clamp-2 font-medium sm:truncate sm:line-clamp-none">
+                      {ticket.subject}
+                    </Typography>
+                    <ChevronRight className="mt-0.5 shrink-0 text-default-300 sm:hidden" size={16} />
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-default-400">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-default-400">
                     <span>#{ticket.ticketNumber}</span>
                     <span>·</span>
                     <span>{getChannelLabel(ticket.channel)}</span>
                     <span>·</span>
                     <span>{getStatusLabel(ticket.status)}</span>
                   </div>
+                  <div className="mt-1 flex items-center gap-2 sm:hidden">
+                    <Chip color={getPriorityColor(ticket.priority)} size="sm" variant="flat">
+                      {getPriorityLabel(ticket.priority)}
+                    </Chip>
+                    <Typography className="text-xs text-default-400">
+                      {formatDate(ticket.createdAt)}
+                    </Typography>
+                  </div>
                 </div>
 
-                {/* Right side */}
-                <div className="flex shrink-0 items-center gap-3">
+                {/* Right side (desktop only) */}
+                <div className="hidden shrink-0 items-center gap-3 sm:flex">
                   <Chip color={getPriorityColor(ticket.priority)} size="sm" variant="flat">
                     {getPriorityLabel(ticket.priority)}
                   </Chip>
