@@ -11,7 +11,7 @@ const envSchema = z.object({
   FIREBASE_API_KEY: z.string('FIREBASE_API_KEY must be provided'),
   FIREBASE_SERVICE_ACCOUNT_BASE64: z.string().optional(),
   // App URLs - needed for email templates and inter-service communication
-  APP_URL: z.string().optional().default('https://app.condominioapp.com'),
+  APP_URL: z.string('APP_URL must be provided'),
   INTERNAL_API_URL: z.string().optional(),
   INTERNAL_API_KEY: z.string().optional(),
   // Sentry

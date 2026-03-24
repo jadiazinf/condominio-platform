@@ -172,7 +172,7 @@ export default function MyQuotaDetailPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-start gap-3">
         <Button
           isIconOnly
           size="sm"
@@ -182,14 +182,24 @@ export default function MyQuotaDetailPage() {
           <ArrowLeft size={18} />
         </Button>
         <div className="flex-1 min-w-0">
-          <Typography variant="h3">{conceptName}</Typography>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <Typography className="flex-1" variant="h3">
+              {conceptName}
+            </Typography>
+            <Chip
+              className="self-end sm:self-auto shrink-0"
+              color={chipColor}
+              size="lg"
+              startContent={<StatusIcon size={14} />}
+              variant="flat"
+            >
+              {t(`${p}.status.${status}`)}
+            </Chip>
+          </div>
           <Typography className="mt-0.5" color="muted" variant="body2">
             {formattedPeriod}
           </Typography>
         </div>
-        <Chip color={chipColor} size="lg" startContent={<StatusIcon size={14} />} variant="flat">
-          {t(`${p}.status.${status}`)}
-        </Chip>
       </div>
 
       {/* Amount breakdown */}
@@ -492,7 +502,7 @@ function InfoRow({ label, value }: { label: string; value?: string }) {
   if (!value) return null
 
   return (
-    <div className="flex gap-2 sm:items-center sm:justify-between">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-2">
       <span className="text-sm text-default-400 shrink-0">{label}</span>
       <span className="text-sm font-medium text-right">{value}</span>
     </div>
