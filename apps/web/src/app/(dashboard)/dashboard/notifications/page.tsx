@@ -86,7 +86,7 @@ export default async function NotificationsPage({ searchParams }: INotifications
 
       {/* Content */}
       {notifications.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-default-300 py-16">
+        <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-default-300 px-6 py-16 text-center">
           <svg
             className="text-default-300"
             fill="none"

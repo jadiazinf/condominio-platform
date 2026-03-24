@@ -3525,7 +3525,9 @@
       "pushDisabled": "You are not receiving push notifications",
       "unsupported": "Your browser does not support push notifications. Try using Chrome, Firefox, or Edge.",
       "deniedTitle": "Notifications blocked by browser",
-      "deniedInstructions": "To enable notifications, click the lock icon (or site settings) next to your browser's address bar, find \"Notifications\" and change it to \"Allow\". Then reload the page."
+      "deniedInstructions": "To enable notifications, click the lock icon (or site settings) next to your browser's address bar, find \"Notifications\" and change it to \"Allow\". Then reload the page.",
+      "errorTitle": "Could not enable notifications",
+      "errorDescription": "An error occurred while registering push notifications. Make sure your browser allows notifications and try again."
     },
     "appearance": {
       "title": "Appearance",

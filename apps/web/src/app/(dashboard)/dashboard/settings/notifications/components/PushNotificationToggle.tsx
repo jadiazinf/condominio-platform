@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { Switch } from '@heroui/switch'
 import { Bell, BellOff, AlertTriangle } from 'lucide-react'
 
@@ -29,53 +29,38 @@ export function PushNotificationToggle({ initialHasActiveTokens }: IPushNotifica
   const { t } = useTranslation()
   const { user: firebaseUser } = useAuth()
   const { user } = useUser()
-  const { isRegistered, isLoading, requestPermissionAndRegister, unregisterFcmToken } =
+  const { isRegistered, isLoading, error, requestPermissionAndRegister, unregisterFcmToken } =
     usePushNotifications()
 
+  // Start with 'default' to match SSR, then update on mount to avoid hydration mismatch
   const [browserPermission, setBrowserPermission] = useState<TBrowserPermission>('default')
+  // Track whether user has explicitly toggled, so we stop relying on stale server prop
+  const [hasUserToggled, setHasUserToggled] = useState(false)
 
   useEffect(() => {
     setBrowserPermission(getBrowserPermission())
   }, [])
 
-  // Poll permission status after user action (browser prompt is async)
-  const refreshPermission = useCallback(() => {
-    const timer = setInterval(() => {
-      const current = getBrowserPermission()
-
-      setBrowserPermission(prev => {
-        if (prev !== current) {
-          clearInterval(timer)
-
-          return current
-        }
-
-        return prev
-      })
-    }, 500)
-
-    setTimeout(() => clearInterval(timer), 30000)
-
-    return () => clearInterval(timer)
-  }, [])
-
   // Use server-fetched value as initial state, then live value once the hook resolves.
-  // This prevents the switch from flashing off→on on page load.
+  // Once the user toggles, we rely solely on isRegistered from the hook.
   const isEnabled =
-    browserPermission === 'granted' && (isRegistered || (!isRegistered && initialHasActiveTokens))
+    browserPermission === 'granted' &&
+    (hasUserToggled ? isRegistered : isRegistered || initialHasActiveTokens)
   const isDenied = browserPermission === 'denied'
   const isUnsupported = browserPermission === 'unsupported'
 
   const handleToggle = async (enabled: boolean) => {
     if (enabled) {
       await requestPermissionAndRegister()
-      refreshPermission()
+      setBrowserPermission(getBrowserPermission())
+      setHasUserToggled(true)
 
       if (!isPromptDismissed()) {
         dismissPrompt()
       }
     } else {
       await unregisterFcmToken()
+      setHasUserToggled(true)
     }
   }
 
@@ -116,6 +101,21 @@ export function PushNotificationToggle({ initialHasActiveTokens }: IPushNotifica
           onValueChange={handleToggle}
         />
       </div>
+
+      {/* Registration error */}
+      {error && !isDenied && (
+        <div className="flex items-start gap-3 rounded-lg border border-danger-200 bg-danger-50 p-4 dark:border-danger-800 dark:bg-danger-900/20">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-danger-600 dark:text-danger-400" />
+          <div>
+            <Typography className="font-medium" variant="body2">
+              {t('settings.notifications.errorTitle')}
+            </Typography>
+            <Typography className="mt-1" color="muted" variant="body2">
+              {t('settings.notifications.errorDescription')}
+            </Typography>
+          </div>
+        </div>
+      )}
 
       {/* Denied warning with instructions */}
       {isDenied && (

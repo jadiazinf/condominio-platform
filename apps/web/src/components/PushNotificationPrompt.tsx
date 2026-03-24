@@ -5,12 +5,7 @@ import { Button } from '@heroui/button'
 
 import { useAuth, useUser, useTranslation } from '@/contexts'
 import { isPromptDismissed, dismissPrompt } from '@/hooks/usePushNotifications'
-import {
-  Modal,
-  ModalContent,
-  ModalBody,
-  ModalFooter,
-} from '@/ui/components/modal'
+import { Modal, ModalContent, ModalBody, ModalFooter } from '@/ui/components/modal'
 
 interface IPushNotificationPromptProps {
   /** Pre-fetched from server — true if user already has active FCM tokens */
@@ -116,12 +111,7 @@ export function PushNotificationPrompt({ hasActiveTokens }: IPushNotificationPro
           >
             {t('pushNotifications.prompt.enable')}
           </Button>
-          <Button
-            className="w-full"
-            size="lg"
-            variant="light"
-            onPress={handleDismiss}
-          >
+          <Button className="w-full" size="lg" variant="light" onPress={handleDismiss}>
             {t('pushNotifications.prompt.later')}
           </Button>
         </ModalFooter>

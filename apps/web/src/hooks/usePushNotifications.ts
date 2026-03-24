@@ -9,6 +9,15 @@ import { useAuth, useUser } from '@/contexts'
 import { env } from '@/config/env'
 
 const VAPID_KEY = env.get('NEXT_PUBLIC_FIREBASE_VAPID_KEY') || ''
+
+const FIREBASE_CONFIG = {
+  apiKey: env.get('NEXT_PUBLIC_FIREBASE_API_KEY') || '',
+  authDomain: env.get('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN') || '',
+  projectId: env.get('NEXT_PUBLIC_FIREBASE_PROJECT_ID') || '',
+  storageBucket: env.get('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET') || '',
+  messagingSenderId: env.get('NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID') || '',
+  appId: env.get('NEXT_PUBLIC_FIREBASE_APP_ID') || '',
+}
 const TOKEN_STORAGE_KEY = 'fcm_token_registered'
 const PROMPT_DISMISSED_KEY = 'fcm_prompt_dismissed'
 
@@ -28,17 +37,33 @@ interface IPushNotificationState {
 async function getOrCreateFcmToken(): Promise<string | null> {
   const messaging = getFirebaseMessaging()
 
-  if (!messaging) return null
+  if (!messaging) {
+    console.error('[Push] Firebase Messaging not available')
 
+    return null
+  }
+
+  // Register the Firebase Messaging service worker
   const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
 
-  // Wait for the service worker to be ready
   await navigator.serviceWorker.ready
+
+  // Send Firebase config to the SW so it can handle background messages
+  if (swRegistration.active) {
+    swRegistration.active.postMessage({
+      type: 'FIREBASE_CONFIG',
+      config: FIREBASE_CONFIG,
+    })
+  }
 
   const token = await getToken(messaging, {
     vapidKey: VAPID_KEY,
     serviceWorkerRegistration: swRegistration,
   })
+
+  if (!token) {
+    console.error('[Push] getToken returned empty — check VAPID key and Firebase config')
+  }
 
   return token || null
 }
@@ -76,6 +101,7 @@ export function usePushNotifications(options?: {
   })
   const unsubscribeRef = useRef<(() => void) | null>(null)
   const registrationInProgressRef = useRef(false)
+  const autoRegisterAttemptedRef = useRef(false)
   const queryClient = useQueryClient()
 
   const { mutateAsync: registerTokenApi } = useApiMutation<
@@ -145,16 +171,14 @@ export function usePushNotifications(options?: {
 
       setState(prev => ({ ...prev, permission: permission as TPermissionStatus }))
 
-      if (permission !== 'granted') {
-        setState(prev => ({ ...prev, isLoading: false }))
-
-        return
-      }
+      if (permission !== 'granted') return
 
       await registerFcmToken()
     } catch (error) {
       console.error('[Push] Permission request failed:', error)
-      setState(prev => ({ ...prev, isLoading: false, error: 'permission_failed' }))
+      setState(prev => ({ ...prev, error: 'permission_failed' }))
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }))
     }
   }, [firebaseUser, user?.id, registerFcmToken])
 
@@ -210,19 +234,29 @@ export function usePushNotifications(options?: {
     }
   }, [state.permission, state.isRegistered, options?.onForegroundMessage])
 
-  // Auto-register on every session if permission already granted.
+  // Auto-register once per session if permission already granted.
   // This ensures token refresh happens (FCM tokens can rotate).
+  // Uses a ref to prevent infinite retry loops when token acquisition fails.
   useEffect(() => {
     if (
       state.permission === 'granted' &&
       !state.isRegistered &&
       !state.isLoading &&
+      !autoRegisterAttemptedRef.current &&
       firebaseUser &&
       user?.id
     ) {
+      autoRegisterAttemptedRef.current = true
       registerFcmToken()
     }
-  }, [state.permission, state.isRegistered, state.isLoading, firebaseUser, user?.id, registerFcmToken])
+  }, [
+    state.permission,
+    state.isRegistered,
+    state.isLoading,
+    firebaseUser,
+    user?.id,
+    registerFcmToken,
+  ])
 
   // Re-register when the tab becomes visible (handles token rotation after long sleep)
   useEffect(() => {

@@ -3529,7 +3529,9 @@
       "pushDisabled": "No estás recibiendo notificaciones push",
       "unsupported": "Tu navegador no soporta notificaciones push. Intenta usar Chrome, Firefox o Edge.",
       "deniedTitle": "Notificaciones bloqueadas por el navegador",
-      "deniedInstructions": "Para habilitar las notificaciones, haz clic en el icono de candado (o ajustes del sitio) junto a la barra de direcciones de tu navegador, busca \"Notificaciones\" y cámbialas a \"Permitir\". Luego recarga la página."
+      "deniedInstructions": "Para habilitar las notificaciones, haz clic en el icono de candado (o ajustes del sitio) junto a la barra de direcciones de tu navegador, busca \"Notificaciones\" y cámbialas a \"Permitir\". Luego recarga la página.",
+      "errorTitle": "No se pudieron activar las notificaciones",
+      "errorDescription": "Ocurrió un error al registrar las notificaciones push. Verifica que tu navegador permita notificaciones e intenta de nuevo."
     },
     "appearance": {
       "title": "Apariencia",
