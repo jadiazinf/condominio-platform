@@ -7,6 +7,7 @@ import type {
   PaymentPendingAllocationsRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
+import type { EventLogger } from '@packages/services'
 import { type TServiceResult, success, failure } from '../base.service'
 import { parseAmount, toDecimal } from '@packages/utils/money'
 import logger from '@utils/logger'
@@ -35,10 +36,56 @@ export class RefundPaymentService {
     private readonly paymentApplicationsRepository: PaymentApplicationsRepository,
     private readonly quotasRepository: QuotasRepository,
     private readonly quotaAdjustmentsRepository?: QuotaAdjustmentsRepository,
-    private readonly paymentPendingAllocationsRepository?: PaymentPendingAllocationsRepository
+    private readonly paymentPendingAllocationsRepository?: PaymentPendingAllocationsRepository,
+    private readonly eventLogger?: EventLogger
   ) {}
 
   async execute(input: IRefundPaymentInput): Promise<TServiceResult<IRefundPaymentOutput>> {
+    const startTime = Date.now()
+    const result = await this.executeInternal(input)
+    const durationMs = Date.now() - startTime
+
+    if (this.eventLogger) {
+      if (result.success) {
+        this.eventLogger.warn({
+          category: 'payment',
+          event: 'payment.refunded',
+          action: 'refund_payment',
+          message: `Payment ${input.paymentId} refunded (${result.data.reversedApplications} applications reversed)`,
+          module: 'RefundPaymentService',
+          entityType: 'payment',
+          entityId: input.paymentId,
+          userId: input.refundedByUserId,
+          result: 'success',
+          metadata: {
+            reversedApplications: result.data.reversedApplications,
+            refundReason: input.refundReason,
+          },
+          durationMs,
+        })
+      } else {
+        this.eventLogger.error({
+          category: 'payment',
+          event: 'payment.refund.failed',
+          action: 'refund_payment',
+          message: `Payment refund failed: ${result.error}`,
+          module: 'RefundPaymentService',
+          entityType: 'payment',
+          entityId: input.paymentId,
+          userId: input.refundedByUserId,
+          errorCode: result.code,
+          errorMessage: result.error,
+          durationMs,
+        })
+      }
+    }
+
+    return result
+  }
+
+  private async executeInternal(
+    input: IRefundPaymentInput
+  ): Promise<TServiceResult<IRefundPaymentOutput>> {
     const { paymentId, refundReason, refundedByUserId } = input
 
     // 1. Get the payment (read outside transaction)

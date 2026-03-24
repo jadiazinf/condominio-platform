@@ -1,6 +1,7 @@
 import { Calendar, AlertCircle, CheckCircle2, Clock, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
@@ -17,6 +18,9 @@ export interface IQuota {
   currencyCode: string
   dueDate: string
   status: TQuotaStatus
+  isBaseCurrency?: boolean
+  amountInBaseCurrency?: string | null
+  exchangeRateUsed?: string | null
 }
 
 interface UpcomingQuotasProps {
@@ -58,13 +62,14 @@ export function UpcomingQuotas({ quotas, maxItems = 3, translations: t }: Upcomi
 
   return (
     <Card>
-      <CardHeader className="flex justify-between items-center px-6 pt-5 pb-0">
+      <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center items-start gap-2 px-6 pt-5 pb-0">
         <div className="flex items-center gap-2">
           <Calendar className="text-default-500" size={20} />
           <h3 className="text-lg font-semibold">{t.title}</h3>
         </div>
         <Button
           as={Link}
+          className="self-end sm:self-auto"
           color="primary"
           endContent={<ChevronRight size={14} />}
           href="/dashboard/my-quotas"
@@ -107,9 +112,16 @@ export function UpcomingQuotas({ quotas, maxItems = 3, translations: t }: Upcomi
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <p className="font-semibold text-sm">
-                        {quota.currency} {formatAmount(quota.amount)}
-                      </p>
+                      <div className="font-semibold text-sm">
+                        <ConvertedAmount
+                          amount={quota.amount}
+                          amountInBaseCurrency={quota.amountInBaseCurrency}
+                          currencyCode={quota.currencyCode}
+                          currencySymbol={quota.currency}
+                          exchangeRateUsed={quota.exchangeRateUsed}
+                          isBaseCurrency={quota.isBaseCurrency}
+                        />
+                      </div>
                       {quota.balance !== quota.amount && (
                         <p className="text-xs text-default-500">
                           {t.balance}: {quota.currency} {formatAmount(quota.balance)}

@@ -12,6 +12,7 @@ import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 
 const MONTH_NAMES_ES = [
   'Enero',
@@ -121,7 +122,11 @@ export function DelinquencyModal({
                     {t(`${d}.totalDebt`)}
                   </span>
                   <span className="text-lg font-bold text-warning-700">
-                    {formatAmount(delinquency.totalBalance)}
+                    <ConvertedAmount
+                      amount={delinquency.totalBalance}
+                      currencyCode={currencyCode}
+                      currencySymbol={currencySymbol}
+                    />
                   </span>
                 </div>
                 {delinquency.totalInterestAmount > 0 && (
@@ -132,7 +137,11 @@ export function DelinquencyModal({
                         {t(`${d}.totalInterest`)}
                       </span>
                       <span className="text-lg font-bold text-warning-700">
-                        {formatAmount(delinquency.totalInterestAmount)}
+                        <ConvertedAmount
+                          amount={delinquency.totalInterestAmount}
+                          currencyCode={currencyCode}
+                          currencySymbol={currencySymbol}
+                        />
                       </span>
                     </div>
                   </>
@@ -158,6 +167,8 @@ export function DelinquencyModal({
                       {group.units.map(unit => (
                         <DelinquencyUnitRow
                           key={unit.unitId}
+                          currencyCode={currencyCode}
+                          currencySymbol={currencySymbol}
                           d={d}
                           formatAmount={formatAmount}
                           t={t}
@@ -183,9 +194,18 @@ interface DelinquencyUnitRowProps {
   formatAmount: (amount: number) => string
   t: (key: string) => string
   d: string
+  currencyCode: string
+  currencySymbol: string
 }
 
-function DelinquencyUnitRow({ unit, formatAmount, t, d }: DelinquencyUnitRowProps) {
+function DelinquencyUnitRow({
+  unit,
+  formatAmount,
+  t,
+  d,
+  currencyCode,
+  currencySymbol,
+}: DelinquencyUnitRowProps) {
   const [showQuotas, setShowQuotas] = useState(false)
 
   return (
@@ -201,7 +221,11 @@ function DelinquencyUnitRow({ unit, formatAmount, t, d }: DelinquencyUnitRowProp
         </div>
         <div className="text-right shrink-0">
           <p className="text-sm font-semibold text-warning-600">
-            {formatAmount(unit.totalBalance)}
+            <ConvertedAmount
+              amount={unit.totalBalance}
+              currencyCode={currencyCode}
+              currencySymbol={currencySymbol}
+            />
           </p>
           {unit.oldestDueDate && (
             <p className="text-xs text-default-400">
@@ -230,6 +254,8 @@ function DelinquencyUnitRow({ unit, formatAmount, t, d }: DelinquencyUnitRowProp
               {unit.quotas.map(quota => (
                 <DelinquencyQuotaRow
                   key={quota.id}
+                  currencyCode={currencyCode}
+                  currencySymbol={currencySymbol}
                   d={d}
                   formatAmount={formatAmount}
                   quota={quota}
@@ -251,9 +277,18 @@ interface DelinquencyQuotaRowProps {
   formatAmount: (amount: number) => string
   t: (key: string) => string
   d: string
+  currencyCode: string
+  currencySymbol: string
 }
 
-function DelinquencyQuotaRow({ quota, formatAmount, t, d }: DelinquencyQuotaRowProps) {
+function DelinquencyQuotaRow({
+  quota,
+  formatAmount,
+  t,
+  d,
+  currencyCode,
+  currencySymbol,
+}: DelinquencyQuotaRowProps) {
   const periodLabel =
     quota.periodDescription ??
     (quota.periodMonth !== null && quota.periodMonth !== undefined
@@ -271,10 +306,22 @@ function DelinquencyQuotaRow({ quota, formatAmount, t, d }: DelinquencyQuotaRowP
       <div className="flex items-center gap-2 shrink-0">
         {Number(quota.interestAmount) > 0 && (
           <span className="text-warning-500">
-            +{formatAmount(Number(quota.interestAmount))} {t(`${d}.totalInterest`).toLowerCase()}
+            +
+            <ConvertedAmount
+              amount={quota.interestAmount}
+              currencyCode={currencyCode}
+              currencySymbol={currencySymbol}
+            />{' '}
+            {t(`${d}.totalInterest`).toLowerCase()}
           </span>
         )}
-        <span className="font-medium">{formatAmount(Number(quota.balance))}</span>
+        <span className="font-medium">
+          <ConvertedAmount
+            amount={quota.balance}
+            currencyCode={currencyCode}
+            currencySymbol={currencySymbol}
+          />
+        </span>
       </div>
     </div>
   )

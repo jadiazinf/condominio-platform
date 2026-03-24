@@ -7,7 +7,6 @@ import type {
   TUser,
   TUserCreate,
   TSubscriptionLimitValidation,
-  TCurrency,
 } from '@packages/domain'
 
 import { useApiQuery, useApiMutation } from './use-api-query'

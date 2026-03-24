@@ -3,6 +3,7 @@
 import type { TUser } from '@packages/domain'
 
 import { Menu } from 'lucide-react'
+import NextLink from 'next/link'
 
 import { SwitchRoleButton } from './SwitchRoleButton'
 
@@ -13,7 +14,6 @@ import {
   NavbarItem,
 } from '@/ui/components/navbar'
 import { Button } from '@/ui/components/button'
-import { Link } from '@/ui/components/link'
 import { NotificationPanel } from '@/ui/components/notifications'
 import { CurrentUserAvatar } from '@/ui/components/avatar'
 
@@ -33,9 +33,9 @@ export function DashboardNavbar({ onToggleSidebar, initialUser }: DashboardNavba
           </Button>
         )}
         <NavbarBrandPrimitive>
-          <Link className="font-bold text-inherit text-xl hidden sm:inline" href="/dashboard">
+          <NextLink className="font-bold text-inherit text-xl hidden sm:inline" href="/dashboard">
             CondominioApp
-          </Link>
+          </NextLink>
         </NavbarBrandPrimitive>
       </NavbarContent>
 

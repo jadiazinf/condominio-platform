@@ -37,6 +37,7 @@ import { GenerateCondominiumReceiptService } from '@services/receipts/generate-c
 import { BulkGenerateReceiptsService } from '@services/receipts/bulk-generate-receipts.service'
 import { GenerateReceiptPdfService } from '@services/receipts/generate-receipt-pdf.service'
 import { SendReceiptEmailService } from '@services/email/send-receipt-email.service'
+import type { EventLogger } from '@packages/services'
 import logger from '@utils/logger'
 
 // ─── Validation Schemas ──────────────────────────────────────────────────────
@@ -98,7 +99,8 @@ export class ReceiptsController extends BaseController<
     unitOwnershipsRepo: UnitOwnershipsRepository,
     conceptServicesRepo: PaymentConceptServicesRepository,
     managementCompaniesRepo?: ManagementCompaniesRepository,
-    exchangeRatesRepo?: ExchangeRatesRepository
+    exchangeRatesRepo?: ExchangeRatesRepository,
+    private readonly eventLogger?: EventLogger
   ) {
     super(receiptsRepo)
     this.receiptsRepository = receiptsRepo
@@ -107,12 +109,14 @@ export class ReceiptsController extends BaseController<
       receiptsRepo,
       quotasRepo,
       unitsRepo,
-      buildingsRepo
+      buildingsRepo,
+      eventLogger
     )
     this.bulkGenerateService = new BulkGenerateReceiptsService(
       this.generateReceiptService,
       unitsRepo,
-      condominiumsRepo
+      condominiumsRepo,
+      eventLogger
     )
     this.receiptPdfService = new GenerateReceiptPdfService(
       receiptsRepo,

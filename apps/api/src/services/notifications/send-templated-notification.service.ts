@@ -64,7 +64,9 @@ export class SendTemplatedNotificationService {
 
     const body = this.replaceVariables(template.bodyTemplate, input.variables)
 
-    const channels = (template.defaultChannels ?? ['in_app']) as Array<'in_app' | 'email' | 'push'>
+    const channels = (template.defaultChannels ?? ['in_app', 'push']) as Array<
+      'in_app' | 'email' | 'push'
+    >
 
     const result = await this.sendNotificationService.execute({
       userId: input.userId,

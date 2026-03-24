@@ -2,6 +2,9 @@
 
 import type { TUser } from '@packages/domain'
 
+import { useEffect, useRef } from 'react'
+import { usePathname } from 'next/navigation'
+
 import { AdminNavbar } from './AdminNavbar'
 import { AdminSidebar } from './AdminSidebar'
 
@@ -15,16 +18,24 @@ interface IAdminShellProps {
 
 export function AdminShell({ children, initialUser }: IAdminShellProps) {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure()
+  const mainRef = useRef<HTMLElement>(null)
+  const pathname = usePathname()
+
+  useEffect(() => {
+    mainRef.current?.scrollTo(0, 0)
+  }, [pathname])
 
   function handleSidebarSelect() {
     onClose()
   }
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden">
+    <div className="flex h-dvh w-full flex-col overflow-hidden">
       <AdminNavbar initialUser={initialUser} onToggleSidebar={onOpen} />
 
-      <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      <main ref={mainRef} className="flex-1 overflow-y-auto p-6">
+        {children}
+      </main>
 
       <AppDrawer isOpen={isOpen} onClose={onClose} onOpenChange={onOpenChange}>
         <AdminSidebar onItemSelect={handleSidebarSelect} />

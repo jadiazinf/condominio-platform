@@ -1,11 +1,13 @@
 import { serve } from 'bun'
 import { Server } from '@http/server'
 import { env } from '@config/environment'
+import { initSentry } from '@config/sentry'
 import { DatabaseService } from '@database/service'
 import { websocket, handleWebSocketUpgrade } from '@libs/websocket'
 import { startBcvExchangeRatesCron } from '@src/cron/bcv-exchange-rates.cron'
 
 async function main() {
+  initSentry()
   DatabaseService.createInstance(env.DATABASE_URL)
   startBcvExchangeRatesCron()
   // Quota generation cron moved to apps/charges-worker (pg-boss scheduled job)

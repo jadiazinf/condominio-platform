@@ -181,7 +181,7 @@ export function AccountStatementClient({
         const isNegative = row.type === 'payment'
 
         return (
-          <span className={isNegative ? 'text-green-600' : ''}>
+          <span className={isNegative ? 'text-success' : ''}>
             {isNegative ? '-' : ''}
             {formatAmount(row.amount)}
           </span>
@@ -245,7 +245,7 @@ export function AccountStatementClient({
 
       {/* Error */}
       {error && !isLoading && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+        <div className="rounded-lg border border-danger/20 bg-danger/10 p-4">
           <Typography color="danger">{t.error}</Typography>
         </div>
       )}
@@ -253,7 +253,7 @@ export function AccountStatementClient({
       {/* Empty */}
       {!isLoading && !error && queryEnabled && statement && lineItemRows.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <FileText className="mb-3 h-12 w-12 text-gray-300" />
+          <FileText className="mb-3 h-12 w-12 text-default-300" />
           <Typography color="muted">{t.empty}</Typography>
         </div>
       )}
@@ -287,7 +287,7 @@ export function AccountStatementClient({
           </div>
 
           {/* Aging breakdown */}
-          <div className="rounded-lg border p-4">
+          <div className="rounded-lg border border-divider bg-content1 p-4">
             <Typography className="mb-3" variant="subtitle1">
               {t.aging.title}
             </Typography>
@@ -333,17 +333,17 @@ function SummaryCard({
 }) {
   const colorClass =
     variant === 'danger'
-      ? 'text-red-600'
+      ? 'text-danger'
       : variant === 'success'
-        ? 'text-green-600'
+        ? 'text-success'
         : variant === 'warning'
-          ? 'text-amber-600'
+          ? 'text-warning'
           : variant === 'primary'
-            ? 'text-blue-600'
-            : 'text-gray-900'
+            ? 'text-primary'
+            : 'text-foreground'
 
   return (
-    <div className="rounded-lg border bg-white p-4">
+    <div className="rounded-lg border border-divider bg-content1 p-4">
       <Typography className="mb-1" color="muted" variant="caption">
         {label}
       </Typography>
@@ -362,7 +362,7 @@ function AgingCard({ label, value }: { label: string; value: string }) {
       <Typography color="muted" variant="caption">
         {label}
       </Typography>
-      <Typography className={numValue > 0 ? 'font-semibold text-red-600' : ''} variant="body1">
+      <Typography className={numValue > 0 ? 'font-semibold text-danger' : ''} variant="body1">
         {formatAmount(value)}
       </Typography>
     </div>

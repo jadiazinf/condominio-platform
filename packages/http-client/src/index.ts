@@ -491,6 +491,11 @@ export {
   useCreateReconciliation,
   useCompleteReconciliation,
   bankReconciliationKeys,
+  // Event Logs
+  eventLogKeys,
+  useEventLogsPaginated,
+  useEventLogDetail,
+  type IEventLogsQuery,
   // Budgets
   useBudgets,
   useBudgetDetail,

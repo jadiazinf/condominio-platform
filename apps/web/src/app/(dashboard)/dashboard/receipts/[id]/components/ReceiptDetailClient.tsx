@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Ban, Download, Send, Info } from 'lucide-react'
-import { formatAmount } from '@packages/utils/currency'
 import {
   useReceiptDetail,
   useVoidReceipt,
@@ -18,6 +17,7 @@ import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -341,7 +341,7 @@ export function ReceiptDetailClient({
                         color={item.sub ? 'muted' : undefined}
                         variant={item.sub ? 'caption' : 'body2'}
                       >
-                        {cs} {formatAmount(item.amount)}
+                        <ConvertedAmount amount={item.amount} currencySymbol={cs} />
                       </Typography>
                     </td>
                   </tr>
@@ -366,7 +366,7 @@ export function ReceiptDetailClient({
             <div key={label} className="flex justify-between">
               <Typography color="muted">{label}</Typography>
               <Typography>
-                {cs} {formatAmount(value)}
+                <ConvertedAmount amount={value} currencySymbol={cs} />
               </Typography>
             </div>
           ))}
@@ -374,7 +374,7 @@ export function ReceiptDetailClient({
           <div className="flex justify-between">
             <Typography variant="subtitle1">{t.amounts.total}</Typography>
             <Typography variant="subtitle1">
-              {cs} {formatAmount(receipt.totalAmount)}
+              <ConvertedAmount amount={receipt.totalAmount} currencySymbol={cs} />
             </Typography>
           </div>
         </div>

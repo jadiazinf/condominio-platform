@@ -1,11 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import {
-  useActiveCurrencies,
-  useMyCompanyPreferredCurrency,
-  useUpdateMyCompanyPreferredCurrency,
-} from '@packages/http-client'
+import { useActiveCurrencies, useUpdateMyCompanyPreferredCurrency } from '@packages/http-client'
 
 import { Card } from '@/ui/components/card'
 import { Typography } from '@/ui/components/typography'

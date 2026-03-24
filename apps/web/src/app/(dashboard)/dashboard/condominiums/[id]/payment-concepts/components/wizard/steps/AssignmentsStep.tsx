@@ -17,6 +17,7 @@ import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { useDisclosure } from '@/ui/components/modal'
 import { useTranslation } from '@/contexts'
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 
 export interface AssignmentsStepProps {
   formData: IWizardFormData
@@ -111,13 +112,15 @@ export function AssignmentsStep({
 
   const units = useMemo(() => unitsResponse?.data ?? [], [unitsResponse])
 
-  // Currency symbol for amount label
-  const currencySymbol = useMemo(() => {
-    if (!formData.currencyId) return ''
-    const cur = currencies.find(c => c.id === formData.currencyId)
+  // Currency info for amount labels
+  const selectedCurrency = useMemo(() => {
+    if (!formData.currencyId) return null
 
-    return cur?.symbol || cur?.code || ''
+    return currencies.find(c => c.id === formData.currencyId) ?? null
   }, [formData.currencyId, currencies])
+
+  const currencySymbol = selectedCurrency?.symbol || selectedCurrency?.code || ''
+  const currencyCode = selectedCurrency?.code || ''
 
   const scopeItems: ISelectItem[] = useMemo(
     () => [
@@ -447,7 +450,11 @@ export function AssignmentsStep({
               {t(`${w}.amount`)} ({t('admin.condominiums.detail.services.conceptServices.total')})
             </Typography>
             <Typography className="font-bold" variant="body1">
-              {formatAmount(autoAmount)}
+              <ConvertedAmount
+                amount={autoAmount}
+                currencyCode={currencyCode}
+                currencySymbol={currencySymbol}
+              />
             </Typography>
           </div>
         )}
@@ -490,7 +497,11 @@ export function AssignmentsStep({
                       {getMethodLabel(assignment.distributionMethod)}
                     </Chip>
                     <span className="ml-auto text-sm font-bold text-foreground">
-                      {formatAmount(assignment.amount)}
+                      <ConvertedAmount
+                        amount={assignment.amount}
+                        currencyCode={currencyCode}
+                        currencySymbol={currencySymbol}
+                      />
                     </span>
                   </div>
 

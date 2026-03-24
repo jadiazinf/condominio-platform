@@ -4131,6 +4131,78 @@
         "ignoreError": "Error ignoring movement"
       }
     },
+    "eventLogs": {
+      "title": "Event Logs",
+      "subtitle": "Monitor system activities in real time",
+      "table": {
+        "event": "Event",
+        "category": "Category",
+        "level": "Level",
+        "message": "Message",
+        "source": "Source",
+        "result": "Result",
+        "module": "Module",
+        "user": "User",
+        "entity": "Entity",
+        "duration": "Duration",
+        "date": "Date"
+      },
+      "filters": {
+        "category": "Category",
+        "level": "Level",
+        "result": "Result",
+        "source": "Source",
+        "dateFrom": "From",
+        "dateTo": "To",
+        "search": "Search by event or message...",
+        "clear": "Clear filters"
+      },
+      "categories": {
+        "payment": "Payments",
+        "quota": "Quotas",
+        "receipt": "Receipts",
+        "worker": "Worker",
+        "notification": "Notifications",
+        "auth": "Authentication",
+        "system": "System",
+        "user": "Users",
+        "condominium": "Condominiums",
+        "subscription": "Subscriptions"
+      },
+      "levels": {
+        "info": "Info",
+        "warn": "Warning",
+        "error": "Error",
+        "critical": "Critical"
+      },
+      "results": {
+        "success": "Success",
+        "failure": "Failure",
+        "partial": "Partial"
+      },
+      "sources": {
+        "api": "API",
+        "worker": "Worker",
+        "webhook": "Webhook",
+        "system": "System",
+        "manual": "Manual"
+      },
+      "detail": {
+        "title": "Event Detail",
+        "action": "Action",
+        "entityType": "Entity Type",
+        "entityId": "Entity ID",
+        "userId": "User ID",
+        "userRole": "User Role",
+        "errorCode": "Error Code",
+        "errorMessage": "Error Message",
+        "metadata": "Metadata",
+        "ipAddress": "IP Address",
+        "noMetadata": "No additional metadata"
+      },
+      "empty": "No events found",
+      "emptyDescription": "No event logs match the selected filters"
+    },
     "accessCodes": {
       "title": "Access Code",
       "noCode": "No active access code. Generate one so residents can request access.",
@@ -4225,7 +4297,8 @@
         "delinquencyReport": "Delinquency Report",
         "budgets": "Budgets",
         "receipts": "Receipts",
-        "bankReconciliation": "Bank Reconciliation"
+        "bankReconciliation": "Bank Reconciliation",
+        "eventLogs": "Event Logs"
       },
       "myCompany": {
         "title": "My Company",

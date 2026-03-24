@@ -20,6 +20,7 @@ import { GenerateMissingQuotaService } from '@src/services/quotas/generate-missi
 import { GenerateAllMissingQuotasService } from '@src/services/quotas/generate-all-missing-quotas.service'
 import { GetConceptPreviewService } from '@src/services/quotas/get-concept-preview.service'
 import { AppError } from '@errors/index'
+import type { EventLogger } from '@packages/services'
 import { BaseController } from '../base.controller'
 import {
   bodyValidator,
@@ -149,18 +150,25 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
       getRegisteredByUnitIds: (
         unitIds: string[]
       ) => Promise<Array<{ userId: string | null; unitId: string }>>
-    }
+    },
+    eventLogger?: EventLogger
   ) {
     super(repository)
     this.quotasRepository = repository
     this.dbRef = db
-    this.adjustQuotaService = new AdjustQuotaService(db, repository, quotaAdjustmentsRepo)
+    this.adjustQuotaService = new AdjustQuotaService(
+      db,
+      repository,
+      quotaAdjustmentsRepo,
+      eventLogger
+    )
     this.generateMissingQuotaService = new GenerateMissingQuotaService(
       db,
       paymentConceptsRepo,
       assignmentsRepo,
       unitsRepo as never,
-      repository
+      repository,
+      eventLogger
     )
     this.generateAllMissingQuotasService = new GenerateAllMissingQuotasService(
       db,
@@ -625,7 +633,35 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
       ]
       const periodDescription = `${MONTH_NAMES[params.quota.periodMonth - 1]} ${params.quota.periodYear}`
 
-      // Send notifications
+      // Auto-generate receipt BEFORE notification so receiptId is available for PDF attachment
+      let receiptId: string | undefined
+      if (concept.condominiumId) {
+        const { autoGenerateReceipts } =
+          await import('@src/services/receipts/auto-generate-receipts.service')
+        const { CondominiumReceiptsRepository, UnitsRepository, BuildingsRepository } =
+          await import('@database/repositories')
+        const db = this.dbRef
+        const receiptResult = await autoGenerateReceipts(
+          {
+            receiptsRepo: new CondominiumReceiptsRepository(db),
+            quotasRepo: this.quotasRepository,
+            unitsRepo: new UnitsRepository(db),
+            buildingsRepo: new BuildingsRepository(db),
+          },
+          {
+            unitIds: [params.unitId],
+            conceptType: concept.conceptType ?? 'other',
+            condominiumId: concept.condominiumId,
+            periodYear: params.quota.periodYear,
+            periodMonth: params.quota.periodMonth,
+            currencyId: concept.currencyId,
+            generatedBy: params.quota.createdBy,
+          }
+        )
+        receiptId = receiptResult.unitReceiptMap.get(params.unitId)
+      }
+
+      // Send notifications (with receiptId for PDF attachment and push channel)
       if (this.unitOwnershipsRepo) {
         const ownerships = await this.unitOwnershipsRepo.getRegisteredByUnitIds([params.unitId])
         if (ownerships.length > 0) {
@@ -645,7 +681,7 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
               category: 'quota',
               title: `Nueva cuota: ${conceptName}`,
               body,
-              channels: ['in_app', 'email'],
+              channels: ['in_app', 'email', 'push'],
               data: {
                 condominiumId: concept.condominiumId,
                 conceptName,
@@ -654,36 +690,11 @@ export class QuotasController extends BaseController<TQuota, TQuotaCreate, TQuot
                 dueDate: params.quota.dueDate,
                 totalAmount: amount,
                 currencyCode,
+                ...(receiptId ? { receiptId } : {}),
               },
             })
           }
         }
-      }
-
-      // Auto-generate receipt for maintenance concepts
-      if (concept.condominiumId) {
-        const { autoGenerateReceipts } =
-          await import('@src/services/receipts/auto-generate-receipts.service')
-        const { CondominiumReceiptsRepository, UnitsRepository, BuildingsRepository } =
-          await import('@database/repositories')
-        const db = this.dbRef
-        await autoGenerateReceipts(
-          {
-            receiptsRepo: new CondominiumReceiptsRepository(db),
-            quotasRepo: this.quotasRepository,
-            unitsRepo: new UnitsRepository(db),
-            buildingsRepo: new BuildingsRepository(db),
-          },
-          {
-            unitIds: [params.unitId],
-            conceptType: concept.conceptType ?? 'other',
-            condominiumId: concept.condominiumId,
-            periodYear: params.quota.periodYear,
-            periodMonth: params.quota.periodMonth,
-            currencyId: concept.currencyId,
-            generatedBy: params.quota.createdBy,
-          }
-        )
       }
     } catch (error) {
       console.error('[QuotasController] Failed post-quota tasks', error)

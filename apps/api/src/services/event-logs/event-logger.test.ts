@@ -26,7 +26,7 @@ describe('EventLogger', () => {
     })
 
     expect(mockRepo.create).toHaveBeenCalledTimes(1)
-    const call = mockRepo.create.mock.calls[0]![0] as Record<string, unknown>
+    const call = (mockRepo.create.mock.calls as unknown as Record<string, unknown>[][])[0]![0]!
     expect(call.category).toBe('payment')
     expect(call.level).toBe('info')
     expect(call.event).toBe('payment.flow.initiated')
@@ -46,7 +46,7 @@ describe('EventLogger', () => {
     })
 
     expect(mockRepo.create).toHaveBeenCalledTimes(1)
-    const call = mockRepo.create.mock.calls[0]![0] as Record<string, unknown>
+    const call = (mockRepo.create.mock.calls as unknown as Record<string, unknown>[][])[0]![0]!
     expect(call.level).toBe('info')
     expect(call.result).toBe('success')
   })
@@ -64,7 +64,7 @@ describe('EventLogger', () => {
     })
 
     expect(mockRepo.create).toHaveBeenCalledTimes(1)
-    const call = mockRepo.create.mock.calls[0]![0] as Record<string, unknown>
+    const call = (mockRepo.create.mock.calls as unknown as Record<string, unknown>[][])[0]![0]!
     expect(call.level).toBe('error')
     expect(call.result).toBe('failure')
     expect(call.errorCode).toBe('INTERNAL_ERROR')
@@ -81,7 +81,7 @@ describe('EventLogger', () => {
       result: 'failure',
     })
 
-    const call = mockRepo.create.mock.calls[0]![0] as Record<string, unknown>
+    const call = (mockRepo.create.mock.calls as unknown as Record<string, unknown>[][])[0]![0]!
     expect(call.level).toBe('warn')
     expect(call.result).toBe('failure')
   })
@@ -96,7 +96,7 @@ describe('EventLogger', () => {
       message: 'Database connection lost',
     })
 
-    const call = mockRepo.create.mock.calls[0]![0] as Record<string, unknown>
+    const call = (mockRepo.create.mock.calls as unknown as Record<string, unknown>[][])[0]![0]!
     expect(call.level).toBe('critical')
     expect(call.result).toBe('failure')
   })
@@ -114,7 +114,7 @@ describe('EventLogger', () => {
       message: 'Started',
     })
 
-    const call = mockRepo.create.mock.calls[0]![0] as Record<string, unknown>
+    const call = (mockRepo.create.mock.calls as unknown as Record<string, unknown>[][])[0]![0]!
     expect(call.source).toBe('worker')
     expect(call.module).toBe('auto-generation.processor')
   })
@@ -147,7 +147,7 @@ describe('EventLogger', () => {
       result: 'success',
     })
 
-    const call = mockRepo.create.mock.calls[0]![0] as Record<string, unknown>
+    const call = (mockRepo.create.mock.calls as unknown as Record<string, unknown>[][])[0]![0]!
     expect(call.module).toBeNull()
     expect(call.condominiumId).toBeNull()
     expect(call.entityType).toBeNull()

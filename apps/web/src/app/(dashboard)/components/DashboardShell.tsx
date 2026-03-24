@@ -2,6 +2,9 @@
 
 import type { TUser } from '@packages/domain'
 
+import { useEffect, useRef } from 'react'
+import { usePathname } from 'next/navigation'
+
 import { DashboardNavbar } from './DashboardNavbar'
 import { DashboardSidebar } from './DashboardSidebar'
 
@@ -16,16 +19,24 @@ interface IDashboardShellProps {
 
 export function DashboardShell({ children, initialUser }: IDashboardShellProps) {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure()
+  const mainRef = useRef<HTMLElement>(null)
+  const pathname = usePathname()
+
+  useEffect(() => {
+    mainRef.current?.scrollTo(0, 0)
+  }, [pathname])
 
   function handleSidebarSelect() {
     onClose()
   }
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden">
+    <div className="flex h-dvh w-full flex-col overflow-hidden">
       <DashboardNavbar initialUser={initialUser} onToggleSidebar={onOpen} />
 
-      <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      <main ref={mainRef} className="flex-1 overflow-y-auto p-6">
+        {children}
+      </main>
 
       <AppDrawer isOpen={isOpen} onClose={onClose} onOpenChange={onOpenChange}>
         <DashboardSidebar onItemSelect={handleSidebarSelect} />

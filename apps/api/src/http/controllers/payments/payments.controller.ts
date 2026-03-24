@@ -35,6 +35,7 @@ import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { z } from 'zod'
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
+import type { EventLogger } from '@packages/services'
 import {
   ReportPaymentService,
   VerifyPaymentService,
@@ -195,7 +196,8 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
     gatewayManager?: PaymentGatewayManager,
     bankAccountsRepo?: BankAccountsRepository,
     quotaAdjustmentsRepo?: QuotaAdjustmentsRepository,
-    paymentPendingAllocationsRepo?: PaymentPendingAllocationsRepository
+    paymentPendingAllocationsRepo?: PaymentPendingAllocationsRepository,
+    private readonly eventLogger?: EventLogger
   ) {
     super(repository)
 
@@ -214,15 +216,16 @@ export class PaymentsController extends BaseController<TPayment, TPaymentCreate,
       gatewayTransactionsRepo,
       gatewayManager
     )
-    this.verifyPaymentService = new VerifyPaymentService(repository)
-    this.rejectPaymentService = new RejectPaymentService(repository)
+    this.verifyPaymentService = new VerifyPaymentService(repository, eventLogger)
+    this.rejectPaymentService = new RejectPaymentService(repository, eventLogger)
     this.refundPaymentService = new RefundPaymentService(
       db,
       repository,
       paymentApplicationsRepo,
       quotasRepo,
       quotaAdjustmentsRepo,
-      paymentPendingAllocationsRepo
+      paymentPendingAllocationsRepo,
+      eventLogger
     )
   }
 

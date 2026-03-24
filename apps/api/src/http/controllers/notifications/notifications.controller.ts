@@ -38,7 +38,7 @@ const SendNotificationBodySchema = z.object({
   body: z.string().min(1),
   priority: z.enum(['low', 'normal', 'high', 'urgent']).optional(),
   data: z.record(z.string(), z.unknown()).optional(),
-  channels: z.array(z.enum(['in_app', 'email'])).optional(),
+  channels: z.array(z.enum(['in_app', 'email', 'push'])).optional(),
   expiresAt: z.string().datetime().optional(),
 })
 

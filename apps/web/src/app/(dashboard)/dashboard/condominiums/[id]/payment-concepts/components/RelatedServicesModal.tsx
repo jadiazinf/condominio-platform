@@ -12,6 +12,7 @@ import { Spinner } from '@/ui/components/spinner'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
 import { Accordion, AccordionItem } from '@/ui/components/accordion'
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 
 interface RelatedServicesModalProps {
   isOpen: boolean
@@ -183,7 +184,11 @@ export function RelatedServicesModal({
                         </span>
                       </div>
                       <span className="text-sm font-medium">
-                        {formatAmount(Number(service.amount))}
+                        <ConvertedAmount
+                          amount={service.amount}
+                          currencyCode={currencyCode}
+                          currencySymbol={currencySymbol}
+                        />
                       </span>
                     </div>
                   }
@@ -209,7 +214,11 @@ export function RelatedServicesModal({
                 {t(`${d}.totalAmount`)}
               </Typography>
               <Typography className="font-semibold" variant="body2">
-                {formatAmount(totalAmount)}
+                <ConvertedAmount
+                  amount={totalAmount}
+                  currencyCode={currencyCode}
+                  currencySymbol={currencySymbol}
+                />
               </Typography>
             </div>
           </ModalFooter>

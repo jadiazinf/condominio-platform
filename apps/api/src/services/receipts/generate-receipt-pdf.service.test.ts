@@ -194,13 +194,15 @@ describe('GenerateReceiptPdfService', () => {
       managementCompanyIds: ['mc-1'],
     }
     const mockMcRepo = {
-      getById: mock(() =>
-        Promise.resolve({ id: 'mc-1', preferredCurrencyId: 'currency-usd' })
-      ),
+      getById: mock(() => Promise.resolve({ id: 'mc-1', preferredCurrencyId: 'currency-usd' })),
     }
     const mockExchangeRatesRepo = {
       getLatestRate: mock(() =>
-        Promise.resolve({ rate: '0.027', fromCurrencyId: 'currency-1', toCurrencyId: 'currency-usd' })
+        Promise.resolve({
+          rate: '0.027',
+          fromCurrencyId: 'currency-1',
+          toCurrencyId: 'currency-usd',
+        })
       ),
     }
     const preferredCurrency = {
@@ -250,9 +252,7 @@ describe('GenerateReceiptPdfService', () => {
       managementCompanyIds: ['mc-1'],
     }
     const mockMcRepo = {
-      getById: mock(() =>
-        Promise.resolve({ id: 'mc-1', preferredCurrencyId: 'currency-usd' })
-      ),
+      getById: mock(() => Promise.resolve({ id: 'mc-1', preferredCurrencyId: 'currency-usd' })),
     }
     const mockExchangeRatesRepo = {
       getLatestRate: mock(() => Promise.resolve(null)),
@@ -300,8 +300,8 @@ describe('GenerateReceiptPdfService', () => {
       managementCompanyIds: ['mc-1'],
     }
     const mockMcRepo = {
-      getById: mock(() =>
-        Promise.resolve({ id: 'mc-1', preferredCurrencyId: 'currency-1' }) // same as receipt
+      getById: mock(
+        () => Promise.resolve({ id: 'mc-1', preferredCurrencyId: 'currency-1' }) // same as receipt
       ),
     }
     const mockExchangeRatesRepo = {

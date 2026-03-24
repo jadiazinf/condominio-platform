@@ -3,10 +3,10 @@
 import { useParams, useRouter } from 'next/navigation'
 import { useExpenseDetail } from '@packages/http-client'
 import { ArrowLeft } from 'lucide-react'
-import { formatCurrency } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
 
 import { useTranslation } from '@/contexts'
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
@@ -53,8 +53,6 @@ export default function ExpenseDetailPage() {
       </div>
     )
   }
-
-  const currencyCode = expense.currency?.code
 
   return (
     <div className="space-y-6">
@@ -121,7 +119,12 @@ export default function ExpenseDetailPage() {
               {t('admin.expenses.table.amount')}
             </Typography>
             <Typography className="font-semibold" variant="body1">
-              {formatCurrency(expense.amount, { currency: currencyCode })}
+              <ConvertedAmount
+                amount={expense.amount}
+                currencyCode={expense.currency?.code}
+                currencySymbol={expense.currency?.symbol}
+                isBaseCurrency={expense.currency?.isBaseCurrency}
+              />
             </Typography>
           </div>
           <div>

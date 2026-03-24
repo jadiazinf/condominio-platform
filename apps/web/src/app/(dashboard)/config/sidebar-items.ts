@@ -23,6 +23,7 @@ import {
   Calculator,
   FileSpreadsheet,
   Scale,
+  Activity,
 } from 'lucide-react'
 
 type TSidebarItemConfig = Omit<TSidebarItem, 'icon'> & {
@@ -134,6 +135,12 @@ export const adminSidebarItems: TSidebarItemConfig[] = [
     title: 'admin.company.nav.bankReconciliation',
     icon: Scale,
     href: '/dashboard/bank-reconciliation',
+  },
+  {
+    key: 'event-logs',
+    title: 'admin.company.nav.eventLogs',
+    icon: Activity,
+    href: '/dashboard/event-logs',
   },
   {
     key: 'delinquency-report',

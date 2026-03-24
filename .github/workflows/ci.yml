@@ -40,6 +40,28 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run lint
 
+  migration-check:
+    name: Check Pending Migrations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.6'
+      - run: bun install --frozen-lockfile
+      - name: Generate migrations (dry run)
+        working-directory: apps/api
+        run: bun x drizzle-kit generate --name ci_check 2>&1 | tee /tmp/drizzle-output.txt
+      - name: Fail if new migrations were generated
+        run: |
+          if [ -f apps/api/drizzle/*ci_check*.sql ]; then
+            echo "::error::Schema changes detected without a migration file!"
+            echo "Run 'bun x drizzle-kit generate' locally and commit the migration."
+            cat apps/api/drizzle/*ci_check*.sql
+            exit 1
+          fi
+          echo "No pending migrations — schema is in sync."
+
   test:
     name: API Tests
     runs-on: ubuntu-latest
@@ -77,3 +99,31 @@ jobs:
           bun-version: '1.3.6'
       - run: bun install --frozen-lockfile
       - run: bun test --cwd apps/api
+
+  sentry-sourcemaps:
+    name: Upload Sentry Source Maps
+    runs-on: ubuntu-latest
+    needs: [typecheck, lint, test, migration-check]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+      NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.6'
+      - run: bun install --frozen-lockfile
+      - name: Build web app with source maps
+        run: bun run build --filter=@apps/web
+      - name: Upload source maps to Sentry
+        if: env.SENTRY_AUTH_TOKEN != ''
+        run: bunx @sentry/cli sourcemaps upload --release=$(git rev-parse --short HEAD) --url-prefix='~/_next' apps/web/.next/static
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}

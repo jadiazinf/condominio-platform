@@ -5,10 +5,10 @@ import type { TPayment, TPaymentStatus } from '@packages/domain'
 import { useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
-import { formatAmount } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
 import { usePaymentDetail } from '@packages/http-client'
 
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { getPaymentStatusColor } from '@/utils/status-colors'
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
@@ -62,12 +62,6 @@ function fmtDate(date: Date | string | null | undefined): string {
   if (!date) return '-'
 
   return formatShortDate(date)
-}
-
-function fmtAmount(amount: string | null | undefined): string {
-  if (!amount) return '-'
-
-  return formatAmount(amount)
 }
 
 function getPaymentDetailsQuotas(payment: TPayment): IPaymentDetailsQuota[] {
@@ -148,7 +142,6 @@ export default function MyPaymentDetailPage() {
     )
   }
 
-  const currencySymbol = payment.currency?.symbol ?? ''
   const sender = getSenderInfo(payment)
   const applications = payment.applications ?? []
   const detailQuotas = getPaymentDetailsQuotas(payment)
@@ -193,15 +186,23 @@ export default function MyPaymentDetailPage() {
       <div className="grid gap-6 sm:grid-cols-2">
         {/* Payment info */}
         <DetailSection title={t('resident.myPayments.detail.paymentInfo')}>
-          <DetailRow
-            label={t('resident.myPayments.detail.amount')}
-            value={`${currencySymbol} ${fmtAmount(payment.amount)}`}
-          />
-          {payment.paidAmount && (
-            <DetailRow
-              label={t('resident.myPayments.detail.paidAmount')}
-              value={`${payment.paidCurrency?.symbol ?? ''}${fmtAmount(payment.paidAmount)}`}
+          <DetailRow label={t('resident.myPayments.detail.amount')}>
+            <ConvertedAmount
+              amount={payment.amount}
+              currencyCode={payment.currency?.code}
+              currencySymbol={payment.currency?.symbol}
+              isBaseCurrency={payment.currency?.isBaseCurrency}
             />
+          </DetailRow>
+          {payment.paidAmount && (
+            <DetailRow label={t('resident.myPayments.detail.paidAmount')}>
+              <ConvertedAmount
+                amount={payment.paidAmount}
+                currencyCode={payment.paidCurrency?.code}
+                currencySymbol={payment.paidCurrency?.symbol}
+                isBaseCurrency={payment.paidCurrency?.isBaseCurrency}
+              />
+            </DetailRow>
           )}
           {payment.exchangeRate && (
             <DetailRow
@@ -331,9 +332,13 @@ export default function MyPaymentDetailPage() {
                     </span>
                     <span className="text-xs text-default-500">{periodLabel}</span>
                   </div>
-                  <span className="text-sm font-medium">
-                    {currencySymbol} {fmtAmount(q.amount)}
-                  </span>
+                  <ConvertedAmount
+                    amount={q.amount}
+                    className="text-sm font-medium"
+                    currencyCode={payment.currency?.code}
+                    currencySymbol={payment.currency?.symbol}
+                    isBaseCurrency={payment.currency?.isBaseCurrency}
+                  />
                 </div>
               )
             })}
@@ -342,9 +347,12 @@ export default function MyPaymentDetailPage() {
             <Typography color="muted" variant="body2">
               {t('resident.myPayments.detail.totalApplied')}
             </Typography>
-            <Typography variant="body2" weight="semibold">
-              {currencySymbol} {fmtAmount(payment.amount)}
-            </Typography>
+            <ConvertedAmount
+              amount={payment.amount}
+              currencyCode={payment.currency?.code}
+              currencySymbol={payment.currency?.symbol}
+              isBaseCurrency={payment.currency?.isBaseCurrency}
+            />
           </div>
         </DetailSection>
       )}

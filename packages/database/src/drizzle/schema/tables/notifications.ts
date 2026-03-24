@@ -32,7 +32,7 @@ export const notificationTemplates = pgTable(
     subjectTemplate: varchar('subject_template', { length: 500 }),
     bodyTemplate: text('body_template').notNull(),
     variables: jsonb('variables'), // Array of variable names: ['user_name', 'amount']
-    defaultChannels: jsonb('default_channels').default(['in_app']), // Array: ['in_app', 'email']
+    defaultChannels: jsonb('default_channels').default(['in_app', 'push']), // Array: ['in_app', 'email', 'push']
     isActive: boolean('is_active').default(true),
     metadata: jsonb('metadata'),
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),

@@ -445,7 +445,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       metadata JSONB,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
-      created_by UUID REFERENCES users(id) ON DELETE SET NULL
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      preferred_currency_id UUID REFERENCES currencies(id) ON DELETE SET NULL
     );
 
     CREATE TABLE IF NOT EXISTS condominiums (
@@ -1440,6 +1441,188 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_service_executions_concept ON service_executions(payment_concept_id);
     CREATE INDEX IF NOT EXISTS idx_service_executions_date ON service_executions(execution_date);
 
+    -- Budgets
+    CREATE TABLE IF NOT EXISTS budgets (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      name VARCHAR(255) NOT NULL,
+      description TEXT,
+      budget_type VARCHAR(50) NOT NULL DEFAULT 'monthly',
+      status VARCHAR(50) NOT NULL DEFAULT 'draft',
+      period_year INTEGER NOT NULL,
+      period_month INTEGER,
+      start_date DATE,
+      end_date DATE,
+      total_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
+      currency_id UUID REFERENCES currencies(id) ON DELETE SET NULL,
+      reserve_fund_percentage DECIMAL(5, 2) DEFAULT 0,
+      approved_at TIMESTAMP,
+      approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      notes TEXT,
+      metadata JSONB,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS budget_items (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      budget_id UUID NOT NULL REFERENCES budgets(id) ON DELETE CASCADE,
+      category VARCHAR(255) NOT NULL,
+      description TEXT,
+      amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    -- Condominium Receipts
+    CREATE TABLE IF NOT EXISTS condominium_receipts (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+      building_id UUID REFERENCES buildings(id) ON DELETE SET NULL,
+      receipt_number VARCHAR(100),
+      status VARCHAR(50) NOT NULL DEFAULT 'generated',
+      period_year INTEGER NOT NULL,
+      period_month INTEGER NOT NULL,
+      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
+      ordinary_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
+      extraordinary_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
+      reserve_fund_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
+      interest_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
+      fine_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
+      previous_balance DECIMAL(15, 2) NOT NULL DEFAULT 0,
+      total_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
+      items JSONB DEFAULT '[]',
+      issued_at TIMESTAMP DEFAULT NOW(),
+      voided_at TIMESTAMP,
+      voided_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      void_reason TEXT,
+      notes TEXT,
+      metadata JSONB,
+      generated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    -- Bank Reconciliation
+    CREATE TABLE IF NOT EXISTS bank_statement_imports (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      bank_account_id UUID NOT NULL REFERENCES bank_accounts(id) ON DELETE CASCADE,
+      filename VARCHAR(500) NOT NULL,
+      imported_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      period_from DATE,
+      period_to DATE,
+      total_entries INTEGER NOT NULL DEFAULT 0,
+      total_credits DECIMAL(15, 2) NOT NULL DEFAULT 0,
+      total_debits DECIMAL(15, 2) NOT NULL DEFAULT 0,
+      status VARCHAR(50) NOT NULL DEFAULT 'processing',
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS bank_statement_entries (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      import_id UUID NOT NULL REFERENCES bank_statement_imports(id) ON DELETE CASCADE,
+      transaction_date DATE NOT NULL,
+      value_date DATE,
+      reference VARCHAR(255),
+      description TEXT,
+      amount DECIMAL(15, 2) NOT NULL,
+      entry_type VARCHAR(20) NOT NULL,
+      balance DECIMAL(15, 2),
+      status VARCHAR(20) NOT NULL DEFAULT 'unmatched',
+      matched_at TIMESTAMP,
+      raw_data JSONB,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS bank_reconciliations (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      bank_account_id UUID NOT NULL REFERENCES bank_accounts(id) ON DELETE RESTRICT,
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE RESTRICT,
+      period_from DATE NOT NULL,
+      period_to DATE NOT NULL,
+      status VARCHAR(50) NOT NULL DEFAULT 'in_progress',
+      total_matched INTEGER NOT NULL DEFAULT 0,
+      total_unmatched INTEGER NOT NULL DEFAULT 0,
+      total_ignored INTEGER NOT NULL DEFAULT 0,
+      reconciled_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      reconciled_at TIMESTAMP,
+      notes TEXT,
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS bank_statement_matches (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      entry_id UUID NOT NULL REFERENCES bank_statement_entries(id) ON DELETE CASCADE,
+      payment_id UUID NOT NULL REFERENCES payments(id) ON DELETE RESTRICT,
+      match_type VARCHAR(50) NOT NULL,
+      confidence DECIMAL(5, 2),
+      matched_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+
+    -- Event Logs
+    DO $$ BEGIN
+      CREATE TYPE event_log_category AS ENUM ('payment', 'quota', 'reconciliation', 'worker', 'notification', 'gateway', 'auth', 'subscription', 'receipt', 'system');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+    DO $$ BEGIN
+      CREATE TYPE event_log_level AS ENUM ('info', 'warn', 'error', 'critical');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+    DO $$ BEGIN
+      CREATE TYPE event_log_result AS ENUM ('success', 'failure', 'partial');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+    DO $$ BEGIN
+      CREATE TYPE event_log_source AS ENUM ('api', 'worker', 'webhook', 'cron', 'system');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    CREATE TABLE IF NOT EXISTS event_logs (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      category event_log_category NOT NULL,
+      level event_log_level NOT NULL,
+      event VARCHAR(200) NOT NULL,
+      action VARCHAR(200) NOT NULL,
+      message TEXT NOT NULL,
+      module VARCHAR(100),
+      condominium_id UUID REFERENCES condominiums(id) ON DELETE SET NULL,
+      entity_type VARCHAR(100),
+      entity_id UUID,
+      user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+      user_role VARCHAR(50),
+      result event_log_result NOT NULL,
+      error_code VARCHAR(50),
+      error_message TEXT,
+      metadata JSONB,
+      duration_ms INTEGER,
+      source event_log_source NOT NULL DEFAULT 'api',
+      ip_address INET,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+
+    -- Wizard Drafts
+    CREATE TABLE IF NOT EXISTS wizard_drafts (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      wizard_type VARCHAR(100) NOT NULL,
+      step INTEGER NOT NULL DEFAULT 0,
+      data JSONB NOT NULL DEFAULT '{}',
+      metadata JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
   `)
   const elapsed = performance.now() - start
   console.log(`[TestContainer] createSchema took ${elapsed.toFixed(1)}ms`)
@@ -1489,6 +1672,15 @@ export async function cleanDatabase(
 ): Promise<void> {
   const start = performance.now()
   await testDb.execute(sql`
+    DELETE FROM wizard_drafts;
+    DELETE FROM event_logs;
+    DELETE FROM bank_statement_matches;
+    DELETE FROM bank_reconciliations;
+    DELETE FROM bank_statement_entries;
+    DELETE FROM bank_statement_imports;
+    DELETE FROM condominium_receipts;
+    DELETE FROM budget_items;
+    DELETE FROM budgets;
     DELETE FROM service_executions;
     DELETE FROM payment_concept_services;
     DELETE FROM condominium_services;

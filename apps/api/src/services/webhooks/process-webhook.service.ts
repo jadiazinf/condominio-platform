@@ -10,6 +10,7 @@ import type { SendNotificationService } from '../notifications'
 import type { TGatewayType } from '@packages/domain'
 import { type TServiceResult, success, failure } from '../base.service'
 import logger from '@packages/logger'
+import type { EventLogger } from '@packages/services'
 
 const SYSTEM_USER_ID = '00000000-0000-0000-0000-000000000000'
 
@@ -48,10 +49,60 @@ export class ProcessWebhookService {
     private readonly gatewayTransactionsRepository: GatewayTransactionsRepository,
     private readonly paymentsRepository: PaymentsRepository,
     private readonly sendNotificationService?: SendNotificationService,
-    private readonly pendingAllocationsRepository?: PaymentPendingAllocationsRepository
+    private readonly pendingAllocationsRepository?: PaymentPendingAllocationsRepository,
+    private readonly eventLogger?: EventLogger
   ) {}
 
   async execute(input: IProcessWebhookInput): Promise<TServiceResult<IProcessWebhookOutput>> {
+    const start = Date.now()
+    const result = await this.executeInternal(input)
+    const durationMs = Date.now() - start
+
+    if (this.eventLogger) {
+      if (result.success) {
+        this.eventLogger
+          .info({
+            category: 'payment',
+            event: 'gateway.webhook.received',
+            action: 'process_webhook',
+            message: `Webhook processed for ${input.gatewayType}: ${result.data.status}${result.data.autoVerified ? ' (auto-verified)' : ''}`,
+            module: 'ProcessWebhookService',
+            source: 'webhook',
+            entityType: 'payment',
+            entityId: result.data.paymentId,
+            metadata: {
+              gatewayType: input.gatewayType,
+              externalTransactionId: result.data.externalTransactionId,
+              status: result.data.status,
+              autoVerified: result.data.autoVerified,
+            },
+            durationMs,
+          })
+          .catch(() => {})
+      } else {
+        this.eventLogger
+          .error({
+            category: 'payment',
+            event: 'gateway.webhook.failed',
+            action: 'process_webhook',
+            message: `Webhook processing failed for ${input.gatewayType}: ${result.error}`,
+            module: 'ProcessWebhookService',
+            source: 'webhook',
+            errorCode: result.code,
+            errorMessage: result.error,
+            metadata: { gatewayType: input.gatewayType },
+            durationMs,
+          })
+          .catch(() => {})
+      }
+    }
+
+    return result
+  }
+
+  private async executeInternal(
+    input: IProcessWebhookInput
+  ): Promise<TServiceResult<IProcessWebhookOutput>> {
     const { gatewayType, headers, body } = input
 
     if (!this.gatewayManager.hasAdapter(gatewayType)) {

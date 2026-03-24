@@ -6,7 +6,6 @@ import type { TReportFormat } from '@packages/http-client'
 import { useState, useCallback, useMemo } from 'react'
 import { Receipt, MoreVertical, Eye, Download } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { formatCurrency } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
 import { useExpenses, downloadDebtorsReport } from '@packages/http-client'
 
@@ -18,6 +17,7 @@ import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/comp
 import { Spinner } from '@/ui/components/spinner'
 import { ClearFiltersButton } from '@/ui/components/filters'
 import { useTranslation, useCondominium } from '@/contexts'
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { useToast } from '@/ui/components/toast'
 import { Typography } from '@/ui/components/typography'
 import { Pagination } from '@/ui/components/pagination'
@@ -150,7 +150,12 @@ export function ExpensesTable() {
         case 'amount':
           return (
             <span className="text-sm font-medium">
-              {formatCurrency(expense.amount, { currency: expense.currency?.code })}
+              <ConvertedAmount
+                amount={expense.amount}
+                currencyCode={expense.currency?.code}
+                currencySymbol={expense.currency?.symbol}
+                isBaseCurrency={expense.currency?.isBaseCurrency}
+              />
             </span>
           )
         case 'expenseDate':

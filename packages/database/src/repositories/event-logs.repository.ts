@@ -63,11 +63,7 @@ export class EventLogsRepository {
   }
 
   async getById(id: string): Promise<TEventLog | null> {
-    const results = await this.db
-      .select()
-      .from(eventLogs)
-      .where(eq(eventLogs.id, id))
-      .limit(1)
+    const results = await this.db.select().from(eventLogs).where(eq(eventLogs.id, id)).limit(1)
 
     return results.length > 0 ? this.mapToEntity(results[0]) : null
   }

@@ -1,5 +1,6 @@
 import type { TServiceResult } from '@packages/services'
 import { success, failure } from '@packages/services'
+import type { EventLogger } from '@packages/services'
 import type { UnitsRepository, CondominiumsRepository } from '@packages/database'
 import type { GenerateCondominiumReceiptService } from './generate-condominium-receipt.service'
 
@@ -23,10 +24,56 @@ export class BulkGenerateReceiptsService {
   constructor(
     private generateReceiptService: GenerateCondominiumReceiptService,
     private unitsRepo: UnitsRepository,
-    private condominiumsRepo: CondominiumsRepository
+    private condominiumsRepo: CondominiumsRepository,
+    private eventLogger?: EventLogger
   ) {}
 
   async execute(input: IBulkGenerateInput): Promise<TServiceResult<IBulkGenerateResult>> {
+    const startTime = Date.now()
+    const result = await this.executeInternal(input)
+    const durationMs = Date.now() - startTime
+
+    if (this.eventLogger) {
+      if (result.success) {
+        this.eventLogger.info({
+          category: 'receipt',
+          event: 'receipt.bulk_generated',
+          action: 'bulk_generate_receipts',
+          message: `Bulk receipt generation: ${result.data.generated}/${result.data.total} for ${input.periodYear}-${input.periodMonth}`,
+          module: 'BulkGenerateReceiptsService',
+          condominiumId: input.condominiumId,
+          userId: input.generatedBy,
+          metadata: {
+            generated: result.data.generated,
+            failed: result.data.failed,
+            total: result.data.total,
+            periodYear: input.periodYear,
+            periodMonth: input.periodMonth,
+          },
+          durationMs,
+        })
+      } else {
+        this.eventLogger.error({
+          category: 'receipt',
+          event: 'receipt.bulk_generation.failed',
+          action: 'bulk_generate_receipts',
+          message: `Bulk receipt generation failed: ${result.error}`,
+          module: 'BulkGenerateReceiptsService',
+          condominiumId: input.condominiumId,
+          userId: input.generatedBy,
+          errorCode: result.code,
+          errorMessage: result.error,
+          durationMs,
+        })
+      }
+    }
+
+    return result
+  }
+
+  private async executeInternal(
+    input: IBulkGenerateInput
+  ): Promise<TServiceResult<IBulkGenerateResult>> {
     // 1. Validate condominium exists
     const condominium = await this.condominiumsRepo.getById(input.condominiumId)
     if (!condominium) {

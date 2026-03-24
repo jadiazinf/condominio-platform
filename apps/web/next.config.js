@@ -187,4 +187,31 @@ const nextConfig = {
   },
 }
 
-module.exports = process.env.NODE_ENV === 'production' ? withPWA(nextConfig) : nextConfig
+const { withSentryConfig } = require('@sentry/nextjs')
+
+const baseConfig = process.env.NODE_ENV === 'production' ? withPWA(nextConfig) : nextConfig
+
+module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(baseConfig, {
+      // Suppress CLI output during build
+      silent: !process.env.CI,
+      // Hide source maps from client bundles (uploaded to Sentry only)
+      hideSourceMaps: true,
+      // Source map upload: requires SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT env vars
+      // These are set in Vercel environment settings
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      // Automatically associate commits and releases
+      release: {
+        setCommits: {
+          auto: true,
+          ignoreMissing: true,
+        },
+      },
+      // Upload source maps for all bundles
+      sourcemaps: {
+        deleteSourcemapsAfterUpload: true,
+      },
+    })
+  : baseConfig

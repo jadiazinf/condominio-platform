@@ -10,6 +10,7 @@ import { formatCurrency } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
 import { useQuotas, useQueryClient, downloadDebtorsReport } from '@packages/http-client'
 
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
@@ -189,9 +190,15 @@ export function QuotasTable() {
           )
         case 'amount':
           return (
-            <span className="text-sm font-medium">
-              {formatCurrency(quota.baseAmount, { currency: quota.currency?.code })}
-            </span>
+            <ConvertedAmount
+              amount={quota.baseAmount}
+              amountInBaseCurrency={quota.amountInBaseCurrency}
+              className="text-sm font-medium"
+              currencyCode={quota.currency?.code}
+              currencySymbol={quota.currency?.symbol}
+              exchangeRateUsed={quota.exchangeRateUsed}
+              isBaseCurrency={quota.currency?.isBaseCurrency}
+            />
           )
         case 'dueDate':
           return <span className="text-sm">{formatShortDate(quota.dueDate)}</span>

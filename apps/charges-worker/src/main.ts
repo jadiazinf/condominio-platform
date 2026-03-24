@@ -1,4 +1,5 @@
 import { env } from '@config/environment'
+import { initSentry, Sentry } from '@config/sentry'
 import { createBossClient } from '@worker/boss/client'
 import {
   QUEUES,
@@ -18,10 +19,33 @@ import { processPaymentReminders } from '@worker/processors/payment-reminders.pr
 import { DatabaseService } from '@database/service'
 import logger from '@packages/logger'
 
+async function waitForDatabase(url: string, maxRetries = 10, delayMs = 3000): Promise<void> {
+  const { sql } = await import('drizzle-orm')
+  DatabaseService.createInstance(url)
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const db = DatabaseService.getInstance().getDb()
+      await db.execute(sql`SELECT 1`)
+      logger.info(`[charges-worker] Database connection verified (attempt ${attempt})`)
+      return
+    } catch (_error) {
+      if (attempt === maxRetries) {
+        throw new Error(`Database not reachable after ${maxRetries} attempts`)
+      }
+      logger.warn(
+        `[charges-worker] DB not ready (attempt ${attempt}/${maxRetries}), retrying in ${delayMs}ms...`
+      )
+      await new Promise(resolve => setTimeout(resolve, delayMs))
+    }
+  }
+}
+
 async function main() {
+  initSentry()
   logger.info('[charges-worker] Starting...')
 
-  DatabaseService.createInstance(env.DATABASE_URL)
+  await waitForDatabase(env.DATABASE_URL)
 
   const boss = await createBossClient(env.DATABASE_URL)
   await boss.start()
@@ -97,6 +121,7 @@ async function main() {
 }
 
 main().catch(error => {
+  Sentry.captureException(error)
   logger.fatal({ error }, '[charges-worker] Fatal error during startup')
   process.exit(1)
 })

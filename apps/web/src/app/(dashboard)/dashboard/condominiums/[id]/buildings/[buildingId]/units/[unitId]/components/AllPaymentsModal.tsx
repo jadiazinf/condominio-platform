@@ -5,9 +5,9 @@ import type { TPayment } from '@packages/domain'
 import { useState } from 'react'
 import { usePaymentsByUnitPaginated } from '@packages/http-client/hooks'
 import { X } from 'lucide-react'
-import { formatAmount } from '@packages/utils/currency'
 import { formatFullDate } from '@packages/utils/dates'
 
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@/ui/components/modal'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
@@ -110,7 +110,14 @@ export function AllPaymentsModal({
       case 'date':
         return formatFullDate(payment.paymentDate)
       case 'amount':
-        return formatAmount(payment.amount)
+        return (
+          <ConvertedAmount
+            amount={payment.amount}
+            currencyCode={payment.currency?.code}
+            currencySymbol={payment.currency?.symbol}
+            isBaseCurrency={payment.currency?.isBaseCurrency}
+          />
+        )
       case 'method':
         return t.methods[payment.paymentMethod] || payment.paymentMethod
       case 'status':

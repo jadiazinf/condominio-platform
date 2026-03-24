@@ -9,6 +9,7 @@ import { Receipt, Download, X } from 'lucide-react'
 import { formatAmount } from '@packages/utils/currency'
 import { downloadAccountStatement } from '@packages/http-client'
 
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
@@ -352,7 +353,16 @@ export function MyQuotasClient({
         return formatDateES(row.dueDate)
 
       case 'amount':
-        return formatAmountES(row.baseAmount, currencySymbol)
+        return (
+          <ConvertedAmount
+            amount={row.baseAmount}
+            amountInBaseCurrency={row.amountInBaseCurrency}
+            currencyCode={row.currency?.code}
+            currencySymbol={currencySymbol}
+            exchangeRateUsed={row.exchangeRateUsed}
+            isBaseCurrency={row.currency?.isBaseCurrency}
+          />
+        )
 
       case 'status':
         return (
@@ -619,9 +629,14 @@ export function MyQuotasClient({
                           </Typography>
                         </div>
                         <div className="text-right">
-                          <Typography variant="body2">
-                            {formatAmountES(row.baseAmount, currencySymbol)}
-                          </Typography>
+                          <ConvertedAmount
+                            amount={row.baseAmount}
+                            amountInBaseCurrency={row.amountInBaseCurrency}
+                            currencyCode={row.currency?.code}
+                            currencySymbol={currencySymbol}
+                            exchangeRateUsed={row.exchangeRateUsed}
+                            isBaseCurrency={row.currency?.isBaseCurrency}
+                          />
                           {hasBalance && (
                             <Typography className="text-warning-600" variant="caption">
                               {t.balance}: {formatAmountES(row.balance, currencySymbol)}

@@ -13,9 +13,7 @@ export class UpdatePreferredCurrencyService {
     private readonly currenciesRepo: CurrenciesRepository
   ) {}
 
-  async execute(
-    input: IUpdatePreferredCurrencyInput
-  ): Promise<TServiceResult<TManagementCompany>> {
+  async execute(input: IUpdatePreferredCurrencyInput): Promise<TServiceResult<TManagementCompany>> {
     const company = await this.companiesRepo.getById(input.managementCompanyId)
     if (!company) {
       return failure('Management company not found', 'NOT_FOUND')

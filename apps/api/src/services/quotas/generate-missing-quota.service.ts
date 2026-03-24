@@ -7,6 +7,7 @@ import type {
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
 import { parseAmount, roundCurrency } from '@packages/utils/money'
+import type { EventLogger } from '@packages/services'
 
 const MONTH_NAMES = [
   'January',
@@ -50,10 +51,66 @@ export class GenerateMissingQuotaService {
     private readonly conceptsRepo: PaymentConceptsRepository,
     private readonly assignmentsRepo: PaymentConceptAssignmentsRepository,
     private readonly unitsRepo: TUnitsRepo,
-    private readonly quotasRepo: QuotasRepository
+    private readonly quotasRepo: QuotasRepository,
+    private readonly eventLogger?: EventLogger
   ) {}
 
   async execute(input: IGenerateMissingQuotaInput): Promise<TServiceResult<{ quota: TQuota }>> {
+    const start = Date.now()
+    const result = await this.executeInternal(input)
+    const durationMs = Date.now() - start
+
+    if (this.eventLogger) {
+      if (result.success) {
+        this.eventLogger
+          .info({
+            category: 'quota',
+            event: 'quota.generated',
+            action: 'generate_missing_quota',
+            message: `Quota generated for unit ${input.unitId}, concept ${input.paymentConceptId}, period ${input.periodYear}-${input.periodMonth}`,
+            module: 'GenerateMissingQuotaService',
+            entityType: 'quota',
+            entityId: result.data.quota.id,
+            userId: input.generatedBy,
+            metadata: {
+              unitId: input.unitId,
+              paymentConceptId: input.paymentConceptId,
+              periodYear: input.periodYear,
+              periodMonth: input.periodMonth,
+              amount: result.data.quota.baseAmount,
+            },
+            durationMs,
+          })
+          .catch(() => {})
+      } else {
+        this.eventLogger
+          .error({
+            category: 'quota',
+            event: 'quota.generation.failed',
+            action: 'generate_missing_quota',
+            message: `Failed to generate quota: ${result.error}`,
+            module: 'GenerateMissingQuotaService',
+            userId: input.generatedBy,
+            errorCode: result.code,
+            errorMessage: result.error,
+            metadata: {
+              unitId: input.unitId,
+              paymentConceptId: input.paymentConceptId,
+              periodYear: input.periodYear,
+              periodMonth: input.periodMonth,
+            },
+            durationMs,
+          })
+          .catch(() => {})
+      }
+    }
+
+    return result
+  }
+
+  private async executeInternal(
+    input: IGenerateMissingQuotaInput
+  ): Promise<TServiceResult<{ quota: TQuota }>> {
     const { unitId, paymentConceptId, periodYear, periodMonth, generatedBy } = input
 
     // 1. Validate concept

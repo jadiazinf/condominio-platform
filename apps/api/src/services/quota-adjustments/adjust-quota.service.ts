@@ -3,6 +3,7 @@ import type { QuotasRepository, QuotaAdjustmentsRepository } from '@database/rep
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { type TServiceResult, success, failure } from '../base.service'
 import { parseAmount, toDecimal } from '@packages/utils/money'
+import type { EventLogger } from '@packages/services'
 
 type TAdjustQuotaInput = {
   quotaId: string
@@ -25,10 +26,62 @@ export class AdjustQuotaService {
   constructor(
     private readonly db: TDrizzleClient,
     private readonly quotasRepository: QuotasRepository,
-    private readonly quotaAdjustmentsRepository: QuotaAdjustmentsRepository
+    private readonly quotaAdjustmentsRepository: QuotaAdjustmentsRepository,
+    private readonly eventLogger?: EventLogger
   ) {}
 
   async execute(input: TAdjustQuotaInput): Promise<TServiceResult<TAdjustQuotaOutput>> {
+    const start = Date.now()
+    const result = await this.executeInternal(input)
+    const durationMs = Date.now() - start
+
+    if (this.eventLogger) {
+      if (result.success) {
+        this.eventLogger
+          .info({
+            category: 'quota',
+            event: 'quota.adjusted',
+            action: 'adjust_quota',
+            message: result.data.message,
+            module: 'AdjustQuotaService',
+            entityType: 'quota',
+            entityId: input.quotaId,
+            userId: input.adjustedByUserId,
+            metadata: {
+              quotaId: input.quotaId,
+              adjustmentType: input.adjustmentType,
+              newAmount: input.newAmount,
+              adjustmentId: result.data.adjustment.id,
+            },
+            durationMs,
+          })
+          .catch(() => {})
+      } else {
+        this.eventLogger
+          .error({
+            category: 'quota',
+            event: 'quota.adjust.failed',
+            action: 'adjust_quota',
+            message: `Failed to adjust quota: ${result.error}`,
+            module: 'AdjustQuotaService',
+            entityType: 'quota',
+            entityId: input.quotaId,
+            userId: input.adjustedByUserId,
+            errorCode: result.code,
+            errorMessage: result.error,
+            metadata: { adjustmentType: input.adjustmentType, newAmount: input.newAmount },
+            durationMs,
+          })
+          .catch(() => {})
+      }
+    }
+
+    return result
+  }
+
+  private async executeInternal(
+    input: TAdjustQuotaInput
+  ): Promise<TServiceResult<TAdjustQuotaOutput>> {
     const { quotaId, newAmount, adjustmentType, reason, adjustedByUserId } = input
 
     // 1. Get the quota

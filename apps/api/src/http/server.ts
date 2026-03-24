@@ -10,6 +10,7 @@ import {
   applySecurityHeaders,
 } from './middlewares/security'
 import { applyI18nMiddleware } from './middlewares/locales'
+import { applySentryMiddleware } from './middlewares/sentry'
 import '@libs/firebase/config'
 
 export class Server {
@@ -42,7 +43,9 @@ export class Server {
   }
 
   private setupMiddlewares(app: Hono) {
-    // Error handler must be first to catch all errors from subsequent middlewares
+    // Sentry must be first so errors are captured within its scope
+    applySentryMiddleware(app)
+    // Error handler must be before other middlewares to catch all errors
     applyErrorHandler(app)
     applySecurityHeaders(app)
     applyCors(app)

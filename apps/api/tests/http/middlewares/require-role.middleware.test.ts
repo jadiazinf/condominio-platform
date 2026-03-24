@@ -82,18 +82,14 @@ describe('requireRole middleware', () => {
     const superadminRole = await findOrCreateRole(
       RoleFactory.systemRole({ name: ESystemRole.SUPERADMIN })
     )
-    const adminRole = await findOrCreateRole(
-      RoleFactory.systemRole({ name: ESystemRole.ADMIN })
-    )
+    const adminRole = await findOrCreateRole(RoleFactory.systemRole({ name: ESystemRole.ADMIN }))
     const accountantRole = await findOrCreateRole(
       RoleFactory.systemRole({ name: ESystemRole.ACCOUNTANT })
     )
     const supportRole = await findOrCreateRole(
       RoleFactory.systemRole({ name: ESystemRole.SUPPORT })
     )
-    const userRole = await findOrCreateRole(
-      RoleFactory.systemRole({ name: ESystemRole.USER })
-    )
+    const userRole = await findOrCreateRole(RoleFactory.systemRole({ name: ESystemRole.USER }))
 
     superadminRoleId = superadminRole.id
     adminRoleId = adminRole.id

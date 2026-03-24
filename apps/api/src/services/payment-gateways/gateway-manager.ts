@@ -5,6 +5,7 @@ import { BankPaymentAdapter } from './adapters/bank.adapter'
 import { StripePaymentAdapter } from './adapters/stripe.adapter'
 import { BncPaymentAdapter } from './adapters/bnc.adapter'
 import { env } from '@config/environment'
+import type { EventLogger } from '@packages/services'
 
 /**
  * Factory/registry that resolves the correct adapter for a given gateway type.
@@ -19,7 +20,7 @@ import { env } from '@config/environment'
 export class PaymentGatewayManager {
   private readonly adapters: Map<string, IPaymentGatewayAdapter>
 
-  constructor() {
+  constructor(eventLogger?: EventLogger) {
     this.adapters = new Map()
 
     // Register built-in adapters
@@ -38,7 +39,7 @@ export class PaymentGatewayManager {
             sandbox: env.BNC_SANDBOX,
           }
         : undefined
-    const bnc = new BncPaymentAdapter(bncConfig, env.BNC_WEBHOOK_API_KEY)
+    const bnc = new BncPaymentAdapter(bncConfig, env.BNC_WEBHOOK_API_KEY, eventLogger)
 
     // Map gateway types to adapters
     this.register(manual) // 'other'

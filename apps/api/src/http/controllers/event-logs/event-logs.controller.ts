@@ -9,15 +9,8 @@ import {
 } from '@packages/domain'
 import type { EventLogsRepository } from '@database/repositories'
 import { HttpContext } from '../../context'
-import {
-  queryValidator,
-} from '../../middlewares/utils/payload-validator'
-import {
-  authMiddleware,
-  requireRole,
-  CONDOMINIUM_ID_PROP,
-} from '../../middlewares/auth'
-import { IdParamSchema } from '../common'
+import { queryValidator } from '../../middlewares/utils/payload-validator'
+import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
 import type { TRouteDefinition } from '../types'
 import { createRouter } from '../create-router'
 
@@ -56,10 +49,7 @@ export class EventLogsController {
         method: 'get',
         path: '/:id',
         handler: this.getById,
-        middlewares: [
-          authMiddleware,
-          requireRole(ESystemRole.SUPERADMIN),
-        ],
+        middlewares: [authMiddleware, requireRole(ESystemRole.SUPERADMIN)],
       },
     ]
   }

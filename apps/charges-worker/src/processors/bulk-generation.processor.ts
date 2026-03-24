@@ -14,6 +14,8 @@ import {
   CondominiumReceiptsRepository,
 } from '@database/repositories'
 import { autoGenerateReceipts } from '@api/services/receipts/auto-generate-receipts.service'
+import { EventLogger } from '@packages/services'
+import { EventLogsRepository } from '@database/repositories'
 import { getBossClient } from '@worker/boss/client'
 import { QUEUES, type IBulkGenerateJobData, type INotifyJobData } from '@worker/boss/queues'
 import logger from '@packages/logger'
@@ -42,14 +44,46 @@ export async function processBulkGeneration(job: PgBoss.Job<IBulkGenerateJobData
 
   logger.info({ jobId: job.id, paymentConceptId }, '[BulkGen] Starting bulk generation')
 
+  const db = DatabaseService.getInstance().getDb()
+  const eventLogger = new EventLogger(new EventLogsRepository(db), {
+    source: 'worker',
+    module: 'bulk-generation.processor',
+  })
+
   try {
     await _processBulkGeneration(job)
+
+    const durationMs = Date.now() - start
+    eventLogger.info({
+      category: 'worker',
+      event: 'worker.bulk_generation.completed',
+      action: 'bulk_generate',
+      message: `Bulk generation job ${job.id} completed for concept ${paymentConceptId}`,
+      entityType: 'payment_concept',
+      entityId: paymentConceptId,
+      metadata: { jobId: job.id },
+      durationMs,
+    })
   } catch (error) {
     const elapsed = ((Date.now() - start) / 1000).toFixed(1)
     const serializedError =
       error instanceof Error
         ? { message: error.message, stack: error.stack, name: error.name }
         : String(error)
+
+    eventLogger.critical({
+      category: 'worker',
+      event: 'worker.bulk_generation.failed',
+      action: 'bulk_generate',
+      message: `Bulk generation job ${job.id} failed: ${error instanceof Error ? error.message : String(error)}`,
+      entityType: 'payment_concept',
+      entityId: paymentConceptId,
+      errorCode: 'INTERNAL_ERROR',
+      errorMessage: error instanceof Error ? error.message : String(error),
+      metadata: { jobId: job.id },
+      durationMs: Date.now() - start,
+    })
+
     logger.error(
       { jobId: job.id, paymentConceptId, error: serializedError, elapsedSeconds: elapsed },
       '[BulkGen] Job failed with error'
@@ -323,7 +357,7 @@ async function _processBulkGeneration(job: PgBoss.Job<IBulkGenerateJobData>): Pr
       category: 'quota',
       title: 'Generación masiva completada',
       body: `Se generaron ${result.totalQuotas} cuota(s) en ${result.periodsGenerated} período(s). Monto total: ${toDecimal(result.totalAmount)}.`,
-      channels: ['in_app'],
+      channels: ['in_app', 'push'],
       data: result,
     }
     await boss.send(QUEUES.NOTIFY, notification)
@@ -453,7 +487,7 @@ async function notifyUnitResidents(
         category: 'quota',
         title: `Nuevas cuotas generadas: ${conceptName}`,
         body,
-        channels: ['in_app', 'email'],
+        channels: ['in_app', 'email', 'push'],
         data: {
           condominiumId,
           conceptName,

@@ -11,6 +11,7 @@ import { createRouter } from '../create-router'
 import { z } from 'zod'
 import { AUTHENTICATED_USER_PROP } from '../../middlewares/utils/auth/is-user-authenticated'
 import { AdjustQuotaService } from '@src/services/quota-adjustments'
+import type { EventLogger } from '@packages/services'
 
 const QuotaIdParamSchema = z.object({
   quotaId: z.string().uuid('Invalid quota ID format'),
@@ -58,12 +59,14 @@ export class QuotaAdjustmentsController {
   constructor(
     private readonly db: TDrizzleClient,
     private readonly quotasRepository: QuotasRepository,
-    private readonly quotaAdjustmentsRepository: QuotaAdjustmentsRepository
+    private readonly quotaAdjustmentsRepository: QuotaAdjustmentsRepository,
+    private readonly eventLogger?: EventLogger
   ) {
     this.adjustQuotaService = new AdjustQuotaService(
       db,
       quotasRepository,
-      quotaAdjustmentsRepository
+      quotaAdjustmentsRepository,
+      eventLogger
     )
   }
 

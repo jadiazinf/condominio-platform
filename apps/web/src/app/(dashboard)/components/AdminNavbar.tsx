@@ -3,6 +3,7 @@
 import type { TUser } from '@packages/domain'
 
 import { Menu, Building } from 'lucide-react'
+import NextLink from 'next/link'
 
 import { SwitchRoleButton } from './SwitchRoleButton'
 
@@ -13,7 +14,6 @@ import {
   NavbarItem,
 } from '@/ui/components/navbar'
 import { Button } from '@/ui/components/button'
-import { Link } from '@/ui/components/link'
 import { Chip } from '@/ui/components/chip'
 import { NotificationPanel } from '@/ui/components/notifications'
 import { CurrentUserAvatar } from '@/ui/components/avatar'
@@ -37,9 +37,9 @@ export function AdminNavbar({ onToggleSidebar, initialUser }: AdminNavbarProps) 
           </Button>
         )}
         <NavbarBrandPrimitive className="gap-2 sm:gap-3">
-          <Link className="font-bold text-inherit text-xl hidden sm:inline" href="/dashboard">
+          <NextLink className="font-bold text-inherit text-xl hidden sm:inline" href="/dashboard">
             CondominioApp
-          </Link>
+          </NextLink>
           <Chip
             classNames={{
               base: 'bg-primary/10',

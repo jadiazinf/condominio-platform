@@ -101,7 +101,8 @@ export class GenerateReceiptPdfService {
       return { convertAmount: identity, currencySymbol: originalSymbol }
     }
 
-    const managementCompanyIds = (condominium as { managementCompanyIds?: string[] }).managementCompanyIds
+    const managementCompanyIds = (condominium as { managementCompanyIds?: string[] })
+      .managementCompanyIds
     if (!managementCompanyIds?.length) {
       return { convertAmount: identity, currencySymbol: originalSymbol }
     }
@@ -116,7 +117,10 @@ export class GenerateReceiptPdfService {
       return { convertAmount: identity, currencySymbol: originalSymbol }
     }
 
-    const rate = await this.exchangeRatesRepo.getLatestRate(receiptCurrencyId, company.preferredCurrencyId)
+    const rate = await this.exchangeRatesRepo.getLatestRate(
+      receiptCurrencyId,
+      company.preferredCurrencyId
+    )
     if (!rate) {
       // No exchange rate available — fall back to original currency
       return { convertAmount: identity, currencySymbol: originalSymbol }
@@ -181,7 +185,11 @@ export class GenerateReceiptPdfService {
             (quota as Record<string, unknown>).paymentConceptId as string
           )
           for (const svc of services) {
-            breakdownItems.push({ label: svc.serviceName, amount: convertAmount(svc.amount), sub: true })
+            breakdownItems.push({
+              label: svc.serviceName,
+              amount: convertAmount(svc.amount),
+              sub: true,
+            })
           }
         }
       }
@@ -423,7 +431,7 @@ export class GenerateReceiptPdfService {
     receipt: Record<string, unknown>,
     currencySymbol: string,
     pageWidth: number,
-    convertAmount: (amount: string | number) => string = (a) => String(a)
+    convertAmount: (amount: string | number) => string = a => String(a)
   ) {
     const y = doc.y + 10
 

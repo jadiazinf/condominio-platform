@@ -2,6 +2,7 @@
 
 import type { TUser } from '@packages/domain'
 
+import NextLink from 'next/link'
 import { Menu, Shield } from 'lucide-react'
 
 import { SwitchRoleButton } from './SwitchRoleButton'
@@ -13,7 +14,6 @@ import {
   NavbarItem,
 } from '@/ui/components/navbar'
 import { Button } from '@/ui/components/button'
-import { Link } from '@/ui/components/link'
 import { Chip } from '@/ui/components/chip'
 import { NotificationPanel } from '@/ui/components/notifications'
 import { CurrentUserAvatar } from '@/ui/components/avatar'
@@ -34,9 +34,9 @@ export function SuperadminNavbar({ onToggleSidebar, initialUser }: SuperadminNav
           </Button>
         )}
         <NavbarBrandPrimitive className="gap-2 sm:gap-3">
-          <Link className="font-bold text-inherit text-xl hidden sm:inline" href="/dashboard">
+          <NextLink className="font-bold text-inherit text-xl hidden sm:inline" href="/dashboard">
             CondominioApp
-          </Link>
+          </NextLink>
           <Chip
             classNames={{ base: 'bg-danger/10', content: 'text-danger font-semibold text-xs' }}
             startContent={<Shield size={12} />}

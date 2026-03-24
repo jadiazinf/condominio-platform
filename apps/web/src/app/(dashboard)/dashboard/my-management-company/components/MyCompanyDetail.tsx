@@ -1,6 +1,7 @@
 import { getMyCompanyDetail } from '@packages/http-client'
 
 import { PreferredCurrencySelector } from './PreferredCurrencySelector'
+
 import { Card } from '@/ui/components/card'
 import { Chip } from '@/ui/components/chip'
 import { Typography } from '@/ui/components/typography'

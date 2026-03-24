@@ -5,9 +5,9 @@ import type { TReceiptListItem } from '@packages/http-client'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useCallback } from 'react'
 import { FileSpreadsheet } from 'lucide-react'
-import { formatAmount } from '@packages/utils/currency'
 
 import { useTranslation } from '@/contexts'
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { Typography } from '@/ui/components/typography'
 import { Chip } from '@/ui/components/chip'
 import { DatePicker } from '@/ui/components/date-picker'
@@ -131,7 +131,10 @@ export function MyReceiptsContent({
           return (
             <div className="text-right">
               <Typography variant="body2" weight="semibold">
-                {receipt.currencySymbol ?? ''} {formatAmount(receipt.totalAmount)}
+                <ConvertedAmount
+                  amount={receipt.totalAmount}
+                  currencySymbol={receipt.currencySymbol}
+                />
               </Typography>
             </div>
           )

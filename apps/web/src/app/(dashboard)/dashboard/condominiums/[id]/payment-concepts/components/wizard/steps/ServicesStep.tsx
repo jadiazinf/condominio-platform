@@ -28,6 +28,7 @@ import { Select, type ISelectItem } from '@/ui/components/select'
 import { Pagination } from '@/ui/components/pagination'
 import { Divider } from '@/ui/components/divider'
 import { useTranslation } from '@/contexts'
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 
 export interface ServicesStepProps {
   formData: IWizardFormData
@@ -136,12 +137,14 @@ export function ServicesStep({
     [formData.services]
   )
 
-  const currencySymbol = useMemo(() => {
-    if (!formData.currencyId) return ''
-    const cur = currencies.find(c => c.id === formData.currencyId)
+  const selectedCurrency = useMemo(() => {
+    if (!formData.currencyId) return null
 
-    return cur?.symbol || cur?.code || ''
+    return currencies.find(c => c.id === formData.currencyId) ?? null
   }, [formData.currencyId, currencies])
+
+  const currencySymbol = selectedCurrency?.symbol || selectedCurrency?.code || ''
+  const currencyCode = selectedCurrency?.code || ''
 
   const currencySymbolNode = currencySymbol ? (
     <span className="text-default-400 text-sm">{currencySymbol}</span>
@@ -360,7 +363,15 @@ export function ServicesStep({
                   </div>
                   {/* Row 2: amount */}
                   <span className="text-sm font-semibold text-default-600">
-                    {service.amount > 0 ? formatAmount(service.amount) : '—'}
+                    {service.amount > 0 ? (
+                      <ConvertedAmount
+                        amount={service.amount}
+                        currencyCode={currencyCode}
+                        currencySymbol={currencySymbol}
+                      />
+                    ) : (
+                      '—'
+                    )}
                   </span>
                   {/* Row 3: action buttons */}
                   <div className="flex items-center justify-end gap-2">
@@ -404,7 +415,11 @@ export function ServicesStep({
               {t(`${w}.total`)}:
             </Typography>
             <Typography className="font-bold" variant="body1">
-              {formatAmount(totalAmount)}
+              <ConvertedAmount
+                amount={totalAmount}
+                currencyCode={currencyCode}
+                currencySymbol={currencySymbol}
+              />
             </Typography>
           </div>
         </div>

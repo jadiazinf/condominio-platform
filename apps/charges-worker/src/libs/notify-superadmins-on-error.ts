@@ -104,7 +104,7 @@ export async function notifySuperadminsOnError(ctx: IWorkerErrorContext): Promis
         ]
           .filter(Boolean)
           .join('\n'),
-        channels: ['email', 'in_app'],
+        channels: ['email', 'in_app', 'push'],
         data: {
           processor: ctx.processor,
           jobId: ctx.jobId,

@@ -42,7 +42,7 @@ export class SendNotificationService {
   ) {}
 
   async execute(input: ISendNotificationInput): Promise<TServiceResult<ISendNotificationOutput>> {
-    const channels = input.channels ?? ['in_app']
+    const channels = input.channels ?? ['in_app', 'push']
     const enabledChannels: Array<'in_app' | 'email' | 'push'> = []
 
     for (const channel of channels) {

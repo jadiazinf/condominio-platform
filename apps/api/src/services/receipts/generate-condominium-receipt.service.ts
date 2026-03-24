@@ -1,6 +1,7 @@
 import type { TCondominiumReceipt } from '@packages/domain'
 import type { TServiceResult } from '@packages/services'
 import { success, failure } from '@packages/services'
+import type { EventLogger } from '@packages/services'
 import type { CondominiumReceiptsRepository } from '@packages/database'
 import type { QuotasRepository } from '@packages/database'
 import type { UnitsRepository } from '@packages/database'
@@ -31,10 +32,61 @@ export class GenerateCondominiumReceiptService {
     private receiptsRepo: CondominiumReceiptsRepository,
     private quotasRepo: QuotasRepository,
     private unitsRepo: UnitsRepository,
-    private buildingsRepo: BuildingsRepository
+    private buildingsRepo: BuildingsRepository,
+    private eventLogger?: EventLogger
   ) {}
 
   async execute(input: IGenerateReceiptInput): Promise<TServiceResult<TCondominiumReceipt>> {
+    const startTime = Date.now()
+    const result = await this.executeInternal(input)
+    const durationMs = Date.now() - startTime
+
+    if (this.eventLogger) {
+      if (result.success) {
+        this.eventLogger.info({
+          category: 'receipt',
+          event: 'receipt.generated',
+          action: 'generate_receipt',
+          message: `Receipt generated for unit ${input.unitId} (${input.periodYear}-${input.periodMonth})`,
+          module: 'GenerateCondominiumReceiptService',
+          entityType: 'receipt',
+          entityId: result.data.id,
+          condominiumId: input.condominiumId,
+          userId: input.generatedBy,
+          metadata: {
+            unitId: input.unitId,
+            periodYear: input.periodYear,
+            periodMonth: input.periodMonth,
+          },
+          durationMs,
+        })
+      } else {
+        this.eventLogger.error({
+          category: 'receipt',
+          event: 'receipt.generation.failed',
+          action: 'generate_receipt',
+          message: `Receipt generation failed: ${result.error}`,
+          module: 'GenerateCondominiumReceiptService',
+          condominiumId: input.condominiumId,
+          userId: input.generatedBy,
+          errorCode: result.code,
+          errorMessage: result.error,
+          metadata: {
+            unitId: input.unitId,
+            periodYear: input.periodYear,
+            periodMonth: input.periodMonth,
+          },
+          durationMs,
+        })
+      }
+    }
+
+    return result
+  }
+
+  private async executeInternal(
+    input: IGenerateReceiptInput
+  ): Promise<TServiceResult<TCondominiumReceipt>> {
     // 1. Check if receipt already exists (allow regeneration of voided receipts)
     const existing = await this.receiptsRepo.getByUnitAndPeriod(
       input.unitId,

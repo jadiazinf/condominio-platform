@@ -7,6 +7,7 @@ import type {
 } from './validate-quota-selection.service'
 import type { ApplyPaymentToQuotaService } from '../payment-applications/apply-payment-to-quota.service'
 import { type TServiceResult, success, failure } from '../base.service'
+import type { EventLogger } from '@packages/services'
 import logger from '@utils/logger'
 
 export interface IC2PData {
@@ -72,10 +73,61 @@ export class InitiatePaymentFlowService {
     private readonly paymentsRepo: PaymentsRepository,
     private readonly applyPaymentService: ApplyPaymentToQuotaService,
     private readonly gatewayManager: PaymentGatewayManager,
-    private readonly gatewayTransactionsRepo: GatewayTransactionsRepository
+    private readonly gatewayTransactionsRepo: GatewayTransactionsRepository,
+    private readonly eventLogger?: EventLogger
   ) {}
 
   async execute(input: IInitiatePaymentInput): Promise<TServiceResult<IInitiatePaymentOutput>> {
+    const startTime = Date.now()
+    const result = await this.executeInternal(input)
+    const durationMs = Date.now() - startTime
+
+    // Fire-and-forget event logging
+    if (this.eventLogger) {
+      if (result.success) {
+        this.eventLogger.info({
+          category: 'payment',
+          event: 'payment.flow.initiated',
+          action: 'initiate_payment',
+          message: `Payment initiated via ${input.method} for unit ${input.unitId}`,
+          module: 'InitiatePaymentFlowService',
+          entityType: 'payment',
+          entityId: result.data.payment.id,
+          userId: input.userId,
+          metadata: {
+            method: input.method,
+            paymentMethod: input.paymentMethod,
+            quotaIds: input.quotaIds,
+            status: result.data.status,
+          },
+          durationMs,
+        })
+      } else {
+        this.eventLogger.error({
+          category: 'payment',
+          event: 'payment.flow.failed',
+          action: 'initiate_payment',
+          message: `Payment flow failed: ${result.error}`,
+          module: 'InitiatePaymentFlowService',
+          userId: input.userId,
+          errorCode: result.code,
+          errorMessage: result.error,
+          metadata: {
+            method: input.method,
+            unitId: input.unitId,
+            quotaIds: input.quotaIds,
+          },
+          durationMs,
+        })
+      }
+    }
+
+    return result
+  }
+
+  private async executeInternal(
+    input: IInitiatePaymentInput
+  ): Promise<TServiceResult<IInitiatePaymentOutput>> {
     // 1. Validate quota selection
     const validation = await this.validateService.execute({
       unitId: input.unitId,

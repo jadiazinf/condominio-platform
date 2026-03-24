@@ -15,6 +15,8 @@ import {
   CondominiumReceiptsRepository,
 } from '@database/repositories'
 import { autoGenerateReceipts } from '@api/services/receipts/auto-generate-receipts.service'
+import { EventLogger } from '@packages/services'
+import { EventLogsRepository } from '@database/repositories'
 import { getBossClient } from '@worker/boss/client'
 import { QUEUES, type IAutoGenerateJobData, type INotifyJobData } from '@worker/boss/queues'
 import logger from '@packages/logger'
@@ -26,8 +28,24 @@ export async function processAutoGeneration(job: PgBoss.Job<IAutoGenerateJobData
 
   logger.info({ jobId: job.id }, '[AutoGen] Starting auto-generation (assignment-based)')
 
+  const db = DatabaseService.getInstance().getDb()
+  const eventLogger = new EventLogger(new EventLogsRepository(db), {
+    source: 'worker',
+    module: 'auto-generation.processor',
+  })
+
   try {
     await _processAutoGeneration(job)
+
+    const durationMs = Date.now() - start
+    eventLogger.info({
+      category: 'worker',
+      event: 'worker.auto_generation.completed',
+      action: 'auto_generate',
+      message: `Auto-generation job ${job.id} completed`,
+      metadata: { jobId: job.id },
+      durationMs,
+    })
   } catch (error) {
     const elapsed = ((Date.now() - start) / 1000).toFixed(1)
     const serializedError =
@@ -38,6 +56,17 @@ export async function processAutoGeneration(job: PgBoss.Job<IAutoGenerateJobData
       { jobId: job.id, error: serializedError, elapsedSeconds: elapsed },
       '[AutoGen] Job failed with error'
     )
+
+    eventLogger.critical({
+      category: 'worker',
+      event: 'worker.auto_generation.failed',
+      action: 'auto_generate',
+      message: `Auto-generation job ${job.id} failed: ${error instanceof Error ? error.message : String(error)}`,
+      errorCode: 'INTERNAL_ERROR',
+      errorMessage: error instanceof Error ? error.message : String(error),
+      metadata: { jobId: job.id },
+      durationMs: Date.now() - start,
+    })
 
     await notifySuperadminsOnError({
       jobId: job.id,
@@ -341,7 +370,7 @@ async function _processAutoGeneration(job: PgBoss.Job<IAutoGenerateJobData>): Pr
           category: 'alert',
           title,
           body,
-          channels: ['in_app', 'email'],
+          channels: ['in_app', 'email', 'push'],
           data,
         }
         await boss.send(QUEUES.NOTIFY, notification)
@@ -624,7 +653,7 @@ async function notifyResidentsForAutoGeneration(
           category: 'quota',
           title: `Nueva cuota: ${conceptName}`,
           body,
-          channels: ['in_app', 'email'],
+          channels: ['in_app', 'email', 'push'],
           data: {
             condominiumId: quota.condominiumId,
             conceptName,

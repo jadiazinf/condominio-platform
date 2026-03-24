@@ -8,6 +8,7 @@ import { useResendOwnerInvitation } from '@packages/http-client/hooks'
 import { formatAmount } from '@packages/utils/currency'
 import { formatFullDate } from '@packages/utils/dates'
 
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Chip } from '@/ui/components/chip'
 import { Button } from '@/ui/components/button'
@@ -81,7 +82,16 @@ export function QuotasTable({
         return quota.periodDescription || `${quota.periodYear}`
       }
       case 'amount':
-        return formatAmount(quota.baseAmount)
+        return (
+          <ConvertedAmount
+            amount={quota.baseAmount}
+            amountInBaseCurrency={quota.amountInBaseCurrency}
+            currencyCode={quota.currency?.code}
+            currencySymbol={quota.currency?.symbol}
+            exchangeRateUsed={quota.exchangeRateUsed}
+            isBaseCurrency={quota.currency?.isBaseCurrency}
+          />
+        )
       case 'paid':
         return formatAmount(quota.paidAmount)
       case 'balance':

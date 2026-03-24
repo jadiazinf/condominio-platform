@@ -14,6 +14,8 @@ const envSchema = z.object({
   APP_URL: z.string().optional().default('https://app.condominioapp.com'),
   INTERNAL_API_URL: z.string().optional(),
   INTERNAL_API_KEY: z.string().optional(),
+  // Sentry
+  SENTRY_DSN: z.string().optional(),
 })
 
 const parsed = envSchema.safeParse(Bun.env)

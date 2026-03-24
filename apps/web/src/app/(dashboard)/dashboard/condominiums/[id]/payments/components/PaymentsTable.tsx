@@ -4,9 +4,9 @@ import type { TPayment } from '@packages/domain'
 
 import { useState, useMemo, useCallback } from 'react'
 import { CreditCard, Search } from 'lucide-react'
-import { formatAmount } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
 
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
@@ -132,7 +132,14 @@ export function PaymentsTable({ payments, translations: t }: PaymentsTableProps)
         case 'unit':
           return <span className="text-sm text-default-700">{payment.unit?.unitNumber || '-'}</span>
         case 'amount':
-          return <span className="text-sm font-medium">{formatAmount(payment.amount)}</span>
+          return (
+            <ConvertedAmount
+              amount={payment.amount}
+              currencyCode={payment.currency?.code}
+              currencySymbol={payment.currency?.symbol}
+              isBaseCurrency={payment.currency?.isBaseCurrency}
+            />
+          )
         case 'method':
           return (
             <span className="text-sm text-default-600">
@@ -222,7 +229,13 @@ export function PaymentsTable({ payments, translations: t }: PaymentsTableProps)
                 <span>{formatShortDate(payment.paymentDate)}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{formatAmount(payment.amount)}</span>
+                <ConvertedAmount
+                  amount={payment.amount}
+                  className="text-sm font-medium"
+                  currencyCode={payment.currency?.code}
+                  currencySymbol={payment.currency?.symbol}
+                  isBaseCurrency={payment.currency?.isBaseCurrency}
+                />
               </div>
             </CardBody>
           </Card>

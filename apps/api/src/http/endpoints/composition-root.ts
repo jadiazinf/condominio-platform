@@ -139,7 +139,10 @@ import { ReportsController } from '../controllers/reports/reports.controller'
 import { AccessCodesController } from '../controllers/access-codes'
 import { AccessRequestsController } from '../controllers/access-requests'
 import { BankAccountsController } from '../controllers/bank-accounts/bank-accounts.controller'
-import { EventLogsController, CondominiumEventLogsController } from '../controllers/event-logs/event-logs.controller'
+import {
+  EventLogsController,
+  CondominiumEventLogsController,
+} from '../controllers/event-logs/event-logs.controller'
 import { AddUnitOwnerService } from '@services/unit-ownerships/add-unit-owner.service'
 import { ProcessWebhookService } from '@services/webhooks'
 import { PaymentGatewayManager } from '@services/payment-gateways/gateway-manager'
@@ -152,6 +155,7 @@ import { Hono } from 'hono'
 import type { TGatewayType } from '@packages/domain'
 import logger from '@packages/logger'
 
+import { EventLogger } from '@packages/services'
 import type { TApiEndpointDefinition } from './types'
 
 export function createRepositories(db: TDrizzleClient) {
@@ -161,6 +165,7 @@ export function createRepositories(db: TDrizzleClient) {
     amenities: new AmenitiesRepository(db),
     amenityReservations: new AmenityReservationsRepository(db),
     auditLogs: new AuditLogsRepository(db),
+    eventLogs: new EventLogsRepository(db),
     bankAccounts: new BankAccountsRepository(db),
     banks: new BanksRepository(db),
     budgets: new BudgetsRepository(db),
@@ -271,8 +276,11 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
   const condominiumMCRepo = createCondominiumMCAdapter(r.condominiums)
   const bankAccountCondominiumsRepo = createBankAccountCondominiumsAdapter(r.bankAccounts)
 
+  // Event Logger (fire-and-forget)
+  const eventLogger = new EventLogger(r.eventLogs)
+
   // Shared services
-  const gatewayManager = new PaymentGatewayManager()
+  const gatewayManager = new PaymentGatewayManager(eventLogger)
 
   const sendNotificationService = createSendNotificationService(
     r.notifications,
@@ -411,12 +419,18 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         r.units,
         r.buildings,
         r.currencies,
-        r.unitOwnerships
+        r.unitOwnerships,
+        eventLogger
       ).createRouter(),
     },
     {
       path: '/condominium/quota-adjustments',
-      router: new QuotaAdjustmentsController(db, r.quotas, r.quotaAdjustments).createRouter(),
+      router: new QuotaAdjustmentsController(
+        db,
+        r.quotas,
+        r.quotaAdjustments,
+        eventLogger
+      ).createRouter(),
     },
     {
       path: '/condominium/quota-formulas',
@@ -458,7 +472,8 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         gatewayManager,
         r.bankAccounts,
         r.quotaAdjustments,
-        r.paymentPendingAllocations
+        r.paymentPendingAllocations,
+        eventLogger
       ).createRouter(),
     },
     {
@@ -481,10 +496,12 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
           r.quotaAdjustments,
           r.interestConfigurations,
           r.paymentConcepts,
-          r.paymentPendingAllocations
+          r.paymentPendingAllocations,
+          eventLogger
         ),
         sendNotificationService,
         managementCompanyMembersRepo: r.managementCompanyMembers,
+        eventLogger,
       }).createRouter(),
     },
     {
@@ -507,7 +524,8 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         r.quotaAdjustments,
         r.interestConfigurations,
         r.paymentConcepts,
-        r.paymentPendingAllocations
+        r.paymentPendingAllocations,
+        eventLogger
       ).createRouter(),
     },
     {
@@ -550,7 +568,8 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         r.unitOwnerships,
         r.paymentConceptServices,
         r.managementCompanies,
-        r.exchangeRates
+        r.exchangeRates,
+        eventLogger
       ).createRouter(),
     },
 
@@ -598,6 +617,13 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
 
     // Audit
     { path: '/platform/audit-logs', router: new AuditLogsController(r.auditLogs).createRouter() },
+
+    // Event Logs
+    { path: '/platform/event-logs', router: new EventLogsController(r.eventLogs).createRouter() },
+    {
+      path: '/condominium/event-logs',
+      router: new CondominiumEventLogsController(r.eventLogs).createRouter(),
+    },
 
     // Invitations
     {
@@ -799,7 +825,7 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
     // Webhooks (no auth — authenticated by gateway signature)
     {
       path: '/webhooks',
-      router: createWebhookRouter(db, r, sendNotificationService, gatewayManager),
+      router: createWebhookRouter(db, r, sendNotificationService, gatewayManager, eventLogger),
     },
 
     // WebSocket fallback (main upgrade handled in main.ts via Bun server)
@@ -823,7 +849,8 @@ function createWebhookRouter(
   db: TDrizzleClient,
   r: TRepositories,
   sendNotificationService: ReturnType<typeof createSendNotificationService>,
-  gatewayManager: PaymentGatewayManager
+  gatewayManager: PaymentGatewayManager,
+  eventLogger?: EventLogger
 ): Hono {
   const processWebhookService = new ProcessWebhookService(
     db,
@@ -832,7 +859,8 @@ function createWebhookRouter(
     r.gatewayTransactions,
     r.payments,
     sendNotificationService,
-    r.paymentPendingAllocations
+    r.paymentPendingAllocations,
+    eventLogger
   )
 
   const router = new Hono()

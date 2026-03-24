@@ -7,6 +7,7 @@ import { ArrowLeft, Ban } from 'lucide-react'
 import { formatCurrency } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
 
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { useTranslation } from '@/contexts'
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
@@ -112,6 +113,8 @@ export default function QuotaDetailPage() {
   }
 
   const currencyCode = quota.currency?.code
+  const currencySymbol = quota.currency?.symbol
+  const isBaseCurrency = quota.currency?.isBaseCurrency
 
   return (
     <div className="space-y-6">
@@ -199,7 +202,14 @@ export default function QuotaDetailPage() {
               {t('admin.quotas.detail.baseAmount')}
             </Typography>
             <Typography className="font-semibold" variant="body1">
-              {formatCurrency(quota.baseAmount, { currency: currencyCode })}
+              <ConvertedAmount
+                amount={quota.baseAmount}
+                amountInBaseCurrency={quota.amountInBaseCurrency}
+                currencyCode={currencyCode}
+                currencySymbol={currencySymbol}
+                exchangeRateUsed={quota.exchangeRateUsed}
+                isBaseCurrency={isBaseCurrency}
+              />
             </Typography>
           </div>
           <div>

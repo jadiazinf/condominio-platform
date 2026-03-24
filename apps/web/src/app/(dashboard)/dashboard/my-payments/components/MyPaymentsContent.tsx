@@ -6,7 +6,6 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useCallback } from 'react'
 import Link from 'next/link'
 import { CreditCard, Plus } from 'lucide-react'
-import { formatAmount } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
 
 import { useTranslation } from '@/contexts'
@@ -18,6 +17,7 @@ import { DatePicker } from '@/ui/components/date-picker'
 import { Pagination } from '@/ui/components/pagination'
 import { ClearFiltersButton } from '@/ui/components/filters'
 import { Table, type ITableColumn } from '@/ui/components/table'
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { getPaymentStatusColor } from '@/utils/status-colors'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -184,9 +184,12 @@ export function MyPaymentsContent({
         case 'amount':
           return (
             <div className="text-right">
-              <Typography variant="body2" weight="semibold">
-                {payment.currency?.symbol ?? ''} {formatAmount(payment.amount ?? '0')}
-              </Typography>
+              <ConvertedAmount
+                amount={payment.amount}
+                currencyCode={payment.currency?.code}
+                currencySymbol={payment.currency?.symbol}
+                isBaseCurrency={payment.currency?.isBaseCurrency}
+              />
             </div>
           )
         case 'paymentMethod':

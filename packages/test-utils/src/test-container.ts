@@ -10,18 +10,19 @@ let db: TTestDrizzleClient | null = null
 let startPromise: Promise<TTestDrizzleClient> | null = null
 let schemaName: string | null = null
 
-// Test database URL - uses local PostgreSQL
+// Test database URL - uses local PostgreSQL (lazy: evaluated on first call, not at import time)
+let _testDatabaseUrl: string | null = null
 function getTestDatabaseUrl(): string {
+  if (_testDatabaseUrl) return _testDatabaseUrl
   const url = process.env.DATABASE_URL
   if (!url) {
     throw new Error(
       'DATABASE_URL environment variable is required. Create a .env.test file with DATABASE_URL=postgresql://...'
     )
   }
+  _testDatabaseUrl = url
   return url
 }
-
-const TEST_DATABASE_URL = getTestDatabaseUrl()
 
 /**
  * Starts a connection to the test database.
@@ -45,12 +46,12 @@ export async function startTestContainer(): Promise<TTestDrizzleClient> {
     schemaName = `test_${crypto.randomUUID().replace(/-/g, '')}`
 
     // 2. Connect to main DB to create schema
-    const adminClient = postgres(TEST_DATABASE_URL, { max: 1, onnotice: () => {} })
+    const adminClient = postgres(getTestDatabaseUrl(), { max: 1, onnotice: () => {} })
     await adminClient`CREATE SCHEMA IF NOT EXISTS ${adminClient.unsafe(schemaName)}`
     await adminClient.end()
 
     // 3. Connect with search_path
-    const url = new URL(TEST_DATABASE_URL)
+    const url = new URL(getTestDatabaseUrl())
     url.searchParams.set('search_path', schemaName)
 
     client = postgres(url.toString(), {
@@ -1392,7 +1393,7 @@ export async function stopTestContainer(): Promise<void> {
 
   // Drop schema
   if (schemaName) {
-    const adminClient = postgres(TEST_DATABASE_URL, { max: 1, onnotice: () => {} })
+    const adminClient = postgres(getTestDatabaseUrl(), { max: 1, onnotice: () => {} })
     await adminClient`DROP SCHEMA IF EXISTS ${adminClient.unsafe(schemaName)} CASCADE`
     await adminClient.end()
     schemaName = null

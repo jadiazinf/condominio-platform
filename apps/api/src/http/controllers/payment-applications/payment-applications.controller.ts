@@ -22,6 +22,7 @@ import { bodyValidator, paramsValidator } from '../../middlewares/utils/payload-
 import { IdParamSchema } from '../common'
 import type { TRouteDefinition } from '../types'
 import { authMiddleware, requireRole, CONDOMINIUM_ID_PROP } from '../../middlewares/auth'
+import type { EventLogger } from '@packages/services'
 import { ApplyPaymentToQuotaService } from '@services/payment-applications/apply-payment-to-quota.service'
 import { z } from 'zod'
 
@@ -72,7 +73,8 @@ export class PaymentApplicationsController extends BaseController<
     private readonly adjustmentsRepo: QuotaAdjustmentsRepository,
     private readonly interestConfigsRepo: InterestConfigurationsRepository,
     private readonly paymentConceptsRepo: PaymentConceptsRepository,
-    private readonly pendingAllocationsRepo?: PaymentPendingAllocationsRepository
+    private readonly pendingAllocationsRepo?: PaymentPendingAllocationsRepository,
+    private readonly eventLogger?: EventLogger
   ) {
     super(repository)
     this.applyService = new ApplyPaymentToQuotaService(
@@ -83,7 +85,8 @@ export class PaymentApplicationsController extends BaseController<
       adjustmentsRepo,
       interestConfigsRepo,
       paymentConceptsRepo,
-      pendingAllocationsRepo
+      pendingAllocationsRepo,
+      eventLogger
     )
   }
 

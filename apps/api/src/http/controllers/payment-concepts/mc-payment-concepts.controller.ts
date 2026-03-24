@@ -1415,7 +1415,8 @@ export class McPaymentConceptsController extends BaseController<
   }
 
   /**
-   * Post-processing after charge generation: notifications + receipt auto-generation.
+   * Post-processing after charge generation: receipt auto-generation + notifications.
+   * Receipts are generated FIRST so receiptId can be included in notification data for PDF attachment.
    */
   private async postChargeGeneration(params: {
     conceptId: string
@@ -1425,54 +1426,59 @@ export class McPaymentConceptsController extends BaseController<
     dueDate: string
     generatedBy: string
   }): Promise<void> {
-    // Send notifications
-    await this.notifyResidentsForGeneratedCharges(params)
-
-    // Auto-generate receipts for maintenance concepts
+    // Auto-generate receipts BEFORE notifications so receiptId is available for PDF attachment
+    let unitReceiptMap = new Map<string, string>()
     try {
       const concept = await this.conceptsRepo.getById(params.conceptId)
-      if (!concept || !concept.condominiumId) return
-
-      const { autoGenerateReceipts } =
-        await import('@src/services/receipts/auto-generate-receipts.service')
-      const { CondominiumReceiptsRepository, BuildingsRepository } =
-        await import('@database/repositories')
-      const db = this.db
-      await autoGenerateReceipts(
-        {
-          receiptsRepo: new CondominiumReceiptsRepository(db),
-          quotasRepo: this.quotasRepo as never,
-          unitsRepo: this.unitsRepo as never,
-          buildingsRepo: new BuildingsRepository(db),
-        },
-        {
-          unitIds: params.unitDetails.map(u => u.unitId),
-          conceptType: concept.conceptType ?? 'other',
-          condominiumId: concept.condominiumId,
-          periodYear: params.periodYear,
-          periodMonth: params.periodMonth,
-          currencyId: concept.currencyId,
-          generatedBy: params.generatedBy,
-        }
-      )
+      if (concept?.condominiumId) {
+        const { autoGenerateReceipts } =
+          await import('@src/services/receipts/auto-generate-receipts.service')
+        const { CondominiumReceiptsRepository, BuildingsRepository } =
+          await import('@database/repositories')
+        const db = this.db
+        const receiptResult = await autoGenerateReceipts(
+          {
+            receiptsRepo: new CondominiumReceiptsRepository(db),
+            quotasRepo: this.quotasRepo as never,
+            unitsRepo: this.unitsRepo as never,
+            buildingsRepo: new BuildingsRepository(db),
+          },
+          {
+            unitIds: params.unitDetails.map(u => u.unitId),
+            conceptType: concept.conceptType ?? 'other',
+            condominiumId: concept.condominiumId,
+            periodYear: params.periodYear,
+            periodMonth: params.periodMonth,
+            currencyId: concept.currencyId,
+            generatedBy: params.generatedBy,
+          }
+        )
+        unitReceiptMap = receiptResult.unitReceiptMap
+      }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error)
       const stack = error instanceof Error ? error.stack : undefined
       console.error('[GenerateCharges] Failed to auto-generate receipts', { msg, stack })
       console.log('[GenerateCharges] RECEIPT ERROR:', msg)
     }
+
+    // Send notifications with receiptId for PDF attachment
+    await this.notifyResidentsForGeneratedCharges(params, unitReceiptMap)
   }
 
   /**
    * Notifies residents after single-period charge generation (flow 3).
    */
-  private async notifyResidentsForGeneratedCharges(params: {
-    conceptId: string
-    periodYear: number
-    periodMonth: number
-    unitDetails: Array<{ unitId: string; amount: number }>
-    dueDate: string
-  }): Promise<void> {
+  private async notifyResidentsForGeneratedCharges(
+    params: {
+      conceptId: string
+      periodYear: number
+      periodMonth: number
+      unitDetails: Array<{ unitId: string; amount: number }>
+      dueDate: string
+    },
+    unitReceiptMap: Map<string, string> = new Map()
+  ): Promise<void> {
     if (!this.unitOwnershipsRepo || params.unitDetails.length === 0) return
 
     try {
@@ -1517,12 +1523,14 @@ export class McPaymentConceptsController extends BaseController<
         const currencyLabel = currencyCode ? ` ${currencyCode}` : ''
         const body = `Nueva cuota de "${conceptName}" - ${periodDescription}. Monto: ${amount.toFixed(2)}${currencyLabel}. Vencimiento: ${params.dueDate}.`
 
+        const receiptId = unitReceiptMap.get(ownership.unitId)
+
         await enqueueNotification({
           userId: ownership.userId,
           category: 'quota',
           title: `Nueva cuota: ${conceptName}`,
           body,
-          channels: ['in_app', 'email'],
+          channels: ['in_app', 'email', 'push'],
           data: {
             condominiumId: concept.condominiumId,
             conceptName,
@@ -1531,6 +1539,7 @@ export class McPaymentConceptsController extends BaseController<
             dueDate: params.dueDate,
             totalAmount: amount.toFixed(2),
             currencyCode,
+            ...(receiptId ? { receiptId } : {}),
           },
         })
       }

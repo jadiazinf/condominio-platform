@@ -31,6 +31,7 @@ import {
   useQueryClient,
 } from '@packages/http-client'
 
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { getPaymentStatusColor } from '@/utils/status-colors'
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
@@ -424,10 +425,14 @@ export default function PaymentDetailPage() {
 
         {/* Amounts */}
         <DetailSection title={t('admin.payments.detail.amounts')}>
-          <DetailRow
-            label={t('admin.payments.detail.amount')}
-            value={formatAmount(payment.amount)}
-          />
+          <DetailRow label={t('admin.payments.detail.amount')}>
+            <ConvertedAmount
+              amount={payment.amount}
+              currencyCode={payment.currency?.code}
+              currencySymbol={payment.currency?.symbol}
+              isBaseCurrency={payment.currency?.isBaseCurrency}
+            />
+          </DetailRow>
           {payment.currency && (
             <DetailRow
               label={t('admin.payments.detail.currency')}
@@ -435,16 +440,14 @@ export default function PaymentDetailPage() {
             />
           )}
           {payment.paidAmount && (
-            <DetailRow
-              label={t('admin.payments.detail.paidAmount')}
-              value={formatAmount(payment.paidAmount)}
-            />
-          )}
-          {payment.paidCurrency && (
-            <DetailRow
-              label={t('admin.payments.detail.paidCurrency')}
-              value={`${payment.paidCurrency.name} (${payment.paidCurrency.code})`}
-            />
+            <DetailRow label={t('admin.payments.detail.paidAmount')}>
+              <ConvertedAmount
+                amount={payment.paidAmount}
+                currencyCode={payment.paidCurrency?.code}
+                currencySymbol={payment.paidCurrency?.symbol}
+                isBaseCurrency={payment.paidCurrency?.isBaseCurrency}
+              />
+            </DetailRow>
           )}
           {payment.exchangeRate && (
             <DetailRow
@@ -454,10 +457,14 @@ export default function PaymentDetailPage() {
           )}
           {isCompleted && (
             <>
-              <DetailRow
-                label={t('admin.payments.applications.availableBalance')}
-                value={formatAmount(availableBalance.toFixed(2))}
-              />
+              <DetailRow label={t('admin.payments.applications.availableBalance')}>
+                <ConvertedAmount
+                  amount={availableBalance.toFixed(2)}
+                  currencyCode={payment.currency?.code}
+                  currencySymbol={payment.currency?.symbol}
+                  isBaseCurrency={payment.currency?.isBaseCurrency}
+                />
+              </DetailRow>
             </>
           )}
         </DetailSection>
@@ -551,9 +558,13 @@ export default function PaymentDetailPage() {
                 className="flex flex-col gap-1 rounded-md bg-default-50 p-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium">
-                    {formatAmount(app.appliedAmount)} {payment.currency?.code ?? ''}
-                  </span>
+                  <ConvertedAmount
+                    amount={app.appliedAmount}
+                    className="text-sm font-medium"
+                    currencyCode={payment.currency?.code}
+                    currencySymbol={payment.currency?.symbol}
+                    isBaseCurrency={payment.currency?.isBaseCurrency}
+                  />
                   <span className="text-xs text-default-500">
                     {t('admin.payments.detail.paymentDate')}: {formatDate(app.appliedAt)}
                   </span>
@@ -586,9 +597,13 @@ export default function PaymentDetailPage() {
                 className="flex flex-col gap-2 rounded-md bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium">
-                    {formatAmount(alloc.pendingAmount)} {payment.currency?.code ?? ''}
-                  </span>
+                  <ConvertedAmount
+                    amount={alloc.pendingAmount}
+                    className="text-sm font-medium"
+                    currencyCode={payment.currency?.code}
+                    currencySymbol={payment.currency?.symbol}
+                    isBaseCurrency={payment.currency?.isBaseCurrency}
+                  />
                   <Chip color={getAllocationStatusColor(alloc.status)} size="sm" variant="flat">
                     {t(`admin.payments.pendingAllocations.status.${alloc.status}`)}
                   </Chip>
@@ -640,7 +655,12 @@ export default function PaymentDetailPage() {
                   {t('admin.payments.applications.availableBalance')}
                 </Typography>
                 <Typography variant="h4">
-                  {formatAmount(availableBalance.toFixed(2))} {payment.currency?.code ?? ''}
+                  <ConvertedAmount
+                    amount={availableBalance.toFixed(2)}
+                    currencyCode={payment.currency?.code}
+                    currencySymbol={payment.currency?.symbol}
+                    isBaseCurrency={payment.currency?.isBaseCurrency}
+                  />
                 </Typography>
               </div>
 

@@ -7,6 +7,7 @@ import { Receipt, Search, Calendar } from 'lucide-react'
 import { formatAmount } from '@packages/utils/currency'
 import { formatShortDate } from '@packages/utils/dates'
 
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { Table, type ITableColumn } from '@/ui/components/table'
 import { Select, type ISelectItem } from '@/ui/components/select'
 import { Chip } from '@/ui/components/chip'
@@ -138,7 +139,17 @@ export function QuotasTable({ quotas, translations: t }: QuotasTableProps) {
             </div>
           )
         case 'amount':
-          return <span className="text-sm font-medium">{formatAmount(quota.baseAmount)}</span>
+          return (
+            <ConvertedAmount
+              amount={quota.baseAmount}
+              amountInBaseCurrency={quota.amountInBaseCurrency}
+              className="text-sm font-medium"
+              currencyCode={quota.currency?.code}
+              currencySymbol={quota.currency?.symbol}
+              exchangeRateUsed={quota.exchangeRateUsed}
+              isBaseCurrency={quota.currency?.isBaseCurrency}
+            />
+          )
         case 'balance':
           return (
             <span className="text-sm font-medium text-default-600">
@@ -223,7 +234,15 @@ export function QuotasTable({ quotas, translations: t }: QuotasTableProps) {
                 <span>{formatShortDate(quota.dueDate)}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{formatAmount(quota.baseAmount)}</span>
+                <ConvertedAmount
+                  amount={quota.baseAmount}
+                  amountInBaseCurrency={quota.amountInBaseCurrency}
+                  className="text-sm font-medium"
+                  currencyCode={quota.currency?.code}
+                  currencySymbol={quota.currency?.symbol}
+                  exchangeRateUsed={quota.exchangeRateUsed}
+                  isBaseCurrency={quota.currency?.isBaseCurrency}
+                />
                 <span className="text-xs text-default-500">
                   {t.table.balance}: {formatAmount(quota.balance)}
                 </span>

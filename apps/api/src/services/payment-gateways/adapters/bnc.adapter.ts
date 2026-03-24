@@ -20,6 +20,7 @@ import { WorkingKeyManager } from '@libs/bnc/working-key-manager'
 // error-codes utilities will be used when BNC integration goes live
 // import { extractErrorCode, getBncError, requiresReauth } from '@libs/bnc/error-codes'
 import logger from '@utils/logger'
+import type { EventLogger } from '@packages/services'
 
 /**
  * Adapter for BNC (Banco Nacional de Crédito) ESolutions API v2.1.
@@ -44,7 +45,10 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
   private readonly keyManager: WorkingKeyManager | null
   private readonly webhookApiKey: string | null
 
-  constructor(bncConfig?: IBncConfig, webhookApiKey?: string) {
+  private readonly eventLogger?: EventLogger
+
+  constructor(bncConfig?: IBncConfig, webhookApiKey?: string, eventLogger?: EventLogger) {
+    this.eventLogger = eventLogger
     if (bncConfig) {
       this.client = new BncApiClient(bncConfig)
       this.keyManager = new WorkingKeyManager(() => this.client!.authenticate())
@@ -89,16 +93,55 @@ export class BncPaymentAdapter implements IPaymentGatewayAdapter {
 
     const metadata = request.metadata ?? {}
     const method = metadata.method as string
+    const start = Date.now()
 
+    let response: IGatewayPaymentResponse
     if (method === 'c2p') {
-      return this.initiateC2P(request, metadata)
+      response = await this.initiateC2P(request, metadata)
+    } else if (method === 'vpos') {
+      response = await this.initiateVPOS(request, metadata)
+    } else {
+      throw new Error(`Unsupported BNC payment method: ${method}`)
     }
 
-    if (method === 'vpos') {
-      return this.initiateVPOS(request, metadata)
+    if (this.eventLogger) {
+      const durationMs = Date.now() - start
+      if (response.status === 'completed') {
+        this.eventLogger
+          .info({
+            category: 'payment',
+            event: 'gateway.bnc.payment_initiated',
+            action: 'initiate_bnc_payment',
+            message: `BNC ${method} payment initiated: ${response.externalTransactionId}`,
+            module: 'BncPaymentAdapter',
+            entityType: 'payment',
+            entityId: request.paymentId,
+            metadata: {
+              method,
+              externalTransactionId: response.externalTransactionId,
+              amount: request.amount,
+            },
+            durationMs,
+          })
+          .catch(() => {})
+      } else {
+        this.eventLogger
+          .error({
+            category: 'payment',
+            event: 'gateway.bnc.payment_failed',
+            action: 'initiate_bnc_payment',
+            message: `BNC ${method} payment failed`,
+            module: 'BncPaymentAdapter',
+            entityType: 'payment',
+            entityId: request.paymentId,
+            metadata: { method, rawResponse: response.rawResponse },
+            durationMs,
+          })
+          .catch(() => {})
+      }
     }
 
-    throw new Error(`Unsupported BNC payment method: ${method}`)
+    return response
   }
 
   /**

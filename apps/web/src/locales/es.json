@@ -4168,6 +4168,78 @@
         "ignoreError": "Error al ignorar el movimiento"
       }
     },
+    "eventLogs": {
+      "title": "Registro de Eventos",
+      "subtitle": "Monitorea las actividades del sistema en tiempo real",
+      "table": {
+        "event": "Evento",
+        "category": "Categoría",
+        "level": "Nivel",
+        "message": "Mensaje",
+        "source": "Origen",
+        "result": "Resultado",
+        "module": "Módulo",
+        "user": "Usuario",
+        "entity": "Entidad",
+        "duration": "Duración",
+        "date": "Fecha"
+      },
+      "filters": {
+        "category": "Categoría",
+        "level": "Nivel",
+        "result": "Resultado",
+        "source": "Origen",
+        "dateFrom": "Desde",
+        "dateTo": "Hasta",
+        "search": "Buscar por evento o mensaje...",
+        "clear": "Limpiar filtros"
+      },
+      "categories": {
+        "payment": "Pagos",
+        "quota": "Cuotas",
+        "receipt": "Recibos",
+        "worker": "Trabajador",
+        "notification": "Notificaciones",
+        "auth": "Autenticación",
+        "system": "Sistema",
+        "user": "Usuarios",
+        "condominium": "Condominios",
+        "subscription": "Suscripciones"
+      },
+      "levels": {
+        "info": "Info",
+        "warn": "Advertencia",
+        "error": "Error",
+        "critical": "Crítico"
+      },
+      "results": {
+        "success": "Éxito",
+        "failure": "Fallo",
+        "partial": "Parcial"
+      },
+      "sources": {
+        "api": "API",
+        "worker": "Worker",
+        "webhook": "Webhook",
+        "system": "Sistema",
+        "manual": "Manual"
+      },
+      "detail": {
+        "title": "Detalle del Evento",
+        "action": "Acción",
+        "entityType": "Tipo de Entidad",
+        "entityId": "ID de Entidad",
+        "userId": "ID de Usuario",
+        "userRole": "Rol de Usuario",
+        "errorCode": "Código de Error",
+        "errorMessage": "Mensaje de Error",
+        "metadata": "Metadata",
+        "ipAddress": "Dirección IP",
+        "noMetadata": "Sin metadata adicional"
+      },
+      "empty": "No se encontraron eventos",
+      "emptyDescription": "No hay registros de eventos que coincidan con los filtros seleccionados"
+    },
     "accessCodes": {
       "title": "Código de Acceso",
       "noCode": "No hay un código de acceso activo. Genera uno para que los residentes puedan solicitar acceso.",
@@ -4262,7 +4334,8 @@
         "delinquencyReport": "Reporte de Morosidad",
         "budgets": "Presupuestos",
         "receipts": "Recibos",
-        "bankReconciliation": "Conciliación Bancaria"
+        "bankReconciliation": "Conciliación Bancaria",
+        "eventLogs": "Registro de Eventos"
       },
       "myCompany": {
         "title": "Mi Administradora",

@@ -10,6 +10,7 @@ import { Chip } from '@/ui/components/chip'
 import { Spinner } from '@/ui/components/spinner'
 import { Typography } from '@/ui/components/typography'
 import { useTranslation } from '@/contexts'
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 
 const MONTH_NAMES_ES = [
   'Enero',
@@ -116,6 +117,8 @@ export function AffectedUnitsModal({
                     {group.units.map(unit => (
                       <UnitChargeRow
                         key={unit.unitId}
+                        currencyCode={currencyCode}
+                        currencySymbol={currencySymbol}
                         d={d}
                         formatAmount={formatAmount}
                         isRecurring={isRecurring}
@@ -142,9 +145,19 @@ interface UnitChargeRowProps {
   isRecurring: boolean
   t: (key: string) => string
   d: string
+  currencyCode: string
+  currencySymbol: string
 }
 
-function UnitChargeRow({ unit, formatAmount, isRecurring, t, d }: UnitChargeRowProps) {
+function UnitChargeRow({
+  unit,
+  formatAmount,
+  isRecurring,
+  t,
+  d,
+  currencyCode,
+  currencySymbol,
+}: UnitChargeRowProps) {
   const [showPeriods, setShowPeriods] = useState(false)
 
   return (
@@ -161,14 +174,25 @@ function UnitChargeRow({ unit, formatAmount, isRecurring, t, d }: UnitChargeRowP
           )}
         </div>
         <div className="text-right">
-          <p className="text-sm font-medium">{formatAmount(unit.baseAmount)}</p>
+          <p className="text-sm font-medium">
+            <ConvertedAmount
+              amount={unit.baseAmount}
+              currencyCode={currencyCode}
+              currencySymbol={currencySymbol}
+            />
+          </p>
           {isRecurring && unit.periodsCount > 0 && (
             <>
               <p className="text-xs text-default-500">
                 {unit.periodsCount} {unit.periodsCount === 1 ? t(`${d}.period`) : t(`${d}.periods`)}
               </p>
               <p className="text-xs font-medium text-warning-600">
-                {t(`${d}.accumulated`)}: {formatAmount(unit.accumulatedAmount)}
+                {t(`${d}.accumulated`)}:{' '}
+                <ConvertedAmount
+                  amount={unit.accumulatedAmount}
+                  currencyCode={currencyCode}
+                  currencySymbol={currencySymbol}
+                />
               </p>
             </>
           )}

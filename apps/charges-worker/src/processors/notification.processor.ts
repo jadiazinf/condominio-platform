@@ -16,7 +16,12 @@ import {
   CurrenciesRepository,
   PaymentConceptServicesRepository,
 } from '@database/repositories'
-import { SendNotificationService, SendFcmNotificationService } from '@packages/services'
+import {
+  SendNotificationService,
+  SendFcmNotificationService,
+  EventLogger,
+} from '@packages/services'
+import { EventLogsRepository } from '@database/repositories'
 import { GenerateReceiptPdfService } from '@api/services/receipts/generate-receipt-pdf.service'
 import { admin } from '@worker/libs/firebase/config'
 import type { INotifyJobData } from '@worker/boss/queues'
@@ -35,11 +40,16 @@ function getResendClient(): Resend | null {
 
 export async function processNotification(job: PgBoss.Job<INotifyJobData>): Promise<void> {
   const { userId, category, title, body, data, channels } = job.data
+  const start = Date.now()
 
   logger.info({ jobId: job.id, userId, category }, '[Notify] Processing notification')
 
   try {
     const db = DatabaseService.getInstance().getDb()
+    const eventLogger = new EventLogger(new EventLogsRepository(db), {
+      source: 'worker',
+      module: 'notification.processor',
+    })
     const notificationsRepo = new NotificationsRepository(db)
     const deliveriesRepo = new NotificationDeliveriesRepository(db)
     const preferencesRepo = new UserNotificationPreferencesRepository(db)
@@ -101,9 +111,39 @@ export async function processNotification(job: PgBoss.Job<INotifyJobData>): Prom
         deliveriesRepo
       )
     }
+
+    eventLogger.info({
+      category: 'notification',
+      event: 'worker.notification.delivered',
+      action: 'send_notification',
+      message: `Notification delivered to user ${userId} (${category})`,
+      userId,
+      entityType: 'notification',
+      entityId: result.data.notification.id,
+      metadata: { jobId: job.id, channels: requestedChannels, category },
+      durationMs: Date.now() - start,
+    })
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
     logger.error({ userId, error: msg }, '[Notify] Failed to send notification')
+
+    const db2 = DatabaseService.getInstance().getDb()
+    const errorLogger = new EventLogger(new EventLogsRepository(db2), {
+      source: 'worker',
+      module: 'notification.processor',
+    })
+    errorLogger.error({
+      category: 'notification',
+      event: 'worker.notification.failed',
+      action: 'send_notification',
+      message: `Notification delivery failed for user ${userId}: ${msg}`,
+      userId,
+      errorCode: 'INTERNAL_ERROR',
+      errorMessage: msg,
+      metadata: { jobId: job.id, category },
+      durationMs: Date.now() - start,
+    })
+
     // Re-throw so pg-boss retries the job
     throw error
   }

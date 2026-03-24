@@ -26,6 +26,7 @@ import { Button } from '@/ui/components/button'
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@/ui/components/dropdown'
 import { Spinner } from '@/ui/components/spinner'
 import { ClearFiltersButton } from '@/ui/components/filters'
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { getPaymentStatusColor } from '@/utils/status-colors'
 import { useDebouncedValue } from '@/hooks'
 import { useTranslation, useCondominium } from '@/contexts'
@@ -267,13 +268,6 @@ export function PaymentsTable() {
     return d.toLocaleDateString()
   }
 
-  const formatAmount = (amount: string | null) => {
-    if (!amount) return '-'
-    const num = parseFloat(amount)
-
-    return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  }
-
   const renderCell = useCallback(
     (payment: TPayment, columnKey: string) => {
       switch (columnKey) {
@@ -297,12 +291,12 @@ export function PaymentsTable() {
           return <span className="text-sm">{payment.unit?.unitNumber || '-'}</span>
         case 'amount':
           return (
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">{formatAmount(payment.amount)}</span>
-              {payment.currency && (
-                <span className="text-xs text-default-500">{payment.currency.code}</span>
-              )}
-            </div>
+            <ConvertedAmount
+              amount={payment.amount}
+              currencyCode={payment.currency?.code}
+              currencySymbol={payment.currency?.symbol}
+              isBaseCurrency={payment.currency?.isBaseCurrency}
+            />
           )
         case 'method':
           return <span className="text-sm">{getPaymentMethodLabel(payment.paymentMethod)}</span>

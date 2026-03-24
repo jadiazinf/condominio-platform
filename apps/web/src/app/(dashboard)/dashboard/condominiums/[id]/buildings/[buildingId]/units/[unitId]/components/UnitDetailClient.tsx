@@ -25,6 +25,7 @@ import { AllQuotasModal, type AllQuotasModalTranslations } from './AllQuotasModa
 import { AllPaymentsModal } from './AllPaymentsModal'
 import { AddOwnershipModal, type AddOwnershipModalTranslations } from './AddOwnershipModal'
 
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import {
   useDisclosure,
   Modal,
@@ -558,7 +559,16 @@ export function RecentQuotasTable({ quotas, translations: t }: RecentQuotasTable
         return quota.periodDescription || `${quota.periodYear}`
       }
       case 'amount':
-        return `${sym} ${formatAmount(quota.baseAmount)}`
+        return (
+          <ConvertedAmount
+            amount={quota.baseAmount}
+            amountInBaseCurrency={quota.amountInBaseCurrency}
+            currencyCode={quota.currency?.code}
+            currencySymbol={quota.currency?.symbol}
+            exchangeRateUsed={quota.exchangeRateUsed}
+            isBaseCurrency={quota.currency?.isBaseCurrency}
+          />
+        )
       case 'paid':
         return `${sym} ${formatAmount(quota.paidAmount)}`
       case 'balance':

@@ -25,6 +25,7 @@ import { z } from 'zod'
 import { GetPayableQuotasService } from '@src/services/quotas/get-payable-quotas.service'
 import { ValidateQuotaSelectionService } from '@src/services/payments/validate-quota-selection.service'
 import { InitiatePaymentFlowService } from '@src/services/payments/initiate-payment-flow.service'
+import type { EventLogger } from '@packages/services'
 import type { BncPaymentAdapter } from '@src/services/payment-gateways/adapters/bnc.adapter'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import { condominiumManagementCompanies } from '@database/drizzle/schema'
@@ -112,6 +113,7 @@ export class PaymentFlowController {
       sendNotificationService: SendNotificationService
       managementCompanyMembersRepo: ManagementCompanyMembersRepository
       emailService?: EmailService
+      eventLogger?: EventLogger
     }
   ) {
     this.getPayableQuotasService = new GetPayableQuotasService(
@@ -134,7 +136,8 @@ export class PaymentFlowController {
       deps.paymentsRepo,
       deps.applyPaymentService,
       deps.gatewayManager,
-      deps.gatewayTransactionsRepo
+      deps.gatewayTransactionsRepo,
+      deps.eventLogger
     )
   }
 

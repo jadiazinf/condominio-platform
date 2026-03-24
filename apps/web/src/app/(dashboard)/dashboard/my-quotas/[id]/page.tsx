@@ -19,6 +19,7 @@ import Link from 'next/link'
 import { formatAmount } from '@packages/utils/currency'
 import { useQuotaDetail, usePaymentApplicationsByQuota } from '@packages/http-client'
 
+import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import { Typography } from '@/ui/components/typography'
 import { Button } from '@/ui/components/button'
 import { Chip } from '@/ui/components/chip'
@@ -195,10 +196,19 @@ export default function MyQuotaDetailPage() {
       {amountBreakdown && (
         <div className="rounded-xl border border-default-200 bg-default-50/50 p-5">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-            <AmountCell
-              label={t(`${p}.baseAmount`)}
-              value={`${currencySymbol} ${fmtAmount(quota.baseAmount)}`}
-            />
+            <div>
+              <span className="text-xs text-default-400 block mb-1">{t(`${p}.baseAmount`)}</span>
+              <span className="text-lg font-semibold">
+                <ConvertedAmount
+                  amount={quota.baseAmount}
+                  amountInBaseCurrency={quota.amountInBaseCurrency}
+                  currencyCode={currencyCode}
+                  currencySymbol={currencySymbol}
+                  exchangeRateUsed={quota.exchangeRateUsed}
+                  isBaseCurrency={(quota.currency as any)?.isBaseCurrency}
+                />
+              </span>
+            </div>
             <AmountCell
               highlight={amountBreakdown.interest > 0 ? 'danger' : undefined}
               label={t(`${p}.interest`)}

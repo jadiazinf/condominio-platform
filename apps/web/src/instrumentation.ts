@@ -66,7 +66,30 @@ export async function register() {
     env.init()
     console.log('✅ Environment variables validated')
 
+    // Initialize Sentry for the server side
+    if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+      const Sentry = await import('@sentry/nextjs')
+
+      Sentry.init({
+        dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+        environment: process.env.NODE_ENV,
+        tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
+      })
+    }
+
     // Check API connection with retries
     await checkApiConnection()
+  }
+
+  if (process.env.NEXT_RUNTIME === 'edge') {
+    if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+      const Sentry = await import('@sentry/nextjs')
+
+      Sentry.init({
+        dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+        environment: process.env.NODE_ENV,
+        tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
+      })
+    }
   }
 }

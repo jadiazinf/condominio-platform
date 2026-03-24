@@ -9,6 +9,8 @@ import {
   PaymentConceptsRepository,
 } from '@database/repositories'
 import { InterestCalculationService } from '@worker/services/interest-calculation.service'
+import { EventLogger } from '@packages/services'
+import { EventLogsRepository } from '@database/repositories'
 import { SYSTEM_USER_ID } from '@packages/domain'
 import { getBossClient } from '@worker/boss/client'
 import { QUEUES, type ICalculateInterestJobData, type INotifyJobData } from '@worker/boss/queues'
@@ -24,8 +26,24 @@ export async function processInterestCalculation(
 
   logger.info({ jobId: job.id, data }, '[Interest] Starting interest calculation')
 
+  const db = DatabaseService.getInstance().getDb()
+  const eventLogger = new EventLogger(new EventLogsRepository(db), {
+    source: 'worker',
+    module: 'interest-calculation.processor',
+  })
+
   try {
     await _processInterestCalculation(job)
+
+    const durationMs = Date.now() - start
+    eventLogger.info({
+      category: 'worker',
+      event: 'worker.interest_calculation.completed',
+      action: 'calculate_interest',
+      message: `Interest calculation job ${job.id} completed`,
+      metadata: { jobId: job.id },
+      durationMs,
+    })
   } catch (error) {
     const elapsed = ((Date.now() - start) / 1000).toFixed(1)
     const serializedError =
@@ -36,6 +54,17 @@ export async function processInterestCalculation(
       { jobId: job.id, error: serializedError, elapsedSeconds: elapsed },
       '[Interest] Job failed with error'
     )
+
+    eventLogger.critical({
+      category: 'worker',
+      event: 'worker.interest_calculation.failed',
+      action: 'calculate_interest',
+      message: `Interest calculation job ${job.id} failed: ${error instanceof Error ? error.message : String(error)}`,
+      errorCode: 'INTERNAL_ERROR',
+      errorMessage: error instanceof Error ? error.message : String(error),
+      metadata: { jobId: job.id },
+      durationMs: Date.now() - start,
+    })
 
     await notifySuperadminsOnError({
       jobId: job.id,
@@ -252,7 +281,7 @@ async function _processInterestCalculation(
         category: 'alert',
         title: 'Cálculo de intereses completado con errores',
         body: `Cuotas procesadas: ${processed}. Intereses aplicados: ${updated}. Omitidas: ${skipped}. Errores: ${errors}.`,
-        channels: ['in_app', 'email'],
+        channels: ['in_app', 'email', 'push'],
         data: { processed, updated, skipped, errors, total: overdueQuotas.length },
       }
       await boss.send(QUEUES.NOTIFY, notification)

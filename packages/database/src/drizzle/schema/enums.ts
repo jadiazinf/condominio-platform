@@ -408,18 +408,9 @@ export const eventLogCategoryEnum = pgEnum('event_log_category', [
   'system',
 ])
 
-export const eventLogLevelEnum = pgEnum('event_log_level', [
-  'info',
-  'warn',
-  'error',
-  'critical',
-])
+export const eventLogLevelEnum = pgEnum('event_log_level', ['info', 'warn', 'error', 'critical'])
 
-export const eventLogResultEnum = pgEnum('event_log_result', [
-  'success',
-  'failure',
-  'partial',
-])
+export const eventLogResultEnum = pgEnum('event_log_result', ['success', 'failure', 'partial'])
 
 export const eventLogSourceEnum = pgEnum('event_log_source', [
   'api',

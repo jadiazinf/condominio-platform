@@ -98,7 +98,10 @@
       "Bash(npx eslint:*)",
       "Bash(find \"/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\(dashboard\\)\" -type f)",
       "Bash(ls /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-receipts/)",
-      "Bash(ls /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-management-company/components/)"
+      "Bash(ls /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-management-company/components/)",
+      "Bash(grep -n 'formatCurrency\\\\|formatAmount\\\\|ConvertedAmount' apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-receipts/components/MyReceiptsContent.tsx apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/receipts/[id]/components/ReceiptDetailClient.tsx apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/expenses/[id]/page.tsx apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/expenses/components/ExpensesTable.tsx)",
+      "Bash(bun lint:*)",
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-account-statement/)"
     ],
     "additionalDirectories": [
       "/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/(dashboard)/dashboard/condominiums/[id]/reserve-fund",

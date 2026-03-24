@@ -1127,6 +1127,14 @@ export {
   type IReconciliationSummary,
 } from './use-bank-reconciliation'
 
+// Event Logs
+export {
+  eventLogKeys,
+  useEventLogsPaginated,
+  useEventLogDetail,
+  type IEventLogsQuery,
+} from './use-event-logs'
+
 // Re-export commonly used TanStack Query hooks
 export {
   useQuery,

@@ -6,6 +6,8 @@ import {
   UnitOwnershipsRepository,
 } from '@database/repositories'
 import { PaymentReminderService } from '@api/services/account-statements/payment-reminder.service'
+import { EventLogger } from '@packages/services'
+import { EventLogsRepository } from '@database/repositories'
 import { getBossClient } from '@worker/boss/client'
 import { QUEUES, type IPaymentRemindersJobData, type INotifyJobData } from '@worker/boss/queues'
 import logger from '@packages/logger'
@@ -18,8 +20,24 @@ export async function processPaymentReminders(
 
   logger.info({ jobId: job.id }, '[Reminders] Starting payment reminders')
 
+  const db = DatabaseService.getInstance().getDb()
+  const eventLogger = new EventLogger(new EventLogsRepository(db), {
+    source: 'worker',
+    module: 'payment-reminders.processor',
+  })
+
   try {
     await _processPaymentReminders(job)
+
+    const durationMs = Date.now() - start
+    eventLogger.info({
+      category: 'worker',
+      event: 'worker.payment_reminders.completed',
+      action: 'send_reminders',
+      message: `Payment reminders job ${job.id} completed`,
+      metadata: { jobId: job.id },
+      durationMs,
+    })
   } catch (error) {
     const elapsed = ((Date.now() - start) / 1000).toFixed(1)
     const serializedError =
@@ -30,6 +48,17 @@ export async function processPaymentReminders(
       { jobId: job.id, error: serializedError, elapsedSeconds: elapsed },
       '[Reminders] Job failed with error'
     )
+
+    eventLogger.critical({
+      category: 'worker',
+      event: 'worker.payment_reminders.failed',
+      action: 'send_reminders',
+      message: `Payment reminders job ${job.id} failed: ${error instanceof Error ? error.message : String(error)}`,
+      errorCode: 'INTERNAL_ERROR',
+      errorMessage: error instanceof Error ? error.message : String(error),
+      metadata: { jobId: job.id },
+      durationMs: Date.now() - start,
+    })
 
     await notifySuperadminsOnError({
       jobId: job.id,

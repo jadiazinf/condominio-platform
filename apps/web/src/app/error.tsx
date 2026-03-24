@@ -17,6 +17,7 @@ export default function Error({ error, reset }: ErrorProps) {
 
   useEffect(() => {
     console.error(error)
+    import('@sentry/nextjs').then(Sentry => Sentry.captureException(error)).catch(() => {})
   }, [error])
 
   return (

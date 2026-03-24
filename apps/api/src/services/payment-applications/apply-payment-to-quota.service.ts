@@ -10,6 +10,7 @@ import type {
   PaymentConceptsRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
+import type { EventLogger } from '@packages/services'
 import { type TServiceResult, success, failure } from '../base.service'
 import { parseAmount, roundCurrency, toDecimal, toCents } from '@packages/utils/money'
 
@@ -50,10 +51,60 @@ export class ApplyPaymentToQuotaService {
     private readonly adjustmentsRepo: QuotaAdjustmentsRepository,
     private readonly interestConfigsRepo: InterestConfigurationsRepository,
     private readonly paymentConceptsRepo: PaymentConceptsRepository,
-    private readonly pendingAllocationsRepo?: PaymentPendingAllocationsRepository
+    private readonly pendingAllocationsRepo?: PaymentPendingAllocationsRepository,
+    private readonly eventLogger?: EventLogger
   ) {}
 
   async execute(
+    input: IApplyPaymentToQuotaInput
+  ): Promise<TServiceResult<IApplyPaymentToQuotaOutput>> {
+    const startTime = Date.now()
+    const result = await this.executeInternal(input)
+    const durationMs = Date.now() - startTime
+
+    if (this.eventLogger) {
+      if (result.success) {
+        this.eventLogger.info({
+          category: 'payment',
+          event: 'payment.applied_to_quota',
+          action: 'apply_payment',
+          message: `Payment ${input.paymentId} applied to quota ${input.quotaId} (${input.appliedAmount})`,
+          module: 'ApplyPaymentToQuotaService',
+          entityType: 'payment',
+          entityId: input.paymentId,
+          userId: input.registeredByUserId,
+          metadata: {
+            quotaId: input.quotaId,
+            appliedAmount: input.appliedAmount,
+            interestReversed: result.data.interestReversed,
+            earlyDiscount: result.data.earlyPaymentDiscountApplied,
+            lateSurcharge: result.data.latePaymentSurchargeApplied,
+            excessAmount: result.data.excessAmount,
+          },
+          durationMs,
+        })
+      } else {
+        this.eventLogger.error({
+          category: 'payment',
+          event: 'payment.apply.failed',
+          action: 'apply_payment',
+          message: `Payment application failed: ${result.error}`,
+          module: 'ApplyPaymentToQuotaService',
+          entityType: 'payment',
+          entityId: input.paymentId,
+          userId: input.registeredByUserId,
+          errorCode: result.code,
+          errorMessage: result.error,
+          metadata: { quotaId: input.quotaId },
+          durationMs,
+        })
+      }
+    }
+
+    return result
+  }
+
+  private async executeInternal(
     input: IApplyPaymentToQuotaInput
   ): Promise<TServiceResult<IApplyPaymentToQuotaOutput>> {
     const { paymentId, quotaId, appliedAmount, registeredByUserId } = input

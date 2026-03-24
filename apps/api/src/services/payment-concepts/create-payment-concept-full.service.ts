@@ -467,7 +467,8 @@ export class CreatePaymentConceptFullService {
           'Non-recurring concept: quotas generated successfully'
         )
 
-        // Auto-generate receipts (if enabled)
+        // Auto-generate receipts (if enabled) — before notifications so receiptId is available for PDF attachment
+        let unitReceiptMap = new Map<string, string>()
         const shouldGenerateReceipts = input.generateReceipts !== false
         if (shouldGenerateReceipts) {
           try {
@@ -492,6 +493,8 @@ export class CreatePaymentConceptFullService {
                 generatedBy,
               }
             )
+
+            unitReceiptMap = receiptResult.unitReceiptMap
 
             // Notify admin if receipts already existed for some units
             if (receiptResult.conflicts.length > 0) {
@@ -527,7 +530,8 @@ export class CreatePaymentConceptFullService {
             condominiumName,
             currencySymbol,
             genResult.data.dueDate,
-            input.condominiumId ?? undefined
+            input.condominiumId ?? undefined,
+            unitReceiptMap
           )
         }
       } else {
@@ -557,7 +561,8 @@ export class CreatePaymentConceptFullService {
     condominiumName: string,
     currencySymbol: string,
     dueDate: string,
-    condominiumId?: string
+    condominiumId?: string,
+    unitReceiptMap: Map<string, string> = new Map()
   ): Promise<void> {
     if (unitDetails.length === 0 || !this.unitOwnershipsRepo) return
 
@@ -600,6 +605,9 @@ export class CreatePaymentConceptFullService {
         const title = `Nueva cuota: ${conceptName}`
         const body = `Se ha generado una nueva cuota en ${condominiumName}.\nConcepto: ${conceptName}\nMonto: ${formattedAmount}\nVencimiento: ${formattedDueDate}`
 
+        // Find receiptId for this user's unit (use first match for PDF attachment)
+        const receiptId = userUnitIds.map(uid => unitReceiptMap.get(uid)).find(Boolean)
+
         // Enqueue email + in-app notification via pg-boss
         try {
           await enqueueNotification({
@@ -607,7 +615,7 @@ export class CreatePaymentConceptFullService {
             category: 'quota',
             title,
             body,
-            channels: ['in_app', 'email'],
+            channels: ['in_app', 'email', 'push'],
             data: {
               condominiumId,
               conceptName,
@@ -615,6 +623,7 @@ export class CreatePaymentConceptFullService {
               totalAmount: formattedAmount,
               dueDate: formattedDueDate,
               quotasCreated: userQuotaCount,
+              ...(receiptId ? { receiptId } : {}),
             },
           })
         } catch (notifyError) {
@@ -703,7 +712,7 @@ export class CreatePaymentConceptFullService {
         category: 'alert',
         title,
         body,
-        channels: ['in_app', 'email'],
+        channels: ['in_app', 'email', 'push'],
         data: {
           condominiumId,
           conceptName,

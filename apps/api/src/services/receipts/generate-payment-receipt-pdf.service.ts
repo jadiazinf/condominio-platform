@@ -64,7 +64,8 @@ export class GeneratePaymentReceiptPdfService {
       return { convertAmount: identity, currencySymbol: originalSymbol }
     }
 
-    const managementCompanyIds = (condominium as { managementCompanyIds?: string[] }).managementCompanyIds
+    const managementCompanyIds = (condominium as { managementCompanyIds?: string[] })
+      .managementCompanyIds
     if (!managementCompanyIds?.length) {
       return { convertAmount: identity, currencySymbol: originalSymbol }
     }
@@ -79,7 +80,10 @@ export class GeneratePaymentReceiptPdfService {
       return { convertAmount: identity, currencySymbol: originalSymbol }
     }
 
-    const rate = await this.exchangeRatesRepo.getLatestRate(paymentCurrencyId, company.preferredCurrencyId)
+    const rate = await this.exchangeRatesRepo.getLatestRate(
+      paymentCurrencyId,
+      company.preferredCurrencyId
+    )
     if (!rate) {
       return { convertAmount: identity, currencySymbol: originalSymbol }
     }
@@ -262,7 +266,7 @@ export class GeneratePaymentReceiptPdfService {
     unit: Record<string, unknown>,
     currencySymbol: string,
     pageWidth: number,
-    convertAmount: (amount: string | number) => string = (a) => String(a)
+    convertAmount: (amount: string | number) => string = a => String(a)
   ) {
     const y = doc.y + 10
 
@@ -305,7 +309,7 @@ export class GeneratePaymentReceiptPdfService {
     applications: Record<string, unknown>[],
     currencySymbol: string,
     pageWidth: number,
-    convertAmount: (amount: string | number) => string = (a) => String(a)
+    convertAmount: (amount: string | number) => string = a => String(a)
   ) {
     const y = doc.y + 10
 
@@ -383,7 +387,7 @@ export class GeneratePaymentReceiptPdfService {
     payment: Record<string, unknown>,
     currencySymbol: string,
     pageWidth: number,
-    convertAmount: (amount: string | number) => string = (a) => String(a)
+    convertAmount: (amount: string | number) => string = a => String(a)
   ) {
     const y = doc.y + 10
     const totalWidth = pageWidth * 0.4
@@ -392,10 +396,15 @@ export class GeneratePaymentReceiptPdfService {
     doc.rect(totalX, y, totalWidth, 28).fill(ACCENT_COLOR)
     doc.fontSize(12).font('Helvetica-Bold').fillColor('#ffffff')
     doc.text('TOTAL PAGADO', totalX + 10, y + 7, { width: totalWidth * 0.5 })
-    doc.text(`${currencySymbol} ${convertAmount(payment.amount as string)}`, totalX + totalWidth * 0.5, y + 7, {
-      width: totalWidth * 0.45,
-      align: 'right',
-    })
+    doc.text(
+      `${currencySymbol} ${convertAmount(payment.amount as string)}`,
+      totalX + totalWidth * 0.5,
+      y + 7,
+      {
+        width: totalWidth * 0.45,
+        align: 'right',
+      }
+    )
 
     doc.fillColor('#000000')
     doc.y = y + 40

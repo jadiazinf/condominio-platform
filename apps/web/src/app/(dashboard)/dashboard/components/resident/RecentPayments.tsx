@@ -46,13 +46,14 @@ export function RecentPayments({ payments, maxItems = 3, translations: t }: Rece
 
   return (
     <Card>
-      <CardHeader className="flex justify-between items-center px-6 pt-5 pb-0">
+      <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center items-start gap-2 px-6 pt-5 pb-0">
         <div className="flex items-center gap-2">
           <Receipt className="text-default-500" size={20} />
           <h3 className="text-lg font-semibold">{t.title}</h3>
         </div>
         <Button
           as={Link}
+          className="self-end sm:self-auto"
           color="primary"
           endContent={<ChevronRight size={14} />}
           href="/dashboard/my-payments"
