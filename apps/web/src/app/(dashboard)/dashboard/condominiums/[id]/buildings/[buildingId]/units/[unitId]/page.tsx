@@ -172,7 +172,7 @@ export default async function UnitDetailPage({ params }: PageProps) {
       <Card>
         <CardBody className="gap-0 py-4">
           {/* Row 1: Unit name + status */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
                 <Home className="text-primary" size={18} />

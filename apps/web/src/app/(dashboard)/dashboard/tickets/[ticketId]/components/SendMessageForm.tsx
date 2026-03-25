@@ -316,10 +316,10 @@ export function SendMessageForm({
       )}
 
       {/* Controls */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Checkbox isSelected={isInternal} onValueChange={setIsInternal}>
-            {translations.internalCheckbox}
+            <span className="text-sm">{translations.internalCheckbox}</span>
           </Checkbox>
 
           {/* Attach button */}
@@ -338,6 +338,7 @@ export function SendMessageForm({
           color="primary"
           isDisabled={!canSubmit}
           isLoading={isPending || isUploading}
+          size="sm"
           startContent={!isPending && !isUploading ? <Send size={16} /> : null}
           type="submit"
         >

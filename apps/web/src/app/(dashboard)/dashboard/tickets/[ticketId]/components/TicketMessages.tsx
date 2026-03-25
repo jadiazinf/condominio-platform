@@ -269,7 +269,7 @@ export function TicketMessages({
               </Typography>
             </div>
           ) : (
-            <div className="min-h-[204px] flex-1 space-y-2 overflow-y-auto px-2 py-4">
+            <div className="min-h-[204px] max-h-[60vh] flex-1 space-y-2 overflow-y-auto px-2 py-4 lg:max-h-none">
               {sortedMessages?.map(message => {
                 const isCurrentUser = currentUser?.id === message.userId
                 const userName =
@@ -283,7 +283,7 @@ export function TicketMessages({
                     className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`group relative max-w-[75%] px-3 py-2 shadow-sm ${
+                      className={`group relative max-w-[90%] px-3 py-2 shadow-sm sm:max-w-[75%] ${
                         message.isInternal
                           ? 'rounded-2xl border-2 border-warning-400 bg-warning-100'
                           : isCurrentUser

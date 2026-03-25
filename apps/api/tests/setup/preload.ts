@@ -250,3 +250,33 @@ mock.module(
   path.resolve(__dirname, '../../src/http/middlewares/utils/auth/is-superadmin.ts'),
   createSuperadminMock
 )
+
+// Mock can-access-ticket middlewares (canAccessTicket, canManageTicket, etc.)
+// These middlewares call DatabaseService.getInstance().getDb() which is not available in tests.
+const createCanAccessTicketMock = () => {
+  const passthrough = async (
+    c: { set: (key: string, value: unknown) => void },
+    next: () => Promise<void>
+  ) => {
+    await next()
+  }
+  return {
+    TICKET_PROP: 'ticket',
+    checkTicketAccess: async () => true,
+    createCanAccessTicket: () => passthrough,
+    canAccessTicket: passthrough,
+    canAccessTicketByTicketId: passthrough,
+    canModifyTicket: passthrough,
+    createCanManageTicket: () => passthrough,
+    canManageTicket: passthrough,
+  }
+}
+mock.module('@http/middlewares/utils/auth/can-access-ticket', createCanAccessTicketMock)
+mock.module(
+  path.resolve(process.cwd(), 'src/http/middlewares/utils/auth/can-access-ticket.ts'),
+  createCanAccessTicketMock
+)
+mock.module(
+  path.resolve(__dirname, '../../src/http/middlewares/utils/auth/can-access-ticket.ts'),
+  createCanAccessTicketMock
+)

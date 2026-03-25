@@ -227,15 +227,15 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
     <div className="space-y-4">
       <div className="flex flex-col gap-4">
         <Input
-          className="max-w-md"
+          className="w-full sm:max-w-md"
           placeholder={t('tickets.search')}
           startContent={<Search size={18} />}
           value={searchInput}
           onValueChange={setSearchInput}
         />
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <Select
-            className="w-48"
+            className="w-full sm:w-48"
             items={statusFilterItems}
             label={t('tickets.filters.status')}
             placeholder={t('tickets.filters.status')}
@@ -244,7 +244,7 @@ export function AllTicketsTable({ tickets, pagination }: AllTicketsTableProps) {
           />
 
           <Select
-            className="w-48"
+            className="w-full sm:w-48"
             items={priorityFilterItems}
             label={t('tickets.filters.priority')}
             placeholder={t('tickets.filters.priority')}

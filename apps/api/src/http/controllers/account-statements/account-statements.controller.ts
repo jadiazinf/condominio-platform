@@ -6,6 +6,9 @@ import type {
   PaymentApplicationsRepository,
   UnitsRepository,
   UnitOwnershipsRepository,
+  CondominiumsRepository,
+  CurrenciesRepository,
+  BuildingsRepository,
 } from '@database/repositories'
 import { HttpContext } from '../../context'
 import { paramsValidator, queryValidator } from '../../middlewares/utils/payload-validator'
@@ -37,6 +40,8 @@ const StatementQuerySchema = z.object({
 const DelinquencyQuerySchema = z.object({
   asOfDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   buildingId: z.string().uuid().optional(),
+  conceptId: z.string().uuid().optional(),
+  unitId: z.string().uuid().optional(),
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,6 +67,9 @@ export class AccountStatementsController {
       applicationsRepo: PaymentApplicationsRepository
       unitsRepo: UnitsRepository
       unitOwnershipsRepo: UnitOwnershipsRepository
+      condominiumsRepo: CondominiumsRepository
+      currenciesRepo: CurrenciesRepository
+      buildingsRepo: BuildingsRepository
     }
   ) {
     this.statementService = new GetUnitAccountStatementService(
@@ -71,7 +79,11 @@ export class AccountStatementsController {
       deps.unitsRepo
     )
 
-    this.delinquencyService = new GetDelinquencyReportService(deps.quotasRepo, deps.unitsRepo)
+    this.delinquencyService = new GetDelinquencyReportService(
+      deps.quotasRepo,
+      deps.unitsRepo,
+      deps.buildingsRepo
+    )
 
     this.reminderService = new PaymentReminderService(deps.quotasRepo, deps.unitOwnershipsRepo)
   }
@@ -127,7 +139,18 @@ export class AccountStatementsController {
       return ctx.badRequest({ error: result.error })
     }
 
-    return ctx.ok({ data: result.data })
+    // Resolve currency symbol from condominium
+    let currencySymbol: string | null = null
+    const condominiumId = c.get(CONDOMINIUM_ID_PROP)
+    if (condominiumId) {
+      const condominium = await this.deps.condominiumsRepo.getById(condominiumId)
+      if (condominium?.defaultCurrencyId) {
+        const currency = await this.deps.currenciesRepo.getById(condominium.defaultCurrencyId)
+        currencySymbol = currency?.symbol ?? null
+      }
+    }
+
+    return ctx.ok({ data: { ...result.data, currencySymbol } })
   }
 
   private getDelinquency = async (c: Context): Promise<Response> => {
@@ -142,12 +165,22 @@ export class AccountStatementsController {
       condominiumId,
       asOfDate: ctx.query.asOfDate,
       buildingId: ctx.query.buildingId,
+      conceptId: ctx.query.conceptId,
+      unitId: ctx.query.unitId,
     })
 
     if (!result.success) {
       return ctx.badRequest({ error: result.error })
     }
 
-    return ctx.ok({ data: result.data })
+    // Resolve currency symbol
+    let currencySymbol: string | null = null
+    const condominium = await this.deps.condominiumsRepo.getById(condominiumId)
+    if (condominium?.defaultCurrencyId) {
+      const currency = await this.deps.currenciesRepo.getById(condominium.defaultCurrencyId)
+      currencySymbol = currency?.symbol ?? null
+    }
+
+    return ctx.ok({ data: { ...result.data, currencySymbol } })
   }
 }

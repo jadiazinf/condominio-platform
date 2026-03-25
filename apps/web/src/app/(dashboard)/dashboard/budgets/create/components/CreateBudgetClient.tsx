@@ -146,12 +146,19 @@ export function CreateBudgetClient({ translations: t }: { translations: ITransla
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button isIconOnly variant="light" onPress={() => router.push('/dashboard/budgets')}>
+      <div className="flex items-start gap-3">
+        <Button
+          isIconOnly
+          className="mt-1 shrink-0"
+          variant="light"
+          onPress={() => router.push('/dashboard/budgets')}
+        >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div>
-          <Typography variant="h2">{t.title}</Typography>
+        <div className="min-w-0">
+          <Typography className="break-words" variant="h2">
+            {t.title}
+          </Typography>
           <Typography className="mt-1" color="muted">
             {t.subtitle}
           </Typography>
@@ -278,7 +285,12 @@ export function CreateBudgetClient({ translations: t }: { translations: ITransla
         </div>
       )}
 
-      <Button color="primary" isLoading={isPending} onPress={handleSubmit}>
+      <Button
+        className="w-full sm:w-auto"
+        color="primary"
+        isLoading={isPending}
+        onPress={handleSubmit}
+      >
         {t.submit}
       </Button>
     </div>

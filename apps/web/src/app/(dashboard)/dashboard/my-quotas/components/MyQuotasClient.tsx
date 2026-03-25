@@ -424,8 +424,9 @@ export function MyQuotasClient({
             {t.subtitle}
           </Typography>
         </div>
-        <div className="flex gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
           <Button
+            className="w-full sm:w-auto"
             isDisabled={exporting !== null}
             isLoading={exporting === 'csv'}
             startContent={<Download size={16} />}
@@ -435,6 +436,7 @@ export function MyQuotasClient({
             {t.export.csv}
           </Button>
           <Button
+            className="w-full sm:w-auto"
             isDisabled={exporting !== null}
             isLoading={exporting === 'pdf'}
             startContent={<Download size={16} />}
@@ -622,13 +624,11 @@ export function MyQuotasClient({
                         {formatPeriod(row.periodYear, row.periodMonth, row.periodDescription)}
                       </Typography>
 
-                      <div className="mt-2 flex items-end justify-between gap-2">
-                        <div>
-                          <Typography color="muted" variant="caption">
-                            {t.dueDate}: {formatDateES(row.dueDate)}
-                          </Typography>
-                        </div>
-                        <div className="text-right">
+                      <div className="mt-2">
+                        <Typography color="muted" variant="caption">
+                          {t.dueDate}: {formatDateES(row.dueDate)}
+                        </Typography>
+                        <div className="mt-1 text-right">
                           <ConvertedAmount
                             amount={row.baseAmount}
                             amountInBaseCurrency={row.amountInBaseCurrency}

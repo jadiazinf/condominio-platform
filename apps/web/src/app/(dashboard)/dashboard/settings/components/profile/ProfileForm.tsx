@@ -99,11 +99,22 @@ export function ProfileForm() {
         </Section>
 
         {/* Form Actions */}
-        <div className="flex justify-end gap-3 pt-2">
-          <Button isDisabled={!isDirty || isSubmitting} variant="bordered" onPress={handleCancel}>
+        <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+          <Button
+            className="w-full sm:w-auto"
+            isDisabled={!isDirty || isSubmitting}
+            variant="bordered"
+            onPress={handleCancel}
+          >
             {t('common.cancel')}
           </Button>
-          <Button color="primary" isDisabled={!isDirty} isLoading={isSubmitting} type="submit">
+          <Button
+            className="w-full sm:w-auto"
+            color="primary"
+            isDisabled={!isDirty}
+            isLoading={isSubmitting}
+            type="submit"
+          >
             {isSubmitting ? t('common.saving') : t('common.save')}
           </Button>
         </div>

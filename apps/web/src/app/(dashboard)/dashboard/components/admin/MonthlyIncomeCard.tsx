@@ -45,26 +45,27 @@ export function MonthlyIncomeCard({
   const percentage = expected > 0 ? (collected / expected) * 100 : 0
 
   return (
-    <Card className="dark:border-default-100 relative flex flex-col border border-transparent p-4">
-      <Link
-        className="absolute right-4 top-4 flex items-center gap-1 text-small text-emerald-600 dark:text-emerald-400 hover:underline"
-        href={viewAllHref}
-      >
-        {viewAllLabel}
-        <ArrowRight size={12} />
-      </Link>
-
-      <div
-        className={cn('flex h-10 w-10 items-center justify-center rounded-full border', {
-          'border-success-200 bg-success-50 text-success': color === 'success',
-          'border-warning-200 bg-warning-50 text-warning': color === 'warning',
-          'border-primary-200 bg-primary-50 text-primary': color === 'primary',
-          'border-secondary-200 bg-secondary-50 text-secondary': color === 'secondary',
-          'border-danger-200 bg-danger-50 text-danger': color === 'danger',
-          'border-default-200 bg-default-50 text-default-500': color === 'default',
-        })}
-      >
-        {icon}
+    <Card className="dark:border-default-100 flex flex-col border border-transparent p-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div
+          className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full border', {
+            'border-success-200 bg-success-50 text-success': color === 'success',
+            'border-warning-200 bg-warning-50 text-warning': color === 'warning',
+            'border-primary-200 bg-primary-50 text-primary': color === 'primary',
+            'border-secondary-200 bg-secondary-50 text-secondary': color === 'secondary',
+            'border-danger-200 bg-danger-50 text-danger': color === 'danger',
+            'border-default-200 bg-default-50 text-default-500': color === 'default',
+          })}
+        >
+          {icon}
+        </div>
+        <Link
+          className="flex items-center gap-1 text-small text-emerald-600 dark:text-emerald-400 hover:underline"
+          href={viewAllHref}
+        >
+          {viewAllLabel}
+          <ArrowRight size={12} />
+        </Link>
       </div>
 
       <div className="mt-2 flex flex-col gap-y-0.5 px-0.5">

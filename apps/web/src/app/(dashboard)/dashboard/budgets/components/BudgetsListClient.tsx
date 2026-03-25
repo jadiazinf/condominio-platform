@@ -107,7 +107,7 @@ export function BudgetsListClient({ translations: t }: IBudgetsListClientProps) 
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Typography variant="h2">{t.title}</Typography>
           <Typography className="mt-1" color="muted">
@@ -115,6 +115,7 @@ export function BudgetsListClient({ translations: t }: IBudgetsListClientProps) 
           </Typography>
         </div>
         <Button
+          className="w-full sm:w-auto"
           color="primary"
           startContent={<Plus className="h-4 w-4" />}
           onPress={() => router.push('/dashboard/budgets/create')}
@@ -133,8 +134,8 @@ export function BudgetsListClient({ translations: t }: IBudgetsListClientProps) 
       )}
 
       {!isLoading && rows.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <FileText className="mb-3 h-12 w-12 text-gray-300" />
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16 text-center">
+          <FileText className="mb-3 h-12 w-12 text-default-300" />
           <Typography color="muted">{t.empty}</Typography>
         </div>
       )}

@@ -103,7 +103,8 @@
       "Bash(bun lint:*)",
       "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/my-account-statement/)",
       "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/notifications/)",
-      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/support/)"
+      "Bash(ls -la /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/support/)",
+      "Bash(grep -B5 -A8 \"flex items-center justify-between\" /home/jesusdicen/proyects/latorre/platform/apps/web/src/app/\\\\\\(dashboard\\\\\\)/dashboard/condominiums/[id]/buildings/[buildingId]/page.tsx)"
     ],
     "additionalDirectories": [
       "/home/jesusdicen/proyects/latorre/platform/apps/web/src/app/(dashboard)/dashboard/condominiums/[id]/reserve-fund",

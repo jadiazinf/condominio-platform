@@ -34,6 +34,8 @@ interface ITableColumn<T> {
   className?: string
   /** Hide this column in the mobile card view */
   hideOnMobile?: boolean
+  /** Render this column full-width in the mobile card view (no label, content spans entire row) */
+  mobileFullWidth?: boolean
 }
 
 interface ITableProps<T extends { id: string | number }> {
@@ -134,6 +136,14 @@ export function Table<T extends { id: string | number }>({
               const content = renderCellContent(row, String(col.key) as TableKey)
 
               if (content === null || content === undefined) return null
+
+              if (col.mobileFullWidth) {
+                return (
+                  <div key={String(col.key)} className="min-w-0">
+                    {content}
+                  </div>
+                )
+              }
 
               return (
                 <div

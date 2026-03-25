@@ -27,7 +27,7 @@ import { TicketResolutionSection } from './TicketResolutionSection'
 import { TicketActionsSection } from './TicketActionsSection'
 
 import { useToast } from '@/ui/components/toast'
-import { useSuperadmin, useUser } from '@/stores/session-store'
+import { useSuperadmin, useUser, useManagementCompany } from '@/stores/session-store'
 import { Typography } from '@/ui/components/typography'
 import { Divider } from '@/ui/components/divider'
 import { Card, CardHeader, CardBody } from '@/ui/components/card'
@@ -115,6 +115,7 @@ export function TicketDetails({
   const router = useRouter()
   const { isSuperadmin } = useSuperadmin()
   const { user } = useUser()
+  const { isAdmin } = useManagementCompany()
   const toast = useToast()
 
   const statusLabel = statusLabels[ticket.status.toLowerCase()] || ticket.status
@@ -125,7 +126,9 @@ export function TicketDetails({
 
   const isTerminal =
     ticket.status === 'closed' || ticket.status === 'cancelled' || ticket.status === 'resolved'
-  const canManageTicket = isSuperadmin && !isTerminal
+  // Superadmins can manage all tickets; admins can manage resident_to_admin tickets
+  const canManageTicket =
+    !isTerminal && (isSuperadmin || (isAdmin && ticket.channel === 'resident_to_admin'))
 
   // Mutation hooks
   const assignMutation = useAssignTicket(ticket.id, ticket.managementCompanyId)

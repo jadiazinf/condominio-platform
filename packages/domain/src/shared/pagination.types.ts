@@ -289,4 +289,5 @@ export type TReserveFundSummary = {
   totalPending: string
   totalExpenses: string
   conceptCount: number
+  currencySymbol: string | null
 }

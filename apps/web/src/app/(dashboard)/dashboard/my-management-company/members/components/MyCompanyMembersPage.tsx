@@ -151,7 +151,11 @@ export function MyCompanyMembersPage({ managementCompanyId }: MyCompanyMembersPa
   // Table columns
   const tableColumns: ITableColumn<TMemberRow>[] = useMemo(
     () => [
-      { key: 'member', label: t('admin.company.myCompany.members.columns.member') },
+      {
+        key: 'member',
+        label: t('admin.company.myCompany.members.columns.member'),
+        mobileFullWidth: true,
+      },
       { key: 'roleName', label: t('admin.company.myCompany.members.columns.role') },
       { key: 'joinedAt', label: t('admin.company.myCompany.members.columns.joinedAt') },
       { key: 'status', label: t('admin.company.myCompany.members.columns.status') },
@@ -305,7 +309,7 @@ export function MyCompanyMembersPage({ managementCompanyId }: MyCompanyMembersPa
     <>
       <div className="space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Typography variant="h3">{t('admin.company.myCompany.members.title')}</Typography>
             <Typography className="mt-1" color="muted" variant="body2">
@@ -314,6 +318,7 @@ export function MyCompanyMembersPage({ managementCompanyId }: MyCompanyMembersPa
           </div>
           <div className="flex items-center gap-2">
             <Button
+              className="w-full sm:w-auto"
               color="primary"
               isDisabled={!canAddMember}
               startContent={<Plus size={16} />}

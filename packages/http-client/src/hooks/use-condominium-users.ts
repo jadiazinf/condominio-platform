@@ -233,17 +233,22 @@ export function useRemoveUnitFromUser(options: UseRemoveUnitFromUserOptions = {}
  */
 export async function getCondominiumUsers(
   token: string,
-  condominiumId: string
+  condominiumId: string,
+  managementCompanyId?: string
 ): Promise<TCondominiumUser[]> {
   const client = getHttpClient()
 
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  }
+
+  if (managementCompanyId) {
+    headers['x-management-company-id'] = managementCompanyId
+  }
+
   const response = await client.get<TApiDataResponse<TCondominiumUser[]>>(
     `/condominium/condominiums/${condominiumId}/users`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
+    { headers }
   )
 
   return response.data.data

@@ -41,6 +41,7 @@ describe('GetDelinquencyReportService', () => {
   let service: GetDelinquencyReportService
   let mockQuotasRepo: Record<string, ReturnType<typeof mock>>
   let mockUnitsRepo: Record<string, ReturnType<typeof mock>>
+  let mockBuildingsRepo: Record<string, ReturnType<typeof mock>>
 
   const defaultInput = {
     condominiumId: 'condo-1',
@@ -77,7 +78,18 @@ describe('GetDelinquencyReportService', () => {
       ]),
     }
 
-    service = new GetDelinquencyReportService(mockQuotasRepo as never, mockUnitsRepo as never)
+    mockBuildingsRepo = {
+      getByCondominiumId: mock(() => [
+        { id: 'building-1', name: 'Torre A' },
+        { id: 'building-2', name: 'Torre B' },
+      ]),
+    }
+
+    service = new GetDelinquencyReportService(
+      mockQuotasRepo as never,
+      mockUnitsRepo as never,
+      mockBuildingsRepo as never
+    )
   })
 
   // ─── Empty state ─────────────────────────────────────────────────────────

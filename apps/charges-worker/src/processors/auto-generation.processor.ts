@@ -354,37 +354,12 @@ async function _processAutoGeneration(job: PgBoss.Job<IAutoGenerateJobData>): Pr
     }
   }
 
-  // Enqueue admin notification to superadmins only on failures
-  try {
-    if (totalFailed > 0) {
-      const boss = getBossClient()
-
-      const title = 'Generación automática completada con errores'
-      const body = `Cuotas creadas: ${totalCreated}. Fallidas: ${totalFailed}. Conceptos procesados: ${autoConcepts.length}.`
-      const data = { totalCreated, totalFailed, errors, conceptsProcessed: autoConcepts.length }
-
-      for (const admin of superadmins) {
-        if (!admin.id) continue
-        const notification: INotifyJobData = {
-          userId: admin.id,
-          category: 'alert',
-          title,
-          body,
-          channels: ['in_app', 'email', 'push'],
-          data,
-        }
-        await boss.send(QUEUES.NOTIFY, notification)
-      }
-
-      logger.info(
-        { superadminsNotified: superadmins.length },
-        '[AutoGen] Admin error notifications enqueued'
-      )
-    } else {
-      logger.info('[AutoGen] No failures — skipping superadmin notification')
-    }
-  } catch (notifyError) {
-    logger.error({ error: notifyError }, '[AutoGen] Failed to enqueue admin notification')
+  // Log generation summary (superadmins are NOT notified — they have no role in quota generation)
+  if (totalFailed > 0) {
+    logger.warn(
+      { totalCreated, totalFailed, errors, conceptsProcessed: autoConcepts.length },
+      '[AutoGen] Completed with failures'
+    )
   }
 
   // Auto-generate receipts for maintenance concepts (before notifications so we can attach PDFs)

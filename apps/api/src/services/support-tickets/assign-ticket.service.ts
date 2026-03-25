@@ -37,12 +37,12 @@ export class AssignTicketService {
     const existing = await this.ticketsRepository.getById(input.ticketId)
 
     if (!existing) {
-      return failure('Ticket not found', 'NOT_FOUND')
+      return failure('TICKET_NOT_FOUND', 'NOT_FOUND')
     }
 
     // Check if ticket is already closed or cancelled
     if (existing.status === 'closed' || existing.status === 'cancelled') {
-      return failure('Cannot assign a closed or cancelled ticket', 'BAD_REQUEST')
+      return failure('CANNOT_ASSIGN_CLOSED_OR_CANCELLED', 'BAD_REQUEST')
     }
 
     // Create assignment in history (this automatically deactivates previous assignment)
@@ -61,7 +61,7 @@ export class AssignTicketService {
     const updated = await this.ticketsRepository.findByIdWithDetails(input.ticketId)
 
     if (!updated) {
-      return failure('Failed to retrieve updated ticket', 'INTERNAL_ERROR')
+      return failure('OPERATION_FAILED', 'INTERNAL_ERROR')
     }
 
     // Send email notification to the assigned user (non-blocking)

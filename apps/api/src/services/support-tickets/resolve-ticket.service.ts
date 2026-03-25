@@ -18,23 +18,23 @@ export class ResolveTicketService {
     const existing = await this.ticketsRepository.getById(input.ticketId)
 
     if (!existing) {
-      return failure('Ticket not found', 'NOT_FOUND')
+      return failure('TICKET_NOT_FOUND', 'NOT_FOUND')
     }
 
     // Check if ticket is already resolved or closed
     if (existing.status === 'resolved') {
-      return failure('Ticket is already resolved', 'BAD_REQUEST')
+      return failure('ALREADY_RESOLVED', 'BAD_REQUEST')
     }
 
     if (existing.status === 'closed' || existing.status === 'cancelled') {
-      return failure('Cannot resolve a closed or cancelled ticket', 'BAD_REQUEST')
+      return failure('CANNOT_RESOLVE_CLOSED_OR_CANCELLED', 'BAD_REQUEST')
     }
 
     // Mark as resolved
     const resolved = await this.ticketsRepository.markAsResolved(input.ticketId, input.resolvedBy)
 
     if (!resolved) {
-      return failure('Failed to resolve ticket', 'INTERNAL_ERROR')
+      return failure('OPERATION_FAILED', 'INTERNAL_ERROR')
     }
 
     return success(resolved)

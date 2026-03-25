@@ -216,7 +216,7 @@ export function ReceiptDetailClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4">
           <Button isIconOnly variant="light" onPress={() => router.back()}>
             <ArrowLeft className="h-5 w-5" />
@@ -226,19 +226,31 @@ export function ReceiptDetailClient({
             <Typography color="muted">{receipt.receiptNumber}</Typography>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           {t.infoModal && (
             <Button
               isIconOnly
               aria-label={t.infoModal.button}
+              className="hidden sm:flex"
               variant="light"
               onPress={() => setIsInfoOpen(true)}
             >
               <Info className="h-5 w-5" />
             </Button>
           )}
+          {t.infoModal && (
+            <Button
+              className="w-full sm:hidden"
+              startContent={<Info className="h-4 w-4" />}
+              variant="light"
+              onPress={() => setIsInfoOpen(true)}
+            >
+              {t.infoModal.button}
+            </Button>
+          )}
           {t.downloadPdf && (
             <Button
+              className="w-full sm:w-auto"
               isLoading={isDownloading}
               startContent={<Download className="h-4 w-4" />}
               variant="flat"
@@ -249,6 +261,7 @@ export function ReceiptDetailClient({
           )}
           {t.sendEmail && receipt.status !== 'voided' && (
             <Button
+              className="w-full sm:w-auto"
               color="primary"
               isLoading={isSending}
               startContent={<Send className="h-4 w-4" />}
@@ -260,6 +273,7 @@ export function ReceiptDetailClient({
           )}
           {receipt.status !== 'voided' && t.void && (
             <Button
+              className="w-full sm:w-auto"
               color="danger"
               isLoading={isVoiding}
               startContent={<Ban className="h-4 w-4" />}
@@ -273,7 +287,7 @@ export function ReceiptDetailClient({
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         <div className="rounded-lg border p-4">
           <Typography color="muted" variant="caption">
             {t.status}

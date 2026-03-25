@@ -78,9 +78,9 @@ export function PushNotificationToggle({ initialHasActiveTokens }: IPushNotifica
   return (
     <div className="flex flex-col gap-4">
       {/* Main toggle */}
-      <div className="flex items-center justify-between rounded-lg border-2 border-default-200 bg-default-50 p-4 dark:bg-default-100/50">
+      <div className="flex flex-col gap-3 rounded-lg border-2 border-default-200 bg-default-50 p-4 dark:bg-default-100/50 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-default-100 p-2">
+          <div className="shrink-0 rounded-lg bg-default-100 p-2">
             <Bell className="h-5 w-5 text-default-600" />
           </div>
           <div>
@@ -96,6 +96,7 @@ export function PushNotificationToggle({ initialHasActiveTokens }: IPushNotifica
         </div>
 
         <Switch
+          className="self-end sm:self-auto"
           isDisabled={isDenied || isLoading || !firebaseUser || !user?.id}
           isSelected={isEnabled}
           onValueChange={handleToggle}

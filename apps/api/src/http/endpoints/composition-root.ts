@@ -512,6 +512,9 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         applicationsRepo: r.paymentApplications,
         unitsRepo: r.units,
         unitOwnershipsRepo: r.unitOwnerships,
+        condominiumsRepo: r.condominiums,
+        currenciesRepo: r.currencies,
+        buildingsRepo: r.buildings,
       }).createRouter(),
     },
     {
@@ -720,6 +723,8 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         expensesRepo: r.expenses,
         documentsRepo: r.documents,
         servicesRepo: r.condominiumServices,
+        condominiumsRepo: r.condominiums,
+        currenciesRepo: r.currencies,
       }).createRouter(),
     },
 

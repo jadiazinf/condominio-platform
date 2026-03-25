@@ -84,7 +84,7 @@ export default async function CondominiumBuildingsPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Typography variant="h3">{translations.title}</Typography>
           <Typography className="mt-1" color="muted" variant="body2">

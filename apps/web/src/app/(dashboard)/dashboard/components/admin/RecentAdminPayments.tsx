@@ -50,7 +50,7 @@ const STATUS_COLOR_MAP: Record<IAdminPayment['status'], 'success' | 'warning' | 
 export function RecentAdminPayments({ payments, translations: t }: RecentAdminPaymentsProps) {
   return (
     <Card className="h-full">
-      <CardHeader className="flex items-center justify-between px-6 pt-5 pb-0">
+      <CardHeader className="flex flex-col items-start gap-2 px-6 pt-5 pb-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <Wallet className="text-default-500" size={20} />
           <h3 className="text-lg font-semibold">{t.title}</h3>

@@ -4,7 +4,16 @@ import type { TPayment, TPaymentStatus } from '@packages/domain'
 import type { TReportFormat } from '@packages/http-client'
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
-import { CreditCard, Search, MoreVertical, Eye, CheckCircle, XCircle, Download } from 'lucide-react'
+import {
+  CreditCard,
+  Search,
+  MoreVertical,
+  Eye,
+  CheckCircle,
+  XCircle,
+  Download,
+  Plus,
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
   usePaymentsPaginated,
@@ -34,12 +43,18 @@ import { Typography } from '@/ui/components/typography'
 import { Pagination } from '@/ui/components/pagination'
 import { useSessionStore } from '@/stores'
 import { useToast } from '@/ui/components/toast'
+import { Link } from '@/ui/components/link'
 
 type TStatusFilter = TPaymentStatus | 'all'
 
 type TPaymentRow = TPayment & { id: string }
 
-export function PaymentsTable() {
+interface IPaymentsTableProps {
+  isAdmin?: boolean
+  registerButtonLabel?: string
+}
+
+export function PaymentsTable({ isAdmin, registerButtonLabel }: IPaymentsTableProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -388,8 +403,9 @@ export function PaymentsTable() {
   return (
     <div className="space-y-4">
       {/* Export buttons */}
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
         <Button
+          className="w-full sm:w-auto"
           isDisabled={exporting !== null}
           isLoading={exporting === 'csv'}
           startContent={<Download size={16} />}
@@ -399,6 +415,7 @@ export function PaymentsTable() {
           {t('admin.payments.export.csv')}
         </Button>
         <Button
+          className="w-full sm:w-auto"
           isDisabled={exporting !== null}
           isLoading={exporting === 'pdf'}
           startContent={<Download size={16} />}
@@ -409,32 +426,42 @@ export function PaymentsTable() {
         </Button>
       </div>
 
-      {/* All filters in one row */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      {/* Register button — above filters on mobile/tablet, hidden on lg */}
+      {isAdmin && (
+        <Link
+          className="inline-flex w-full items-center justify-center gap-2 rounded-small bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 lg:hidden"
+          href="/dashboard/payments/register"
+          underline="none"
+        >
+          <Plus size={16} />
+          {registerButtonLabel}
+        </Link>
+      )}
+
+      {/* Filters */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-row lg:flex-wrap lg:items-end">
         <Input
-          className="w-full sm:max-w-xs"
+          className="sm:col-span-2 lg:flex-1 lg:min-w-0"
+          label={t('admin.payments.filters.searchPlaceholder')}
           placeholder={t('admin.payments.filters.searchPlaceholder')}
-          size="lg"
           startContent={<Search className="text-default-400" size={16} />}
           value={searchInput}
           onValueChange={setSearchInput}
         />
         <Select
-          aria-label={t('admin.payments.filters.status')}
-          className="w-full sm:w-44"
+          className="lg:flex-1 lg:min-w-0"
           items={statusFilterItems}
-          size="lg"
+          label={t('admin.payments.filters.status')}
           value={statusFilter}
           variant="bordered"
           onChange={handleStatusChange}
         />
         {condominiums.length > 0 && (
           <Select
-            aria-label={t('admin.payments.filters.condominium')}
-            className="w-full sm:w-56"
+            className="lg:flex-1 lg:min-w-0"
             items={condominiumFilterItems}
+            label={t('admin.payments.filters.condominium')}
             placeholder={t('admin.payments.filters.condominiumAll')}
-            size="lg"
             value={condominiumFilter}
             variant="bordered"
             onChange={handleCondominiumChange}
@@ -442,9 +469,9 @@ export function PaymentsTable() {
         )}
         {bankAccounts.length > 0 && (
           <Select
-            aria-label={t('admin.payments.filters.bank')}
-            className="w-full sm:w-44"
+            className="lg:flex-1 lg:min-w-0"
             items={bankAccountFilterItems}
+            label={t('admin.payments.filters.bank')}
             placeholder={t('admin.payments.filters.bankAll')}
             value={bankAccountFilter}
             variant="bordered"
@@ -452,7 +479,7 @@ export function PaymentsTable() {
           />
         )}
         <DatePicker
-          className="w-full sm:w-36"
+          className="lg:flex-1 lg:min-w-0"
           label={t('admin.payments.filters.startDate')}
           value={startDate}
           onChange={v => {
@@ -461,7 +488,7 @@ export function PaymentsTable() {
           }}
         />
         <DatePicker
-          className="w-full sm:w-36"
+          className="lg:flex-1 lg:min-w-0"
           label={t('admin.payments.filters.endDate')}
           value={endDate}
           onChange={v => {
@@ -474,7 +501,22 @@ export function PaymentsTable() {
           condominiumFilter ||
           bankAccountFilter ||
           startDate ||
-          endDate) && <ClearFiltersButton onClear={handleClearFilters} />}
+          endDate) && (
+          <div className="flex items-end sm:col-span-2 lg:col-span-1">
+            <ClearFiltersButton onClear={handleClearFilters} />
+          </div>
+        )}
+        {/* Register button — inline with filters on lg only */}
+        {isAdmin && (
+          <Link
+            className="hidden lg:inline-flex items-center gap-2 rounded-small bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            href="/dashboard/payments/register"
+            underline="none"
+          >
+            <Plus size={16} />
+            {registerButtonLabel}
+          </Link>
+        )}
       </div>
 
       {/* Table */}
@@ -483,7 +525,7 @@ export function PaymentsTable() {
           <Spinner size="lg" />
         </div>
       ) : payments.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-default-300 py-16 text-center">
           <CreditCard className="mb-4 text-default-300" size={48} />
           <Typography color="muted" variant="body1">
             {t('admin.payments.empty')}

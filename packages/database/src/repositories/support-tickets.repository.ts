@@ -15,6 +15,9 @@ import {
   supportTicketMessages,
   supportTicketAssignmentHistory,
   users,
+  unitOwnerships,
+  units,
+  buildings,
 } from '../drizzle/schema'
 import type { TDrizzleClient, IRepository } from './interfaces'
 import { BaseRepository } from './base'
@@ -583,6 +586,26 @@ export class SupportTicketsRepository
       this.getUserById(ticket.closedBy),
     ])
 
+    // Look up created-by user's unit number within the ticket's condominium
+    let createdByUserUnitNumber: string | null = null
+    if (ticket.condominiumId && ticket.createdByUserId) {
+      const ownershipResult = await this.db
+        .select({ unitNumber: units.unitNumber })
+        .from(unitOwnerships)
+        .innerJoin(units, eq(unitOwnerships.unitId, units.id))
+        .innerJoin(buildings, eq(units.buildingId, buildings.id))
+        .where(
+          and(
+            eq(unitOwnerships.userId, ticket.createdByUserId),
+            eq(buildings.condominiumId, ticket.condominiumId),
+            eq(unitOwnerships.isActive, true)
+          )
+        )
+        .limit(1)
+
+      createdByUserUnitNumber = ownershipResult[0]?.unitNumber ?? null
+    }
+
     // Get ticket messages with user details
     const messagesResult = await this.db
       .select({
@@ -610,9 +633,12 @@ export class SupportTicketsRepository
     }))
 
     // Map ticket with users and messages
+    const mappedCreatedByUser = this.mapUserToEntity(createdByUser)
     const ticketEntity = {
       ...this.mapToEntity(ticket),
-      createdByUser: this.mapUserToEntity(createdByUser),
+      createdByUser: mappedCreatedByUser
+        ? { ...mappedCreatedByUser, unitNumber: createdByUserUnitNumber }
+        : undefined,
       resolvedByUser: this.mapUserToEntity(resolvedByUser),
       closedByUser: this.mapUserToEntity(closedByUser),
       messages,

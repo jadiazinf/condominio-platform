@@ -92,10 +92,10 @@ export function DocumentInput({
           )}
         </label>
       )}
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Select
           aria-label="Document type"
-          className="w-[160px] shrink-0"
+          className="w-full sm:w-[160px] shrink-0"
           classNames={{
             trigger: 'min-h-unit-10',
           }}

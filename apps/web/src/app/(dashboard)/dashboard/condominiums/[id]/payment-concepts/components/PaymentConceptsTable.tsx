@@ -192,7 +192,7 @@ export function PaymentConceptsTable({
                     {concept.isActive ? t.status.active : t.status.inactive}
                   </Chip>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <Chip
                     color={
                       TYPE_COLORS[concept.conceptType as keyof typeof TYPE_COLORS] || 'default'

@@ -26,9 +26,9 @@ export function UserInfo({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-1">
         <div className="flex items-center gap-2">
-          <User className="text-default-400" size={16} />
+          <User className="shrink-0 text-default-400" size={16} />
           <Typography variant="body2">{displayName}</Typography>
         </div>
         <div className="flex items-center gap-2">

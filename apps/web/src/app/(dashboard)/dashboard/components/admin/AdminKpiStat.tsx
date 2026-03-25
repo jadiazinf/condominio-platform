@@ -42,18 +42,24 @@ export function AdminKpiStat({
 }: AdminKpiStatProps) {
   return (
     <Card className="dark:border-default-100 flex flex-col justify-between border border-transparent">
-      <div className="flex p-4">
-        <div className={cn('mt-1 flex h-8 w-8 items-center justify-center rounded-md', iconBg)}>
-          {icon}
-        </div>
-
-        <div className="flex flex-col gap-y-2">
-          <dt className="text-small text-default-500 mx-4 font-medium">{title}</dt>
-          <dd className="text-default-700 px-4 text-2xl font-semibold">{value}</dd>
+      <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start">
+        <div className="flex flex-1 items-start gap-3">
+          <div
+            className={cn(
+              'mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-md',
+              iconBg
+            )}
+          >
+            {icon}
+          </div>
+          <div className="flex flex-col gap-y-2">
+            <dt className="text-small text-default-500 font-medium">{title}</dt>
+            <dd className="text-default-700 text-2xl font-semibold">{value}</dd>
+          </div>
         </div>
 
         <Link
-          className="absolute right-4 top-4 flex items-center gap-1 text-small text-emerald-600 dark:text-emerald-400 hover:underline"
+          className="flex items-center gap-1 text-small text-emerald-600 dark:text-emerald-400 hover:underline sm:shrink-0"
           href={viewAllHref}
         >
           {viewAllLabel}

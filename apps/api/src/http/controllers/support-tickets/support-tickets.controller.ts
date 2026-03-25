@@ -35,7 +35,7 @@ import {
   AUTHENTICATED_USER_PROP,
 } from '../../middlewares/utils/auth/is-user-authenticated'
 import { requireRole } from '../../middlewares/auth'
-import { canAccessTicket } from '../../middlewares/utils/auth/can-access-ticket'
+import { canAccessTicket, canManageTicket } from '../../middlewares/utils/auth/can-access-ticket'
 import { WebSocketManager } from '@libs/websocket'
 
 const CompanyIdParamSchema = z.object({
@@ -183,51 +183,51 @@ export class SupportTicketsController extends BaseController<
           bodyValidator(supportTicketUpdateSchema),
         ],
       },
-      // Superadmin only: Assign ticket
+      // Assign ticket (superadmin, or admin for resident_to_admin tickets)
       {
         method: 'patch',
         path: '/platform/support-tickets/:id/assign',
         handler: this.assignTicket,
         middlewares: [
           isUserAuthenticated,
-          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
+          canManageTicket,
           bodyValidator(AssignTicketBodySchema),
         ],
       },
-      // Superadmin only: Resolve ticket
+      // Resolve ticket (superadmin, or admin for resident_to_admin tickets)
       {
         method: 'patch',
         path: '/platform/support-tickets/:id/resolve',
         handler: this.resolveTicket,
         middlewares: [
           isUserAuthenticated,
-          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
+          canManageTicket,
           bodyValidator(ResolveTicketBodySchema),
         ],
       },
-      // Superadmin only: Close ticket
+      // Close ticket (superadmin, or admin for resident_to_admin tickets)
       {
         method: 'patch',
         path: '/platform/support-tickets/:id/close',
         handler: this.closeTicket,
         middlewares: [
           isUserAuthenticated,
-          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
+          canManageTicket,
           bodyValidator(CloseTicketBodySchema),
         ],
       },
-      // Superadmin only: Update ticket status
+      // Update ticket status (superadmin, or admin for resident_to_admin tickets)
       {
         method: 'patch',
         path: '/platform/support-tickets/:id/status',
         handler: this.updateTicketStatus,
         middlewares: [
           isUserAuthenticated,
-          requireRole(ESystemRole.SUPERADMIN),
           paramsValidator(IdParamSchema),
+          canManageTicket,
           bodyValidator(UpdateStatusBodySchema),
         ],
       },
@@ -355,6 +355,7 @@ export class SupportTicketsController extends BaseController<
   private assignTicket = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TAssignTicketBody, unknown, { id: string }>(c)
     const user = c.get(AUTHENTICATED_USER_PROP)
+    const t = useTranslation(c)
 
     try {
       const result = await this.assignService.execute({
@@ -364,7 +365,9 @@ export class SupportTicketsController extends BaseController<
       })
 
       if (!result.success) {
-        return ctx.badRequest({ error: result.error })
+        const error = this.translateServiceError(t, result.error)
+        if (result.code === 'NOT_FOUND') return ctx.notFound({ error })
+        return ctx.badRequest({ error })
       }
 
       this.wsManager.broadcastToTicket(ctx.params.id, 'ticket_updated', result.data)
@@ -377,6 +380,7 @@ export class SupportTicketsController extends BaseController<
 
   private resolveTicket = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TResolveTicketBody, unknown, { id: string }>(c)
+    const t = useTranslation(c)
 
     try {
       const result = await this.resolveService.execute({
@@ -385,7 +389,9 @@ export class SupportTicketsController extends BaseController<
       })
 
       if (!result.success) {
-        return ctx.badRequest({ error: result.error })
+        const error = this.translateServiceError(t, result.error)
+        if (result.code === 'NOT_FOUND') return ctx.notFound({ error })
+        return ctx.badRequest({ error })
       }
 
       this.wsManager.broadcastToTicket(ctx.params.id, 'ticket_updated', result.data)
@@ -412,6 +418,7 @@ export class SupportTicketsController extends BaseController<
 
   private closeTicket = async (c: Context): Promise<Response> => {
     const ctx = this.ctx<TCloseTicketBody, unknown, { id: string }>(c)
+    const t = useTranslation(c)
 
     try {
       const result = await this.closeService.execute({
@@ -420,7 +427,9 @@ export class SupportTicketsController extends BaseController<
       })
 
       if (!result.success) {
-        return ctx.badRequest({ error: result.error })
+        const error = this.translateServiceError(t, result.error)
+        if (result.code === 'NOT_FOUND') return ctx.notFound({ error })
+        return ctx.badRequest({ error })
       }
 
       this.wsManager.broadcastToTicket(ctx.params.id, 'ticket_updated', result.data)
@@ -548,5 +557,25 @@ export class SupportTicketsController extends BaseController<
 
     // Generic fallback
     return t(dict.invalidStatusTransition)
+  }
+
+  /**
+   * Translate service error codes to localized messages
+   */
+  private translateServiceError(t: (key: string) => string, errorCode: unknown): string {
+    const dict = LocaleDictionary.http.controllers.supportTickets
+
+    const errorMap: Record<string, string> = {
+      TICKET_NOT_FOUND: dict.ticketNotFound,
+      CANNOT_ASSIGN_CLOSED_OR_CANCELLED: dict.cannotAssignClosedOrCancelled,
+      ALREADY_RESOLVED: dict.alreadyResolved,
+      CANNOT_RESOLVE_CLOSED_OR_CANCELLED: dict.cannotResolveClosedOrCancelled,
+      ALREADY_CLOSED: dict.alreadyClosed,
+      CANNOT_CLOSE_CANCELLED: dict.cannotCloseCancelled,
+      OPERATION_FAILED: dict.operationFailed,
+    }
+
+    const key = typeof errorCode === 'string' ? errorMap[errorCode] : undefined
+    return key ? t(key) : t(dict.operationFailed)
   }
 }

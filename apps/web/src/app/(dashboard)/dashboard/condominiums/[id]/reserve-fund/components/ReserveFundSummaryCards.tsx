@@ -35,6 +35,7 @@ export function ReserveFundSummaryCards({
   })
 
   const summary = data?.data
+  const currencySymbol = summary?.currencySymbol ?? '$'
 
   if (isLoading) {
     return (
@@ -47,21 +48,21 @@ export function ReserveFundSummaryCards({
   const secondaryCards = [
     {
       label: t.totalCharged,
-      value: formatCurrency(summary?.totalCharged ?? '0'),
+      value: `${currencySymbol} ${formatCurrency(summary?.totalCharged ?? '0')}`,
       icon: TrendingUp,
       color: 'text-primary' as const,
       bgColor: 'bg-primary/10' as const,
     },
     {
       label: t.totalPending,
-      value: formatCurrency(summary?.totalPending ?? '0'),
+      value: `${currencySymbol} ${formatCurrency(summary?.totalPending ?? '0')}`,
       icon: Clock,
       color: 'text-warning' as const,
       bgColor: 'bg-warning/10' as const,
     },
     {
       label: t.totalExpenses,
-      value: formatCurrency(summary?.totalExpenses ?? '0'),
+      value: `${currencySymbol} ${formatCurrency(summary?.totalExpenses ?? '0')}`,
       icon: Receipt,
       color: 'text-danger' as const,
       bgColor: 'bg-danger/10' as const,
@@ -88,7 +89,7 @@ export function ReserveFundSummaryCards({
               {t.totalPaid}
             </Typography>
             <Typography className="mt-1" variant="h2">
-              {formatCurrency(summary?.totalPaid ?? '0')}
+              {currencySymbol} {formatCurrency(summary?.totalPaid ?? '0')}
             </Typography>
           </div>
         </CardBody>

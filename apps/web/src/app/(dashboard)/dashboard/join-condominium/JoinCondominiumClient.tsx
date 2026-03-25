@@ -98,7 +98,7 @@ export function JoinCondominiumClient({ translations }: IJoinCondominiumClientPr
       <Card className="max-w-lg">
         <CardBody className="gap-4">
           <p className="text-sm font-medium">{translations.step1.label}</p>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
             <Input
               className="font-mono text-lg tracking-widest"
               maxLength={8}
@@ -108,6 +108,7 @@ export function JoinCondominiumClient({ translations }: IJoinCondominiumClientPr
               onValueChange={val => setCode(val.toUpperCase())}
             />
             <Button
+              className="w-full"
               color="primary"
               isDisabled={code.length < 6}
               isLoading={validateMutation.isPending}

@@ -79,10 +79,28 @@ function handleLocale(request: NextRequest, skipAuthRedirect = false): NextRespo
   return response
 }
 
+/**
+ * Quick check if a JWT is expired by decoding the payload (no signature verification).
+ * Returns true if the token is expired or malformed.
+ */
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = token.split('.')[1]
+
+    if (!payload) return true
+    const decoded = JSON.parse(atob(payload))
+
+    // exp is in seconds, Date.now() in milliseconds
+    return !decoded.exp || decoded.exp * 1000 < Date.now()
+  } catch {
+    return true
+  }
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)
-  const hasSession = !!sessionCookie?.value
+  const hasSession = !!sessionCookie?.value && !isTokenExpired(sessionCookie.value)
 
   // Loading page is only needed for registration and signout flows
   // These require client-side processing (sessionStorage for registration, Firebase SDK for signout)

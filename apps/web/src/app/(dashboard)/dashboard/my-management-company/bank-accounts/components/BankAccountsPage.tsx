@@ -99,7 +99,11 @@ export function BankAccountsPage({ managementCompanyId, memberRole }: BankAccoun
   // Table columns
   const tableColumns: ITableColumn<TBankAccount>[] = useMemo(
     () => [
-      { key: 'displayName', label: t('admin.company.myCompany.bankAccounts.columns.displayName') },
+      {
+        key: 'displayName',
+        label: t('admin.company.myCompany.bankAccounts.columns.displayName'),
+        mobileFullWidth: true,
+      },
       { key: 'bankName', label: t('admin.company.myCompany.bankAccounts.columns.bankName') },
       { key: 'accountCategory', label: t('admin.company.myCompany.bankAccounts.columns.category') },
       {

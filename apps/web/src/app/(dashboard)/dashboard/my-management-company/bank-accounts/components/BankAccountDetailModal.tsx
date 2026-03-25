@@ -157,7 +157,7 @@ export function BankAccountDetailModal({
       <Modal isOpen={isOpen} scrollBehavior="inside" size="2xl" onClose={onClose}>
         <ModalContent>
           <ModalHeader className="flex flex-col gap-2">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               <Typography variant="h4">{account.displayName}</Typography>
               <Chip
                 color={account.accountCategory === 'national' ? 'primary' : 'secondary'}

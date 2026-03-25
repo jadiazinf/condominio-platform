@@ -105,14 +105,14 @@ function getPriorityLabel(priority: string): string {
   }
 }
 
-function getPriorityColor(priority: string): 'default' | 'primary' | 'warning' | 'danger' {
+function getPriorityColor(priority: string): 'default' | 'success' | 'warning' | 'danger' {
   switch (priority) {
     case 'low':
-      return 'default'
+      return 'success'
     case 'medium':
-      return 'primary'
-    case 'high':
       return 'warning'
+    case 'high':
+      return 'danger'
     case 'urgent':
       return 'danger'
     default:
@@ -190,40 +190,33 @@ export function SupportPageClient() {
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <Typography variant="h4">
-            {t('resident.support.title') !== 'resident.support.title'
-              ? t('resident.support.title')
-              : 'Soporte'}
-          </Typography>
-          <Typography color="muted" variant="body2">
-            {t('resident.support.subtitle') !== 'resident.support.subtitle'
-              ? t('resident.support.subtitle')
-              : 'Gestiona tus solicitudes y consultas'}
-          </Typography>
-        </div>
-        <Button color="primary" href="/dashboard/support/create" startContent={<Plus size={20} />}>
-          {t('resident.support.newTicket') !== 'resident.support.newTicket'
-            ? t('resident.support.newTicket')
-            : 'Nuevo ticket'}
-        </Button>
+      <div>
+        <Typography variant="h4">
+          {t('resident.support.title') !== 'resident.support.title'
+            ? t('resident.support.title')
+            : 'Soporte'}
+        </Typography>
+        <Typography color="muted" variant="body2">
+          {t('resident.support.subtitle') !== 'resident.support.subtitle'
+            ? t('resident.support.subtitle')
+            : 'Gestiona tus solicitudes y consultas'}
+        </Typography>
       </div>
 
-      {/* Filters row */}
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="flex-1">
+      {/* Filters + action row */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end flex-1">
           <Input
+            className="w-full sm:max-w-xs"
             placeholder="Buscar por asunto o número..."
             startContent={<Search className="text-default-400" size={18} />}
             value={searchInput}
             variant="bordered"
             onValueChange={setSearchInput}
           />
-        </div>
-        <div className="w-full sm:w-44">
           <Select
             aria-label="Canal"
+            className="w-full sm:w-44"
             items={channelItems}
             placeholder="Canal"
             value={channel}
@@ -233,10 +226,9 @@ export function SupportPageClient() {
               setPage(1)
             }}
           />
-        </div>
-        <div className="w-full sm:w-44">
           <Select
             aria-label="Estado"
+            className="w-full sm:w-44"
             items={statusItems}
             placeholder="Estado"
             value={status}
@@ -247,6 +239,16 @@ export function SupportPageClient() {
             }}
           />
         </div>
+        <Button
+          className="w-full sm:w-auto"
+          color="primary"
+          href="/dashboard/support/create"
+          startContent={<Plus size={16} />}
+        >
+          {t('resident.support.newTicket') !== 'resident.support.newTicket'
+            ? t('resident.support.newTicket')
+            : 'Nuevo ticket'}
+        </Button>
       </div>
 
       {/* Tickets list */}
@@ -289,7 +291,10 @@ export function SupportPageClient() {
                     <Typography className="line-clamp-2 font-medium sm:truncate sm:line-clamp-none">
                       {ticket.subject}
                     </Typography>
-                    <ChevronRight className="mt-0.5 shrink-0 text-default-300 sm:hidden" size={16} />
+                    <ChevronRight
+                      className="mt-0.5 shrink-0 text-default-300 sm:hidden"
+                      size={16}
+                    />
                   </div>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-default-400">
                     <span>#{ticket.ticketNumber}</span>

@@ -41,7 +41,12 @@ export function BuildingsPageClient({ condominiumId, translations }: IBuildingsP
 
   return (
     <>
-      <Button color="primary" startContent={<Plus size={16} />} onPress={onOpen}>
+      <Button
+        className="w-full sm:w-auto"
+        color="primary"
+        startContent={<Plus size={16} />}
+        onPress={onOpen}
+      >
         {translations.addBuilding}
       </Button>
 

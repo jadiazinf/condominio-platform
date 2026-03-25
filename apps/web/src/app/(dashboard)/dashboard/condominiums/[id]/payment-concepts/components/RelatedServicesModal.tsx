@@ -73,7 +73,7 @@ function ServiceExecutionsList({
       {executions.map(execution => (
         <div
           key={execution.id}
-          className="flex items-center justify-between rounded-md border border-default-100 bg-default-50 px-3 py-2"
+          className="flex flex-col gap-1 rounded-md border border-default-100 bg-default-50 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
         >
           <div className="min-w-0">
             <p className="text-xs font-medium truncate">{execution.title}</p>
@@ -174,7 +174,7 @@ export function RelatedServicesModal({
                   aria-label={service.serviceName}
                   startContent={<Receipt className="text-default-400 shrink-0" size={14} />}
                   title={
-                    <div className="flex items-center justify-between w-full pr-2">
+                    <div className="flex flex-col gap-1 w-full pr-2 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <span className="text-sm font-medium">{service.serviceName}</span>
                         <span className="text-xs text-default-400 ml-2">

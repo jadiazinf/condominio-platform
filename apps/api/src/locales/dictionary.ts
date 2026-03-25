@@ -58,6 +58,13 @@ export const LocaleDictionary = {
         failedToCreateMessage: 'http.controllers.supportTickets.failedToCreateMessage',
         operationFailed: 'http.controllers.supportTickets.operationFailed',
         invalidStatusTransition: 'http.controllers.supportTickets.invalidStatusTransition',
+        cannotAssignClosedOrCancelled:
+          'http.controllers.supportTickets.cannotAssignClosedOrCancelled',
+        alreadyResolved: 'http.controllers.supportTickets.alreadyResolved',
+        cannotResolveClosedOrCancelled:
+          'http.controllers.supportTickets.cannotResolveClosedOrCancelled',
+        alreadyClosed: 'http.controllers.supportTickets.alreadyClosed',
+        cannotCloseCancelled: 'http.controllers.supportTickets.cannotCloseCancelled',
         invalidAttachmentType: 'http.controllers.supportTickets.invalidAttachmentType',
         attachmentTooLarge: 'http.controllers.supportTickets.attachmentTooLarge',
         statusTransitions: {

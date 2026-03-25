@@ -34,6 +34,7 @@ export interface IAccountStatementData {
   totalPayments: string
   totalInterest: string
   currentBalance: string
+  currencySymbol: string | null
   lineItems: IAccountStatementLineItem[]
   aging: IAccountStatementAging
 }

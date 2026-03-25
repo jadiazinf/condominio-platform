@@ -12,6 +12,10 @@ export default async function EventLogsPage() {
     redirect('/auth')
   }
 
+  if (!session.superadmin?.isActive) {
+    redirect('/dashboard')
+  }
+
   const p = 'admin.eventLogs'
   const translations = {
     title: t(`${p}.title`),

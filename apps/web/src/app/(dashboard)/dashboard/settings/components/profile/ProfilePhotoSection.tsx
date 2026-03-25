@@ -39,7 +39,7 @@ export function ProfilePhotoSection() {
       title={t('settings.profile.photo')}
     >
       <FormField>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
           {/* Avatar with camera button */}
           <div className="relative">
             <Avatar
@@ -63,8 +63,9 @@ export function ProfilePhotoSection() {
           </div>
 
           {/* Action buttons */}
-          <div className="flex flex-col gap-3">
+          <div className="flex w-full flex-col gap-3 sm:w-auto">
             <Button
+              className="w-full sm:w-auto"
               isDisabled={isLoading}
               isLoading={isUploading}
               variant="bordered"
@@ -74,6 +75,7 @@ export function ProfilePhotoSection() {
             </Button>
             {user?.photoUrl && (
               <Button
+                className="w-full sm:w-auto"
                 color="danger"
                 isDisabled={isLoading}
                 isLoading={isDeleting}

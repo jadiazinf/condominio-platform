@@ -16,11 +16,13 @@ export interface IDelinquencyUnitAging {
 export interface IDelinquencyUnit {
   unitId: string
   unitNumber: string
+  buildingId: string
   buildingName: string
   totalDebt: string
   aging: IDelinquencyUnitAging
   oldestDueDate: string
   overdueQuotaCount: number
+  maxDaysOverdue: number
 }
 
 export interface IDelinquencySummary {
@@ -31,13 +33,17 @@ export interface IDelinquencySummary {
 }
 
 export interface IDelinquencyReportData {
-  units: IDelinquencyUnit[]
+  delinquentUnits: IDelinquencyUnit[]
   summary: IDelinquencySummary
+  currencySymbol: string | null
 }
 
 export interface IDelinquencyReportQuery {
   asOfDate: string
   buildingId?: string
+  conceptId?: string
+  unitId?: string
+  condominiumId?: string
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -59,11 +65,19 @@ export function useDelinquencyReport(
 ) {
   const params = new URLSearchParams({ asOfDate: query.asOfDate })
   if (query.buildingId) params.set('buildingId', query.buildingId)
+  if (query.conceptId) params.set('conceptId', query.conceptId)
+  if (query.unitId) params.set('unitId', query.unitId)
+
+  const config: Record<string, unknown> = {}
+  if (query.condominiumId) {
+    config.headers = { 'x-condominium-id': query.condominiumId }
+  }
 
   return useApiQuery<TApiDataResponse<IDelinquencyReportData>>({
     path: `/condominium/account-statements/delinquency?${params.toString()}`,
     queryKey: delinquencyKeys.report(query),
     enabled: options?.enabled !== false && !!query.asOfDate,
+    config,
   })
 }
 

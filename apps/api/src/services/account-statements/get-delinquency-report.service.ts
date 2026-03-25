@@ -19,16 +19,28 @@ type TUnitsRepo = {
   >
 }
 
+type TBuildingsRepo = {
+  getByCondominiumId: (condominiumId: string) => Promise<
+    Array<{
+      id: string
+      name: string
+    }>
+  >
+}
+
 export interface IDelinquencyReportInput {
   condominiumId: string
   asOfDate: string // yyyy-MM-dd
   buildingId?: string
+  conceptId?: string
+  unitId?: string
 }
 
 export interface IDelinquentUnit {
   unitId: string
   unitNumber: string
   buildingId: string
+  buildingName: string
   totalDebt: string
   overdueQuotaCount: number
   oldestDueDate: string
@@ -59,28 +71,41 @@ export interface IDelinquencyReportOutput {
 export class GetDelinquencyReportService {
   constructor(
     private readonly quotasRepo: QuotasRepository,
-    private readonly unitsRepo: TUnitsRepo
+    private readonly unitsRepo: TUnitsRepo,
+    private readonly buildingsRepo: TBuildingsRepo
   ) {}
 
   async execute(input: IDelinquencyReportInput): Promise<TServiceResult<IDelinquencyReportOutput>> {
-    const { condominiumId, asOfDate, buildingId } = input
+    const { condominiumId, asOfDate, buildingId, conceptId, unitId } = input
 
-    // 1. Fetch all units and overdue quotas
-    const [allUnits, overdueQuotas] = await Promise.all([
+    // 1. Fetch all units, buildings, and overdue quotas
+    const [allUnits, allBuildings, overdueQuotas] = await Promise.all([
       this.unitsRepo.getByCondominiumId(condominiumId),
+      this.buildingsRepo.getByCondominiumId(condominiumId),
       this.quotasRepo.getOverdue(asOfDate, condominiumId),
     ])
 
-    // Build unit lookup
+    // Build lookups
     const unitMap = new Map(allUnits.map(u => [u.id, u]))
+    const buildingMap = new Map(allBuildings.map(b => [b.id, b]))
 
-    // 2. Filter by building if specified
-    const filteredQuotas = buildingId
-      ? overdueQuotas.filter(q => {
-          const unit = unitMap.get(q.unitId)
-          return unit?.buildingId === buildingId
-        })
-      : overdueQuotas
+    // 2. Filter by building, concept, and unit if specified
+    let filteredQuotas = overdueQuotas
+
+    if (buildingId) {
+      filteredQuotas = filteredQuotas.filter(q => {
+        const unit = unitMap.get(q.unitId)
+        return unit?.buildingId === buildingId
+      })
+    }
+
+    if (conceptId) {
+      filteredQuotas = filteredQuotas.filter(q => q.paymentConceptId === conceptId)
+    }
+
+    if (unitId) {
+      filteredQuotas = filteredQuotas.filter(q => q.unitId === unitId)
+    }
 
     const filteredUnits = buildingId ? allUnits.filter(u => u.buildingId === buildingId) : allUnits
 
@@ -133,10 +158,13 @@ export class GetDelinquencyReportService {
 
       totalDelinquent += debt
 
+      const building = buildingMap.get(unit.buildingId)
+
       delinquentUnits.push({
         unitId,
         unitNumber: unit.unitNumber,
         buildingId: unit.buildingId,
+        buildingName: building?.name ?? '',
         totalDebt: toDecimal(roundCurrency(debt)),
         overdueQuotaCount: quotas.length,
         oldestDueDate: oldest,

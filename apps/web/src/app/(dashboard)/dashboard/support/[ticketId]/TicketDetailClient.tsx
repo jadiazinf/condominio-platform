@@ -16,6 +16,11 @@ import {
   Video,
   RefreshCw,
   Download,
+  Calendar,
+  User,
+  Mail,
+  Phone,
+  Home,
 } from 'lucide-react'
 import {
   useUserTicket,
@@ -43,6 +48,8 @@ import { Spinner } from '@/ui/components/spinner'
 import { Typography } from '@/ui/components/typography'
 import { Textarea } from '@/ui/components/textarea'
 import { Progress } from '@/ui/components/progress'
+import { Card, CardHeader, CardBody } from '@/ui/components/card'
+import { Divider } from '@/ui/components/divider'
 import { useToast } from '@/ui/components/toast'
 import { setSessionCookie } from '@/libs/cookies'
 
@@ -142,14 +149,14 @@ function getPriorityLabel(priority: string): string {
   }
 }
 
-function getPriorityColor(priority: string): 'default' | 'primary' | 'warning' | 'danger' {
+function getPriorityColor(priority: string): 'default' | 'success' | 'warning' | 'danger' {
   switch (priority) {
     case 'low':
-      return 'default'
+      return 'success'
     case 'medium':
-      return 'primary'
-    case 'high':
       return 'warning'
+    case 'high':
+      return 'danger'
     case 'urgent':
       return 'danger'
     default:
@@ -434,379 +441,519 @@ export function TicketDetailClient({ ticketId }: ITicketDetailClientProps) {
   const isTicketClosed =
     ticket.status === 'closed' || ticket.status === 'cancelled' || ticket.status === 'resolved'
 
+  const createdByUser = ticket.createdByUser as any
+  const formatDate = (date: Date | string) => {
+    return new Date(date).toLocaleDateString('es-VE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
   return (
-    <div className="flex h-[calc(100vh-120px)] flex-col">
-      {/* ── Header bar ──────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 border-b border-default-200 pb-3">
+    <div className="space-y-6">
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <div className="flex items-start gap-3">
         <Button
           isIconOnly
+          className="mt-0.5 shrink-0"
           size="sm"
           variant="light"
           onPress={() => router.push('/dashboard/support')}
         >
           <ArrowLeft size={20} />
         </Button>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <Typography className="truncate font-semibold">{ticket.subject}</Typography>
-          <div className="flex items-center gap-2 text-xs text-default-400">
-            <span>#{ticket.ticketNumber}</span>
-            <span>·</span>
-            <span>{getChannelLabel(ticket.channel)}</span>
-          </div>
-        </div>
-
-        <div className="flex shrink-0 items-center gap-2">
-          <Chip color={getStatusColor(ticket.status)} size="sm" variant="flat">
-            {getStatusLabel(ticket.status)}
-          </Chip>
-          <Chip color={getPriorityColor(ticket.priority)} size="sm" variant="flat">
-            {getPriorityLabel(ticket.priority)}
-          </Chip>
-          <div title={isConnected ? 'Conectado en tiempo real' : 'Sin conexión en tiempo real'}>
-            {isConnected ? (
-              <Wifi className="text-success" size={16} />
-            ) : (
-              <WifiOff className="text-default-300" size={16} />
-            )}
-          </div>
+        <div className="min-w-0">
+          <Typography className="break-words" variant="h3">
+            {ticket.subject}
+          </Typography>
+          <Typography color="muted" variant="body2">
+            Ticket #{ticket.ticketNumber} · {getChannelLabel(ticket.channel)}{' '}
+            <span
+              className="inline-block align-middle"
+              title={isConnected ? 'Conectado en tiempo real' : 'Sin conexión en tiempo real'}
+            >
+              {isConnected ? (
+                <Wifi className="text-success" size={14} />
+              ) : (
+                <WifiOff className="text-default-300" size={14} />
+              )}
+            </span>
+          </Typography>
         </div>
       </div>
 
-      {/* ── Admin actions (for resident_to_admin tickets) ────────────────── */}
-      {canManageTicket && !isTicketClosed && (
-        <div className="flex items-center gap-2 border-b border-default-200 px-4 py-2">
-          <Typography className="text-xs text-default-400">Acciones:</Typography>
-          {ticket.status === 'open' && (
-            <Button
-              color="warning"
-              isLoading={updateStatusMutation.isPending}
-              size="sm"
-              variant="flat"
-              onPress={() => handleStatusChange('in_progress')}
-            >
-              En progreso
-            </Button>
-          )}
-          {(ticket.status === 'open' || ticket.status === 'in_progress') && (
-            <Button
-              color="secondary"
-              isLoading={updateStatusMutation.isPending}
-              size="sm"
-              variant="flat"
-              onPress={() => handleStatusChange('waiting_customer')}
-            >
-              Esperando respuesta
-            </Button>
-          )}
-          {!ticket.resolvedAt && (
-            <Button
-              color="success"
-              isLoading={resolveMutation.isPending}
-              size="sm"
-              variant="flat"
-              onPress={handleResolve}
-            >
-              Resolver
-            </Button>
-          )}
-          <Button
-            color="danger"
-            isLoading={closeMutation.isPending}
-            size="sm"
-            variant="flat"
-            onPress={handleClose}
-          >
-            Cerrar
-          </Button>
-        </div>
-      )}
+      <div className="grid items-stretch gap-6 lg:grid-cols-3">
+        {/* ── Details sidebar — on mobile show first ─────────────────────── */}
+        <div className="order-1 flex flex-col lg:order-2">
+          <Card className="flex-1">
+            <CardHeader>
+              <Typography variant="subtitle1">Detalles</Typography>
+            </CardHeader>
+            <Divider />
+            <CardBody className="space-y-4">
+              {/* Status */}
+              <div>
+                <Typography color="muted" variant="caption">
+                  Estado
+                </Typography>
+                <div className="mt-1">
+                  <Chip color={getStatusColor(ticket.status)} size="sm" variant="flat">
+                    {getStatusLabel(ticket.status)}
+                  </Chip>
+                </div>
+              </div>
 
-      {/* ── Messages area ───────────────────────────────────────────────────── */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-2 py-4 sm:px-4">
-        {isLoadingMessages ? (
-          <div className="flex items-center justify-center py-12">
-            <Spinner />
-          </div>
-        ) : !sortedMessages || sortedMessages.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-            <MessageSquare className="text-default-200" size={48} />
-            <Typography color="muted" variant="body2">
-              {t('resident.support.detail.noMessages') !== 'resident.support.detail.noMessages'
-                ? t('resident.support.detail.noMessages')
-                : 'No hay mensajes aún. Envía el primer mensaje.'}
-            </Typography>
-          </div>
-        ) : (
-          <div className="mx-auto flex max-w-3xl flex-col gap-3">
-            {sortedMessages.map(msg => {
-              const isCurrentUser = currentUser?.id === msg.userId
-              const userName =
-                msg.user?.firstName && msg.user?.lastName
-                  ? `${msg.user.firstName} ${msg.user.lastName}`
-                  : msg.user?.displayName || msg.user?.email || 'Usuario'
+              {/* Priority */}
+              <div>
+                <Typography color="muted" variant="caption">
+                  Prioridad
+                </Typography>
+                <div className="mt-1">
+                  <Chip color={getPriorityColor(ticket.priority)} size="sm" variant="flat">
+                    {getPriorityLabel(ticket.priority)}
+                  </Chip>
+                </div>
+              </div>
 
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex gap-2 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}
-                >
-                  {/* Avatar */}
-                  {!isCurrentUser && (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-primary-700">
-                      {getUserInitials(userName)}
-                    </div>
-                  )}
+              {/* Channel */}
+              <div>
+                <Typography color="muted" variant="caption">
+                  Canal
+                </Typography>
+                <Typography className="mt-1" variant="body2">
+                  {getChannelLabel(ticket.channel)}
+                </Typography>
+              </div>
 
-                  {/* Bubble */}
-                  <div
-                    className={`max-w-[70%] rounded-2xl px-3.5 py-2.5 ${
-                      isCurrentUser
-                        ? 'rounded-br-sm bg-primary text-primary-foreground'
-                        : 'rounded-bl-sm bg-default-100'
-                    }`}
-                  >
-                    {!isCurrentUser && (
-                      <p className="mb-0.5 text-xs font-semibold text-primary">{userName}</p>
-                    )}
-                    <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                      {msg.message}
-                    </p>
-                    {/* Attachments */}
-                    {msg.attachments && msg.attachments.length > 0 && (
-                      <div className="mt-2 flex flex-col gap-1.5">
-                        {msg.attachments.map(
-                          (
-                            attachment: {
-                              url: string
-                              name: string
-                              mimeType?: string
-                              size?: number
-                            },
-                            idx: number
-                          ) => {
-                            const category = attachment.mimeType
-                              ? getFileTypeCategory(attachment.mimeType)
-                              : null
-                            const isImage = category === 'image'
+              <Divider />
 
-                            if (isImage) {
-                              return (
-                                <a
-                                  key={idx}
-                                  href={attachment.url}
-                                  rel="noopener noreferrer"
-                                  target="_blank"
-                                >
-                                  <img
-                                    alt={attachment.name}
-                                    className="max-h-48 rounded-lg object-cover"
-                                    src={attachment.url}
-                                  />
-                                </a>
-                              )
-                            }
+              {/* Dates */}
+              <div>
+                <Typography color="muted" variant="caption">
+                  Creado
+                </Typography>
+                <div className="mt-1 flex items-center gap-2">
+                  <Calendar className="shrink-0 text-default-400" size={16} />
+                  <Typography variant="body2">{formatDate(ticket.createdAt)}</Typography>
+                </div>
+              </div>
 
-                            return (
-                              <a
-                                key={idx}
-                                className={`flex items-center gap-2 rounded-lg p-2 ${
-                                  isCurrentUser
-                                    ? 'bg-primary-foreground/10 hover:bg-primary-foreground/20'
-                                    : 'bg-default-200/50 hover:bg-default-200'
-                                }`}
-                                href={attachment.url}
-                                rel="noopener noreferrer"
-                                target="_blank"
-                              >
-                                {attachment.mimeType ? (
-                                  getFileIcon(attachment.mimeType)
-                                ) : (
-                                  <FileText size={16} />
-                                )}
-                                <span className="min-w-0 flex-1 truncate text-xs">
-                                  {attachment.name}
-                                </span>
-                                <Download className="shrink-0 opacity-60" size={14} />
-                              </a>
-                            )
-                          }
-                        )}
+              {ticket.resolvedAt && (
+                <div>
+                  <Typography color="muted" variant="caption">
+                    Resuelto
+                  </Typography>
+                  <div className="mt-1 flex items-center gap-2">
+                    <Calendar className="shrink-0 text-success" size={16} />
+                    <Typography variant="body2">{formatDate(ticket.resolvedAt)}</Typography>
+                  </div>
+                </div>
+              )}
+
+              {/* Created by */}
+              {createdByUser && (
+                <>
+                  <Divider />
+                  <div>
+                    <Typography color="muted" variant="caption">
+                      Creado por
+                    </Typography>
+                    <div className="mt-1 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <User className="shrink-0 text-default-400" size={16} />
+                        <Typography variant="body2">
+                          {createdByUser.firstName && createdByUser.lastName
+                            ? `${createdByUser.firstName} ${createdByUser.lastName}`
+                            : createdByUser.displayName || createdByUser.email}
+                        </Typography>
                       </div>
-                    )}
-                    <div
-                      className={`mt-1 flex items-center justify-end gap-1 ${
-                        isCurrentUser ? 'text-primary-foreground/60' : 'text-default-400'
-                      }`}
-                    >
-                      <span className="text-[10px]">{formatMessageTime(msg.createdAt)}</span>
-                      {isCurrentUser && (
-                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M12.354 4.354a.5.5 0 0 0-.708-.708L5 10.293 1.854 7.146a.5.5 0 1 0-.708.708l3.5 3.5a.5.5 0 0 0 .708 0l7-7zm-4.208 7-.896-.897.707-.707.543.543 6.646-6.647a.5.5 0 0 1 .708.708l-7 7a.5.5 0 0 1-.708 0z" />
-                        </svg>
+                      <div className="flex items-center gap-2">
+                        <Mail className="shrink-0 text-default-400" size={16} />
+                        <Typography variant="body2">{createdByUser.email}</Typography>
+                      </div>
+                      {createdByUser.phoneNumber && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="shrink-0 text-default-400" size={16} />
+                          <Typography variant="body2">
+                            {createdByUser.phoneCountryCode
+                              ? `${createdByUser.phoneCountryCode} ${createdByUser.phoneNumber}`
+                              : createdByUser.phoneNumber}
+                          </Typography>
+                        </div>
+                      )}
+                      {createdByUser.unitNumber && (
+                        <div className="flex items-center gap-2">
+                          <Home className="shrink-0 text-default-400" size={16} />
+                          <Typography variant="body2">Unidad {createdByUser.unitNumber}</Typography>
+                        </div>
                       )}
                     </div>
                   </div>
-                </div>
-              )
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
-      </div>
+                </>
+              )}
 
-      {/* ── Message input ───────────────────────────────────────────────────── */}
-      <div
-        className={`border-t border-default-200 px-2 py-3 sm:px-4 transition-colors ${
-          isDragging ? 'bg-primary-50 ring-2 ring-primary ring-inset' : ''
-        }`}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          multiple
-          accept={ACCEPT_STRING}
-          aria-label="Adjuntar archivos"
-          className="hidden"
-          type="file"
-          onChange={handleFileSelect}
-        />
-
-        {isTicketClosed ? (
-          <div className="flex items-center justify-center gap-2 rounded-xl bg-default-100 p-3">
-            <Lock className="text-default-400" size={16} />
-            <Typography color="muted" variant="body2">
-              {t('resident.support.detail.ticketClosed') !== 'resident.support.detail.ticketClosed'
-                ? t('resident.support.detail.ticketClosed')
-                : 'Este ticket está cerrado. No se pueden enviar más mensajes.'}
-            </Typography>
-          </div>
-        ) : (
-          <form className="mx-auto flex max-w-3xl flex-col gap-2" onSubmit={handleSend}>
-            {/* Drag overlay */}
-            {isDragging && (
-              <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-primary bg-primary-50 p-6">
-                <Typography color="primary" variant="body2">
-                  Suelta los archivos aquí
-                </Typography>
-              </div>
-            )}
-
-            {/* File previews */}
-            {uploadingFiles.length > 0 && (
-              <div className="flex flex-col gap-1.5">
-                {uploadingFiles.map(file => (
-                  <div
-                    key={file.id}
-                    className="flex items-center gap-2 rounded-lg bg-default-100 p-2"
-                  >
-                    {/* Thumbnail or icon */}
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-default-200">
-                      {file.file.type.startsWith('image/') &&
-                      file.status === 'completed' &&
-                      file.attachment ? (
-                        <img
-                          alt={file.file.name}
-                          className="h-full w-full rounded object-cover"
-                          src={file.attachment.url}
-                        />
-                      ) : (
-                        getFileIcon(file.file.type)
-                      )}
+              {/* Action buttons */}
+              {canManageTicket && !isTicketClosed && (
+                <>
+                  <Divider />
+                  <div className="flex flex-col gap-3">
+                    {/* Status change buttons */}
+                    <div className="flex flex-col sm:flex-row items-stretch gap-2">
+                      <Button
+                        className="flex-1"
+                        color="warning"
+                        isLoading={updateStatusMutation.isPending}
+                        size="lg"
+                        variant="flat"
+                        onPress={() => handleStatusChange('in_progress')}
+                      >
+                        En progreso
+                      </Button>
+                      <Button
+                        className="flex-1"
+                        color="secondary"
+                        isLoading={updateStatusMutation.isPending}
+                        size="lg"
+                        variant="flat"
+                        onPress={() => handleStatusChange('waiting_customer')}
+                      >
+                        Esperando respuesta
+                      </Button>
                     </div>
-
-                    {/* File info */}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs">{file.file.name}</p>
-                      <p className="text-[10px] text-default-400">
-                        {formatFileSize(file.file.size)}
-                      </p>
-                      {(file.status === 'uploading' || file.status === 'pending') && (
-                        <Progress
-                          className="mt-0.5"
-                          color="primary"
-                          size="sm"
-                          value={file.progress}
-                        />
-                      )}
-                      {file.status === 'error' && (
-                        <p className="text-[10px] text-danger">{file.error || 'Error al subir'}</p>
-                      )}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex shrink-0 items-center gap-0.5">
-                      {file.status === 'error' && (
+                    {/* Resolve and Close */}
+                    <div className="flex flex-col sm:flex-row items-stretch gap-2">
+                      {!ticket.resolvedAt && (
                         <Button
-                          isIconOnly
-                          size="sm"
-                          variant="light"
-                          onPress={() => retryFile(file.id)}
+                          className="flex-1"
+                          color="success"
+                          isLoading={resolveMutation.isPending}
+                          size="lg"
+                          variant="flat"
+                          onPress={handleResolve}
                         >
-                          <RefreshCw size={14} />
+                          Resolver
                         </Button>
                       )}
+                      <Button
+                        className="flex-1"
+                        color="danger"
+                        isLoading={closeMutation.isPending}
+                        size="lg"
+                        variant="flat"
+                        onPress={handleClose}
+                      >
+                        Cerrar
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardBody>
+          </Card>
+        </div>
+
+        {/* ── Main content — messages ────────────────────────────────────── */}
+        <div className="order-2 flex flex-col lg:order-1 lg:col-span-2">
+          <Card className="flex flex-1 flex-col overflow-hidden">
+            <CardHeader>
+              <Typography variant="subtitle1">Mensajes</Typography>
+            </CardHeader>
+            <Divider />
+
+            {/* Messages area */}
+            <div
+              ref={messagesContainerRef}
+              className="flex-1 overflow-y-auto px-3 py-4 sm:px-4"
+              style={{ maxHeight: '60vh' }}
+            >
+              {isLoadingMessages ? (
+                <div className="flex items-center justify-center py-12">
+                  <Spinner />
+                </div>
+              ) : !sortedMessages || sortedMessages.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+                  <MessageSquare className="text-default-200" size={48} />
+                  <Typography color="muted" variant="body2">
+                    {t('resident.support.detail.noMessages') !==
+                    'resident.support.detail.noMessages'
+                      ? t('resident.support.detail.noMessages')
+                      : 'No hay mensajes aún. Envía el primer mensaje.'}
+                  </Typography>
+                </div>
+              ) : (
+                <div className="mx-auto flex max-w-3xl flex-col gap-3">
+                  {sortedMessages.map(msg => {
+                    const isCurrentUser = currentUser?.id === msg.userId
+                    const userName =
+                      msg.user?.firstName && msg.user?.lastName
+                        ? `${msg.user.firstName} ${msg.user.lastName}`
+                        : msg.user?.displayName || msg.user?.email || 'Usuario'
+
+                    return (
+                      <div
+                        key={msg.id}
+                        className={`flex gap-2 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}
+                      >
+                        {/* Avatar */}
+                        {!isCurrentUser && (
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-primary-700">
+                            {getUserInitials(userName)}
+                          </div>
+                        )}
+
+                        {/* Bubble */}
+                        <div
+                          className={`max-w-[70%] rounded-2xl px-3.5 py-2.5 ${
+                            isCurrentUser
+                              ? 'rounded-br-sm bg-primary text-primary-foreground'
+                              : 'rounded-bl-sm bg-default-100'
+                          }`}
+                        >
+                          {!isCurrentUser && (
+                            <p className="mb-0.5 text-xs font-semibold text-primary">{userName}</p>
+                          )}
+                          <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                            {msg.message}
+                          </p>
+                          {/* Attachments */}
+                          {msg.attachments && msg.attachments.length > 0 && (
+                            <div className="mt-2 flex flex-col gap-1.5">
+                              {msg.attachments.map(
+                                (
+                                  attachment: {
+                                    url: string
+                                    name: string
+                                    mimeType?: string
+                                    size?: number
+                                  },
+                                  idx: number
+                                ) => {
+                                  const category = attachment.mimeType
+                                    ? getFileTypeCategory(attachment.mimeType)
+                                    : null
+                                  const isImage = category === 'image'
+
+                                  if (isImage) {
+                                    return (
+                                      <a
+                                        key={idx}
+                                        href={attachment.url}
+                                        rel="noopener noreferrer"
+                                        target="_blank"
+                                      >
+                                        <img
+                                          alt={attachment.name}
+                                          className="max-h-48 rounded-lg object-cover"
+                                          src={attachment.url}
+                                        />
+                                      </a>
+                                    )
+                                  }
+
+                                  return (
+                                    <a
+                                      key={idx}
+                                      className={`flex items-center gap-2 rounded-lg p-2 ${
+                                        isCurrentUser
+                                          ? 'bg-primary-foreground/10 hover:bg-primary-foreground/20'
+                                          : 'bg-default-200/50 hover:bg-default-200'
+                                      }`}
+                                      href={attachment.url}
+                                      rel="noopener noreferrer"
+                                      target="_blank"
+                                    >
+                                      {attachment.mimeType ? (
+                                        getFileIcon(attachment.mimeType)
+                                      ) : (
+                                        <FileText size={16} />
+                                      )}
+                                      <span className="min-w-0 flex-1 truncate text-xs">
+                                        {attachment.name}
+                                      </span>
+                                      <Download className="shrink-0 opacity-60" size={14} />
+                                    </a>
+                                  )
+                                }
+                              )}
+                            </div>
+                          )}
+                          <div
+                            className={`mt-1 flex items-center justify-end gap-1 ${
+                              isCurrentUser ? 'text-primary-foreground/60' : 'text-default-400'
+                            }`}
+                          >
+                            <span className="text-[10px]">{formatMessageTime(msg.createdAt)}</span>
+                            {isCurrentUser && (
+                              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M12.354 4.354a.5.5 0 0 0-.708-.708L5 10.293 1.854 7.146a.5.5 0 1 0-.708.708l3.5 3.5a.5.5 0 0 0 .708 0l7-7zm-4.208 7-.896-.897.707-.707.543.543 6.646-6.647a.5.5 0 0 1 .708.708l-7 7a.5.5 0 0 1-.708 0z" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
+            </div>
+
+            {/* ── Message input ───────────────────────────────────────────────── */}
+            <div
+              className={`border-t border-default-200 px-3 py-3 sm:px-4 transition-colors ${
+                isDragging ? 'bg-primary-50 ring-2 ring-primary ring-inset' : ''
+              }`}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                multiple
+                accept={ACCEPT_STRING}
+                aria-label="Adjuntar archivos"
+                className="hidden"
+                type="file"
+                onChange={handleFileSelect}
+              />
+
+              {isTicketClosed ? (
+                <div className="flex items-center justify-center gap-2 rounded-xl bg-default-100 p-3">
+                  <Lock className="text-default-400" size={16} />
+                  <Typography color="muted" variant="body2">
+                    {t('resident.support.detail.ticketClosed') !==
+                    'resident.support.detail.ticketClosed'
+                      ? t('resident.support.detail.ticketClosed')
+                      : 'Este ticket está cerrado. No se pueden enviar más mensajes.'}
+                  </Typography>
+                </div>
+              ) : (
+                <form className="flex flex-col gap-2" onSubmit={handleSend}>
+                  {/* Drag overlay */}
+                  {isDragging && (
+                    <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-primary bg-primary-50 p-6">
+                      <Typography color="primary" variant="body2">
+                        Suelta los archivos aquí
+                      </Typography>
+                    </div>
+                  )}
+
+                  {/* File previews */}
+                  {uploadingFiles.length > 0 && (
+                    <div className="flex flex-col gap-1.5">
+                      {uploadingFiles.map(file => (
+                        <div
+                          key={file.id}
+                          className="flex items-center gap-2 rounded-lg bg-default-100 p-2"
+                        >
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-default-200">
+                            {file.file.type.startsWith('image/') &&
+                            file.status === 'completed' &&
+                            file.attachment ? (
+                              <img
+                                alt={file.file.name}
+                                className="h-full w-full rounded object-cover"
+                                src={file.attachment.url}
+                              />
+                            ) : (
+                              getFileIcon(file.file.type)
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs">{file.file.name}</p>
+                            <p className="text-[10px] text-default-400">
+                              {formatFileSize(file.file.size)}
+                            </p>
+                            {(file.status === 'uploading' || file.status === 'pending') && (
+                              <Progress
+                                className="mt-0.5"
+                                color="primary"
+                                size="sm"
+                                value={file.progress}
+                              />
+                            )}
+                            {file.status === 'error' && (
+                              <p className="text-[10px] text-danger">
+                                {file.error || 'Error al subir'}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 items-center gap-0.5">
+                            {file.status === 'error' && (
+                              <Button
+                                isIconOnly
+                                size="sm"
+                                variant="light"
+                                onPress={() => retryFile(file.id)}
+                              >
+                                <RefreshCw size={14} />
+                              </Button>
+                            )}
+                            <Button
+                              isIconOnly
+                              size="sm"
+                              variant="light"
+                              onPress={() => removeFile(file.id)}
+                            >
+                              <X size={14} />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Input row */}
+                  {!isDragging && (
+                    <div className="flex items-end gap-2">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="light"
-                        onPress={() => removeFile(file.id)}
+                        onPress={() => fileInputRef.current?.click()}
                       >
-                        <X size={14} />
+                        <Paperclip className="text-default-400" size={18} />
+                      </Button>
+                      <div className="flex-1">
+                        <Textarea
+                          maxRows={4}
+                          minRows={1}
+                          placeholder={
+                            t('resident.support.detail.messagePlaceholder') !==
+                            'resident.support.detail.messagePlaceholder'
+                              ? t('resident.support.detail.messagePlaceholder')
+                              : 'Escribe un mensaje...'
+                          }
+                          value={message}
+                          variant="bordered"
+                          onChange={e => setMessage(e.target.value)}
+                        />
+                      </div>
+                      <Button
+                        isIconOnly
+                        color="primary"
+                        isDisabled={
+                          (!message.trim() && completedAttachments.length === 0) ||
+                          isSending ||
+                          isUploading
+                        }
+                        isLoading={isSending || isUploading}
+                        type="submit"
+                      >
+                        {!isSending && !isUploading && <Send size={18} />}
                       </Button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Input row */}
-            {!isDragging && (
-              <div className="flex items-end gap-2">
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  onPress={() => fileInputRef.current?.click()}
-                >
-                  <Paperclip className="text-default-400" size={18} />
-                </Button>
-                <div className="flex-1">
-                  <Textarea
-                    maxRows={4}
-                    minRows={1}
-                    placeholder={
-                      t('resident.support.detail.messagePlaceholder') !==
-                      'resident.support.detail.messagePlaceholder'
-                        ? t('resident.support.detail.messagePlaceholder')
-                        : 'Escribe un mensaje...'
-                    }
-                    value={message}
-                    variant="bordered"
-                    onChange={e => setMessage(e.target.value)}
-                  />
-                </div>
-                <Button
-                  isIconOnly
-                  color="primary"
-                  isDisabled={
-                    (!message.trim() && completedAttachments.length === 0) ||
-                    isSending ||
-                    isUploading
-                  }
-                  isLoading={isSending || isUploading}
-                  type="submit"
-                >
-                  {!isSending && !isUploading && <Send size={18} />}
-                </Button>
-              </div>
-            )}
-          </form>
-        )}
+                  )}
+                </form>
+              )}
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   )

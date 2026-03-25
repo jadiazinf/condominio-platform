@@ -11,7 +11,9 @@ export {
   canAccessTicket,
   canAccessTicketByTicketId,
   canModifyTicket,
+  canManageTicket,
   createCanAccessTicket,
+  createCanManageTicket,
   TICKET_PROP,
 } from './can-access-ticket'
 export {

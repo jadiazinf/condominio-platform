@@ -83,24 +83,18 @@ export async function SubscriptionPage() {
       {subscription ? (
         <Card className="p-6">
           {/* Plan Header */}
-          <div className="flex items-start justify-between gap-3 mb-6">
+          <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                 <CreditCard className="text-primary" size={24} />
               </div>
-              <div>
-                <Typography className="text-xl" variant="h3">
-                  {subscription.subscriptionName || t(`${tp}.currentPlan`)}
-                </Typography>
-                <Chip
-                  color={statusColorMap[subscription.status] || 'default'}
-                  size="sm"
-                  variant="flat"
-                >
-                  {t(`${tp}.status.${subscription.status}`)}
-                </Chip>
-              </div>
+              <Typography className="text-xl" variant="h3">
+                {subscription.subscriptionName || t(`${tp}.currentPlan`)}
+              </Typography>
             </div>
+            <Chip color={statusColorMap[subscription.status] || 'default'} size="sm" variant="flat">
+              {t(`${tp}.status.${subscription.status}`)}
+            </Chip>
             {(subscription.status === 'active' || subscription.status === 'trial') && (
               <AdminCancelSubscriptionButton
                 companyId={companyId}

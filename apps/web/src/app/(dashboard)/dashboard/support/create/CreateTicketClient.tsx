@@ -242,7 +242,7 @@ export function CreateTicketClient() {
           {/* Priority */}
           <div className="flex flex-col gap-2">
             <Typography className="text-sm font-medium">Prioridad</Typography>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {priorityOptions.map(opt => (
                 <button
                   key={opt.key}
@@ -261,11 +261,16 @@ export function CreateTicketClient() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 border-t border-default-100 pt-4">
-            <Button variant="flat" onPress={() => router.push('/dashboard/support')}>
+          <div className="flex flex-col-reverse gap-3 border-t border-default-100 pt-4 sm:flex-row sm:items-center sm:justify-end">
+            <Button
+              className="w-full sm:w-auto"
+              variant="flat"
+              onPress={() => router.push('/dashboard/support')}
+            >
               Cancelar
             </Button>
             <Button
+              className="w-full sm:w-auto"
               color="primary"
               isDisabled={!canSubmit}
               isLoading={isPending}

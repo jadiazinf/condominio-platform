@@ -273,14 +273,19 @@ export function ServicesPageClient({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Typography variant="h3">{t.title}</Typography>
           <Typography className="mt-1" color="muted" variant="body2">
             {t.subtitle}
           </Typography>
         </div>
-        <Button color="primary" startContent={<Plus size={16} />} onPress={createModal.onOpen}>
+        <Button
+          className="w-full sm:w-auto"
+          color="primary"
+          startContent={<Plus size={16} />}
+          onPress={createModal.onOpen}
+        >
           {t.addService}
         </Button>
       </div>

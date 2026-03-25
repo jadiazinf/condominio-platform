@@ -150,7 +150,21 @@ export function TicketDetailClient({
       />
 
       <div className="grid items-stretch gap-6 lg:grid-cols-3">
-        <div className="flex flex-col gap-6 lg:col-span-2">
+        {/* Details sidebar — on mobile, show first for quick access */}
+        <div className="order-1 lg:order-2">
+          <TicketDetails
+            availableUsers={availableUsers}
+            categoryLabels={translations.categoryLabels}
+            locale={locale}
+            priorityLabels={translations.priorityLabels}
+            statusLabels={translations.statusLabels}
+            ticket={ticket}
+            translations={translations.details}
+          />
+        </div>
+
+        {/* Main content — on mobile, show after sidebar */}
+        <div className="order-2 flex flex-col gap-6 lg:order-1 lg:col-span-2">
           <TicketDescription
             description={ticket.description}
             title={translations.description.title}
@@ -163,18 +177,6 @@ export function TicketDetailClient({
               translations={translations.messages}
             />
           </div>
-        </div>
-
-        <div className="space-y-6">
-          <TicketDetails
-            availableUsers={availableUsers}
-            categoryLabels={translations.categoryLabels}
-            locale={locale}
-            priorityLabels={translations.priorityLabels}
-            statusLabels={translations.statusLabels}
-            ticket={ticket}
-            translations={translations.details}
-          />
         </div>
       </div>
     </div>

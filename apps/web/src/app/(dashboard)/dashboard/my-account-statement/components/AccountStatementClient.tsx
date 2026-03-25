@@ -122,6 +122,7 @@ export function AccountStatementClient({
   )
 
   const statement: IAccountStatementData | undefined = data?.data
+  const currencySymbol = statement?.currencySymbol ?? '$'
 
   const updateParams = useCallback(
     (updates: Record<string, string>) => {
@@ -183,12 +184,12 @@ export function AccountStatementClient({
         return (
           <span className={isNegative ? 'text-success' : ''}>
             {isNegative ? '-' : ''}
-            {formatAmount(row.amount)}
+            {currencySymbol} {formatAmount(row.amount)}
           </span>
         )
       }
       case 'runningBalance':
-        return formatAmount(row.runningBalance)
+        return `${currencySymbol} ${formatAmount(row.runningBalance)}`
       default:
         return null
     }
@@ -207,9 +208,9 @@ export function AccountStatementClient({
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
         {allUnits.length > 1 && (
-          <div className="w-64">
+          <div className="w-full sm:w-64">
             <Select
               items={unitItems}
               label={t.selectUnit}
@@ -222,13 +223,18 @@ export function AccountStatementClient({
             />
           </div>
         )}
-        <div className="w-44">
+        <div className="w-full sm:w-44">
           <DatePicker label={t.from} value={from} onChange={val => setFrom(val ?? '')} />
         </div>
-        <div className="w-44">
+        <div className="w-full sm:w-44">
           <DatePicker label={t.to} value={to} onChange={val => setTo(val ?? '')} />
         </div>
-        <Button color="primary" isDisabled={!from || !to} onPress={handleSearch}>
+        <Button
+          className="w-full sm:w-auto"
+          color="primary"
+          isDisabled={!from || !to}
+          onPress={handleSearch}
+        >
           {t.search}
         </Button>
       </div>
@@ -262,24 +268,32 @@ export function AccountStatementClient({
       {!isLoading && !error && statement && lineItemRows.length > 0 && (
         <>
           {/* Summary cards */}
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-            <SummaryCard label={t.summary.previousBalance} value={statement.previousBalance} />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-5">
             <SummaryCard
+              currencySymbol={currencySymbol}
+              label={t.summary.previousBalance}
+              value={statement.previousBalance}
+            />
+            <SummaryCard
+              currencySymbol={currencySymbol}
               label={t.summary.totalCharges}
               value={statement.totalCharges}
               variant="danger"
             />
             <SummaryCard
+              currencySymbol={currencySymbol}
               label={t.summary.totalPayments}
               value={statement.totalPayments}
               variant="success"
             />
             <SummaryCard
+              currencySymbol={currencySymbol}
               label={t.summary.totalInterest}
               value={statement.totalInterest}
               variant="warning"
             />
             <SummaryCard
+              currencySymbol={currencySymbol}
               label={t.summary.currentBalance}
               value={statement.currentBalance}
               variant="primary"
@@ -291,11 +305,27 @@ export function AccountStatementClient({
             <Typography className="mb-3" variant="subtitle1">
               {t.aging.title}
             </Typography>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-              <AgingCard label={t.aging.current} value={statement.aging.current} />
-              <AgingCard label={t.aging.days30} value={statement.aging.days30} />
-              <AgingCard label={t.aging.days60} value={statement.aging.days60} />
-              <AgingCard label={t.aging.days90Plus} value={statement.aging.days90Plus} />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+              <AgingCard
+                currencySymbol={currencySymbol}
+                label={t.aging.current}
+                value={statement.aging.current}
+              />
+              <AgingCard
+                currencySymbol={currencySymbol}
+                label={t.aging.days30}
+                value={statement.aging.days30}
+              />
+              <AgingCard
+                currencySymbol={currencySymbol}
+                label={t.aging.days60}
+                value={statement.aging.days60}
+              />
+              <AgingCard
+                currencySymbol={currencySymbol}
+                label={t.aging.days90Plus}
+                value={statement.aging.days90Plus}
+              />
             </div>
           </div>
 
@@ -326,10 +356,12 @@ function SummaryCard({
   label,
   value,
   variant,
+  currencySymbol,
 }: {
   label: string
   value: string
   variant?: 'danger' | 'success' | 'warning' | 'primary'
+  currencySymbol: string
 }) {
   const colorClass =
     variant === 'danger'
@@ -348,13 +380,21 @@ function SummaryCard({
         {label}
       </Typography>
       <Typography className={colorClass} variant="h4">
-        {formatAmount(value)}
+        {currencySymbol} {formatAmount(value)}
       </Typography>
     </div>
   )
 }
 
-function AgingCard({ label, value }: { label: string; value: string }) {
+function AgingCard({
+  label,
+  value,
+  currencySymbol,
+}: {
+  label: string
+  value: string
+  currencySymbol: string
+}) {
   const numValue = parseFloat(value) || 0
 
   return (
@@ -363,7 +403,7 @@ function AgingCard({ label, value }: { label: string; value: string }) {
         {label}
       </Typography>
       <Typography className={numValue > 0 ? 'font-semibold text-danger' : ''} variant="body1">
-        {formatAmount(value)}
+        {currencySymbol} {formatAmount(value)}
       </Typography>
     </div>
   )

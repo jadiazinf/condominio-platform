@@ -4,7 +4,7 @@ import type { TooltipProps as HeroUITooltipProps } from '@heroui/tooltip'
 
 import { Tooltip as HeroUITooltip } from '@heroui/tooltip'
 import { cn } from '@heroui/theme'
-import { ReactNode } from 'react'
+import { ReactNode, useState, useCallback, useRef, useEffect } from 'react'
 
 type TTooltipPlacement =
   | 'top'
@@ -60,7 +60,7 @@ export function Tooltip({
   closeDelay = 500,
   offset = 7,
   showArrow = false,
-  isOpen,
+  isOpen: controlledIsOpen,
   defaultOpen,
   isDisabled = false,
   className,
@@ -68,6 +68,54 @@ export function Tooltip({
   children,
   onOpenChange,
 }: ITooltipProps) {
+  // Internal state for touch-based toggling (uncontrolled mode only)
+  const [touchOpen, setTouchOpen] = useState(false)
+  const isControlled = controlledIsOpen !== undefined
+  const touchTimerRef = useRef<ReturnType<typeof setTimeout>>()
+
+  // Close tooltip on outside tap (for touch mode)
+  useEffect(() => {
+    if (!touchOpen) return
+
+    const handleOutsideTouch = () => {
+      setTouchOpen(false)
+    }
+
+    // Delay adding listener to avoid immediately closing
+    const id = setTimeout(() => {
+      document.addEventListener('touchstart', handleOutsideTouch, { once: true })
+    }, 10)
+
+    return () => {
+      clearTimeout(id)
+      document.removeEventListener('touchstart', handleOutsideTouch)
+    }
+  }, [touchOpen])
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (touchTimerRef.current) clearTimeout(touchTimerRef.current)
+    }
+  }, [])
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (isControlled || isDisabled) return
+      e.stopPropagation()
+      setTouchOpen(prev => !prev)
+    },
+    [isControlled, isDisabled]
+  )
+
+  const resolvedIsOpen = isControlled ? controlledIsOpen : touchOpen || undefined
+  const resolvedOnOpenChange = isControlled
+    ? onOpenChange
+    : (open: boolean) => {
+        setTouchOpen(open)
+        onOpenChange?.(open)
+      }
+
   return (
     <HeroUITooltip
       className={cn(className)}
@@ -78,15 +126,15 @@ export function Tooltip({
       defaultOpen={defaultOpen}
       delay={delay}
       isDisabled={isDisabled}
-      isOpen={isOpen}
+      isOpen={resolvedIsOpen}
       offset={offset}
       placement={placement}
       radius={radius}
       showArrow={showArrow}
       size={size}
-      onOpenChange={onOpenChange}
+      onOpenChange={resolvedOnOpenChange}
     >
-      {children}
+      <span onTouchStart={handleTouchStart}>{children}</span>
     </HeroUITooltip>
   )
 }

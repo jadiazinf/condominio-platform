@@ -52,6 +52,7 @@ async function getOrCreateFcmToken(): Promise<string | null> {
   // Wait for the SW to be active (handles fresh installs and updates)
   if (!swRegistration.active) {
     const sw = swRegistration.installing || swRegistration.waiting
+
     if (sw) {
       await new Promise<void>(resolve => {
         sw.addEventListener('statechange', function handler() {

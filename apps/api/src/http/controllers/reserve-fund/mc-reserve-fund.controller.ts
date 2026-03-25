@@ -11,6 +11,8 @@ import type {
   ExpensesRepository,
   DocumentsRepository,
   CondominiumServicesRepository,
+  CondominiumsRepository,
+  CurrenciesRepository,
 } from '@database/repositories'
 import { HttpContext } from '../../context'
 import { authMiddleware, requireRole } from '../../middlewares/auth'
@@ -90,6 +92,8 @@ export interface IMcReserveFundDeps {
   expensesRepo: ExpensesRepository
   documentsRepo: DocumentsRepository
   servicesRepo: CondominiumServicesRepository
+  condominiumsRepo: CondominiumsRepository
+  currenciesRepo: CurrenciesRepository
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -102,6 +106,8 @@ export class McReserveFundController {
   private readonly expensesRepo: ExpensesRepository
   private readonly documentsRepo: DocumentsRepository
   private readonly servicesRepo: CondominiumServicesRepository
+  private readonly condominiumsRepo: CondominiumsRepository
+  private readonly currenciesRepo: CurrenciesRepository
 
   constructor(deps: IMcReserveFundDeps) {
     this.quotasRepo = deps.quotasRepo
@@ -109,6 +115,8 @@ export class McReserveFundController {
     this.expensesRepo = deps.expensesRepo
     this.documentsRepo = deps.documentsRepo
     this.servicesRepo = deps.servicesRepo
+    this.condominiumsRepo = deps.condominiumsRepo
+    this.currenciesRepo = deps.currenciesRepo
   }
 
   get routes(): TRouteDefinition[] {
@@ -182,12 +190,19 @@ export class McReserveFundController {
     const ctx = new HttpContext<unknown, TSummaryQuery, TManagementCompanyIdParam>(c)
     const { condominiumId } = ctx.query
 
-    const [summary, totalExpenses] = await Promise.all([
+    const [summary, totalExpenses, condominium] = await Promise.all([
       this.quotasRepo.getReserveFundSummary(condominiumId),
       this.expensesRepo.getReserveFundExpensesTotal(condominiumId),
+      this.condominiumsRepo.getById(condominiumId),
     ])
 
-    return ctx.ok({ data: { ...summary, totalExpenses } })
+    let currencySymbol: string | null = null
+    if (condominium?.defaultCurrencyId) {
+      const currency = await this.currenciesRepo.getById(condominium.defaultCurrencyId)
+      currencySymbol = currency?.symbol ?? null
+    }
+
+    return ctx.ok({ data: { ...summary, totalExpenses, currencySymbol } })
   }
 
   private listPayments = async (c: Context): Promise<Response> => {

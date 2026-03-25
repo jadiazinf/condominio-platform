@@ -137,12 +137,6 @@ export const adminSidebarItems: TSidebarItemConfig[] = [
     href: '/dashboard/bank-reconciliation',
   },
   {
-    key: 'event-logs',
-    title: 'admin.company.nav.eventLogs',
-    icon: Activity,
-    href: '/dashboard/event-logs',
-  },
-  {
     key: 'delinquency-report',
     title: 'admin.company.nav.delinquencyReport',
     icon: AlertTriangle,
@@ -222,6 +216,12 @@ export const superadminSidebarItems: TSidebarItemConfig[] = [
     title: 'superadmin.nav.terms',
     icon: ScrollText,
     href: '/dashboard/terms-conditions',
+  },
+  {
+    key: 'event-logs',
+    title: 'admin.company.nav.eventLogs',
+    icon: Activity,
+    href: '/dashboard/event-logs',
   },
   {
     key: 'tickets',

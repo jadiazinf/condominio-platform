@@ -1,8 +1,4 @@
-import type { TCondominiumAccessCode } from '@packages/domain'
-
-import { getCondominiumUsers, getActiveAccessCode } from '@packages/http-client/hooks'
-
-import { AccessCodeSection } from '../buildings/components'
+import { getCondominiumUsers } from '@packages/http-client/hooks'
 
 import { CondominiumUsersTable } from './components'
 
@@ -27,20 +23,11 @@ export default async function CondominiumUsersPage({ params }: PageProps) {
       ? session.managementCompanies?.[0]?.managementCompanyId
       : undefined
 
-  const isAdmin = session?.activeRole === 'management_company'
-
-  // Fetch users and access code server-side
+  // Fetch users server-side
   let users: Awaited<ReturnType<typeof getCondominiumUsers>> = []
-  let activeAccessCode: TCondominiumAccessCode | null = null
 
   try {
-    const [usersResult, codeResult] = await Promise.all([
-      getCondominiumUsers(token, id),
-      getActiveAccessCode(token, id, managementCompanyId).catch(() => null),
-    ])
-
-    users = usersResult
-    activeAccessCode = codeResult
+    users = await getCondominiumUsers(token, id, managementCompanyId)
   } catch (error) {
     console.error('Failed to fetch condominium users:', error)
   }
@@ -74,34 +61,9 @@ export default async function CondominiumUsersPage({ params }: PageProps) {
     },
   }
 
-  const accessCodeTranslations = {
-    title: t('admin.accessCodes.title'),
-    noCode: t('admin.accessCodes.noCode'),
-    generate: t('admin.accessCodes.generate'),
-    regenerate: t('admin.accessCodes.regenerate'),
-    expiresLabel: t('admin.accessCodes.expiresLabel'),
-    copiedMessage: t('admin.accessCodes.copiedMessage'),
-    modal: {
-      title: t('admin.accessCodes.modal.title'),
-      warning: t('admin.accessCodes.modal.warning'),
-      validity: t('admin.accessCodes.modal.validity'),
-      validityOptions: {
-        '1_day': t('admin.accessCodes.modal.validity1Day'),
-        '7_days': t('admin.accessCodes.modal.validity7Days'),
-        '1_month': t('admin.accessCodes.modal.validity1Month'),
-        '1_year': t('admin.accessCodes.modal.validity1Year'),
-      },
-      cancel: t('common.cancel'),
-      generate: t('admin.accessCodes.generate'),
-      generating: t('admin.accessCodes.generating'),
-      success: t('admin.accessCodes.success'),
-      error: t('admin.accessCodes.error'),
-    },
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Typography variant="h3">{translations.title}</Typography>
           <Typography className="mt-1" color="muted" variant="body2">
@@ -109,14 +71,6 @@ export default async function CondominiumUsersPage({ params }: PageProps) {
           </Typography>
         </div>
       </div>
-
-      {isAdmin && (
-        <AccessCodeSection
-          condominiumId={id}
-          initialCode={activeAccessCode}
-          translations={accessCodeTranslations}
-        />
-      )}
 
       <CondominiumUsersTable condominiumId={id} translations={translations} users={users} />
     </div>
