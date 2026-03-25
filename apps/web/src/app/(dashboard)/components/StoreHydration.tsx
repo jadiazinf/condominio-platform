@@ -94,9 +94,12 @@ export function StoreHydration({
     setPermissions,
     clearSuperadmin,
   } = useSuperadmin()
-  const { managementCompanies: currentManagementCompanies, setManagementCompanies } =
-    useManagementCompany()
-  const { setActiveRole } = useActiveRole()
+  const {
+    managementCompanies: currentManagementCompanies,
+    setManagementCompanies,
+    clearManagementCompanies,
+  } = useManagementCompany()
+  const { activeRole: currentActiveRole, setActiveRole, clearActiveRole } = useActiveRole()
 
   const hasHydrated = useRef(false)
   const hasRefreshedPhotoUrl = useRef(false)
@@ -120,21 +123,19 @@ export function StoreHydration({
       }
     }
 
-    // Hydrate condominiums if store is empty
-    if ((!currentCondominiums || currentCondominiums.length === 0) && condominiums.length > 0) {
+    // Always update condominiums from server to prevent stale data
+    if (condominiums.length > 0) {
       setCondominiums(condominiums)
 
-      // If data was fetched from API, update cookies
       if (wasFetched) {
         setCondominiumsCookie(condominiums)
       }
     }
 
-    // Hydrate selected condominium if store is empty
-    if (!currentSelected && selectedCondominium) {
+    // Always update selected condominium from server
+    if (selectedCondominium) {
       selectCondominium(selectedCondominium)
 
-      // If data was fetched from API, update cookie
       if (wasFetched) {
         setSelectedCondominiumCookie(selectedCondominium)
       }
@@ -159,23 +160,25 @@ export function StoreHydration({
       setSuperadminPermissionsCookie([])
     }
 
-    // Hydrate management companies
-    if (
-      managementCompanies &&
-      managementCompanies.length > 0 &&
-      (!currentManagementCompanies || currentManagementCompanies.length === 0)
-    ) {
+    // Always update management companies from server to clear stale data
+    if (managementCompanies && managementCompanies.length > 0) {
       setManagementCompanies(managementCompanies)
 
       if (wasFetched) {
         setManagementCompaniesCookie(managementCompanies)
       }
+    } else if (currentManagementCompanies && currentManagementCompanies.length > 0) {
+      // User no longer has management companies, clear stale data
+      clearManagementCompanies()
     }
 
-    // Hydrate active role
+    // Always update active role from server to clear stale data
     if (activeRole) {
       setActiveRole(activeRole)
       setActiveRoleCookie(activeRole)
+    } else if (currentActiveRole) {
+      // Server says no active role, clear stale one
+      clearActiveRole()
     }
   }, [
     user,
@@ -191,6 +194,7 @@ export function StoreHydration({
     currentSuperadmin,
     currentPermissions,
     currentManagementCompanies,
+    currentActiveRole,
     setUser,
     setCondominiums,
     selectCondominium,
@@ -198,7 +202,9 @@ export function StoreHydration({
     setPermissions,
     clearSuperadmin,
     setManagementCompanies,
+    clearManagementCompanies,
     setActiveRole,
+    clearActiveRole,
   ])
 
   // Refresh photo URL from Firebase Storage to ensure it has a valid token

@@ -316,16 +316,16 @@ export const useSessionStore = create<SessionStore>()(
       },
 
       hydrateFromServer: data => {
-        const currentState = get()
-
+        // Server data is authoritative — reset fields to defaults when not provided
+        // to prevent stale localStorage data from persisting
         set({
-          user: data.user ?? currentState.user,
-          condominiums: data.condominiums ?? currentState.condominiums,
-          selectedCondominium: data.selectedCondominium ?? currentState.selectedCondominium,
-          superadmin: data.superadmin ?? currentState.superadmin,
-          permissions: data.permissions ?? currentState.permissions,
-          managementCompanies: data.managementCompanies ?? currentState.managementCompanies,
-          activeRole: data.activeRole ?? currentState.activeRole,
+          user: data.user ?? null,
+          condominiums: data.condominiums ?? [],
+          selectedCondominium: data.selectedCondominium ?? null,
+          superadmin: data.superadmin ?? null,
+          permissions: data.permissions ?? [],
+          managementCompanies: data.managementCompanies ?? [],
+          activeRole: data.activeRole ?? null,
         })
 
         // Sync cookies with server data
