@@ -134,3 +134,13 @@ export { BankStatementMatchesRepository } from './bank-statement-matches.reposit
 
 // Wizard Drafts
 export { WizardDraftsRepository } from './wizard-drafts.repository'
+
+// Billing Restructure (Fase 4.7)
+export { BillingChannelsRepository } from './billing-channels.repository'
+export { ChargeTypesRepository } from './charge-types.repository'
+export { BillingChannelBankAccountsRepository } from './billing-channel-bank-accounts.repository'
+export { ChargesRepository } from './charges.repository'
+export { BillingReceiptsRepository } from './billing-receipts.repository'
+export { UnitLedgerRepository } from './unit-ledger.repository'
+export { PaymentAllocationsV2Repository } from './payment-allocations-v2.repository'
+export { OwnershipTransferSnapshotsRepository } from './ownership-transfer-snapshots.repository'

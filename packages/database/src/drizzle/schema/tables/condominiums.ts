@@ -19,6 +19,8 @@ export const condominiums = pgTable(
     defaultCurrencyId: uuid('default_currency_id').references(() => currencies.id, {
       onDelete: 'set null',
     }),
+    rif: varchar('rif', { length: 20 }),
+    receiptNumberFormat: varchar('receipt_number_format', { length: 100 }),
     isActive: boolean('is_active').default(true),
     metadata: jsonb('metadata'),
     createdAt: timestamp('created_at').defaultNow(),

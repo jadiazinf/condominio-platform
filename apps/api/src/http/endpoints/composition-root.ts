@@ -70,6 +70,13 @@ import {
   BankReconciliationsRepository,
   BankStatementMatchesRepository,
   EventLogsRepository,
+  BillingChannelsRepository,
+  ChargeTypesRepository,
+  BillingChannelBankAccountsRepository,
+  ChargesRepository,
+  BillingReceiptsRepository,
+  UnitLedgerRepository,
+  PaymentAllocationsV2Repository,
 } from '@database/repositories'
 
 import {
@@ -129,6 +136,10 @@ import {
   ReceiptsController,
 } from '../controllers'
 
+import { BillingChannelsController } from '../controllers/billing-channels/billing-channels.controller'
+import { ChargesController } from '../controllers/charges/charges.controller'
+import { BillingReceiptsController } from '../controllers/billing-receipts/billing-receipts.controller'
+import { BillingLedgerController } from '../controllers/billing-ledger/billing-ledger.controller'
 import { InternalController } from '../controllers/internal'
 import { BanksController } from '../controllers/banks/banks.controller'
 import { McCondominiumServicesController } from '../controllers/condominium-services/mc-condominium-services.controller'
@@ -228,6 +239,14 @@ export function createRepositories(db: TDrizzleClient) {
     bankStatementEntries: new BankStatementEntriesRepository(db),
     bankReconciliations: new BankReconciliationsRepository(db),
     bankStatementMatches: new BankStatementMatchesRepository(db),
+    // Billing Restructure (Fase 4.7)
+    billingChannels: new BillingChannelsRepository(db),
+    chargeTypes: new ChargeTypesRepository(db),
+    billingChannelBankAccounts: new BillingChannelBankAccountsRepository(db),
+    charges: new ChargesRepository(db),
+    billingReceipts: new BillingReceiptsRepository(db),
+    unitLedger: new UnitLedgerRepository(db),
+    paymentAllocationsV2: new PaymentAllocationsV2Repository(db),
   }
 }
 
@@ -587,6 +606,30 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         r.payments,
         r.gatewayTransactions
       ).createRouter(),
+    },
+
+    // Billing Restructure (Fase 4.7)
+    {
+      path: '/billing/channels',
+      router: new BillingChannelsController(
+        r.billingChannels, r.chargeTypes, r.billingChannelBankAccounts,
+        r.billingReceipts, r.charges, r.unitLedger,
+        r.units, r.condominiums,
+      ).createRouter(),
+    },
+    {
+      path: '/billing/charges',
+      router: new ChargesController(r.charges, r.chargeTypes, r.unitLedger).createRouter(),
+    },
+    {
+      path: '/billing/receipts',
+      router: new BillingReceiptsController(
+        r.billingReceipts, r.charges, r.paymentAllocationsV2, r.unitLedger,
+      ).createRouter(),
+    },
+    {
+      path: '/billing/units',
+      router: new BillingLedgerController(r.unitLedger, r.charges).createRouter(),
     },
 
     // Documents and messaging

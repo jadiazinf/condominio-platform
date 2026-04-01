@@ -53,6 +53,14 @@ import { bankStatementEntries } from '../tables/bank-statement-entries'
 import { bankReconciliations } from '../tables/bank-reconciliations'
 import { bankStatementMatches } from '../tables/bank-statement-matches'
 import { eventLogs } from '../tables/event-logs'
+import { billingChannels } from '../tables/billing-channels'
+import { chargeTypes } from '../tables/charge-types'
+import { billingChannelBankAccounts } from '../tables/billing-channel-bank-accounts'
+import { charges } from '../tables/charges'
+import { receipts } from '../tables/receipts'
+import { unitLedgerEntries } from '../tables/unit-ledger-entries'
+import { paymentAllocations } from '../tables/payment-allocations'
+import { ownershipTransferSnapshots } from '../tables/ownership-transfer-snapshots'
 
 // ============================================================================
 // LOCATIONS RELATIONS
@@ -1049,3 +1057,188 @@ export const eventLogsRelations = relations(eventLogs, ({ one }) => ({
     references: [users.id],
   }),
 }))
+
+// ============================================================================
+// BILLING RESTRUCTURE RELATIONS (Fase 4.7)
+// ============================================================================
+
+export const billingChannelsRelations = relations(billingChannels, ({ one, many }) => ({
+  condominium: one(condominiums, {
+    fields: [billingChannels.condominiumId],
+    references: [condominiums.id],
+  }),
+  building: one(buildings, {
+    fields: [billingChannels.buildingId],
+    references: [buildings.id],
+  }),
+  currency: one(currencies, {
+    fields: [billingChannels.currencyId],
+    references: [currencies.id],
+  }),
+  createdByUser: one(users, {
+    fields: [billingChannels.createdBy],
+    references: [users.id],
+  }),
+  chargeTypes: many(chargeTypes),
+  channelBankAccounts: many(billingChannelBankAccounts),
+  charges: many(charges),
+  receipts: many(receipts),
+  ledgerEntries: many(unitLedgerEntries),
+}))
+
+export const chargeTypesRelations = relations(chargeTypes, ({ one, many }) => ({
+  billingChannel: one(billingChannels, {
+    fields: [chargeTypes.billingChannelId],
+    references: [billingChannels.id],
+  }),
+  charges: many(charges),
+}))
+
+export const billingChannelBankAccountsRelations = relations(
+  billingChannelBankAccounts,
+  ({ one }) => ({
+    billingChannel: one(billingChannels, {
+      fields: [billingChannelBankAccounts.billingChannelId],
+      references: [billingChannels.id],
+    }),
+    bankAccount: one(bankAccounts, {
+      fields: [billingChannelBankAccounts.bankAccountId],
+      references: [bankAccounts.id],
+    }),
+    assignedByUser: one(users, {
+      fields: [billingChannelBankAccounts.assignedBy],
+      references: [users.id],
+    }),
+  })
+)
+
+export const chargesRelations = relations(charges, ({ one, many }) => ({
+  billingChannel: one(billingChannels, {
+    fields: [charges.billingChannelId],
+    references: [billingChannels.id],
+  }),
+  chargeType: one(chargeTypes, {
+    fields: [charges.chargeTypeId],
+    references: [chargeTypes.id],
+  }),
+  unit: one(units, {
+    fields: [charges.unitId],
+    references: [units.id],
+  }),
+  receipt: one(receipts, {
+    fields: [charges.receiptId],
+    references: [receipts.id],
+  }),
+  currency: one(currencies, {
+    fields: [charges.currencyId],
+    references: [currencies.id],
+  }),
+  sourceCharge: one(charges, {
+    fields: [charges.sourceChargeId],
+    references: [charges.id],
+    relationName: 'chargeSourceCharge',
+  }),
+  derivedCharges: many(charges, { relationName: 'chargeSourceCharge' }),
+  createdByUser: one(users, {
+    fields: [charges.createdBy],
+    references: [users.id],
+  }),
+  allocations: many(paymentAllocations),
+}))
+
+export const receiptsRelations = relations(receipts, ({ one, many }) => ({
+  billingChannel: one(billingChannels, {
+    fields: [receipts.billingChannelId],
+    references: [billingChannels.id],
+  }),
+  unit: one(units, {
+    fields: [receipts.unitId],
+    references: [units.id],
+  }),
+  currency: one(currencies, {
+    fields: [receipts.currencyId],
+    references: [currencies.id],
+  }),
+  replacesReceipt: one(receipts, {
+    fields: [receipts.replacesReceiptId],
+    references: [receipts.id],
+    relationName: 'receiptReplacement',
+  }),
+  replacedByReceipt: many(receipts, { relationName: 'receiptReplacement' }),
+  generatedByUser: one(users, {
+    fields: [receipts.generatedBy],
+    references: [users.id],
+  }),
+  charges: many(charges),
+}))
+
+export const unitLedgerEntriesRelations = relations(unitLedgerEntries, ({ one }) => ({
+  unit: one(units, {
+    fields: [unitLedgerEntries.unitId],
+    references: [units.id],
+  }),
+  billingChannel: one(billingChannels, {
+    fields: [unitLedgerEntries.billingChannelId],
+    references: [billingChannels.id],
+  }),
+  currency: one(currencies, {
+    fields: [unitLedgerEntries.currencyId],
+    references: [currencies.id],
+  }),
+  paymentCurrency: one(currencies, {
+    fields: [unitLedgerEntries.paymentCurrencyId],
+    references: [currencies.id],
+    relationName: 'ledgerPaymentCurrency',
+  }),
+  exchangeRate: one(exchangeRates, {
+    fields: [unitLedgerEntries.exchangeRateId],
+    references: [exchangeRates.id],
+  }),
+  createdByUser: one(users, {
+    fields: [unitLedgerEntries.createdBy],
+    references: [users.id],
+  }),
+}))
+
+export const paymentAllocationsRelations = relations(paymentAllocations, ({ one }) => ({
+  payment: one(payments, {
+    fields: [paymentAllocations.paymentId],
+    references: [payments.id],
+  }),
+  charge: one(charges, {
+    fields: [paymentAllocations.chargeId],
+    references: [charges.id],
+  }),
+  createdByUser: one(users, {
+    fields: [paymentAllocations.createdBy],
+    references: [users.id],
+  }),
+}))
+
+export const ownershipTransferSnapshotsRelations = relations(
+  ownershipTransferSnapshots,
+  ({ one }) => ({
+    unit: one(units, {
+      fields: [ownershipTransferSnapshots.unitId],
+      references: [units.id],
+    }),
+    previousOwner: one(users, {
+      fields: [ownershipTransferSnapshots.previousOwnerId],
+      references: [users.id],
+      relationName: 'transferPreviousOwner',
+    }),
+    newOwner: one(users, {
+      fields: [ownershipTransferSnapshots.newOwnerId],
+      references: [users.id],
+      relationName: 'transferNewOwner',
+    }),
+    debtCurrency: one(currencies, {
+      fields: [ownershipTransferSnapshots.debtCurrencyId],
+      references: [currencies.id],
+    }),
+    createdByUser: one(users, {
+      fields: [ownershipTransferSnapshots.createdBy],
+      references: [users.id],
+    }),
+  })
+)

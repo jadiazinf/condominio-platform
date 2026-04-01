@@ -59,10 +59,14 @@ export const payments = pgTable(
     }),
     verifiedAt: timestamp('verified_at'),
     verificationNotes: text('verification_notes'),
+    // Billing restructure (Fase 4.7)
+    billingChannelId: uuid('billing_channel_id'),
+    billingReceiptId: uuid('billing_receipt_id'),
   },
   table => [
     index('idx_payments_user').on(table.userId),
     index('idx_payments_unit').on(table.unitId),
+    index('idx_payments_billing_channel').on(table.billingChannelId),
     index('idx_payments_date').on(table.paymentDate),
     index('idx_payments_status').on(table.status),
     index('idx_payments_number').on(table.paymentNumber),

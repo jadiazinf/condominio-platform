@@ -434,3 +434,79 @@ export const bankPaymentMethodEnum = pgEnum('bank_payment_method', [
   'crypto',
   'other',
 ])
+
+// ============================================================================
+// BILLING CHANNEL ENUMS (Fase 4.7 — Billing Restructure)
+// ============================================================================
+
+export const channelTypeEnum = pgEnum('channel_type', ['receipt', 'standalone'])
+
+export const billingFrequencyEnum = pgEnum('billing_frequency', [
+  'monthly',
+  'quarterly',
+  'semi_annual',
+  'annual',
+  'one_time',
+])
+
+export const generationStrategyEnum = pgEnum('generation_strategy', ['auto', 'manual'])
+
+export const feeTypeEnum = pgEnum('fee_type', ['percentage', 'fixed', 'none'])
+
+export const allocationStrategyEnum = pgEnum('allocation_strategy', [
+  'fifo',
+  'designated',
+  'fifo_interest_first',
+])
+
+export const chargeCategoryEnum = pgEnum('charge_category', [
+  'ordinary',
+  'extraordinary',
+  'reserve_fund',
+  'social_benefits',
+  'non_common',
+  'fine',
+  'interest',
+  'late_fee',
+  'discount',
+  'credit_note',
+  'debit_note',
+  'other',
+])
+
+export const chargeStatusEnum = pgEnum('charge_status', [
+  'pending',
+  'paid',
+  'partial',
+  'cancelled',
+  'exonerated',
+])
+
+export const billingReceiptStatusEnum = pgEnum('billing_receipt_status', [
+  'draft',
+  'issued',
+  'paid',
+  'partial',
+  'voided',
+])
+
+export const ledgerEntryTypeEnum = pgEnum('ledger_entry_type', ['debit', 'credit'])
+
+export const ledgerReferenceTypeEnum = pgEnum('ledger_reference_type', [
+  'charge',
+  'receipt',
+  'payment',
+  'interest',
+  'late_fee',
+  'discount',
+  'credit_note',
+  'debit_note',
+  'adjustment',
+  'void_reversal',
+])
+
+export const interestCapTypeEnum = pgEnum('interest_cap_type', [
+  'percentage_of_principal',
+  'fixed',
+  'none',
+])

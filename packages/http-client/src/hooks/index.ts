@@ -1135,6 +1135,49 @@ export {
   type IEventLogsQuery,
 } from './use-event-logs'
 
+// Billing Restructure (Fase 4.7)
+export {
+  billingChannelKeys,
+  useBillingChannels,
+  useBillingChannelDetail,
+  useBillingChannelChargeTypes,
+  useCreateBillingChannel,
+  usePreviewGeneration,
+  useGenerateChannelPeriod,
+  type ICreateBillingChannelInput,
+  type IChargeAmountInput,
+  type IGenerateInput,
+  type IPreviewResult,
+  type IUnitPreview,
+  type IGenerateResult,
+} from './use-billing-channels'
+
+export {
+  billingChargeKeys,
+  useBillingCharges,
+  useBillingChargeDetail,
+  useIssueCreditNote,
+  useIssueDebitNote,
+} from './use-billing-charges'
+
+export {
+  billingReceiptKeys,
+  useBillingReceipts,
+  useBillingReceiptDetail,
+  useVoidReceipt as useVoidBillingReceipt,
+} from './use-billing-receipts'
+
+export {
+  billingLedgerKeys,
+  useAccountStatement as useBillingAccountStatement,
+  useUnitBalance,
+  useUnitBalanceSummary,
+  type IAccountStatement as IBillingAccountStatement,
+  type IStatementEntry,
+  type IAging,
+  type IUnitBalance,
+} from './use-billing-ledger'
+
 // Re-export commonly used TanStack Query hooks
 export {
   useQuery,

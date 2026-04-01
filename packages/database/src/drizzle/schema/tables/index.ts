@@ -97,3 +97,13 @@ export * from './event-logs'
 
 // Wizard Drafts
 export * from './wizard-drafts'
+
+// Billing Restructure (Fase 4.7)
+export * from './billing-channels'
+export * from './charge-types'
+export * from './billing-channel-bank-accounts'
+export * from './charges'
+export * from './receipts'
+export * from './unit-ledger-entries'
+export * from './payment-allocations'
+export * from './ownership-transfer-snapshots'
