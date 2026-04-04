@@ -11,7 +11,7 @@
  * Import patterns:
  * - For all tables: import { users, condominiums, ... } from '@database/drizzle/schema'
  * - For specific domains: import { users } from '@database/drizzle/schema/tables/users'
- * - For enums only: import { quotaStatusEnum } from '@database/drizzle/schema/enums'
+ * - For enums only: import { chargeStatusEnum } from '@database/drizzle/schema/enums'
  */
 
 // Export all enums

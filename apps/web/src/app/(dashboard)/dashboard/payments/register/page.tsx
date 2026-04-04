@@ -12,10 +12,11 @@ import {
   useActiveCurrencies,
   useBanks,
   useMyCompanyBankAccountsPaginated,
-  useQuotasPendingByUnit,
   useCreatePayment,
   verifyPaymentReference,
+  useUnitBalance,
 } from '@packages/http-client'
+import { formatAmount } from '@packages/utils/currency'
 
 import { useTranslation } from '@/contexts'
 import { useToast } from '@/ui/components/toast'
@@ -50,7 +51,6 @@ export default function RegisterPaymentPage() {
   const [condominiumId, setCondominiumId] = useState('')
   const [unitId, setUnitId] = useState('')
   const [userId, setUserId] = useState('')
-  const [quotaId, setQuotaId] = useState('')
   const [senderBankId, setSenderBankId] = useState('')
   const [destinationBankAccountId, setDestinationBankAccountId] = useState('')
   const [externalReference, setExternalReference] = useState('')
@@ -95,10 +95,10 @@ export default function RegisterPaymentPage() {
   })
   const bankAccounts = bankAccountsData?.data ?? []
 
-  const { data: quotasData, isLoading: quotasLoading } = useQuotasPendingByUnit(unitId, {
-    enabled: !!unitId,
+  const { data: unitBalanceData } = useUnitBalance(unitId, condominiumId, {
+    enabled: !!unitId && !!condominiumId,
   })
-  const pendingQuotas = quotasData?.data ?? []
+  const unitBalance = unitBalanceData?.data
 
   // Mutation
   const createPayment = useCreatePayment({
@@ -161,24 +161,10 @@ export default function RegisterPaymentPage() {
     [bankAccounts]
   )
 
-  const quotaSelectItems: ISelectItem[] = useMemo(
-    () =>
-      pendingQuotas.map((q: any) => {
-        const conceptName = q.paymentConcept?.name ?? ''
-        const period = q.periodMonth ? `${q.periodMonth}/${q.periodYear}` : `${q.periodYear}`
-
-        return {
-          key: q.id,
-          label: `${conceptName} - ${period} (${q.balance})`,
-        }
-      }),
-    [pendingQuotas]
-  )
-
   // Step validation
   const isStep1Valid = useMemo(
-    () => condominiumId.trim() !== '' && unitId.trim() !== '' && quotaId.trim() !== '',
-    [condominiumId, unitId, quotaId]
+    () => condominiumId.trim() !== '' && unitId.trim() !== '',
+    [condominiumId, unitId]
   )
 
   const isStep2Valid = useMemo(
@@ -211,13 +197,11 @@ export default function RegisterPaymentPage() {
     setCondominiumId(key ?? '')
     setUnitId('')
     setUserId('')
-    setQuotaId('')
   }, [])
 
   const handleUnitChange = useCallback(
     (key: string | null) => {
       setUnitId(key ?? '')
-      setQuotaId('')
       const unit = units.find((u: any) => u.id === key)
 
       if (unit && (unit as any).ownerships?.length > 0) {
@@ -490,48 +474,21 @@ export default function RegisterPaymentPage() {
                   </div>
                 </div>
 
-                {/* Quota */}
-                <div className="flex flex-col gap-4 sm:flex-row">
-                  <div className="flex-1">
-                    {unitId ? (
-                      quotasLoading ? (
-                        <div className="flex items-center gap-2 py-2">
-                          <Spinner size="sm" />
-                          <Typography color="muted" variant="body2">
-                            {t('admin.payments.register.fields.loadingQuotas')}
-                          </Typography>
-                        </div>
-                      ) : pendingQuotas.length > 0 ? (
-                        <Select
-                          isRequired
-                          items={quotaSelectItems}
-                          label={t('admin.payments.register.fields.quota')}
-                          placeholder={t('admin.payments.register.fields.quotaPlaceholder')}
-                          value={quotaId}
-                          onChange={key => setQuotaId(key ?? '')}
-                        />
-                      ) : (
-                        <Select
-                          isDisabled
-                          items={[]}
-                          label={t('admin.payments.register.fields.quota')}
-                          placeholder={t('admin.payments.register.fields.noQuotas')}
-                          value=""
-                          onChange={() => {}}
-                        />
-                      )
-                    ) : (
-                      <Select
-                        isDisabled
-                        items={[]}
-                        label={t('admin.payments.register.fields.quota')}
-                        placeholder={t('admin.payments.register.fields.unitPlaceholder')}
-                        value=""
-                        onChange={() => {}}
-                      />
-                    )}
+                {/* Unit balance */}
+                {unitBalance && condominiumId && unitId && (
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+                    <div className="flex-1">
+                      <div className="rounded-md border border-default-200 p-3">
+                        <Typography variant="caption" color="muted">Saldo de la unidad</Typography>
+                        <Typography
+                          className={`text-lg font-bold ${parseFloat(unitBalance.balance) > 0 ? 'text-red-600' : 'text-green-600'}`}
+                        >
+                          {formatAmount(unitBalance.balance)}
+                        </Typography>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 

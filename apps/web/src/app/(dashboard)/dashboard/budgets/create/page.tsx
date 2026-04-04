@@ -16,6 +16,7 @@ export default async function CreateBudgetPage() {
   const translations = {
     title: t(`${p}.title`),
     subtitle: t(`${p}.subtitle`),
+    explanation: t(`${p}.explanation`),
     back: t(`${p}.back`),
     form: {
       name: t(`${p}.form.name`),
@@ -27,6 +28,19 @@ export default async function CreateBudgetPage() {
       currency: t(`${p}.form.currency`),
       reserveFund: t(`${p}.form.reserveFund`),
       notes: t(`${p}.form.notes`),
+    },
+    tooltips: {
+      name: t(`${p}.tooltips.name`),
+      description: t(`${p}.tooltips.description`),
+      type: t(`${p}.tooltips.type`),
+      year: t(`${p}.tooltips.year`),
+      month: t(`${p}.tooltips.month`),
+      currency: t(`${p}.tooltips.currency`),
+      reserveFund: t(`${p}.tooltips.reserveFund`),
+      notes: t(`${p}.tooltips.notes`),
+      itemDescription: t(`${p}.tooltips.itemDescription`),
+      itemAmount: t(`${p}.tooltips.itemAmount`),
+      itemsTitle: t(`${p}.tooltips.itemsTitle`),
     },
     items: {
       title: t(`${p}.items.title`),

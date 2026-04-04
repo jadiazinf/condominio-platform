@@ -22,14 +22,7 @@ import type {
   TUnit,
   TUnitOwnership,
   // Payments
-  TPaymentConcept,
-  TQuota,
-  TQuotaAdjustment,
-  TQuotaFormula,
-  TQuotaGenerationRule,
   TPayment,
-  TPaymentApplication,
-  TPaymentPendingAllocation,
   TPaymentGateway,
   TEntityPaymentGateway,
   TInterestConfiguration,
@@ -138,43 +131,11 @@ export type TUnitOwnershipUpdatedResponse = TApiDataResponse<TUnitOwnership>
 // Payments & Billing
 // =============================================================================
 
-export type TPaymentConceptListResponse = TApiDataResponse<TPaymentConcept[]>
-export type TPaymentConceptResponse = TApiDataResponse<TPaymentConcept>
-export type TPaymentConceptCreatedResponse = TApiDataResponse<TPaymentConcept>
-export type TPaymentConceptUpdatedResponse = TApiDataResponse<TPaymentConcept>
-
-export type TQuotaListResponse = TApiDataResponse<TQuota[]>
-export type TQuotaResponse = TApiDataResponse<TQuota>
-export type TQuotaCreatedResponse = TApiDataResponse<TQuota>
-export type TQuotaUpdatedResponse = TApiDataResponse<TQuota>
-
-export type TQuotaAdjustmentListResponse = TApiDataResponse<TQuotaAdjustment[]>
-export type TQuotaAdjustmentResponse = TApiDataResponse<TQuotaAdjustment>
-export type TQuotaAdjustmentCreatedResponse = TApiDataResponse<TQuotaAdjustment>
-
-export type TQuotaFormulaListResponse = TApiDataResponse<TQuotaFormula[]>
-export type TQuotaFormulaResponse = TApiDataResponse<TQuotaFormula>
-export type TQuotaFormulaCreatedResponse = TApiDataResponse<TQuotaFormula>
-export type TQuotaFormulaUpdatedResponse = TApiDataResponse<TQuotaFormula>
-
-export type TQuotaGenerationRuleListResponse = TApiDataResponse<TQuotaGenerationRule[]>
-export type TQuotaGenerationRuleResponse = TApiDataResponse<TQuotaGenerationRule>
-export type TQuotaGenerationRuleCreatedResponse = TApiDataMessageResponse<TQuotaGenerationRule>
-export type TQuotaGenerationRuleUpdatedResponse = TApiDataResponse<TQuotaGenerationRule>
-
 export type TPaymentListResponse = TApiDataResponse<TPayment[]>
 export type TPaymentResponse = TApiDataResponse<TPayment>
 export type TPaymentCreatedResponse = TApiDataResponse<TPayment>
 export type TPaymentUpdatedResponse = TApiDataResponse<TPayment>
 export type TPaymentVerifiedResponse = TApiDataMessageResponse<TPayment>
-
-export type TPaymentApplicationListResponse = TApiDataResponse<TPaymentApplication[]>
-export type TPaymentApplicationResponse = TApiDataResponse<TPaymentApplication>
-export type TPaymentApplicationCreatedResponse = TApiDataResponse<TPaymentApplication>
-
-export type TPaymentPendingAllocationListResponse = TApiDataResponse<TPaymentPendingAllocation[]>
-export type TPaymentPendingAllocationResponse = TApiDataResponse<TPaymentPendingAllocation>
-export type TPaymentPendingAllocationCreatedResponse = TApiDataResponse<TPaymentPendingAllocation>
 
 export type TPaymentGatewayListResponse = TApiDataResponse<TPaymentGateway[]>
 export type TPaymentGatewayResponse = TApiDataResponse<TPaymentGateway>

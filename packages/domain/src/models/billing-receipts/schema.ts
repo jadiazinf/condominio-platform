@@ -10,7 +10,7 @@ export const EBillingReceiptStatuses = [
 ] as const
 
 export const billingReceiptSchema = baseModelSchema.extend({
-  billingChannelId: z.uuid(),
+  condominiumId: z.uuid(),
   unitId: z.uuid(),
   periodYear: z.number().int().min(2000).max(2100),
   periodMonth: z.number().int().min(1).max(12),
@@ -26,6 +26,9 @@ export const billingReceiptSchema = baseModelSchema.extend({
   discountAmount: z.string().default('0'),
   totalAmount: z.string(),
   currencyId: z.uuid(),
+  receiptType: z.enum(['original', 'complementary', 'corrective']).default('original'),
+  parentReceiptId: z.uuid().nullable(),
+  assemblyMinuteId: z.uuid().nullable(),
   replacesReceiptId: z.uuid().nullable(),
   voidReason: z.string().nullable(),
   budgetId: z.uuid().nullable(),

@@ -18,7 +18,11 @@
     "drizzle:migrate": "bun x drizzle-kit migrate",
     "drizzle:generate&migrate": "bun x drizzle-kit generate & bun x drizzle-kit migrate",
     "db:clean": "bun ./scripts/db-clean.ts",
-    "db:seed": "bun ./scripts/db-seed.ts"
+    "db:nuke": "bun ./scripts/db-nuke.ts",
+    "db:reset-migrations": "bun ./scripts/db-reset-migrations.ts",
+    "db:rebuild": "bun ./scripts/db-rebuild.ts",
+    "db:seed": "bun ./scripts/db-seed.ts",
+    "db:seed:categories": "bun ./scripts/seed-charge-categories.ts"
   },
   "dependencies": {
     "@eslint/js": "^9.39.1",

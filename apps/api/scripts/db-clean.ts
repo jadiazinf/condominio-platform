@@ -29,7 +29,6 @@ const DATABASE_URL = process.env.DATABASE_URL || ''
 // Delete in reverse order of dependencies
 const TABLES_TO_CLEAN = [
   // Support tickets (most dependent)
-  'support_ticket_assignment_history',
   'support_ticket_messages',
   'support_tickets',
 
@@ -49,25 +48,67 @@ const TABLES_TO_CLEAN = [
   'management_company_members',
   'admin_invitations',
   'user_invitations',
+  'access_requests',
+  'condominium_access_codes',
 
-  // Communication
+  // Communication & Notifications
+  'notification_deliveries',
   'notifications',
+  'notification_templates',
+  'user_notification_preferences',
+  'user_fcm_tokens',
   'messages',
 
   // Documents
   'documents',
 
+  // Wizard
+  'wizard_drafts',
+
+  // Board & Assembly
+  'condominium_board_members',
+  'assembly_minutes',
+
+  // Event logs
+  'event_logs',
+
   // Expenses
   'expenses',
+  'expense_categories',
 
-  // Payments
+  // Banking & Reconciliation
+  'bank_statement_matches',
+  'bank_statement_entries',
+  'bank_statement_imports',
+  'bank_reconciliations',
+  'bank_account_condominiums',
+  'bank_accounts',
+  'banks',
+
+  // Billing & Receipts
+  'receipts',
+
+  // Payments & Ledger
+  'payment_allocations',
+  'unit_ledger_entries',
+  'gateway_transactions',
+  'entity_payment_gateways',
   'payments',
-  'quota_generation',
-  'quotas',
-  'payment_gateways',
+  'service_executions',
+
+  // Charges & Budgets
+  'charges',
+  'charge_types',
+  'charge_categories',
+  'budget_items',
+  'budgets',
+
+  // Interest & Gateways
   'interest_configurations',
-  'payment_concept_changes',
-  'payment_concepts',
+  'payment_gateways',
+
+  // Ownership
+  'ownership_transfer_snapshots',
 
   // Units
   'unit_ownerships',
@@ -75,6 +116,7 @@ const TABLES_TO_CLEAN = [
 
   // Buildings & Condominiums
   'buildings',
+  'condominium_services',
   'condominium_management_companies',
   'condominiums',
 
@@ -222,21 +264,34 @@ async function cleanDatabase(databaseUrl: string): Promise<void> {
   try {
     console.log('\n  Starting cleanup...\n')
 
-    // Disable foreign key checks temporarily
-    await db.execute(sql`SET session_replication_role = 'replica'`)
+    // Build a single TRUNCATE statement for all existing tables
+    // CASCADE handles foreign key constraints without needing superuser privileges
+    const existingTables: string[] = []
 
     for (const table of TABLES_TO_CLEAN) {
       try {
-        await db.execute(sql.raw(`TRUNCATE TABLE "${table}" CASCADE`))
-        console.log(`    Cleaned: ${table}`)
-      } catch (error) {
-        // Table might not exist, that's okay
-        const errorMessage = error instanceof Error ? error.message : String(error)
-        if (errorMessage.includes('does not exist')) {
-          console.log(`    Skipped: ${table} (table does not exist)`)
+        // Check if table exists before adding to truncate list
+        const result = await db.execute(
+          sql.raw(
+            `SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '${table}' LIMIT 1`
+          )
+        )
+        if (result.rows.length > 0) {
+          existingTables.push(`"${table}"`)
         } else {
-          console.log(`    Warning: ${table} - ${errorMessage}`)
+          console.log(`    Skipped: ${table} (table does not exist)`)
         }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        console.log(`    Warning: ${table} - ${errorMessage}`)
+      }
+    }
+
+    if (existingTables.length > 0) {
+      // Single TRUNCATE with CASCADE is atomic and doesn't need replication_role
+      await db.execute(sql.raw(`TRUNCATE TABLE ${existingTables.join(', ')} CASCADE`))
+      for (const table of existingTables) {
+        console.log(`    Cleaned: ${table.replace(/"/g, '')}`)
       }
     }
 
@@ -248,9 +303,6 @@ async function cleanDatabase(databaseUrl: string): Promise<void> {
       const errorMessage = error instanceof Error ? error.message : String(error)
       console.log(`    Warning: pgboss schema - ${errorMessage}`)
     }
-
-    // Re-enable foreign key checks
-    await db.execute(sql`SET session_replication_role = 'origin'`)
 
     console.log('\n  Cleanup completed successfully!\n')
   } finally {

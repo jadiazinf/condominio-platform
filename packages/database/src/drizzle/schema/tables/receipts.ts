@@ -12,19 +12,19 @@ import {
   unique,
 } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
-import { billingChannels } from './billing-channels'
+import { condominiums } from './condominiums'
 import { units } from './units'
 import { currencies } from './currencies'
 import { users } from './users'
-import { billingReceiptStatusEnum } from '../enums'
+import { billingReceiptStatusEnum, receiptTypeEnum } from '../enums'
 
 export const receipts = pgTable(
   'receipts',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    billingChannelId: uuid('billing_channel_id')
+    condominiumId: uuid('condominium_id')
       .notNull()
-      .references(() => billingChannels.id, { onDelete: 'cascade' }),
+      .references(() => condominiums.id, { onDelete: 'cascade' }),
     unitId: uuid('unit_id')
       .notNull()
       .references(() => units.id, { onDelete: 'cascade' }),
@@ -34,8 +34,11 @@ export const receipts = pgTable(
     // Serial (unique, NEVER reused — Art. 14 LPH fuerza ejecutiva)
     receiptNumber: varchar('receipt_number', { length: 50 }).notNull().unique(),
     status: billingReceiptStatusEnum('status').notNull().default('draft'),
+    receiptType: receiptTypeEnum('receipt_type').notNull().default('original'),
     issuedAt: timestamp('issued_at'),
     dueDate: date('due_date'),
+    // Parent receipt (for complementary/corrective receipts)
+    parentReceiptId: uuid('parent_receipt_id'),
     // Amount breakdown
     subtotal: decimal('subtotal', { precision: 15, scale: 2 }).default('0'),
     reserveFundAmount: decimal('reserve_fund_amount', { precision: 15, scale: 2 }).default('0'),
@@ -51,6 +54,7 @@ export const receipts = pgTable(
     replacesReceiptId: uuid('replaces_receipt_id'),
     voidReason: text('void_reason'),
     // Links
+    assemblyMinuteId: uuid('assembly_minute_id'),
     budgetId: uuid('budget_id'),
     pdfUrl: text('pdf_url'),
     notes: text('notes'),
@@ -60,10 +64,10 @@ export const receipts = pgTable(
     updatedAt: timestamp('updated_at').defaultNow(),
   },
   table => [
-    index('idx_receipts_channel').on(table.billingChannelId),
-    index('idx_receipts_unit').on(table.unitId),
-    index('idx_receipts_period').on(table.periodYear, table.periodMonth),
-    index('idx_receipts_status').on(table.status),
-    index('idx_receipts_generated_by').on(table.generatedBy),
+    index('idx_billing_receipts_condominium').on(table.condominiumId),
+    index('idx_billing_receipts_unit').on(table.unitId),
+    index('idx_billing_receipts_period').on(table.periodYear, table.periodMonth),
+    index('idx_billing_receipts_status').on(table.status),
+    index('idx_billing_receipts_generated_by').on(table.generatedBy),
   ]
 )

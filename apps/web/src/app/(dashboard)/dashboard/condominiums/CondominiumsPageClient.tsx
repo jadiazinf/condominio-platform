@@ -21,9 +21,7 @@ interface CondominiumsPageClientProps {
   initialQuery: TCondominiumsQuery
   role?: TActiveRoleType | null
   canCreateCondominium?: boolean
-  limitReached?: boolean
-  maxCondominiums?: number
-  currentCondominiums?: number
+  redirectReason?: string
 }
 
 export function CondominiumsPageClient({
@@ -32,9 +30,7 @@ export function CondominiumsPageClient({
   initialQuery,
   role,
   canCreateCondominium,
-  limitReached,
-  maxCondominiums,
-  currentCondominiums,
+  redirectReason,
 }: CondominiumsPageClientProps) {
   const { t } = useTranslation()
   const toast = useToast()
@@ -42,21 +38,24 @@ export function CondominiumsPageClient({
   const toastShownRef = useRef(false)
 
   useEffect(() => {
-    if (limitReached && !toastShownRef.current) {
-      toastShownRef.current = true
-      const translationPrefix =
-        role === 'management_company' ? 'admin.condominiums' : 'superadmin.condominiums'
+    if (!redirectReason || toastShownRef.current) return
+    toastShownRef.current = true
 
-      toast.error(
-        t(`${translationPrefix}.limitReached`, {
-          max: String(maxCondominiums ?? '∞'),
-          current: String(currentCondominiums ?? 0),
-        })
-      )
-      // Clean the URL param without triggering a navigation
-      router.replace('/dashboard/condominiums', { scroll: false })
+    const tp = role === 'management_company' ? 'admin.condominiums' : 'superadmin.condominiums'
+
+    if (redirectReason === 'no-subscription') {
+      toast.error(t(`${tp}.noActiveSubscription`))
+    } else if (redirectReason === 'limit-reached') {
+      toast.error(t(`${tp}.limitReachedMessage`))
     }
-  }, [limitReached, maxCondominiums, currentCondominiums, role, t, toast, router])
+
+    // Clean reason from URL without triggering Next.js navigation
+    const url = new URL(window.location.href)
+
+    url.searchParams.delete('reason')
+    window.history.replaceState(window.history.state, '', url.toString())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const isAdmin = role === 'management_company'
   const translationPrefix = isAdmin ? 'admin.condominiums' : 'superadmin.condominiums'

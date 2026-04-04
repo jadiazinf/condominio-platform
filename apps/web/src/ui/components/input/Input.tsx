@@ -100,7 +100,7 @@ export const Input = forwardRef<HTMLInputElement, IInputProps>(
     },
     ref
   ) => {
-    // Create label with tooltip and required asterisk (always on the left)
+    // Create label with tooltip icon that won't steal focus
     const labelContent = label ? (
       <span className="flex items-center gap-1.5">
         {isRequired && <span className="text-danger">*</span>}
@@ -108,13 +108,13 @@ export const Input = forwardRef<HTMLInputElement, IInputProps>(
         {tooltip && (
           <Tooltip
             showArrow
-            classNames={{
-              content: 'max-w-xs text-sm',
-            }}
+            classNames={{ content: 'max-w-xs text-sm' }}
             content={tooltip}
             placement="right"
           >
-            <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
+            <button type="button" tabIndex={-1} className="inline-flex" onMouseDown={e => e.preventDefault()}>
+              <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
+            </button>
           </Tooltip>
         )}
       </span>

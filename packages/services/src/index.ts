@@ -9,19 +9,6 @@ export {
 // Base
 export { type IService, type TServiceResult, type TErrorCode, success, failure } from './base'
 
-// Quota services
-export {
-  CalculateFormulaAmountService,
-  type TCalculateFormulaAmountInput,
-  type TCalculateFormulaAmountOutput,
-} from './quotas/calculate-formula-amount.service'
-
-export {
-  GenerateQuotasForScheduleService,
-  type IGenerateQuotasInput,
-  type IGenerateQuotasOutput,
-} from './quotas/generate-quotas-for-schedule.service'
-
 // Event Logger
 export { EventLogger, type IEventLogRepository, type IEventLogInput } from './event-logger'
 

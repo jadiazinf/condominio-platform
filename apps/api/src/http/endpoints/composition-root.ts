@@ -3,7 +3,6 @@ import {
   AccessRequestsRepository,
   BudgetsRepository,
   BudgetItemsRepository,
-  CondominiumReceiptsRepository,
   AdminInvitationsRepository,
   AmenitiesRepository,
   AmenityReservationsRepository,
@@ -29,19 +28,9 @@ import {
   NotificationDeliveriesRepository,
   NotificationsRepository,
   NotificationTemplatesRepository,
-  PaymentApplicationsRepository,
-  PaymentConceptAssignmentsRepository,
-  PaymentConceptBankAccountsRepository,
-  PaymentConceptServicesRepository,
-  PaymentConceptsRepository,
   PaymentGatewaysRepository,
-  PaymentPendingAllocationsRepository,
   PaymentsRepository,
   PermissionsRepository,
-  QuotaAdjustmentsRepository,
-  QuotaFormulasRepository,
-  QuotaGenerationRulesRepository,
-  QuotasRepository,
   RolePermissionsRepository,
   RolesRepository,
   ServiceExecutionsRepository,
@@ -62,17 +51,17 @@ import {
   UsersRepository,
 } from '@database/repositories'
 import { GatewayTransactionsRepository } from '@database/repositories/gateway-transactions.repository'
-import { PaymentConceptChangesRepository } from '@database/repositories/payment-concept-changes.repository'
 import {
   WizardDraftsRepository,
+  AssemblyMinutesRepository,
+  CondominiumBoardMembersRepository,
   BankStatementImportsRepository,
   BankStatementEntriesRepository,
   BankReconciliationsRepository,
   BankStatementMatchesRepository,
   EventLogsRepository,
-  BillingChannelsRepository,
+  ChargeCategoriesRepository,
   ChargeTypesRepository,
-  BillingChannelBankAccountsRepository,
   ChargesRepository,
   BillingReceiptsRepository,
   UnitLedgerRepository,
@@ -97,18 +86,9 @@ import {
   UnitsController,
   UnitOwnershipsController,
   ExchangeRatesController,
-  PaymentConceptsController,
-  McPaymentConceptsController,
   InterestConfigurationsController,
-  QuotasController,
-  QuotaAdjustmentsController,
-  QuotaFormulasController,
-  QuotaGenerationRulesController,
   PaymentGatewaysController,
   EntityPaymentGatewaysController,
-  PaymentsController,
-  PaymentApplicationsController,
-  PaymentPendingAllocationsController,
   ExpenseCategoriesController,
   ExpensesController,
   DocumentsController,
@@ -133,20 +113,26 @@ import {
   AmenityReservationsController,
   WizardDraftsController,
   BudgetsController,
-  ReceiptsController,
+  AssemblyMinutesController,
+  CondominiumBoardController,
+  ChargeCategoriesController,
+  ChargeTypesController,
 } from '../controllers'
 
-import { BillingChannelsController } from '../controllers/billing-channels/billing-channels.controller'
 import { ChargesController } from '../controllers/charges/charges.controller'
 import { BillingReceiptsController } from '../controllers/billing-receipts/billing-receipts.controller'
 import { BillingLedgerController } from '../controllers/billing-ledger/billing-ledger.controller'
+import { BillingAllocationsController } from '../controllers/billing-allocations/billing-allocations.controller'
+import { ReceiptGenerationController } from '../controllers/receipt-generation/receipt-generation.controller'
+import { AppendLedgerEntryService } from '@services/billing-ledger/append-ledger-entry.service'
+import { PreviewMonthlyBillingService } from '@services/billing-generation/preview-monthly-billing.service'
+import { GenerateMonthlyBillingService } from '@services/billing-generation/generate-monthly-billing.service'
+import { UploadToStorageService } from '@services/file-upload/upload-to-storage.service'
 import { InternalController } from '../controllers/internal'
 import { BanksController } from '../controllers/banks/banks.controller'
 import { McCondominiumServicesController } from '../controllers/condominium-services/mc-condominium-services.controller'
-import { McReserveFundController } from '../controllers/reserve-fund'
 import { MyAccessRequestsController } from '../controllers/my-access-requests'
 import { MyNotificationsController } from '../controllers/my-notifications'
-import { ReportsController } from '../controllers/reports/reports.controller'
 import { AccessCodesController } from '../controllers/access-codes'
 import { AccessRequestsController } from '../controllers/access-requests'
 import { BankAccountsController } from '../controllers/bank-accounts/bank-accounts.controller'
@@ -157,10 +143,7 @@ import {
 import { AddUnitOwnerService } from '@services/unit-ownerships/add-unit-owner.service'
 import { ProcessWebhookService } from '@services/webhooks'
 import { PaymentGatewayManager } from '@services/payment-gateways/gateway-manager'
-import { PaymentFlowController } from '../controllers/payments/payment-flow.controller'
-import { AccountStatementsController } from '../controllers/account-statements/account-statements.controller'
 import { BankReconciliationController } from '../controllers/bank-reconciliation/bank-reconciliation.controller'
-import { ApplyPaymentToQuotaService } from '@services/payment-applications/apply-payment-to-quota.service'
 import { createSendNotificationService } from '../../services/notifications'
 import { Hono } from 'hono'
 import type { TGatewayType } from '@packages/domain'
@@ -183,7 +166,6 @@ export function createRepositories(db: TDrizzleClient) {
     budgetItems: new BudgetItemsRepository(db),
     buildings: new BuildingsRepository(db),
     condominiumAccessCodes: new CondominiumAccessCodesRepository(db),
-    condominiumReceipts: new CondominiumReceiptsRepository(db),
     condominiumServices: new CondominiumServicesRepository(db),
     condominiums: new CondominiumsRepository(db),
     currencies: new CurrenciesRepository(db),
@@ -202,20 +184,9 @@ export function createRepositories(db: TDrizzleClient) {
     notificationDeliveries: new NotificationDeliveriesRepository(db),
     notifications: new NotificationsRepository(db),
     notificationTemplates: new NotificationTemplatesRepository(db),
-    paymentApplications: new PaymentApplicationsRepository(db),
-    paymentConceptAssignments: new PaymentConceptAssignmentsRepository(db),
-    paymentConceptBankAccounts: new PaymentConceptBankAccountsRepository(db),
-    paymentConceptChanges: new PaymentConceptChangesRepository(db),
-    paymentConceptServices: new PaymentConceptServicesRepository(db),
-    paymentConcepts: new PaymentConceptsRepository(db),
     paymentGateways: new PaymentGatewaysRepository(db),
-    paymentPendingAllocations: new PaymentPendingAllocationsRepository(db),
     payments: new PaymentsRepository(db),
     permissions: new PermissionsRepository(db),
-    quotaAdjustments: new QuotaAdjustmentsRepository(db),
-    quotaFormulas: new QuotaFormulasRepository(db),
-    quotaGenerationRules: new QuotaGenerationRulesRepository(db),
-    quotas: new QuotasRepository(db),
     rolePermissions: new RolePermissionsRepository(db),
     roles: new RolesRepository(db),
     serviceExecutions: new ServiceExecutionsRepository(db),
@@ -235,14 +206,15 @@ export function createRepositories(db: TDrizzleClient) {
     userRoles: new UserRolesRepository(db),
     users: new UsersRepository(db),
     wizardDrafts: new WizardDraftsRepository(db),
+    assemblyMinutes: new AssemblyMinutesRepository(db),
+    condominiumBoardMembers: new CondominiumBoardMembersRepository(db),
     bankStatementImports: new BankStatementImportsRepository(db),
     bankStatementEntries: new BankStatementEntriesRepository(db),
     bankReconciliations: new BankReconciliationsRepository(db),
     bankStatementMatches: new BankStatementMatchesRepository(db),
     // Billing Restructure (Fase 4.7)
-    billingChannels: new BillingChannelsRepository(db),
+    chargeCategories: new ChargeCategoriesRepository(db),
     chargeTypes: new ChargeTypesRepository(db),
-    billingChannelBankAccounts: new BillingChannelBankAccountsRepository(db),
     charges: new ChargesRepository(db),
     billingReceipts: new BillingReceiptsRepository(db),
     unitLedger: new UnitLedgerRepository(db),
@@ -254,7 +226,7 @@ export type TRepositories = ReturnType<typeof createRepositories>
 
 /**
  * Adapter to check if a condominium belongs to a management company.
- * Shared between McPaymentConcepts and McCondominiumServices.
+ * Used by McCondominiumServices.
  */
 function createCondominiumMCAdapter(condominiumsRepo: CondominiumsRepository) {
   return {
@@ -270,21 +242,6 @@ function createCondominiumMCAdapter(condominiumsRepo: CondominiumsRepository) {
 }
 
 /**
- * Adapter to check bank account-condominium association.
- */
-function createBankAccountCondominiumsAdapter(bankAccountsRepo: BankAccountsRepository) {
-  return {
-    getByBankAccountAndCondominium: async (bankAccountId: string, condominiumId: string) => {
-      const bankAccount = await bankAccountsRepo.getByIdWithCondominiums(bankAccountId)
-      if (!bankAccount) return null
-      if (bankAccount.appliesToAllCondominiums) return { id: bankAccountId }
-      if (bankAccount.condominiumIds?.includes(condominiumId)) return { id: bankAccountId }
-      return null
-    },
-  }
-}
-
-/**
  * Creates all route definitions from shared repositories.
  * Each repository is instantiated exactly once and shared across all controllers.
  */
@@ -293,7 +250,6 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
 
   // Shared adapters (no duplication)
   const condominiumMCRepo = createCondominiumMCAdapter(r.condominiums)
-  const bankAccountCondominiumsRepo = createBankAccountCondominiumsAdapter(r.bankAccounts)
 
   // Event Logger (fire-and-forget)
   const eventLogger = new EventLogger(r.eventLogs)
@@ -366,7 +322,6 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
         r.locations,
         r.users,
         r.managementCompanyMembers,
-        r.paymentConcepts,
         undefined, // invitationsRepository
         undefined, // userRolesRepository
         undefined, // rolesRepository
@@ -417,53 +372,8 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
       router: new ExchangeRatesController(r.exchangeRates).createRouter(),
     },
     {
-      path: '/condominium/payment-concepts',
-      router: new PaymentConceptsController(r.paymentConcepts).createRouter(),
-    },
-    {
       path: '/condominium/interest-configurations',
       router: new InterestConfigurationsController(r.interestConfigurations).createRouter(),
-    },
-
-    // Billing
-    {
-      path: '/condominium/quotas',
-      router: new QuotasController(
-        r.quotas,
-        r.paymentConcepts,
-        r.paymentConceptServices,
-        db,
-        r.quotaAdjustments,
-        r.paymentConceptAssignments,
-        r.units,
-        r.buildings,
-        r.currencies,
-        r.unitOwnerships,
-        eventLogger
-      ).createRouter(),
-    },
-    {
-      path: '/condominium/quota-adjustments',
-      router: new QuotaAdjustmentsController(
-        db,
-        r.quotas,
-        r.quotaAdjustments,
-        eventLogger
-      ).createRouter(),
-    },
-    {
-      path: '/condominium/quota-formulas',
-      router: new QuotaFormulasController(r.quotaFormulas, r.condominiums, r.units).createRouter(),
-    },
-    {
-      path: '/condominium/quota-generation-rules',
-      router: new QuotaGenerationRulesController(
-        r.quotaGenerationRules,
-        r.condominiums,
-        r.buildings,
-        r.paymentConcepts,
-        r.quotaFormulas
-      ).createRouter(),
     },
 
     // Payments
@@ -475,94 +385,10 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
       path: '/condominium/entity-payment-gateways',
       router: new EntityPaymentGatewaysController(r.entityPaymentGateways).createRouter(),
     },
-    {
-      path: '/condominium/payments',
-      router: new PaymentsController(
-        r.payments,
-        db,
-        r.paymentApplications,
-        r.quotas,
-        sendNotificationService,
-        r.units,
-        r.buildings,
-        r.paymentGateways,
-        r.entityPaymentGateways,
-        r.gatewayTransactions,
-        gatewayManager,
-        r.bankAccounts,
-        r.quotaAdjustments,
-        r.paymentPendingAllocations,
-        eventLogger
-      ).createRouter(),
-    },
-    {
-      path: '/condominium/payment-flow',
-      router: new PaymentFlowController({
-        db,
-        quotasRepo: r.quotas,
-        conceptsRepo: r.paymentConcepts,
-        conceptBankAccountsRepo: r.paymentConceptBankAccounts,
-        bankAccountsRepo: r.bankAccounts,
-        currenciesRepo: r.currencies,
-        paymentsRepo: r.payments,
-        gatewayTransactionsRepo: r.gatewayTransactions,
-        gatewayManager,
-        applyPaymentService: new ApplyPaymentToQuotaService(
-          db,
-          r.paymentApplications,
-          r.payments,
-          r.quotas,
-          r.quotaAdjustments,
-          r.interestConfigurations,
-          r.paymentConcepts,
-          r.paymentPendingAllocations,
-          eventLogger
-        ),
-        sendNotificationService,
-        managementCompanyMembersRepo: r.managementCompanyMembers,
-        eventLogger,
-      }).createRouter(),
-    },
-    {
-      path: '/condominium/account-statements',
-      router: new AccountStatementsController({
-        quotasRepo: r.quotas,
-        paymentsRepo: r.payments,
-        applicationsRepo: r.paymentApplications,
-        unitsRepo: r.units,
-        unitOwnershipsRepo: r.unitOwnerships,
-        condominiumsRepo: r.condominiums,
-        currenciesRepo: r.currencies,
-        buildingsRepo: r.buildings,
-      }).createRouter(),
-    },
-    {
-      path: '/condominium/payment-applications',
-      router: new PaymentApplicationsController(
-        r.paymentApplications,
-        db,
-        r.payments,
-        r.quotas,
-        r.quotaAdjustments,
-        r.interestConfigurations,
-        r.paymentConcepts,
-        r.paymentPendingAllocations,
-        eventLogger
-      ).createRouter(),
-    },
-    {
-      path: '/condominium/payment-pending-allocations',
-      router: new PaymentPendingAllocationsController(
-        r.paymentPendingAllocations,
-        r.quotas,
-        db,
-        r.payments,
-        r.paymentGateways,
-        r.entityPaymentGateways,
-        r.gatewayTransactions,
-        gatewayManager
-      ).createRouter(),
-    },
+    // TODO: PaymentsController, PaymentFlowController, AccountStatementsController,
+    // PaymentApplicationsController, and PaymentPendingAllocationsController
+    // removed — they depend on deleted quota/payment-concept repos.
+    // Payment flow is now handled via /billing/* routes.
 
     // Expenses
     {
@@ -577,23 +403,7 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
       router: new BudgetsController(r.budgets, r.budgetItems, r.expenses, r.units).createRouter(),
     },
 
-    // Condominium Receipts
-    {
-      path: '/condominium/receipts',
-      router: new ReceiptsController(
-        r.condominiumReceipts,
-        r.quotas,
-        r.units,
-        r.buildings,
-        r.condominiums,
-        r.currencies,
-        r.unitOwnerships,
-        r.paymentConceptServices,
-        r.managementCompanies,
-        r.exchangeRates,
-        eventLogger
-      ).createRouter(),
-    },
+    // Old Condominium Receipts removed — replaced by /billing/receipts
 
     // Bank Reconciliation
     {
@@ -610,14 +420,6 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
 
     // Billing Restructure (Fase 4.7)
     {
-      path: '/billing/channels',
-      router: new BillingChannelsController(
-        r.billingChannels, r.chargeTypes, r.billingChannelBankAccounts,
-        r.billingReceipts, r.charges, r.unitLedger,
-        r.units, r.condominiums,
-      ).createRouter(),
-    },
-    {
       path: '/billing/charges',
       router: new ChargesController(r.charges, r.chargeTypes, r.unitLedger).createRouter(),
     },
@@ -625,11 +427,44 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
       path: '/billing/receipts',
       router: new BillingReceiptsController(
         r.billingReceipts, r.charges, r.paymentAllocationsV2, r.unitLedger,
+        r.chargeTypes, r.units, r.buildings, r.condominiums, r.currencies,
+        r.unitOwnerships,
       ).createRouter(),
     },
     {
       path: '/billing/units',
       router: new BillingLedgerController(r.unitLedger, r.charges).createRouter(),
+    },
+    {
+      path: '/billing/allocations',
+      router: new BillingAllocationsController(r.paymentAllocationsV2).createRouter(),
+    },
+    {
+      path: '/billing/receipt-generation',
+      router: (() => {
+        const unitsAdapter = {
+          findByCondominium: (condoId: string, opts?: { active: boolean }) =>
+            r.units.getByCondominiumId(condoId).then(all =>
+              opts?.active ? all.filter(u => u.isActive) : all),
+          findByBuilding: (buildingId: string, opts?: { active: boolean }) =>
+            r.units.getByBuildingId(buildingId, !opts?.active),
+        }
+        const condominiumsAdapter = {
+          getById: async (id: string) => {
+            const c = await r.condominiums.getById(id)
+            if (!c) return null
+            return { id: c.id, code: c.code, receiptNumberFormat: (c as any).receiptNumberFormat ?? null }
+          },
+        }
+        const appendLedgerService = new AppendLedgerEntryService(r.unitLedger)
+        const previewService = new PreviewMonthlyBillingService(unitsAdapter, r.chargeTypes, r.chargeCategories)
+        const generateService = new GenerateMonthlyBillingService(
+          unitsAdapter, r.chargeTypes, r.billingReceipts, r.charges,
+          r.unitLedger, appendLedgerService, condominiumsAdapter, r.chargeCategories,
+        )
+        const uploadService = new UploadToStorageService()
+        return new ReceiptGenerationController(previewService, generateService, uploadService, r.documents).createRouter()
+      })(),
     },
 
     // Documents and messaging
@@ -721,30 +556,7 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
     { path: '/banks', router: new BanksController(r.banks).createRouter() },
     { path: '', router: new BankAccountsController(r.bankAccounts, r.banks, db).createRouter() },
 
-    // MC Payment Concepts (management company scoped)
-    {
-      path: '',
-      router: new McPaymentConceptsController({
-        db,
-        conceptsRepo: r.paymentConcepts,
-        assignmentsRepo: r.paymentConceptAssignments,
-        conceptBankAccountsRepo: r.paymentConceptBankAccounts,
-        condominiumsRepo: r.condominiums,
-        currenciesRepo: r.currencies,
-        condominiumMCRepo,
-        bankAccountsRepo: r.bankAccounts,
-        bankAccountCondominiumsRepo,
-        buildingsRepo: r.buildings,
-        unitsRepo: r.units,
-        quotasRepo: r.quotas,
-        conceptServicesRepo: r.paymentConceptServices,
-        changesRepo: r.paymentConceptChanges,
-        condominiumServicesRepo: r.condominiumServices,
-        executionsRepo: r.serviceExecutions,
-        interestConfigsRepo: r.interestConfigurations,
-        unitOwnershipsRepo: r.unitOwnerships,
-      }).createRouter(),
-    },
+    // MC Payment Concepts removed — old billing system
 
     // MC Condominium Services (management company scoped)
     {
@@ -757,19 +569,8 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
       }).createRouter(),
     },
 
-    // MC Reserve Fund (management company scoped)
-    {
-      path: '',
-      router: new McReserveFundController({
-        quotasRepo: r.quotas,
-        paymentsRepo: r.payments,
-        expensesRepo: r.expenses,
-        documentsRepo: r.documents,
-        servicesRepo: r.condominiumServices,
-        condominiumsRepo: r.condominiums,
-        currenciesRepo: r.currencies,
-      }).createRouter(),
-    },
+    // MC Reserve Fund — temporarily removed (depends on deleted quotas repo)
+    // TODO: Restore with billing-system repos
 
     // Subscriptions & Members
     {
@@ -849,16 +650,37 @@ export function createRoutes(db: TDrizzleClient): TApiEndpointDefinition[] {
       router: new AmenityReservationsController(r.amenityReservations, r.amenities).createRouter(),
     },
 
-    // Reports
-    {
-      path: '/condominium/reports',
-      router: new ReportsController(r.quotas, r.payments, r.units, r.buildings).createRouter(),
-    },
+    // Reports — temporarily removed (depends on deleted quotas repo)
+    // TODO: Restore with billing-system repos
 
     // Wizard Drafts
     {
       path: '/wizard-drafts',
       router: new WizardDraftsController(r.wizardDrafts).createRouter(),
+    },
+
+    // Assembly Minutes
+    {
+      path: '/condominium/assembly-minutes',
+      router: new AssemblyMinutesController(r.assemblyMinutes).createRouter(),
+    },
+
+    // Condominium Board Members
+    {
+      path: '/condominium/board',
+      router: new CondominiumBoardController(r.condominiumBoardMembers).createRouter(),
+    },
+
+    // Charge Categories (read-only)
+    {
+      path: '/condominium/charge-categories',
+      router: new ChargeCategoriesController(r.chargeCategories).createRouter(),
+    },
+
+    // Charge Types (CRUD)
+    {
+      path: '/condominium/charge-types',
+      router: new ChargeTypesController(r.chargeTypes).createRouter(),
     },
 
     // Health check
@@ -907,7 +729,6 @@ function createWebhookRouter(
     r.gatewayTransactions,
     r.payments,
     sendNotificationService,
-    r.paymentPendingAllocations,
     eventLogger
   )
 

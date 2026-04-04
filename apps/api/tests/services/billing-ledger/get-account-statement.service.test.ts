@@ -3,24 +3,24 @@ import type { TUnitLedgerEntry, TCharge } from '@packages/domain'
 import { GetAccountStatementService } from '@src/services/billing-ledger/get-account-statement.service'
 
 const unitId = 'unit-001'
-const channelId = 'channel-001'
+const condominiumId = 'channel-001'
 const currencyId = 'currency-001'
 
 const mockEntries: TUnitLedgerEntry[] = [
   {
-    id: 'e1', unitId, billingChannelId: channelId, entryDate: '2026-01-05',
+    id: 'e1', unitId, condominiumId: condominiumId, entryDate: '2026-01-05',
     entryType: 'debit', amount: '48500.00', currencyId, runningBalance: '48500.00',
     description: 'Recibo Ene 2026', referenceType: 'charge', referenceId: 'c1',
     paymentAmount: null, paymentCurrencyId: null, exchangeRateId: null, createdBy: null, createdAt: new Date(),
   },
   {
-    id: 'e2', unitId, billingChannelId: channelId, entryDate: '2026-01-15',
+    id: 'e2', unitId, condominiumId: condominiumId, entryDate: '2026-01-15',
     entryType: 'credit', amount: '48500.00', currencyId, runningBalance: '0.00',
     description: 'Pago #REF123', referenceType: 'payment', referenceId: 'p1',
     paymentAmount: null, paymentCurrencyId: null, exchangeRateId: null, createdBy: null, createdAt: new Date(),
   },
   {
-    id: 'e3', unitId, billingChannelId: channelId, entryDate: '2026-02-05',
+    id: 'e3', unitId, condominiumId: condominiumId, entryDate: '2026-02-05',
     entryType: 'debit', amount: '51200.00', currencyId, runningBalance: '51200.00',
     description: 'Recibo Feb 2026', referenceType: 'charge', referenceId: 'c2',
     paymentAmount: null, paymentCurrencyId: null, exchangeRateId: null, createdBy: null, createdAt: new Date(),
@@ -29,7 +29,7 @@ const mockEntries: TUnitLedgerEntry[] = [
 
 const mockPendingCharges: TCharge[] = [
   {
-    id: 'c2', billingChannelId: channelId, chargeTypeId: 'ct1', unitId,
+    id: 'c2', condominiumId: condominiumId, chargeTypeId: 'ct1', unitId,
     receiptId: 'r2', periodYear: 2026, periodMonth: 2,
     description: 'Recibo Feb', amount: '51200.00', isCredit: false,
     currencyId, status: 'pending', paidAmount: '0', balance: '51200.00',
@@ -48,14 +48,14 @@ describe('GetAccountStatementService', () => {
       getLastEntry: async () => mockEntries[mockEntries.length - 1],
     }
     const mockChargesRepo = {
-      findPendingByUnitAndChannel: async () => mockPendingCharges,
+      findPendingByUnitAndCondominium: async () => mockPendingCharges,
     }
     service = new GetAccountStatementService(mockLedgerRepo as never, mockChargesRepo as never)
   })
 
   it('should return entries with correct structure', async () => {
     const result = await service.execute({
-      unitId, billingChannelId: channelId,
+      unitId, condominiumId: condominiumId,
       fromDate: '2026-01-01', toDate: '2026-02-28',
     })
 
@@ -71,7 +71,7 @@ describe('GetAccountStatementService', () => {
 
   it('should calculate current balance', async () => {
     const result = await service.execute({
-      unitId, billingChannelId: channelId,
+      unitId, condominiumId: condominiumId,
       fromDate: '2026-01-01', toDate: '2026-02-28',
     })
 
@@ -83,7 +83,7 @@ describe('GetAccountStatementService', () => {
 
   it('should calculate aging buckets', async () => {
     const result = await service.execute({
-      unitId, billingChannelId: channelId,
+      unitId, condominiumId: condominiumId,
       fromDate: '2026-01-01', toDate: '2026-02-28',
     })
 
@@ -101,7 +101,7 @@ describe('GetAccountStatementService', () => {
 
   it('should calculate total debits and credits', async () => {
     const result = await service.execute({
-      unitId, billingChannelId: channelId,
+      unitId, condominiumId: condominiumId,
       fromDate: '2026-01-01', toDate: '2026-02-28',
     })
 

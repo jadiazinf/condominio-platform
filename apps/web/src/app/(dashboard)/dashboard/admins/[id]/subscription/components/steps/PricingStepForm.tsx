@@ -957,12 +957,11 @@ export function PricingStepForm({
                 />
               </ModalBody>
               <ModalFooter>
-                <Button variant="flat" onPress={onCloseCreateRate}>
+                <Button variant="bordered" onPress={onCloseCreateRate}>
                   {t('common.cancel')}
                 </Button>
                 <Button
-                  className="text-white"
-                  color="success"
+                  color="primary"
                   form="create-rate-form"
                   type="submit"
                 >

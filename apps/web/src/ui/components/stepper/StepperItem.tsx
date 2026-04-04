@@ -165,20 +165,29 @@ export function StepperItem<T extends string>({
   if (isHorizontal) {
     return (
       <div className={cn('flex w-full items-start', isDisabled && 'opacity-50')}>
-        {/* Step column: circle + label centered together */}
+        {/* Step column: circle + label */}
         <div
           {...clickProps}
           aria-current={status === 'current' ? 'step' : undefined}
           className={cn(
-            'flex min-w-0 flex-col items-center gap-1.5 transition-opacity',
+            'flex shrink-0 flex-col items-center gap-1.5 transition-opacity',
             canClick && 'cursor-pointer hover:opacity-80',
             !canClick && 'cursor-default'
           )}
         >
           {indicator}
-          {labels}
+          <div
+            className={cn(
+              'w-24 text-center',
+              hideLabelsOnMobile && 'hidden sm:block'
+            )}
+          >
+            <div className={cn(sizes.title, titleColors[status], 'break-words')}>
+              {step.title}
+            </div>
+          </div>
         </div>
-        {/* Connector: flex-1 fills remaining width, same height as circle for vertical alignment */}
+        {/* Connector aligned with circle */}
         {showConnector && (
           <div className={cn('flex flex-1 items-center', sizes.circleH)}>
             <StepperConnector

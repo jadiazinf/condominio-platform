@@ -265,7 +265,7 @@ function PatternButton<T extends string>({
         </Typography>
       </div>
       <div
-        className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+        className={`w-4 h-4 shrink-0 rounded-full border-2 flex items-center justify-center ${
           selected ? 'border-success' : 'border-default-300'
         }`}
       >

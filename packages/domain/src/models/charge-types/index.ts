@@ -1,2 +1,2 @@
-export { chargeTypeSchema, EChargeCategories } from './schema'
-export type { TChargeType, TChargeCategory } from './types'
+export { chargeTypeSchema } from './schema'
+export type { TChargeType } from './types'

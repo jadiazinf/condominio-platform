@@ -184,4 +184,14 @@ export class DocumentsRepository
 
     return results.map(record => this.mapToEntity(record))
   }
+
+  async getByChargeId(chargeId: string): Promise<TDocument[]> {
+    const results = await this.db
+      .select()
+      .from(documents)
+      .where(eq(documents.chargeId, chargeId))
+      .orderBy(desc(documents.createdAt))
+
+    return results.map(record => this.mapToEntity(record))
+  }
 }

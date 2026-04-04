@@ -4,7 +4,7 @@ import type { TBillingReceipt } from '@packages/domain'
 describe('BillingReceiptsRepository', () => {
   const makeReceipt = (overrides: Partial<TBillingReceipt> = {}): TBillingReceipt => ({
     id: '550e8400-e29b-41d4-a716-446655440001',
-    billingChannelId: '550e8400-e29b-41d4-a716-446655440010',
+    condominiumId: '550e8400-e29b-41d4-a716-446655440010',
     unitId: '550e8400-e29b-41d4-a716-446655440020',
     periodYear: 2026,
     periodMonth: 3,

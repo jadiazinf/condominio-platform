@@ -76,7 +76,7 @@ export class VoidReceiptService {
       const reverseType = charge.isCredit ? 'debit' : 'credit'
       await this.appendLedgerService.execute({
         unitId: receipt.unitId,
-        billingChannelId: receipt.billingChannelId,
+        condominiumId: receipt.condominiumId,
         entryDate: new Date().toISOString().split('T')[0]!,
         entryType: reverseType,
         amount: charge.amount,

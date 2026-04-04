@@ -19,7 +19,7 @@ export const ELedgerReferenceTypes = [
 export const unitLedgerEntrySchema = z.object({
   id: z.uuid(),
   unitId: z.uuid(),
-  billingChannelId: z.uuid(),
+  condominiumId: z.uuid(),
   entryDate: dateField,
   entryType: z.enum(ELedgerEntryTypes),
   amount: z.string(), // decimal as string

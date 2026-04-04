@@ -5,7 +5,6 @@ import { buildingSchema } from '../buildings/schema'
 import { unitSchema } from '../units/schema'
 import { userSchema } from '../users/schema'
 import { paymentSchema } from '../payments/schema'
-import { quotaSchema } from '../quotas/schema'
 import { expenseSchema } from '../expenses/schema'
 import { DomainLocaleDictionary } from '../../i18n/dictionary'
 
@@ -47,7 +46,6 @@ export const documentSchema = baseModelSchema.extend({
   unit: unitSchema.optional(),
   user: userSchema.optional(),
   payment: paymentSchema.optional(),
-  quota: quotaSchema.optional(),
   expense: expenseSchema.optional(),
   createdByUser: userSchema.optional(),
 })

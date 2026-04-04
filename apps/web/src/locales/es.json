@@ -462,7 +462,8 @@
           "invalid": "La ubicación no es válida."
         }
       }
-    }
+    },
+    "duplicateConcepts": "No se pueden repetir conceptos"
   },
   "language": {
     "select": "Idioma",
@@ -484,7 +485,9 @@
       "myRequests": "Mis Solicitudes",
       "support": "Soporte",
       "myAccountStatement": "Mi Estado de Cuenta",
-      "myReceipts": "Mis Recibos"
+      "myReceipts": "Mis Recibos",
+      "myStatement": "Mi Estado de Cuenta (Nuevo)",
+      "myBillingCharges": "Mis Cargos Pendientes"
     },
     "joinCondominium": {
       "title": "Unirme a un Condominio",
@@ -953,6 +956,45 @@
         "close": "Entendido"
       }
     },
+    "myStatement": {
+      "title": "Mi Estado de Cuenta",
+      "subtitle": "Revisa tus movimientos y saldo por canal de cobro",
+      "selectUnit": "Unidad",
+      "selectChannel": "Canal de cobro",
+      "selectChannelPlaceholder": "Selecciona un canal",
+      "emptyChannel": "Selecciona un canal para ver tu estado de cuenta",
+      "totalDebits": "Total Cargos",
+      "totalCredits": "Total Pagos",
+      "currentBalance": "Saldo Actual",
+      "favorBalance": "Saldo a favor",
+      "ledger": {
+        "date": "Fecha",
+        "description": "Descripción",
+        "debit": "Cargo",
+        "credit": "Abono",
+        "balance": "Saldo"
+      },
+      "aging": {
+        "title": "Antigüedad de Saldo",
+        "current": "0-30 días",
+        "days30": "31-60 días",
+        "days60": "61-90 días",
+        "days90Plus": "90+ días"
+      }
+    },
+    "myBillingCharges": {
+      "title": "Mis Cargos Pendientes",
+      "subtitle": "Cargos por pagar de tu unidad",
+      "selectUnit": "Unidad",
+      "totalPending": "Total pendiente",
+      "empty": "No tienes cargos pendientes",
+      "emptyDescription": "Estás al día con tus pagos",
+      "pay": "Pagar",
+      "statuses": {
+        "pending": "Pendiente",
+        "partial": "Parcial"
+      }
+    },
     "reportPayment": {
       "title": "Reportar Pago",
       "subtitle": "Reporta un pago externo para verificación del administrador",
@@ -1117,7 +1159,7 @@
           "senderDocument": "Cédula / RIF del emisor",
           "viewBankDetails": "Ver datos de la cuenta destino",
           "totalAmount": "Monto total a pagar",
-          "notes": "Notas (opcional)",
+          "notes": "Notas",
           "notesPlaceholder": "Agrega detalles sobre este pago..."
         }
       },
@@ -1435,7 +1477,7 @@
           "phoneDescription": "Número de teléfono principal de la administradora. Los residentes podrán usar este número para contacto",
           "website": "Sitio Web",
           "websitePlaceholder": "https://www.administradora.com",
-          "websiteDescription": "Página web de la administradora (opcional). Si no cuenta con sitio web, deja este campo vacío",
+          "websiteDescription": "Página web de la administradora. Si no cuenta con sitio web, deja este campo vacío",
           "address": "Dirección",
           "addressPlaceholder": "Av. Principal, Edificio Torre Norte, Piso 5, Oficina 5-A",
           "addressDescription": "Dirección física completa de las oficinas de la administradora, incluyendo referencias si es necesario",
@@ -1497,10 +1539,10 @@
         "form": {
           "createTitle": "Crear Suscripción",
           "steps": {
-            "basic": "Información Básica",
-            "limits": "Límites y Características",
+            "basic": "General",
+            "limits": "Límites",
             "pricing": "Precio",
-            "confirmation": "Confirmación"
+            "confirmation": "Resumen"
           },
           "sections": {
             "pricing": "Calculadora de Precio",
@@ -1726,7 +1768,7 @@
           "warning": "Estás a punto de cancelar la suscripción {name}. Esta acción desactivará la renovación automática y marcará la suscripción como cancelada.",
           "emailNotice": "Se enviará una notificación por correo electrónico al superusuario principal, al correo de la administradora y a los administradores principales.",
           "reasonLabel": "Motivo de cancelación",
-          "reasonPlaceholder": "Describe el motivo de la cancelación (opcional)...",
+          "reasonPlaceholder": "Describe el motivo de la cancelación...",
           "passwordTitle": "Verificación de Seguridad",
           "passwordDescription": "Para confirmar esta acción sensible, ingresa tu contraseña actual.",
           "passwordLabel": "Contraseña",
@@ -2056,7 +2098,7 @@
           "patternLetterOnly": "Solo letra",
           "patternNumberOnly": "Solo número",
           "defaultFloors": "Pisos por defecto",
-          "defaultFloorsHint": "Se aplicará a todos los edificios generados (opcional)",
+          "defaultFloorsHint": "Se aplicará a todos los edificios generados",
           "prefixRequired": "El prefijo es requerido",
           "countRequired": "La cantidad es requerida",
           "maxLetterBuildings": "Máximo 26 edificios con patrón de letras",
@@ -2489,7 +2531,7 @@
             "title": "Agregar Usuario al Condominio",
             "searchPlaceholder": "Buscar por correo electrónico",
             "selectRole": "Seleccionar Rol",
-            "selectUnit": "Asignar Unidad (opcional)"
+            "selectUnit": "Asignar Unidad"
           },
           "removeModal": {
             "title": "Remover Usuario",
@@ -2576,7 +2618,7 @@
         "roleAssignmentTitle": "Asignación de Rol",
         "roleAssignmentDescription": "Selecciona el rol y condominio (si aplica) para el usuario",
         "permissions": "Permisos",
-        "permissionsDescription": "Personaliza los permisos para este usuario (opcional)",
+        "permissionsDescription": "Personaliza los permisos para este usuario",
         "noPermissions": "No hay permisos disponibles para este rol",
         "steps": {
           "basic": "Información Básica",
@@ -2679,7 +2721,7 @@
           "lastNameDescription": "Apellido legal del usuario tal como aparece en su documento de identidad",
           "displayName": "Nombre para mostrar",
           "displayNamePlaceholder": "Juan Pérez",
-          "displayNameDescription": "Nombre que se mostrará en la plataforma (opcional)",
+          "displayNameDescription": "Nombre que se mostrará en la plataforma",
           "phoneCountryCode": "Código de país",
           "phoneNumber": "Teléfono",
           "phoneNumberPlaceholder": "4121234567",
@@ -2916,7 +2958,7 @@
           },
           "description": {
             "label": "Descripción",
-            "placeholder": "Descripción de la tarifa (opcional)"
+            "placeholder": "Descripción de la tarifa"
           },
           "condominiumRate": {
             "label": "Tarifa por Condominio",
@@ -2948,7 +2990,7 @@
             "placeholder": "Selecciona una fecha"
           },
           "effectiveUntil": {
-            "label": "Vigente hasta (opcional)",
+            "label": "Vigente hasta",
             "placeholder": "Selecciona una fecha"
           },
           "isActive": {
@@ -3089,7 +3131,7 @@
               "placeholder": "Selecciona una fecha"
             },
             "source": {
-              "label": "Fuente (opcional)",
+              "label": "Fuente",
               "placeholder": "Ej: BCV, Monitor Dólar"
             }
           },
@@ -3150,7 +3192,7 @@
         "summary": "Resumen",
         "summaryPlaceholder": "Descripción breve de los términos",
         "effectiveFrom": "Vigente desde",
-        "effectiveUntil": "Vigente hasta (opcional)",
+        "effectiveUntil": "Vigente hasta",
         "isActive": "Activo",
         "cancel": "Cancelar",
         "save": "Guardar",
@@ -3233,11 +3275,11 @@
       "loading": "Cargando pagos...",
       "error": "Error al cargar los pagos",
       "table": {
-        "paymentNumber": "N\u00ba Pago",
+        "paymentNumber": "Nº Pago",
         "user": "Usuario",
         "unit": "Unidad",
         "amount": "Monto",
-        "method": "M\u00e9todo",
+        "method": "Método",
         "date": "Fecha",
         "status": "Estado",
         "actions": "Acciones"
@@ -3255,12 +3297,12 @@
         "transfer": "Transferencia",
         "cash": "Efectivo",
         "card": "Tarjeta",
-        "mobile_payment": "Pago M\u00f3vil",
+        "mobile_payment": "Pago Móvil",
         "gateway": "Pasarela",
         "other": "Otro"
       },
       "filters": {
-        "searchPlaceholder": "Buscar por n\u00famero de pago...",
+        "searchPlaceholder": "Buscar por número de pago...",
         "status": "Estado"
       },
       "actions": {
@@ -3271,8 +3313,8 @@
         "rejectSuccess": "Pago rechazado correctamente",
         "verifyError": "Error al verificar el pago",
         "rejectError": "Error al rechazar el pago",
-        "confirmVerify": "\u00bfEst\u00e1s seguro de que deseas verificar este pago?",
-        "confirmReject": "\u00bfEst\u00e1s seguro de que deseas rechazar este pago?",
+        "confirmVerify": "¿Estás seguro de que deseas verificar este pago?",
+        "confirmReject": "¿Estás seguro de que deseas rechazar este pago?",
         "back": "Volver a pagos",
         "refund": "Reembolsar pago",
         "refundSuccess": "Pago reembolsado correctamente",
@@ -3286,12 +3328,12 @@
       },
       "detail": {
         "title": "Detalle del Pago",
-        "paymentInfo": "Informaci\u00f3n del Pago",
-        "paymentNumber": "N\u00famero de Pago",
-        "userInfo": "Informaci\u00f3n del Usuario",
+        "paymentInfo": "Información del Pago",
+        "paymentNumber": "Número de Pago",
+        "userInfo": "Información del Usuario",
         "userName": "Usuario",
         "userEmail": "Email",
-        "unitInfo": "Informaci\u00f3n de la Unidad",
+        "unitInfo": "Información de la Unidad",
         "unitName": "Unidad",
         "amounts": "Montos",
         "amount": "Monto",
@@ -3299,22 +3341,22 @@
         "exchangeRate": "Tasa de Cambio",
         "currency": "Divisa",
         "paidCurrency": "Divisa de Pago",
-        "paymentMethod": "M\u00e9todo de Pago",
+        "paymentMethod": "Método de Pago",
         "paymentDetails": "Detalles del Pago",
         "dates": "Fechas",
         "paymentDate": "Fecha de Pago",
         "registeredAt": "Fecha de Registro",
-        "verifiedAt": "Fecha de Verificaci\u00f3n",
+        "verifiedAt": "Fecha de Verificación",
         "status": "Estado",
         "receipt": "Comprobante",
         "receiptUrl": "Ver comprobante",
-        "receiptNumber": "N\u00famero de Recibo",
-        "verification": "Verificaci\u00f3n",
+        "receiptNumber": "Número de Recibo",
+        "verification": "Verificación",
         "verifiedBy": "Verificado por",
         "verifiedBySystem": "Verificado por el banco",
-        "autoVerified": "Pago verificado autom\u00e1ticamente",
-        "autoVerifiedDescription": "Este pago fue verificado autom\u00e1ticamente a trav\u00e9s de la integraci\u00f3n bancaria. La referencia fue confirmada por el banco.",
-        "verificationNotes": "Notas de Verificaci\u00f3n",
+        "autoVerified": "Pago verificado automáticamente",
+        "autoVerifiedDescription": "Este pago fue verificado automáticamente a través de la integración bancaria. La referencia fue confirmada por el banco.",
+        "verificationNotes": "Notas de Verificación",
         "notes": "Notas",
         "notAvailable": "No disponible"
       },
@@ -3364,7 +3406,7 @@
         "allocateModal": {
           "title": "Aplicar Excedente a Cuota",
           "selectQuota": "Selecciona la cuota destino",
-          "notes": "Notas de resolución (opcional)",
+          "notes": "Notas de resolución",
           "notesPlaceholder": "Indica el motivo de la aplicación...",
           "confirm": "Aplicar excedente",
           "success": "Excedente aplicado exitosamente",
@@ -3842,6 +3884,162 @@
         "days90Plus": "+90 días"
       }
     },
+    "billingReceipts": {
+      "title": "Recibos",
+      "subtitle": "Recibos generados por los canales de cobro",
+      "empty": "No hay recibos generados",
+      "receiptNumber": "N° Recibo",
+      "period": "Período",
+      "total": "Total",
+      "dueDate": "Vencimiento",
+      "status": "Estado",
+      "statuses": {
+        "draft": "Borrador",
+        "issued": "Emitido",
+        "paid": "Pagado",
+        "partial": "Parcial",
+        "voided": "Anulado"
+      },
+      "detail": {
+        "title": "Detalle de Recibo",
+        "status": "Estado",
+        "period": "Período",
+        "dueDate": "Vencimiento",
+        "totalAmount": "Total a Pagar",
+        "breakdown": "Desglose de Montos",
+        "subtotal": "Subtotal",
+        "reserveFund": "Fondo de Reserva",
+        "previousBalance": "Saldo Anterior",
+        "interest": "Intereses",
+        "lateFee": "Recargo por Mora",
+        "discount": "Descuento",
+        "total": "Total",
+        "notes": "Notas",
+        "void": "Anular Recibo",
+        "voidConfirm": "Esta acción anulará el recibo y revertirá todos los cargos asociados. Esta acción no se puede deshacer.",
+        "voidReason": "Razón de anulación",
+        "voidReasonPlaceholder": "Ingresa la razón (mínimo 10 caracteres)",
+        "voidReasonBanner": "Razón de anulación",
+        "replacesReceipt": "Este recibo reemplaza a un recibo anulado",
+        "cancel": "Cancelar",
+        "notFound": "Recibo no encontrado"
+      },
+      "generate": "Generar Recibo",
+      "emptyDescription": "Genera tu primer recibo de condominio"
+    },
+    "billingCharges": {
+      "title": "Cargos",
+      "subtitle": "Todos los cargos generados",
+      "empty": "No hay cargos registrados",
+      "description": "Descripción",
+      "period": "Período",
+      "amount": "Monto",
+      "balance": "Saldo",
+      "status": "Estado",
+      "statuses": {
+        "pending": "Pendiente",
+        "partial": "Parcial",
+        "paid": "Pagado",
+        "cancelled": "Cancelado",
+        "exonerated": "Exonerado"
+      },
+      "detail": {
+        "title": "Detalle de Cargo",
+        "notFound": "Cargo no encontrado",
+        "creditNote": "Nota de Crédito",
+        "paidAmount": "Monto Pagado",
+        "cancelCharge": "Cancelar Cargo",
+        "cancelConfirmTitle": "Cancelar Cargo",
+        "cancelConfirmMessage": "Esta acción cancelará el cargo y no se puede deshacer.",
+        "issueCreditNote": "Emitir Nota de Crédito",
+        "creditNoteAmount": "Monto",
+        "creditNoteReason": "Razón",
+        "creditNoteReasonPlaceholder": "Ingresa la razón (mínimo 10 caracteres)",
+        "cancel": "Cancelar",
+        "confirm": "Confirmar",
+        "issue": "Emitir",
+        "cancelledInfo": "Este cargo fue cancelado",
+        "sourceCharge": "Cargo origen",
+        "supportDocuments": "Documentos de soporte",
+        "supportDocumentsDesc": "Adjunta facturas, recibos u otros documentos que justifiquen este cargo",
+        "uploadDocument": "Subir documento",
+        "noDocuments": "No hay documentos adjuntos",
+        "uploading": "Subiendo...",
+        "documentUploaded": "Documento subido exitosamente",
+        "documentUploadError": "Error al subir el documento",
+        "invalidFileType": "Tipo de archivo no permitido",
+        "fileTooLarge": "El archivo es demasiado grande"
+      }
+    },
+    "monthlyBilling": {
+      "title": "Facturación Mensual",
+      "subtitle": "Genera los cobros mensuales para tu condominio",
+      "generate": "Generar Cobros",
+      "history": "Historial",
+      "noHistory": "No hay períodos generados",
+      "noHistoryDescription": "Genera tu primer período de cobros",
+      "period": "Período",
+      "totalReceipts": "Recibos generados",
+      "generatedAt": "Generado el",
+      "form": {
+        "title": "Generar Cobros del Período",
+        "periodYear": "Año",
+        "periodMonth": "Mes",
+        "dueDay": "Día de vencimiento",
+        "distributionMethod": "Método de distribución",
+        "currency": "Moneda",
+        "condominium": "Condominio",
+        "condominiumPlaceholder": "Selecciona un condominio",
+        "currencyPlaceholder": "Selecciona moneda",
+        "addConcept": "Agregar concepto",
+        "conceptName": "Concepto",
+        "conceptNamePlaceholder": "Selecciona un concepto",
+        "conceptAmount": "Monto total",
+        "conceptDescription": "Descripción",
+        "removeConcept": "Quitar",
+        "preview": "Vista previa",
+        "confirm": "Confirmar y Generar",
+        "cancel": "Cancelar",
+        "generating": "Generando...",
+        "success": "Cobros generados exitosamente",
+        "error": "Error al generar los cobros",
+        "minOneConcept": "Debe agregar al menos un concepto",
+        "attachDocument": "Adjuntar factura",
+        "uploadError": "Error al subir el documento",
+        "assemblyMinute": "Acta de asamblea",
+        "assemblyMinutePlaceholder": "Selecciona un acta de asamblea",
+        "noAssemblyMinute": "Sin acta de asamblea",
+        "distributionMethods": {
+          "by_aliquot": "Por alícuota",
+          "equal_split": "Partes iguales",
+          "fixed_per_unit": "Monto fijo por unidad"
+        },
+        "months": {
+          "1": "Enero",
+          "2": "Febrero",
+          "3": "Marzo",
+          "4": "Abril",
+          "5": "Mayo",
+          "6": "Junio",
+          "7": "Julio",
+          "8": "Agosto",
+          "9": "Septiembre",
+          "10": "Octubre",
+          "11": "Noviembre",
+          "12": "Diciembre"
+        }
+      },
+      "preview": {
+        "title": "Vista Previa de Distribución",
+        "unit": "Unidad",
+        "aliquot": "Alícuota",
+        "total": "Total",
+        "grandTotal": "Total General",
+        "aliquotSum": "Suma de alícuotas",
+        "close": "Cerrar",
+        "confirmGenerate": "Confirmar y Generar"
+      }
+    },
     "budgets": {
       "title": "Presupuestos",
       "subtitle": "Gestiona los presupuestos del condominio",
@@ -3913,6 +4111,7 @@
     "createBudget": {
       "title": "Crear Presupuesto",
       "subtitle": "Define un nuevo presupuesto para el condominio",
+      "explanation": "El presupuesto es la estimación de gastos comunes del condominio para un período determinado. El administrador define cuánto costará cada partida (administración, electricidad, agua, vigilancia, etc.) y el sistema calcula automáticamente la cuota que le corresponde a cada unidad según su alícuota.\n\n¿Cómo funciona?\n1. Defines las partidas y sus montos estimados\n2. El sistema suma todo + el porcentaje de fondo de reserva\n3. Ese total se distribuye entre las unidades según su alícuota\n4. Cada propietario paga su porcentaje proporcional\n\nEl fondo de reserva (mínimo 10% según Art. 7 LPH) es un ahorro obligatorio para reparaciones mayores del edificio.",
       "back": "Volver",
       "form": {
         "name": "Nombre",
@@ -3924,6 +4123,19 @@
         "currency": "Moneda",
         "reserveFund": "Fondo de reserva",
         "notes": "Notas"
+      },
+      "tooltips": {
+        "name": "Nombre identificativo del presupuesto. Ej: 'Presupuesto Abril 2026' o 'Gastos comunes Q2'.",
+        "description": "Descripción opcional con detalles adicionales sobre el alcance o propósito del presupuesto.",
+        "type": "Mensual: un mes específico. Trimestral: abarca 3 meses. Anual: cubre todo el año.",
+        "year": "Año fiscal al que corresponde este presupuesto.",
+        "month": "Mes específico del presupuesto (solo para presupuestos mensuales y trimestrales).",
+        "currency": "Moneda en la que se expresan todos los montos del presupuesto.",
+        "reserveFund": "Porcentaje del total que se destina al fondo de reserva (Art. 7 LPH establece mínimo 10%).",
+        "notes": "Observaciones adicionales: decisiones de asamblea, justificaciones, contexto.",
+        "itemDescription": "Concepto del gasto: administración, electricidad, agua, vigilancia, ascensor, limpieza, etc.",
+        "itemAmount": "Monto estimado para este concepto en el período del presupuesto.",
+        "itemsTitle": "Las partidas son los conceptos de gasto que componen el presupuesto. Cada partida representa un rubro específico (ej: administración, electricidad, vigilancia). La suma de todas las partidas más el fondo de reserva determina la cuota total que se distribuirá entre las unidades."
       },
       "items": {
         "title": "Partidas del Presupuesto",
@@ -3953,7 +4165,146 @@
     "receipts": {
       "title": "Recibos de Condominio",
       "subtitle": "Gestiona los recibos mensuales de condominio",
-      "generate": "Generar Recibos",
+      "generate": {
+        "title": "Generar Recibo de Condominio",
+        "titleTooltip": "El recibo de condominio es el documento legal que detalla los gastos comunes del período. Tiene fuerza ejecutiva según el Art. 14 de la Ley de Propiedad Horizontal",
+        "subtitle": "Genera los cobros del período para tu condominio",
+        "back": "Volver a Recibos",
+        "steps": {
+          "config": "Período",
+          "concepts": "Conceptos",
+          "review": "Revisión"
+        },
+        "next": "Siguiente",
+        "previous": "Anterior",
+        "cancel": "Cancelar",
+        "tooltips": {
+          "condominium": "Selecciona el condominio para el cual deseas generar el recibo",
+          "periodYear": "Año del período a cobrar",
+          "periodMonth": "Mes del período a cobrar",
+          "dueDay": "Día del mes en que vence el pago. Después de esta fecha se pueden aplicar recargos",
+          "distributionMethod": "Por alícuota: cada unidad paga según su porcentaje de participación (Art. 7 LPH). Partes iguales: el monto total se divide equitativamente entre todas las unidades. Monto fijo por unidad: cada unidad paga el monto exacto que se indique",
+          "currency": "Moneda en la que se emitirá el recibo. Los montos se congelan en esta moneda al momento de generar",
+          "assemblyMinute": "Si este cobro fue aprobado en asamblea de propietarios, selecciona el acta correspondiente como respaldo legal",
+          "concepts": "Define los conceptos que se incluirán en el recibo. Cada concepto se distribuirá entre las unidades según el método seleccionado"
+        },
+        "form": {
+          "periodYear": "Año",
+          "periodMonth": "Mes",
+          "dueDay": "Día de vencimiento",
+          "distributionMethod": "Método de distribución",
+          "currency": "Moneda",
+          "condominium": "Condominio",
+          "condominiumPlaceholder": "Selecciona un condominio",
+          "currencyPlaceholder": "Selecciona moneda",
+          "addConcept": "Agregar concepto",
+          "conceptName": "Concepto",
+          "conceptNamePlaceholder": "Selecciona un concepto",
+          "conceptAmount": "Monto total",
+          "conceptDescription": "Descripción",
+          "removeConcept": "Quitar",
+          "preview": "Vista previa",
+          "confirm": "Confirmar y Generar",
+          "cancel": "Cancelar",
+          "generating": "Generando...",
+          "success": "Recibo generado exitosamente",
+          "error": "Error al generar el recibo",
+          "minOneConcept": "Debe agregar al menos un concepto",
+          "attachDocument": "Adjuntar documento",
+          "uploadError": "Error al subir el documento",
+          "assemblyMinute": "Acta de asamblea",
+          "assemblyMinutePlaceholder": "Selecciona un acta de asamblea",
+          "noAssemblyMinute": "Sin acta de asamblea",
+          "distributionMethods": {
+            "by_aliquot": "Por alícuota",
+            "equal_split": "Partes iguales",
+            "fixed_per_unit": "Monto fijo por unidad"
+          },
+          "months": {
+            "1": "Enero",
+            "2": "Febrero",
+            "3": "Marzo",
+            "4": "Abril",
+            "5": "Mayo",
+            "6": "Junio",
+            "7": "Julio",
+            "8": "Agosto",
+            "9": "Septiembre",
+            "10": "Octubre",
+            "11": "Noviembre",
+            "12": "Diciembre"
+          }
+        },
+        "review": {
+          "period": "Período",
+          "total": "Total"
+        },
+        "preview": {
+          "title": "Vista Previa de Distribución",
+          "unit": "Unidad",
+          "aliquot": "Alícuota",
+          "total": "Total",
+          "grandTotal": "Total General",
+          "aliquotSum": "Suma de alícuotas",
+          "close": "Cerrar",
+          "confirmGenerate": "Confirmar y Generar"
+        },
+        "configTitle": "Período y Distribución",
+        "configTooltip": "Selecciona el período a cobrar, el método de distribución entre las unidades y la moneda del recibo",
+        "condominium": "Condominio",
+        "periodYear": "Año",
+        "periodMonth": "Mes",
+        "dueDay": "Día de vencimiento",
+        "distributionMethod": "Método de distribución",
+        "distributionMethodTooltip": "Por alícuota: cada unidad paga según su porcentaje de participación (Art. 7 LPH). Partes iguales: el monto se divide equitativamente. Monto fijo: cada unidad paga el monto exacto indicado",
+        "distributionMethods": {
+          "by_aliquot": "Por alícuota",
+          "equal_split": "Partes iguales",
+          "fixed_per_unit": "Monto fijo por unidad"
+        },
+        "currency": "Moneda",
+        "assemblyMinute": "Acta de asamblea",
+        "assemblyMinuteTooltip": "Si este cobro fue aprobado en asamblea de propietarios, selecciona el acta correspondiente como respaldo legal",
+        "noAssemblyMinute": "Sin acta de asamblea",
+        "conceptsTitle": "Conceptos",
+        "conceptsTooltip": "Define los conceptos del recibo. Según la LPH, el recibo debe incluir como mínimo: Administración y Fondo de Reserva. Los conceptos se pre-cargan automáticamente si ya están registrados.",
+        "concept": "Concepto",
+        "amount": "Monto total",
+        "description": "Descripción",
+        "addConcept": "Agregar concepto",
+        "total": "Total",
+        "reviewTitle": "Revisión",
+        "period": "Período",
+        "generate": "Confirmar y Generar",
+        "error": "Error al generar los recibos",
+        "success": "Recibos generados exitosamente",
+        "months": {
+          "1": "Enero",
+          "2": "Febrero",
+          "3": "Marzo",
+          "4": "Abril",
+          "5": "Mayo",
+          "6": "Junio",
+          "7": "Julio",
+          "8": "Agosto",
+          "9": "Septiembre",
+          "10": "Octubre",
+          "11": "Noviembre",
+          "12": "Diciembre"
+        },
+        "createConcept": "Nuevo Concepto",
+        "createConceptTitle": "Crear Concepto",
+        "conceptName": "Nombre del concepto",
+        "conceptNamePlaceholder": "Ej: Administración, Electricidad, Agua",
+        "conceptPlaceholder": "Selecciona un concepto",
+        "conceptCreated": "Concepto creado exitosamente",
+        "conceptCreateError": "Error al crear el concepto",
+        "create": "Crear",
+        "conceptCategory": "Categoría",
+        "generating": "Generando...",
+        "documentUploaded": "Documento adjuntado",
+        "documentUploadError": "Error al subir el documento"
+      },
       "bulkGenerate": "Generar Masivamente",
       "empty": "No hay recibos generados",
       "loading": "Cargando recibos...",
@@ -4043,7 +4394,7 @@
         "periodYear": "Año",
         "periodMonth": "Mes",
         "currency": "Moneda",
-        "budget": "Presupuesto (opcional)"
+        "budget": "Presupuesto"
       },
       "bulkGenerate": "Generar Recibos para Todas las Unidades",
       "success": "Recibos generados exitosamente",
@@ -4319,7 +4670,7 @@
         "reject": "Rechazar",
         "approveConfirm": "¿Estás seguro de aprobar esta solicitud? Se creará la asignación de unidad y rol para el usuario.",
         "rejectTitle": "Rechazar Solicitud",
-        "rejectNotesPlaceholder": "Motivo del rechazo (opcional)"
+        "rejectNotesPlaceholder": "Motivo del rechazo"
       },
       "success": {
         "approved": "Solicitud aprobada exitosamente",
@@ -4364,7 +4715,11 @@
         "budgets": "Presupuestos",
         "receipts": "Recibos",
         "bankReconciliation": "Conciliación Bancaria",
-        "eventLogs": "Registro de Eventos"
+        "eventLogs": "Registro de Eventos",
+        "billingReceipts": "Recibos",
+        "billingCharges": "Cargos",
+        "monthlyBilling": "Facturación Mensual",
+        "charges": "Cobros"
       },
       "myCompany": {
         "title": "Mi Administradora",
@@ -4638,7 +4993,7 @@
             "applyToAll": "Aplica a todos los condominios",
             "selectCondominiums": "Selecciona los condominios",
             "displayName": "Nombre para mostrar",
-            "notes": "Notas (opcional)",
+            "notes": "Notas",
             "review": "Revisión",
             "create": "Crear Cuenta",
             "creating": "Creando...",
@@ -4799,7 +5154,7 @@
         "button": "Cancelar Suscripción",
         "title": "Cancelar Suscripción",
         "warning": "Estás a punto de cancelar la suscripción \"{name}\". Esta acción no se puede deshacer.",
-        "reasonLabel": "Motivo de cancelación (opcional)",
+        "reasonLabel": "Motivo de cancelación",
         "reasonPlaceholder": "¿Por qué deseas cancelar?",
         "passwordPrompt": "Por seguridad, ingresa tu contraseña para confirmar.",
         "passwordLabel": "Contraseña",
@@ -4945,6 +5300,8 @@
       },
       "create": "Registrar Condominio",
       "limitReached": "Límite alcanzado",
+      "noActiveSubscription": "No tienes una suscripción activa. Para crear condominios, necesitas activar o contratar un plan.",
+      "limitReachedMessage": "No puedes crear más condominios. Tu plan permite {max} condominios y actualmente tienes {current}.",
       "form": {
         "createTitle": "Registrar Condominio",
         "createSubtitle": "Registra un nuevo condominio para tu administradora"
@@ -4960,8 +5317,144 @@
           "payments": "Pagos",
           "paymentConcepts": "Conceptos de Pago",
           "reserveFund": "Fondo de Reserva",
+          "assemblyMinutes": "Actas de Asamblea",
           "accessRequests": "Solicitudes de Acceso",
-          "services": "Servicios"
+          "services": "Servicios",
+          "board": "Junta de Condominio",
+          "chargeTypes": "Conceptos",
+          "receipts": "Recibos",
+          "charges": "Cobros",
+          "budgets": "Presupuestos"
+        },
+        "assemblyMinutes": {
+          "title": "Actas de Asamblea",
+          "subtitle": "Registro de asambleas de propietarios del condominio",
+          "create": "Registrar Acta",
+          "empty": "No hay actas registradas",
+          "emptyDescription": "Registra las actas de las asambleas de propietarios",
+          "table": {
+            "title": "Titulo",
+            "type": "Tipo",
+            "date": "Fecha",
+            "quorum": "Quórum",
+            "status": "Estado"
+          },
+          "types": {
+            "ordinary": "Ordinaria",
+            "extraordinary": "Extraordinaria"
+          },
+          "statuses": {
+            "draft": "Borrador",
+            "approved": "Aprobada",
+            "voided": "Anulada"
+          },
+          "form": {
+            "title": "Título del acta",
+            "titlePlaceholder": "Ej: Asamblea ordinaria de propietarios",
+            "assemblyType": "Tipo de asamblea",
+            "assemblyDate": "Fecha de la asamblea",
+            "assemblyLocation": "Lugar",
+            "assemblyLocationPlaceholder": "Ej: Salón de usos múltiples",
+            "quorumPercentage": "Quórum (%)",
+            "attendeesCount": "Asistentes",
+            "totalUnits": "Total de unidades",
+            "agenda": "Orden del día",
+            "agendaPlaceholder": "Puntos a tratar en la asamblea...",
+            "notes": "Notas",
+            "notesPlaceholder": "Observaciones adicionales...",
+            "document": "Documento del acta",
+            "uploadDocument": "Subir documento",
+            "status": "Estado"
+          },
+          "detail": {
+            "title": "Detalle del Acta",
+            "info": "Información de la Asamblea",
+            "content": "Contenido",
+            "document": "Documento",
+            "noDocument": "No hay documento adjunto",
+            "viewDocument": "Ver documento",
+            "edit": "Editar",
+            "delete": "Eliminar",
+            "deleteConfirmTitle": "Eliminar acta",
+            "deleteConfirmMessage": "Esta acción no se puede deshacer. ¿Estás seguro?",
+            "cancel": "Cancelar",
+            "confirm": "Eliminar"
+          }
+        },
+        "board": {
+          "title": "Junta de Condominio",
+          "subtitle": "Miembros de la junta de condominio y sus cargos",
+          "addMember": "Asignar Miembro",
+          "removeMember": "Remover",
+          "empty": "Sin asignar",
+          "emptyDescription": "Asigna los miembros de la junta de condominio",
+          "positions": {
+            "president": "Presidente",
+            "secretary": "Secretario",
+            "treasurer": "Tesorero",
+            "substitutePresident": "Suplente del Presidente",
+            "substituteSecretary": "Suplente del Secretario",
+            "substituteTreasurer": "Suplente del Tesorero"
+          },
+          "statuses": {
+            "active": "Activo",
+            "inactive": "Inactivo",
+            "replaced": "Reemplazado"
+          },
+          "form": {
+            "createTitle": "Asignar Miembro a la Junta",
+            "userId": "Usuario",
+            "userIdPlaceholder": "ID del usuario a asignar",
+            "position": "Cargo",
+            "electedAt": "Fecha de elección",
+            "termEndsAt": "Fin del período",
+            "assemblyMinuteId": "Acta de asamblea",
+            "notes": "Notas",
+            "notesPlaceholder": "Observaciones adicionales...",
+            "create": "Asignar",
+            "creating": "Asignando...",
+            "success": "Miembro asignado exitosamente"
+          },
+          "removeConfirmTitle": "Remover miembro",
+          "removeConfirmMessage": "¿Estás seguro de que deseas remover este miembro de la junta?",
+          "cancel": "Cancelar",
+          "confirm": "Remover",
+          "electedAt": "Elegido",
+          "termEndsAt": "Fin del período"
+        },
+        "chargeTypes": {
+          "title": "Conceptos",
+          "subtitle": "Conceptos de cobro del condominio",
+          "create": "Crear Concepto",
+          "empty": "No hay conceptos registrados",
+          "emptyDescription": "Crea los conceptos de cobro para este condominio",
+          "table": {
+            "name": "Nombre",
+            "category": "Categoría",
+            "defaultAmount": "Monto por Defecto",
+            "recurring": "Recurrente",
+            "actions": "Acciones"
+          },
+          "categories": {
+            "ordinary": "Ordinario",
+            "extraordinary": "Extraordinario",
+            "reserve_fund": "Fondo de Reserva",
+            "social_benefits": "Prestaciones Sociales",
+            "non_common": "No Común",
+            "fine": "Multa",
+            "other": "Otro"
+          },
+          "form": {
+            "name": "Nombre",
+            "namePlaceholder": "Ej: Administración, Electricidad, Agua...",
+            "category": "Categoría",
+            "defaultAmount": "Monto por Defecto",
+            "isRecurring": "Cargo recurrente",
+            "create": "Crear",
+            "update": "Actualizar",
+            "categoryPlaceholder": "Selecciona una categoría"
+          },
+          "deleteConfirm": "¿Estás seguro de que deseas eliminar este tipo de cargo? Esta acción no se puede deshacer."
         },
         "reserveFund": {
           "title": "Fondo de Reserva",
@@ -5266,7 +5759,7 @@
               "effectiveFrom": "Inicio de Vigencia",
               "effectiveFromPlaceholder": "Selecciona la fecha de inicio",
               "effectiveUntil": "Fin de Vigencia",
-              "effectiveUntilPlaceholder": "Selecciona la fecha de fin (opcional)",
+              "effectiveUntilPlaceholder": "Selecciona la fecha de fin",
               "isRecurring": "Concepto Recurrente",
               "isRecurringHint": "Se generará automáticamente según la periodicidad seleccionada",
               "recurrencePeriod": "Periodicidad",
@@ -5696,7 +6189,7 @@
             "totalAmountTooltip": "Ingresa el monto manualmente o agrega ítems para calcularlo automáticamente",
             "historyTemplate": "Usar ejecución anterior como plantilla",
             "noItemsHint": "Sin ítems. Agrega ítems para detallar los costos.",
-            "itemNotesPlaceholder": "Notas del ítem (opcional)",
+            "itemNotesPlaceholder": "Notas del ítem",
             "uploadFailed": "Error al subir el archivo",
             "savedFiles": "Archivos guardados",
             "fileTooLarge": "El archivo es demasiado grande",
@@ -6131,7 +6624,7 @@
         "allocateModal": {
           "title": "Aplicar Excedente a Cuota",
           "selectQuota": "Selecciona la cuota destino",
-          "notes": "Notas de resolución (opcional)",
+          "notes": "Notas de resolución",
           "notesPlaceholder": "Indica el motivo de la aplicación...",
           "confirm": "Aplicar excedente",
           "success": "Excedente aplicado exitosamente",
@@ -6222,6 +6715,18 @@
       "noAmenities": "No se encontraron amenidades",
       "saveSuccess": "Amenidad guardada",
       "deleteSuccess": "Amenidad eliminada"
+    },
+    "charges": {
+      "title": "Cobros",
+      "subtitle": "Cobros independientes del recibo de condominio",
+      "empty": "No hay cobros registrados",
+      "emptyDescription": "Los cobros independientes aparecerán aquí",
+      "create": "Crear Cobro",
+      "comingSoon": "Próximamente",
+      "description": "Descripción",
+      "period": "Período",
+      "amount": "Monto",
+      "status": "Estado"
     }
   },
   "role": {
@@ -6286,5 +6791,19 @@
     },
     "NO_ACTIVE_SUBSCRIPTION": "Tu empresa administradora no tiene una suscripción activa",
     "unknown": "Ocurrió un error inesperado"
+  },
+  "chargeCategories": {
+    "ordinary": "Ordinario",
+    "extraordinary": "Extraordinario",
+    "reserve_fund": "Fondo de Reserva",
+    "social_benefits": "Prestaciones Sociales",
+    "non_common": "No Común",
+    "fine": "Multa",
+    "interest": "Interés",
+    "late_fee": "Recargo",
+    "discount": "Descuento",
+    "credit_note": "Nota de Crédito",
+    "debit_note": "Nota de Débito",
+    "other": "Otro"
   }
 }

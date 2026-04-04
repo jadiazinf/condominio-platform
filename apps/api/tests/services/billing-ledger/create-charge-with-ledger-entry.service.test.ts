@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'bun:test'
 import type { TCharge, TUnitLedgerEntry } from '@packages/domain'
 import { CreateChargeWithLedgerEntryService } from '@src/services/billing-ledger/create-charge-with-ledger-entry.service'
 
-const channelId = 'channel-001'
+const condominiumId = 'channel-001'
 const unitId = 'unit-001'
 const currencyId = 'currency-001'
 const chargeTypeId = 'ct-001'
@@ -51,7 +51,7 @@ describe('CreateChargeWithLedgerEntryService', () => {
 
   it('should create a debit charge and a debit ledger entry', async () => {
     const result = await service.execute({
-      billingChannelId: channelId,
+      condominiumId: condominiumId,
       chargeTypeId,
       unitId,
       periodYear: 2026,
@@ -75,7 +75,7 @@ describe('CreateChargeWithLedgerEntryService', () => {
 
   it('should create a credit charge and a credit ledger entry', async () => {
     const result = await service.execute({
-      billingChannelId: channelId,
+      condominiumId: condominiumId,
       chargeTypeId,
       unitId,
       periodYear: 2026,
@@ -98,7 +98,7 @@ describe('CreateChargeWithLedgerEntryService', () => {
 
   it('should reject zero amount', async () => {
     const result = await service.execute({
-      billingChannelId: channelId,
+      condominiumId: condominiumId,
       chargeTypeId,
       unitId,
       periodYear: 2026,

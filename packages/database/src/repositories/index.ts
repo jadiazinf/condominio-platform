@@ -41,26 +41,17 @@ export {
 } from './user-roles.repository'
 export { UnitsRepository } from './units.repository'
 export { UnitOwnershipsRepository } from './unit-ownerships.repository'
-export { PaymentConceptsRepository } from './payment-concepts.repository'
 export { InterestConfigurationsRepository } from './interest-configurations.repository'
-export { QuotasRepository } from './quotas.repository'
-export { QuotaAdjustmentsRepository } from './quota-adjustments.repository'
-export { QuotaFormulasRepository } from './quota-formulas.repository'
-export { QuotaGenerationRulesRepository } from './quota-generation-rules.repository'
-export { QuotaGenerationSchedulesRepository } from './quota-generation-schedules.repository'
-export { QuotaGenerationLogsRepository } from './quota-generation-logs.repository'
 export { PaymentGatewaysRepository } from './payment-gateways.repository'
 export { EntityPaymentGatewaysRepository } from './entity-payment-gateways.repository'
 export { GatewayTransactionsRepository } from './gateway-transactions.repository'
 export { PaymentsRepository } from './payments.repository'
-export { PaymentApplicationsRepository } from './payment-applications.repository'
 export { ExpenseCategoriesRepository } from './expense-categories.repository'
 export { ExpensesRepository } from './expenses.repository'
 export { DocumentsRepository } from './documents.repository'
 export { MessagesRepository } from './messages.repository'
 export { AuditLogsRepository } from './audit-logs.repository'
 export { EventLogsRepository, type IEventLogsQuery } from './event-logs.repository'
-export { PaymentPendingAllocationsRepository } from './payment-pending-allocations.repository'
 
 // Notifications
 export { NotificationTemplatesRepository } from './notification-templates.repository'
@@ -109,22 +100,13 @@ export { AccessRequestsRepository, type TAccessRequestInsert } from './access-re
 export { BanksRepository } from './banks.repository'
 export { BankAccountsRepository } from './bank-accounts.repository'
 
-// Payment Concept Extensions
-export { PaymentConceptAssignmentsRepository } from './payment-concept-assignments.repository'
-export { PaymentConceptBankAccountsRepository } from './payment-concept-bank-accounts.repository'
-export { PaymentConceptChangesRepository } from './payment-concept-changes.repository'
-
 // Condominium Services
 export { CondominiumServicesRepository } from './condominium-services.repository'
 export { ServiceExecutionsRepository } from './service-executions.repository'
-export { PaymentConceptServicesRepository } from './payment-concept-services.repository'
 
 // Budgets
 export { BudgetsRepository } from './budgets.repository'
 export { BudgetItemsRepository } from './budget-items.repository'
-
-// Condominium Receipts
-export { CondominiumReceiptsRepository } from './condominium-receipts.repository'
 
 // Bank Reconciliation
 export { BankStatementImportsRepository } from './bank-statement-imports.repository'
@@ -135,12 +117,17 @@ export { BankStatementMatchesRepository } from './bank-statement-matches.reposit
 // Wizard Drafts
 export { WizardDraftsRepository } from './wizard-drafts.repository'
 
-// Billing Restructure (Fase 4.7)
-export { BillingChannelsRepository } from './billing-channels.repository'
+// Billing (Fase 5 — Direct Monthly Billing)
+export { ChargeCategoriesRepository } from './charge-categories.repository'
 export { ChargeTypesRepository } from './charge-types.repository'
-export { BillingChannelBankAccountsRepository } from './billing-channel-bank-accounts.repository'
 export { ChargesRepository } from './charges.repository'
 export { BillingReceiptsRepository } from './billing-receipts.repository'
 export { UnitLedgerRepository } from './unit-ledger.repository'
 export { PaymentAllocationsV2Repository } from './payment-allocations-v2.repository'
 export { OwnershipTransferSnapshotsRepository } from './ownership-transfer-snapshots.repository'
+
+// Assembly Minutes
+export { AssemblyMinutesRepository } from './assembly-minutes.repository'
+
+// Condominium Board Members
+export { CondominiumBoardMembersRepository } from './condominium-board-members.repository'

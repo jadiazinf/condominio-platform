@@ -1,53 +1,52 @@
-# Next.js & HeroUI Template
+# CondominioApp Web
 
-This is a template for creating applications using Next.js 14 (app directory) and HeroUI (v2).
+Aplicacion web para gestion de condominios, construida con Next.js 15 y HeroUI v2.
 
-[Try it on CodeSandbox](https://githubbox.com/heroui-inc/heroui/next-app-template)
+## Requisitos
 
-## Technologies Used
+- [Bun](https://bun.sh/) >= 1.2.22
+- API backend corriendo (`apps/api`)
 
-- [Next.js 14](https://nextjs.org/docs/getting-started)
-- [HeroUI v2](https://heroui.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Tailwind Variants](https://tailwind-variants.org)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [next-themes](https://github.com/pacocoursey/next-themes)
+## Configuracion
 
-## How to Use
+Crea `.env.local` en la raiz de `apps/web`:
 
-### Use the template with create-next-app
-
-To create a new project based on this template using `create-next-app`, run the following command:
-
-```bash
-npx create-next-app -e https://github.com/heroui-inc/next-app-template
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
-### Install dependencies
-
-You can use one of them `npm`, `yarn`, `pnpm`, `bun`, Example using `npm`:
+## Desarrollo
 
 ```bash
-npm install
+# Desde la raiz del monorepo
+bun run dev --filter=@apps/web
+
+# O desde este directorio
+bun dev
 ```
 
-### Run the development server
+La app estara disponible en `http://localhost:3001`.
 
-```bash
-npm run dev
-```
+## Scripts
 
-### Setup pnpm (optional)
+| Comando | Descripcion |
+|---------|-------------|
+| `bun dev` | Servidor de desarrollo con hot-reload |
+| `bun build` | Build de produccion |
+| `bun start` | Inicia build de produccion |
+| `bun run lint` | Ejecuta ESLint |
 
-If you are using `pnpm`, you need to add the following code to your `.npmrc` file:
+## Stack
 
-```bash
-public-hoist-pattern[]=*@heroui/*
-```
+| Tecnologia | Uso |
+|------------|-----|
+| Next.js 15 | Framework React (App Router) |
+| HeroUI v2 | Componentes UI |
+| Tailwind CSS | Estilos |
+| TypeScript | Tipado |
+| Framer Motion | Animaciones |
+| Zustand | Estado global |
 
-After modifying the `.npmrc` file, you need to run `pnpm install` again to ensure that the dependencies are installed correctly.
+## Deployment
 
-## License
-
-Licensed under the [MIT license](https://github.com/heroui-inc/next-app-template/blob/main/LICENSE).
+Desplegado en **Vercel** automaticamente al hacer push a main.

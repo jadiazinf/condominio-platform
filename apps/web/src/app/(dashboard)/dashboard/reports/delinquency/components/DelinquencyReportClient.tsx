@@ -10,7 +10,6 @@ import { formatShortDate } from '@packages/utils/dates'
 import {
   useDelinquencyReport,
   useCondominiumBuildingsList,
-  useMyCompanyPaymentConceptsPaginated,
   useCondominiumUnits,
 } from '@packages/http-client'
 
@@ -214,12 +213,8 @@ export function DelinquencyReportClient({
   const { data: buildingsData } = useCondominiumBuildingsList({ condominiumId })
   const buildings = buildingsData?.data ?? []
 
-  const { data: conceptsData } = useMyCompanyPaymentConceptsPaginated({
-    companyId: managementCompanyId ?? '',
-    query: { condominiumId, limit: 100 },
-    enabled: !!managementCompanyId,
-  })
-  const concepts = conceptsData?.data ?? []
+  // TODO: Re-implement concept filter after billing restructure (Fase 4.7)
+  const concepts: { id: string; name: string }[] = []
 
   const { data: unitsData } = useCondominiumUnits({
     condominiumId,

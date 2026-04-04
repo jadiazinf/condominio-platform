@@ -51,8 +51,8 @@ export default async function CondominiumPaymentsPage({ params }: PageProps) {
 
   try {
     payments = await getPaymentsForCondominium(token, id, managementCompanyId)
-  } catch (error) {
-    console.error('Failed to fetch payments:', error)
+  } catch {
+    // Payments endpoint pending rebuild — silenced
   }
 
   const translations = {

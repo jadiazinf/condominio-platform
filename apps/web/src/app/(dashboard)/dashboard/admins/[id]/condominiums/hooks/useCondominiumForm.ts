@@ -19,6 +19,7 @@ export interface ICondominiumFormData {
   // Basic
   name: string
   code: string
+  rif: string
   isActive: boolean
 
   // Location
@@ -61,6 +62,7 @@ export function useCondominiumForm({
     defaultValues: {
       name: '',
       code: '',
+      rif: '',
       isActive: true,
       address: '',
       locationId: '',
@@ -178,6 +180,7 @@ export function useCondominiumForm({
       return {
         name: data.name,
         code: data.code || null,
+        rif: data.rif || null,
         managementCompanyIds: [managementCompanyId],
         address: data.address || null,
         locationId: data.locationId || null,

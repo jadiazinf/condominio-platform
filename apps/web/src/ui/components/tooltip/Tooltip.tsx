@@ -108,6 +108,15 @@ export function Tooltip({
     [isControlled, isDisabled]
   )
 
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (isControlled || isDisabled) return
+      e.stopPropagation()
+      setTouchOpen(prev => !prev)
+    },
+    [isControlled, isDisabled]
+  )
+
   const resolvedIsOpen = isControlled ? controlledIsOpen : touchOpen || undefined
   const resolvedOnOpenChange = isControlled
     ? onOpenChange
@@ -134,7 +143,7 @@ export function Tooltip({
       size={size}
       onOpenChange={resolvedOnOpenChange}
     >
-      <span onTouchStart={handleTouchStart}>{children}</span>
+      <span onClick={handleClick} onTouchStart={handleTouchStart}>{children}</span>
     </HeroUITooltip>
   )
 }

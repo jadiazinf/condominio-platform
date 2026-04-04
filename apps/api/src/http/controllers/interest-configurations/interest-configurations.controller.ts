@@ -59,26 +59,6 @@ export class InterestConfigurationsController extends BaseController<
       },
       {
         method: 'get',
-        path: '/payment-concept/:paymentConceptId',
-        handler: this.getByPaymentConceptId,
-        middlewares: [
-          authMiddleware,
-          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
-          paramsValidator(PaymentConceptIdParamSchema),
-        ],
-      },
-      {
-        method: 'get',
-        path: '/payment-concept/:paymentConceptId/active/:date',
-        handler: this.getActiveForDate,
-        middlewares: [
-          authMiddleware,
-          requireRole(ESystemRole.ADMIN, ESystemRole.ACCOUNTANT),
-          paramsValidator(ActiveForDateParamSchema),
-        ],
-      },
-      {
-        method: 'get',
         path: '/:id',
         handler: this.getById,
         middlewares: [
@@ -145,32 +125,4 @@ export class InterestConfigurationsController extends BaseController<
   // Custom Handlers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private getByPaymentConceptId = async (c: Context): Promise<Response> => {
-    const ctx = this.ctx<unknown, unknown, TPaymentConceptIdParam>(c)
-    const repo = this.repository as InterestConfigurationsRepository
-
-    try {
-      const configs = await repo.getByPaymentConceptId(ctx.params.paymentConceptId)
-      return ctx.ok({ data: configs })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
-  }
-
-  private getActiveForDate = async (c: Context): Promise<Response> => {
-    const ctx = this.ctx<unknown, unknown, TActiveForDateParam>(c)
-    const repo = this.repository as InterestConfigurationsRepository
-
-    try {
-      const config = await repo.getActiveForDate(ctx.params.paymentConceptId, ctx.params.date)
-
-      if (!config) {
-        return ctx.notFound({ error: 'No active interest configuration found for this date' })
-      }
-
-      return ctx.ok({ data: config })
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
-  }
 }

@@ -115,17 +115,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     END $$;
 
     DO $$ BEGIN
-      CREATE TYPE concept_type AS ENUM ('maintenance', 'condominium_fee', 'extraordinary', 'fine', 'reserve_fund', 'other');
-    EXCEPTION WHEN duplicate_object THEN null;
-    END $$;
-
-    DO $$ BEGIN
       CREATE TYPE interest_type AS ENUM ('simple', 'compound', 'fixed_amount');
-    EXCEPTION WHEN duplicate_object THEN null;
-    END $$;
-
-    DO $$ BEGIN
-      CREATE TYPE quota_status AS ENUM ('pending', 'partial', 'paid', 'overdue', 'cancelled', 'exonerated');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -171,36 +161,6 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
 
     DO $$ BEGIN
       CREATE TYPE audit_action AS ENUM ('INSERT', 'UPDATE', 'DELETE');
-    EXCEPTION WHEN duplicate_object THEN null;
-    END $$;
-
-    DO $$ BEGIN
-      CREATE TYPE adjustment_type AS ENUM ('discount', 'increase', 'correction', 'waiver', 'exoneration', 'credit_note');
-    EXCEPTION WHEN duplicate_object THEN null;
-    END $$;
-
-    DO $$ BEGIN
-      CREATE TYPE formula_type AS ENUM ('fixed', 'expression', 'per_unit');
-    EXCEPTION WHEN duplicate_object THEN null;
-    END $$;
-
-    DO $$ BEGIN
-      CREATE TYPE frequency_type AS ENUM ('days', 'monthly', 'quarterly', 'semi_annual', 'annual');
-    EXCEPTION WHEN duplicate_object THEN null;
-    END $$;
-
-    DO $$ BEGIN
-      CREATE TYPE generation_method AS ENUM ('manual_single', 'manual_batch', 'scheduled', 'range', 'bulk');
-    EXCEPTION WHEN duplicate_object THEN null;
-    END $$;
-
-    DO $$ BEGIN
-      CREATE TYPE generation_status AS ENUM ('completed', 'partial', 'failed');
-    EXCEPTION WHEN duplicate_object THEN null;
-    END $$;
-
-    DO $$ BEGIN
-      CREATE TYPE allocation_status AS ENUM ('pending', 'allocated', 'refunded', 'refund_pending', 'refund_failed');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -315,22 +275,7 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     END $$;
 
     DO $$ BEGIN
-      CREATE TYPE assignment_scope AS ENUM ('condominium', 'building', 'unit');
-    EXCEPTION WHEN duplicate_object THEN null;
-    END $$;
-
-    DO $$ BEGIN
       CREATE TYPE distribution_method AS ENUM ('by_aliquot', 'equal_split', 'fixed_per_unit');
-    EXCEPTION WHEN duplicate_object THEN null;
-    END $$;
-
-    DO $$ BEGIN
-      CREATE TYPE charge_adjustment_type AS ENUM ('percentage', 'fixed', 'none');
-    EXCEPTION WHEN duplicate_object THEN null;
-    END $$;
-
-    DO $$ BEGIN
-      CREATE TYPE charge_generation_strategy AS ENUM ('auto', 'bulk', 'manual');
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
@@ -459,6 +404,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       phone_country_code VARCHAR(10),
       phone VARCHAR(50),
       default_currency_id UUID REFERENCES currencies(id) ON DELETE SET NULL,
+      rif VARCHAR(20),
+      receipt_number_format VARCHAR(100),
       is_active BOOLEAN DEFAULT true,
       metadata JSONB,
       created_at TIMESTAMP DEFAULT NOW(),
@@ -553,59 +500,11 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       updated_at TIMESTAMP DEFAULT NOW()
     );
 
-    CREATE TABLE IF NOT EXISTS payment_concepts (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
-      building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
-      name VARCHAR(255) NOT NULL,
-      description TEXT,
-      concept_type concept_type NOT NULL,
-      is_recurring BOOLEAN DEFAULT true,
-      recurrence_period VARCHAR(50),
-      charge_generation_strategy charge_generation_strategy DEFAULT 'auto',
-      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
-      allows_partial_payment BOOLEAN DEFAULT true,
-      late_payment_type charge_adjustment_type DEFAULT 'none',
-      late_payment_value DECIMAL(10,4),
-      late_payment_grace_days INTEGER DEFAULT 0,
-      early_payment_type charge_adjustment_type DEFAULT 'none',
-      early_payment_value DECIMAL(10,4),
-      early_payment_days_before_due INTEGER DEFAULT 0,
-      issue_day INTEGER,
-      due_day INTEGER,
-      effective_from TIMESTAMP,
-      effective_until TIMESTAMP,
-      is_active BOOLEAN DEFAULT true,
-      generate_receipts BOOLEAN DEFAULT true,
-      metadata JSONB,
-      created_at TIMESTAMP DEFAULT NOW(),
-      updated_at TIMESTAMP DEFAULT NOW(),
-      created_by UUID REFERENCES users(id) ON DELETE SET NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS payment_concept_assignments (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      payment_concept_id UUID NOT NULL REFERENCES payment_concepts(id) ON DELETE CASCADE,
-      scope_type assignment_scope NOT NULL,
-      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
-      building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
-      unit_id UUID REFERENCES units(id) ON DELETE CASCADE,
-      distribution_method distribution_method NOT NULL,
-      amount DECIMAL(15,2) NOT NULL,
-      is_active BOOLEAN DEFAULT true,
-      assigned_by UUID REFERENCES users(id) ON DELETE SET NULL,
-      created_at TIMESTAMP DEFAULT NOW(),
-      updated_at TIMESTAMP DEFAULT NOW()
-    );
-
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_pca_unique_assignment
-      ON payment_concept_assignments (payment_concept_id, scope_type, COALESCE(building_id, '00000000-0000-0000-0000-000000000000'), COALESCE(unit_id, '00000000-0000-0000-0000-000000000000'));
-
     CREATE TABLE IF NOT EXISTS interest_configurations (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       condominium_id UUID REFERENCES condominiums(id) ON DELETE CASCADE,
       building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
-      payment_concept_id UUID REFERENCES payment_concepts(id) ON DELETE CASCADE,
+      payment_concept_id UUID,
       name VARCHAR(255) NOT NULL,
       description TEXT,
       interest_type interest_type NOT NULL,
@@ -621,124 +520,6 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       created_by UUID REFERENCES users(id) ON DELETE SET NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS quotas (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
-      payment_concept_id UUID NOT NULL REFERENCES payment_concepts(id) ON DELETE RESTRICT,
-      period_year INTEGER NOT NULL,
-      period_month INTEGER,
-      period_description VARCHAR(100),
-      base_amount DECIMAL(15, 2) NOT NULL,
-      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
-      interest_amount DECIMAL(15, 2) DEFAULT 0,
-      amount_in_base_currency DECIMAL(15, 2),
-      exchange_rate_used DECIMAL(20, 8),
-      issue_date DATE NOT NULL,
-      due_date DATE NOT NULL,
-      status quota_status DEFAULT 'pending',
-      adjustments_total DECIMAL(15, 2) DEFAULT 0,
-      paid_amount DECIMAL(15, 2) DEFAULT 0,
-      balance DECIMAL(15, 2) NOT NULL,
-      notes TEXT,
-      metadata JSONB,
-      created_at TIMESTAMP DEFAULT NOW(),
-      updated_at TIMESTAMP DEFAULT NOW(),
-      created_by UUID REFERENCES users(id) ON DELETE SET NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS quota_adjustments (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      quota_id UUID NOT NULL REFERENCES quotas(id) ON DELETE CASCADE,
-      previous_amount DECIMAL(15, 2) NOT NULL,
-      new_amount DECIMAL(15, 2) NOT NULL,
-      adjustment_type adjustment_type NOT NULL,
-      reason TEXT NOT NULL,
-      tag TEXT,
-      created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-      created_at TIMESTAMP DEFAULT NOW()
-    );
-
-    CREATE TABLE IF NOT EXISTS quota_formulas (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
-      name VARCHAR(255) NOT NULL,
-      description TEXT,
-      formula_type formula_type NOT NULL,
-      fixed_amount DECIMAL(15, 2),
-      expression TEXT,
-      variables JSONB,
-      unit_amounts JSONB,
-      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
-      is_active BOOLEAN DEFAULT true,
-      created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-      created_at TIMESTAMP DEFAULT NOW(),
-      updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
-      updated_at TIMESTAMP DEFAULT NOW(),
-      update_reason TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS quota_generation_rules (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
-      building_id UUID REFERENCES buildings(id) ON DELETE CASCADE,
-      payment_concept_id UUID NOT NULL REFERENCES payment_concepts(id) ON DELETE CASCADE,
-      quota_formula_id UUID NOT NULL REFERENCES quota_formulas(id) ON DELETE RESTRICT,
-      name VARCHAR(255) NOT NULL,
-      description TEXT,
-      effective_from DATE NOT NULL,
-      effective_to DATE,
-      is_active BOOLEAN DEFAULT true,
-      created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-      created_at TIMESTAMP DEFAULT NOW(),
-      updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
-      updated_at TIMESTAMP DEFAULT NOW(),
-      update_reason TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS quota_generation_schedules (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      quota_generation_rule_id UUID NOT NULL REFERENCES quota_generation_rules(id) ON DELETE CASCADE,
-      name VARCHAR(255) NOT NULL,
-      frequency_type frequency_type NOT NULL,
-      frequency_value INTEGER,
-      generation_day INTEGER NOT NULL,
-      periods_in_advance INTEGER DEFAULT 1,
-      issue_day INTEGER NOT NULL,
-      due_day INTEGER NOT NULL,
-      grace_days INTEGER DEFAULT 0,
-      is_active BOOLEAN DEFAULT true,
-      last_generated_period VARCHAR(20),
-      last_generated_at TIMESTAMP,
-      next_generation_date DATE,
-      created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-      created_at TIMESTAMP DEFAULT NOW(),
-      updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
-      updated_at TIMESTAMP DEFAULT NOW(),
-      update_reason TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS quota_generation_logs (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      generation_rule_id UUID REFERENCES quota_generation_rules(id) ON DELETE SET NULL,
-      generation_schedule_id UUID REFERENCES quota_generation_schedules(id) ON DELETE SET NULL,
-      quota_formula_id UUID REFERENCES quota_formulas(id) ON DELETE SET NULL,
-      generation_method generation_method NOT NULL,
-      period_year INTEGER NOT NULL,
-      period_month INTEGER,
-      period_description VARCHAR(100),
-      quotas_created INTEGER NOT NULL DEFAULT 0,
-      quotas_failed INTEGER NOT NULL DEFAULT 0,
-      total_amount DECIMAL(15, 2),
-      currency_id UUID REFERENCES currencies(id) ON DELETE SET NULL,
-      units_affected UUID[],
-      parameters JSONB,
-      formula_snapshot JSONB,
-      status generation_status NOT NULL,
-      error_details TEXT,
-      generated_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-      generated_at TIMESTAMP DEFAULT NOW()
     );
 
     CREATE TABLE IF NOT EXISTS payment_gateways (
@@ -791,32 +572,8 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
       verified_by UUID REFERENCES users(id) ON DELETE SET NULL,
       verified_at TIMESTAMP,
-      verification_notes TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS payment_applications (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      payment_id UUID NOT NULL REFERENCES payments(id) ON DELETE CASCADE,
-      quota_id UUID NOT NULL REFERENCES quotas(id) ON DELETE CASCADE,
-      applied_amount DECIMAL(15, 2) NOT NULL,
-      applied_to_principal DECIMAL(15, 2) DEFAULT 0,
-      applied_to_interest DECIMAL(15, 2) DEFAULT 0,
-      registered_by UUID REFERENCES users(id) ON DELETE SET NULL,
-      applied_at TIMESTAMP DEFAULT NOW()
-    );
-
-    CREATE TABLE IF NOT EXISTS payment_pending_allocations (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      payment_id UUID NOT NULL REFERENCES payments(id) ON DELETE CASCADE,
-      pending_amount DECIMAL(15, 2) NOT NULL,
-      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
-      status allocation_status NOT NULL DEFAULT 'pending',
-      resolution_type VARCHAR(50),
-      resolution_notes TEXT,
-      allocated_to_quota_id UUID REFERENCES quotas(id) ON DELETE SET NULL,
-      created_at TIMESTAMP DEFAULT NOW(),
-      allocated_by UUID REFERENCES users(id) ON DELETE SET NULL,
-      allocated_at TIMESTAMP
+      verification_notes TEXT,
+      billing_receipt_id UUID
     );
 
     CREATE TABLE IF NOT EXISTS expense_categories (
@@ -862,8 +619,9 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       unit_id UUID REFERENCES units(id) ON DELETE CASCADE,
       user_id UUID REFERENCES users(id) ON DELETE CASCADE,
       payment_id UUID REFERENCES payments(id) ON DELETE CASCADE,
-      quota_id UUID REFERENCES quotas(id) ON DELETE CASCADE,
+      quota_id UUID,
       expense_id UUID REFERENCES expenses(id) ON DELETE CASCADE,
+      charge_id UUID,
       file_url TEXT NOT NULL,
       file_name VARCHAR(255),
       file_size INTEGER,
@@ -1355,29 +1113,6 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       UNIQUE(bank_account_id, condominium_id)
     );
 
-    CREATE TABLE IF NOT EXISTS payment_concept_bank_accounts (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      payment_concept_id UUID NOT NULL REFERENCES payment_concepts(id) ON DELETE CASCADE,
-      bank_account_id UUID NOT NULL REFERENCES bank_accounts(id) ON DELETE CASCADE,
-      assigned_by UUID REFERENCES users(id) ON DELETE SET NULL,
-      created_at TIMESTAMP DEFAULT NOW(),
-      UNIQUE(payment_concept_id, bank_account_id)
-    );
-
-    CREATE TABLE IF NOT EXISTS payment_concept_changes (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      payment_concept_id UUID NOT NULL REFERENCES payment_concepts(id) ON DELETE CASCADE,
-      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
-      changed_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-      previous_values JSONB NOT NULL,
-      new_values JSONB NOT NULL,
-      notes TEXT,
-      created_at TIMESTAMP DEFAULT NOW()
-    );
-    CREATE INDEX IF NOT EXISTS idx_pcc_concept ON payment_concept_changes(payment_concept_id);
-    CREATE INDEX IF NOT EXISTS idx_pcc_condominium ON payment_concept_changes(condominium_id);
-    CREATE INDEX IF NOT EXISTS idx_pcc_changed_by ON payment_concept_changes(changed_by);
-
     CREATE TABLE IF NOT EXISTS condominium_services (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
@@ -1404,22 +1139,11 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       updated_at TIMESTAMP DEFAULT NOW()
     );
 
-    CREATE TABLE IF NOT EXISTS payment_concept_services (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      payment_concept_id UUID NOT NULL REFERENCES payment_concepts(id) ON DELETE CASCADE,
-      service_id UUID NOT NULL REFERENCES condominium_services(id) ON DELETE CASCADE,
-      amount DECIMAL(15, 2) NOT NULL,
-      use_default_amount BOOLEAN DEFAULT true,
-      created_at TIMESTAMP DEFAULT NOW(),
-      updated_at TIMESTAMP DEFAULT NOW(),
-      UNIQUE(payment_concept_id, service_id)
-    );
-
     CREATE TABLE IF NOT EXISTS service_executions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       service_id UUID NOT NULL REFERENCES condominium_services(id) ON DELETE CASCADE,
       condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
-      payment_concept_id UUID REFERENCES payment_concepts(id) ON DELETE SET NULL,
+      payment_concept_id UUID,
       title VARCHAR(255) NOT NULL,
       description TEXT,
       execution_date DATE,
@@ -1472,36 +1196,6 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       description TEXT,
       amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
       metadata JSONB,
-      created_at TIMESTAMP DEFAULT NOW(),
-      updated_at TIMESTAMP DEFAULT NOW()
-    );
-
-    -- Condominium Receipts
-    CREATE TABLE IF NOT EXISTS condominium_receipts (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
-      unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
-      building_id UUID REFERENCES buildings(id) ON DELETE SET NULL,
-      receipt_number VARCHAR(100),
-      status VARCHAR(50) NOT NULL DEFAULT 'generated',
-      period_year INTEGER NOT NULL,
-      period_month INTEGER NOT NULL,
-      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
-      ordinary_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
-      extraordinary_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
-      reserve_fund_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
-      interest_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
-      fine_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
-      previous_balance DECIMAL(15, 2) NOT NULL DEFAULT 0,
-      total_amount DECIMAL(15, 2) NOT NULL DEFAULT 0,
-      items JSONB DEFAULT '[]',
-      issued_at TIMESTAMP DEFAULT NOW(),
-      voided_at TIMESTAMP,
-      voided_by UUID REFERENCES users(id) ON DELETE SET NULL,
-      void_reason TEXT,
-      notes TEXT,
-      metadata JSONB,
-      generated_by UUID REFERENCES users(id) ON DELETE SET NULL,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     );
@@ -1588,6 +1282,61 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
     EXCEPTION WHEN duplicate_object THEN null;
     END $$;
 
+    -- Assembly Minutes & Board (Fase 5.2/5.3)
+    DO $$ BEGIN
+      CREATE TYPE assembly_type AS ENUM ('ordinary', 'extraordinary');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+    DO $$ BEGIN
+      CREATE TYPE assembly_minute_status AS ENUM ('draft', 'approved', 'voided');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+    DO $$ BEGIN
+      CREATE TYPE board_position AS ENUM ('president', 'secretary', 'treasurer', 'substitute_president', 'substitute_secretary', 'substitute_treasurer');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+    DO $$ BEGIN
+      CREATE TYPE board_member_status AS ENUM ('active', 'inactive', 'replaced');
+    EXCEPTION WHEN duplicate_object THEN null;
+    END $$;
+
+    CREATE TABLE IF NOT EXISTS assembly_minutes (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      title VARCHAR(255) NOT NULL,
+      assembly_type assembly_type NOT NULL,
+      assembly_date DATE NOT NULL,
+      assembly_location VARCHAR(255),
+      quorum_percentage DECIMAL(5,2),
+      attendees_count INTEGER,
+      total_units INTEGER,
+      agenda TEXT,
+      decisions JSONB,
+      notes TEXT,
+      document_url TEXT,
+      document_file_name VARCHAR(255),
+      status assembly_minute_status NOT NULL DEFAULT 'draft',
+      is_active BOOLEAN DEFAULT true,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS condominium_board_members (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      position board_position NOT NULL,
+      status board_member_status NOT NULL DEFAULT 'active',
+      elected_at DATE NOT NULL,
+      term_ends_at DATE,
+      assembly_minute_id UUID,
+      notes TEXT,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
     CREATE TABLE IF NOT EXISTS event_logs (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       category event_log_category NOT NULL,
@@ -1621,6 +1370,146 @@ async function createSchema(db: TTestDrizzleClient): Promise<void> {
       metadata JSONB,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    -- Billing model enums
+    DO $$ BEGIN CREATE TYPE channel_type AS ENUM ('receipt', 'standalone'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+    DO $$ BEGIN CREATE TYPE billing_frequency AS ENUM ('monthly', 'quarterly', 'semi_annual', 'annual', 'one_time'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+    DO $$ BEGIN CREATE TYPE generation_strategy AS ENUM ('auto', 'manual'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+    DO $$ BEGIN CREATE TYPE fee_type AS ENUM ('percentage', 'fixed', 'none'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+    DO $$ BEGIN CREATE TYPE allocation_strategy AS ENUM ('fifo', 'designated', 'fifo_interest_first'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+    DO $$ BEGIN CREATE TYPE charge_status AS ENUM ('pending', 'paid', 'partial', 'cancelled', 'exonerated'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+    DO $$ BEGIN CREATE TYPE billing_receipt_status AS ENUM ('draft', 'issued', 'paid', 'partial', 'voided'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+    DO $$ BEGIN CREATE TYPE ledger_entry_type AS ENUM ('debit', 'credit'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+    DO $$ BEGIN CREATE TYPE ledger_reference_type AS ENUM ('charge', 'receipt', 'payment', 'interest', 'late_fee', 'discount', 'credit_note', 'debit_note', 'adjustment', 'void_reversal'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+    DO $$ BEGIN CREATE TYPE interest_cap_type AS ENUM ('percentage_of_principal', 'fixed', 'none'); EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+    -- Billing tables
+    CREATE TABLE IF NOT EXISTS charge_categories (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name VARCHAR(50) NOT NULL UNIQUE,
+      label VARCHAR(100) NOT NULL,
+      label_en VARCHAR(100),
+      description TEXT,
+      is_system BOOLEAN DEFAULT false,
+      is_active BOOLEAN DEFAULT true,
+      sort_order INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS charge_types (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      name VARCHAR(200) NOT NULL,
+      category_id UUID NOT NULL REFERENCES charge_categories(id),
+      sort_order INTEGER DEFAULT 0,
+      is_active BOOLEAN DEFAULT true,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS receipts (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+      period_year INTEGER NOT NULL,
+      period_month INTEGER NOT NULL,
+      receipt_number VARCHAR(50) NOT NULL UNIQUE,
+      status billing_receipt_status DEFAULT 'draft' NOT NULL,
+      issued_at TIMESTAMP,
+      due_date DATE,
+      subtotal DECIMAL(15,2) DEFAULT 0,
+      reserve_fund_amount DECIMAL(15,2) DEFAULT 0,
+      previous_balance DECIMAL(15,2) DEFAULT 0,
+      interest_amount DECIMAL(15,2) DEFAULT 0,
+      late_fee_amount DECIMAL(15,2) DEFAULT 0,
+      discount_amount DECIMAL(15,2) DEFAULT 0,
+      total_amount DECIMAL(15,2) NOT NULL,
+      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
+      receipt_type TEXT DEFAULT 'original',
+      parent_receipt_id UUID,
+      assembly_minute_id UUID,
+      replaces_receipt_id UUID,
+      void_reason TEXT,
+      budget_id UUID,
+      pdf_url TEXT,
+      notes TEXT,
+      metadata JSONB,
+      generated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS charges (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      charge_type_id UUID NOT NULL REFERENCES charge_types(id) ON DELETE RESTRICT,
+      unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+      receipt_id UUID REFERENCES receipts(id) ON DELETE SET NULL,
+      distribution_method TEXT,
+      source_receipt_id UUID,
+      period_year INTEGER NOT NULL,
+      period_month INTEGER NOT NULL,
+      description TEXT,
+      amount DECIMAL(15,2) NOT NULL,
+      is_credit BOOLEAN DEFAULT false,
+      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
+      status charge_status DEFAULT 'pending' NOT NULL,
+      paid_amount DECIMAL(15,2) DEFAULT 0,
+      balance DECIMAL(15,2) NOT NULL,
+      source_expense_id UUID,
+      source_charge_id UUID,
+      is_auto_generated BOOLEAN DEFAULT false,
+      metadata JSONB,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS unit_ledger_entries (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+      condominium_id UUID NOT NULL REFERENCES condominiums(id) ON DELETE CASCADE,
+      entry_date DATE NOT NULL,
+      entry_type ledger_entry_type NOT NULL,
+      amount DECIMAL(15,2) NOT NULL,
+      currency_id UUID NOT NULL REFERENCES currencies(id) ON DELETE RESTRICT,
+      running_balance DECIMAL(15,2) NOT NULL,
+      description TEXT,
+      reference_type ledger_reference_type NOT NULL,
+      reference_id UUID NOT NULL,
+      payment_amount DECIMAL(15,2),
+      payment_currency_id UUID REFERENCES currencies(id) ON DELETE RESTRICT,
+      exchange_rate_id UUID REFERENCES exchange_rates(id) ON DELETE SET NULL,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS payment_allocations (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      payment_id UUID NOT NULL REFERENCES payments(id) ON DELETE CASCADE,
+      charge_id UUID NOT NULL REFERENCES charges(id) ON DELETE CASCADE,
+      allocated_amount DECIMAL(15,2) NOT NULL,
+      allocated_at TIMESTAMP DEFAULT NOW(),
+      reversed BOOLEAN DEFAULT false,
+      reversed_at TIMESTAMP,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      UNIQUE(payment_id, charge_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS ownership_transfer_snapshots (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+      previous_owner_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+      new_owner_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+      transfer_date DATE NOT NULL,
+      balance_snapshot JSONB NOT NULL,
+      total_debt DECIMAL(15,2) DEFAULT 0,
+      debt_currency_id UUID REFERENCES currencies(id) ON DELETE RESTRICT,
+      notes TEXT,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT NOW()
     );
 
   `)
@@ -1672,20 +1561,25 @@ export async function cleanDatabase(
 ): Promise<void> {
   const start = performance.now()
   await testDb.execute(sql`
+    DELETE FROM condominium_board_members;
+    DELETE FROM assembly_minutes;
+    DELETE FROM ownership_transfer_snapshots;
+    DELETE FROM payment_allocations;
+    DELETE FROM unit_ledger_entries;
+    DELETE FROM charges;
+    DELETE FROM receipts;
+    DELETE FROM charge_types;
+    DELETE FROM charge_categories;
     DELETE FROM wizard_drafts;
     DELETE FROM event_logs;
     DELETE FROM bank_statement_matches;
     DELETE FROM bank_reconciliations;
     DELETE FROM bank_statement_entries;
     DELETE FROM bank_statement_imports;
-    DELETE FROM condominium_receipts;
     DELETE FROM budget_items;
     DELETE FROM budgets;
     DELETE FROM service_executions;
-    DELETE FROM payment_concept_services;
     DELETE FROM condominium_services;
-    DELETE FROM payment_concept_changes;
-    DELETE FROM payment_concept_bank_accounts;
     DELETE FROM bank_account_condominiums;
     DELETE FROM bank_accounts;
     DELETE FROM banks;
@@ -1715,20 +1609,10 @@ export async function cleanDatabase(
     DELETE FROM documents;
     DELETE FROM expenses;
     DELETE FROM expense_categories;
-    DELETE FROM payment_pending_allocations;
-    DELETE FROM payment_applications;
     DELETE FROM payments;
     DELETE FROM entity_payment_gateways;
     DELETE FROM payment_gateways;
-    DELETE FROM quota_generation_logs;
-    DELETE FROM quota_generation_schedules;
-    DELETE FROM quota_generation_rules;
-    DELETE FROM quota_formulas;
-    DELETE FROM quota_adjustments;
-    DELETE FROM quotas;
     DELETE FROM interest_configurations;
-    DELETE FROM payment_concept_assignments;
-    DELETE FROM payment_concepts;
     DELETE FROM unit_ownerships;
     DELETE FROM units;
     DELETE FROM user_roles;

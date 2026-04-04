@@ -1,16 +1,14 @@
 'use client'
 
-import type { TQuota, TPayment } from '@packages/domain'
+import type { TPayment } from '@packages/domain'
 
 import { useMemo } from 'react'
-import { useQuotasByUnit, usePaymentsByUser, useMyLatestExchangeRates } from '@packages/http-client'
+import { useBillingCharges, usePaymentsByUser, useMyLatestExchangeRates } from '@packages/http-client'
 
 import {
   AccountBalanceCard,
-  UpcomingQuotas,
   RecentPayments,
   QuickActions,
-  type IQuota,
   type IPayment,
 } from './resident'
 
@@ -33,7 +31,6 @@ interface IResidentDashboardClientProps {
 // Valid status sets for filtering
 // ─────────────────────────────────────────────────────────────────────────────
 
-const VALID_QUOTA_STATUSES = new Set<IQuota['status']>(['pending', 'partial', 'overdue', 'paid'])
 const VALID_PAYMENT_STATUSES = new Set<IPayment['status']>([
   'completed',
   'pending_verification',
@@ -50,46 +47,8 @@ function formatDateES(dateStr: string): string {
   return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-const ENGLISH_TO_SPANISH_MONTHS: Record<string, string> = {
-  January: 'Enero',
-  February: 'Febrero',
-  March: 'Marzo',
-  April: 'Abril',
-  May: 'Mayo',
-  June: 'Junio',
-  July: 'Julio',
-  August: 'Agosto',
-  September: 'Septiembre',
-  October: 'Octubre',
-  November: 'Noviembre',
-  December: 'Diciembre',
-}
-
-function translatePeriodDescription(description: string): string {
-  if (!description) return ''
-
-  return description.replace(
-    /\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/g,
-    match => ENGLISH_TO_SPANISH_MONTHS[match] ?? match
-  )
-}
-
-function mapQuota(quota: TQuota): IQuota | null {
-  if (!VALID_QUOTA_STATUSES.has(quota.status as IQuota['status'])) {
-    return null
-  }
-
-  return {
-    id: quota.id,
-    concept: quota.paymentConcept?.name || 'Cuota',
-    periodDescription: translatePeriodDescription(quota.periodDescription || ''),
-    amount: parseFloat(quota.baseAmount),
-    balance: parseFloat(quota.balance),
-    currency: quota.currency?.symbol || '$',
-    currencyCode: quota.currency?.code || 'USD',
-    dueDate: formatDateES(quota.dueDate),
-    status: quota.status as IQuota['status'],
-  }
+function formatPeriod(year: number, month: number): string {
+  return `${String(month).padStart(2, '0')}/${year}`
 }
 
 function mapPayment(payment: TPayment): IPayment | null {
@@ -121,31 +80,16 @@ export function ResidentDashboardClient({
 
   const primaryUnitId = unitIds[0] ?? ''
 
-  const { data: quotasResponse, isLoading: isLoadingQuotas } = useQuotasByUnit(primaryUnitId, {
-    enabled: !!primaryUnitId,
-  })
+  const { data: chargesResponse, isLoading: isLoadingCharges } = useBillingCharges(
+    { unitId: primaryUnitId },
+    { enabled: !!primaryUnitId }
+  )
 
   const { data: paymentsResponse, isLoading: isLoadingPayments } = usePaymentsByUser(userId)
 
   const { data: ratesResponse } = useMyLatestExchangeRates()
 
-  const isLoading = isLoadingQuotas || isLoadingPayments
-
-  // Map API data to component interfaces
-  const quotas = useMemo<IQuota[]>(() => {
-    const rawQuotas = quotasResponse?.data ?? []
-    const mapped: IQuota[] = []
-
-    for (const quota of rawQuotas) {
-      const result = mapQuota(quota)
-
-      if (result) {
-        mapped.push(result)
-      }
-    }
-
-    return mapped
-  }, [quotasResponse])
+  const isLoading = isLoadingCharges || isLoadingPayments
 
   const payments = useMemo<IPayment[]>(() => {
     const rawPayments = paymentsResponse?.data ?? []
@@ -162,27 +106,24 @@ export function ResidentDashboardClient({
     return mapped
   }, [paymentsResponse])
 
-  // Calculate totals grouped by currency
+  // Calculate totals from charges
   const currencyTotals = useMemo(() => {
     const totals = new Map<string, { symbol: string; pending: number; dueThisMonth: number }>()
+    const charges = chargesResponse?.data ?? []
 
-    for (const q of quotas) {
-      if (q.status === 'paid') continue
-      const key = q.currencyCode
+    for (const c of charges) {
+      if (c.status === 'paid' || c.status === 'cancelled') continue
+      const key = 'USD'
 
       if (!totals.has(key)) {
-        totals.set(key, { symbol: q.currency, pending: 0, dueThisMonth: 0 })
+        totals.set(key, { symbol: '$', pending: 0, dueThisMonth: 0 })
       }
       const entry = totals.get(key)!
-
-      entry.pending += q.balance
-      if (q.status === 'pending') {
-        entry.dueThisMonth += q.balance
-      }
+      entry.pending += parseFloat(c.balance)
     }
 
     return totals
-  }, [quotas])
+  }, [chargesResponse])
 
   // Build multi-currency summaries
   const currencySummaries = useMemo(() => {
@@ -257,25 +198,8 @@ export function ResidentDashboardClient({
         />
       </div>
 
-      {/* Quotas and Payments Row */}
+      {/* Payments */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <UpcomingQuotas
-          quotas={quotas}
-          translations={{
-            title: t('resident.dashboard.upcomingQuotas'),
-            noQuotas: t('resident.dashboard.noUpcomingQuotas'),
-            dueDate: t('resident.dashboard.dueDate'),
-            viewAll: t('resident.dashboard.viewAllQuotas'),
-            balance: t('resident.dashboard.balance'),
-            status: {
-              pending: t('resident.dashboard.status.pending'),
-              partial: t('resident.dashboard.status.partial'),
-              overdue: t('resident.dashboard.status.overdue'),
-              paid: t('resident.dashboard.status.paid'),
-              exonerated: t('resident.dashboard.status.exonerated'),
-            },
-          }}
-        />
         <RecentPayments
           payments={payments}
           translations={{

@@ -21,7 +21,7 @@ interface CondominiumsPageProps {
     search?: string
     isActive?: string
     locationId?: string
-    limitReached?: string
+    reason?: string
   }>
 }
 
@@ -73,7 +73,9 @@ export default async function CondominiumsPage({ searchParams }: CondominiumsPag
         getMyCompanyUsageStats(session.sessionToken, companyId).catch(() => null),
       ])
 
-      if (subscription && usageStats) {
+      if (!subscription) {
+        canCreateCondominium = false
+      } else if (usageStats) {
         canCreateCondominium =
           subscription.maxCondominiums === null ||
           usageStats.condominiumsCount < subscription.maxCondominiums
@@ -83,11 +85,9 @@ export default async function CondominiumsPage({ searchParams }: CondominiumsPag
         <CondominiumsPageClient
           canCreateCondominium={canCreateCondominium}
           condominiums={response.data}
-          currentCondominiums={usageStats?.condominiumsCount}
           initialQuery={query}
-          limitReached={params.limitReached === 'true'}
-          maxCondominiums={subscription?.maxCondominiums ?? undefined}
           pagination={response.pagination}
+          redirectReason={params.reason}
           role={session.activeRole}
         />
       )

@@ -30,6 +30,7 @@ export class CondominiumsRepository
       id: r.id,
       name: r.name,
       code: r.code,
+      rif: r.rif,
       managementCompanyIds,
       address: r.address,
       locationId: r.locationId,
@@ -50,6 +51,7 @@ export class CondominiumsRepository
 
     if (dto.name !== undefined) values.name = dto.name
     if (dto.code !== undefined) values.code = dto.code
+    if (dto.rif !== undefined) values.rif = dto.rif
     // managementCompanyIds is handled separately via junction table
     if (dto.address !== undefined) values.address = dto.address
     if (dto.locationId !== undefined) values.locationId = dto.locationId

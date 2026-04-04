@@ -15,8 +15,8 @@ import { condominiums } from './condominiums'
 import { buildings } from './buildings'
 import { units } from './units'
 import { payments } from './payments'
-import { quotas } from './quotas'
 import { expenses } from './expenses'
+import { charges } from './charges'
 import { documentTypeEnum } from '../enums'
 
 export const documents = pgTable(
@@ -37,10 +37,11 @@ export const documents = pgTable(
     paymentId: uuid('payment_id').references(() => payments.id, {
       onDelete: 'cascade',
     }),
-    quotaId: uuid('quota_id').references(() => quotas.id, {
+    quotaId: uuid('quota_id'), // FK to quotas removed (table deleted)
+    expenseId: uuid('expense_id').references(() => expenses.id, {
       onDelete: 'cascade',
     }),
-    expenseId: uuid('expense_id').references(() => expenses.id, {
+    chargeId: uuid('charge_id').references(() => charges.id, {
       onDelete: 'cascade',
     }),
     fileUrl: text('file_url').notNull(),
@@ -65,6 +66,7 @@ export const documents = pgTable(
     index('idx_documents_payment').on(table.paymentId),
     index('idx_documents_user').on(table.userId),
     index('idx_documents_date').on(table.documentDate),
+    index('idx_documents_charge').on(table.chargeId),
     index('idx_documents_created_by').on(table.createdBy),
   ]
 )

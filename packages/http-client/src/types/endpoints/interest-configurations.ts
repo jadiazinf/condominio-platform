@@ -17,8 +17,6 @@ import type { TApiDataResponse } from '../api-responses'
 // =============================================================================
 
 type TCondominiumIdParam = { condominiumId: string }
-type TPaymentConceptIdParam = { paymentConceptId: string }
-type TActiveForDateParam = { paymentConceptId: string; date: string }
 
 /** GET /interest-configurations - List all */
 export type TInterestConfigurationsListEndpoint = TEndpointDefinition<
@@ -36,22 +34,13 @@ export type TInterestConfigurationsGetByCondominiumEndpoint = TEndpointDefinitio
   TCondominiumIdParam
 >
 
-/** GET /interest-configurations/payment-concept/:paymentConceptId - Get by payment concept */
-export type TInterestConfigurationsGetByPaymentConceptEndpoint = TEndpointDefinition<
-  'GET',
-  '/interest-configurations/payment-concept/:paymentConceptId',
-  TApiDataResponse<TInterestConfiguration[]>,
-  void,
-  TPaymentConceptIdParam
->
-
-/** GET /interest-configurations/payment-concept/:paymentConceptId/active/:date - Get active for date */
+/** GET /interest-configurations/condominium/:condominiumId/active/:date - Get active for date */
 export type TInterestConfigurationsGetActiveForDateEndpoint = TEndpointDefinition<
   'GET',
-  '/interest-configurations/payment-concept/:paymentConceptId/active/:date',
+  '/interest-configurations/condominium/:condominiumId/active/:date',
   TApiDataResponse<TInterestConfiguration>,
   void,
-  TActiveForDateParam
+  TCondominiumIdParam & { date: string }
 >
 
 /** GET /interest-configurations/:id - Get by ID */
@@ -92,7 +81,6 @@ export type TInterestConfigurationsDeleteEndpoint = TEndpointDefinition<
 export type TInterestConfigurationsEndpoints = {
   list: TInterestConfigurationsListEndpoint
   getByCondominium: TInterestConfigurationsGetByCondominiumEndpoint
-  getByPaymentConcept: TInterestConfigurationsGetByPaymentConceptEndpoint
   getActiveForDate: TInterestConfigurationsGetActiveForDateEndpoint
   getById: TInterestConfigurationsGetByIdEndpoint
   create: TInterestConfigurationsCreateEndpoint

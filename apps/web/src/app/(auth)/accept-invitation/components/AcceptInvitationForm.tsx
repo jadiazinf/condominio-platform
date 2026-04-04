@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Lock, Building2, Mail, User } from 'lucide-react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -50,6 +51,7 @@ type TAcceptInvitationFormSchema = z.infer<typeof acceptInvitationFormSchema>
 export function AcceptInvitationForm({ token, invitationData }: AcceptInvitationFormProps) {
   const { t } = useTranslation()
   const toast = useToast()
+  const router = useRouter()
   const { setUser } = useUser()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -95,7 +97,7 @@ export function AcceptInvitationForm({ token, invitationData }: AcceptInvitation
           toast.error(t('auth.acceptInvitation.errors.emailAlreadyHasAccount'))
           const returnUrl = encodeURIComponent(`/accept-invitation?token=${token}`)
 
-          window.location.href = `/auth?redirect=${returnUrl}`
+          router.push(`/auth?redirect=${returnUrl}`)
 
           return
         }
@@ -117,7 +119,8 @@ export function AcceptInvitationForm({ token, invitationData }: AcceptInvitation
 
       // Step 4: Set active role to management_company and redirect
       setActiveRoleCookie('management_company')
-      window.location.href = '/dashboard'
+      router.push('/dashboard')
+      router.refresh()
     } catch (err) {
       if (HttpError.isHttpError(err)) {
         const errorKey = getApiErrorKey(err)

@@ -46,6 +46,12 @@ const PaymentIdParamSchema = z.object({
 
 type TPaymentIdParam = z.infer<typeof PaymentIdParamSchema>
 
+const ChargeIdParamSchema = z.object({
+  chargeId: z.string().uuid('Invalid charge ID format'),
+})
+
+type TChargeIdParam = z.infer<typeof ChargeIdParamSchema>
+
 /**
  * Controller for managing document resources.
  *
@@ -164,6 +170,21 @@ export class DocumentsController extends BaseController<
             ESystemRole.USER
           ),
           paramsValidator(PaymentIdParamSchema),
+        ],
+      },
+      {
+        method: 'get',
+        path: '/charge/:chargeId',
+        handler: this.getByChargeId,
+        middlewares: [
+          authMiddleware,
+          requireRole(
+            ESystemRole.ADMIN,
+            ESystemRole.ACCOUNTANT,
+            ESystemRole.SUPPORT,
+            ESystemRole.USER
+          ),
+          paramsValidator(ChargeIdParamSchema),
         ],
       },
       {
@@ -293,6 +314,12 @@ export class DocumentsController extends BaseController<
     const ctx = this.ctx<unknown, unknown, TPaymentIdParam>(c)
     const condominiumId = c.get(CONDOMINIUM_ID_PROP)
     const data = await this.documentsRepository.getByPaymentId(ctx.params.paymentId, condominiumId)
+    return ctx.ok({ data })
+  }
+
+  private getByChargeId = async (c: Context): Promise<Response> => {
+    const ctx = this.ctx<unknown, unknown, TChargeIdParam>(c)
+    const data = await this.documentsRepository.getByChargeId(ctx.params.chargeId)
     return ctx.ok({ data })
   }
 }

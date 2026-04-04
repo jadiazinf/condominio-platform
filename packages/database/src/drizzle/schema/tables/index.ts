@@ -22,13 +22,7 @@ export * from './units'
 export * from './unit-ownerships'
 
 // Payments
-export * from './payment-concepts'
-export * from './payment-concept-assignments'
-export * from './payment-concept-bank-accounts'
-export * from './payment-concept-changes'
 export * from './interest-configurations'
-export * from './quotas'
-export * from './quota-generation'
 export * from './payment-gateways'
 export * from './gateway-transactions'
 export * from './payments'
@@ -78,13 +72,9 @@ export * from './bank-account-condominiums'
 // Condominium Services
 export * from './condominium-services'
 export * from './service-executions'
-export * from './payment-concept-services'
 
 // Budgets
 export * from './budgets'
-
-// Condominium Receipts
-export * from './condominium-receipts'
 
 // Bank Reconciliation
 export * from './bank-statement-imports'
@@ -98,12 +88,15 @@ export * from './event-logs'
 // Wizard Drafts
 export * from './wizard-drafts'
 
-// Billing Restructure (Fase 4.7)
-export * from './billing-channels'
+// Billing (Fase 5 — Direct Monthly Billing)
+export * from './charge-categories'
 export * from './charge-types'
-export * from './billing-channel-bank-accounts'
 export * from './charges'
 export * from './receipts'
 export * from './unit-ledger-entries'
 export * from './payment-allocations'
 export * from './ownership-transfer-snapshots'
+
+// Assembly Minutes & Board (Fase 5.2/5.3)
+export * from './assembly-minutes'
+export * from './condominium-board-members'

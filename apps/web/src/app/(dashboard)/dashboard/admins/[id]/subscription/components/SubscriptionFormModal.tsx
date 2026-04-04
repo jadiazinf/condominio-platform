@@ -89,22 +89,13 @@ export function SubscriptionFormModal({
             <ModalHeader>{t('superadmin.companies.subscription.form.createTitle')}</ModalHeader>
 
             <ModalBody className="space-y-6">
-              {/* Progress and Step Indicator */}
-              <div className="space-y-4">
-                <Progress
-                  aria-label="Form progress"
-                  classNames={{
-                    indicator: 'bg-success',
-                  }}
-                  value={progressValue}
-                />
-                <Stepper
-                  color="success"
-                  currentStep={currentStep}
-                  steps={steps}
-                  onStepChange={goToStep}
-                />
-              </div>
+              {/* Step Indicator */}
+              <Stepper
+                color="success"
+                currentStep={currentStep}
+                steps={steps}
+                onStepChange={goToStep}
+              />
 
               {/* Step Content */}
               <div className="min-h-[500px]">{renderStepContent()}</div>

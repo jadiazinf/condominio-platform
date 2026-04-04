@@ -307,80 +307,6 @@ export {
   type IMemberAuditLogsQuery,
 } from './use-management-company-members'
 export {
-  useMyCompanyPaymentConceptsPaginated,
-  getMyCompanyPaymentConceptsPaginated,
-  usePaymentConceptDetail,
-  useCreatePaymentConcept,
-  useUpdatePaymentConcept,
-  useDeactivatePaymentConcept,
-  getPaymentConceptDetail,
-  paymentConceptKeys,
-  type IUseMyCompanyPaymentConceptsPaginatedOptions,
-  type IUsePaymentConceptDetailOptions,
-  type ICreatePaymentConceptOptions,
-  type IUpdatePaymentConceptOptions,
-  type IUpdatePaymentConceptVariables,
-  type IDeactivatePaymentConceptOptions,
-  type IDeactivatePaymentConceptVariables,
-  type IDeactivatePaymentConceptResult,
-  usePaymentConceptAffectedUnits,
-  useCreatePaymentConceptFull,
-  useUpdatePaymentConceptFull,
-  usePaymentConceptChangeHistory,
-  type IUpdatePaymentConceptFullVariables,
-  type IUpdatePaymentConceptFullOptions,
-  type TPaymentConceptChangeRecord,
-  type IUsePaymentConceptChangeHistoryOptions,
-  type TAffectedUnit,
-  type TAffectedUnitPeriod,
-  type TAffectedUnitsResponse,
-  type IUseAffectedUnitsOptions,
-  type ICreatePaymentConceptFullOptions,
-  type IServiceWithExecutionInput,
-  type TCreatePaymentConceptFullInput,
-  type IAssignmentInput,
-} from './use-payment-concepts'
-export {
-  usePaymentConceptDelinquency,
-  type TConceptDelinquencyQuota,
-  type TConceptDelinquencyUnit,
-  type TConceptDelinquencyResponse,
-  type IUsePaymentConceptDelinquencyOptions,
-} from './use-payment-concept-delinquency'
-export {
-  usePaymentConceptAssignments,
-  useCreateAssignment,
-  useUpdateAssignment,
-  useDeactivateAssignment,
-  paymentConceptAssignmentKeys,
-  type IUsePaymentConceptAssignmentsOptions,
-  type ICreateAssignmentVariables,
-  type ICreateAssignmentOptions,
-  type IUpdateAssignmentVariables,
-  type IUpdateAssignmentOptions,
-  type IDeactivateAssignmentVariables,
-  type IDeactivateAssignmentOptions,
-} from './use-payment-concept-assignments'
-export {
-  usePaymentConceptBankAccounts,
-  useLinkBankAccount,
-  useUnlinkBankAccount,
-  paymentConceptBankAccountKeys,
-  type IUsePaymentConceptBankAccountsOptions,
-  type ILinkBankAccountVariables,
-  type ILinkBankAccountOptions,
-  type IUnlinkBankAccountVariables,
-  type IUnlinkBankAccountOptions,
-} from './use-payment-concept-bank-accounts'
-export {
-  useGenerateCharges,
-  useGenerateChargesBulk,
-  type IGenerateChargesVariables,
-  type IGenerateChargesResult,
-  type IGenerateChargesOptions,
-  type IGenerateChargesBulkResult,
-} from './use-generate-charges'
-export {
   useSupportTickets,
   useSupportTicket,
   useAllSupportTickets,
@@ -603,52 +529,6 @@ export {
   type IDeleteExchangeRateOptions,
 } from './use-exchange-rates'
 export {
-  useQuotas,
-  useQuotasByUnit,
-  useQuotasByUnitPaginated,
-  useQuotasPendingByUnit,
-  useQuotasByStatus,
-  useQuotasOverdue,
-  useQuotasByPeriod,
-  useQuotaDetail,
-  useCreateQuota,
-  useUpdateQuota,
-  useDeleteQuota,
-  useCancelQuota,
-  useDistinctConceptsByUnit,
-  useConceptPreview,
-  useGenerateMissingQuota,
-  useGenerateAllMissingQuotas,
-  getQuotas,
-  getQuotasByUnit,
-  getQuotasPendingByUnit,
-  getQuotasByStatus,
-  getQuotasOverdue,
-  getQuotasByPeriod,
-  getQuotaDetail,
-  createQuota,
-  updateQuota,
-  deleteQuota,
-  quotaKeys,
-  type IQuotasQuery,
-  type IQuotasByUnitQuery,
-  type IUseQuotasOptions,
-  type IUseQuotaDetailOptions,
-  type ICreateQuotaOptions,
-  type IUpdateQuotaOptions,
-  type IDeleteQuotaOptions,
-  type IConceptPreviewData,
-  type IConceptPreviewCurrency,
-  type IGenerateMissingQuotaInput,
-  type IGenerateMissingQuotaOptions,
-  type IGenerateAllMissingQuotasInput,
-  type IGenerateAllMissingQuotasResult,
-  type IGenerateAllMissingQuotasOptions,
-  getQuotasByUnitServer,
-  getQuotasByUnitPaginatedServer,
-  getDistinctConceptsByUnitServer,
-} from './use-quotas'
-export {
   usePayments,
   usePaymentsPaginated,
   usePaymentsPendingVerification,
@@ -703,41 +583,6 @@ export {
   type IRejectPaymentData,
   getPaymentsByUnitServer,
 } from './use-payments'
-export {
-  usePaymentApplications,
-  usePaymentApplicationsByPayment,
-  usePaymentApplicationsByQuota,
-  usePaymentApplicationDetail,
-  useApplyPaymentToQuota,
-  getPaymentApplications,
-  getPaymentApplicationsByPayment,
-  getPaymentApplicationsByQuota,
-  applyPaymentToQuota,
-  paymentApplicationKeys,
-  type IApplyPaymentToQuotaData,
-  type IApplyPaymentToQuotaResponse,
-  type IApplyPaymentOptions,
-} from './use-payment-applications'
-export {
-  usePendingAllocations,
-  usePendingAllocationsByPayment,
-  usePendingAllocationDetail,
-  useAllocatePending,
-  useRefundPending,
-  useRefundPendingViaBank,
-  getPendingAllocations,
-  getPendingAllocationsByPayment,
-  allocatePending,
-  refundPending,
-  refundPendingViaBank,
-  pendingAllocationKeys,
-  type IAllocatePendingData,
-  type IRefundPendingData,
-  type IRefundViaBankResponse,
-  type IAllocatePendingOptions,
-  type IRefundPendingOptions,
-  type IRefundViaBankOptions,
-} from './use-payment-pending-allocations'
 export {
   useExpenses,
   useExpensesPendingApproval,
@@ -962,16 +807,6 @@ export {
   type IDeactivateCondominiumServiceVariables,
 } from './use-condominium-services'
 
-// Payment Concept Services (linking)
-export {
-  usePaymentConceptServices,
-  useLinkServiceToConcept,
-  useUnlinkServiceFromConcept,
-  paymentConceptServiceKeys,
-  type IUsePaymentConceptServicesOptions,
-  type ILinkServiceToConceptVariables,
-  type IUnlinkServiceFromConceptVariables,
-} from './use-payment-concept-services'
 
 // Service Executions
 export {
@@ -1019,23 +854,6 @@ export {
   type IDeleteWizardDraftOptions,
 } from './use-wizard-drafts'
 
-// Payment Flow (resident wizard)
-export {
-  usePayableQuotas,
-  useValidateQuotaSelection,
-  useInitiatePayment,
-  useGatewayHealth,
-  paymentFlowKeys,
-  type IPayableQuotaGroup,
-  type IPayableBankAccount,
-  type IPayableQuotasResponse,
-  type IValidateSelectionInput,
-  type IValidateSelectionResponse,
-  type IInitiatePaymentInput,
-  type IInitiatePaymentResponse,
-  type IGatewayHealthResponse,
-} from './use-payment-flow'
-
 // Account Statements
 export {
   useAccountStatement,
@@ -1080,28 +898,6 @@ export {
   type IDeleteBudgetOptions,
 } from './use-budgets'
 
-// Receipts
-export {
-  useReceipts,
-  useReceiptDetail,
-  useGenerateReceipt,
-  useBulkGenerateReceipts,
-  useVoidReceipt,
-  useUpdateReceipt,
-  useSendReceipt,
-  useDownloadReceiptPdf,
-  setReceiptDownloadAuth,
-  receiptKeys,
-  type ISendReceiptResult,
-  type IReceiptWithItems,
-  type IGenerateReceiptInput,
-  type IBulkGenerateInput,
-  type IBulkGenerateResult,
-  type IGenerateReceiptOptions,
-  type IBulkGenerateOptions,
-  type IVoidReceiptOptions,
-} from './use-receipts'
-
 export {
   bankReconciliationKeys,
   useBankStatementImports,
@@ -1135,29 +931,46 @@ export {
   type IEventLogsQuery,
 } from './use-event-logs'
 
-// Billing Restructure (Fase 4.7)
+// Assembly Minutes (Fase 5.2)
 export {
-  billingChannelKeys,
-  useBillingChannels,
-  useBillingChannelDetail,
-  useBillingChannelChargeTypes,
-  useCreateBillingChannel,
-  usePreviewGeneration,
-  useGenerateChannelPeriod,
-  type ICreateBillingChannelInput,
-  type IChargeAmountInput,
-  type IGenerateInput,
-  type IPreviewResult,
-  type IUnitPreview,
-  type IGenerateResult,
-} from './use-billing-channels'
+  assemblyMinuteKeys,
+  useAssemblyMinutes,
+  useAssemblyMinuteDetail,
+  useCreateAssemblyMinute,
+  useUpdateAssemblyMinute,
+  useDeleteAssemblyMinute,
+} from './use-assembly-minutes'
 
+// Charge Categories
+export {
+  chargeCategoryKeys,
+  useChargeCategories,
+  useAllChargeCategories,
+} from './use-charge-categories'
+
+// Charge Types (CRUD)
+export {
+  chargeTypeKeys,
+  useChargeTypes,
+  useChargeTypeDetail,
+  useCreateChargeType,
+  useUpdateChargeType,
+  useDeleteChargeType,
+  type IChargeTypeCreateInput,
+  type IChargeTypeUpdateInput,
+} from './use-charge-types'
+
+// Billing (Fase 5 — Direct Monthly Billing)
 export {
   billingChargeKeys,
+  chargeDocumentKeys,
   useBillingCharges,
   useBillingChargeDetail,
+  useCancelCharge,
   useIssueCreditNote,
   useIssueDebitNote,
+  useChargeDocuments,
+  useCreateChargeDocument,
 } from './use-billing-charges'
 
 export {
@@ -1168,6 +981,11 @@ export {
 } from './use-billing-receipts'
 
 export {
+  useDownloadBillingReceiptPdf,
+  setBillingReceiptDownloadAuth,
+} from './use-billing-receipt-download'
+
+export {
   billingLedgerKeys,
   useAccountStatement as useBillingAccountStatement,
   useUnitBalance,
@@ -1176,7 +994,36 @@ export {
   type IStatementEntry,
   type IAging,
   type IUnitBalance,
+  useReportBillingPayment,
+  type IReportBillingPaymentInput,
 } from './use-billing-ledger'
+
+// Monthly Billing
+export {
+  monthlyBillingKeys,
+  useBillingConcepts,
+  useBillingHistory,
+  usePreviewBilling,
+  useGenerateBilling,
+  type IChargeTypeOption,
+  type IUnitChargePreview,
+  type IUnitPreview,
+  type IPreviewResult,
+  type IPreviewInput,
+  type IGenerateInput,
+  type IGenerateResult,
+  type IBillingHistoryItem,
+} from './use-monthly-billing'
+
+// Condominium Board Members
+export {
+  condominiumBoardKeys,
+  useCondominiumBoard,
+  useCondominiumBoardDetail,
+  useAddBoardMember,
+  useUpdateBoardMember,
+  useRemoveBoardMember,
+} from './use-condominium-board'
 
 // Re-export commonly used TanStack Query hooks
 export {

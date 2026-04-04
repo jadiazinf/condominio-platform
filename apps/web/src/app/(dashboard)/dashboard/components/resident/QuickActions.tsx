@@ -28,7 +28,7 @@ export function QuickActions({ translations: t }: QuickActionsProps) {
       label: t.viewStatement,
       icon: FileText,
       color: 'default' as const,
-      href: '/dashboard/my-quotas',
+      href: '/dashboard/my-billing-charges',
     },
     {
       key: 'history',

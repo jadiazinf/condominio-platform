@@ -1,6 +1,6 @@
 'use client'
 
-import type { TUnitOwnership, TQuota, TPayment } from '@packages/domain'
+import type { TUnitOwnership, TPayment } from '@packages/domain'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -21,11 +21,9 @@ import { useResendOwnerInvitation } from '@packages/http-client/hooks'
 import { formatFullDate } from '@packages/utils/dates'
 import { formatAmount } from '@packages/utils/currency'
 
-import { AllQuotasModal, type AllQuotasModalTranslations } from './AllQuotasModal'
 import { AllPaymentsModal } from './AllPaymentsModal'
 import { AddOwnershipModal, type AddOwnershipModalTranslations } from './AddOwnershipModal'
 
-import { ConvertedAmount } from '@/ui/components/currency/ConvertedAmount'
 import {
   useDisclosure,
   Modal,
@@ -50,36 +48,6 @@ interface ModalTranslations {
     allStatuses: string
     clear: string
   }
-}
-
-interface ViewAllQuotasButtonProps {
-  unitId: string
-  label: string
-  translations: AllQuotasModalTranslations
-}
-
-export function ViewAllQuotasButton({ unitId, label, translations }: ViewAllQuotasButtonProps) {
-  const { isOpen, onOpen, onClose } = useDisclosure()
-
-  return (
-    <>
-      <Button
-        color="primary"
-        endContent={<ChevronRight size={14} />}
-        size="sm"
-        variant="light"
-        onPress={onOpen}
-      >
-        {label}
-      </Button>
-      <AllQuotasModal
-        isOpen={isOpen}
-        translations={translations}
-        unitId={unitId}
-        onClose={onClose}
-      />
-    </>
-  )
 }
 
 interface ViewAllPaymentsButtonProps {
@@ -484,22 +452,6 @@ export function OwnersTable({ ownerships, translations: t }: OwnersTableProps) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Recent Quotas Table (client component — renderCell cannot live in server)
-// ─────────────────────────────────────────────────────────────────────────────
-
-const quotaStatusColors: Record<
-  string,
-  'success' | 'warning' | 'danger' | 'default' | 'secondary' | 'primary'
-> = {
-  paid: 'success',
-  pending: 'warning',
-  partial: 'primary',
-  overdue: 'danger',
-  cancelled: 'default',
-  exonerated: 'secondary',
-}
-
 const paymentStatusColors: Record<
   string,
   'success' | 'warning' | 'danger' | 'default' | 'primary'
@@ -510,98 +462,6 @@ const paymentStatusColors: Record<
   failed: 'danger',
   refunded: 'default',
   rejected: 'danger',
-}
-
-type TQuotaRow = TQuota & { id: string }
-
-export interface RecentQuotasTableProps {
-  quotas: TQuota[]
-  translations: {
-    ariaLabel: string
-    columns: {
-      concept: string
-      period: string
-      amount: string
-      paid: string
-      balance: string
-      status: string
-    }
-    statuses: Record<string, string>
-  }
-}
-
-export function RecentQuotasTable({ quotas, translations: t }: RecentQuotasTableProps) {
-  const columns: ITableColumn<TQuotaRow>[] = [
-    { key: 'concept', label: t.columns.concept },
-    { key: 'period', label: t.columns.period },
-    { key: 'amount', label: t.columns.amount, align: 'end' },
-    { key: 'paid', label: t.columns.paid, align: 'end' },
-    { key: 'balance', label: t.columns.balance, align: 'end' },
-    { key: 'status', label: t.columns.status },
-  ]
-
-  const renderCell = (quota: TQuota, columnKey: string) => {
-    const sym = quota.currency?.symbol || quota.currency?.code || '$'
-
-    switch (columnKey) {
-      case 'concept':
-        return quota.paymentConcept?.name || quota.periodDescription || '-'
-      case 'period': {
-        if (quota.periodMonth) {
-          const monthName = new Date(quota.periodYear, quota.periodMonth - 1).toLocaleDateString(
-            'es-VE',
-            { month: 'short' }
-          )
-
-          return `${monthName} ${quota.periodYear}`
-        }
-
-        return quota.periodDescription || `${quota.periodYear}`
-      }
-      case 'amount':
-        return (
-          <ConvertedAmount
-            amount={quota.baseAmount}
-            amountInBaseCurrency={quota.amountInBaseCurrency}
-            currencyCode={quota.currency?.code}
-            currencySymbol={quota.currency?.symbol}
-            exchangeRateUsed={quota.exchangeRateUsed}
-            isBaseCurrency={quota.currency?.isBaseCurrency}
-          />
-        )
-      case 'paid':
-        return `${sym} ${formatAmount(quota.paidAmount)}`
-      case 'balance':
-        return (
-          <span className={parseFloat(quota.balance) > 0 ? 'text-danger font-medium' : ''}>
-            {sym} {formatAmount(quota.balance)}
-          </span>
-        )
-      case 'status':
-        return (
-          <Chip color={quotaStatusColors[quota.status] || 'default'} size="sm" variant="flat">
-            {t.statuses[quota.status] || quota.status}
-          </Chip>
-        )
-      default:
-        return null
-    }
-  }
-
-  return (
-    <Table<TQuotaRow>
-      aria-label={t.ariaLabel}
-      classNames={{
-        wrapper: 'shadow-none border-none p-0',
-        tr: 'hover:bg-default-50',
-        th: 'text-xs',
-        td: 'text-sm py-1.5',
-      }}
-      columns={columns}
-      renderCell={renderCell}
-      rows={quotas}
-    />
-  )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

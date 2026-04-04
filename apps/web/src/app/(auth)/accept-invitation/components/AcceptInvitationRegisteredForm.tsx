@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Building2, Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -47,6 +48,7 @@ export function AcceptInvitationRegisteredForm({
 }: AcceptInvitationRegisteredFormProps) {
   const { t } = useTranslation()
   const toast = useToast()
+  const router = useRouter()
   const { user: firebaseUser } = useAuth()
   const { setUser } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -90,7 +92,8 @@ export function AcceptInvitationRegisteredForm({
     setActiveRoleCookie('management_company')
 
     toast.success(t('auth.acceptInvitation.success'))
-    window.location.href = '/dashboard'
+    router.push('/dashboard')
+    router.refresh()
   }
 
   // Handler for authenticated users

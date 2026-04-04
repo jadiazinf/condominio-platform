@@ -33,5 +33,4 @@ export type {
   IMarkPaymentAsFailedOutput,
 } from './mark-payment-as-failed.service'
 
-export { RefundPaymentService } from './refund-payment.service'
-export type { IRefundPaymentInput, IRefundPaymentOutput } from './refund-payment.service'
+// RefundPaymentService removed — depends on deleted quota/payment-application modules

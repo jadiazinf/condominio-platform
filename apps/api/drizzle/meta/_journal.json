@@ -5,71 +5,22 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1767375390336,
-      "tag": "0000_concerned_naoko",
+      "when": 1775264338169,
+      "tag": "0000_fluffy_true_believers",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1771892770268,
-      "tag": "0001_material_eternals",
+      "when": 1775274296708,
+      "tag": "0001_sleepy_tiger_shark",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "7",
-      "when": 1771960565800,
-      "tag": "0002_dry_skullbuster",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1772842483813,
-      "tag": "0003_motionless_doctor_strange",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1773363200935,
-      "tag": "0004_hot_tarantula",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1773514446248,
-      "tag": "0005_aromatic_goblin_queen",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1773970165876,
-      "tag": "0006_add_execution_day_template",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1774243033346,
-      "tag": "0007_luxuriant_meltdown",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1774249839124,
-      "tag": "0008_shocking_captain_britain",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1774314307929,
-      "tag": "0009_pending_schema_sync",
+      "when": 1775321775182,
+      "tag": "0002_empty_prism",
       "breakpoints": true
     }
   ]

@@ -35,18 +35,21 @@ async function CreateCondominiumContent() {
         getMyCompanySubscription(session.sessionToken, adminCompanyId),
         getMyCompanyUsageStats(session.sessionToken, adminCompanyId),
       ])
-
-      // Redirect if limit already reached
-      if (
-        subscription &&
-        usageStats &&
-        subscription.maxCondominiums !== null &&
-        usageStats.condominiumsCount >= subscription.maxCondominiums
-      ) {
-        redirect('/dashboard/condominiums?limitReached=true')
-      }
     } catch {
       // If we can't verify, allow access — the API will validate on submit
+    }
+
+    // Redirects must be outside try/catch to avoid double-render issues
+    if (!subscription) {
+      redirect('/dashboard/condominiums?reason=no-subscription')
+    }
+
+    if (
+      usageStats &&
+      subscription.maxCondominiums !== null &&
+      usageStats.condominiumsCount >= subscription.maxCondominiums
+    ) {
+      redirect('/dashboard/condominiums?reason=limit-reached')
     }
   }
 

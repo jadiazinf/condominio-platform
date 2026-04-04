@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 
-import { PaymentWizardClient } from './components/PaymentWizardClient'
+import { BillingPaymentWizardClient } from './components/BillingPaymentWizardClient'
 
 import { Typography } from '@/ui/components/typography'
 import { getTranslations } from '@/libs/i18n/server'
@@ -22,7 +22,6 @@ async function PaymentWizardContent() {
     redirect('/dashboard')
   }
 
-  // Extract unit options from session condominiums
   const unitOptions: IUnitOption[] = session.condominiums.flatMap(condo =>
     condo.units
       .filter(u => u.ownership.isActive)
@@ -48,7 +47,7 @@ async function PaymentWizardContent() {
         </Typography>
       </div>
 
-      <PaymentWizardClient unitOptions={unitOptions} userId={session.user.id} />
+      <BillingPaymentWizardClient unitOptions={unitOptions} userId={session.user.id} />
     </div>
   )
 }

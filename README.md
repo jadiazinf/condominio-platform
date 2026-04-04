@@ -1,138 +1,122 @@
 # CondominioApp Platform
 
-Sistema completo para gestión de condominios con aplicación web, móvil y API backend.
+Sistema completo para gestión de condominios con aplicación web, API backend y workers de procesamiento.
 
-## 🏗️ Estructura del Monorepo
+## Estructura del Monorepo
 
 ```
-Platform/
+platform/
 ├── apps/
-│   ├── web/          # Next.js 15 - Landing page y aplicación web
-│   ├── mobile/       # Expo/React Native - Aplicación móvil
-│   └── api/          # NestJS - API REST backend
+│   ├── api/               # Hono + Bun — API REST (81 tablas, 71 controladores)
+│   ├── web/               # Next.js 15 + HeroUI — Aplicación web
+│   └── charges-worker/    # pg-boss — Workers de facturación y notificaciones
 ├── packages/
-│   ├── domain/       # Lógica de negocio compartida
-│   └── utils/        # Utilidades compartidas
-├── scripts/
-│   └── validate-versions.js  # Validación de dependencias
-├── VERSIONING.md     # Guía de gestión de versiones
-└── DEPLOYMENT.md     # Guía de deployment
+│   ├── database/          # Drizzle ORM — Schema, migraciones, repositorios
+│   ├── domain/            # Modelos Zod compartidos
+│   ├── services/          # TServiceResult pattern, helpers
+│   ├── http-client/       # Cliente HTTP tipado
+│   ├── logger/            # Logger (Pino)
+│   ├── utils/             # Utilidades compartidas
+│   ├── test-utils/        # Utilidades de testing
+│   ├── eslint-config/     # Configuración ESLint compartida
+│   └── typescript-config/ # Configuración TypeScript compartida
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
-### Requisitos Previos
+### Requisitos
 
-- **Node.js**: >= 18
-- **Bun**: 1.2.22 (recomendado) o npm/yarn
-- **Git**
+- **Bun** >= 1.2.22
+- **PostgreSQL** >= 15
+- **Node.js** >= 18
 
 ### Instalación
 
 ```bash
-# Clonar el repositorio
 git clone <repository-url>
-cd Platform
-
-# Instalar dependencias
+cd platform
 bun install
-
-# Validar versiones
-bun run validate:versions
 ```
 
 ### Desarrollo
 
 ```bash
-# Iniciar todos los servicios en desarrollo
+# Todos los servicios
 bun run dev
 
-# O iniciar servicios específicos
-bun run dev --filter=@apps/web      # Solo web
-bun run dev --filter=@apps/mobile   # Solo mobile
-bun run dev --filter=@apps/api      # Solo API
+# Servicios individuales
+bun run dev --filter=@apps/web
+bun run dev --filter=@apps/api
 ```
 
-## 🔧 Scripts Disponibles
+### Base de datos
+
+Los comandos de base de datos se ejecutan desde `apps/api/`:
 
 ```bash
-# Desarrollo
-bun run dev                    # Inicia todos los servicios
-bun run dev --filter=<app>     # Inicia un servicio específico
+cd apps/api
 
-# Build
-bun run build                  # Build todos los proyectos
-bun run build --filter=<app>   # Build específico
+# Flujo de migraciones
+bun drizzle:generate        # Genera migración desde cambios en el schema
+bun drizzle:migrate         # Aplica migraciones pendientes
+bun drizzle:push            # Sincroniza schema directo (solo desarrollo local)
 
-# Validación
-bun run validate:versions      # Valida consistencia de versiones ⚠️
-bun run lint                   # Ejecuta linters
-bun run check-types            # Verifica tipos TypeScript
+# Datos
+bun db:seed                 # Poblar con datos iniciales
+bun db:clean                # Limpiar datos (TRUNCATE)
 
-# Formato
-bun run format                 # Formatea código con Prettier
+# Operaciones destructivas
+bun db:nuke                 # Eliminar toda la estructura (DROP)
+bun db:reset-migrations     # Eliminar archivos de migración
+bun db:rebuild              # Pipeline completo: nuke + reset + generate + migrate + seed
 ```
 
-## ⚠️ IMPORTANTE: Gestión de Versiones
-
-**Este monorepo requiere versiones consistentes de React y TypeScript.**
-
-### Versiones Fijas
-
-```json
-{
-  "react": "18.3.1",
-  "react-dom": "18.3.1",
-  "@types/react": "18.3.3",
-  "@types/react-dom": "18.3.0",
-  "typescript": "5.9.2"
-}
-```
-
-### Validación Automática
+## Scripts Globales
 
 ```bash
-# Siempre ejecuta esto antes de commit
-bun run validate:versions
+bun run dev                 # Inicia todos los servicios
+bun run build               # Build de todos los proyectos
+bun run lint                # Ejecuta linters
+bun run format              # Formatea código con Prettier
+bun run validate:versions   # Valida consistencia de versiones
 ```
 
-📖 **Lee `VERSIONING.md` para más información**
+## Stack Tecnologico
 
-## 🚀 Deployment
+| Componente | Tecnologia |
+|------------|------------|
+| Runtime | Bun |
+| API | Hono |
+| Web | Next.js 15 + HeroUI v2 + Tailwind CSS |
+| Base de datos | PostgreSQL + Drizzle ORM |
+| Autenticacion | Firebase Admin SDK |
+| Workers | pg-boss |
+| Validacion | Zod |
+| Testing | bun:test + Testcontainers |
+| Logging | Pino |
 
-📖 **Consulta `DEPLOYMENT.md` para guías completas**
+## Deployment
 
-- **Web** → Vercel
-- **API** → Railway
-- **Mobile** → EAS Build
+| Servicio | Plataforma |
+|----------|------------|
+| API | Railway |
+| Web | Vercel |
+| Workers | Railway |
 
-## 🐛 Troubleshooting
+Las migraciones se aplican automaticamente en cada deploy via `start.ts`.
 
-### Build falla con error de React
+## Flujo de Migraciones
 
-```bash
-# 1. Validar versiones
-bun run validate:versions
-
-# 2. Si hay inconsistencias, limpiar e reinstalar
-rm -rf node_modules apps/*/node_modules packages/*/node_modules bun.lock
-bun install
+```
+Desarrollo                          Deploy (Railway)
+    |                                     |
+Cambiar schema                      start.ts ejecuta
+    |                              drizzle-kit migrate
+drizzle:generate                   (aplica .sql pendientes)
+    |                                     |
+Commitear .sql                     Servidor inicia
+    |
+Push a main
 ```
 
-### Ver documentación completa
-
-- [VERSIONING.md](./VERSIONING.md) - Gestión de versiones
-- [DEPLOYMENT.md](./DEPLOYMENT.md) - Guías de deployment
-
-## 🤝 Contribuir
-
-### Checklist antes de PR
-
-- [ ] `bun run validate:versions` ✅
-- [ ] `bun run build` funciona
-- [ ] `bun run lint` sin errores
-- [ ] Commits siguen Conventional Commits
-
-## 📄 Licencia
-
-[Especificar licencia]
+**Importante**: Nunca usar `drizzle:push` en staging/produccion. Solo `drizzle:migrate`.

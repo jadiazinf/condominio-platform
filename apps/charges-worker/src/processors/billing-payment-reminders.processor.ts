@@ -1,7 +1,6 @@
 import type PgBoss from 'pg-boss'
 import { DatabaseService } from '@database/service'
 import {
-  BillingChannelsRepository,
   BillingReceiptsRepository,
   UnitOwnershipsRepository,
   EventLogsRepository,
@@ -12,14 +11,110 @@ import { QUEUES, type INotifyJobData, type IPaymentRemindersJobData } from '@wor
 import logger from '@packages/logger'
 import { notifySuperadminsOnError } from '@worker/libs/notify-superadmins-on-error'
 
-/**
- * Billing Payment Reminders Processor (Fase 4.7)
- *
- * Sends reminders based on billing receipts:
- * - Before due date: "Su recibo vence en X días"
- * - After due date: "Su recibo está vencido"
- * - 60+ days overdue: notifies admin for legal collection
- */
+// ─── Extracted logic (testeable) ───
+
+export type TReminderTier = 'pre_due_3' | 'due_today' | 'overdue_week' | 'legal_collection' | null
+
+export function getReminderTier(dueDateStr: string, todayStr: string): TReminderTier {
+  const dueDate = new Date(dueDateStr)
+  const today = new Date(todayStr)
+  const diffMs = dueDate.getTime() - today.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 3) return 'pre_due_3'
+  if (diffDays === 0) return 'due_today'
+  if (diffDays < 0 && diffDays >= -7) return 'overdue_week'
+  if (diffDays <= -60) return 'legal_collection'
+  return null
+}
+
+export function getReminderContent(tier: TReminderTier, receiptNumber: string, dueDate: string): { title: string; body: string; category: 'reminder' | 'alert' } | null {
+  switch (tier) {
+    case 'pre_due_3':
+      return { title: 'Recordatorio: recibo por vencer', body: `Su recibo ${receiptNumber} vence en 3 días (${dueDate}).`, category: 'reminder' }
+    case 'due_today':
+      return { title: 'Recibo vence hoy', body: `Su recibo ${receiptNumber} vence hoy.`, category: 'reminder' }
+    case 'overdue_week':
+      return { title: 'Recibo vencido', body: `Su recibo ${receiptNumber} está vencido desde ${dueDate}.`, category: 'alert' }
+    case 'legal_collection':
+      return null // Only logged, no notification to resident
+    default:
+      return null
+  }
+}
+
+export interface IRemindersDeps {
+  receiptsRepo: { listAll: (includeAll?: boolean) => Promise<any[]> }
+  ownershipsRepo: { getRegisteredByUnitIds: (ids: string[]) => Promise<any[]> }
+  sendNotification: (data: INotifyJobData) => Promise<void>
+}
+
+export interface IRemindersResult {
+  remindersSent: number
+  legalCollectionWarnings: number
+  errors: number
+}
+
+export async function executePaymentReminders(
+  deps: IRemindersDeps,
+  todayStr: string = new Date().toISOString().split('T')[0]!,
+): Promise<IRemindersResult> {
+  const result: IRemindersResult = { remindersSent: 0, legalCollectionWarnings: 0, errors: 0 }
+
+  try {
+    const allReceipts = await deps.receiptsRepo.listAll(true)
+    const pendingReceipts = allReceipts.filter(
+      (r: any) => r.status === 'issued' || r.status === 'partial'
+    )
+
+    for (const receipt of pendingReceipts) {
+      if (!receipt.dueDate) continue
+
+      const tier = getReminderTier(receipt.dueDate, todayStr)
+      if (!tier) continue
+
+      if (tier === 'legal_collection') {
+        result.legalCollectionWarnings++
+        continue
+      }
+
+      const content = getReminderContent(tier, receipt.receiptNumber, receipt.dueDate)
+      if (!content) continue
+
+      const ownerships = await deps.ownershipsRepo.getRegisteredByUnitIds([receipt.unitId])
+
+      for (const ownership of ownerships) {
+        if (!ownership.userId) continue
+
+        try {
+          await deps.sendNotification({
+            userId: ownership.userId,
+            category: content.category,
+            title: content.title,
+            body: content.body,
+            channels: ['in_app', 'email', 'push'],
+            data: {
+              receiptId: receipt.id,
+              receiptNumber: receipt.receiptNumber,
+              dueDate: receipt.dueDate,
+              totalAmount: receipt.totalAmount,
+            },
+          })
+          result.remindersSent++
+        } catch {
+          result.errors++
+        }
+      }
+    }
+  } catch {
+    result.errors++
+  }
+
+  return result
+}
+
+// ─── Processor entry point ───
+
 export async function processBillingPaymentReminders(
   job: PgBoss.Job<IPaymentRemindersJobData>
 ): Promise<void> {
@@ -33,100 +128,25 @@ export async function processBillingPaymentReminders(
   })
 
   try {
-    const channelsRepo = new BillingChannelsRepository(db)
     const receiptsRepo = new BillingReceiptsRepository(db)
     const ownershipsRepo = new UnitOwnershipsRepository(db)
     const boss = getBossClient()
 
-    const allChannels = await channelsRepo.listAll()
-    const activeChannels = allChannels.filter(ch => ch.isActive)
-
-    if (activeChannels.length === 0) {
-      logger.info('[BillingReminders] No active channels')
-      return
-    }
-
-    const today = new Date()
-    const todayStr = today.toISOString().split('T')[0]!
-    let remindersSent = 0
-
-    for (const channel of activeChannels) {
-      try {
-        // Get all non-paid receipts
-        const allReceipts = await receiptsRepo.listAll(true)
-        const channelReceipts = allReceipts.filter(
-          r => r.billingChannelId === channel.id && (r.status === 'issued' || r.status === 'partial')
-        )
-
-        for (const receipt of channelReceipts) {
-          if (!receipt.dueDate) continue
-
-          const dueDate = new Date(receipt.dueDate)
-          const diffMs = dueDate.getTime() - today.getTime()
-          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-          let title = ''
-          let body = ''
-          let category: 'reminder' | 'alert' = 'reminder'
-
-          if (diffDays === 3) {
-            title = `Recordatorio: recibo por vencer`
-            body = `Su recibo ${receipt.receiptNumber} vence en 3 días (${receipt.dueDate}).`
-          } else if (diffDays === 0) {
-            title = `Recibo vence hoy`
-            body = `Su recibo ${receipt.receiptNumber} vence hoy.`
-          } else if (diffDays < 0 && diffDays >= -7) {
-            title = `Recibo vencido`
-            body = `Su recibo ${receipt.receiptNumber} está vencido desde ${receipt.dueDate}.`
-            category = 'alert'
-          } else if (diffDays <= -60) {
-            // Notify admin for legal collection (only log, don't spam)
-            logger.warn(
-              { receiptId: receipt.id, unitId: receipt.unitId, daysOverdue: Math.abs(diffDays) },
-              '[BillingReminders] Receipt overdue 60+ days — consider legal action'
-            )
-            continue
-          } else {
-            continue // No reminder needed today
-          }
-
-          // Find unit owner
-          const ownerships = await ownershipsRepo.getRegisteredByUnitIds([receipt.unitId])
-          for (const ownership of ownerships) {
-            if (!ownership.userId) continue
-
-            const notification: INotifyJobData = {
-              userId: ownership.userId,
-              category,
-              title,
-              body,
-              channels: ['in_app', 'email', 'push'],
-              data: {
-                receiptId: receipt.id,
-                receiptNumber: receipt.receiptNumber,
-                dueDate: receipt.dueDate,
-                totalAmount: receipt.totalAmount,
-              },
-            }
-
-            await boss.send(QUEUES.NOTIFY, notification)
-            remindersSent++
-          }
-        }
-      } catch (error) {
-        logger.error({ channelId: channel.id, error }, '[BillingReminders] Channel error')
-      }
-    }
+    const result = await executePaymentReminders({
+      receiptsRepo,
+      ownershipsRepo,
+      sendNotification: async (data) => { await boss.send(QUEUES.NOTIFY, data) },
+    })
 
     const elapsed = ((Date.now() - start) / 1000).toFixed(1)
-    logger.info({ elapsed, remindersSent }, '[BillingReminders] Completed')
+    logger.info({ elapsed, ...result }, '[BillingReminders] Completed')
 
     eventLogger.info({
       category: 'worker',
       event: 'worker.billing_reminders.completed',
       action: 'billing_payment_reminders',
-      message: `Sent ${remindersSent} reminders`,
-      metadata: { remindersSent },
+      message: `Sent ${result.remindersSent} reminders, ${result.legalCollectionWarnings} legal warnings`,
+      metadata: result as unknown as Record<string, unknown>,
       durationMs: Date.now() - start,
     })
   } catch (error) {

@@ -6,7 +6,6 @@ export const interestConfigurationCreateSchema = interestConfigurationSchema.omi
   updatedAt: true,
   condominium: true,
   building: true,
-  paymentConcept: true,
   currency: true,
   createdByUser: true,
 })

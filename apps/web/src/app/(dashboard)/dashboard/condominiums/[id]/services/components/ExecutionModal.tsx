@@ -23,13 +23,12 @@ import {
   useCreateServiceExecution,
   useUpdateServiceExecution,
   useCurrency,
-  usePaymentConceptDetail,
   useServiceExecutionsPaginated,
 } from '@packages/http-client/hooks'
 import { HttpError } from '@packages/http-client'
 
 import { useServiceExecutionAttachmentUpload } from '../hooks/useServiceExecutionAttachmentUpload'
-import { CurrencyCalculatorModal } from '../../payment-concepts/components/wizard/steps/CurrencyCalculatorModal'
+import { CurrencyCalculatorModal } from '@/ui/components/currency-calculator'
 
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/ui/components/modal'
 import { Button } from '@/ui/components/button'
@@ -155,26 +154,6 @@ export function ExecutionModal({
     currencyFromProps?.code ??
     '$'
   const currencyDecimals = currency?.decimals ?? 2
-
-  // Payment concept info
-  const { data: conceptData } = usePaymentConceptDetail({
-    companyId: managementCompanyId,
-    conceptId: conceptId ?? '',
-    enabled: !!conceptId,
-  })
-  const concept = conceptData?.data
-
-  const conceptTypeLabels: Record<string, string> = useMemo(
-    () => ({
-      maintenance: t('admin.paymentConcepts.types.maintenance'),
-      condominium_fee: t('admin.paymentConcepts.types.condominiumFee'),
-      extraordinary: t('admin.paymentConcepts.types.extraordinary'),
-      fine: t('admin.paymentConcepts.types.fine'),
-      reserve_fund: t('admin.paymentConcepts.types.reserveFund'),
-      other: t('admin.paymentConcepts.types.other'),
-    }),
-    [t]
-  )
 
   // ─── Execution history (for "use as template") ────────────────────────────
   const [showHistory, setShowHistory] = useState(false)
@@ -549,26 +528,6 @@ export function ExecutionModal({
           </ModalHeader>
 
           <ModalBody className="gap-0 p-0 overflow-y-auto max-h-[60vh]">
-            {/* Payment concept info */}
-            {concept && (
-              <div className="mx-6 mt-4 mb-2 p-3 bg-default-100 rounded-lg">
-                <Typography className="text-default-500 mb-1" variant="body2">
-                  {t(`${d}.linkedConcept`)}
-                </Typography>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Typography variant="subtitle2">{concept.name}</Typography>
-                  <Chip size="sm" variant="flat">
-                    {conceptTypeLabels[concept.conceptType] ?? concept.conceptType}
-                  </Chip>
-                  {concept.isRecurring && (
-                    <Chip color="primary" size="sm" variant="flat">
-                      {t('admin.paymentConcepts.columns.recurring')}
-                    </Chip>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* History template — only when creating */}
             {!isEditing && (
               <div className="mx-6 mt-4">

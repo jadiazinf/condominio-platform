@@ -1,17 +1,17 @@
 import { type TServiceResult, success } from '../base.service'
 
 type TLedgerRepo = {
-  getBalance: (unitId: string, channelId: string) => Promise<string>
+  getBalance: (unitId: string, condominiumId: string) => Promise<string>
 }
 
 export interface IGetUnitBalanceInput {
   unitId: string
-  billingChannelId: string
+  condominiumId: string
 }
 
 export interface IGetUnitBalanceOutput {
   unitId: string
-  billingChannelId: string
+  condominiumId: string
   balance: string
 }
 
@@ -23,11 +23,11 @@ export class GetUnitBalanceService {
   }
 
   async execute(input: IGetUnitBalanceInput): Promise<TServiceResult<IGetUnitBalanceOutput>> {
-    const balance = await this.ledgerRepo.getBalance(input.unitId, input.billingChannelId)
+    const balance = await this.ledgerRepo.getBalance(input.unitId, input.condominiumId)
 
     return success({
       unitId: input.unitId,
-      billingChannelId: input.billingChannelId,
+      condominiumId: input.condominiumId,
       balance,
     })
   }

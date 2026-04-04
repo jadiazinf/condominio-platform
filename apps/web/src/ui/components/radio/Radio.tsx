@@ -13,6 +13,7 @@ type TRadioOrientation = 'horizontal' | 'vertical'
 interface IRadioGroupProps {
   label?: string
   description?: string
+  tooltip?: string
   errorMessage?: string
   orientation?: TRadioOrientation
   size?: TRadioSize
@@ -107,7 +108,14 @@ export function Radio({
   return (
     <HeroUIRadio
       className={cn(className)}
-      classNames={classNames}
+      classNames={{
+        base: cn('items-start', classNames?.base),
+        wrapper: cn('shrink-0 mt-1', classNames?.wrapper),
+        control: classNames?.control,
+        label: classNames?.label,
+        description: classNames?.description,
+        labelWrapper: classNames?.labelWrapper,
+      }}
       color={color}
       description={description}
       isDisabled={isDisabled}

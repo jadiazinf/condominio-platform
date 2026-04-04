@@ -18,18 +18,9 @@ import { buildings } from '../tables/buildings'
 import { userRoles } from '../tables/user-roles'
 import { units } from '../tables/units'
 import { unitOwnerships } from '../tables/unit-ownerships'
-import { paymentConcepts } from '../tables/payment-concepts'
 import { interestConfigurations } from '../tables/interest-configurations'
-import { quotas, quotaAdjustments } from '../tables/quotas'
-import {
-  quotaFormulas,
-  quotaGenerationRules,
-  quotaGenerationSchedules,
-  quotaGenerationLogs,
-  paymentPendingAllocations,
-} from '../tables/quota-generation'
 import { paymentGateways, entityPaymentGateways } from '../tables/payment-gateways'
-import { payments, paymentApplications } from '../tables/payments'
+import { payments } from '../tables/payments'
 import { expenseCategories, expenses } from '../tables/expenses'
 import { documents } from '../tables/documents'
 import { messages } from '../tables/messages'
@@ -53,14 +44,15 @@ import { bankStatementEntries } from '../tables/bank-statement-entries'
 import { bankReconciliations } from '../tables/bank-reconciliations'
 import { bankStatementMatches } from '../tables/bank-statement-matches'
 import { eventLogs } from '../tables/event-logs'
-import { billingChannels } from '../tables/billing-channels'
+import { chargeCategories } from '../tables/charge-categories'
 import { chargeTypes } from '../tables/charge-types'
-import { billingChannelBankAccounts } from '../tables/billing-channel-bank-accounts'
 import { charges } from '../tables/charges'
 import { receipts } from '../tables/receipts'
 import { unitLedgerEntries } from '../tables/unit-ledger-entries'
 import { paymentAllocations } from '../tables/payment-allocations'
 import { ownershipTransferSnapshots } from '../tables/ownership-transfer-snapshots'
+import { assemblyMinutes } from '../tables/assembly-minutes'
+import { condominiumBoardMembers } from '../tables/condominium-board-members'
 
 // ============================================================================
 // LOCATIONS RELATIONS
@@ -95,9 +87,7 @@ export const currenciesRelations = relations(currencies, ({ one, many }) => ({
   exchangeRatesTo: many(exchangeRates, { relationName: 'toCurrency' }),
   users: many(users),
   condominiums: many(condominiums),
-  paymentConcepts: many(paymentConcepts),
   interestConfigurations: many(interestConfigurations),
-  quotas: many(quotas),
   payments: many(payments),
   expenses: many(expenses),
   managementCompanySubscriptions: many(managementCompanySubscriptions),
@@ -267,14 +257,11 @@ export const condominiumsRelations = relations(condominiums, ({ one, many }) => 
   }),
   buildings: many(buildings),
   userRoles: many(userRoles),
-  paymentConcepts: many(paymentConcepts),
   interestConfigurations: many(interestConfigurations),
   entityPaymentGateways: many(entityPaymentGateways),
   expenses: many(expenses),
   documents: many(documents),
   messages: many(messages),
-  quotaFormulas: many(quotaFormulas),
-  quotaGenerationRules: many(quotaGenerationRules),
   amenities: many(amenities),
 }))
 
@@ -308,13 +295,11 @@ export const buildingsRelations = relations(buildings, ({ one, many }) => ({
   }),
   units: many(units),
   userRoles: many(userRoles),
-  paymentConcepts: many(paymentConcepts),
   interestConfigurations: many(interestConfigurations),
   entityPaymentGateways: many(entityPaymentGateways),
   expenses: many(expenses),
   documents: many(documents),
   messages: many(messages),
-  quotaGenerationRules: many(quotaGenerationRules),
 }))
 
 // ============================================================================
@@ -331,7 +316,6 @@ export const unitsRelations = relations(units, ({ one, many }) => ({
     references: [users.id],
   }),
   unitOwnerships: many(unitOwnerships),
-  quotas: many(quotas),
   payments: many(payments),
   documents: many(documents),
   messages: many(messages),
@@ -349,30 +333,8 @@ export const unitOwnershipsRelations = relations(unitOwnerships, ({ one }) => ({
 }))
 
 // ============================================================================
-// PAYMENT CONCEPTS RELATIONS
+// INTEREST CONFIGURATIONS RELATIONS
 // ============================================================================
-
-export const paymentConceptsRelations = relations(paymentConcepts, ({ one, many }) => ({
-  condominium: one(condominiums, {
-    fields: [paymentConcepts.condominiumId],
-    references: [condominiums.id],
-  }),
-  building: one(buildings, {
-    fields: [paymentConcepts.buildingId],
-    references: [buildings.id],
-  }),
-  currency: one(currencies, {
-    fields: [paymentConcepts.currencyId],
-    references: [currencies.id],
-  }),
-  createdByUser: one(users, {
-    fields: [paymentConcepts.createdBy],
-    references: [users.id],
-  }),
-  interestConfigurations: many(interestConfigurations),
-  quotas: many(quotas),
-  generationRules: many(quotaGenerationRules),
-}))
 
 export const interestConfigurationsRelations = relations(interestConfigurations, ({ one }) => ({
   condominium: one(condominiums, {
@@ -383,10 +345,6 @@ export const interestConfigurationsRelations = relations(interestConfigurations,
     fields: [interestConfigurations.buildingId],
     references: [buildings.id],
   }),
-  paymentConcept: one(paymentConcepts, {
-    fields: [interestConfigurations.paymentConceptId],
-    references: [paymentConcepts.id],
-  }),
   currency: one(currencies, {
     fields: [interestConfigurations.currencyId],
     references: [currencies.id],
@@ -396,157 +354,6 @@ export const interestConfigurationsRelations = relations(interestConfigurations,
     references: [users.id],
   }),
 }))
-
-// ============================================================================
-// QUOTAS RELATIONS
-// ============================================================================
-
-export const quotasRelations = relations(quotas, ({ one, many }) => ({
-  unit: one(units, {
-    fields: [quotas.unitId],
-    references: [units.id],
-  }),
-  paymentConcept: one(paymentConcepts, {
-    fields: [quotas.paymentConceptId],
-    references: [paymentConcepts.id],
-  }),
-  currency: one(currencies, {
-    fields: [quotas.currencyId],
-    references: [currencies.id],
-  }),
-  createdByUser: one(users, {
-    fields: [quotas.createdBy],
-    references: [users.id],
-  }),
-  paymentApplications: many(paymentApplications),
-  documents: many(documents),
-  adjustments: many(quotaAdjustments),
-  allocatedFromPending: many(paymentPendingAllocations),
-}))
-
-export const quotaAdjustmentsRelations = relations(quotaAdjustments, ({ one }) => ({
-  quota: one(quotas, {
-    fields: [quotaAdjustments.quotaId],
-    references: [quotas.id],
-  }),
-  createdByUser: one(users, {
-    fields: [quotaAdjustments.createdBy],
-    references: [users.id],
-  }),
-}))
-
-// ============================================================================
-// QUOTA GENERATION RELATIONS
-// ============================================================================
-
-export const quotaFormulasRelations = relations(quotaFormulas, ({ one, many }) => ({
-  condominium: one(condominiums, {
-    fields: [quotaFormulas.condominiumId],
-    references: [condominiums.id],
-  }),
-  currency: one(currencies, {
-    fields: [quotaFormulas.currencyId],
-    references: [currencies.id],
-  }),
-  createdByUser: one(users, {
-    fields: [quotaFormulas.createdBy],
-    references: [users.id],
-  }),
-  updatedByUser: one(users, {
-    fields: [quotaFormulas.updatedBy],
-    references: [users.id],
-  }),
-  generationRules: many(quotaGenerationRules),
-}))
-
-export const quotaGenerationRulesRelations = relations(quotaGenerationRules, ({ one, many }) => ({
-  condominium: one(condominiums, {
-    fields: [quotaGenerationRules.condominiumId],
-    references: [condominiums.id],
-  }),
-  building: one(buildings, {
-    fields: [quotaGenerationRules.buildingId],
-    references: [buildings.id],
-  }),
-  paymentConcept: one(paymentConcepts, {
-    fields: [quotaGenerationRules.paymentConceptId],
-    references: [paymentConcepts.id],
-  }),
-  quotaFormula: one(quotaFormulas, {
-    fields: [quotaGenerationRules.quotaFormulaId],
-    references: [quotaFormulas.id],
-  }),
-  createdByUser: one(users, {
-    fields: [quotaGenerationRules.createdBy],
-    references: [users.id],
-  }),
-  updatedByUser: one(users, {
-    fields: [quotaGenerationRules.updatedBy],
-    references: [users.id],
-  }),
-  schedules: many(quotaGenerationSchedules),
-  logs: many(quotaGenerationLogs),
-}))
-
-export const quotaGenerationSchedulesRelations = relations(quotaGenerationSchedules, ({ one }) => ({
-  generationRule: one(quotaGenerationRules, {
-    fields: [quotaGenerationSchedules.quotaGenerationRuleId],
-    references: [quotaGenerationRules.id],
-  }),
-  createdByUser: one(users, {
-    fields: [quotaGenerationSchedules.createdBy],
-    references: [users.id],
-  }),
-  updatedByUser: one(users, {
-    fields: [quotaGenerationSchedules.updatedBy],
-    references: [users.id],
-  }),
-}))
-
-export const quotaGenerationLogsRelations = relations(quotaGenerationLogs, ({ one }) => ({
-  generationRule: one(quotaGenerationRules, {
-    fields: [quotaGenerationLogs.generationRuleId],
-    references: [quotaGenerationRules.id],
-  }),
-  generationSchedule: one(quotaGenerationSchedules, {
-    fields: [quotaGenerationLogs.generationScheduleId],
-    references: [quotaGenerationSchedules.id],
-  }),
-  quotaFormula: one(quotaFormulas, {
-    fields: [quotaGenerationLogs.quotaFormulaId],
-    references: [quotaFormulas.id],
-  }),
-  currency: one(currencies, {
-    fields: [quotaGenerationLogs.currencyId],
-    references: [currencies.id],
-  }),
-  generatedByUser: one(users, {
-    fields: [quotaGenerationLogs.generatedBy],
-    references: [users.id],
-  }),
-}))
-
-export const paymentPendingAllocationsRelations = relations(
-  paymentPendingAllocations,
-  ({ one }) => ({
-    payment: one(payments, {
-      fields: [paymentPendingAllocations.paymentId],
-      references: [payments.id],
-    }),
-    currency: one(currencies, {
-      fields: [paymentPendingAllocations.currencyId],
-      references: [currencies.id],
-    }),
-    allocatedToQuota: one(quotas, {
-      fields: [paymentPendingAllocations.allocatedToQuotaId],
-      references: [quotas.id],
-    }),
-    allocatedByUser: one(users, {
-      fields: [paymentPendingAllocations.allocatedBy],
-      references: [users.id],
-    }),
-  })
-)
 
 // ============================================================================
 // PAYMENT GATEWAYS RELATIONS
@@ -609,24 +416,7 @@ export const paymentsRelations = relations(payments, ({ one, many }) => ({
     fields: [payments.registeredBy],
     references: [users.id],
   }),
-  paymentApplications: many(paymentApplications),
   documents: many(documents),
-  pendingAllocations: many(paymentPendingAllocations),
-}))
-
-export const paymentApplicationsRelations = relations(paymentApplications, ({ one }) => ({
-  payment: one(payments, {
-    fields: [paymentApplications.paymentId],
-    references: [payments.id],
-  }),
-  quota: one(quotas, {
-    fields: [paymentApplications.quotaId],
-    references: [quotas.id],
-  }),
-  registeredByUser: one(users, {
-    fields: [paymentApplications.registeredBy],
-    references: [users.id],
-  }),
 }))
 
 // ============================================================================
@@ -699,10 +489,6 @@ export const documentsRelations = relations(documents, ({ one }) => ({
   payment: one(payments, {
     fields: [documents.paymentId],
     references: [payments.id],
-  }),
-  quota: one(quotas, {
-    fields: [documents.quotaId],
-    references: [quotas.id],
   }),
   expense: one(expenses, {
     fields: [documents.expenseId],
@@ -1059,63 +845,29 @@ export const eventLogsRelations = relations(eventLogs, ({ one }) => ({
 }))
 
 // ============================================================================
-// BILLING RESTRUCTURE RELATIONS (Fase 4.7)
+// BILLING RELATIONS (Fase 5 — Direct Monthly Billing)
 // ============================================================================
 
-export const billingChannelsRelations = relations(billingChannels, ({ one, many }) => ({
-  condominium: one(condominiums, {
-    fields: [billingChannels.condominiumId],
-    references: [condominiums.id],
-  }),
-  building: one(buildings, {
-    fields: [billingChannels.buildingId],
-    references: [buildings.id],
-  }),
-  currency: one(currencies, {
-    fields: [billingChannels.currencyId],
-    references: [currencies.id],
-  }),
-  createdByUser: one(users, {
-    fields: [billingChannels.createdBy],
-    references: [users.id],
-  }),
+export const chargeCategoriesRelations = relations(chargeCategories, ({ many }) => ({
   chargeTypes: many(chargeTypes),
-  channelBankAccounts: many(billingChannelBankAccounts),
-  charges: many(charges),
-  receipts: many(receipts),
-  ledgerEntries: many(unitLedgerEntries),
 }))
 
 export const chargeTypesRelations = relations(chargeTypes, ({ one, many }) => ({
-  billingChannel: one(billingChannels, {
-    fields: [chargeTypes.billingChannelId],
-    references: [billingChannels.id],
+  condominium: one(condominiums, {
+    fields: [chargeTypes.condominiumId],
+    references: [condominiums.id],
+  }),
+  category: one(chargeCategories, {
+    fields: [chargeTypes.categoryId],
+    references: [chargeCategories.id],
   }),
   charges: many(charges),
 }))
 
-export const billingChannelBankAccountsRelations = relations(
-  billingChannelBankAccounts,
-  ({ one }) => ({
-    billingChannel: one(billingChannels, {
-      fields: [billingChannelBankAccounts.billingChannelId],
-      references: [billingChannels.id],
-    }),
-    bankAccount: one(bankAccounts, {
-      fields: [billingChannelBankAccounts.bankAccountId],
-      references: [bankAccounts.id],
-    }),
-    assignedByUser: one(users, {
-      fields: [billingChannelBankAccounts.assignedBy],
-      references: [users.id],
-    }),
-  })
-)
-
 export const chargesRelations = relations(charges, ({ one, many }) => ({
-  billingChannel: one(billingChannels, {
-    fields: [charges.billingChannelId],
-    references: [billingChannels.id],
+  condominium: one(condominiums, {
+    fields: [charges.condominiumId],
+    references: [condominiums.id],
   }),
   chargeType: one(chargeTypes, {
     fields: [charges.chargeTypeId],
@@ -1147,9 +899,9 @@ export const chargesRelations = relations(charges, ({ one, many }) => ({
 }))
 
 export const receiptsRelations = relations(receipts, ({ one, many }) => ({
-  billingChannel: one(billingChannels, {
-    fields: [receipts.billingChannelId],
-    references: [billingChannels.id],
+  condominium: one(condominiums, {
+    fields: [receipts.condominiumId],
+    references: [condominiums.id],
   }),
   unit: one(units, {
     fields: [receipts.unitId],
@@ -1159,6 +911,12 @@ export const receiptsRelations = relations(receipts, ({ one, many }) => ({
     fields: [receipts.currencyId],
     references: [currencies.id],
   }),
+  parentReceipt: one(receipts, {
+    fields: [receipts.parentReceiptId],
+    references: [receipts.id],
+    relationName: 'receiptParent',
+  }),
+  childReceipts: many(receipts, { relationName: 'receiptParent' }),
   replacesReceipt: one(receipts, {
     fields: [receipts.replacesReceiptId],
     references: [receipts.id],
@@ -1177,9 +935,9 @@ export const unitLedgerEntriesRelations = relations(unitLedgerEntries, ({ one })
     fields: [unitLedgerEntries.unitId],
     references: [units.id],
   }),
-  billingChannel: one(billingChannels, {
-    fields: [unitLedgerEntries.billingChannelId],
-    references: [billingChannels.id],
+  condominium: one(condominiums, {
+    fields: [unitLedgerEntries.condominiumId],
+    references: [condominiums.id],
   }),
   currency: one(currencies, {
     fields: [unitLedgerEntries.currencyId],
@@ -1242,3 +1000,38 @@ export const ownershipTransferSnapshotsRelations = relations(
     }),
   })
 )
+
+// ============================================================================
+// ASSEMBLY MINUTES RELATIONS
+// ============================================================================
+
+export const assemblyMinutesRelations = relations(assemblyMinutes, ({ one }) => ({
+  condominium: one(condominiums, {
+    fields: [assemblyMinutes.condominiumId],
+    references: [condominiums.id],
+  }),
+  createdByUser: one(users, {
+    fields: [assemblyMinutes.createdBy],
+    references: [users.id],
+  }),
+}))
+
+// ============================================================================
+// CONDOMINIUM BOARD MEMBERS RELATIONS
+// ============================================================================
+
+export const condominiumBoardMembersRelations = relations(condominiumBoardMembers, ({ one }) => ({
+  condominium: one(condominiums, {
+    fields: [condominiumBoardMembers.condominiumId],
+    references: [condominiums.id],
+  }),
+  user: one(users, {
+    fields: [condominiumBoardMembers.userId],
+    references: [users.id],
+  }),
+  createdByUser: one(users, {
+    fields: [condominiumBoardMembers.createdBy],
+    references: [users.id],
+    relationName: 'boardMemberCreatedBy',
+  }),
+}))

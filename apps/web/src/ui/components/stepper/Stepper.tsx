@@ -4,6 +4,7 @@ import type { IStepperProps, TStepStatus } from './stepper.types'
 
 import { useControllableState } from './use-controllable-state'
 import { StepperItem } from './StepperItem'
+import { StepperProgressBar } from './StepperProgressBar'
 
 import { cn } from '@/ui/utils'
 
@@ -37,15 +38,34 @@ export function Stepper<T extends string = string>({
     return 'upcoming'
   }
 
+  const showProgressBarOnMobile = isHorizontal && steps.length > 4
+
   return (
-    <nav aria-label="Progress steps" className={cn('max-w-full overflow-x-auto', className)}>
-      <ol className={cn(isHorizontal ? 'flex flex-row flex-nowrap' : 'flex flex-col items-start')}>
+    <nav aria-label="Progress steps" className={cn('max-w-full', className)}>
+      {/* Mobile progress bar for > 4 steps */}
+      {showProgressBarOnMobile && (
+        <div className="sm:hidden">
+          <StepperProgressBar
+            color={color}
+            currentIndex={currentIndex}
+            currentTitle={steps[currentIndex]?.title ?? ''}
+            disableAnimation={disableAnimation}
+            totalSteps={steps.length}
+          />
+        </div>
+      )}
+
+      {/* Full stepper (always on desktop, only on mobile when <= 4 steps) */}
+      <ol className={cn(
+        isHorizontal ? 'flex flex-row flex-nowrap' : 'flex flex-col items-start',
+        showProgressBarOnMobile && 'hidden sm:flex'
+      )}>
         {steps.map((step, index) => (
           <li
             key={step.key}
             className={cn(
               'relative flex items-start',
-              isHorizontal && index < steps.length - 1 && 'w-full'
+              isHorizontal && index < steps.length - 1 && 'flex-1 min-w-0'
             )}
           >
             <StepperItem

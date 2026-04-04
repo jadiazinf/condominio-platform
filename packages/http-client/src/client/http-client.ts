@@ -102,8 +102,11 @@ export function createHttpClient(config: HttpClientConfig = {}) {
     const baseUrl = getBaseUrl()
     const url = buildUrl(baseUrl, path, requestConfig?.params)
 
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
+
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      // Don't set Content-Type for FormData — the browser sets it with the boundary
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...config.defaultHeaders,
       ...requestConfig?.headers,
     }
@@ -150,7 +153,11 @@ export function createHttpClient(config: HttpClientConfig = {}) {
       const response = await fetch(url, {
         method,
         headers,
-        body: body ? JSON.stringify(body) : undefined,
+        body: body
+          ? isFormData
+            ? (body as FormData)
+            : JSON.stringify(body)
+          : undefined,
         signal: requestConfig?.signal ?? controller.signal,
       })
 

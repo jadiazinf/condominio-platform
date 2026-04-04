@@ -4,7 +4,7 @@ import type { TCharge } from '@packages/domain'
 describe('ChargesRepository', () => {
   const makeCharge = (overrides: Partial<TCharge> = {}): TCharge => ({
     id: '550e8400-e29b-41d4-a716-446655440001',
-    billingChannelId: '550e8400-e29b-41d4-a716-446655440010',
+    condominiumId: '550e8400-e29b-41d4-a716-446655440010',
     chargeTypeId: '550e8400-e29b-41d4-a716-446655440020',
     unitId: '550e8400-e29b-41d4-a716-446655440030',
     receiptId: null,

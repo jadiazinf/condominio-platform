@@ -15,13 +15,13 @@ import { GetUnitBalanceService } from '@services/billing-ledger/get-unit-balance
 // ─── Schemas ──────────────────────────────────────────────────────────
 
 const StatementQuerySchema = z.object({
-  channelId: z.string().uuid(),
+  condominiumId: z.string().uuid(),
   from: z.string(),
   to: z.string(),
 })
 
 const BalanceQuerySchema = z.object({
-  channelId: z.string().uuid(),
+  condominiumId: z.string().uuid(),
 })
 
 // ─── Controller ──────────────────────────────────────────────────────────
@@ -58,6 +58,12 @@ export class BillingLedgerController {
         handler: this.getBalanceSummary,
         middlewares: [authMiddleware, paramsValidator(IdParamSchema)],
       },
+      {
+        method: 'get',
+        path: '/:id/statement/csv',
+        handler: this.exportStatementCsv,
+        middlewares: [authMiddleware, paramsValidator(IdParamSchema), queryValidator(StatementQuerySchema)],
+      },
     ]
   }
 
@@ -70,7 +76,7 @@ export class BillingLedgerController {
 
     const result = await this.statementService.execute({
       unitId: ctx.params.id,
-      billingChannelId: ctx.query.channelId,
+      condominiumId: ctx.query.condominiumId,
       fromDate: ctx.query.from,
       toDate: ctx.query.to,
     })
@@ -84,16 +90,43 @@ export class BillingLedgerController {
 
     const result = await this.balanceService.execute({
       unitId: ctx.params.id,
-      billingChannelId: ctx.query.channelId,
+      condominiumId: ctx.query.condominiumId,
     })
 
     if (!result.success) return ctx.badRequest({ error: result.error })
     return ctx.ok({ data: result.data })
   }
 
+  private exportStatementCsv = async (c: Context): Promise<Response> => {
+    const ctx = new HttpContext<unknown, z.infer<typeof StatementQuerySchema>, { id: string }>(c)
+
+    const result = await this.statementService.execute({
+      unitId: ctx.params.id,
+      condominiumId: ctx.query.condominiumId,
+      fromDate: ctx.query.from,
+      toDate: ctx.query.to,
+    })
+
+    if (!result.success) return ctx.badRequest({ error: result.error })
+
+    const { entries } = result.data
+    const header = 'Fecha,Descripción,Cargo,Abono,Saldo'
+    const rows = entries.map((e: any) =>
+      `${e.date},"${(e.description ?? '').replace(/"/g, '""')}",${e.debit ?? ''},${e.credit ?? ''},${e.balance}`
+    )
+    const csv = [header, ...rows].join('\n')
+
+    return new Response(csv, {
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="estado-cuenta-${ctx.params.id}.csv"`,
+      },
+    })
+  }
+
   private getBalanceSummary = async (c: Context): Promise<Response> => {
     const ctx = new HttpContext<unknown, unknown, { id: string }>(c)
-    // TODO: iterate all channels for this unit and get balance per channel
-    return ctx.ok({ data: { unitId: ctx.params.id, channels: [] } })
+    // TODO: iterate all condominiums for this unit and get balance per condominium
+    return ctx.ok({ data: { unitId: ctx.params.id, condominiums: [] } })
   }
 }

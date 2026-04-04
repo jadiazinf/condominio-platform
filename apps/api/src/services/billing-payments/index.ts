@@ -8,7 +8,7 @@ export {
   ApplyPaymentToChannelService,
   type IApplyPaymentInput,
   type IApplyPaymentOutput,
-} from './apply-payment-to-channel.service'
+} from './apply-payment.service'
 
 export {
   VoidReceiptService,

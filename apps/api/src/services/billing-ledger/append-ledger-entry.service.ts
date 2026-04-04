@@ -3,13 +3,13 @@ import { type TServiceResult, success, failure } from '../base.service'
 import { parseAmount, toDecimal } from '@packages/utils/money'
 
 type TLedgerRepo = {
-  getLastEntry: (unitId: string, channelId: string) => Promise<TUnitLedgerEntry | null>
+  getLastEntry: (unitId: string, condominiumId: string) => Promise<TUnitLedgerEntry | null>
   appendEntry: (data: Omit<TUnitLedgerEntry, 'id' | 'createdAt'>) => Promise<TUnitLedgerEntry>
 }
 
 export interface IAppendLedgerEntryInput {
   unitId: string
-  billingChannelId: string
+  condominiumId: string
   entryDate: string
   entryType: TLedgerEntryType
   amount: string
@@ -42,7 +42,7 @@ export class AppendLedgerEntryService {
     // Get previous balance
     const lastEntry = await this.ledgerRepo.getLastEntry(
       input.unitId,
-      input.billingChannelId
+      input.condominiumId
     )
     const previousBalance = lastEntry ? parseAmount(lastEntry.runningBalance) : 0
 
@@ -56,7 +56,7 @@ export class AppendLedgerEntryService {
 
     const entry = await this.ledgerRepo.appendEntry({
       unitId: input.unitId,
-      billingChannelId: input.billingChannelId,
+      condominiumId: input.condominiumId,
       entryDate: input.entryDate,
       entryType: input.entryType,
       amount: toDecimal(amount),

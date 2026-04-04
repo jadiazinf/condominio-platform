@@ -124,19 +124,6 @@ export const LocaleDictionary = {
       serviceExecutions: {
         executionNotFound: 'http.controllers.serviceExecutions.executionNotFound',
       },
-      paymentConcepts: {
-        serviceNotFound: 'http.controllers.paymentConcepts.serviceNotFound',
-        currencyNotFound: 'http.controllers.paymentConcepts.currencyNotFound',
-        condominiumNotFound: 'http.controllers.paymentConcepts.condominiumNotFound',
-        condominiumNotInCompany: 'http.controllers.paymentConcepts.condominiumNotInCompany',
-        servicesRequired: 'http.controllers.paymentConcepts.servicesRequired',
-        executionCurrencyNotFound: 'http.controllers.paymentConcepts.executionCurrencyNotFound',
-        currencyMismatch: 'http.controllers.paymentConcepts.currencyMismatch',
-        conceptCreatedSuccessfully: 'http.controllers.paymentConcepts.conceptCreatedSuccessfully',
-        conceptNotFound: 'http.controllers.paymentConcepts.conceptNotFound',
-        noChangesDetected: 'http.controllers.paymentConcepts.noChangesDetected',
-        conceptUpdatedSuccessfully: 'http.controllers.paymentConcepts.conceptUpdatedSuccessfully',
-      },
     },
     locales: {
       unknownError: 'http.locales.unknownError',

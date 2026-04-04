@@ -23,18 +23,9 @@ export { UnitsController } from './units'
 export { UnitOwnershipsController } from './unit-ownerships'
 export { ExchangeRatesController } from './exchange-rates'
 export { MyExchangeRatesController } from './my-exchange-rates'
-export { PaymentConceptsController, McPaymentConceptsController } from './payment-concepts'
-export type { IMcPaymentConceptsDeps } from './payment-concepts'
 export { InterestConfigurationsController } from './interest-configurations'
-export { QuotasController } from './quotas'
-export { QuotaAdjustmentsController } from './quota-adjustments'
-export { QuotaFormulasController } from './quota-formulas'
-export { QuotaGenerationRulesController } from './quota-generation-rules'
 export { PaymentGatewaysController } from './payment-gateways'
 export { EntityPaymentGatewaysController } from './entity-payment-gateways'
-export { PaymentsController } from './payments'
-export { PaymentApplicationsController } from './payment-applications'
-export { PaymentPendingAllocationsController } from './payment-pending-allocations'
 export { ExpenseCategoriesController } from './expense-categories'
 export { ExpensesController } from './expenses'
 export { DocumentsController } from './documents'
@@ -73,8 +64,17 @@ export { AmenityReservationsController } from './amenity-reservations'
 // Budgets
 export { BudgetsController } from './budgets/budgets.controller'
 
-// Receipts
-export { ReceiptsController } from './receipts/receipts.controller'
-
 // Wizard Drafts
 export { WizardDraftsController } from './wizard-drafts'
+
+// Assembly Minutes
+export { AssemblyMinutesController } from './assembly-minutes/assembly-minutes.controller'
+
+// Condominium Board
+export { CondominiumBoardController } from './condominium-board/condominium-board.controller'
+
+// Charge Categories
+export { ChargeCategoriesController } from './charge-categories/charge-categories.controller'
+
+// Charge Types
+export { ChargeTypesController } from './charge-types/charge-types.controller'

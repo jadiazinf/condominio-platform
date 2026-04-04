@@ -15,7 +15,6 @@ import { condominiumServices } from './condominium-services'
 import { condominiums } from './condominiums'
 import { currencies } from './currencies'
 import { users } from './users'
-import { paymentConcepts } from './payment-concepts'
 export const serviceExecutions = pgTable(
   'service_executions',
   {
@@ -26,9 +25,7 @@ export const serviceExecutions = pgTable(
     condominiumId: uuid('condominium_id')
       .notNull()
       .references(() => condominiums.id, { onDelete: 'cascade' }),
-    paymentConceptId: uuid('payment_concept_id').references(() => paymentConcepts.id, {
-      onDelete: 'set null',
-    }),
+    paymentConceptId: uuid('payment_concept_id'), // FK to payment_concepts removed (table deleted)
     title: varchar('title', { length: 255 }).notNull(),
     description: text('description'),
     executionDate: date('execution_date'),

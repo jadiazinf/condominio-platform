@@ -35,15 +35,11 @@ export * from './properties'
 // Payments & Billing
 export * from './payments'
 export * from './payment-gateways'
-export * from './payment-concepts'
-export * from './payment-applications'
-export * from './payment-pending-allocations'
 
 // Currencies & Exchange Rates
 export * from './exchange-rates'
 
 // Quotas
-export * from './quotas'
 
 // Interest Configurations
 export * from './interest-configurations'

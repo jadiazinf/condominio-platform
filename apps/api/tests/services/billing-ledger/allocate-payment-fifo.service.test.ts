@@ -3,13 +3,13 @@ import type { TCharge, TPaymentAllocation } from '@packages/domain'
 import { AllocatePaymentFIFOService } from '@src/services/billing-ledger/allocate-payment-fifo.service'
 
 const unitId = 'unit-001'
-const channelId = 'channel-001'
+const condominiumId = 'channel-001'
 const currencyId = 'currency-001'
 
 function makeCharge(id: string, amount: string, paidAmount = '0', status = 'pending' as TCharge['status']): TCharge {
   const bal = (parseFloat(amount) - parseFloat(paidAmount)).toFixed(2)
   return {
-    id, billingChannelId: channelId, chargeTypeId: 'ct-1', unitId,
+    id, condominiumId: condominiumId, chargeTypeId: 'ct-1', unitId,
     receiptId: null, periodYear: 2026, periodMonth: 1,
     description: `Charge ${id}`, amount, isCredit: false, currencyId,
     status, paidAmount, balance: bal,
@@ -31,7 +31,7 @@ describe('AllocatePaymentFIFOService', () => {
     allocIdCounter = 0
 
     const mockChargesRepo = {
-      findPendingByUnitAndChannel: async () => {
+      findPendingByUnitAndCondominium: async () => {
         return Array.from(chargesState.values())
           .filter(c => c.status === 'pending' || c.status === 'partial')
           .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
@@ -78,7 +78,7 @@ describe('AllocatePaymentFIFOService', () => {
       chargesState.set('c1', makeCharge('c1', '45.00'))
 
       const result = await service.execute({
-        paymentId: 'pay-1', unitId, billingChannelId: channelId,
+        paymentId: 'pay-1', unitId, condominiumId: condominiumId,
         amount: '45.00', strategy: 'fifo',
       })
 
@@ -98,7 +98,7 @@ describe('AllocatePaymentFIFOService', () => {
       chargesState.set('c1', makeCharge('c1', '45.00'))
 
       const result = await service.execute({
-        paymentId: 'pay-1', unitId, billingChannelId: channelId,
+        paymentId: 'pay-1', unitId, condominiumId: condominiumId,
         amount: '20.00', strategy: 'fifo',
       })
 
@@ -128,7 +128,7 @@ describe('AllocatePaymentFIFOService', () => {
       chargesState.set('c3', c3)
 
       const result = await service.execute({
-        paymentId: 'pay-1', unitId, billingChannelId: channelId,
+        paymentId: 'pay-1', unitId, condominiumId: condominiumId,
         amount: '100.00', strategy: 'fifo',
       })
 
@@ -156,7 +156,7 @@ describe('AllocatePaymentFIFOService', () => {
       chargesState.set('c1', makeCharge('c1', '45.00'))
 
       const result = await service.execute({
-        paymentId: 'pay-1', unitId, billingChannelId: channelId,
+        paymentId: 'pay-1', unitId, condominiumId: condominiumId,
         amount: '100.00', strategy: 'fifo',
       })
 
@@ -174,7 +174,7 @@ describe('AllocatePaymentFIFOService', () => {
       // No charges in state
 
       const result = await service.execute({
-        paymentId: 'pay-1', unitId, billingChannelId: channelId,
+        paymentId: 'pay-1', unitId, condominiumId: condominiumId,
         amount: '100.00', strategy: 'fifo',
       })
 
@@ -191,7 +191,7 @@ describe('AllocatePaymentFIFOService', () => {
       chargesState.set('c1', makeCharge('c1', '45.00', '20.00', 'partial'))
 
       const result = await service.execute({
-        paymentId: 'pay-1', unitId, billingChannelId: channelId,
+        paymentId: 'pay-1', unitId, condominiumId: condominiumId,
         amount: '25.00', strategy: 'fifo',
       })
 
@@ -208,7 +208,7 @@ describe('AllocatePaymentFIFOService', () => {
   describe('validation', () => {
     it('should reject amount <= 0', async () => {
       const result = await service.execute({
-        paymentId: 'pay-1', unitId, billingChannelId: channelId,
+        paymentId: 'pay-1', unitId, condominiumId: condominiumId,
         amount: '0', strategy: 'fifo',
       })
 

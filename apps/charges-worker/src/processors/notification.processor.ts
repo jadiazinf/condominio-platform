@@ -9,12 +9,6 @@ import {
   UsersRepository,
   CondominiumsRepository,
   ManagementCompaniesRepository,
-  CondominiumReceiptsRepository,
-  QuotasRepository,
-  UnitsRepository,
-  BuildingsRepository,
-  CurrenciesRepository,
-  PaymentConceptServicesRepository,
 } from '@database/repositories'
 import {
   SendNotificationService,
@@ -22,7 +16,6 @@ import {
   EventLogger,
 } from '@packages/services'
 import { EventLogsRepository } from '@database/repositories'
-import { GenerateReceiptPdfService } from '@api/services/receipts/generate-receipt-pdf.service'
 import { admin } from '@worker/libs/firebase/config'
 import type { INotifyJobData } from '@worker/boss/queues'
 import logger from '@packages/logger'
@@ -223,34 +216,12 @@ async function sendEmail(
       managementCompany: managementCompanyInfo,
     })
 
-    // Generate receipt PDF attachment if receiptId is available
-    const attachments: Array<{ filename: string; content: Buffer }> = []
-    const receiptId = data?.receiptId as string | undefined
-    if (receiptId) {
-      try {
-        const pdfResult = await generateReceiptPdf(db, receiptId)
-        if (pdfResult) {
-          attachments.push({
-            filename: pdfResult.filename,
-            content: pdfResult.data,
-          })
-          logger.info({ receiptId }, '[Notify] Receipt PDF attached to email')
-        }
-      } catch (pdfError) {
-        logger.warn(
-          { receiptId, error: pdfError },
-          '[Notify] Failed to generate receipt PDF, sending email without attachment'
-        )
-      }
-    }
-
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: fromEmail,
       to: [user.email],
       subject,
       html: htmlBody,
       text: body,
-      ...(attachments.length > 0 ? { attachments } : {}),
     })
 
     if (emailError) {
@@ -601,37 +572,4 @@ function buildManagementCompanyBlock(mc: IManagementCompanyContact): string {
                 </tr>`
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Receipt PDF generation for email attachment
-// ─────────────────────────────────────────────────────────────────────────────
-
-async function generateReceiptPdf(
-  db: ReturnType<typeof DatabaseService.prototype.getDb>,
-  receiptId: string
-): Promise<{ data: Buffer; filename: string } | null> {
-  const receiptsRepo = new CondominiumReceiptsRepository(db)
-  const quotasRepo = new QuotasRepository(db)
-  const unitsRepo = new UnitsRepository(db)
-  const buildingsRepo = new BuildingsRepository(db)
-  const condominiumsRepo = new CondominiumsRepository(db)
-  const currenciesRepo = new CurrenciesRepository(db)
-  const conceptServicesRepo = new PaymentConceptServicesRepository(db)
-
-  const pdfService = new GenerateReceiptPdfService(
-    receiptsRepo,
-    quotasRepo,
-    unitsRepo,
-    buildingsRepo,
-    condominiumsRepo,
-    currenciesRepo,
-    conceptServicesRepo
-  )
-
-  const result = await pdfService.execute(receiptId)
-  if (!result.success) {
-    logger.warn({ receiptId, error: result.error }, '[Notify] Receipt PDF generation failed')
-    return null
-  }
-
-  return { data: result.data.data, filename: result.data.filename }
-}
+// Receipt PDF generation removed — depends on deleted quota/condominium-receipt modules (will be rebuilt for new billing)

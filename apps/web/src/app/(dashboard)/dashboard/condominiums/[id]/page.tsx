@@ -98,6 +98,10 @@ export default async function CondominiumGeneralPage({ params }: PageProps) {
             value={condominium.code || noDataText}
           />
           <InfoRow
+            label="RIF"
+            value={condominium.rif || noDataText}
+          />
+          <InfoRow
             label={t('superadmin.condominiums.detail.general.status')}
             value={
               condominium.isActive

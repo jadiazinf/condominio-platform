@@ -18,7 +18,7 @@ export class UnitLedgerRepository {
     return {
       id: r.id,
       unitId: r.unitId,
-      billingChannelId: r.billingChannelId,
+      condominiumId: r.condominiumId,
       entryDate: r.entryDate,
       entryType: r.entryType,
       amount: r.amount,
@@ -44,14 +44,14 @@ export class UnitLedgerRepository {
     return this.mapToEntity(results[0])
   }
 
-  async getLastEntry(unitId: string, channelId: string): Promise<TUnitLedgerEntry | null> {
+  async getLastEntry(unitId: string, condominiumId: string): Promise<TUnitLedgerEntry | null> {
     const results = await this.db
       .select()
       .from(unitLedgerEntries)
       .where(
         and(
           eq(unitLedgerEntries.unitId, unitId),
-          eq(unitLedgerEntries.billingChannelId, channelId)
+          eq(unitLedgerEntries.condominiumId, condominiumId)
         )
       )
       .orderBy(desc(unitLedgerEntries.createdAt))
@@ -62,7 +62,7 @@ export class UnitLedgerRepository {
 
   async getLastEntryBefore(
     unitId: string,
-    channelId: string,
+    condominiumId: string,
     beforeDate: string
   ): Promise<TUnitLedgerEntry | null> {
     const results = await this.db
@@ -71,7 +71,7 @@ export class UnitLedgerRepository {
       .where(
         and(
           eq(unitLedgerEntries.unitId, unitId),
-          eq(unitLedgerEntries.billingChannelId, channelId),
+          eq(unitLedgerEntries.condominiumId, condominiumId),
           lt(unitLedgerEntries.entryDate, beforeDate)
         )
       )
@@ -83,7 +83,7 @@ export class UnitLedgerRepository {
 
   async getEntries(
     unitId: string,
-    channelId: string,
+    condominiumId: string,
     fromDate: string,
     toDate: string
   ): Promise<TUnitLedgerEntry[]> {
@@ -93,7 +93,7 @@ export class UnitLedgerRepository {
       .where(
         and(
           eq(unitLedgerEntries.unitId, unitId),
-          eq(unitLedgerEntries.billingChannelId, channelId),
+          eq(unitLedgerEntries.condominiumId, condominiumId),
           between(unitLedgerEntries.entryDate, fromDate, toDate)
         )
       )
@@ -102,8 +102,8 @@ export class UnitLedgerRepository {
     return results.map(r => this.mapToEntity(r))
   }
 
-  async getBalance(unitId: string, channelId: string): Promise<string> {
-    const lastEntry = await this.getLastEntry(unitId, channelId)
+  async getBalance(unitId: string, condominiumId: string): Promise<string> {
+    const lastEntry = await this.getLastEntry(unitId, condominiumId)
     return lastEntry?.runningBalance ?? '0'
   }
 

@@ -1,6 +1,7 @@
 import { getCondominiumDetail } from '@packages/http-client/hooks'
 
 import { CondominiumDetailLayout } from './components/CondominiumDetailLayout'
+import { SetCondominiumCookie } from './components/SetCondominiumCookie'
 
 import { getTranslations } from '@/libs/i18n/server'
 import { getServerAuthToken, getFullSession } from '@/libs/session'
@@ -27,6 +28,11 @@ export default async function CondominiumLayout({ children, params }: LayoutProp
       currentUserId={session?.user?.id}
       userRole={session?.activeRole}
     >
+      <SetCondominiumCookie
+        condominiumId={condominium.id}
+        condominiumName={condominium.name}
+        condominiumCode={condominium.code}
+      />
       {children}
     </CondominiumDetailLayout>
   )

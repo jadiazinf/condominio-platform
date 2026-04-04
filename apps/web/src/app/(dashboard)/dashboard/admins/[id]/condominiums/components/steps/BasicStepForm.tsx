@@ -54,6 +54,22 @@ export function BasicStepForm() {
         <p className="text-sm text-gray-500">{t('condominiums.form.fields.code.placeholder')}</p>
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="rif">RIF</Label>
+        <Input
+          id="rif"
+          {...register('rif', {
+            maxLength: {
+              value: 20,
+              message: 'El RIF no puede exceder 20 caracteres',
+            },
+          })}
+          error={errors.rif?.message}
+          placeholder="J-12345678-9"
+        />
+        <p className="text-sm text-gray-500">Registro de Información Fiscal del condominio</p>
+      </div>
+
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
           <Label htmlFor="isActive">{t('condominiums.form.fields.status.label')}</Label>

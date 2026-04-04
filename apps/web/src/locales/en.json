@@ -453,7 +453,8 @@
           "invalid": "Location is not valid."
         }
       }
-    }
+    },
+    "duplicateConcepts": "Concepts cannot be repeated"
   },
   "language": {
     "select": "Language",
@@ -475,7 +476,9 @@
       "myRequests": "My Requests",
       "support": "Support",
       "myAccountStatement": "My Account Statement",
-      "myReceipts": "My Receipts"
+      "myReceipts": "My Receipts",
+      "myStatement": "My Statement (New)",
+      "myBillingCharges": "My Pending Charges"
     },
     "joinCondominium": {
       "title": "Join a Condominium",
@@ -944,6 +947,45 @@
         "close": "Got it"
       }
     },
+    "myStatement": {
+      "title": "My Statement",
+      "subtitle": "Review your transactions and balance by billing channel",
+      "selectUnit": "Unit",
+      "selectChannel": "Billing channel",
+      "selectChannelPlaceholder": "Select a channel",
+      "emptyChannel": "Select a channel to view your statement",
+      "totalDebits": "Total Charges",
+      "totalCredits": "Total Payments",
+      "currentBalance": "Current Balance",
+      "favorBalance": "Credit balance",
+      "ledger": {
+        "date": "Date",
+        "description": "Description",
+        "debit": "Debit",
+        "credit": "Credit",
+        "balance": "Balance"
+      },
+      "aging": {
+        "title": "Balance Aging",
+        "current": "0-30 days",
+        "days30": "31-60 days",
+        "days60": "61-90 days",
+        "days90Plus": "90+ days"
+      }
+    },
+    "myBillingCharges": {
+      "title": "My Pending Charges",
+      "subtitle": "Charges due for your unit",
+      "selectUnit": "Unit",
+      "totalPending": "Total pending",
+      "empty": "No pending charges",
+      "emptyDescription": "You're up to date with your payments",
+      "pay": "Pay",
+      "statuses": {
+        "pending": "Pending",
+        "partial": "Partial"
+      }
+    },
     "reportPayment": {
       "title": "Report Payment",
       "subtitle": "Report an external payment for admin verification",
@@ -1108,7 +1150,7 @@
           "senderDocument": "Sender ID / Tax ID",
           "viewBankDetails": "View destination account details",
           "totalAmount": "Total amount to pay",
-          "notes": "Notes (optional)",
+          "notes": "Notes",
           "notesPlaceholder": "Add details about this payment..."
         }
       },
@@ -1426,7 +1468,7 @@
           "phoneDescription": "Main phone number of the management company. Residents will be able to use this number for contact",
           "website": "Website",
           "websitePlaceholder": "https://www.company.com",
-          "websiteDescription": "Management company website (optional). If you don't have a website, leave this field empty",
+          "websiteDescription": "Management company website. If you don't have a website, leave this field empty",
           "address": "Address",
           "addressPlaceholder": "Main Ave, Tower Building, Floor 5, Office 5-A",
           "addressDescription": "Complete physical address of the management company's offices, including references if necessary",
@@ -1484,10 +1526,10 @@
         "form": {
           "createTitle": "Create Subscription",
           "steps": {
-            "basic": "Basic Information",
-            "limits": "Limits & Features",
+            "basic": "General",
+            "limits": "Limits",
             "pricing": "Pricing",
-            "confirmation": "Confirmation"
+            "confirmation": "Summary"
           },
           "sections": {
             "pricing": "Price Calculator",
@@ -1713,7 +1755,7 @@
           "warning": "You are about to cancel the subscription {name}. This action will disable automatic renewal and mark the subscription as cancelled.",
           "emailNotice": "An email notification will be sent to the main superuser, the company email, and the primary administrators.",
           "reasonLabel": "Cancellation reason",
-          "reasonPlaceholder": "Describe the reason for cancellation (optional)...",
+          "reasonPlaceholder": "Describe the reason for cancellation...",
           "passwordTitle": "Security Verification",
           "passwordDescription": "To confirm this sensitive action, enter your current password.",
           "passwordLabel": "Password",
@@ -2043,7 +2085,7 @@
           "patternLetterOnly": "Letter only",
           "patternNumberOnly": "Number only",
           "defaultFloors": "Default floors",
-          "defaultFloorsHint": "Will be applied to all generated buildings (optional)",
+          "defaultFloorsHint": "Will be applied to all generated buildings",
           "prefixRequired": "Prefix is required",
           "countRequired": "Count is required",
           "maxLetterBuildings": "Maximum 26 buildings with letter pattern",
@@ -2103,7 +2145,7 @@
           "patternBldgFloorNumber": "Building + Floor + Number",
           "patternBldgFloorLetter": "Building + Floor + Letter",
           "separator": "Separator",
-          "defaultValues": "Default values (optional)",
+          "defaultValues": "Default values",
           "defaultValuesHint": "These values will be applied as defaults to all generated units. You can edit them individually later in the Units step.",
           "preview": "Preview",
           "generate": "Generate units",
@@ -2229,7 +2271,7 @@
             "code": "Code",
             "codePlaceholder": "e.g. TA-01",
             "address": "Address",
-            "addressPlaceholder": "Building address (optional)",
+            "addressPlaceholder": "Building address",
             "floors": "Number of Floors",
             "bankInfo": "Bank Information",
             "bankAccountHolder": "Account Holder",
@@ -2575,7 +2617,7 @@
         "roleAssignmentTitle": "Role Assignment",
         "roleAssignmentDescription": "Select the role and condominium (if applicable) for the user",
         "permissions": "Permissions",
-        "permissionsDescription": "Customize permissions for this user (optional)",
+        "permissionsDescription": "Customize permissions for this user",
         "noPermissions": "No permissions available for this role",
         "steps": {
           "basic": "Basic Information",
@@ -2678,7 +2720,7 @@
           "lastNameDescription": "User's legal last name as it appears on their identification document",
           "displayName": "Display Name",
           "displayNamePlaceholder": "John Doe",
-          "displayNameDescription": "Name to be displayed on the platform (optional)",
+          "displayNameDescription": "Name to be displayed on the platform",
           "phoneCountryCode": "Country code",
           "phoneNumber": "Phone",
           "phoneNumberPlaceholder": "4121234567",
@@ -2912,7 +2954,7 @@
           },
           "description": {
             "label": "Description",
-            "placeholder": "Rate description (optional)"
+            "placeholder": "Rate description"
           },
           "condominiumRate": {
             "label": "Condominium Rate",
@@ -2944,7 +2986,7 @@
             "placeholder": "Select a date"
           },
           "effectiveUntil": {
-            "label": "Effective until (optional)",
+            "label": "Effective until",
             "placeholder": "Select a date"
           },
           "isActive": {
@@ -3085,7 +3127,7 @@
               "placeholder": "Select a date"
             },
             "source": {
-              "label": "Source (optional)",
+              "label": "Source",
               "placeholder": "E.g.: ECB, Manual"
             }
           },
@@ -3146,7 +3188,7 @@
         "summary": "Summary",
         "summaryPlaceholder": "Brief description of the terms",
         "effectiveFrom": "Effective from",
-        "effectiveUntil": "Effective until (optional)",
+        "effectiveUntil": "Effective until",
         "isActive": "Active",
         "cancel": "Cancel",
         "save": "Save",
@@ -3360,7 +3402,7 @@
         "allocateModal": {
           "title": "Allocate Excess to Quota",
           "selectQuota": "Select destination quota",
-          "notes": "Resolution notes (optional)",
+          "notes": "Resolution notes",
           "notesPlaceholder": "Enter allocation details...",
           "confirm": "Allocate excess",
           "success": "Excess allocated successfully",
@@ -3805,6 +3847,162 @@
         "days90Plus": "90+ days"
       }
     },
+    "billingReceipts": {
+      "title": "Receipts",
+      "subtitle": "Receipts generated by billing channels",
+      "empty": "No receipts generated",
+      "receiptNumber": "Receipt #",
+      "period": "Period",
+      "total": "Total",
+      "dueDate": "Due Date",
+      "status": "Status",
+      "statuses": {
+        "draft": "Draft",
+        "issued": "Issued",
+        "paid": "Paid",
+        "partial": "Partial",
+        "voided": "Voided"
+      },
+      "detail": {
+        "title": "Receipt Detail",
+        "status": "Status",
+        "period": "Period",
+        "dueDate": "Due Date",
+        "totalAmount": "Total Due",
+        "breakdown": "Amounts Breakdown",
+        "subtotal": "Subtotal",
+        "reserveFund": "Reserve Fund",
+        "previousBalance": "Previous Balance",
+        "interest": "Interest",
+        "lateFee": "Late Fee",
+        "discount": "Discount",
+        "total": "Total",
+        "notes": "Notes",
+        "void": "Void Receipt",
+        "voidConfirm": "This action will void the receipt and reverse all associated charges. This cannot be undone.",
+        "voidReason": "Void reason",
+        "voidReasonPlaceholder": "Enter reason (minimum 10 characters)",
+        "voidReasonBanner": "Void reason",
+        "replacesReceipt": "This receipt replaces a voided receipt",
+        "cancel": "Cancel",
+        "notFound": "Receipt not found"
+      },
+      "generate": "Generate Receipt",
+      "emptyDescription": "Generate your first condominium receipt"
+    },
+    "billingCharges": {
+      "title": "Charges",
+      "subtitle": "All generated charges",
+      "empty": "No charges recorded",
+      "description": "Description",
+      "period": "Period",
+      "amount": "Amount",
+      "balance": "Balance",
+      "status": "Status",
+      "statuses": {
+        "pending": "Pending",
+        "partial": "Partial",
+        "paid": "Paid",
+        "cancelled": "Cancelled",
+        "exonerated": "Exonerated"
+      },
+      "detail": {
+        "title": "Charge Detail",
+        "notFound": "Charge not found",
+        "creditNote": "Credit Note",
+        "paidAmount": "Paid Amount",
+        "cancelCharge": "Cancel Charge",
+        "cancelConfirmTitle": "Cancel Charge",
+        "cancelConfirmMessage": "This action will cancel the charge and cannot be undone.",
+        "issueCreditNote": "Issue Credit Note",
+        "creditNoteAmount": "Amount",
+        "creditNoteReason": "Reason",
+        "creditNoteReasonPlaceholder": "Enter the reason (minimum 10 characters)",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "issue": "Issue",
+        "cancelledInfo": "This charge was cancelled",
+        "sourceCharge": "Source charge",
+        "supportDocuments": "Support documents",
+        "supportDocumentsDesc": "Attach invoices, receipts or other documents that justify this charge",
+        "uploadDocument": "Upload document",
+        "noDocuments": "No documents attached",
+        "uploading": "Uploading...",
+        "documentUploaded": "Document uploaded successfully",
+        "documentUploadError": "Error uploading document",
+        "invalidFileType": "File type not allowed",
+        "fileTooLarge": "File is too large"
+      }
+    },
+    "monthlyBilling": {
+      "title": "Monthly Billing",
+      "subtitle": "Generate monthly charges for your condominium",
+      "generate": "Generate Charges",
+      "history": "History",
+      "noHistory": "No periods generated",
+      "noHistoryDescription": "Generate your first billing period",
+      "period": "Period",
+      "totalReceipts": "Receipts generated",
+      "generatedAt": "Generated on",
+      "form": {
+        "title": "Generate Period Charges",
+        "periodYear": "Year",
+        "periodMonth": "Month",
+        "dueDay": "Due day",
+        "distributionMethod": "Distribution method",
+        "currency": "Currency",
+        "condominium": "Condominium",
+        "condominiumPlaceholder": "Select a condominium",
+        "currencyPlaceholder": "Select currency",
+        "addConcept": "Add concept",
+        "conceptName": "Concept",
+        "conceptNamePlaceholder": "Select a concept",
+        "conceptAmount": "Total amount",
+        "conceptDescription": "Description",
+        "removeConcept": "Remove",
+        "preview": "Preview",
+        "confirm": "Confirm & Generate",
+        "cancel": "Cancel",
+        "generating": "Generating...",
+        "success": "Charges generated successfully",
+        "error": "Error generating charges",
+        "minOneConcept": "You must add at least one concept",
+        "attachDocument": "Attach invoice",
+        "uploadError": "Error uploading document",
+        "assemblyMinute": "Assembly minute",
+        "assemblyMinutePlaceholder": "Select an assembly minute",
+        "noAssemblyMinute": "No assembly minute",
+        "distributionMethods": {
+          "by_aliquot": "By aliquot",
+          "equal_split": "Equal split",
+          "fixed_per_unit": "Fixed per unit"
+        },
+        "months": {
+          "1": "January",
+          "2": "February",
+          "3": "March",
+          "4": "April",
+          "5": "May",
+          "6": "June",
+          "7": "July",
+          "8": "August",
+          "9": "September",
+          "10": "October",
+          "11": "November",
+          "12": "December"
+        }
+      },
+      "preview": {
+        "title": "Distribution Preview",
+        "unit": "Unit",
+        "aliquot": "Aliquot",
+        "total": "Total",
+        "grandTotal": "Grand Total",
+        "aliquotSum": "Aliquot sum",
+        "close": "Close",
+        "confirmGenerate": "Confirm & Generate"
+      }
+    },
     "budgets": {
       "title": "Budgets",
       "subtitle": "Manage condominium budgets",
@@ -3876,6 +4074,7 @@
     "createBudget": {
       "title": "Create Budget",
       "subtitle": "Define a new budget for the condominium",
+      "explanation": "A budget is the estimated common expenses of the condominium for a given period. The administrator defines how much each line item will cost (administration, electricity, water, security, etc.) and the system automatically calculates the fee for each unit based on its aliquot share.\n\nHow it works:\n1. Define line items and their estimated amounts\n2. The system totals everything + the reserve fund percentage\n3. That total is distributed among units by aliquot\n4. Each owner pays their proportional percentage\n\nThe reserve fund (minimum 10% per Art. 7 LPH) is a mandatory savings for major building repairs.",
       "back": "Back",
       "form": {
         "name": "Name",
@@ -3887,6 +4086,19 @@
         "currency": "Currency",
         "reserveFund": "Reserve fund",
         "notes": "Notes"
+      },
+      "tooltips": {
+        "name": "Identifying name for the budget. E.g.: 'April 2026 Budget' or 'Q2 Common Expenses'.",
+        "description": "Optional description with additional details about the budget scope or purpose.",
+        "type": "Monthly: one specific month. Quarterly: covers 3 months. Annual: covers the full year.",
+        "year": "Fiscal year this budget applies to.",
+        "month": "Specific month (only for monthly and quarterly budgets).",
+        "currency": "Currency in which all budget amounts are expressed.",
+        "reserveFund": "Percentage of the total allocated to the reserve fund (Art. 7 LPH requires minimum 10%).",
+        "notes": "Additional observations: assembly decisions, justifications, context.",
+        "itemDescription": "Expense concept: administration, electricity, water, security, elevator, cleaning, etc.",
+        "itemAmount": "Estimated amount for this concept in the budget period.",
+        "itemsTitle": "Line items are the expense categories that make up the budget. Each item represents a specific cost (e.g.: administration, electricity, security). The sum of all items plus the reserve fund determines the total fee distributed among units."
       },
       "items": {
         "title": "Budget Line Items",
@@ -3916,7 +4128,146 @@
     "receipts": {
       "title": "Condominium Receipts",
       "subtitle": "Manage monthly condominium receipts",
-      "generate": "Generate Receipts",
+      "generate": {
+        "title": "Generate Condominium Receipt",
+        "titleTooltip": "The condominium receipt is the legal document that details the common expenses for the period. It has executive force under Art. 14 of the Horizontal Property Law",
+        "subtitle": "Generate period charges for your condominium",
+        "back": "Back to Receipts",
+        "steps": {
+          "config": "Period",
+          "concepts": "Concepts",
+          "review": "Review"
+        },
+        "next": "Next",
+        "previous": "Previous",
+        "cancel": "Cancel",
+        "tooltips": {
+          "condominium": "Select the condominium for which you want to generate the receipt",
+          "periodYear": "Year of the billing period",
+          "periodMonth": "Month of the billing period",
+          "dueDay": "Day of the month when the payment is due. Late fees may apply after this date",
+          "distributionMethod": "By aliquot: each unit pays according to its participation percentage (Art. 7 HPL). Equal split: the total amount is divided equally among all units. Fixed per unit: each unit pays the exact amount specified",
+          "currency": "Currency in which the receipt will be issued. Amounts are frozen in this currency at the time of generation",
+          "assemblyMinute": "If this charge was approved at an owners' assembly, select the corresponding minutes as legal backing",
+          "concepts": "Define the concepts to be included in the receipt. Each concept will be distributed among the units according to the selected method"
+        },
+        "form": {
+          "periodYear": "Year",
+          "periodMonth": "Month",
+          "dueDay": "Due day",
+          "distributionMethod": "Distribution method",
+          "currency": "Currency",
+          "condominium": "Condominium",
+          "condominiumPlaceholder": "Select a condominium",
+          "currencyPlaceholder": "Select currency",
+          "addConcept": "Add concept",
+          "conceptName": "Concept",
+          "conceptNamePlaceholder": "Select a concept",
+          "conceptAmount": "Total amount",
+          "conceptDescription": "Description",
+          "removeConcept": "Remove",
+          "preview": "Preview",
+          "confirm": "Confirm & Generate",
+          "cancel": "Cancel",
+          "generating": "Generating...",
+          "success": "Receipt generated successfully",
+          "error": "Error generating receipt",
+          "minOneConcept": "You must add at least one concept",
+          "attachDocument": "Attach document",
+          "uploadError": "Error uploading document",
+          "assemblyMinute": "Assembly minute",
+          "assemblyMinutePlaceholder": "Select an assembly minute",
+          "noAssemblyMinute": "No assembly minute",
+          "distributionMethods": {
+            "by_aliquot": "By aliquot",
+            "equal_split": "Equal split",
+            "fixed_per_unit": "Fixed per unit"
+          },
+          "months": {
+            "1": "January",
+            "2": "February",
+            "3": "March",
+            "4": "April",
+            "5": "May",
+            "6": "June",
+            "7": "July",
+            "8": "August",
+            "9": "September",
+            "10": "October",
+            "11": "November",
+            "12": "December"
+          }
+        },
+        "review": {
+          "period": "Period",
+          "total": "Total"
+        },
+        "preview": {
+          "title": "Distribution Preview",
+          "unit": "Unit",
+          "aliquot": "Aliquot",
+          "total": "Total",
+          "grandTotal": "Grand Total",
+          "aliquotSum": "Aliquot sum",
+          "close": "Close",
+          "confirmGenerate": "Confirm & Generate"
+        },
+        "configTitle": "Period & Distribution",
+        "configTooltip": "Select the billing period, the distribution method across units, and the receipt currency",
+        "condominium": "Condominium",
+        "periodYear": "Year",
+        "periodMonth": "Month",
+        "dueDay": "Due day",
+        "distributionMethod": "Distribution method",
+        "distributionMethodTooltip": "By aliquot: each unit pays according to its participation percentage. Equal split: the amount is divided equally. Fixed: each unit pays the exact amount indicated",
+        "distributionMethods": {
+          "by_aliquot": "By aliquot",
+          "equal_split": "Equal split",
+          "fixed_per_unit": "Fixed per unit"
+        },
+        "currency": "Currency",
+        "assemblyMinute": "Assembly minute",
+        "assemblyMinuteTooltip": "If this charge was approved in a property owners assembly, select the corresponding minute as legal backing",
+        "noAssemblyMinute": "No assembly minute",
+        "conceptsTitle": "Concepts",
+        "conceptsTooltip": "Define the receipt concepts. According to the LPH, the receipt must include at minimum: Administration and Reserve Fund. Concepts are pre-loaded automatically if already registered.",
+        "concept": "Concept",
+        "amount": "Total amount",
+        "description": "Description",
+        "addConcept": "Add concept",
+        "total": "Total",
+        "reviewTitle": "Review",
+        "period": "Period",
+        "generate": "Confirm & Generate",
+        "error": "Error generating receipts",
+        "success": "Receipts generated successfully",
+        "months": {
+          "1": "January",
+          "2": "February",
+          "3": "March",
+          "4": "April",
+          "5": "May",
+          "6": "June",
+          "7": "July",
+          "8": "August",
+          "9": "September",
+          "10": "October",
+          "11": "November",
+          "12": "December"
+        },
+        "createConcept": "New Concept",
+        "createConceptTitle": "Create Concept",
+        "conceptName": "Concept name",
+        "conceptNamePlaceholder": "E.g.: Administration, Electricity, Water",
+        "conceptPlaceholder": "Select a concept",
+        "conceptCreated": "Concept created successfully",
+        "conceptCreateError": "Error creating concept",
+        "create": "Create",
+        "conceptCategory": "Category",
+        "generating": "Generating...",
+        "documentUploaded": "Document attached",
+        "documentUploadError": "Error uploading document"
+      },
       "bulkGenerate": "Bulk Generate",
       "empty": "No receipts generated",
       "loading": "Loading receipts...",
@@ -4006,7 +4357,7 @@
         "periodYear": "Year",
         "periodMonth": "Month",
         "currency": "Currency",
-        "budget": "Budget (optional)"
+        "budget": "Budget"
       },
       "bulkGenerate": "Generate Receipts for All Units",
       "success": "Receipts generated successfully",
@@ -4282,7 +4633,7 @@
         "reject": "Reject",
         "approveConfirm": "Are you sure you want to approve this request? A unit assignment and role will be created for the user.",
         "rejectTitle": "Reject Request",
-        "rejectNotesPlaceholder": "Reason for rejection (optional)"
+        "rejectNotesPlaceholder": "Reason for rejection"
       },
       "success": {
         "approved": "Request approved successfully",
@@ -4327,7 +4678,11 @@
         "budgets": "Budgets",
         "receipts": "Receipts",
         "bankReconciliation": "Bank Reconciliation",
-        "eventLogs": "Event Logs"
+        "eventLogs": "Event Logs",
+        "billingReceipts": "Receipts",
+        "billingCharges": "Charges",
+        "monthlyBilling": "Monthly Billing",
+        "charges": "Charges"
       },
       "myCompany": {
         "title": "My Company",
@@ -4601,7 +4956,7 @@
             "applyToAll": "Applies to all condominiums",
             "selectCondominiums": "Select condominiums",
             "displayName": "Display Name",
-            "notes": "Notes (optional)",
+            "notes": "Notes",
             "review": "Review",
             "create": "Create Account",
             "creating": "Creating...",
@@ -4762,7 +5117,7 @@
         "button": "Cancel Subscription",
         "title": "Cancel Subscription",
         "warning": "You are about to cancel the \"{name}\" subscription. This action cannot be undone.",
-        "reasonLabel": "Cancellation reason (optional)",
+        "reasonLabel": "Cancellation reason",
         "reasonPlaceholder": "Why do you want to cancel?",
         "passwordPrompt": "For security, enter your password to confirm.",
         "passwordLabel": "Password",
@@ -4907,6 +5262,8 @@
       },
       "create": "Register Condominium",
       "limitReached": "Limit reached",
+      "noActiveSubscription": "You don't have an active subscription. To create condominiums, you need to activate or purchase a plan.",
+      "limitReachedMessage": "You cannot create more condominiums. Your plan allows {max} condominiums and you currently have {current}.",
       "form": {
         "createTitle": "Register Condominium",
         "createSubtitle": "Register a new condominium for your management company"
@@ -4922,8 +5279,144 @@
           "payments": "Payments",
           "paymentConcepts": "Payment Concepts",
           "reserveFund": "Reserve Fund",
+          "assemblyMinutes": "Assembly Minutes",
           "accessRequests": "Access Requests",
-          "services": "Services"
+          "services": "Services",
+          "board": "Board of Directors",
+          "chargeTypes": "Concepts",
+          "receipts": "Receipts",
+          "charges": "Charges",
+          "budgets": "Budgets"
+        },
+        "assemblyMinutes": {
+          "title": "Assembly Minutes",
+          "subtitle": "Record of condominium property owner assemblies",
+          "create": "Register Minutes",
+          "empty": "No minutes registered",
+          "emptyDescription": "Register the minutes of property owner assemblies",
+          "table": {
+            "title": "Title",
+            "type": "Type",
+            "date": "Date",
+            "quorum": "Quorum",
+            "status": "Status"
+          },
+          "types": {
+            "ordinary": "Ordinary",
+            "extraordinary": "Extraordinary"
+          },
+          "statuses": {
+            "draft": "Draft",
+            "approved": "Approved",
+            "voided": "Voided"
+          },
+          "form": {
+            "title": "Minutes title",
+            "titlePlaceholder": "E.g.: Ordinary property owners assembly",
+            "assemblyType": "Assembly type",
+            "assemblyDate": "Assembly date",
+            "assemblyLocation": "Location",
+            "assemblyLocationPlaceholder": "E.g.: Multi-purpose room",
+            "quorumPercentage": "Quorum (%)",
+            "attendeesCount": "Attendees",
+            "totalUnits": "Total units",
+            "agenda": "Agenda",
+            "agendaPlaceholder": "Topics to discuss in the assembly...",
+            "notes": "Notes",
+            "notesPlaceholder": "Additional observations...",
+            "document": "Minutes document",
+            "uploadDocument": "Upload document",
+            "status": "Status"
+          },
+          "detail": {
+            "title": "Minutes Detail",
+            "info": "Assembly Information",
+            "content": "Content",
+            "document": "Document",
+            "noDocument": "No document attached",
+            "viewDocument": "View document",
+            "edit": "Edit",
+            "delete": "Delete",
+            "deleteConfirmTitle": "Delete minutes",
+            "deleteConfirmMessage": "This action cannot be undone. Are you sure?",
+            "cancel": "Cancel",
+            "confirm": "Delete"
+          }
+        },
+        "board": {
+          "title": "Board of Directors",
+          "subtitle": "Condominium board members and their positions",
+          "addMember": "Assign Member",
+          "removeMember": "Remove",
+          "empty": "Not assigned",
+          "emptyDescription": "Assign the members of the condominium board",
+          "positions": {
+            "president": "President",
+            "secretary": "Secretary",
+            "treasurer": "Treasurer",
+            "substitutePresident": "Substitute President",
+            "substituteSecretary": "Substitute Secretary",
+            "substituteTreasurer": "Substitute Treasurer"
+          },
+          "statuses": {
+            "active": "Active",
+            "inactive": "Inactive",
+            "replaced": "Replaced"
+          },
+          "form": {
+            "createTitle": "Assign Board Member",
+            "userId": "User",
+            "userIdPlaceholder": "User ID to assign",
+            "position": "Position",
+            "electedAt": "Election date",
+            "termEndsAt": "Term end date",
+            "assemblyMinuteId": "Assembly minute",
+            "notes": "Notes",
+            "notesPlaceholder": "Additional observations...",
+            "create": "Assign",
+            "creating": "Assigning...",
+            "success": "Member assigned successfully"
+          },
+          "removeConfirmTitle": "Remove member",
+          "removeConfirmMessage": "Are you sure you want to remove this board member?",
+          "cancel": "Cancel",
+          "confirm": "Remove",
+          "electedAt": "Elected",
+          "termEndsAt": "Term ends"
+        },
+        "chargeTypes": {
+          "title": "Concepts",
+          "subtitle": "Billing concepts for this condominium",
+          "create": "Create Concept",
+          "empty": "No concepts registered",
+          "emptyDescription": "Create billing concepts for this condominium",
+          "table": {
+            "name": "Name",
+            "category": "Category",
+            "defaultAmount": "Default Amount",
+            "recurring": "Recurring",
+            "actions": "Actions"
+          },
+          "categories": {
+            "ordinary": "Ordinary",
+            "extraordinary": "Extraordinary",
+            "reserve_fund": "Reserve Fund",
+            "social_benefits": "Social Benefits",
+            "non_common": "Non-Common",
+            "fine": "Fine",
+            "other": "Other"
+          },
+          "form": {
+            "name": "Name",
+            "namePlaceholder": "E.g.: Administration, Electricity, Water...",
+            "category": "Category",
+            "defaultAmount": "Default Amount",
+            "isRecurring": "Recurring charge",
+            "create": "Create",
+            "update": "Update",
+            "categoryPlaceholder": "Select a category"
+          },
+          "deleteConfirm": "Are you sure you want to delete this charge type? This action cannot be undone."
         },
         "reserveFund": {
           "title": "Reserve Fund",
@@ -5216,7 +5709,7 @@
               "effectiveFrom": "Effective From",
               "effectiveFromPlaceholder": "Select start date",
               "effectiveUntil": "Effective Until",
-              "effectiveUntilPlaceholder": "Select end date (optional)",
+              "effectiveUntilPlaceholder": "Select end date",
               "isRecurring": "Recurring Concept",
               "isRecurringHint": "Will be generated automatically based on the selected period",
               "recurrencePeriod": "Recurrence Period",
@@ -5635,7 +6128,7 @@
             "totalAmountTooltip": "Enter the amount manually or add items to calculate it automatically",
             "historyTemplate": "Use a previous execution as template",
             "noItemsHint": "No items. Add items to detail the costs.",
-            "itemNotesPlaceholder": "Item notes (optional)",
+            "itemNotesPlaceholder": "Item notes",
             "uploadFailed": "Upload failed",
             "savedFiles": "Saved files",
             "fileTooLarge": "File is too large",
@@ -6070,7 +6563,7 @@
         "allocateModal": {
           "title": "Apply Surplus to Quota",
           "selectQuota": "Select destination quota",
-          "notes": "Resolution notes (optional)",
+          "notes": "Resolution notes",
           "notesPlaceholder": "Enter the reason for allocation...",
           "confirm": "Apply surplus",
           "success": "Surplus applied successfully",
@@ -6161,6 +6654,18 @@
       "noAmenities": "No amenities found",
       "saveSuccess": "Amenity saved",
       "deleteSuccess": "Amenity deleted"
+    },
+    "charges": {
+      "title": "Charges",
+      "subtitle": "Independent charges outside the condominium receipt",
+      "empty": "No charges recorded",
+      "emptyDescription": "Independent charges will appear here",
+      "create": "Create Charge",
+      "comingSoon": "Coming soon",
+      "description": "Description",
+      "period": "Period",
+      "amount": "Amount",
+      "status": "Status"
     }
   },
   "subscription": {
@@ -6258,5 +6763,19 @@
     },
     "NO_ACTIVE_SUBSCRIPTION": "Your management company does not have an active subscription",
     "unknown": "An unexpected error occurred"
+  },
+  "chargeCategories": {
+    "ordinary": "Ordinary",
+    "extraordinary": "Extraordinary",
+    "reserve_fund": "Reserve Fund",
+    "social_benefits": "Social Benefits",
+    "non_common": "Non-Common",
+    "fine": "Fine",
+    "interest": "Interest",
+    "late_fee": "Late Fee",
+    "discount": "Discount",
+    "credit_note": "Credit Note",
+    "debit_note": "Debit Note",
+    "other": "Other"
   }
 }

@@ -1,7 +1,7 @@
 import { useApiMutation, useApiQuery } from './use-api-query'
 import type { TApiDataResponse } from '../types/api-responses'
 import type { ApiResponse } from '../types/http'
-import type { TCharge } from '@packages/domain'
+import type { TCharge, TDocument } from '@packages/domain'
 
 // ─── Query Keys ───
 
@@ -16,12 +16,12 @@ export const billingChargeKeys = {
 // ─── Hooks ───
 
 export function useBillingCharges(
-  params: { unitId?: string; channelId?: string; periodYear?: number; periodMonth?: number },
+  params: { unitId?: string; condominiumId?: string; periodYear?: number; periodMonth?: number },
   options?: { enabled?: boolean }
 ) {
   const searchParams = new URLSearchParams()
   if (params.unitId) searchParams.set('unitId', params.unitId)
-  if (params.channelId) searchParams.set('channelId', params.channelId)
+  if (params.condominiumId) searchParams.set('condominiumId', params.condominiumId)
   if (params.periodYear) searchParams.set('periodYear', String(params.periodYear))
   if (params.periodMonth) searchParams.set('periodMonth', String(params.periodMonth))
 
@@ -47,7 +47,7 @@ export function useCancelCharge(options?: {
   onError?: (error: Error) => void
 }) {
   return useApiMutation<TApiDataResponse<TCharge>, { chargeId: string }>({
-    path: '', // overridden per call
+    path: (vars) => `/billing/charges/${vars.chargeId}/cancel`,
     method: 'POST',
     config: {},
     onSuccess: options?.onSuccess,
@@ -81,5 +81,45 @@ export function useIssueDebitNote(chargeId: string, options?: {
     onSuccess: options?.onSuccess,
     onError: options?.onError,
     invalidateKeys: [billingChargeKeys.all, ['billing-ledger']],
+  })
+}
+
+// ─── Charge Documents ───
+
+export const chargeDocumentKeys = {
+  all: ['charge-documents'] as const,
+  byCharge: (chargeId: string) => [...chargeDocumentKeys.all, chargeId] as const,
+}
+
+export function useChargeDocuments(chargeId: string, options?: { enabled?: boolean }) {
+  return useApiQuery<TApiDataResponse<TDocument[]>>({
+    queryKey: chargeDocumentKeys.byCharge(chargeId),
+    path: `/documents/charge/${chargeId}`,
+    config: {},
+    enabled: options?.enabled ?? !!chargeId,
+  })
+}
+
+export function useCreateChargeDocument(options?: {
+  onSuccess?: (data: any) => void
+  onError?: (error: Error) => void
+}) {
+  return useApiMutation<TApiDataResponse<TDocument>, {
+    chargeId: string
+    title: string
+    fileUrl: string
+    fileName: string
+    fileSize: number
+    fileType: string
+    documentType: string
+    condominiumId: string
+    isPublic?: boolean
+  }>({
+    path: '/documents',
+    method: 'POST',
+    config: {},
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+    invalidateKeys: [chargeDocumentKeys.all],
   })
 }

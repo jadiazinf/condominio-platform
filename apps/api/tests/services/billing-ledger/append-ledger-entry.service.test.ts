@@ -5,14 +5,14 @@ import { AppendLedgerEntryService } from '@src/services/billing-ledger/append-le
 // ─── Mock types ───
 
 type TMockLedgerRepo = {
-  getLastEntry: (unitId: string, channelId: string) => Promise<TUnitLedgerEntry | null>
+  getLastEntry: (unitId: string, condominiumId: string) => Promise<TUnitLedgerEntry | null>
   appendEntry: (data: Omit<TUnitLedgerEntry, 'id' | 'createdAt'>) => Promise<TUnitLedgerEntry>
 }
 
 // ─── Helpers ───
 
 const unitId = '550e8400-e29b-41d4-a716-446655440020'
-const channelId = '550e8400-e29b-41d4-a716-446655440010'
+const condominiumId = '550e8400-e29b-41d4-a716-446655440010'
 const currencyId = '550e8400-e29b-41d4-a716-446655440040'
 
 let storedEntries: TUnitLedgerEntry[]
@@ -22,7 +22,7 @@ function makeEntry(overrides: Partial<TUnitLedgerEntry> = {}): TUnitLedgerEntry 
   return {
     id: `entry-${++entryIdCounter}`,
     unitId,
-    billingChannelId: channelId,
+    condominiumId: condominiumId,
     entryDate: '2026-03-05',
     entryType: 'debit',
     amount: '100.00',
@@ -51,7 +51,7 @@ describe('AppendLedgerEntryService', () => {
     mockLedgerRepo = {
       getLastEntry: async (uid: string, cid: string) => {
         const matching = storedEntries.filter(
-          e => e.unitId === uid && e.billingChannelId === cid
+          e => e.unitId === uid && e.condominiumId === cid
         )
         return matching.length > 0 ? matching[matching.length - 1]! : null
       },
@@ -69,7 +69,7 @@ describe('AppendLedgerEntryService', () => {
     it('should set runningBalance = amount for first debit', async () => {
       const result = await service.execute({
         unitId,
-        billingChannelId: channelId,
+        condominiumId: condominiumId,
         entryDate: '2026-03-05',
         entryType: 'debit',
         amount: '48500.00',
@@ -89,7 +89,7 @@ describe('AppendLedgerEntryService', () => {
     it('should set runningBalance = -amount for first credit', async () => {
       const result = await service.execute({
         unitId,
-        billingChannelId: channelId,
+        condominiumId: condominiumId,
         entryDate: '2026-03-15',
         entryType: 'credit',
         amount: '48500.00',
@@ -113,7 +113,7 @@ describe('AppendLedgerEntryService', () => {
 
       const result = await service.execute({
         unitId,
-        billingChannelId: channelId,
+        condominiumId: condominiumId,
         entryDate: '2026-04-05',
         entryType: 'debit',
         amount: '51200.00',
@@ -135,7 +135,7 @@ describe('AppendLedgerEntryService', () => {
 
       const result = await service.execute({
         unitId,
-        billingChannelId: channelId,
+        condominiumId: condominiumId,
         entryDate: '2026-03-15',
         entryType: 'credit',
         amount: '48500.00',
@@ -157,7 +157,7 @@ describe('AppendLedgerEntryService', () => {
 
       const result = await service.execute({
         unitId,
-        billingChannelId: channelId,
+        condominiumId: condominiumId,
         entryDate: '2026-03-15',
         entryType: 'credit',
         amount: '100.00',
@@ -179,7 +179,7 @@ describe('AppendLedgerEntryService', () => {
     it('should store payment currency details', async () => {
       const result = await service.execute({
         unitId,
-        billingChannelId: channelId,
+        condominiumId: condominiumId,
         entryDate: '2026-03-15',
         entryType: 'credit',
         amount: '45.00', // in channel currency (USD)
@@ -205,7 +205,7 @@ describe('AppendLedgerEntryService', () => {
     it('should reject amount <= 0', async () => {
       const result = await service.execute({
         unitId,
-        billingChannelId: channelId,
+        condominiumId: condominiumId,
         entryDate: '2026-03-05',
         entryType: 'debit',
         amount: '0',
@@ -224,7 +224,7 @@ describe('AppendLedgerEntryService', () => {
     it('should reject negative amount', async () => {
       const result = await service.execute({
         unitId,
-        billingChannelId: channelId,
+        condominiumId: condominiumId,
         entryDate: '2026-03-05',
         entryType: 'debit',
         amount: '-100.00',
@@ -245,7 +245,7 @@ describe('AppendLedgerEntryService', () => {
     it('should correctly track balance across charge → payment → charge → interest → payment', async () => {
       // 1. Charge: +48500
       const r1 = await service.execute({
-        unitId, billingChannelId: channelId, entryDate: '2026-01-05',
+        unitId, condominiumId: condominiumId, entryDate: '2026-01-05',
         entryType: 'debit', amount: '48500.00', currencyId,
         description: 'Recibo Ene', referenceType: 'charge', referenceId: 'c1',
       })
@@ -253,7 +253,7 @@ describe('AppendLedgerEntryService', () => {
 
       // 2. Payment: -48500
       const r2 = await service.execute({
-        unitId, billingChannelId: channelId, entryDate: '2026-01-15',
+        unitId, condominiumId: condominiumId, entryDate: '2026-01-15',
         entryType: 'credit', amount: '48500.00', currencyId,
         description: 'Pago Ene', referenceType: 'payment', referenceId: 'p1',
       })
@@ -261,7 +261,7 @@ describe('AppendLedgerEntryService', () => {
 
       // 3. Charge: +51200
       const r3 = await service.execute({
-        unitId, billingChannelId: channelId, entryDate: '2026-02-05',
+        unitId, condominiumId: condominiumId, entryDate: '2026-02-05',
         entryType: 'debit', amount: '51200.00', currencyId,
         description: 'Recibo Feb', referenceType: 'charge', referenceId: 'c2',
       })
@@ -269,7 +269,7 @@ describe('AppendLedgerEntryService', () => {
 
       // 4. Interest: +512
       const r4 = await service.execute({
-        unitId, billingChannelId: channelId, entryDate: '2026-02-28',
+        unitId, condominiumId: condominiumId, entryDate: '2026-02-28',
         entryType: 'debit', amount: '512.00', currencyId,
         description: 'Interés mora Feb', referenceType: 'interest', referenceId: 'i1',
       })
@@ -277,7 +277,7 @@ describe('AppendLedgerEntryService', () => {
 
       // 5. Partial payment: -30000
       const r5 = await service.execute({
-        unitId, billingChannelId: channelId, entryDate: '2026-03-10',
+        unitId, condominiumId: condominiumId, entryDate: '2026-03-10',
         entryType: 'credit', amount: '30000.00', currencyId,
         description: 'Pago parcial', referenceType: 'payment', referenceId: 'p2',
       })

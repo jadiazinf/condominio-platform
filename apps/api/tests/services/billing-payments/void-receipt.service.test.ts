@@ -3,12 +3,12 @@ import type { TBillingReceipt, TCharge, TPaymentAllocation } from '@packages/dom
 import { VoidReceiptService } from '@src/services/billing-payments/void-receipt.service'
 
 const receiptId = 'receipt-001'
-const channelId = 'channel-001'
+const condominiumId = 'channel-001'
 const unitId = 'unit-001'
 
 function makeReceipt(overrides: Partial<TBillingReceipt> = {}): TBillingReceipt {
   return {
-    id: receiptId, billingChannelId: channelId, unitId,
+    id: receiptId, condominiumId: condominiumId, unitId,
     periodYear: 2026, periodMonth: 3,
     receiptNumber: 'REC-LV-202603-0001', status: 'issued',
     issuedAt: new Date(), dueDate: '2026-03-28',
@@ -35,8 +35,8 @@ describe('VoidReceiptService', () => {
   beforeEach(() => {
     receiptState = makeReceipt()
     chargesState = [
-      { id: 'c1', billingChannelId: channelId, unitId, amount: '50000.00', isCredit: false, status: 'pending', paidAmount: '0', balance: '50000.00' } as TCharge,
-      { id: 'c2', billingChannelId: channelId, unitId, amount: '5000.00', isCredit: false, status: 'pending', paidAmount: '0', balance: '5000.00' } as TCharge,
+      { id: 'c1', condominiumId: condominiumId, unitId, amount: '50000.00', isCredit: false, status: 'pending', paidAmount: '0', balance: '50000.00' } as TCharge,
+      { id: 'c2', condominiumId: condominiumId, unitId, amount: '5000.00', isCredit: false, status: 'pending', paidAmount: '0', balance: '5000.00' } as TCharge,
     ]
     allocationsState = []
     ledgerEntries = []

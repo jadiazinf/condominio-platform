@@ -115,7 +115,9 @@ export const Textarea = forwardRef<HTMLTextAreaElement, ITextareaProps>(function
           content={tooltip}
           placement="right"
         >
-          <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
+          <button type="button" tabIndex={-1} className="inline-flex" onMouseDown={e => e.preventDefault()}>
+            <Info className="h-3.5 w-3.5 text-default-400 cursor-help" />
+          </button>
         </Tooltip>
       )}
     </span>

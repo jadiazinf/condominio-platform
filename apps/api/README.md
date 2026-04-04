@@ -1,197 +1,125 @@
 # CondominioApp API
 
-API backend para el sistema de gestión de condominios, construida con Hono, Bun y PostgreSQL.
+API REST para el sistema de gestion de condominios, construida con Hono, Bun y PostgreSQL.
 
-## Requisitos Previos
+## Requisitos
 
-- [Bun](https://bun.sh/) v1.0 o superior
-- [PostgreSQL](https://www.postgresql.org/) v15 o superior
+- [Bun](https://bun.sh/) >= 1.2.22
+- [PostgreSQL](https://www.postgresql.org/) >= 15
 
-## Instalación
+## Configuracion
 
-```bash
-# Desde la raíz del monorepo
-bun install
+### Variables de entorno
 
-# O desde este directorio
-cd Platform/apps/api
-bun install
-```
-
-## Configuración de Entorno
-
-### Archivo `.env` (desarrollo/producción)
-
-Crea un archivo `.env` en la raíz de `apps/api`:
+Crea `.env` en la raiz de `apps/api`:
 
 ```env
-# Base de datos (requerido)
+# Base de datos
 DATABASE_URL=postgresql://usuario:password@localhost:5432/condominio_db
 
 # Servidor
 NODE_ENV=development
 PORT=3000
 LOG_LEVEL=info
-
-# CORS (opcional)
 CORS_ORIGIN=*
 
-# Firebase (requerido para autenticación)
+# Firebase (autenticacion)
 FIREBASE_SERVICE_ACCOUNT={"type":"service_account","project_id":"..."}
 ```
 
-### Archivo `.env.test` (tests)
-
-Crea un archivo `.env.test` para los tests de integración:
+Para tests, crea `.env.test`:
 
 ```env
 TEST_DATABASE_URL=postgresql://usuario:password@localhost:5432/condominio_test
 ```
 
-> **Importante**: La base de datos de test (`condominio_test`) debe existir antes de ejecutar los tests.
+## Scripts
 
-### Crear las Bases de Datos
+### Desarrollo
 
-```bash
-# Conectar a PostgreSQL y crear las bases de datos
-psql -U usuario -h localhost -c "CREATE DATABASE condominio_db;"
-psql -U usuario -h localhost -c "CREATE DATABASE condominio_test;"
-```
+| Comando | Descripcion |
+|---------|-------------|
+| `bun dev` | Servidor con hot-reload |
+| `bun start` | Servidor de produccion (migra + inicia) |
+| `bun test` | Ejecuta tests |
+| `bun test:coverage` | Tests con cobertura |
+| `bun run typecheck` | Verifica tipos TypeScript |
+| `bun run lint` | Ejecuta ESLint |
+| `bun run format` | Formatea con Prettier |
 
-## Scripts Disponibles
+### Base de datos — Migraciones
 
-| Comando             | Descripción                            |
-| ------------------- | -------------------------------------- |
-| `bun start`         | Inicia el servidor                     |
-| `bun dev`           | Inicia el servidor con hot-reload      |
-| `bun test`          | Ejecuta los tests                      |
-| `bun test:coverage` | Ejecuta tests con reporte de cobertura |
-| `bun run typecheck` | Verifica tipos de TypeScript           |
-| `bun run lint`      | Ejecuta ESLint                         |
-| `bun run format`    | Formatea el código con Prettier        |
+| Comando | Descripcion | Cuando usar |
+|---------|-------------|-------------|
+| `bun drizzle:generate` | Genera migracion `.sql` desde el schema | Despues de cambiar el schema |
+| `bun drizzle:migrate` | Aplica migraciones pendientes | En desarrollo y automatico en deploy |
+| `bun drizzle:push` | Sincroniza schema directo (sin historial) | Solo desarrollo local rapido |
 
-### Comandos de Base de Datos (Drizzle)
+### Base de datos — Datos y estructura
 
-| Comando                         | Descripción                            |
-| ------------------------------- | -------------------------------------- |
-| `bun run drizzle:generate`      | Genera migraciones                     |
-| `bun run drizzle:migrate`       | Aplica migraciones pendientes          |
-| `bun run drizzle:push`          | Sincroniza schema con la base de datos |
-| `bun run drizzle:seed:location` | Ejecuta seed de ubicaciones            |
+| Comando | Descripcion |
+|---------|-------------|
+| `bun db:seed` | Poblar con datos iniciales |
+| `bun db:clean` | Limpiar datos de todas las tablas (TRUNCATE) |
+| `bun db:nuke` | Eliminar toda la estructura: tablas, tipos, schemas (DROP) |
+| `bun db:reset-migrations` | Eliminar archivos de migracion y resetear journal |
+| `bun db:rebuild` | Pipeline completo: nuke + reset + generate + migrate + seed |
 
-## Estructura del Proyecto
+## Estructura del proyecto
 
 ```
 apps/api/
 ├── src/
-│   ├── config/              # Validación de variables de entorno
-│   ├── database/
-│   │   ├── drizzle/         # Schema, migraciones y seeds
-│   │   ├── repositories/    # Capa de acceso a datos
-│   │   ├── service.ts       # Servicio singleton de BD
-│   │   └── types.ts         # Tipos de base de datos
+│   ├── config/                # Variables de entorno validadas
 │   ├── http/
-│   │   ├── server.ts        # Configuración del servidor Hono
-│   │   ├── context.ts       # Wrapper de contexto HTTP
-│   │   ├── endpoints.ts     # Definición de rutas
-│   │   ├── middlewares/     # Middlewares (auth, CORS, rate-limit)
-│   │   └── requests/        # Schemas de validación (Zod)
+│   │   ├── controllers/       # 71 controladores REST
+│   │   ├── endpoints/         # Definicion de rutas y composition root
+│   │   ├── middlewares/       # Auth, CORS, rate-limit, i18n
+│   │   └── requests/          # Schemas de validacion (Zod)
+│   ├── services/              # Logica de negocio
 │   ├── libs/
-│   │   └── firebase/        # Integración con Firebase Admin
-│   ├── locales/             # Archivos de internacionalización
-│   └── utils/               # Logger, helpers
+│   │   └── firebase/          # Firebase Admin SDK
+│   └── main.ts                # Entry point
+├── scripts/
+│   ├── start.ts               # Startup: migra BD + inicia servidor
+│   ├── db-clean.ts            # Limpieza de datos
+│   ├── db-nuke.ts             # Destruccion de estructura
+│   ├── db-rebuild.ts          # Pipeline de reconstruccion
+│   ├── db-reset-migrations.ts # Reset de migraciones
+│   └── db-seed.ts             # Seed de datos iniciales
+├── drizzle/                   # Archivos de migracion generados
 ├── tests/
-│   ├── setup/               # Configuración de tests
-│   │   ├── test-container.ts    # Conexión a BD de test
-│   │   ├── factories/           # Fábricas de datos fake
-│   │   └── preload.ts           # Setup global de tests
-│   └── database/
-│       └── repositories/    # Tests de repositorios
-├── .env                     # Variables de entorno (no commitear)
-├── .env.test                # Variables para tests (no commitear)
-├── bunfig.toml              # Configuración de Bun
-├── drizzle.config.ts        # Configuración de Drizzle
-├── tsconfig.json            # Configuración de TypeScript
+│   └── setup/                 # Configuracion de tests, factories
+├── drizzle.config.ts          # Configuracion de Drizzle
 └── package.json
 ```
 
-## Desarrollo
-
-### Iniciar el servidor de desarrollo
-
-```bash
-bun dev
-```
-
-El servidor estará disponible en `http://localhost:3000`.
-
-### Ejecutar tests
-
-```bash
-# Todos los tests
-bun test
-
-# Tests específicos
-bun test tests/database/repositories/currencies.repository.test.ts
-
-# Con cobertura
-bun test:coverage
-```
-
-### Verificar tipos
-
-```bash
-bun run typecheck
-```
+El schema de la base de datos esta en `packages/database/src/drizzle/schema/` (81 tablas).
 
 ## Arquitectura
 
-### Capa HTTP
+### Capas
 
-- **Hono**: Framework web minimalista y rápido
-- **HttpContext**: Wrapper que provee métodos tipados para respuestas HTTP
-- **Middlewares**: Seguridad, CORS, rate limiting (60 req/min), logging, i18n
+- **HTTP**: Hono con middlewares de seguridad, CORS, rate limiting y logging
+- **Servicios**: Pattern `TServiceResult<T>` con `success/failure`
+- **Repositorios**: Drizzle ORM con patron `withTx(tx)` para transacciones
+- **Autenticacion**: Firebase Admin SDK, verificacion de tokens JWT
 
-### Capa de Base de Datos
+### Flujo de migraciones en deploy
 
-- **Drizzle ORM**: ORM type-safe para PostgreSQL
-- **BaseRepository**: Clase abstracta con operaciones CRUD
-- **Repositorios**: Uno por cada entidad del dominio
+`start.ts` ejecuta `drizzle-kit migrate` automaticamente en cada deploy con reintentos.
+Las migraciones son idempotentes — solo se aplican las pendientes.
 
-### Autenticación
+**Regla**: En staging/produccion solo se usa `migrate`, nunca `push`.
 
-- **Firebase Admin SDK**: Verificación de tokens JWT
-- **Middleware de Auth**: Extrae y valida el usuario del token
+## Stack
 
-## Tecnologías Principales
-
-| Tecnología     | Versión | Uso                          |
-| -------------- | ------- | ---------------------------- |
-| Bun            | 1.x     | Runtime y gestor de paquetes |
-| Hono           | 4.x     | Framework HTTP               |
-| Drizzle ORM    | 0.44.x  | ORM para PostgreSQL          |
-| PostgreSQL     | 15+     | Base de datos                |
-| Zod            | 4.x     | Validación de schemas        |
-| Firebase Admin | 13.x    | Autenticación                |
-| Pino           | 10.x    | Logging                      |
-
-## Variables de Entorno
-
-| Variable                   | Requerida  | Default       | Descripción                     |
-| -------------------------- | ---------- | ------------- | ------------------------------- |
-| `DATABASE_URL`             | Sí         | -             | URL de conexión a PostgreSQL    |
-| `NODE_ENV`                 | No         | `development` | Entorno de ejecución            |
-| `PORT`                     | No         | `3000`        | Puerto del servidor             |
-| `LOG_LEVEL`                | No         | `info`        | Nivel de logging                |
-| `CORS_ORIGIN`              | No         | `*`           | Origen permitido para CORS      |
-| `FIREBASE_SERVICE_ACCOUNT` | Sí         | -             | Credenciales de Firebase (JSON) |
-| `TEST_DATABASE_URL`        | Solo tests | -             | URL de BD para tests            |
-
-## Contribuir
-
-1. Asegúrate de que los tests pasen: `bun test`
-2. Verifica los tipos: `bun run typecheck`
-3. Ejecuta el linter: `bun run lint`
-4. Formatea el código: `bun run format`
-
-El proyecto usa Husky para ejecutar verificaciones pre-commit automáticamente.
+| Tecnologia | Version | Uso |
+|------------|---------|-----|
+| Bun | 1.x | Runtime |
+| Hono | 4.x | Framework HTTP |
+| Drizzle ORM | 0.44.x | ORM PostgreSQL |
+| PostgreSQL | 15+ | Base de datos |
+| Zod | 4.x | Validacion |
+| Firebase Admin | 13.x | Autenticacion |
+| Pino | 10.x | Logging |

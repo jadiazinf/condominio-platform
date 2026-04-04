@@ -8,19 +8,19 @@ import type { TBillingReceipt } from '@packages/domain'
 export const billingReceiptKeys = {
   all: ['billing-receipts'] as const,
   lists: () => [...billingReceiptKeys.all, 'list'] as const,
-  byChannelAndPeriod: (channelId: string, year: number, month: number) =>
-    [...billingReceiptKeys.lists(), channelId, year, month] as const,
+  byCondominiumAndPeriod: (condominiumId: string, year: number, month: number) =>
+    [...billingReceiptKeys.lists(), condominiumId, year, month] as const,
   detail: (id: string) => [...billingReceiptKeys.all, 'detail', id] as const,
 }
 
 // ─── Hooks ───
 
 export function useBillingReceipts(
-  params: { channelId?: string; periodYear?: number; periodMonth?: number },
+  params: { condominiumId?: string; periodYear?: number; periodMonth?: number },
   options?: { enabled?: boolean }
 ) {
   const searchParams = new URLSearchParams()
-  if (params.channelId) searchParams.set('channelId', params.channelId)
+  if (params.condominiumId) searchParams.set('condominiumId', params.condominiumId)
   if (params.periodYear) searchParams.set('periodYear', String(params.periodYear))
   if (params.periodMonth) searchParams.set('periodMonth', String(params.periodMonth))
 

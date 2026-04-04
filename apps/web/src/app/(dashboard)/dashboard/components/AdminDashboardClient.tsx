@@ -1,16 +1,15 @@
 'use client'
 
 import type { ICondominium, IAdminPayment } from './admin'
-import type { TPayment, TQuota } from '@packages/domain'
+import type { TPayment, TCharge } from '@packages/domain'
 
 import { useMemo } from 'react'
 import { Building2, Wallet, AlertTriangle } from 'lucide-react'
 import {
   useCompanyCondominiumsPaginated,
   usePaymentsPaginated,
-  useQuotasOverdue,
+  useBillingCharges,
   usePaymentsByDateRange,
-  useQuotasByPeriod,
 } from '@packages/http-client'
 import { formatShortDate } from '@packages/utils/dates'
 
@@ -109,15 +108,21 @@ export function AdminDashboardClient({
   const { data: monthPaymentsData } = usePaymentsByDateRange(startDate, endDate)
   const monthPayments: TPayment[] = monthPaymentsData?.data ?? []
 
-  // Current month quotas (for expected amount)
+  // Current month billing charges (for expected amount)
   const now = new Date()
-  const { data: monthQuotasData } = useQuotasByPeriod(now.getFullYear(), now.getMonth() + 1)
-  const monthQuotas: TQuota[] = monthQuotasData?.data ?? []
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1
+  const { data: monthChargesData } = useBillingCharges(
+    { periodYear: currentYear, periodMonth: currentMonth }
+  )
+  const monthCharges: TCharge[] = monthChargesData?.data ?? []
 
-  // Overdue quotas (delinquency)
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], [])
-  const { data: overdueData } = useQuotasOverdue(todayStr)
-  const overdueQuotas: TQuota[] = overdueData?.data ?? []
+  // All billing charges (for delinquency — pending/partial)
+  const { data: allChargesData } = useBillingCharges({})
+  const allCharges: TCharge[] = allChargesData?.data ?? []
+  const overdueCharges = useMemo(() => {
+    return allCharges.filter(c => c.status === 'pending' || c.status === 'partial')
+  }, [allCharges])
 
   // ── Computed values ───────────────────────────────────────────────────────
 
@@ -128,28 +133,29 @@ export function AdminDashboardClient({
       .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
   }, [monthPayments])
 
-  // Monthly expected: sum of all quota base amounts this month
+  // Monthly expected: sum of all billing charge amounts this month
   const monthlyExpected = useMemo(() => {
-    return monthQuotas.reduce((sum, q) => sum + (parseFloat(q.baseAmount) || 0), 0)
-  }, [monthQuotas])
+    return monthCharges
+      .filter(c => !c.isCredit)
+      .reduce((sum, c) => sum + (parseFloat(c.amount) || 0), 0)
+  }, [monthCharges])
 
-  // Delinquency: sum of overdue quota balances
+  // Delinquency: sum of pending/partial charge balances
   const totalDelinquency = useMemo(() => {
-    return overdueQuotas.reduce((sum, q) => sum + (parseFloat(q.balance) || 0), 0)
-  }, [overdueQuotas])
+    return overdueCharges.reduce((sum, c) => sum + (parseFloat(c.balance) || 0), 0)
+  }, [overdueCharges])
 
   // Active condominiums count
   const activeCondoCount = useMemo(() => {
     return condominiums.filter((c: any) => c.isActive).length
   }, [condominiums])
 
-  // Currency symbol from first payment or quota
+  // Currency symbol from first payment (charges don't carry currency relations)
   const currencySymbol = useMemo(() => {
     const fromPayment = recentPayments.find((p: any) => p.currency)?.currency?.symbol
-    const fromQuota = monthQuotas.find((q: TQuota) => q.currency)?.currency?.symbol
 
-    return fromPayment ?? fromQuota ?? '$'
-  }, [recentPayments, monthQuotas])
+    return fromPayment ?? '$'
+  }, [recentPayments])
 
   // Mapped data for sub-components
   const mappedCondominiums = useMemo(() => mapCondominiums(condominiums), [condominiums])
@@ -190,13 +196,13 @@ export function AdminDashboardClient({
         />
 
         <AdminKpiStat
-          change={`${overdueQuotas.length}`}
+          change={`${overdueCharges.length}`}
           changeType={totalDelinquency > 0 ? 'negative' : 'positive'}
           icon={<AlertTriangle className="text-danger" size={20} />}
           iconBg="bg-danger-50"
           title={t('admin.dashboard.kpi.delinquency')}
           value={`${currencySymbol} ${totalDelinquency.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          viewAllHref="/dashboard/quotas"
+          viewAllHref="/dashboard/billing-charges"
           viewAllLabel={t('admin.dashboard.kpi.viewDelinquency')}
         />
 

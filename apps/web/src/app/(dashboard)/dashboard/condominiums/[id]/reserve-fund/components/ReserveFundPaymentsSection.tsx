@@ -8,7 +8,6 @@ import { CreditCard } from 'lucide-react'
 import {
   useReserveFundPaymentsPaginated,
   useCondominiumUnits,
-  useMyCompanyPaymentConceptsPaginated,
 } from '@packages/http-client/hooks'
 
 import { DatePicker } from '@/ui/components/date-picker'
@@ -41,7 +40,6 @@ export function ReserveFundPaymentsSection({
   translations: t,
 }: ReserveFundPaymentsSectionProps) {
   const [unitFilter, setUnitFilter] = useState<string>('all')
-  const [conceptFilter, setConceptFilter] = useState<string>('all')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [page, setPage] = useState(1)
@@ -54,20 +52,7 @@ export function ReserveFundPaymentsSection({
     enabled: !!condominiumId,
   })
 
-  // Fetch active reserve_fund concepts for the filter dropdown
-  const { data: conceptsData } = useMyCompanyPaymentConceptsPaginated({
-    companyId: managementCompanyId,
-    query: {
-      conceptType: 'reserve_fund',
-      condominiumId,
-      isActive: true,
-      limit: 100,
-    },
-    enabled: !!managementCompanyId,
-  })
-
   const units = unitsData?.data ?? []
-  const concepts = conceptsData?.data ?? []
 
   const unitFilterItems: ISelectItem[] = useMemo(
     () => [
@@ -79,27 +64,16 @@ export function ReserveFundPaymentsSection({
     [units, t]
   )
 
-  const conceptFilterItems: ISelectItem[] = useMemo(
-    () => [
-      { key: 'all', label: t.filters.allConcepts },
-      ...concepts
-        .map(c => ({ key: c.id, label: c.name }))
-        .sort((a, b) => a.label.localeCompare(b.label)),
-    ],
-    [concepts, t]
-  )
-
   const query: TReserveFundPaymentsQuery = useMemo(
     () => ({
       page,
       limit,
       condominiumId,
       unitId: unitFilter === 'all' ? undefined : unitFilter,
-      conceptId: conceptFilter === 'all' ? undefined : conceptFilter,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
     }),
-    [page, limit, condominiumId, unitFilter, conceptFilter, startDate, endDate]
+    [page, limit, condominiumId, unitFilter, startDate, endDate]
   )
 
   const { data, isLoading } = useReserveFundPaymentsPaginated({
@@ -114,13 +88,6 @@ export function ReserveFundPaymentsSection({
   const handleUnitChange = useCallback((key: string | null) => {
     if (key) {
       setUnitFilter(key)
-      setPage(1)
-    }
-  }, [])
-
-  const handleConceptChange = useCallback((key: string | null) => {
-    if (key) {
-      setConceptFilter(key)
       setPage(1)
     }
   }, [])
@@ -210,14 +177,6 @@ export function ReserveFundPaymentsSection({
           value={unitFilter}
           variant="bordered"
           onChange={handleUnitChange}
-        />
-        <Select
-          className="w-full sm:w-56"
-          items={conceptFilterItems}
-          label={t.filters.concept}
-          value={conceptFilter}
-          variant="bordered"
-          onChange={handleConceptChange}
         />
         <DatePicker
           className="w-full sm:w-44"

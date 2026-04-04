@@ -50,6 +50,8 @@ export const paymentSchema = baseModelSchema.extend({
   verifiedBy: z.uuid().nullable(),
   verifiedAt: timestampField.nullable(),
   verificationNotes: z.string().nullable(),
+  // Billing model fields
+  billingReceiptId: z.uuid().nullable().optional(),
   // Relations
   user: userSchema.optional(),
   unit: unitSchema.optional(),

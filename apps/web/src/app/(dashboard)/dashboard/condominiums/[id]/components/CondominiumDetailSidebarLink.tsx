@@ -14,6 +14,12 @@ import {
   UserPlus,
   Wrench,
   PiggyBank,
+  ScrollText,
+  Shield,
+  Tag,
+  FileSpreadsheet,
+  Calculator,
+  DollarSign,
 } from 'lucide-react'
 
 import { Link } from '@/ui/components/link'
@@ -30,6 +36,12 @@ const ICONS = {
   'user-plus': UserPlus,
   wrench: Wrench,
   'piggy-bank': PiggyBank,
+  'scroll-text': ScrollText,
+  'file-spreadsheet': FileSpreadsheet,
+  calculator: Calculator,
+  'dollar-sign': DollarSign,
+  shield: Shield,
+  tag: Tag,
 } as const
 
 interface ICondominiumDetailSidebarLinkProps {
@@ -57,6 +69,8 @@ export function CondominiumDetailSidebarLink({
         isActive && 'bg-default-100 text-foreground font-medium border-2 border-primary'
       )}
       href={href}
+      color="foreground"
+      underline="none"
     >
       <Icon className={cn('w-5 h-5', isActive && 'text-primary')} />
       <span className="text-sm">{label}</span>

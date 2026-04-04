@@ -18,25 +18,7 @@ export const ownershipTypeEnum = pgEnum('ownership_type', [
 // PAYMENT ENUMS
 // ============================================================================
 
-export const conceptTypeEnum = pgEnum('concept_type', [
-  'maintenance',
-  'condominium_fee',
-  'extraordinary',
-  'fine',
-  'reserve_fund',
-  'other',
-])
-
 export const interestTypeEnum = pgEnum('interest_type', ['simple', 'compound', 'fixed_amount'])
-
-export const quotaStatusEnum = pgEnum('quota_status', [
-  'pending',
-  'partial',
-  'paid',
-  'overdue',
-  'cancelled',
-  'exonerated',
-])
 
 export const gatewayTypeEnum = pgEnum('gateway_type', [
   'stripe',
@@ -136,46 +118,6 @@ export const deliveryStatusEnum = pgEnum('delivery_status', [
   'bounced',
 ])
 
-// ============================================================================
-// QUOTA GENERATION ENUMS
-// ============================================================================
-
-export const adjustmentTypeEnum = pgEnum('adjustment_type', [
-  'discount',
-  'increase',
-  'correction',
-  'waiver',
-  'exoneration',
-  'credit_note',
-])
-
-export const formulaTypeEnum = pgEnum('formula_type', ['fixed', 'expression', 'per_unit'])
-
-export const frequencyTypeEnum = pgEnum('frequency_type', [
-  'days',
-  'monthly',
-  'quarterly',
-  'semi_annual',
-  'annual',
-])
-
-export const generationMethodEnum = pgEnum('generation_method', [
-  'manual_single',
-  'manual_batch',
-  'scheduled',
-  'range',
-  'bulk',
-])
-
-export const generationStatusEnum = pgEnum('generation_status', ['completed', 'partial', 'failed'])
-
-export const allocationStatusEnum = pgEnum('allocation_status', [
-  'pending',
-  'allocated',
-  'refunded',
-  'refund_pending',
-  'refund_failed',
-])
 
 // ============================================================================
 // ADMIN INVITATION ENUMS
@@ -321,28 +263,10 @@ export const bankAccountCategoryEnum = pgEnum('bank_account_category', [
 
 export const veAccountTypeEnum = pgEnum('ve_account_type', ['corriente', 'ahorro', 'divisas'])
 
-// ============================================================================
-// PAYMENT CONCEPT ASSIGNMENT ENUMS
-// ============================================================================
-
-export const assignmentScopeEnum = pgEnum('assignment_scope', ['condominium', 'building', 'unit'])
-
 export const distributionMethodEnum = pgEnum('distribution_method', [
   'by_aliquot',
   'equal_split',
   'fixed_per_unit',
-])
-
-export const chargeAdjustmentTypeEnum = pgEnum('charge_adjustment_type', [
-  'percentage',
-  'fixed',
-  'none',
-])
-
-export const chargeGenerationStrategyEnum = pgEnum('charge_generation_strategy', [
-  'auto',
-  'bulk',
-  'manual',
 ])
 
 // ============================================================================
@@ -354,16 +278,25 @@ export const budgetStatusEnum = pgEnum('budget_status', ['draft', 'approved', 'a
 export const budgetTypeEnum = pgEnum('budget_type', ['monthly', 'quarterly', 'annual'])
 
 // ============================================================================
-// CONDOMINIUM RECEIPT ENUMS
-// ============================================================================
-
-export const receiptStatusEnum = pgEnum('receipt_status', ['draft', 'generated', 'sent', 'voided'])
-
-// ============================================================================
 // WIZARD DRAFT ENUMS
 // ============================================================================
 
 export const wizardTypeEnum = pgEnum('wizard_type', ['payment_concept'])
+
+// ============================================================================
+// ASSEMBLY MINUTE ENUMS
+// ============================================================================
+
+export const assemblyTypeEnum = pgEnum('assembly_type', [
+  'ordinary',
+  'extraordinary',
+])
+
+export const assemblyMinuteStatusEnum = pgEnum('assembly_minute_status', [
+  'draft',
+  'approved',
+  'voided',
+])
 
 // ============================================================================
 // BANK RECONCILIATION ENUMS
@@ -436,42 +369,13 @@ export const bankPaymentMethodEnum = pgEnum('bank_payment_method', [
 ])
 
 // ============================================================================
-// BILLING CHANNEL ENUMS (Fase 4.7 — Billing Restructure)
+// BILLING ENUMS (Fase 5 — Direct Monthly Billing)
 // ============================================================================
 
-export const channelTypeEnum = pgEnum('channel_type', ['receipt', 'standalone'])
-
-export const billingFrequencyEnum = pgEnum('billing_frequency', [
-  'monthly',
-  'quarterly',
-  'semi_annual',
-  'annual',
-  'one_time',
-])
-
-export const generationStrategyEnum = pgEnum('generation_strategy', ['auto', 'manual'])
-
-export const feeTypeEnum = pgEnum('fee_type', ['percentage', 'fixed', 'none'])
-
-export const allocationStrategyEnum = pgEnum('allocation_strategy', [
-  'fifo',
-  'designated',
-  'fifo_interest_first',
-])
-
-export const chargeCategoryEnum = pgEnum('charge_category', [
-  'ordinary',
-  'extraordinary',
-  'reserve_fund',
-  'social_benefits',
-  'non_common',
-  'fine',
-  'interest',
-  'late_fee',
-  'discount',
-  'credit_note',
-  'debit_note',
-  'other',
+export const receiptTypeEnum = pgEnum('receipt_type', [
+  'original',
+  'complementary',
+  'corrective',
 ])
 
 export const chargeStatusEnum = pgEnum('charge_status', [
@@ -509,4 +413,29 @@ export const interestCapTypeEnum = pgEnum('interest_cap_type', [
   'percentage_of_principal',
   'fixed',
   'none',
+])
+
+export const allocationStrategyEnum = pgEnum('allocation_strategy', [
+  'fifo',
+  'designated',
+  'fifo_interest_first',
+])
+
+// ============================================================================
+// CONDOMINIUM BOARD ENUMS
+// ============================================================================
+
+export const boardPositionEnum = pgEnum('board_position', [
+  'president',
+  'secretary',
+  'treasurer',
+  'substitute_president',
+  'substitute_secretary',
+  'substitute_treasurer',
+])
+
+export const boardMemberStatusEnum = pgEnum('board_member_status', [
+  'active',
+  'inactive',
+  'replaced',
 ])

@@ -9,7 +9,6 @@ export const documentCreateSchema = documentSchema.omit({
   unit: true,
   user: true,
   payment: true,
-  quota: true,
   expense: true,
   createdByUser: true,
 })

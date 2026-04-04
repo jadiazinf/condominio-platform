@@ -3,18 +3,18 @@ import { type TServiceResult, success } from '../base.service'
 import { parseAmount, toDecimal } from '@packages/utils/money'
 
 type TLedgerRepo = {
-  getLastEntryBefore: (unitId: string, channelId: string, beforeDate: string) => Promise<TUnitLedgerEntry | null>
-  getEntries: (unitId: string, channelId: string, fromDate: string, toDate: string) => Promise<TUnitLedgerEntry[]>
-  getLastEntry: (unitId: string, channelId: string) => Promise<TUnitLedgerEntry | null>
+  getLastEntryBefore: (unitId: string, condominiumId: string, beforeDate: string) => Promise<TUnitLedgerEntry | null>
+  getEntries: (unitId: string, condominiumId: string, fromDate: string, toDate: string) => Promise<TUnitLedgerEntry[]>
+  getLastEntry: (unitId: string, condominiumId: string) => Promise<TUnitLedgerEntry | null>
 }
 
 type TChargesRepo = {
-  findPendingByUnitAndChannel: (unitId: string, channelId: string) => Promise<TCharge[]>
+  findPendingByUnitAndCondominium: (unitId: string, condominiumId: string) => Promise<TCharge[]>
 }
 
 export interface IAccountStatementInput {
   unitId: string
-  billingChannelId: string
+  condominiumId: string
   fromDate: string
   toDate: string
 }
@@ -38,7 +38,7 @@ export interface IAging {
 
 export interface IAccountStatementOutput {
   unitId: string
-  billingChannelId: string
+  condominiumId: string
   fromDate: string
   toDate: string
   initialBalance: string
@@ -59,17 +59,17 @@ export class GetAccountStatementService {
   }
 
   async execute(input: IAccountStatementInput): Promise<TServiceResult<IAccountStatementOutput>> {
-    const { unitId, billingChannelId, fromDate, toDate } = input
+    const { unitId, condominiumId, fromDate, toDate } = input
 
     // Initial balance
-    const initialEntry = await this.ledgerRepo.getLastEntryBefore(unitId, billingChannelId, fromDate)
+    const initialEntry = await this.ledgerRepo.getLastEntryBefore(unitId, condominiumId, fromDate)
     const initialBalance = initialEntry ? initialEntry.runningBalance : '0'
 
     // Entries in range
-    const entries = await this.ledgerRepo.getEntries(unitId, billingChannelId, fromDate, toDate)
+    const entries = await this.ledgerRepo.getEntries(unitId, condominiumId, fromDate, toDate)
 
     // Current balance
-    const lastEntry = await this.ledgerRepo.getLastEntry(unitId, billingChannelId)
+    const lastEntry = await this.ledgerRepo.getLastEntry(unitId, condominiumId)
     const currentBalance = lastEntry ? lastEntry.runningBalance : '0'
 
     // Totals
@@ -93,12 +93,12 @@ export class GetAccountStatementService {
     })
 
     // Aging
-    const pendingCharges = await this.chargesRepo.findPendingByUnitAndChannel(unitId, billingChannelId)
+    const pendingCharges = await this.chargesRepo.findPendingByUnitAndCondominium(unitId, condominiumId)
     const aging = this.calculateAging(pendingCharges)
 
     return success({
       unitId,
-      billingChannelId,
+      condominiumId,
       fromDate,
       toDate,
       initialBalance,

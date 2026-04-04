@@ -3,13 +3,13 @@ import type { TUnitLedgerEntry } from '@packages/domain'
 
 describe('UnitLedgerRepository', () => {
   const unitId = '550e8400-e29b-41d4-a716-446655440020'
-  const channelId = '550e8400-e29b-41d4-a716-446655440010'
+  const condominiumId = '550e8400-e29b-41d4-a716-446655440010'
   const currencyId = '550e8400-e29b-41d4-a716-446655440040'
 
   const makeEntry = (overrides: Partial<TUnitLedgerEntry> = {}): TUnitLedgerEntry => ({
     id: '550e8400-e29b-41d4-a716-446655440001',
     unitId,
-    billingChannelId: channelId,
+    condominiumId: condominiumId,
     entryDate: '2026-03-05',
     entryType: 'debit',
     amount: '52798.11',

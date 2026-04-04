@@ -8,7 +8,7 @@ import {
   decimal,
 } from 'drizzle-orm/pg-core'
 import { units } from './units'
-import { billingChannels } from './billing-channels'
+import { condominiums } from './condominiums'
 import { currencies } from './currencies'
 import { exchangeRates } from './exchange-rates'
 import { users } from './users'
@@ -21,9 +21,9 @@ export const unitLedgerEntries = pgTable(
     unitId: uuid('unit_id')
       .notNull()
       .references(() => units.id, { onDelete: 'cascade' }),
-    billingChannelId: uuid('billing_channel_id')
+    condominiumId: uuid('condominium_id')
       .notNull()
-      .references(() => billingChannels.id, { onDelete: 'cascade' }),
+      .references(() => condominiums.id, { onDelete: 'cascade' }),
     entryDate: date('entry_date').notNull(),
     entryType: ledgerEntryTypeEnum('entry_type').notNull(),
     amount: decimal('amount', { precision: 15, scale: 2 }).notNull(),
@@ -47,10 +47,10 @@ export const unitLedgerEntries = pgTable(
     createdAt: timestamp('created_at').defaultNow(),
   },
   table => [
-    index('idx_ledger_unit_channel_date').on(table.unitId, table.billingChannelId, table.entryDate),
-    index('idx_ledger_unit_channel_created').on(
+    index('idx_ledger_unit_condo_date').on(table.unitId, table.condominiumId, table.entryDate),
+    index('idx_ledger_unit_condo_created').on(
       table.unitId,
-      table.billingChannelId,
+      table.condominiumId,
       table.createdAt
     ),
     index('idx_ledger_reference').on(table.referenceType, table.referenceId),

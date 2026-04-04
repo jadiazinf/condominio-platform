@@ -1,85 +1,40 @@
 import { DatabaseService } from '@database/service'
-import { UserRolesRepository, QuotaGenerationLogsRepository } from '@database/repositories'
+import { UserRolesRepository } from '@database/repositories'
 import { getBossClient } from '@worker/boss/client'
 import { QUEUES, type INotifyJobData } from '@worker/boss/queues'
 import logger from '@packages/logger'
 
 interface IWorkerErrorContext {
   jobId: string
-  processor: 'bulk-generation' | 'auto-generation' | 'interest-calculation' | 'payment-reminders' | 'billing-auto-generation' | 'billing-interest-calculation' | 'billing-payment-reminders'
-  paymentConceptId?: string
+  processor: string
   error: unknown
   elapsedSeconds: string
   extraData?: Record<string, unknown>
 }
 
-/**
- * Notifies all active superadmins via email when a worker job fails.
- * Also logs the error to `quota_generation_logs` if applicable.
- */
 export async function notifySuperadminsOnError(ctx: IWorkerErrorContext): Promise<void> {
-  const errorMessage = ctx.error instanceof Error ? ctx.error.message : String(ctx.error)
-  const errorStack = ctx.error instanceof Error ? ctx.error.stack : undefined
-
   try {
     const db = DatabaseService.getInstance().getDb()
-    const userRolesRepo = new UserRolesRepository(db)
+    const errorMessage =
+      ctx.error instanceof Error ? ctx.error.message : String(ctx.error)
+    const errorStack = ctx.error instanceof Error ? ctx.error.stack : undefined
 
-    // 1. Get all active superadmin users
-    const superadmins = await userRolesRepo.getActiveSuperadminUsers()
+    // 1. Get superadmin users
+    const userRolesRepo = new UserRolesRepository(db)
+    const superadmins = await userRolesRepo.getSuperadminUsers()
 
     if (superadmins.length === 0) {
-      logger.warn('[WorkerError] No active superadmins found to notify')
+      logger.warn('[WorkerError] No superadmin users to notify')
       return
     }
 
-    // 2. Log error to quota_generation_logs if applicable
-    if (ctx.processor === 'bulk-generation' || ctx.processor === 'auto-generation') {
-      const logGeneratedBy = superadmins[0]?.id
-      if (logGeneratedBy) {
-        try {
-          const logsRepo = new QuotaGenerationLogsRepository(db)
-          await logsRepo.create({
-            generationRuleId: null,
-            generationScheduleId: null,
-            quotaFormulaId: null,
-            generationMethod: ctx.processor === 'bulk-generation' ? 'bulk' : 'scheduled',
-            periodYear: new Date().getUTCFullYear(),
-            periodMonth: new Date().getUTCMonth() + 1,
-            periodDescription: `Error: ${ctx.processor} - ${new Date().toISOString()}`,
-            quotasCreated: 0,
-            quotasFailed: 0,
-            totalAmount: null,
-            currencyId: null,
-            unitsAffected: null,
-            parameters: {
-              jobId: ctx.jobId,
-              paymentConceptId: ctx.paymentConceptId ?? null,
-              elapsedSeconds: ctx.elapsedSeconds,
-              ...ctx.extraData,
-            },
-            formulaSnapshot: null,
-            status: 'failed',
-            errorDetails: `${errorMessage}\n\n${errorStack ?? ''}`,
-            generatedBy: logGeneratedBy,
-          })
-        } catch (logError) {
-          logger.error(
-            { error: logError instanceof Error ? logError.message : logError },
-            '[WorkerError] Failed to create error log entry'
-          )
-        }
-      }
-    }
-
-    // 3. Enqueue email notifications to each superadmin
+    // 2. Enqueue email notifications to each superadmin
     const boss = getBossClient()
     const timestamp = new Date().toLocaleString('es-VE', { timeZone: 'America/Caracas' })
 
     const processorLabels: Record<string, string> = {
-      'bulk-generation': 'Generación masiva de cuotas',
-      'auto-generation': 'Generación automática de cuotas',
-      'interest-calculation': 'Cálculo de intereses',
+      'billing-interest-calculation': 'Cálculo de intereses',
+      'billing-payment-reminders': 'Recordatorios de pago',
     }
 
     const processorLabel = processorLabels[ctx.processor] ?? ctx.processor
@@ -90,17 +45,16 @@ export async function notifySuperadminsOnError(ctx: IWorkerErrorContext): Promis
       const notification: INotifyJobData = {
         userId: admin.id,
         category: 'alert',
-        title: `⚠️ Error en worker: ${processorLabel}`,
+        title: `Error en worker: ${processorLabel}`,
         body: [
           `Se produjo un error en el proceso "${processorLabel}".`,
           '',
-          `📅 Fecha: ${timestamp}`,
-          `🔑 Job ID: ${ctx.jobId}`,
-          ctx.paymentConceptId ? `📋 Concepto: ${ctx.paymentConceptId}` : null,
-          `⏱️ Tiempo transcurrido: ${ctx.elapsedSeconds}s`,
+          `Fecha: ${timestamp}`,
+          `Job ID: ${ctx.jobId}`,
+          `Tiempo transcurrido: ${ctx.elapsedSeconds}s`,
           '',
-          `❌ Error: ${errorMessage}`,
-          errorStack ? `\n📜 Stack trace:\n${errorStack}` : null,
+          `Error: ${errorMessage}`,
+          errorStack ? `\nStack trace:\n${errorStack}` : null,
         ]
           .filter(Boolean)
           .join('\n'),
@@ -108,30 +62,23 @@ export async function notifySuperadminsOnError(ctx: IWorkerErrorContext): Promis
         data: {
           processor: ctx.processor,
           jobId: ctx.jobId,
-          paymentConceptId: ctx.paymentConceptId,
           errorMessage,
-          errorStack,
-          elapsedSeconds: ctx.elapsedSeconds,
-          timestamp,
-          ...ctx.extraData,
         },
       }
 
-      await boss.send(QUEUES.NOTIFY, notification)
+      try {
+        await boss.send(QUEUES.NOTIFY, notification)
+      } catch (sendError) {
+        logger.error(
+          { error: sendError instanceof Error ? sendError.message : sendError },
+          '[WorkerError] Failed to enqueue superadmin notification'
+        )
+      }
     }
-
-    logger.info(
-      { superadminsNotified: superadmins.length, processor: ctx.processor },
-      '[WorkerError] Superadmin error notifications enqueued'
-    )
-  } catch (notifyError) {
-    // Don't let notification failures mask the original error
+  } catch (outerError) {
     logger.error(
-      {
-        error: notifyError instanceof Error ? notifyError.message : notifyError,
-        originalError: errorMessage,
-      },
-      '[WorkerError] Failed to notify superadmins'
+      { error: outerError instanceof Error ? outerError.message : outerError },
+      '[WorkerError] notifySuperadminsOnError itself failed'
     )
   }
 }

@@ -2,7 +2,6 @@ import type {
   PaymentGatewaysRepository,
   GatewayTransactionsRepository,
   PaymentsRepository,
-  PaymentPendingAllocationsRepository,
 } from '@database/repositories'
 import type { TDrizzleClient } from '@database/repositories/interfaces'
 import type { PaymentGatewayManager } from '../payment-gateways/gateway-manager'
@@ -49,7 +48,6 @@ export class ProcessWebhookService {
     private readonly gatewayTransactionsRepository: GatewayTransactionsRepository,
     private readonly paymentsRepository: PaymentsRepository,
     private readonly sendNotificationService?: SendNotificationService,
-    private readonly pendingAllocationsRepository?: PaymentPendingAllocationsRepository,
     private readonly eventLogger?: EventLogger
   ) {}
 
@@ -285,25 +283,6 @@ export class ProcessWebhookService {
         }
       }
 
-      // Confirm pending refunds when webhook reports refund completion
-      if (resolvedPaymentId && result.status === 'refunded' && this.pendingAllocationsRepository) {
-        const txPendingRepo = this.pendingAllocationsRepository.withTx(tx)
-        const pendingAllocations = await txPendingRepo.getByPaymentId(resolvedPaymentId)
-        const refundPending = pendingAllocations.find(a => a.status === 'refund_pending')
-
-        if (refundPending) {
-          await txPendingRepo.update(refundPending.id, {
-            status: 'refunded',
-            resolutionType: 'refunded',
-            resolutionNotes: `Confirmed via ${gatewayType} webhook`,
-            allocatedBy: SYSTEM_USER_ID,
-          })
-          logger.info(
-            { allocationId: refundPending.id, paymentId: resolvedPaymentId },
-            '[Webhook] Refund confirmed — allocation updated to refunded'
-          )
-        }
-      }
     })
 
     // Notifications outside transaction (fire-and-forget)

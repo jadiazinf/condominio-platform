@@ -125,42 +125,6 @@ export type TManagementCompanyMembersQuerySchema = z.infer<
 >
 
 /**
- * Query parameters for payment concepts list with filters
- */
-export type TPaymentConceptsQuery = TPaginationQuery & {
-  search?: string
-  conceptType?: string
-  condominiumId?: string
-  isActive?: boolean
-  isRecurring?: boolean
-}
-
-/**
- * Zod schema for payment concepts query parameters
- */
-export const paymentConceptsQuerySchema = paginationQuerySchema.extend({
-  search: z.string().optional(),
-  conceptType: z.string().optional(),
-  condominiumId: z.string().uuid().optional(),
-  isActive: z
-    .string()
-    .optional()
-    .transform(val => {
-      if (val === undefined || val === '') return undefined
-      return val === 'true'
-    }),
-  isRecurring: z
-    .string()
-    .optional()
-    .transform(val => {
-      if (val === undefined || val === '') return undefined
-      return val === 'true'
-    }),
-})
-
-export type TPaymentConceptsQuerySchema = z.infer<typeof paymentConceptsQuerySchema>
-
-/**
  * Query parameters for bank accounts list with filters
  */
 export type TBankAccountsQuery = TPaginationQuery & {

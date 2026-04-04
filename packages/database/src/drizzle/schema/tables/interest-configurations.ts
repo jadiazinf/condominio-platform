@@ -13,7 +13,6 @@ import {
 } from 'drizzle-orm/pg-core'
 import { condominiums } from './condominiums'
 import { buildings } from './buildings'
-import { paymentConcepts } from './payment-concepts'
 import { currencies } from './currencies'
 import { users } from './users'
 import { interestTypeEnum } from '../enums'
@@ -28,9 +27,7 @@ export const interestConfigurations = pgTable(
     buildingId: uuid('building_id').references(() => buildings.id, {
       onDelete: 'cascade',
     }),
-    paymentConceptId: uuid('payment_concept_id').references(() => paymentConcepts.id, {
-      onDelete: 'cascade',
-    }),
+    paymentConceptId: uuid('payment_concept_id'), // FK to payment_concepts removed (table deleted)
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
     interestType: interestTypeEnum('interest_type').notNull(),

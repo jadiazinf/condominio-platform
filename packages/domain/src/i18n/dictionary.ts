@@ -614,55 +614,6 @@ export const DomainLocaleDictionary = {
           invalid: 'validation.models.managementCompanies.createdBy.invalid',
         },
       },
-      paymentApplications: {
-        paymentId: {
-          required: 'validation.models.paymentApplications.paymentId.required',
-          invalid: 'validation.models.paymentApplications.paymentId.invalid',
-        },
-        quotaId: {
-          required: 'validation.models.paymentApplications.quotaId.required',
-          invalid: 'validation.models.paymentApplications.quotaId.invalid',
-        },
-        appliedAmount: {
-          required: 'validation.models.paymentApplications.appliedAmount.required',
-          invalid: 'validation.models.paymentApplications.appliedAmount.invalid',
-        },
-        appliedToPrincipal: {
-          invalid: 'validation.models.paymentApplications.appliedToPrincipal.invalid',
-        },
-        appliedToInterest: {
-          invalid: 'validation.models.paymentApplications.appliedToInterest.invalid',
-        },
-        registeredBy: {
-          invalid: 'validation.models.paymentApplications.registeredBy.invalid',
-        },
-      },
-      paymentConcepts: {
-        name: {
-          required: 'validation.models.paymentConcepts.name.required',
-          max: 'validation.models.paymentConcepts.name.max',
-        },
-        condominiumId: {
-          invalid: 'validation.models.paymentConcepts.condominiumId.invalid',
-        },
-        buildingId: {
-          invalid: 'validation.models.paymentConcepts.buildingId.invalid',
-        },
-        conceptType: {
-          required: 'validation.models.paymentConcepts.conceptType.required',
-          invalid: 'validation.models.paymentConcepts.conceptType.invalid',
-        },
-        recurrencePeriod: {
-          invalid: 'validation.models.paymentConcepts.recurrencePeriod.invalid',
-        },
-        currencyId: {
-          required: 'validation.models.paymentConcepts.currencyId.required',
-          invalid: 'validation.models.paymentConcepts.currencyId.invalid',
-        },
-        createdBy: {
-          invalid: 'validation.models.paymentConcepts.createdBy.invalid',
-        },
-      },
       paymentGateways: {
         name: {
           required: 'validation.models.paymentGateways.name.required',

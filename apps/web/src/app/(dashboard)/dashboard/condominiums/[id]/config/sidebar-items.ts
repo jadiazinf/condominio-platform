@@ -8,9 +8,15 @@ export type TCondominiumDetailIconName =
   | 'receipt'
   | 'credit-card'
   | 'file-text'
+  | 'file-spreadsheet'
+  | 'scroll-text'
   | 'user-plus'
   | 'wrench'
   | 'piggy-bank'
+  | 'shield'
+  | 'tag'
+  | 'calculator'
+  | 'dollar-sign'
 
 export interface ICondominiumDetailMenuItem {
   key: string
@@ -21,17 +27,54 @@ export interface ICondominiumDetailMenuItem {
 }
 
 export const CONDOMINIUM_DETAIL_MENU_ITEMS: ICondominiumDetailMenuItem[] = [
+  // Always first
   {
     key: 'general',
     translationKey: 'superadmin.condominiums.detail.sidebar.general',
     path: '',
     iconName: 'info',
   },
+  // Alphabetical (Spanish): Actas, Cobros, Conceptos, Edificios, Fondo de Reserva, Junta, Pagos, Presupuestos, Recibos, Servicios, Solicitudes, Usuarios
+  {
+    key: 'assembly-minutes',
+    translationKey: 'admin.condominiums.detail.sidebar.assemblyMinutes',
+    path: '/assembly-minutes',
+    iconName: 'scroll-text',
+    roles: ['management_company'],
+  },
+  {
+    key: 'charges',
+    translationKey: 'admin.condominiums.detail.sidebar.charges',
+    path: '/charges',
+    iconName: 'dollar-sign',
+    roles: ['management_company'],
+  },
+  {
+    key: 'charge-types',
+    translationKey: 'admin.condominiums.detail.sidebar.chargeTypes',
+    path: '/charge-types',
+    iconName: 'tag',
+    roles: ['management_company'],
+  },
   {
     key: 'buildings',
     translationKey: 'superadmin.condominiums.detail.sidebar.buildings',
     path: '/buildings',
     iconName: 'building',
+  },
+  {
+    key: 'reserve-fund',
+    translationKey: 'admin.condominiums.detail.sidebar.reserveFund',
+    path: '/reserve-fund',
+    iconName: 'piggy-bank',
+    roles: ['management_company'],
+  },
+  {
+    key: 'board',
+    translationKey: 'admin.condominiums.detail.sidebar.board',
+    path: '/board',
+    iconName: 'shield',
+    roles: ['management_company'],
   },
   {
     key: 'payments',
@@ -41,17 +84,17 @@ export const CONDOMINIUM_DETAIL_MENU_ITEMS: ICondominiumDetailMenuItem[] = [
     roles: ['management_company'],
   },
   {
-    key: 'payment-concepts',
-    translationKey: 'admin.condominiums.detail.sidebar.paymentConcepts',
-    path: '/payment-concepts',
-    iconName: 'file-text',
+    key: 'budgets',
+    translationKey: 'admin.condominiums.detail.sidebar.budgets',
+    path: '/budgets',
+    iconName: 'calculator',
     roles: ['management_company'],
   },
   {
-    key: 'reserve-fund',
-    translationKey: 'admin.condominiums.detail.sidebar.reserveFund',
-    path: '/reserve-fund',
-    iconName: 'piggy-bank',
+    key: 'receipts',
+    translationKey: 'admin.condominiums.detail.sidebar.receipts',
+    path: '/receipts',
+    iconName: 'file-spreadsheet',
     roles: ['management_company'],
   },
   {

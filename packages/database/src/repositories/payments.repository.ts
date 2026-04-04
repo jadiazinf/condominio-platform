@@ -2,9 +2,6 @@ import { and, eq, desc, gte, lte, sql, inArray, type SQL } from 'drizzle-orm'
 import type { TPayment, TPaymentCreate, TPaymentUpdate, TPaginatedResponse } from '@packages/domain'
 import {
   payments,
-  paymentApplications,
-  quotas,
-  paymentConcepts,
   units,
   buildings,
   currencies,
@@ -52,6 +49,7 @@ export class PaymentsRepository
       verifiedBy: r.verifiedBy,
       verifiedAt: r.verifiedAt,
       verificationNotes: r.verificationNotes,
+      billingReceiptId: r.billingReceiptId ?? null,
       createdAt: r.createdAt ?? new Date(),
       updatedAt: r.updatedAt ?? new Date(),
     }
@@ -549,86 +547,4 @@ export class PaymentsRepository
     return this.mapToEntity(results[0])
   }
 
-  /**
-   * Lists paginated payments linked to reserve fund concepts for a condominium.
-   */
-  async listReserveFundPaymentsPaginated(
-    condominiumId: string,
-    options: {
-      page?: number
-      limit?: number
-      unitId?: string
-      conceptId?: string
-      startDate?: string
-      endDate?: string
-    }
-  ): Promise<TPaginatedResponse<TPayment>> {
-    const page = options.page ?? 1
-    const limit = options.limit ?? 20
-    const offset = (page - 1) * limit
-
-    const conditions: SQL[] = [
-      eq(paymentConcepts.condominiumId, condominiumId),
-      eq(paymentConcepts.conceptType, 'reserve_fund'),
-    ]
-
-    if (options.unitId) {
-      conditions.push(eq(payments.unitId, options.unitId))
-    }
-    if (options.conceptId) {
-      conditions.push(eq(paymentConcepts.id, options.conceptId))
-    }
-    if (options.startDate) {
-      conditions.push(gte(payments.paymentDate, options.startDate))
-    }
-    if (options.endDate) {
-      conditions.push(lte(payments.paymentDate, options.endDate))
-    }
-
-    const whereClause = and(...conditions)
-
-    // Use a subquery to get distinct payment IDs with correct pagination
-    const paymentIdsResult = await this.db
-      .selectDistinct({ id: payments.id, paymentDate: payments.paymentDate })
-      .from(payments)
-      .innerJoin(paymentApplications, eq(paymentApplications.paymentId, payments.id))
-      .innerJoin(quotas, eq(paymentApplications.quotaId, quotas.id))
-      .innerJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
-      .where(whereClause)
-      .orderBy(desc(payments.paymentDate))
-      .limit(limit)
-      .offset(offset)
-
-    const countResult = await this.db
-      .select({ count: sql<number>`COUNT(DISTINCT ${payments.id})::int` })
-      .from(payments)
-      .innerJoin(paymentApplications, eq(paymentApplications.paymentId, payments.id))
-      .innerJoin(quotas, eq(paymentApplications.quotaId, quotas.id))
-      .innerJoin(paymentConcepts, eq(quotas.paymentConceptId, paymentConcepts.id))
-      .where(whereClause)
-
-    const total = countResult[0]?.count ?? 0
-
-    if (paymentIdsResult.length === 0) {
-      return { data: [], pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }
-    }
-
-    // Fetch full payment records for the page
-    const paymentIds = paymentIdsResult.map(r => r.id)
-    const results = await this.db
-      .select()
-      .from(payments)
-      .where(
-        sql`${payments.id} IN (${sql.join(
-          paymentIds.map(id => sql`${id}`),
-          sql`, `
-        )})`
-      )
-      .orderBy(desc(payments.paymentDate))
-
-    return {
-      data: results.map(record => this.mapToEntity(record)),
-      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    }
-  }
 }

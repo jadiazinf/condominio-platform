@@ -1,4 +1,4 @@
-import { eq, and, ne, desc, sql } from 'drizzle-orm'
+import { eq, and, ne, desc } from 'drizzle-orm'
 import type { TBillingReceipt } from '@packages/domain'
 import { receipts } from '../drizzle/schema'
 import type { TDrizzleClient } from './interfaces'
@@ -22,14 +22,16 @@ export class BillingReceiptsRepository extends BaseRepository<
     const r = record as TReceiptRecord
     return {
       id: r.id,
-      billingChannelId: r.billingChannelId,
+      condominiumId: r.condominiumId,
       unitId: r.unitId,
       periodYear: r.periodYear,
       periodMonth: r.periodMonth,
       receiptNumber: r.receiptNumber,
       status: r.status,
+      receiptType: r.receiptType,
       issuedAt: r.issuedAt,
       dueDate: r.dueDate,
+      parentReceiptId: r.parentReceiptId,
       subtotal: r.subtotal ?? '0',
       reserveFundAmount: r.reserveFundAmount ?? '0',
       previousBalance: r.previousBalance ?? '0',
@@ -40,6 +42,7 @@ export class BillingReceiptsRepository extends BaseRepository<
       currencyId: r.currencyId,
       replacesReceiptId: r.replacesReceiptId,
       voidReason: r.voidReason,
+      assemblyMinuteId: r.assemblyMinuteId,
       budgetId: r.budgetId,
       pdfUrl: r.pdfUrl,
       notes: r.notes,
@@ -50,8 +53,8 @@ export class BillingReceiptsRepository extends BaseRepository<
     }
   }
 
-  async findActiveByChannelAndPeriod(
-    channelId: string,
+  async findActiveByCondominiumAndPeriod(
+    condominiumId: string,
     periodYear: number,
     periodMonth: number
   ): Promise<TBillingReceipt[]> {
@@ -60,7 +63,7 @@ export class BillingReceiptsRepository extends BaseRepository<
       .from(receipts)
       .where(
         and(
-          eq(receipts.billingChannelId, channelId),
+          eq(receipts.condominiumId, condominiumId),
           eq(receipts.periodYear, periodYear),
           eq(receipts.periodMonth, periodMonth),
           ne(receipts.status, 'voided')
@@ -70,30 +73,25 @@ export class BillingReceiptsRepository extends BaseRepository<
     return results.map(r => this.mapToEntity(r))
   }
 
-  async findByUnitAndChannel(unitId: string, channelId: string): Promise<TBillingReceipt[]> {
+  async findByUnitAndCondominium(unitId: string, condominiumId: string): Promise<TBillingReceipt[]> {
     const results = await this.db
       .select()
       .from(receipts)
-      .where(and(eq(receipts.unitId, unitId), eq(receipts.billingChannelId, channelId)))
+      .where(and(eq(receipts.unitId, unitId), eq(receipts.condominiumId, condominiumId)))
       .orderBy(desc(receipts.periodYear), desc(receipts.periodMonth))
 
     return results.map(r => this.mapToEntity(r))
   }
 
   async findLastByCondominium(condominiumId: string): Promise<TBillingReceipt | null> {
-    // Join with billing_channels to filter by condominium
-    const result = await this.db
-      .select({ receipt: receipts })
+    const results = await this.db
+      .select()
       .from(receipts)
-      .innerJoin(
-        sql`billing_channels`,
-        sql`billing_channels.id = ${receipts.billingChannelId}`
-      )
-      .where(sql`billing_channels.condominium_id = ${condominiumId}`)
+      .where(eq(receipts.condominiumId, condominiumId))
       .orderBy(desc(receipts.receiptNumber))
       .limit(1)
 
-    return result[0] ? this.mapToEntity(result[0].receipt) : null
+    return results[0] ? this.mapToEntity(results[0]) : null
   }
 
   async findByReceiptNumber(receiptNumber: string): Promise<TBillingReceipt | null> {

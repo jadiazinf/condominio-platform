@@ -6,13 +6,11 @@ import {
   managementCompanyUpdateSchema,
   managementCompaniesQuerySchema,
   managementCompanyMembersQuerySchema,
-  paymentConceptsQuerySchema,
   type TManagementCompany,
   type TManagementCompanyCreate,
   type TManagementCompanyUpdate,
   type TManagementCompaniesQuerySchema,
   type TManagementCompanyMembersQuerySchema,
-  type TPaymentConceptsQuerySchema,
   ESystemRole,
 } from '@packages/domain'
 import type {
@@ -47,7 +45,6 @@ import { DatabaseService } from '@database/service'
 import { AppError } from '@errors/index'
 import type {
   ManagementCompanyMembersRepository,
-  PaymentConceptsRepository,
   AuditLogsRepository,
   CurrenciesRepository,
 } from '@database/repositories'
@@ -179,7 +176,6 @@ export class ManagementCompaniesController extends BaseController<
   private readonly locationsRepository: LocationsRepository
   private readonly usersRepository: UsersRepository
   private readonly membersRepository?: ManagementCompanyMembersRepository
-  private readonly paymentConceptsRepository?: PaymentConceptsRepository
   private readonly auditLogsRepository?: AuditLogsRepository
   private readonly currenciesRepository?: CurrenciesRepository
 
@@ -189,7 +185,6 @@ export class ManagementCompaniesController extends BaseController<
     locationsRepository: LocationsRepository,
     usersRepository: UsersRepository,
     membersRepository?: ManagementCompanyMembersRepository,
-    paymentConceptsRepository?: PaymentConceptsRepository,
     invitationsRepository?: UserInvitationsRepository,
     userRolesRepository?: UserRolesRepository,
     rolesRepository?: RolesRepository,
@@ -202,7 +197,6 @@ export class ManagementCompaniesController extends BaseController<
     this.locationsRepository = locationsRepository
     this.usersRepository = usersRepository
     this.membersRepository = membersRepository
-    this.paymentConceptsRepository = paymentConceptsRepository
     this.auditLogsRepository = auditLogsRepository
     this.currenciesRepository = currenciesRepository
     this.validateLimitsService = new ValidateSubscriptionLimitsService(
@@ -493,22 +487,6 @@ export class ManagementCompaniesController extends BaseController<
           paramsValidator(ManagementCompanyIdParamSchema),
           requireRole(ESystemRole.ADMIN),
           bodyValidator(PreferredCurrencyBodySchema),
-        ],
-      },
-      {
-        method: 'get',
-        path: '/:managementCompanyId/me/payment-concepts',
-        handler: this.getMyCompanyPaymentConcepts,
-        middlewares: [
-          authMiddleware,
-          paramsValidator(ManagementCompanyIdParamSchema),
-          requireRole(
-            ESystemRole.ADMIN,
-            ESystemRole.ACCOUNTANT,
-            ESystemRole.SUPPORT,
-            ESystemRole.VIEWER
-          ),
-          queryValidator(paymentConceptsQuerySchema),
         ],
       },
       {
@@ -1194,22 +1172,4 @@ export class ManagementCompaniesController extends BaseController<
     }
   }
 
-  private getMyCompanyPaymentConcepts = async (c: Context): Promise<Response> => {
-    const ctx = this.ctx<unknown, TPaymentConceptsQuerySchema, { managementCompanyId: string }>(c)
-
-    try {
-      if (!this.paymentConceptsRepository) {
-        return ctx.badRequest({ error: 'Payment concepts repository not configured' })
-      }
-
-      const result = await this.paymentConceptsRepository.listByManagementCompanyPaginated(
-        ctx.params.managementCompanyId,
-        ctx.query
-      )
-
-      return ctx.ok(result)
-    } catch (error) {
-      return this.handleError(ctx, error)
-    }
-  }
 }

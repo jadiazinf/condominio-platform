@@ -1,7 +1,7 @@
 'use client'
 
 import { Button as HeroUIButton } from '@heroui/button'
-import { Link } from '@heroui/link'
+import NextLink from 'next/link'
 import { cn } from '@heroui/theme'
 import { forwardRef, ElementType, ReactNode, ComponentPropsWithoutRef } from 'react'
 
@@ -136,7 +136,7 @@ export const Button = forwardRef<HTMLButtonElement, IButtonProps>(function Butto
   // If href is provided, render as Link (with type assertion for polymorphic compatibility)
   if (href) {
     return (
-      <HeroUIButton as={Link} href={href} target={target} {...(buttonProps as any)}>
+      <HeroUIButton as={NextLink} href={href} target={target} {...(buttonProps as any)}>
         {children}
       </HeroUIButton>
     )

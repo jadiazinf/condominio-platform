@@ -2,7 +2,6 @@ import { z } from 'zod'
 import { baseModelSchema, dateField } from '../../shared/base-model.schema'
 import { condominiumSchema } from '../condominiums/schema'
 import { buildingSchema } from '../buildings/schema'
-import { paymentConceptSchema } from '../payment-concepts/schema'
 import { currencySchema } from '../currencies/schema'
 import { userSchema } from '../users/schema'
 import { DomainLocaleDictionary } from '../../i18n/dictionary'
@@ -42,7 +41,6 @@ export const interestConfigurationSchema = baseModelSchema.extend({
   // Relations
   condominium: condominiumSchema.optional(),
   building: buildingSchema.optional(),
-  paymentConcept: paymentConceptSchema.optional(),
   currency: currencySchema.optional(),
   createdByUser: userSchema.optional(),
 })
